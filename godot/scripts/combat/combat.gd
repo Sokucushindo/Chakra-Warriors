@@ -10,9 +10,9 @@ const BEATS := {"katon": "fuuton", "fuuton": "raiton", "raiton": "doton", "doton
 ## ---------------------------------------------------------------- kontrol (stun/bağlama) azalan getirisi
 ## Aynı hedefe 8 sn içinde art arda: süre %100 -> %60 -> %35, dördüncüde 4 sn direnç.
 ## Kesintisiz kontrol en fazla 3 sn sürer; sonra hedef kurtulur ve 3 sn dirençli olur ("stun at kes" yok).
-## Arena deneme sürümünde açık: yeni dövüş kuralları (sendeletme, kombodan jutsuya geçiş, zarsız Kawarimi...). Ana oyunda kapalı;
-## arenada olgunlaşınca ana oyuna alınacak.
-var storm := false
+## Yeni dövüş kuralları (sendeletme, kombo dalları, kombodan jutsuya geçiş, zarsız Kawarimi / blok, yere düşme-kalkma...).
+## Arenada olgunlaştı; kullanıcı 2026-11-15'te ana oyuna alınmasını istedi: artık her yerde açık.
+var storm := true
 const CC := ["stun", "bind", "frozen", "fear", "sleep", "paralyze"]
 const CC_MAX := 3.0
 
@@ -322,6 +322,19 @@ func kawarimi_log(at: Vector3, push := Vector3.ZERO) -> void:
 ## Kombo sendelemesi (arena kuralları): saldıran kombonun ortasındaysa, yediren darbe hangi yoldan gelirse gelsin (silah, tarzın
 ## özel etkisi, ek darbe) rakip saldıranın SIRADAKİ vuruşuna kadar sendeler — ara vermeden sürdürülen kombo kopmaz.
 ## Kombonun son vuruşunda / kombo dışında 0 döner (olağan sendeleme süresi).
+## Kombo ortasındaki darbe (arena kuralları): hangi yoldan gelirse gelsin (tarzın gölgesi, yılanı, zinciri, gecikmeli etkisi)
+## rakibi sendeletir ve erişilemeyecek kadar uzağa / yükseğe atmaz; tam fırlatma bitiriş vuruşuna ve kombo dallarına kalır.
+func combo_shape(info: Dictionary) -> Dictionary:
+	if not storm or info.get("juggle", false) or info.get("force_down", false) or combo_stun(info.get("attacker")) <= 0.0:
+		return info
+	info = info.duplicate()
+	info["combo_hold"] = true
+	info["knock"] = minf(float(info.get("knock", 2.0)), 4.5)
+	if float(info.get("launch", 0.0)) > 2.5:
+		info["launch"] = 2.5   # kombo ortasında yere serilmez (yerdeki rakibe kombo sürmez, kalkarken dokunulmaz): ayakta sendeler
+	return info
+
+
 func combo_stun(atk) -> float:
 	if atk == null or not is_instance_valid(atk):
 		return 0.0
@@ -329,12 +342,12 @@ func combo_stun(atk) -> float:
 		var pc = atk.combat
 		if pc == null or pc.action != "attack" or pc.air_attack or pc.branch != "" or pc.step < 0 or pc.step >= pc.COMBO.size() - 1:
 			return 0.0
-		return clampf(float(pc._combo(pc.step)["dur"]) - float(pc.t) + float(pc._combo(pc.step + 1)["hit"]) + 0.2, 0.0, 1.9)
+		return clampf(float(pc._combo(pc.step)["dur"]) - float(pc.t) + float(pc._combo(pc.step + 1)["hit"]) + 0.6, 0.0, 2.3)
 	if atk is Enemy and atk.state == "attack" and not atk.key_step.is_empty() and atk.combo_left > 1 and atk.key_step.get("mv", {}).is_empty():
 		var sts: Array = atk.KEYED.steps(String(atk.key_step["id"]))
 		var i = int(atk.key_step["i"])
 		var spd0 = float(sts[i]["len"]) / maxf(0.05, float(atk.key_step["len"]))
-		return clampf(float(atk.key_step["len"]) - float(atk.state_t) + float(sts[(i + 1) % sts.size()]["hit"]) / spd0 + 0.2, 0.0, 1.9)
+		return clampf(float(atk.key_step["len"]) - float(atk.state_t) + float(sts[(i + 1) % sts.size()]["hit"]) / spd0 + 0.6, 0.0, 2.3)
 	return 0.0
 
 

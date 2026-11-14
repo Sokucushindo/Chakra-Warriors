@@ -159,6 +159,7 @@ func take_hit(info: Dictionary) -> void:
 		hp = 0.0
 		die(info)
 		return
+	info = Combat.combo_shape(info)
 	var dir: Vector3 = info.get("dir", Vector3.ZERO)
 	var heavy: bool = info.get("kind", "light") == "heavy" or info.get("launch", 0.0) > 0.0
 	# düz vuruş = jutsu olmayan her darbe (yakın dövüş, canavar/klon/bekçi vuruşu, boss taijutsusu): ağır olsa bile yere düşürmez,
@@ -179,8 +180,9 @@ func take_hit(info: Dictionary) -> void:
 			model.flash(0.5)
 			velocity += dir * 1.5
 			return
-	if not heavy and float(info.get("knock", 2.0)) <= 0.5 and float(info.get("stun", 0.0)) <= 0.0:
-		return   # sürekli hasar tiki: sersemletmez
+	var hold: bool = info.get("combo_hold", false) and float(info.get("knock", 2.0)) <= 0.5
+	if not heavy and float(info.get("knock", 2.0)) <= 0.5 and float(info.get("stun", 0.0)) <= 0.0 and not hold:
+		return   # sürekli hasar tiki: sersemletmez (kombo ortasındaysa sendeletir: rakip kombodan yürüyüp çıkmasın)
 	if info.get("melee", false) and not heavy and not Combat.storm:
 		# düz vuruşla stun yok (kullanıcı kuralı): irkilir, itilir ama yaptığını kesmez
 		model.flash(0.5)
@@ -206,9 +208,12 @@ func take_hit(info: Dictionary) -> void:
 	# oyuncunun kendi kombosu (5 vuruş + bitiriş) tam oynansın; klon/çoklu saldırı yağmuru kilidi kırar
 	# yarı ağırlık yalnız oyuncunun yakın dövüş kombosu için; jutsu yağmuru tam sayılır (eskiden saniyede bir jutsu yiyen düşman hiç kurtulamıyordu)
 	var w = 0.55 if info.get("attacker") is Player and info.get("melee", false) else 1.0
-	if info.get("juggle", false):
+	var ch: bool = info.get("combo_hold", false)
+	if ch:   # kombo ortası (arena): bir adımın çoklu darbesi tek sayılır, ağır / hafif ayrımı yok — bir kombo kilidi kırmaz
+		w = 0.0 if now - stun_last_ms < 300 else 0.55
+	if info.get("juggle", false) or hold:
 		w = 0.0   # havada sürdürülen kombo kilit sayacına yazılmaz (kaçış: Kawarimi)
-	stun_meter = maxf(0.0, stun_meter - (now - stun_last_ms) / 1000.0 * 0.7) + (2.0 if heavy else 1.0) * w
+	stun_meter = maxf(0.0, stun_meter - (now - stun_last_ms) / 1000.0 * 0.7) + (2.0 if heavy and not ch else 1.0) * w
 	stun_last_ms = now
 	if stun_meter >= 3.5 and size < 2.5:
 		_break_stun()

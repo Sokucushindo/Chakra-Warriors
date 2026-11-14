@@ -1578,6 +1578,7 @@ func take_hit(info: Dictionary) -> void:
 	Sfx.play("hurt", p.global_position)
 	if Game.world:
 		Game.world.env.add_shake(0.35)
+	info = Combat.combo_shape(info)   # düşmanın kombosu da aynı kurala uyar
 	var dir: Vector3 = info.get("dir", Vector3.ZERO)
 	# yere serilme yalnız gerçekten ağır darbede / havaya fırlatmada (her jutsu isabeti yere sermesin)
 	var heavy: bool = info.get("kind", "light") == "heavy" or info.get("launch", 0.0) > 0.0
@@ -1588,7 +1589,8 @@ func take_hit(info: Dictionary) -> void:
 		heavy = false
 		info = info.duplicate()
 		info["melee"] = true
-	if not heavy and float(info.get("knock", 2.0)) <= 0.5 and float(info.get("stun", 0.0)) <= 0.0:
+	var hold: bool = info.get("combo_hold", false) and float(info.get("knock", 2.0)) <= 0.5
+	if not heavy and float(info.get("knock", 2.0)) <= 0.5 and float(info.get("stun", 0.0)) <= 0.0 and not hold:
 		return
 	if info.get("melee", false) and not heavy and not Combat.storm:
 		# düz vuruşla stun yok (kullanıcı kuralı): hasar + küçük itme, saldırı/hareket kesilmez
@@ -1596,7 +1598,7 @@ func take_hit(info: Dictionary) -> void:
 		return
 	# kombo kilidi kırıcı: üst üste sersemletilince kısa dokunulmazlık + itme patlaması (düşman kombosunda sonsuz kilit yok)
 	var now = Time.get_ticks_msec()
-	stun_meter = maxf(0.0, stun_meter - (now - stun_last_ms) / 1000.0 * 1.2) + (0.0 if info.get("juggle", false) else (2.0 if heavy else 1.0))
+	stun_meter = maxf(0.0, stun_meter - (now - stun_last_ms) / 1000.0 * 1.2) + (0.0 if (info.get("juggle", false) or hold) else (2.0 if heavy else 1.0))
 	stun_last_ms = now
 	# arena kuralları: bir kombo + dalı sonuna kadar oynanır (kaçış Kawarimi); patlama yalnız üst üste ikinci komboda
 	if stun_meter >= (9.0 if Combat.storm else 4.0) and p.hp > 0.0:

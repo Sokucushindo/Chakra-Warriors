@@ -6303,7 +6303,7 @@ static func _kg_style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vec
 					for k in 5:
 						var mid = hand.lerp(end, 0.45) + side * ((k - 2) * 1.5) + Vector3.UP * (0.8 + (k % 3) * 1.2)
 						var tt = tg
-						var e2 = end
+						var e2 = aimp if tg else end   # hedef varsa ışınlar ona bükülür (dipteki rakibin arkasına düşüp ıskalıyordu)
 						who.get_tree().create_timer(k * 0.04).timeout.connect(func():
 							if not is_instance_valid(who):
 								return
