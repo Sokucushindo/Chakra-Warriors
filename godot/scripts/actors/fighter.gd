@@ -26,6 +26,7 @@ var poise = 0.0  # süper zırh (boss)
 var stun_meter := 0.0
 var stun_last_ms := 0
 var stun_armor_ms := 0
+var hitstun_len := 0.45   # bu sendelemenin süresi (arena kuralları: saldıranın kombosundaki sıradaki vuruşa kadar sürer)
 
 
 func _ready() -> void:
@@ -163,7 +164,7 @@ func take_hit(info: Dictionary) -> void:
 	# düz vuruş = jutsu olmayan her darbe (yakın dövüş, canavar/klon/bekçi vuruşu, boss taijutsusu): ağır olsa bile yere düşürmez,
 	# sersemletmez; yalnız silahın havaya fırlatan bitişi (launch >= 8) düşürür
 	var basic: bool = info.get("melee", false) or (not info.has("tier") and String(info.get("element", "")) == "" and float(info.get("stun", 0.0)) <= 0.0)
-	if basic and float(info.get("launch", 0.0)) < 8.0:
+	if basic and float(info.get("launch", 0.0)) < 8.0 and not info.get("force_down", false):
 		heavy = false
 		info = info.duplicate()
 		info["melee"] = true
@@ -180,7 +181,7 @@ func take_hit(info: Dictionary) -> void:
 			return
 	if not heavy and float(info.get("knock", 2.0)) <= 0.5 and float(info.get("stun", 0.0)) <= 0.0:
 		return   # sürekli hasar tiki: sersemletmez
-	if info.get("melee", false) and not heavy:
+	if info.get("melee", false) and not heavy and not Combat.storm:
 		# düz vuruşla stun yok (kullanıcı kuralı): irkilir, itilir ama yaptığını kesmez
 		model.flash(0.5)
 		velocity += dir * float(info.get("knock", 2.0)) * 0.5 / size
@@ -205,6 +206,8 @@ func take_hit(info: Dictionary) -> void:
 	# oyuncunun kendi kombosu (5 vuruş + bitiriş) tam oynansın; klon/çoklu saldırı yağmuru kilidi kırar
 	# yarı ağırlık yalnız oyuncunun yakın dövüş kombosu için; jutsu yağmuru tam sayılır (eskiden saniyede bir jutsu yiyen düşman hiç kurtulamıyordu)
 	var w = 0.55 if info.get("attacker") is Player and info.get("melee", false) else 1.0
+	if info.get("juggle", false):
+		w = 0.0   # havada sürdürülen kombo kilit sayacına yazılmaz (kaçış: Kawarimi)
 	stun_meter = maxf(0.0, stun_meter - (now - stun_last_ms) / 1000.0 * 0.7) + (2.0 if heavy else 1.0) * w
 	stun_last_ms = now
 	if stun_meter >= 3.5 and size < 2.5:
@@ -221,6 +224,7 @@ func take_hit(info: Dictionary) -> void:
 		model.play("knock", 0.05, 1.2, true)
 	else:
 		state = "hitstun"
+		hitstun_len = maxf(float(info.get("hitstun", 0.62)), Combat.combo_stun(info.get("attacker"))) if Combat.storm else 0.45
 		velocity = dir * info.get("knock", 2.0) / size
 		model.play("hit" if randf() < 0.5 else "hit_head", 0.04, 1.4, true)
 
@@ -278,6 +282,7 @@ func die(_info: Dictionary) -> void:
 
 func stagger(t: float) -> void:
 	state = "hitstun"
+	hitstun_len = 0.45
 	state_t = -t
 	model.play("hit", 0.05, 0.8, true)
 

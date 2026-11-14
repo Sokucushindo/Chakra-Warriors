@@ -81,16 +81,35 @@ static func populate() -> void:
 			var r = randf()
 			var rank = 0 if r < 0.38 else (1 if r < 0.74 else (2 if r < 0.95 else 3))
 			new_person(vid, rank)
+	clan_floor()
+
+
+## Köyün büyük klanları (kanon: Uchiha ve Hyūga Konoha'nın en kalabalık klanlarıdır; mahalleleri köyde durur) dünyadaki
+## ninjalar arasında da hep temsil edilir: yaşayan üyesi CLAN_MIN'in altına düşerse klan mahallesinden yeni ninjalar yetişir.
+## (Ölçüm 2026-11-14: 142 kişilik dünyada hiç Uchiha doğmuyordu -> Sharingan / Mangekyō / Rinnegan zinciri hiç başlamıyordu.)
+const CLAN_MIN := 3
+static func clan_floor() -> void:
+	for vid in MAJOR:
+		if Game.village(vid).is_empty():
+			continue
+		for c in BIG_CLANS:
+			if float(BIG_CLANS[c]) < 3.0 or not Data.clans.has(c) or not vid in Data.clans[c].get("villages", []):
+				continue
+			var n = all().values().filter(func(p): return String(p["clan"]) == c and String(p["village"]) == vid and alive(p) and not is_rogue(p)).size()
+			for i in maxi(0, CLAN_MIN - n):
+				var r = randf()
+				var np = new_person(vid, 0 if r < 0.3 else (1 if r < 0.7 else 2), String(c))
+				log_event(np, "%s klanının mahallesinde yetişti" % ClanWorld.clan_name(String(c)))
 
 
 ## Köyde doğup büyümüş biri: klanı köyün klanlarından (ya da klansız), kan soyu köyün soylarından nadiren, elementi köyün eğilimiyle
-static func new_person(vid: String, rank: int) -> Dictionary:
+static func new_person(vid: String, rank: int, force_clan := "") -> Dictionary:
 	var d = data()
 	d["seq"] = int(d["seq"]) + 1
 	var id = "w%d" % int(d["seq"])
 	var female = randf() < 0.4
-	var clan = ""
-	if randf() < 0.42:
+	var clan = force_clan
+	if clan == "" and randf() < 0.42:
 		var cands = []
 		for c in Data.clans:
 			if c != "none" and not c in Progress.UNPLAYABLE_CLANS and vid in Data.clans[c].get("villages", []):
@@ -257,6 +276,7 @@ func world_tick() -> void:
 		if n < PER_MAJOR - 4 and not Game.village(vid).is_empty():
 			var np = new_person(vid, 0)
 			log_event(np, "Akademiden mezun oldu")
+	clan_floor()
 
 
 static func _life(p: Dictionary) -> void:
@@ -341,6 +361,12 @@ static func _die(p: Dictionary, why: String) -> void:
 	c["grief"] = true
 	log_event(c, "Yakını %s'yi kaybetti" % String(p["name"]))
 	var eye: Array = c.get("eye", [0, 0])
+	if int(eye[0]) == 0 and String(c.get("clan", "")) == "uchiha":
+		# kanon: Sharingan büyük bir kaybın acısıyla uyanır
+		c["eye"] = [1, 1]
+		eye = c["eye"]
+		log_event(c, "%s'nin ölümünün acısıyla Sharingan'ı uyandı" % String(p["name"]))
+		_learn(c)
 	if int(eye[0]) == 4 and int((p.get("eye", [0, 0]) as Array)[0]) == 4:
 		# kanon (Madara-Izuna): Mangekyō'lu yakının gözleri nakledilir -> Ebedi Mangekyō, körlük biter
 		c["eye"] = [5, 3]
@@ -458,6 +484,12 @@ static func _kinjutsu(p: Dictionary) -> bool:
 static func _grow_eye(p: Dictionary) -> bool:
 	var e: Array = p.get("eye", [0, 0])
 	var k = int(e[0])
+	if k == 0 and String(p.get("clan", "")) == "uchiha" and int(p["level"]) >= 25 and not p.get("eye_lost", false):
+		# kanon: gözü uyanmamış Uchiha'nın Sharingan'ı ölüm kalım anında / güçlü bir duyguyla açılır
+		p["eye"] = [1, 1]
+		log_event(p, "Zorlu bir çarpışmada Sharingan'ı uyandı")
+		_learn(p)
+		return true
 	if k == 1 and int(e[1]) < 3 and int(p["level"]) >= 30 + int(e[1]) * 25:
 		p["eye"] = [1, int(e[1]) + 1]
 		log_event(p, "Sharingan'ı %d tomoe oldu" % (int(e[1]) + 1))

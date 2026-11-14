@@ -23,8 +23,13 @@ var step = -1
 var t = 0.0          # mevcut hareketin geçen süresi
 var action = ""      # "", attack, cast, throw, sub, hitstun, knockdown, guard, charge, chakra_dash
 var did_hit = false
+var landed = false       # bu adımda vuruş hedefe değdi: kombodan jutsuya geçilebilir
 var buffered = false
 var extra_done := 0
+const SM = preload("res://scripts/combat/storm_moves.gd")   # arena kuralları: temel kombo + kombo dalları
+var branch := ""        # kombo dalı: "" düz, "up" havaya kaldırma, "air" havada, "down" yere serme
+var bstep := 0
+var branch_hint := 0.0  # deneme betikleri için yön (1 ileri, -1 geri); 0 = klavyeden oku
 var _seal_fail := false
 var cd_max := {}     # jutsu -> bu kullanımdaki toplam bekleme (hasara göre uzayabilir; HUD dolum çubuğu)
 var _jdmg := {}      # jutsu -> bu kullanımda verdiği toplam hasar
@@ -185,7 +190,16 @@ func attack() -> void:
 	var ca = p.get_node_or_null("CastAnim")
 	if ca:
 		ca.finish()   # jutsunun bitiş pozu sürerken vurulursa iki poz üst üste binip kollar takılıyordu
+	branch = ""
 	if not p.grounded and p.wall_n == Vector3.ZERO:
+		# havada: rakip yakınsa hava kombosu (ön tekme, döner tekme, yere çakma); değilse eski dalış
+		var at = _auto_target(6.0) if Combat.storm else null
+		if at and at.global_position.distance_to(p.global_position) < 5.5 and "grounded" in at and not at.grounded:   # yalnız havadaki rakibe
+			branch = "air"
+			bstep = 0
+			step = 0
+			_start_step()
+			return
 		_air_attack()
 		return
 	step = step + 1 if combo_reset > 0.0 else 0
@@ -203,11 +217,21 @@ func _start_step() -> void:
 	action = "attack"
 	t = 0.0
 	did_hit = false
+	landed = false
 	extra_done = 0
 	buffered = false
-	var tgt = _auto_target()
+	var tgt = _auto_target(40.0 if Combat.storm else 7.0)
+	# kombo takibi: önceki vuruş (hangi yoldan olursa olsun) bu rakibin canını götürdüyse, savrulan rakibin peşine atılır
+	chase = Combat.storm and tgt != null and (step > 0 or branch != "") and tgt == _chase_tgt and "hp" in tgt and float(tgt.hp) < _chase_hp - 0.01
+	_chase_tgt = tgt
+	_chase_hp = float(tgt.hp) if tgt != null and "hp" in tgt else 0.0
+	if tgt and not chase and tgt.global_position.distance_to(p.global_position) > 14.0:
+		tgt = null
 	if tgt:
 		face_to(tgt)
+		if chase and tgt.global_position.distance_to(p.global_position) > 5.0:   # savrulan rakibin peşine atılış
+			FX.speed_lines(p.global_position + Vector3.UP, p.face_dir())
+			Sfx.play("whoosh", p.global_position, 1.5, 0.6)
 	else:
 		var f = p.wish_dir() if p.wish_dir().length() > 0.1 else p.cam_forward()
 		p.facing = atan2(-f.x, -f.z)
@@ -329,10 +353,12 @@ func move_override(dt: float) -> bool:
 		"hitstun":
 			p.velocity.x = move_toward(p.velocity.x, 0, dt * 30); p.velocity.z = move_toward(p.velocity.z, 0, dt * 30)
 			p.velocity.y -= Player.GRAV * dt
-			if t > 0.4:
+			if t > hitstun_len:
 				action = ""
 			return true
 		"knockdown":
+			if Combat.storm:
+				return _storm_down(dt)
 			p.velocity.x = move_toward(p.velocity.x, 0, dt * 8); p.velocity.z = move_toward(p.velocity.z, 0, dt * 8)
 			p.velocity.y -= Player.GRAV * dt
 			if t > 1.0 and p.grounded and p.model.current != "getup":
@@ -350,9 +376,89 @@ func move_override(dt: float) -> bool:
 	return false
 
 
+# ------------------------------------------------------------------ yere düşme (arena kuralları; düşmanla aynı: Enemy._storm_down)
+var dbg_wid := ""
+var hitstun_len := 0.4     # bu sendelemenin süresi (arena: saldıranın sıradaki vuruşuna kadar)
+var chase := false         # kombo takibi: önceki vuruş değdi, savrulan rakibin peşine atılır
+var _chase_tgt: Node3D = null
+var _chase_hp := 0.0
+var down_hard := false     # yere çakıldı / serildi: toparlanma yok
+var down_bounced := false
+var down_land := -1.0      # yere serildiği an (t); < 0: hâlâ havada / sekiyor
+var down_otg := 0          # yerdeyken yediği ek darbe (en çok 1)
+var down_tech := false     # taklayla toparlanıyor
+var _tech_ms := -9999
+
+
+## Savrulur -> yere çarpar ve bir kez seker -> yerde kalır -> kalkar (kalkarken dokunulmaz).
+## Yere değerken zıplama tuşu (0.3 sn pencere): geri taklayla ayağa iner (çakılma / serilmede olmaz).
+func _storm_down(dt: float) -> bool:
+	p.velocity.x = move_toward(p.velocity.x, 0, dt * 8); p.velocity.z = move_toward(p.velocity.z, 0, dt * 8)
+	p.velocity.y -= Player.GRAV * dt
+	var now = Time.get_ticks_msec()
+	if Input.is_action_just_pressed("jump"):
+		_tech_ms = now
+	if down_tech:
+		if (p.flip_t < 0.0 and p.grounded and t > 0.2) or t > 1.2:
+			down_tech = false
+			action = ""
+			p.model.overlay.set_pose("leap", 0.0)
+		return true
+	if down_land < 0.0:
+		if p.grounded and t > 0.1 and p.velocity.y <= 0.5:
+			if not down_bounced:
+				if not down_hard and now - _tech_ms < 300:
+					_tech_ms = -9999
+					_start_tech()
+					return true
+				down_bounced = true
+				Combat.down_impact(p, down_hard)
+				p.velocity.y = 6.0 if down_hard else 4.2
+				p.velocity.x *= 0.6; p.velocity.z *= 0.6
+				t = 0.11
+			else:
+				down_land = t
+				FX.dust(p.global_position, 0.6)
+		return true
+	if t > down_land + 0.5 and p.model.current != "getup":
+		p.model.play("getup", 0.1, 1.7, true)
+		invuln = maxf(invuln, 0.9)   # kalkarken dokunulmaz
+	if t > down_land + 1.25:
+		action = ""
+		invuln = maxf(invuln, 0.25)
+	return true
+
+
+## Arena: yenilen oyuncu yere serilir (ölüm yok; raunt biter)
+func take_hit_down() -> void:
+	action = "knockdown"
+	t = 0.0
+	down_hard = true
+	down_bounced = false
+	down_land = -1.0
+	down_tech = false
+	p.velocity = -p.face_dir() * 7.0 + Vector3.UP * 6.0
+	p.model.play("knock", 0.05, 1.2, true)
+
+
+func _start_tech() -> void:
+	var d = Vector3(p.velocity.x, 0, p.velocity.z)
+	d = d.normalized() if d.length() > 0.8 else -p.face_dir()
+	down_tech = true
+	t = 0.0
+	invuln = 0.55
+	p.velocity = d * 6.0 + Vector3.UP * 7.0
+	p.flip_axis = Vector3.UP.cross(d).normalized()
+	p.flip_kind = "tuck"
+	p.flip_t = 0.001
+	p.model.play("air", 0.05)
+	FX.dust(p.global_position, 0.6)
+	Sfx.play("whoosh", p.global_position, 1.3, 0.6)
+
+
 func _do_attack(dt: float) -> bool:
 	var c: Dictionary = _combo(step)
-	var tgt = _auto_target()
+	var tgt = _auto_target(40.0 if chase else 7.0)
 	if air_attack:
 		p.velocity.y -= Player.GRAV * dt * 0.5
 		if not did_hit:
@@ -367,6 +473,12 @@ func _do_attack(dt: float) -> bool:
 			FX.impact(p.global_position, Color(0.9, 0.8, 0.6), 0.6)
 			Combat.hit_sphere(p, p.global_position + Vector3.UP * 0.5, 2.2, {"dmg": 8.0 * Stats.melee_mult(Game.profile), "knock": 10.0, "launch": 4.0, "kind": "heavy", "melee": true})
 		return true
+	if c.get("kick", false) and not c.has("keys"):
+		# tekme gerçek hareket: diz çekilir, vuruş anında bacak açılır, hemen geri toplanır (eskiden bacak adım boyunca dümdüz asılı kalıyordu)
+		var kh: float = c["hit"]
+		p.model.overlay.kick_ext = smoothstep(kh - 0.07, kh, t) * (1.0 - smoothstep(kh + 0.07, kh + 0.2, t))
+		if t > kh + 0.16:
+			p.model.overlay.set_pose("kick", 0.0)
 	# hedefe atıl (homing)
 	if t < c["hit"]:
 		var lunge: float = c["lunge"]
@@ -377,7 +489,9 @@ func _do_attack(dt: float) -> bool:
 			near = 0.6
 		if tgt:
 			var dist = tgt.global_position.distance_to(p.global_position) - tgt.radius - p.radius
-			if dist > 5.0:
+			if dist > 5.0 and chase:
+				lunge = minf(80.0, maxf(0.0, dist - stand) / maxf(0.05, c["hit"] - t))   # kombo takibi: savurduğu rakibe yetişir
+			elif dist > 5.0:
 				pass   # uzaktaki hedefe kayarak yaklaşmak yok (savaşta Shift'siz koşu gibi görünüyordu): normal adım
 			elif dist > near and float(c["lunge"]) > 0.0:   # lunge 0: yerinde (Samehada dönüşü kaymasın)
 				lunge = minf(9.0, maxf(0.0, dist - stand) / maxf(0.05, c["hit"] - t))
@@ -394,7 +508,12 @@ func _do_attack(dt: float) -> bool:
 			p.velocity.x = rv.x; p.velocity.z = rv.z
 		else:
 			p.velocity.x = move_toward(p.velocity.x, 0, dt * 60); p.velocity.z = move_toward(p.velocity.z, 0, dt * 60)
-	p.velocity.y -= Player.GRAV * dt
+	if branch == "air" and tgt:
+		p.velocity.y = clampf((tgt.global_position.y - p.global_position.y) * 8.0, -10.0, 14.0)   # havada rakibin hizasında kalır
+	elif branch == "air":
+		p.velocity.y = move_toward(p.velocity.y, 0.0, dt * 60.0)
+	else:
+		p.velocity.y -= Player.GRAV * dt
 	if not did_hit and t >= c["hit"] and c.has("chain_kind"):
 		did_hit = true
 		_chain_strike(c, tgt)
@@ -417,6 +536,8 @@ func _do_attack(dt: float) -> bool:
 	if not did_hit and t >= c["hit"]:
 		did_hit = true
 		var pt = p.global_position + Vector3.UP * 1.1 + p.face_dir() * (p.radius + c["reach"] * 0.6)
+		if Combat.storm and tgt and branch == "":
+			pt.y += clampf(tgt.global_position.y - p.global_position.y, -0.5, 1.4)   # havadaki / yerdeki rakibe nişan
 		if c.get("gust", false):
 			_gunbai_gust(_ci(step))
 		if c.has("rai"):
@@ -430,6 +551,8 @@ func _do_attack(dt: float) -> bool:
 				Game.world.env.add_shake(0.7)
 		if not hits.is_empty():
 			_on_hit_fx(pt, c)
+			landed = true
+			_shave_cd(0.8 if c.get("heavy", false) else 0.3)   # isabetli vuruş jutsu beklemesini kısaltır (düşmanla aynı)
 			var armed_m = String(Gear.weapon(Game.profile).get("style", "fist")) != "fist" and bool(Game.profile.get("weapon_drawn", false))
 			Mastery.gain(Game.profile, "kenjutsu" if armed_m else "taijutsu", 0.02 * hits.size())
 			Aging.train(0.0015 * hits.size())
@@ -438,18 +561,34 @@ func _do_attack(dt: float) -> bool:
 				_special_hit(h, pt, c)
 				if c.has("keyed_id"):
 					KEYED.on_target(c["keyed_id"], int(c["keyed_i"]), p, h)   # kanca çekişi vb.
+				if c.has("spike") and "velocity" in h:   # yere çakma
+					h.velocity = p.face_dir() * 3.0 + Vector3.DOWN * float(c["spike"])
 	if t >= c["dur"]:
 		p.model.overlay.set_pose("kick", 0.0)
 		combo_reset = 0.5
-		if buffered and step < COMBO.size() - 1:
+		if _branch_next(c):
+			pass
+		elif buffered and branch == "" and step < COMBO.size() - 1:
 			step += 1
 			_start_step()
 		else:
+			if branch != "":
+				branch = ""
+				step = COMBO.size() - 1   # dal bitti: kombo baştan
 			action = ""
 			p.model.overlay.stop_keys()
 			if step >= COMBO.size() - 1:
 				step = -1
 	return true
+
+
+## İsabetli yakın dövüş vuruşu: bekleyen tüm jutsuların süresinden düşer
+func _shave_cd(s: float) -> void:
+	if not Combat.storm:
+		return
+	for k in cooldowns.keys():
+		if float(cooldowns[k]) > 0.0:
+			cooldowns[k] = maxf(0.0, float(cooldowns[k]) - s)
 
 
 ## Silah stillerine özel kombolar: 5 adımın animasyonları ("" = temel adım/tekme), hız, süre ve savurma çarpanı, vuruş rengi/sesi
@@ -476,6 +615,8 @@ const ID_COMBOS := {
 
 ## Kombo adımı, eldeki silaha göre (hasar, menzil, stile özel animasyon/süre/vuruş efekti)
 func _combo(i: int) -> Dictionary:
+	if branch != "":
+		return _branch_c()
 	var c = _combo_base(i)
 	var cm = Stats.skill(Game.profile, "combo")
 	if cm > 0.0:
@@ -484,6 +625,67 @@ func _combo(i: int) -> Dictionary:
 		c["speed"] = float(c.get("speed", 1.0)) * (1.0 + cm)
 		c["dmg"] = float(c["dmg"]) * (1.0 + cm * 0.5)
 	return c
+
+
+## Kombo dalı adımı (StormMoves): anahtar animasyon + dövüş değerleri; hasar silah / ustalık çarpanıyla ölçeklenir
+func _branch_c() -> Dictionary:
+	var ms: Array = SM.moves(branch, _branch_armed())
+	var mv: Dictionary = ms[clampi(bstep, 0, ms.size() - 1)]
+	var k = float(_combo_base(0)["dmg"]) / 3.6
+	var cm = Stats.skill(Game.profile, "combo")
+	var c = {"anim": "idle", "speed": 1.0, "keys": mv, "key_spd": 1.0 + cm, "dur": float(mv["len"]) / (1.0 + cm), "hit": float(mv["hit"]) / (1.0 + cm),
+		"dmg": float(mv["dmg"]) * k * (1.0 + cm * 0.5), "reach": float(mv["reach"]), "lunge": float(mv["lunge"]), "knock": float(mv["knock"]),
+		"launch": float(mv.get("launch", 0.0)), "heavy": bool(mv.get("heavy", false)), "fx": Color(1.0, 0.95, 0.85), "snd": "hit", "branch": branch}
+	if _branch_armed():   # silahlı dal: silahın menzili, vuruş rengi ve sesi
+		var b0 = _combo_base(0)
+		c["reach"] = float(c["reach"]) + float(Gear.weapon(Game.profile).get("reach", 0.0))
+		c["fx"] = b0.get("fx", c["fx"])
+		c["snd"] = b0.get("snd", "hit")
+		c["two_hand"] = bool(mv.get("two", false))
+	for kk in ["float", "spike", "down"]:
+		if mv.has(kk):
+			c[kk] = mv[kk]
+	return c
+
+
+## Dal silahla mı oynanır: elde çekili, yakın dövüş silahı varsa (uzaktan atılan silahlar ve silahsız tarzlar tekme / yumruk dalını kullanır)
+func _branch_armed() -> bool:
+	if dbg_wid != "" or not bool(Game.profile.get("weapon_drawn", false)):
+		return false
+	var gq = Gear.equipped(Game.profile, "sag")
+	if gq.is_empty() or not Gear.item(String(gq.get("id", ""))).has("weapon"):
+		return false
+	return not Gear.base_id(String(gq.get("id", ""))) in KEYED.RANGED
+
+
+## Adım bitince: dal seçimi (kombonun ortasında ileri = yukarı, geri = aşağı) ve dalın sürmesi. true: yeni adım başladı
+func _branch_next(_c: Dictionary) -> bool:
+	if not Combat.storm:
+		return false
+	if branch == "":
+		if buffered and landed and step >= 1 and step < COMBO.size() - 1 and p.grounded:
+			var f = Input.get_axis("back", "forward")
+			if branch_hint != 0.0:
+				f = branch_hint
+			if absf(f) > 0.5:
+				branch = "up" if f > 0.0 else "down"
+				bstep = 0
+				_start_step()
+				return true
+		return false
+	if branch == "up":
+		if landed and buffered:   # rakip havada: peşinden sıçrar, havada sürdürür
+			branch = "air"
+			bstep = 0
+			p.velocity.y = 14.0
+			_start_step()
+			return true
+		return false
+	if buffered and bstep < SM.moves(branch).size() - 1:
+		bstep += 1
+		_start_step()
+		return true
+	return false
 
 
 func _combo_base(i: int) -> Dictionary:
@@ -503,6 +705,10 @@ func _combo_base(i: int) -> Dictionary:
 		var sk = FightingStyles.player_key(Game.profile)   # silahsız: seçili dövüş tarzı
 		if sk != "":
 			wid = sk
+		elif Combat.storm and wid == "":
+			wid = "style_temel"   # arena: temel silahsız kombo da el yapımı akıcı hareket
+	if dbg_wid != "":
+		wid = dbg_wid   # ölçüm aracı: tarzı doğrudan seç
 	if ID_COMBOS.has(wid):
 		st = ID_COMBOS[wid]
 		c["water"] = st["water"][_ci(i)]
@@ -712,7 +918,20 @@ func _special_hit(h: Node3D, pt: Vector3, c: Dictionary) -> void:
 
 
 func _hit_info(c: Dictionary) -> Dictionary:
-	return _special_info(_hit_info_base(c), c)
+	var inf = _special_info(_hit_info_base(c), c)
+	if Combat.storm and branch == "" and not air_attack and step >= 0 and step < COMBO.size() - 1 and float(inf.get("launch", 0.0)) > 5.0:
+		inf["launch"] = 5.0   # kombonun ortasında rakip erişilemeyecek kadar yükselmez (bitiriş vuruşu tam fırlatır)
+	if c.has("branch"):
+		if c.has("float") or c.has("spike"):   # havadaki rakip: her darbede yeniden asılı kalır / yere çakılır; kilit sayacına yazılmaz
+			inf["force_down"] = true
+			inf["juggle"] = true
+			inf["kind"] = "heavy"
+			inf["launch"] = 3.0
+		if c.get("down", false):
+			inf["force_down"] = true
+		if c.has("spike") or c.get("down", false):
+			inf["hard_down"] = true   # yere çakma / serme: düşerken toparlanılamaz
+	return inf
 
 
 func _hit_info_base(c: Dictionary) -> Dictionary:
@@ -984,18 +1203,7 @@ static func safe_dest(body: Node3D, from: Vector3, dest: Vector3) -> Vector3:
 
 
 func _spawn_log(at: Vector3) -> void:
-	var log = MeshInstance3D.new()
-	var c = CylinderMesh.new()
-	c.top_radius = 0.22; c.bottom_radius = 0.24; c.height = 1.5; c.radial_segments = 10
-	c.material = Props.toon_color(Color(0.55, 0.38, 0.22))
-	log.mesh = c
-	get_tree().current_scene.add_child(log)
-	log.global_position = at + Vector3.UP * 0.75
-	log.rotation = Vector3(randf_range(-0.3, 0.3), randf() * TAU, randf_range(-0.3, 0.3))
-	var tw = log.create_tween()
-	tw.tween_property(log, "rotation:x", PI * 0.5, 0.5).set_delay(0.3)
-	tw.tween_property(log, "scale", Vector3.ONE * 0.01, 0.3).set_delay(1.5)
-	tw.tween_callback(log.queue_free)
+	Combat.kawarimi_log(at, p.face_dir())
 
 
 # ------------------------------------------------------------------ kunai/shuriken/tuzaklar
@@ -1081,7 +1289,9 @@ func begin_cast(jid: String) -> void:
 		return
 	if jid != "henge":
 		_break_henge()
-	if action != "" and action != "guard" and action != "charge":
+	# kombodan jutsuya geçiş: vuruş hedefe değdiyse kombo kesilip mühüre geçilir (hızlı mühür)
+	var from_combo = Combat.storm and action == "attack" and landed and not air_attack
+	if action != "" and action != "guard" and action != "charge" and not from_combo:
 		return
 	var j: Dictionary = Data.jutsu.get(jid, {})
 	if j.is_empty():
@@ -1112,7 +1322,7 @@ func begin_cast(jid: String) -> void:
 			return
 	# moda bağlı teknikler: animedeki gibi yalnız sennin modunda / kuyruklu canavar modunda atılır
 	var need = String(j.get("need", ""))
-	if need == "sage" and not (modes and modes.sage):
+	if need == "sage" and not (modes and modes.sage) and not Game.profile.get("jubi_jinchuriki", false):   # On Kuyruk jinchūrikisi: Altı Yol senjutsusu hep açık
 		Hud.msg("%s sadece sennin modunda atılabilir." % String(j["name"]), Color(1, 0.7, 0.4))
 		return
 	var in_beast = modes and (modes.beast or (modes.cloak != null and modes.cloak.level > 0))
@@ -1218,6 +1428,13 @@ func begin_cast(jid: String) -> void:
 	_jdmg[jid] = 0.0
 	_jcast_t[jid] = Time.get_ticks_msec() / 1000.0
 	var tier = int(j.get("tier", 2))
+	if from_combo:
+		branch = ""
+		p.model.overlay.stop_keys()
+		p.model.overlay.set_pose("kick", 0.0)
+		step = -1
+		buffered = false
+		landed = false
 	cast_jutsu = jid
 	action = "cast"
 	t = 0.0
@@ -1229,7 +1446,7 @@ func begin_cast(jid: String) -> void:
 		var f = p.cam_forward()
 		p.facing = atan2(-f.x, -f.z)
 	# mühürler + jutsuya özel hazırlık/salınım koreografisi (CastAnim)
-	cast_anim = CastAnim.play(p, jid)
+	cast_anim = CastAnim.play(p, jid, 0.3 if from_combo else -1.0)
 	cast_time = cast_anim.release_t
 	if seals.size() > 0:
 		Hud.show_seals(seals)
@@ -1276,6 +1493,10 @@ func take_hit(info: Dictionary) -> void:
 	if p.has_meta("shintenshin_t"):   # boş bedene darbe: Yamanaka'nın ruhu bedene geri çekilir
 		Combat.popup_text(p.global_position + Vector3.UP * 2.4, "Ruh bedene döndü!", Color(0.8, 0.65, 1))
 		Jutsu.shintenshin_release(p, p.get_meta("shintenshin_t"))
+	if Combat.storm and action == "knockdown" and down_land >= 0.0 and float(info.get("knock", 2.0)) > 0.5:
+		if down_otg >= 1:
+			return   # yerdeyken yalnız bir ek darbe yer (yerde sonsuz dövülmez)
+		down_otg += 1
 	var atk: Node3D = info.get("attacker")
 	var dmg: float = info.get("dmg", 5.0) * Combat.jutsu_factor(info)
 	dmg *= Combat.element_mult(info.get("element", ""), Game.profile.get("elements", [""])[0])
@@ -1315,6 +1536,7 @@ func take_hit(info: Dictionary) -> void:
 				info["kind"] = "heavy"
 			else:
 				p.chakra -= cost
+				p.model.overlay.guard_hit(0.5 + blocked / maxf(1.0, p.max_hp) * 12.0)
 				FX.hit_spark(p.global_position + Vector3.UP * 1.2 + p.face_dir() * 0.5, Color(0.6, 0.85, 1.0), 0.6)
 				Sfx.play("block", p.global_position)
 				p.velocity += info.get("dir", Vector3.ZERO) * (3.0 + maxi(0, tier) * 1.5)
@@ -1362,21 +1584,22 @@ func take_hit(info: Dictionary) -> void:
 	# düz vuruş = jutsu olmayan her darbe (yakın dövüş, canavar/klon/bekçi vuruşu, boss taijutsusu): ağır olsa bile yere düşürmez,
 	# sersemletmez; yalnız silahın havaya fırlatan bitişi (launch >= 8) düşürür
 	var basic: bool = info.get("melee", false) or (not info.has("tier") and String(info.get("element", "")) == "" and float(info.get("stun", 0.0)) <= 0.0)
-	if basic and float(info.get("launch", 0.0)) < 8.0:
+	if basic and float(info.get("launch", 0.0)) < 8.0 and not info.get("force_down", false):
 		heavy = false
 		info = info.duplicate()
 		info["melee"] = true
 	if not heavy and float(info.get("knock", 2.0)) <= 0.5 and float(info.get("stun", 0.0)) <= 0.0:
 		return
-	if info.get("melee", false) and not heavy:
+	if info.get("melee", false) and not heavy and not Combat.storm:
 		# düz vuruşla stun yok (kullanıcı kuralı): hasar + küçük itme, saldırı/hareket kesilmez
 		p.velocity += dir * float(info.get("knock", 2.0)) * 0.25
 		return
 	# kombo kilidi kırıcı: üst üste sersemletilince kısa dokunulmazlık + itme patlaması (düşman kombosunda sonsuz kilit yok)
 	var now = Time.get_ticks_msec()
-	stun_meter = maxf(0.0, stun_meter - (now - stun_last_ms) / 1000.0 * 1.2) + (2.0 if heavy else 1.0)
+	stun_meter = maxf(0.0, stun_meter - (now - stun_last_ms) / 1000.0 * 1.2) + (0.0 if info.get("juggle", false) else (2.0 if heavy else 1.0))
 	stun_last_ms = now
-	if stun_meter >= 4.0 and p.hp > 0.0:
+	# arena kuralları: bir kombo + dalı sonuna kadar oynanır (kaçış Kawarimi); patlama yalnız üst üste ikinci komboda
+	if stun_meter >= (9.0 if Combat.storm else 4.0) and p.hp > 0.0:
 		stun_meter = 0.0
 		invuln = 1.0
 		action = ""
@@ -1384,15 +1607,32 @@ func take_hit(info: Dictionary) -> void:
 		FX.ring(p.global_position + Vector3.UP * 0.9, Color(0.7, 0.9, 1.0), 4.5, 0.35)
 		Combat.hit_sphere(p, p.global_position + Vector3.UP, 3.2, {"dmg": 6.0, "knock": 14.0, "kind": "light"})
 		return
+	if action == "cast" and Combat.storm:   # mühür yarıda kesildi: teknik uzun beklemeye girmez
+		cooldowns[cast_jutsu] = minf(float(cooldowns.get(cast_jutsu, 0.0)), 2.0)
+	if action == "attack":
+		branch = ""
+		p.model.overlay.stop_keys()
+		p.model.overlay.set_pose("kick", 0.0)
+		air_attack = false
 	t = 0.0
 	if aura:
 		_update_charge(0)
 	if heavy and Combat.knocks_down(info):
+		if action != "knockdown":
+			down_otg = 0
 		action = "knockdown"
-		p.velocity = dir * info.get("knock", 8.0) * 0.4 + Vector3.UP * (info.get("launch", 0.0) * 0.6 + 2.5)
+		down_hard = bool(info.get("hard_down", false))
+		down_bounced = false
+		down_land = -1.0
+		down_tech = false
+		if Combat.storm:   # arena kuralları: oyuncu da düşmanla aynı yüksekliğe / uzaklığa savrulur
+			p.velocity = dir * info.get("knock", 8.0) + Vector3.UP * (info.get("launch", 0.0) + 3.0)
+		else:
+			p.velocity = dir * info.get("knock", 8.0) * 0.4 + Vector3.UP * (info.get("launch", 0.0) * 0.6 + 2.5)
 		p.model.play("knock", 0.05, 1.2, true)
 	else:
 		action = "hitstun"
+		hitstun_len = maxf(float(info.get("hitstun", 0.62)), Combat.combo_stun(info.get("attacker"))) if Combat.storm else 0.4
 		p.velocity = dir * info.get("knock", 2.0) * 0.35
 		p.model.play("hit" if randf() < 0.5 else "hit_head", 0.04, 1.4, true)
 	p.model.overlay.set_pose("seal", 0.0)

@@ -73,6 +73,7 @@ const TABLE := {
 	"style_chidori": [preload("res://scripts/combat/style_chidori_anim.gd"), 1.05],
 	"style_hiraishin": [preload("res://scripts/combat/style_hiraishin_anim.gd"), 1.15],
 	"style_rinnegan": [preload("res://scripts/combat/style_rinnegan_anim.gd"), 1.0],
+	"style_temel": [preload("res://scripts/combat/storm_moves.gd"), 1.0],   # arena: temel silahsız kombo
 	"style_tip": [preload("res://scripts/combat/style_tip_anim.gd"), 1.1],
 	"style_kakuzu": [preload("res://scripts/combat/style_kakuzu_anim.gd"), 0.95],
 	"style_jashin": [preload("res://scripts/combat/style_jashin_anim.gd"), 1.0],
@@ -135,6 +136,10 @@ static func two_off(id: String) -> float:
 ## lunge_mul (kurulurken kayma), special (silah özelliğini ez: "" = yok). Görsel/alan etkileri on_strike'ta.
 static func mods(id: String, i: int) -> Dictionary:
 	match id:
+		"style_temel":
+			if i == 5:
+				return {"knock": 16.0, "launch": 5.0, "heavy": true, "special": ""}
+			return {}
 		"style_juken":
 			var m = {"lunge_mul": 0.9, "tenketsu": true, "special": ""}
 			match i:

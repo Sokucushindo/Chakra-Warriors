@@ -445,6 +445,8 @@ func interact(it: Dictionary) -> void:
 	match String(it.get("kind", "")):
 		"beast_seal":
 			_seal_dialog(it.get("beast"))
+		"jubi_revive":
+			WorldJubi.player_revive(it)
 		"beast_talk":
 			_mind_dialog()
 		"mind_exit":
@@ -453,6 +455,9 @@ func interact(it: Dictionary) -> void:
 
 func _seal_dialog(b) -> void:
 	if b == null or not is_instance_valid(b):
+		return
+	if String(b.id) == "jubi":   # On Kuyruk kaba / bedene sığmaz: kendi penceresi
+		WorldJubi.seal_dialog(b)
 		return
 	var pl = Game.player
 	var knows_seal = false

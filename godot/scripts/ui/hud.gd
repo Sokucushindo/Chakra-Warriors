@@ -19,6 +19,7 @@ var msg_lbl: Label
 var msg_t = 0.0
 var prompt_lbl: Label
 var region_lbl: Label
+var doom_lbl: Label      # dünya tehdidi sayacı (Mugen Tsukuyomi)
 var region_name = ""
 var objective_lbl: Label
 var obj_progress_lbl: Label
@@ -475,6 +476,12 @@ func _build_texts() -> void:
 	region_lbl.size = Vector2(800, 60)
 	region_lbl.modulate.a = 0.0
 	game_hud.add_child(region_lbl)
+	doom_lbl = UI.label("", 24, Color(1.0, 0.32, 0.3), HORIZONTAL_ALIGNMENT_CENTER)
+	doom_lbl.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	doom_lbl.position = Vector2(-300, 84)
+	doom_lbl.size = Vector2(600, 32)
+	doom_lbl.visible = false
+	game_hud.add_child(doom_lbl)
 	# görev paneli (sağda, minimap altında)
 	var obj = PanelContainer.new()
 	var osb = UI._box(Color(0.04, 0.05, 0.07, 0.5), Color(1, 1, 1, 0.07), 1, 14, 14)
@@ -660,6 +667,14 @@ func _build_boss() -> void:
 
 
 # ------------------------------------------------------------------ API
+## Dünya tehdidi sayacı (boş metin gizler)
+func doom(text: String) -> void:
+	if doom_lbl == null:
+		return
+	doom_lbl.visible = text != ""
+	doom_lbl.text = text
+
+
 func msg(text: String, col := Color(1, 1, 1), dur := 3.5) -> void:
 	msg_lbl.text = text
 	msg_lbl.modulate = col

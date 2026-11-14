@@ -88,8 +88,13 @@ func _ready() -> void:
 	WorldAmbition.ensure()
 	_dump("baslangic")
 	var turns = int(OS.get_environment("TURNS")) if OS.get_environment("TURNS") != "" else 80
+	WorldAssault.D()["next"] = 0.0   # deneme: saldırı sırası gelmiş sayılır
 	for i in turns:
 		WorldAmbition.world_tick()
+		if not (WorldAssault.D()["plan"] as Dictionary).is_empty() and not Game.profile.has("_ap"):
+			Game.profile["_ap"] = true
+			print("AMB tur %d saldiri plani=%s" % [i, str(WorldAssault.D()["plan"])])
+	print("AMB saldiri adaylari=%s" % str(WorldAssault.candidates().map(func(q): return [String(q["name"]), int(WorldAssault.power(q))])))
 	_dump("%d tur sonra" % turns)
 	var bs = TailedBeasts.beasts()
 	for id in bs:

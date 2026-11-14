@@ -7,8 +7,11 @@ var tgt: Node3D = null
 var cd = 0.0
 
 
+func _init() -> void:
+	team = "player"   # varsayılan; kullanan kendi tarafını yazar (düşmanın klonu düşmanın yanında)
+
+
 func _ready() -> void:
-	team = "player"
 	max_hp = 1.0
 	hp = 1.0
 	super._ready()

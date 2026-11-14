@@ -89,6 +89,8 @@ static func old_age(y: float, life: float) -> void:
 	if not p.has("flags"):
 		p["flags"] = {}
 	var fl: Dictionary = p["flags"]
+	if p.get("jubi_jinchuriki", false):
+		return   # On Kuyruk jinchūrikisinin bedeni yaşlılıktan ölmez (kanon: Hagoromo, Madara)
 	var h = heir()
 	if y < life:
 		if not fl.get("old_warned", false):

@@ -10,6 +10,9 @@ const BEATS := {"katon": "fuuton", "fuuton": "raiton", "raiton": "doton", "doton
 ## ---------------------------------------------------------------- kontrol (stun/bağlama) azalan getirisi
 ## Aynı hedefe 8 sn içinde art arda: süre %100 -> %60 -> %35, dördüncüde 4 sn direnç.
 ## Kesintisiz kontrol en fazla 3 sn sürer; sonra hedef kurtulur ve 3 sn dirençli olur ("stun at kes" yok).
+## Arena deneme sürümünde açık: yeni dövüş kuralları (sendeletme, kombodan jutsuya geçiş, zarsız Kawarimi...). Ana oyunda kapalı;
+## arenada olgunlaşınca ana oyuna alınacak.
+var storm := false
 const CC := ["stun", "bind", "frozen", "fear", "sleep", "paralyze"]
 const CC_MAX := 3.0
 
@@ -275,6 +278,89 @@ func capsule_hit(point: Vector3, f: Node3D, extra: float) -> bool:
 
 ## Yere devirme kuralı (oyuncu + NPC ortak): yalnız tekniği gerçekten havaya kaldıran (launch >= 3) ya da çok sert iten
 ## (knock >= 14) vuruş devirir; diğer ağır vuruşlar sendeletir (eskiden her jutsu vuruşu yere atıyordu)
+## Kawarimi kütüğü: kişinin durduğu yerde, göğüs hizasında belirir; darbenin yönüne devrilip yere düşer, bir kez seker, sonra kaybolur.
+## Kabuklu gövde + iki ucunda açık renk kesit (oyuncu ve düşman aynısını kullanır).
+func kawarimi_log(at: Vector3, push := Vector3.ZERO) -> void:
+	var root = Node3D.new()
+	var body = MeshInstance3D.new()
+	var c = CylinderMesh.new()
+	c.top_radius = 0.2; c.bottom_radius = 0.22; c.height = 1.1; c.radial_segments = 12
+	c.material = Props.toon_color(Color(0.42, 0.28, 0.16))
+	body.mesh = c
+	root.add_child(body)
+	for sy in [-1.0, 1.0]:
+		var cap = MeshInstance3D.new()
+		var cm = CylinderMesh.new()
+		cm.top_radius = 0.185 if sy > 0.0 else 0.205; cm.bottom_radius = cm.top_radius; cm.height = 0.02; cm.radial_segments = 12
+		cm.material = Props.toon_color(Color(0.84, 0.7, 0.46))
+		cap.mesh = cm
+		cap.position.y = sy * 0.555
+		root.add_child(cap)
+	get_tree().current_scene.add_child(root)
+	var d = Vector3(push.x, 0, push.z)
+	d = d.normalized() if d.length() > 0.1 else Vector3(0, 0, 1).rotated(Vector3.UP, randf() * TAU)
+	var gy = at.y
+	root.global_position = at + Vector3.UP * 1.0
+	root.rotation.y = atan2(d.x, d.z)   # devrilme ekseni: darbe yönüne doğru yatar
+	var land = at + d * 0.9 + Vector3.UP * 0.22
+	land.y = gy + 0.22
+	var tw = root.create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(root, "rotation:x", PI * 0.5, 0.38).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	tw.tween_property(root, "global_position:x", land.x, 0.38)
+	tw.tween_property(root, "global_position:z", land.z, 0.38)
+	tw.tween_property(root, "global_position:y", land.y, 0.38).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	tw.set_parallel(false)
+	tw.tween_callback(func(): Sfx.play("hit_heavy", land, 1.5, 0.35))
+	tw.tween_property(root, "global_position:y", land.y + 0.16, 0.1).set_ease(Tween.EASE_OUT)
+	tw.tween_property(root, "global_position:y", land.y, 0.1).set_ease(Tween.EASE_IN)
+	tw.tween_interval(1.3)
+	tw.tween_property(root, "scale", Vector3.ONE * 0.01, 0.25)
+	tw.tween_callback(root.queue_free)
+
+
+## Kombo sendelemesi (arena kuralları): saldıran kombonun ortasındaysa, yediren darbe hangi yoldan gelirse gelsin (silah, tarzın
+## özel etkisi, ek darbe) rakip saldıranın SIRADAKİ vuruşuna kadar sendeler — ara vermeden sürdürülen kombo kopmaz.
+## Kombonun son vuruşunda / kombo dışında 0 döner (olağan sendeleme süresi).
+func combo_stun(atk) -> float:
+	if atk == null or not is_instance_valid(atk):
+		return 0.0
+	if atk is Player:
+		var pc = atk.combat
+		if pc == null or pc.action != "attack" or pc.air_attack or pc.branch != "" or pc.step < 0 or pc.step >= pc.COMBO.size() - 1:
+			return 0.0
+		return clampf(float(pc._combo(pc.step)["dur"]) - float(pc.t) + float(pc._combo(pc.step + 1)["hit"]) + 0.2, 0.0, 1.9)
+	if atk is Enemy and atk.state == "attack" and not atk.key_step.is_empty() and atk.combo_left > 1 and atk.key_step.get("mv", {}).is_empty():
+		var sts: Array = atk.KEYED.steps(String(atk.key_step["id"]))
+		var i = int(atk.key_step["i"])
+		var spd0 = float(sts[i]["len"]) / maxf(0.05, float(atk.key_step["len"]))
+		return clampf(float(atk.key_step["len"]) - float(atk.state_t) + float(sts[(i + 1) % sts.size()]["hit"]) / spd0 + 0.2, 0.0, 1.9)
+	return 0.0
+
+
+## Saldıranın vuruşa ne kadar önce başladığı (sn): savunan, hazırlığı görebildiyse bloklar. Fırlatılan / jutsu darbesi: hep görülür.
+func windup_of(atk) -> float:
+	if atk == null or not is_instance_valid(atk):
+		return 99.0
+	if atk is Player:
+		return float(atk.combat.t) if atk.combat and atk.combat.action == "attack" else 99.0
+	if "state" in atk and "state_t" in atk and atk.state == "attack":
+		return float(atk.state_t)
+	return 99.0
+
+
+## Yere çarpma anı (düşen dövüşçü): toz, yer halkası, tok ses; sert çakılmada toprak parçaları + sarsıntı
+func down_impact(who: Node3D, hard: bool) -> void:
+	var at = who.global_position
+	FX.dust(at, 1.3 if hard else 0.8)
+	FX.ring(at + Vector3.UP * 0.05, Color(0.9, 0.86, 0.75), 4.5 if hard else 2.6, 0.3)
+	Sfx.play("hit_heavy", at, 0.7 if hard else 0.9, 0.9 if hard else 0.6)
+	if hard:
+		VFX.debris(at + Vector3.UP * 0.1, Color(0.45, 0.38, 0.28), 10, 6.0, 0.22)
+		if Game.world and Game.player and at.distance_to(Game.player.global_position) < 25.0:
+			Game.world.env.add_shake(0.5)
+
+
 func knocks_down(info: Dictionary) -> bool:
 	return float(info.get("launch", 0.0)) >= 3.0 or float(info.get("knock", 0.0)) >= 14.0
 

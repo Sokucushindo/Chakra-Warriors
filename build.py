@@ -12,7 +12,7 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 GODOT = os.path.join(ROOT, 'tools', 'Godot_v4.7.2-stable_win64_console.exe')
 PROJ = os.path.join(ROOT, 'godot')
 mode = sys.argv[1] if len(sys.argv) > 1 else 'test'
-assert mode in ('test', 'main')
+assert mode in ('test', 'main', 'arena')   # arena: bire bir dövüş arenası deneme exe'si (adı ARENA içerince arena kipi açılır)
 
 ver_file = os.path.join(ROOT, 'VERSION')
 version = open(ver_file).read().strip() if os.path.exists(ver_file) else '0.2.0'
@@ -36,8 +36,8 @@ def _world_key():
     return hashlib.md5(acc.encode('utf-8')).hexdigest()[:12]
 json.dump({'build': mode, 'version': version, 'world': _world_key()}, open(build_json, 'w'))
 
-name = 'ShinobiYolu_TEST' if mode == 'test' else 'ShinobiYolu'
-out_dir = os.path.join(ROOT, 'Test' if mode == 'test' else 'Oyun')
+name = {'test': 'ShinobiYolu_TEST', 'arena': 'ShinobiYolu_ARENA'}.get(mode, 'ShinobiYolu')
+out_dir = os.path.join(ROOT, {'test': 'Test', 'arena': 'Arena'}.get(mode, 'Oyun'))
 os.makedirs(out_dir, exist_ok=True)
 for f in os.listdir(out_dir):  # eski (Python sürümü) exe'leri temizle
     if f.endswith('.exe') or f.endswith('.pck'):

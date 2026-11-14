@@ -16451,9 +16451,17 @@ func p_kuchiyose_gedo_mazo(c: Node3D, _t: Node3D) -> void:
 	proc.wait_time = 0.05
 	proc.autostart = true
 	g.add_child(proc)
+	# dokuz göz açık: heykel On Kuyruk'a dönüştürülebilir (oyuncunun yolu)
+	var rev := {}
+	if c is Player and WorldJubi.can_revive():
+		rev = {"pos": at, "radius": 60.0, "kind": "jubi_revive", "label": "Dirilt: Jūbi", "statue": g}
+		Interact.add(rev)
+		Hud.msg("Gedō Mazō'nun dokuz gözü de açık. Heykelin dibinde [F]: On Kuyruk'u dirilt.", Color(0.85, 0.7, 1.0), 6.0)
 	proc.timeout.connect(func():
 		if tick.call(0.05):
 			proc.stop()
+			if not rev.is_empty():
+				Interact.items.erase(rev)
 			for rod in rods:
 				if is_instance_valid(rod):
 					rod.queue_free()
@@ -17543,11 +17551,15 @@ func p_renzoku_bijudama(c: Node3D, t: Node3D) -> void:
 func p_rikudo_jubi_kyuin(c: Node3D, _t: Node3D) -> void:
 	var jubi: Node3D = null
 	for b in get_tree().get_nodes_in_group("tailed_beasts"):
-		if is_instance_valid(b) and String(b.get("id")) == "jubi" and b.global_position.distance_to(c.global_position) < 120.0:
+		if is_instance_valid(b) and String(b.get("id")) == "jubi" and b.global_position.distance_to(c.global_position) < 260.0:
 			jubi = b
 	if jubi == null:
 		if c is Player:
 			Hud.msg("Rikudō Jūbi Kyūin yalnız On Kuyruk'un yakınında yapılabilir.", Color(1.0, 0.5, 0.45))
+		return
+	if not WorldJubi.can_absorb(jubi, c):   # kanon: başkasının On Kuyruk'u boyun eğmeden çekilemez
+		if c is Player:
+			Hud.msg("On Kuyruk boyun eğmeden bedenine çekilemez. Önce diz çöktür.", Color(1.0, 0.5, 0.45))
 		return
 	busy(c, 2.0)
 	VFX.gather(c.global_position + Vector3.UP, Color(0.75, 0.65, 1.0), 4.0)
@@ -17555,10 +17567,10 @@ func p_rikudo_jubi_kyuin(c: Node3D, _t: Node3D) -> void:
 	tw.tween_property(jubi, "scale", Vector3.ONE * 0.01, 1.8).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tw.parallel().tween_property(jubi, "global_position", c.global_position, 1.8)
 	tw.tween_callback(func():
+		jubi.dead = true
 		jubi.queue_free()
 		if c is Player:
-			Game.profile["jubi_jinchuriki"] = true
-			Hud.banner("ON KUYRUK JINCHŪRIKI", "Altı Yol'un gücü bedenine aktı", Color(0.85, 0.8, 1.0)))
+			WorldJubi.absorbed())
 
 
 ## Altı Yol Yin Gücü: sol avuçta hilal mühür parlar — dokunduğu hedefin çakrası mühürlenir: büyük çakra kaybı, uzun sersemleme

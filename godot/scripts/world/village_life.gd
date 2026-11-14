@@ -642,8 +642,10 @@ func _sweep_pend() -> void:
 
 # ------------------------------------------------------------------ sabit mekânlar
 func _site_ok(s: Dictionary) -> bool:
+	if s.get("off", false):
+		return false   # kapanan şantiye (VillageRuin: ev tamamlandı)
 	match s["type"]:
-		"stall", "work", "bench", "spar", "ball":
+		"stall", "work", "bench", "spar", "ball", "repair":
 			return phase != "gece"
 		"bar":
 			return phase == "gece" or phase == "aksam"
@@ -689,6 +691,18 @@ func _open_site(key: String, s: Dictionary) -> void:
 				var o = Vector3(randf_range(-3, 3), 0, randf_range(-3, 3))
 				queue.append(["site", key, "worker", {"pos": pos + o, "face": randf() * TAU, "work_anims": [["b/TreeChopping", "a/Fixing_Kneeling"], ["a/Push", "a/Fixing_Kneeling", "b/TreeChopping"]][k]}])
 			queue.append(["site", key, "worker", {"pos": pos + Vector3(4, 0, 0), "work_points": [pos + Vector3(6, 0, 3), pos + Vector3(-5, 0, -2)]}])
+		"repair":
+			# yıkıntı onarımı (VillageRuin): iki usta evin önünde çalışır, biri kereste yığınından tahta taşır
+			var hp: Vector3 = s.get("house", pos)
+			var to = hp - pos
+			to.y = 0
+			to = to.normalized() if to.length() > 0.1 else Vector3.FORWARD
+			var side = Vector3(-to.z, 0, to.x)
+			var hw: float = float(s.get("w", 8.0)) * 0.3
+			var ff = atan2(-to.x, -to.z)
+			queue.append(["site", key, "worker", {"pos": pos + side * hw, "face": ff, "fixed_face": true, "work_anims": ["b/TreeChopping", "a/Fixing_Kneeling"]}])
+			queue.append(["site", key, "worker", {"pos": pos - side * hw, "face": ff, "fixed_face": true, "work_anims": ["a/Fixing_Kneeling", "b/TreeChopping"]}])
+			queue.append(["site", key, "worker", {"pos": pos - to * 2.0, "work_points": [pos - to * 1.0, pos + side * (float(s.get("w", 8.0)) * 0.5 + 2.2) + to * 1.0]}])
 		"bench":
 			queue.append(["site", key, "sitter", {"pos": pos, "face": f, "fixed_face": true}])
 			if randf() < 0.5:

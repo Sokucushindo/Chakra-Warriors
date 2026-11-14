@@ -857,6 +857,17 @@ func _raid_wave(vid: String, wd: Dictionary) -> void:
 
 func _raid_kage(vid: String) -> void:
 	var title = Progress.kage_title(vid) if Progress.has_method("kage_title") else "Kage"
+	var e = kage_fighter(vid)
+	var q = Missions.open_ground(Game.player.global_position + Vector3(0, 0, -28), 15.0)
+	e.global_position = q
+	e.home = q
+	(_raid["nodes"] as Array).append(e)
+	_spawned.append(e)
+	Hud.banner(title.to_upper(), "Köyün lideri bizzat geldi!", Color(1, 0.6, 0.2))
+
+
+## Köyün gerçek Kage'si savaşçı olarak sahneye (baskında düşman, köy saldırısında savunan); yeri çağıran belirler
+func kage_fighter(vid: String) -> Enemy:
 	var a = _village_arch(vid, 0, "jonin")
 	a["respawn"] = false
 	# köyün GERÇEK Kage'si (Kage.reign: adı, görünüşü, klanı) — eskiden isimsiz şablondu: 2 temel jutsu, ölünce haber yok
@@ -907,12 +918,7 @@ func _raid_kage(vid: String) -> void:
 	e.set_meta("kage_of", vid)   # ölünce Kage.kage_killed: haber + halef
 	get_tree().current_scene.add_child(e)
 	KageArts.prepare(e, kc)   # klan modunun gözü / ek teknikleri (Uchiha Mangekyō, Senju Mokuton...)
-	var q = Missions.open_ground(Game.player.global_position + Vector3(0, 0, -28), 15.0)
-	e.global_position = q
-	e.home = q
-	(_raid["nodes"] as Array).append(e)
-	_spawned.append(e)
-	Hud.banner(title.to_upper(), "Köyün lideri bizzat geldi!", Color(1, 0.6, 0.2))
+	return e
 	Hud.boss_bar(e)
 
 

@@ -13034,6 +13034,6 @@ func _process(dt: float) -> void:
 	_key_blade()
 	_dangle_process(dt)
 	if hit_flash > 0.0:
-		hit_flash = maxf(0.0, hit_flash - dt * 5.0)
+		hit_flash = maxf(0.0, hit_flash - dt * 12.0)   # kısa parlama: art arda darbede karakter sürekli beyaz kalıyordu
 		for m in materials:
 			m.set_shader_parameter("hit_flash", hit_flash)

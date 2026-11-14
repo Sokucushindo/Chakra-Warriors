@@ -701,6 +701,9 @@ func on_technique_used(id: String) -> void:
 
 
 func on_player_died() -> void:
+	if Game.has_meta("arena"):   # arena deneme sürümü: ölüm yok, raunt biter
+		Game.get_meta("arena").player_down()
+		return
 	PathJutsu.ura_shisho_trigger(Game.player)   # Danzō'nun ölüm mührü: çevredekileri de götürür
 	Journal.on_player_defeated()   # seni yenen kişi rakibin olur; bir gün geri döner
 	# sınavda ölen elenir: sınav o an biter (Chūnin her aşaması, takım sınavı)
@@ -713,6 +716,7 @@ func on_player_died() -> void:
 	if not Missions.active().is_empty():
 		Missions.fail("Ağır yaralandın ve bayıldın. Görev senin için bitti.")
 	Kage.lose_raid()
+	WorldAssault.player_defeated()
 	Orgs.on_player_defeated()
 	var rogue = Orgs.is_rogue()
 	Hud.banner("YENİLDİN", "Sığınağında, ateşin başında uyanıyorsun..." if rogue else "Hastanede uyanıyorsun...", Color(0.9, 0.3, 0.3))
@@ -787,7 +791,7 @@ func interact(it: Dictionary) -> void:
 	var kind: String = it["kind"]
 	var pr = p()
 	match kind:
-		"beast_seal", "beast_talk", "mind_exit":
+		"beast_seal", "beast_talk", "mind_exit", "jubi_revive":
 			TailedBeasts.interact(it)
 		"academy":
 			_academy()

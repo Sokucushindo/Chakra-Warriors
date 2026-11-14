@@ -47,6 +47,10 @@ func setup(beast_id: String) -> void:
 	display_name = String(info["name"])   # seviye yazısı yok (ustalık sistemi)
 	max_hp = 9000.0 + num * 4200.0 + (14000.0 if id == "kurama" else 0.0)
 	hp = max_hp
+	if id == "jubi":   # dokuzunun toplamı: Kurama'nın (Güç 180) çok üstünde
+		level = 260
+		max_hp = 150000.0
+		hp = max_hp
 	power = Stats.npc_power(level) * 1.2   # aynı Güç'teki ninjadan sert (eskiden Shukaku 4.7 < Güç 100 ninja 5.5)
 	poise = 99.0
 

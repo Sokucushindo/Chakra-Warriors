@@ -76,8 +76,8 @@ static func _why(p: Dictionary) -> String:
 
 
 ## Sayı TARGET'ın altındaysa dünyadan yeni biri güce takar (ilk kuruluşta hepsi birden, sonra birer birer)
-## Sistem bitene dek kapalı (test: AMB=1 ortam değişkeni açar)
-static var ON: bool = OS.get_environment("AMB") == "1"
+## 2026-11-14: açık (engel olan "dünyada Uchiha doğmuyor" WorldPeople.clan_floor ile giderildi); AMB=0 kapatır
+static var ON: bool = OS.get_environment("AMB") != "0"
 
 
 static func ensure() -> void:
@@ -160,6 +160,8 @@ static func world_tick() -> void:
 		if not p.get("missing", false) and randf() < 0.35:
 			step(p)
 	kage_step()
+	WorldAssault.world_tick()   # köy yıkacak güce ulaşan biri bir köye yürür
+	WorldJubi.world_tick()      # Rinnegan sahibi canavarları Gedō Mazō'da toplar
 
 
 static func step(p: Dictionary) -> void:
@@ -167,7 +169,7 @@ static func step(p: Dictionary) -> void:
 	var lv = int(p["level"])
 	var e: Array = p.get("eye", [0, 0])
 	var k = int(e[0])
-	if k == 1 and int(e[1]) < 3:
+	if (k == 1 and int(e[1]) < 3) or (k == 0 and String(p.get("clan", "")) == "uchiha"):
 		if WorldPeople._grow_eye(p):
 			_sync(p)
 			return
@@ -179,7 +181,7 @@ static func step(p: Dictionary) -> void:
 		return
 	if k == 0 and lv >= 100 and randf() < 0.1 and _steal_eye(p):
 		return
-	if lv >= 150 and randf() < 0.07 and _beast(p):
+	if lv >= 150 and randf() < 0.035 and _beast(p):
 		return
 	if WorldPeople._try_path(p) or WorldPeople._kinjutsu(p):
 		_sync(p)
@@ -268,6 +270,7 @@ static func _steal_eye(p: Dictionary) -> bool:
 		WorldPeople._die(v, "%s'ı için %s tarafından öldürüldü" % [en, String(p["name"])])
 	else:
 		v["eye"] = [0, 0]
+		v["eye_lost"] = true
 		WorldPeople.log_event(v, "%s gözünü çaldı; artık göremiyor" % String(p["name"]))
 	_go_rogue(p, "%s'nin gözünü çaldı" % vn)
 	_crime(p, "%s'nin %s'ını söküp kendine nakletti" % [vn, en])
@@ -304,6 +307,19 @@ static func _beast(p: Dictionary) -> bool:
 	if randf() > clampf((lv - 110.0) / 150.0, 0.1, 0.8):
 		WorldPeople.log_event(p, "%s ile boy ölçüştü, geri çekilmek zorunda kaldı" % bn)
 		return true
+	claim(p, id)
+	return true
+
+
+## Canavarı alır: taşıyıcısı varsa söker (taşıyıcı ölür); gözü yetiyorsa emrine alır, yoksa kendi bedenine mühürler
+static func claim(p: Dictionary, id: String) -> void:
+	var b: Dictionary = _bs()[id]
+	var bn = TailedBeasts._bname(id)
+	var k = int((p.get("eye", [0, 0]) as Array)[0])
+	var can_ctrl = k >= 4 and ctrl_of(p).size() < int(CTRL_MAX.get(k, 0))
+	var can_seal = beast_of(p) == ""
+	if not can_ctrl and not can_seal:
+		return
 	if String(b.get("state", "")) == "host":
 		var h: Dictionary = b["host"]
 		var hw = WorldPeople.get_p(String(h.get("wp", "")))
@@ -326,7 +342,6 @@ static func _beast(p: Dictionary) -> bool:
 		p["beast"] = id
 		_crime(p, "%s'yi kendi bedenine mühürledi" % bn)
 		TailedBeasts._news("SÖYLENTİ", "%s, %s'yi kendi bedenine mühürledi." % [String(p["name"]), bn], Color(1.0, 0.5, 0.35))
-	return true
 
 
 # ------------------------------------------------------------------ Kage'ler
@@ -474,6 +489,8 @@ static func _still_wants(p: Dictionary) -> bool:
 static func tick(dt: float) -> void:
 	if not ON:
 		return
+	WorldAssault.tick(dt)
+	WorldJubi.tick(dt)
 	if Game.player == null or Game.profile.is_empty() or Missions.quiet():
 		return
 	_hunt_t += dt

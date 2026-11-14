@@ -13,13 +13,14 @@ const INFO := {
 	"chomei": {"name": "Chōmei — Yedi Kuyruk", "tails": 7, "height": 48.0, "element": "fuuton", "color": Color(0.2, 0.45, 0.85), "chakra": Color(0.6, 1.0, 0.4), "num": 7},
 	"gyuki": {"name": "Gyūki — Sekiz Kuyruk", "tails": 8, "height": 72.0, "element": "raiton", "color": Color(0.45, 0.3, 0.33), "chakra": Color(0.75, 0.35, 0.9), "num": 8},
 	"kurama": {"name": "Kurama — Dokuz Kuyruk", "tails": 9, "height": 115.0, "element": "katon", "color": Color(0.95, 0.42, 0.12), "chakra": Color(1.0, 0.45, 0.1), "num": 9},
+	"jubi": {"name": "Jūbi — On Kuyruk", "tails": 10, "height": 150.0, "element": "", "color": Color(0.74, 0.65, 0.52), "chakra": Color(0.75, 0.15, 0.2), "num": 10},
 	"raiju": {"name": "Raijū", "tails": 3, "height": 8.0, "element": "raiton", "color": Color(0.3, 0.4, 0.6), "chakra": Color(0.45, 0.75, 1.0), "num": 0},
 }
 
 
 ## yüzey: 0 kürk, 1 deri/pul, 2 kabuk/zırh, 3 sümük
-const SURFACE := {"kurama": 0, "matatabi": 0, "son_goku": 0, "kokuo": 0, "shukaku": 1, "gyuki": 1, "isobu": 2, "chomei": 2, "saiken": 3, "raiju": 0}
-const SHADOW := {"kurama": Color(0.45, 0.16, 0.2), "matatabi": Color(0.12, 0.1, 0.35), "son_goku": Color(0.35, 0.1, 0.22), "shukaku": Color(0.6, 0.52, 0.5),
+const SURFACE := {"jubi": 1, "kurama": 0, "matatabi": 0, "son_goku": 0, "kokuo": 0, "shukaku": 1, "gyuki": 1, "isobu": 2, "chomei": 2, "saiken": 3, "raiju": 0}
+const SHADOW := {"jubi": Color(0.42, 0.36, 0.38), "kurama": Color(0.45, 0.16, 0.2), "matatabi": Color(0.12, 0.1, 0.35), "son_goku": Color(0.35, 0.1, 0.22), "shukaku": Color(0.6, 0.52, 0.5),
 	"isobu": Color(0.4, 0.4, 0.44), "kokuo": Color(0.62, 0.68, 0.78), "saiken": Color(0.52, 0.5, 0.58), "chomei": Color(0.32, 0.33, 0.42), "gyuki": Color(0.44, 0.33, 0.4)}
 static var _bmats := {}
 static func beast_material(surface: int, shadow: Color) -> ShaderMaterial:
@@ -57,6 +58,7 @@ static func build(id: String, height_m := -1.0) -> BeastRig:
 		"saiken": BeastSaiken.build(r, root)
 		"chomei": BeastChomei.build(r, root)
 		"gyuki": BeastGyuki.build(r, root)
+		"jubi": BeastJubi.build(r, root)
 		_: BeastKurama.build(r, root)
 	root.scale = Vector3.ONE * r.design_scale()
 	# sert cel gölgeli canavar malzemesi (peluş yumuşaklığı yerine): yüzey türü canavara göre

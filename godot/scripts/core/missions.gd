@@ -40,6 +40,8 @@ func active() -> Dictionary:
 ## KURAL: oyuncu bir işin ortasındayken (görev, yol antrenmanı, sınav, boss) dünya araya kimseyi sokmaz —
 ## av-ninjaları, Akatsuki çifti, yol olayları, tanıyan köy takımları, köy baskını bekler
 func quiet() -> bool:
+	if Game.has_meta("arena"):
+		return true   # arena deneme sürümü: araya olay / doğuş girmez
 	if Game.profile.is_empty():
 		return false
 	if not active().is_empty() or (is_instance_valid(LegendPaths._node) and not LegendPaths._node.drill.is_empty()):

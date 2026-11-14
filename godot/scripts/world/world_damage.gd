@@ -939,6 +939,7 @@ func _process(dt: float) -> void:
 	if Game.world == null:
 		return
 	_drain()
+	VillageRuin.tick(dt, self)   # köy saldırısından kalan kalıcı yıkıntı bölgeleri
 	if _recent.size() > 256:
 		_recent.clear()
 	# yangınlar: ağaç/ev kararır, süre bitince kömür / yıkım; ağaçtan ağaca sınırlı yayılım
@@ -1198,11 +1199,15 @@ func _stump() -> ArrayMesh:
 
 ## Moloz yığını (şablon başına): kırık duvar parçaları, kiremit levhaları, kırık kirişler, taşlar
 func _rubble(ti: int, wall: Color, roof: Color) -> ArrayMesh:
-	var key = "%d_%s_%s" % [ti, wall.to_html(), roof.to_html()]
+	var t: Dictionary = HouseKit.templates[ti]
+	return _rubble_wd(t["w"], t["d"], wall, roof)
+
+
+## Taban ölçüsüne göre moloz yığını (VillageRuin de kullanır: önbellekli köyde şablon numarası yok)
+func _rubble_wd(w: float, d: float, wall: Color, roof: Color) -> ArrayMesh:
+	var key = "%.1f_%.1f_%s_%s" % [w, d, wall.to_html(), roof.to_html()]
 	if _rubble_meshes.has(key):
 		return _rubble_meshes[key]
-	var t: Dictionary = HouseKit.templates[ti]
-	var w: float = t["w"]; var d: float = t["d"]
 	var b = MB.new()
 	var rng = RandomNumberGenerator.new()
 	rng.seed = hash(key)

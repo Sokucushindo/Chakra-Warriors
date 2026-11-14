@@ -46,6 +46,9 @@ var hit_dir := Vector3.ZERO   # model uzayında itiş yönü (+Z karakterin ön�
 var hit_amp := 0.0
 var hit_head := false
 var hit_side := 1.0
+var kick_ext := 1.0   # tekme: 0 diz göğse çekili, 1 bacak tam açık (sahibi kare kare sürer; poz bitince 1'e döner)
+var hit_kind := 0     # 0 yüze (baş geri savrulur), 1 karna (gövde yumruğun üstüne katlanır), 2 kroşe (gövde döner)
+var _hit_n := 0
 
 
 var hit_up := 0.0      # havaya fırlatma: gövde geriye kavislenir, kollar savrulur
@@ -63,7 +66,11 @@ func hit_react(dir_model: Vector3, amp: float, head := false, up := 0.0, heavy :
 	hit_dir = Vector3(dir_model.x, 0.0, dir_model.z).normalized() if Vector2(dir_model.x, dir_model.z).length() > 0.05 else Vector3(0, 0, -1)
 	hit_amp = clampf(amp, 0.0, 1.4)
 	hit_head = head
-	hit_side = 1.0 if randf() < 0.5 else -1.0
+	_hit_n += 1
+	hit_side = 1.0 if _hit_n % 2 == 0 else -1.0   # art arda darbeler sağ-sol dönüşümlü (kombo okunur)
+	hit_kind = 0 if head else [1, 2, 0][_hit_n % 3]
+	if heavy > 0.5:
+		hit_kind = 1
 const FINGERS := ["Index", "Middle", "Ring", "Little"]
 const FINGER_SEG := ["Proximal", "Intermediate", "Distal"]
 const THUMB_SEG := ["Metacarpal", "Proximal", "Distal"]
@@ -180,18 +187,19 @@ func _process_modification() -> void:
 		_rot_model(sk, "LeftHand", Vector3(-0.3, 0.9, 0.3), w_seal)
 		_rot_model(sk, "RightHand", Vector3(0.3, 0.9, 0.3), w_seal)
 	if w_guard > 0.0:
-		_rot_model(sk, "LeftUpperArm", Vector3(0.55, -0.4, 0.73), w_guard)
-		_rot_model(sk, "RightUpperArm", Vector3(-0.55, -0.4, 0.73), w_guard)
-		_rot_model(sk, "LeftLowerArm", Vector3(-0.6, 0.75, 0.25), w_guard)
-		_rot_model(sk, "RightLowerArm", Vector3(0.6, 0.75, 0.25), w_guard)
+		_guard_pose(sk, w_guard, dt)
+	else:
+		guard_jolt = 0.0
 	if w_kick > 0.0:
 		_rot_model(sk, "RightUpperLeg", Vector3(0.05, 0.25, 0.97), w_kick)
-		_rot_model(sk, "RightLowerLeg", Vector3(0.05, 0.3, 0.95), w_kick)
-		_add_local(sk, "Spine", Vector3(deg_to_rad(-14), 0, 0), w_kick)
+		_rot_model(sk, "RightLowerLeg", Vector3(0.05, 0.3, 0.95).lerp(Vector3(0.05, -0.9, 0.35), 1.0 - kick_ext).normalized(), w_kick)
+		_add_local(sk, "Spine", Vector3(deg_to_rad(-14) * (0.35 + 0.65 * kick_ext), 0, 0), w_kick)
+	else:
+		kick_ext = 1.0
 	var w_cast: float = weights.get("cast", 0.0)
 	if w_cast > 0.0 and not cast_pose.is_empty():
 		_apply_cast(sk, w_cast)
-	if hit_t < 0.7:
+	if hit_t < 0.95:
 		hit_t += dt
 		_hit_pose(sk)
 	# yaş oranları (kemik ölçeği çocuk kemiklere de geçer: saç/bant kafayla büyür)
@@ -310,22 +318,59 @@ func _limb_base(bn: String) -> Vector3:
 ## yandan vuruşta yana bükülür; kollar savrulur. hit_head: kafa ağırlıklı (yüze vuruş)
 func _hit_pose(sk: Skeleton3D) -> void:
 	var t = hit_t
-	var e = (t / 0.06) if t < 0.06 else exp(-(t - 0.06) * 7.0) * cos((t - 0.06) * 13.0)
-	e *= hit_amp
+	# çarpma anı sert (0.05 sn), poz kısa bir an tutulur (okunsun), sonra hafif geri yaylanmayla toparlanır
+	var e: float
+	if t < 0.05:
+		e = sin(t / 0.05 * PI * 0.5)
+	elif t < 0.15:
+		e = 1.0
+	else:
+		e = exp(-(t - 0.15) * 5.5) * cos((t - 0.15) * 7.0)
+	e *= 0.7 + hit_amp * 0.55
 	if absf(e) < 0.002:
 		return
 	var pitch = hit_dir.z * e     # +: öne itildi (arkadan vuruş) -> öne eğil
 	var roll = -hit_dir.x * e
-	var hk = 1.6 if hit_head else 1.0
-	_add_local(sk, "Spine", Vector3(pitch * 0.32, 0.0, roll * 0.28), 1.0)
-	_add_local(sk, "Chest", Vector3(pitch * 0.26, hit_side * e * 0.12, roll * 0.22), 1.0)
-	_add_local(sk, "Neck", Vector3(pitch * 0.3 * hk, 0.0, roll * 0.25 * hk), 1.0)
-	_add_local(sk, "Head", Vector3(pitch * 0.35 * hk, hit_side * e * 0.18 * hk, roll * 0.3 * hk), 1.0)
-	# kollar savrulur (gövdeden geride kalır)
-	_add_local(sk, "LeftUpperArm", Vector3(-pitch * 0.5, 0.0, e * 0.35), 1.0)
-	_add_local(sk, "RightUpperArm", Vector3(-pitch * 0.5, 0.0, -e * 0.35), 1.0)
-	_add_local(sk, "LeftLowerArm", Vector3(0.0, 0.0, e * 0.3), 1.0)
-	_add_local(sk, "RightLowerArm", Vector3(0.0, 0.0, -e * 0.3), 1.0)
+	var tw = hit_side * e
+	var soft = maxf(0.0, e)
+	if hit_kind == 0:
+		# yüze: baş ve boyun vuruş yönünde savrulur, göğüs peşinden gider, çene yana döner; kollar açılarak geride kalır
+		_add_local(sk, "Spine", Vector3(pitch * 0.2, 0.0, roll * 0.2), 1.0)
+		_add_local(sk, "Chest", Vector3(pitch * 0.26, tw * 0.14, roll * 0.22), 1.0)
+		_add_local(sk, "Neck", Vector3(pitch * 0.3, tw * 0.12, roll * 0.25), 1.0)
+		_add_local(sk, "Head", Vector3(pitch * 0.5, tw * 0.38, roll * 0.3), 1.0)
+		_add_local(sk, "LeftUpperArm", Vector3(-pitch * 0.55, 0.0, e * 0.4), 1.0)
+		_add_local(sk, "RightUpperArm", Vector3(-pitch * 0.55, 0.0, -e * 0.4), 1.0)
+		_add_local(sk, "LeftLowerArm", Vector3(0.0, 0.0, e * 0.3), 1.0)
+		_add_local(sk, "RightLowerArm", Vector3(0.0, 0.0, -e * 0.3), 1.0)
+	elif hit_kind == 1:
+		# karna: gövde yumruğun üstüne katlanır (vuruşun geldiği yöne doğru eğilir), çene göğse iner, kollar karna toplanır
+		_add_local(sk, "Spine", Vector3(-pitch * 0.42, 0.0, roll * 0.15), 1.0)
+		_add_local(sk, "Chest", Vector3(-pitch * 0.34, tw * 0.08, roll * 0.12), 1.0)
+		_add_local(sk, "Neck", Vector3(-pitch * 0.16, 0.0, 0.0), 1.0)
+		_add_local(sk, "Head", Vector3(-pitch * 0.22, tw * 0.1, 0.0), 1.0)
+		_add_local(sk, "LeftUpperArm", Vector3(pitch * 0.45, 0.0, -e * 0.18), 1.0)
+		_add_local(sk, "RightUpperArm", Vector3(pitch * 0.45, 0.0, e * 0.18), 1.0)
+		_add_local(sk, "LeftLowerArm", Vector3(0.0, 0.0, -e * 0.55), 1.0)
+		_add_local(sk, "RightLowerArm", Vector3(0.0, 0.0, e * 0.55), 1.0)
+	else:
+		# kroşe: omuz hattı vuruşla döner, baş daha çok döner ve yana yatar, bir omuz düşer; kollar dönüşle savrulur
+		_add_local(sk, "Spine", Vector3(pitch * 0.14, tw * 0.3, roll * 0.2 + tw * 0.1), 1.0)
+		_add_local(sk, "Chest", Vector3(pitch * 0.16, tw * 0.34, roll * 0.2 + tw * 0.12), 1.0)
+		_add_local(sk, "Neck", Vector3(pitch * 0.12, tw * 0.2, tw * 0.12), 1.0)
+		_add_local(sk, "Head", Vector3(pitch * 0.2, tw * 0.42, tw * 0.22), 1.0)
+		_add_local(sk, "LeftUpperArm", Vector3(-pitch * 0.3, 0.0, e * 0.3 + tw * 0.25), 1.0)
+		_add_local(sk, "RightUpperArm", Vector3(-pitch * 0.3, 0.0, -e * 0.3 + tw * 0.25), 1.0)
+		_add_local(sk, "LeftLowerArm", Vector3(0.0, 0.0, e * 0.25), 1.0)
+		_add_local(sk, "RightLowerArm", Vector3(0.0, 0.0, -e * 0.25), 1.0)
+	# her darbede dizler bir an boşalır, kalça hafif düşer (dimdik durmasın); ağır darbede aşağıdaki çöküş bunun üstüne biner
+	if grounded and soft > 0.0 and hit_up <= 0.0:
+		var hb0 = sk.find_bone("Hips")
+		if hb0 >= 0:
+			sk.set_bone_pose_position(hb0, sk.get_bone_pose_position(hb0) + Vector3(0, -0.05 * soft, 0))
+		for sd in [["Left", 1.0], ["Right", -1.0]]:
+			_rot_model(sk, sd[0] + "UpperLeg", Vector3(0.12 * sd[1], -0.75, 0.65), soft * 0.22)
+			_rot_model(sk, sd[0] + "LowerLeg", Vector3(0.0, -0.9, -0.42), soft * 0.22)
 	if hit_up > 0.0:   # havaya fırlatıldı: gövde geriye kavis, baş geri, kollar yukarı savrulur
 		var u = e * hit_up
 		_add_local(sk, "Spine", Vector3(-u * 0.35, 0, 0), 1.0)
@@ -342,6 +387,35 @@ func _hit_pose(sk: Skeleton3D) -> void:
 			_rot_model(sk, side[0] + "UpperLeg", Vector3(0.12 * side[1], -0.6, 0.79), hv * 0.6)
 			_rot_model(sk, side[0] + "LowerLeg", Vector3(0.0, -0.85, -0.52), hv * 0.6)
 		_add_local(sk, "Spine", Vector3(hv * 0.3, 0, 0), 1.0)
+
+
+## Blok duruşu: dövüş duruşunda dizler kırık, kalça alçak, gövde hafif öne kapalı, çene içeride; ön kollar yüzün önünde çapraz.
+## Tutulan darbede (guard_hit) kollar yüze doğru ezilir, gövde geriye esner, dizler bir an daha çöker ve yaylanarak döner.
+var guard_jolt := 0.0
+const GUARD_LEGS = preload("res://scripts/combat/style_legs.gd")
+
+
+func guard_hit(amp: float) -> void:
+	guard_jolt = clampf(amp, 0.45, 1.0)
+
+
+func _guard_pose(sk: Skeleton3D, w: float, dt: float) -> void:
+	guard_jolt = move_toward(guard_jolt, 0.0, dt * 4.5)
+	var j = guard_jolt * guard_jolt * (3.0 - 2.0 * guard_jolt)
+	if grounded:
+		var hb = sk.find_bone("Hips")
+		if hb >= 0:
+			sk.set_bone_pose_position(hb, sk.get_bone_pose_position(hb) + Vector3(0, -(0.1 + 0.06 * j) * w, -0.05 * j * w))
+		for b in GUARD_LEGS.FIGHT:
+			_rot_model(sk, b, GUARD_LEGS.FIGHT[b], w)
+	_add_local(sk, "Spine", Vector3(deg_to_rad(9.0 - 16.0 * j), 0, 0), w)
+	_add_local(sk, "Chest", Vector3(deg_to_rad(7.0 - 8.0 * j), deg_to_rad(-12.0), 0), w)
+	_add_local(sk, "Neck", Vector3(deg_to_rad(10.0), deg_to_rad(12.0), 0), w)
+	# sol kol önde (dış), sağ kol arkasında: bilekler burun hizasında çaprazlanır
+	_rot_model(sk, "LeftUpperArm", Vector3(0.28, -0.42 + 0.12 * j, 0.86 - 0.2 * j), w)
+	_rot_model(sk, "LeftLowerArm", Vector3(-0.52, 0.8, 0.3 - 0.35 * j), w)
+	_rot_model(sk, "RightUpperArm", Vector3(-0.34, -0.5 + 0.12 * j, 0.8 - 0.2 * j), w)
+	_rot_model(sk, "RightLowerArm", Vector3(0.5, 0.84, 0.2 - 0.35 * j), w)
 
 
 ## El ve parmaklar verilen yönde dümdüz (yumruk değil, açık avuç)
