@@ -16,7 +16,7 @@ var albedo_tex: Texture2D
 var biome_img: Image
 
 var settings := {
-	"sens": 1.0, "ui_scale": 1.0, "fov": 70.0, "music": 0.5, "sfx": 0.8, "view": 1.0, "fullscreen": false,
+	"sens": 1.0, "ui_scale": 1.0, "fov": 70.0, "music": 0.5, "sfx": 0.8, "view": 1.0, "fullscreen": false, "display": "",
 	"shadows": true, "outline": true, "dreamy": true, "blood": true, "invert_y": false, "show_fps": false, "quality": 2,
 }
 var profile: Dictionary = {}

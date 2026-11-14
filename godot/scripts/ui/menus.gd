@@ -14,6 +14,8 @@ static func clear() -> void:
 	if _menu_open and _last_tab != "":
 		_scroll_mem[_last_tab] = _scroll_positions()
 	_menu_open = false
+	if settings_open() and not _set_keep:   # ayarlar kaydedilmeden kapanıyor (Esc, Tab...): yarım kalan değişiklikleri geri al
+		_settings_revert()
 	for c in Hud.dialog_layer.get_children():
 		c.queue_free()
 
@@ -1192,17 +1194,80 @@ static func controls(main: Node) -> void:
 
 
 # ================================================================== ayarlar
+static var _set_bg: Control = null   # açık ayarlar ekranı (yeniden çizimde yenisiyle değişir)
+static var _set_snap := {}           # ekran açılırkenki ayarlar: kaydetmeden çıkılırsa buna dönülür
+static var _set_keep := false        # yeniden çizim / kaydetme sürüyor: geri alma
+static var _set_scroll := 0
+
+
+static func settings_open() -> bool:
+	return is_instance_valid(_set_bg) and not _set_bg.is_queued_for_deletion()
+
+
+static func _settings_revert() -> void:
+	_set_bg = null
+	var s = Game.settings
+	var win = s.get("display") != _set_snap.get("display") or s.get("fullscreen") != _set_snap.get("fullscreen") or s.get("ui_scale") != _set_snap.get("ui_scale")
+	for k in _set_snap:
+		s[k] = _set_snap[k]
+	if win:
+		Game.apply_settings()
+	Game.apply_graphics()
+
+
+## Kaydetmeden çık (Esc): değişiklikleri geri al, gelinen menüye dön
+static func settings_cancel() -> void:
+	if not settings_open():
+		return
+	var back: Callable = _set_bg.get_meta("back")   # ekranla birlikte silinir (kalıcı değişkende tutulunca oyun kapanırken çöküyordu)
+	_settings_revert()
+	back.call()
+
+
 static func settings(back: Callable) -> void:
+	if not settings_open():
+		_set_snap = Game.settings.duplicate(true)
+		_set_scroll = 0
+	_set_keep = true
 	var bg = _full()
+	_set_keep = false
+	_set_bg = bg
+	bg.set_meta("back", back)
 	var v = _center_panel(bg, 640)
 	v.add_child(UI.header("AYARLAR", 26))
 	var s = Game.settings
+	# gruplar kaydırılabilir alanda (küçük pencere / büyük arayüz ölçeğinde sığmıyordu); "Kaydet ve Geri" hep görünür kalır
+	var sc = ScrollContainer.new()
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	v.add_child(sc)
+	var body = UI.vbox(12)
+	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sc.add_child(body)
+	# boy: içerik kadar, en çok ekrana sığan kadar. Bağlantılar alanın kendi sinyallerinde: ekran kapanınca kendiliğinden düşer
+	var bar = sc.get_v_scroll_bar()
+	var keep_scroll := _set_scroll
+	var state = [false, keep_scroll <= 0]   # [boy verildi, kaydırma konumu geri kondu]
+	var fit = func() -> void:
+		state[0] = true
+		sc.custom_minimum_size.y = minf(body.get_combined_minimum_size().y, maxf(160.0, bg.size.y - 180.0))
+	sc.draw.connect(func():
+		if not state[0]:
+			fit.call())
+	body.minimum_size_changed.connect(fit)
+	bg.resized.connect(fit)   # pencere boyutu / arayüz ölçeği değişince
+	bar.changed.connect(func():   # yeniden çizimde (ok tuşu, kalite) kaldığın yerde kal
+		if not state[1] and bar.max_value - bar.page >= keep_scroll - 1.0:
+			state[1] = true
+			sc.set_deferred("scroll_vertical", keep_scroll))
+	bar.value_changed.connect(func(x):
+		if state[1]:
+			_set_scroll = int(x))
 	var group = func(icon: String, title: String) -> VBoxContainer:
 		var c = UI.card()
 		var gv = UI.vbox(8)
 		c.add_child(gv)
 		gv.add_child(UI.icon_label(icon, title, 16, UI.GOLD))
-		v.add_child(c)
+		body.add_child(c)
 		return gv
 	var slider = func(gv: VBoxContainer, title: String, key: String, mn: float, mx: float, step: float) -> void:
 		var h = UI.hbox(12)
@@ -1213,6 +1278,7 @@ static func settings(back: Callable) -> void:
 		var sl = HSlider.new()
 		sl.min_value = mn; sl.max_value = mx; sl.step = step; sl.value = s[key]
 		sl.custom_minimum_size = Vector2(300, 24)
+		sl.scrollable = false   # fare tekeri sayfayı kaydırsın, üstünden geçtiği sürgüyü değiştirmesin
 		sl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		sl.value_changed.connect(func(x):
 			s[key] = x
@@ -1294,6 +1360,8 @@ static func settings(back: Callable) -> void:
 	g2.add_child(qr)
 	slider.call(g2, "Görüş alanı (FOV)", "fov", 55.0, 100.0, 1.0)
 	slider.call(g2, "Görüş mesafesi", "view", 0.5, 1.6, 0.05)
+	# dünya açılışta bu değerle kurulur: oyun içinde yalnız sis değişir
+	g2.add_child(UI.label("Görüş mesafesi (ve onu değiştiren grafik kalitesi) oyunu yeniden açınca tam uygulanır.", 12, UI.MUTED))
 	var gr = HFlowContainer.new()
 	gr.add_theme_constant_override("h_separation", 18)
 	g2.add_child(gr)
@@ -1303,6 +1371,7 @@ static func settings(back: Callable) -> void:
 	slider.call(g3, "Müzik", "music", 0.0, 1.0, 0.05)
 	slider.call(g3, "Efektler", "sfx", 0.0, 1.0, 0.05)
 	v.add_child(UI.primary("Kaydet ve Geri", func():
+		_set_bg = null   # kaydedildi: çıkarken geri alma
 		Game.save_settings()
 		if Game.player:
 			Game.player.cam.fov = s["fov"]

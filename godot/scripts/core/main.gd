@@ -414,6 +414,9 @@ func _route(e: InputEvent) -> void:
 		preview_yaw += e.relative.x * 0.01
 		if preview:
 			preview.rotation.y = PI + preview_yaw   # kurulumla aynı (klan/saç değişince model ters dönüyordu)
+	if e.is_action_pressed("pause") and Menus.settings_open():   # ayarlarda Esc: kaydetmeden geri (ana menüde de, oyunda da)
+		Menus.settings_cancel()
+		return
 	if mode != "game":
 		return
 	if e is InputEventKey and e.pressed and not e.echo and e.keycode in [KEY_F3, KEY_F4, KEY_F5]:   # performans paneli
