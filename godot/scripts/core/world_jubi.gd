@@ -11,7 +11,7 @@ extends RefCounted
 ##                beş köyün birleşik ordusu da küçük bir ihtimalle kendi başına durdurur.
 ##  4. AĞAÇ     — STRIKES_TO_TREE köyden sonra Tanrı Ağacı'na dönüşür; ay kızarmaya başlar, MOON sonra Mugen Tsukuyomi.
 ##                Durdurma: ağacın dibindeki bekçi (toplayan hayattaysa On Kuyruk jinchūrikisi olarak o, değilse On Kuyruk).
-##  5. RÜYA     — sayım biterse herkes rüyaya hapsolur: karakterin hikâyesi biter (kayıp ekranı).
+##  5. RÜYA     — sayım biterse herkes rüyaya hapsolur; yıllar sonra uyanılır (dünya ve oyuncu o kadar yaşlanmış).
 ## Oyuncunun yolu: Rinnegan + dokuz canavar mühür kabında → Gedō Mazō'yu çağırıp diriltir → Rikudō Jūbi Kyūin ile bedenine çeker.
 ## Kayıt: Game.profile["jubi"] = {stage, by, mazo, x, z, at, strikes, hit, moon, guard, ally_t, warn}
 ## Canavar durumları: "mazo" (heykelde), "jubi" (On Kuyruk'un içinde), "jubi_mine" (oyuncunun On Kuyruk'unda)
@@ -492,9 +492,14 @@ static func _moon() -> void:
 		d["stage"] = "dream"
 
 
-# ------------------------------------------------------------------ 5. rüya: hikâye biter
+# ------------------------------------------------------------------ 5. rüya: yıllar sonra uyanış
+## Sayım bitti: herkes kozaya hapsolur. Oyun bitmez (kullanıcı kararı 2026-11-15: "yıllar sonra uyan"): rüya DREAM_MIN..MAX yıl
+## sürer, sonra kozalar çürür. Bedeli: o yıllar herkesin ömründen gider (oyuncu da yaşlanır), canavarları toplayan ağaçla
+## birlikte kurur, vurulmamış büyük köyler de köklerin altında yıkıntıya döner.
+const DREAM_MIN := 6.0
+const DREAM_MAX := 10.0
 static func _dream() -> void:
-	if Hud.dialog_open():
+	if _ending or Hud.dialog_open():
 		return
 	_ending = true
 	_tinted = true
@@ -502,26 +507,60 @@ static func _dream() -> void:
 		Game.world.env.set_tint(Color(0.9, 0.08, 0.06, 0.45))
 		Game.world.env.screen_flash(1.0)
 	Hud.doom("")
-	Game.profile["ended"] = "mugen"
-	Game.save_game()
 	var pl = Game.player
 	pl.velocity = Vector3.ZERO
 	pl.input_locked = 1.0e9
-	var nm = String(Game.profile.get("name", "Ninja"))
-	Hud.dialog("MUGEN TSUKUYOMI", "Ay kızıla döndü ve gökyüzündeki göz açıldı. Tanrı Ağacı'nın kökleri herkesi tek tek sarıp kozasına aldı. %s artık en çok istediği şeyin rüyasını görüyor; uyanacak kimse kalmadı. Bu hikâye burada biter." % nm,
-		[{"label": "Ana menüye dön", "cb": func():
-			_ending = false
-			_tinted = false
-			if Game.world and Game.world.env:
-				Game.world.env.set_tint(Color(0, 0, 0, 0))
-			actor = null
-			guard = null
-			if is_instance_valid(tree):
-				tree.queue_free()
-			tree = null
-			var sc = pl.get_tree().current_scene
-			if sc.has_method("to_main_menu"):
-				sc.to_main_menu()}])
+	Hud.banner("MUGEN TSUKUYOMI", "Ay kızıla döndü ve gökyüzündeki göz açıldı. Tanrı Ağacı'nın kökleri herkesi tek tek sarıp kozasına aldı.", Color(1.0, 0.25, 0.25))
+	Sfx.play("roar", null, 0.6, 0.4)
+	await pl.get_tree().create_timer(4.5).timeout
+	if not is_instance_valid(pl) or Game.player != pl:
+		_ending = false
+		return
+	await Interiors.inst._fade(1.0, 2.0)
+	var yrs = _wake()
+	await pl.get_tree().create_timer(1.5).timeout
+	await Interiors.inst._fade(0.0, 2.5)
+	pl.input_locked = 0.0
+	_ending = false
+	Hud.banner("UYANIŞ", "%d yıl sonra kozalar çürüdü ve açıldı. Herkes o yılları rüyada geçirdi; dünya eskisi gibi değil." % yrs, Color(0.85, 0.85, 1.0))
+
+
+## Rüyanın sonu: dünya saati ilerler, ağaç kurur, canavarlar serbest kalır. Dönüş: geçen yıl
+static func _wake() -> int:
+	var d = D()
+	var pr: Dictionary = Game.profile
+	var pl = Game.player
+	var yrs = randf_range(DREAM_MIN, DREAM_MAX)
+	pr["clock"] = Aging.clock() + yrs * Aging.YEAR
+	var p = collector()
+	if not p.is_empty():
+		WorldPeople._die(p, "Tanrı Ağacı'yla birlikte kurudu")
+		var be = WorldPeople.bingo_of(p)
+		if not be.is_empty():
+			be["status"] = "dead"
+	_release()
+	for vid in WorldPeople.MAJOR:
+		var v = Game.village(vid)
+		if v.is_empty() or vid in d["hit"]:
+			continue
+		var c = Vector2(v["x"], v["y"])
+		WorldAssault._add_ruin(vid, Game.from_map(c + WorldAssault._gate_dir(vid) * float(v["r"]) * 0.4), minf(float(v["r"]) * 0.35, 130.0), "Tanrı Ağacı'nın kökleri")
+	d["stage"] = ""
+	d["by"] = ""
+	d["strikes"] = 0
+	d["hit"] = []
+	pr.erase("ended")
+	_unmark()
+	_clear_nodes()
+	pl.respawn(Progress.home_spawn())
+	pl.hp = pl.max_hp
+	pl.chakra = pl.max_chakra
+	pl.rebuild_model()   # geçen yıllar yüzünde
+	var text = "Mugen Tsukuyomi %d yıl sürdü. Tanrı Ağacı kurudu, dokuz canavar inlerine döndü; köyler köklerin altından yeniden kuruluyor." % int(yrs)
+	WorldNews.headline(text, Color(0.85, 0.85, 1.0))
+	Journal.add("Ay kızardı ve %d yılımı bir rüyanın içinde geçirdim. Uyandığımda dünya yaşlanmıştı." % int(yrs), "milestone")
+	Game.save_game()
+	return int(yrs)
 
 
 # ------------------------------------------------------------------ oyuncunun yolu
