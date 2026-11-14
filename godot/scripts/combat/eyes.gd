@@ -330,7 +330,7 @@ func handle_input(e: InputEvent) -> bool:
 	if e.is_action_released("substitute") and phasing:
 		_phase_end()
 		return true
-	if phasing and (e.is_action_pressed("attack") or e.is_action_pressed("throw") or (e is InputEventKey and e.pressed and e.keycode >= KEY_1 and e.keycode <= KEY_9)):
+	if phasing and (e.is_action_pressed("attack") or e.is_action_pressed("throw") or Keys.slot_pressed(e) >= 0):
 		Hud.msg("Kamui'deyken saldıramazsın — bırak, katılaş.", Color(0.75, 0.6, 0.9), 1.2)
 		return true
 	if e.is_action_pressed("interact") and steal_target != null:

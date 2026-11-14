@@ -444,7 +444,7 @@ func _draw_slot(i: int) -> void:
 	# tuş rozeti
 	p.draw_circle(Vector2(12, 12), 11, Color(1, 1, 1, 0.92))
 	var f = UI.font(true)
-	var t = str(i + 1)
+	var t = Keys.name("slot%d" % (i + 1))
 	var w = f.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x
 	p.draw_string(f, Vector2(12 - w * 0.5, 17), t, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, UI.INK)
 
@@ -676,7 +676,7 @@ func doom(text: String) -> void:
 
 
 func msg(text: String, col := Color(1, 1, 1), dur := 3.5) -> void:
-	msg_lbl.text = text
+	msg_lbl.text = Keys.fix(text)
 	msg_lbl.modulate = col
 	msg_t = dur
 
@@ -1179,14 +1179,14 @@ func _process(dt: float) -> void:
 	var tool: String = pr.get("throw_sel", "kunai")
 	var tcd = float(pl.combat.tool_cd.get(tool, 0.0)) if pl.combat else 0.0
 	var tstate = ("%d sn" % ceili(tcd)) if tcd > 0.0 else ("hazır" if int(pr["inventory"].get(tool, 0)) > 0 else "yok")
-	tool_lbl.text = "R   %s  (%s)\nT   değiştir" % [Data.items.get(tool, {"name": tool})["name"], tstate]
+	tool_lbl.text = "%s   %s  (%s)\n%s   değiştir" % [Keys.name("throw"), Data.items.get(tool, {"name": tool})["name"], tstate, Keys.name("tool_next")]
 	var pcd = get_tree().current_scene.pill_cooldown() if get_tree().current_scene.has_method("pill_cooldown") else 0.0
 	var psel = ClanMech.pill_sel()
 	if psel != "pill":
 		pcd = ClanMech.aki_pill_left(psel)
 	var scd = get_tree().current_scene.salve_cooldown() if get_tree().current_scene.has_method("salve_cooldown") else 0.0
-	item_lbl.text = "H   Merhem  %s
-Y   %s  %s%s" % [("(%d sn)" % ceili(scd)) if scd > 0.0 else "(hazır)", ClanMech.AKI_PILL_NAMES.get(psel, "Asker Hapı"), ("(%d sn)" % ceili(pcd)) if pcd > 0.0 else "(hazır)", "  [O] değiştir" if ClanMech.pill_list().size() > 1 else ""]
+	item_lbl.text = "%s   Merhem  %s
+%s   %s  %s%s" % [Keys.name("salve"), ("(%d sn)" % ceili(scd)) if scd > 0.0 else "(hazır)", Keys.name("pill"), ClanMech.AKI_PILL_NAMES.get(psel, "Asker Hapı"), ("(%d sn)" % ceili(pcd)) if pcd > 0.0 else "(hazır)", ("  [%s] değiştir" % Keys.name("pill_next")) if ClanMech.pill_list().size() > 1 else ""]
 	if msg_t > 0.0:
 		msg_t -= dt
 		if msg_t <= 0.0:
@@ -1197,6 +1197,8 @@ Y   %s  %s%s" % [("(%d sn)" % ceili(scd)) if scd > 0.0 else "(hazır)", ClanMech
 	var ptxt = it.get("label", "") if not it.is_empty() else ((String(catch.get("catch_label")) if catch.get("catch_label") != null else "Yakala!") if catch else ("Konuş: %s" % tk.display if tk else ""))
 	ptxt = String(ptxt).replace("[F] ", "").replace("[F]", "").strip_edges()
 	prompt_box.visible = ptxt != ""
+	if prompt_box.visible:
+		prompt_key.get_child(0).text = Keys.name("interact")
 	if prompt_box.visible and prompt_lbl.text != ptxt:
 		prompt_lbl.text = ptxt
 		prompt_box.reset_size()

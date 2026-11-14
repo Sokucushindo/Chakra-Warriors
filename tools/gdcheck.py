@@ -8,7 +8,7 @@ exe = os.path.join(ROOT, "tools", "Godot_v4.7.2-stable_win64_console.exe")
 t0 = time.time()
 try:
     r = subprocess.run([exe, "--log-file", os.path.join(ROOT, "_tmp", "test_godot.log"), "--headless", "--path", os.path.join(ROOT, "godot"), "--", "--test=res://tests/test_gdcheck.gd"] + (["--gdc-tests"] if "tests" in sys.argv else []),
-                       capture_output=True, timeout=180)
+                       capture_output=True, timeout=180, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
     out = (r.stdout + r.stderr).decode("utf-8", "replace")
 except subprocess.TimeoutExpired as e:
     out = ((e.stdout or b"") + (e.stderr or b"")).decode("utf-8", "replace") + "\nGDCHECK HATA zaman aşımı"

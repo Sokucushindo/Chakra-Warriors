@@ -113,27 +113,7 @@ func _setup_input() -> void:
 			for ev in InputMap.action_get_events(ua):
 				if ev is InputEventJoypadMotion:
 					InputMap.action_erase_event(ua, ev)
-	var keys = {
-		"forward": [KEY_W], "back": [KEY_S], "left": [KEY_A], "right": [KEY_D],
-		"jump": [KEY_SPACE], "leap": [KEY_CTRL], "dash": [KEY_SHIFT], "substitute": [KEY_Q], "charge": [KEY_C],
-		"throw": [KEY_R], "tool_next": [KEY_T], "interact": [KEY_F], "lock": [KEY_E], "menu": [KEY_TAB], "salve": [KEY_H], "pill": [KEY_Y],
-		"slot1": [KEY_1], "slot2": [KEY_2], "slot3": [KEY_3], "slot4": [KEY_4], "slot5": [KEY_5], "slot6": [KEY_6], "slot7": [KEY_7], "slot8": [KEY_8], "slot9": [KEY_9],
-		"inventory": [KEY_I], "skills": [KEY_K], "map": [KEY_M], "pause": [KEY_ESCAPE], "dojutsu": [KEY_V],
-		"walk": [KEY_CAPSLOCK], "sage": [KEY_Z], "beast": [KEY_X], "gates": [KEY_B], "seal_mode": [KEY_G], "weapon_draw": [KEY_N], "summon_cmd": [KEY_J], "summon_special": [KEY_U], "pill_next": [KEY_O], "track_next": [KEY_L],
-	}
-	for action in keys:
-		if not InputMap.has_action(action):
-			InputMap.add_action(action)
-		for k in keys[action]:
-			var ev = InputEventKey.new()
-			ev.physical_keycode = k
-			InputMap.action_add_event(action, ev)
-	for pair in [["attack", MOUSE_BUTTON_LEFT], ["guard", MOUSE_BUTTON_RIGHT], ["lock", MOUSE_BUTTON_MIDDLE]]:
-		if not InputMap.has_action(pair[0]):
-			InputMap.add_action(pair[0])
-		var mb = InputEventMouseButton.new()
-		mb.button_index = pair[1]
-		InputMap.action_add_event(pair[0], mb)
+	Keys.setup()   # eylemler, oyuncunun atadığı tuşlar (Kontroller ekranı)
 
 
 # ------------------------------------------------------------------ yükleme

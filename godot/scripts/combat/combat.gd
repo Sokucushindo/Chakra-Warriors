@@ -614,7 +614,7 @@ func popup_text(pos: Vector3, text: String, col := Color(1, 1, 1)) -> void:
 	if quiet:
 		return
 	var l = Label3D.new()
-	l.text = text
+	l.text = Keys.fix(text)
 	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	l.no_depth_test = true
 	l.fixed_size = true

@@ -18,6 +18,10 @@ var biome_img: Image
 var settings := {
 	"sens": 1.0, "ui_scale": 1.0, "fov": 70.0, "music": 0.5, "sfx": 0.8, "view": 1.0, "fullscreen": false, "display": "",
 	"shadows": true, "outline": true, "dreamy": true, "blood": true, "invert_y": false, "show_fps": false, "quality": 2,
+	"vsync": true, "max_fps": 0,   # dikey eşitleme, FPS sınırı (0: sınırsız)
+	"master": 1.0,   # ana ses düzeyi (müzik ve efektlerin üstünde)
+	# ayrıntılı grafik (kalite ön ayarı bunları birlikte kurar; tek tek de değişir)
+	"aa": 2, "ssao": true, "res_scale": 1.0, "grass": 3, "crowd": 2,
 }
 var profile: Dictionary = {}
 var paused := false
@@ -651,11 +655,18 @@ func village(id: String) -> Dictionary:
 
 
 # ------------------------------------------------------------------ ayarlar
+var settings_defaults := {}   # ilk değerler ("Varsayılana Dön")
+
+
 func load_settings() -> void:
+	if settings_defaults.is_empty():
+		settings_defaults = settings.duplicate(true)
 	var cf := ConfigFile.new()
 	if cf.load(SETTINGS_PATH) == OK:
 		for k in settings.keys():
 			settings[k] = cf.get_value("ayarlar", k, settings[k])
+		if not cf.has_section_key("ayarlar", "aa"):   # ayrıntılı grafik öncesi kayıt: ayrıntılar kalite ön ayarından
+			_quality_details(int(settings["quality"]))
 	apply_settings()
 
 
@@ -666,11 +677,23 @@ func set_quality(q: int) -> void:
 	settings["view"] = [0.65, 1.0, 1.3][settings["quality"]]
 	settings["shadows"] = settings["quality"] > 0
 	settings["outline"] = settings["quality"] > 0
+	_quality_details(settings["quality"])
 	apply_graphics()
+
+
+## Kalite ön ayarının ayrıntıları: kenar yumuşatma, ortam gölgesi, çözünürlük ölçeği, çimen, kalabalık
+func _quality_details(q: int) -> void:
+	settings["aa"] = [1, 1, 2][q]
+	settings["ssao"] = q == 2
+	settings["res_scale"] = 0.75 if q == 0 else 1.0
+	settings["grass"] = [0, 2, 3][q]
+	settings["crowd"] = q
 
 
 ## Ayarları sahneye uygula: gölge mesafesi/bölme, çizgiler, çimen yarıçapı, NPC yoğunluğu
 func apply_graphics() -> void:
+	apply_frame()
+	apply_audio()
 	var q = int(settings.get("quality", 2))
 	if world == null:
 		return
@@ -684,20 +707,23 @@ func apply_graphics() -> void:
 		env.set_dreamy(bool(settings.get("dreamy", true)))
 		# dolgu yükü (yaprak kartları üst üste biner: ormanda kare hızını çözünürlük + kenar yumuşatma + ortam gölgesi belirler):
 		# Yüksek aynen; Orta'da kenar yumuşatma hafif yönteme geçer, ortam gölgesi kapanır; Düşük'te ayrıca %75 çözünürlük
+		# ayrıntılar ayarlardan (kalite ön ayarı bunları birlikte kurar): kenar yumuşatma 0 kapalı, 1 FXAA, 2 MSAA 2x, 3 MSAA 4x
+		var aa := int(settings.get("aa", 2))
 		var vp = world.get_viewport()
 		if vp:
-			vp.msaa_3d = Viewport.MSAA_2X if q == 2 else Viewport.MSAA_DISABLED
-			vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED if q == 2 else Viewport.SCREEN_SPACE_AA_FXAA
-			vp.scaling_3d_scale = 0.75 if q == 0 else 1.0
+			vp.msaa_3d = [Viewport.MSAA_DISABLED, Viewport.MSAA_DISABLED, Viewport.MSAA_2X, Viewport.MSAA_4X][clampi(aa, 0, 3)]
+			vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA if aa == 1 else Viewport.SCREEN_SPACE_AA_DISABLED
+			vp.scaling_3d_scale = clampf(float(settings.get("res_scale", 1.0)), 0.5, 1.0)
 		var ee = env.get("env")
 		if ee:
-			ee.ssao_enabled = q == 2
+			ee.ssao_enabled = bool(settings.get("ssao", true))
+	var gl := clampi(int(settings.get("grass", 3)), 0, 3)   # 0 kapalı, 1 az, 2 orta, 3 çok
 	var grass = world.get_node_or_null("Grass")
 	if grass:
-		grass.visible = q > 0
-		if grass.get("mat"):
-			grass.mat.set_shader_parameter("radius", [30.0, 42.0, 58.0][q])
-	npc_scale = [0.5, 0.8, 1.2][q]   # yüksek kalitede sokak daha kalabalık (büyük köy 43 kişi)
+		grass.visible = gl > 0
+		if grass.get("mat") and gl > 0:
+			grass.mat.set_shader_parameter("radius", [30.0, 30.0, 42.0, 58.0][gl])
+	npc_scale = [0.5, 0.8, 1.2][clampi(int(settings.get("crowd", q)), 0, 2)]   # kalabalık: büyük köyde 43 kişiye kadar (köye yeniden girince)
 
 
 var npc_scale := 1.0
@@ -749,9 +775,24 @@ func apply_settings() -> void:
 		var want = Vector2i(mini(int(pp[0]), scr.size.x), mini(int(pp[1]), scr.size.y - 32))
 		DisplayServer.window_set_size(want)
 		DisplayServer.window_set_position(scr.position + (scr.size - want) / 2)
-	var bus := AudioServer.get_bus_index("Master")
-	AudioServer.set_bus_volume_db(bus, 0.0)
+	apply_audio()
 	get_tree().root.content_scale_factor = float(settings.get("ui_scale", 1.0))   # arayüz ölçeği (yalnız 2B arayüz; 3B görüntü etkilenmez)
+	apply_frame()
+
+
+## Ana ses düzeyi (Master veriyolu; müzik ve efekt düzeyleri kendi yerlerinde çarpılır)
+func apply_audio() -> void:
+	var bus := AudioServer.get_bus_index("Master")
+	var m := clampf(float(settings.get("master", 1.0)), 0.0, 1.0)
+	AudioServer.set_bus_volume_db(bus, linear_to_db(maxf(m, 0.001)))
+	AudioServer.set_bus_mute(bus, m <= 0.001)
+
+
+## Dikey eşitleme ve FPS sınırı (ayarlardan; hemen uygulanır)
+const FPS_LIMITS := [0, 30, 60, 75, 90, 120, 144, 165, 240]
+func apply_frame() -> void:
+	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if bool(settings.get("vsync", true)) else DisplayServer.VSYNC_DISABLED)
+	Engine.max_fps = maxi(0, int(settings.get("max_fps", 0)))
 
 
 # ------------------------------------------------------------------ kayıt

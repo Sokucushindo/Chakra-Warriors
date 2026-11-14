@@ -14,7 +14,8 @@ static func clear() -> void:
 	if _menu_open and _last_tab != "":
 		_scroll_mem[_last_tab] = _scroll_positions()
 	_menu_open = false
-	if settings_open() and not _set_keep:   # ayarlar kaydedilmeden kapanıyor (Esc, Tab...): yarım kalan değişiklikleri geri al
+	if (settings_open() or _set_sub) and not _set_keep:   # ayarlar kaydedilmeden kapanıyor (Esc, Tab...): yarım kalan değişiklikleri geri al
+		_set_sub = false
 		_settings_revert()
 	for c in Hud.dialog_layer.get_children():
 		c.queue_free()
@@ -464,7 +465,7 @@ static func main_menu(main: Node) -> void:
 	col.add_child(UI.label("Beş Büyük Ülke'nin dünyasında kendi efsaneni yaz.", 19, UI.MUTED))
 	col.add_child(UI.spacer(0, 54, false))
 	var items = [["Yeni Oyun", "play", func(): slot_select(main, true)], ["Devam Et", "save", func(): slot_select(main, false)],
-		["Ayarlar", "settings", func(): settings(func(): main_menu(main))], ["Çıkış", "exit", func(): main.get_tree().quit()]]
+		["Ayarlar", "settings", func(): settings(func(): main_menu(main))], ["Kontroller", "controls", func(): controls(func(): main_menu(main))], ["Çıkış", "exit", func(): main.get_tree().quit()]]
 	for i in items.size():
 		var b = _menu_entry(items[i][0], items[i][1], items[i][2])
 		col.add_child(b)
@@ -1155,7 +1156,7 @@ static func pause(main: Node) -> void:
 		["Harita", "map", func(): region_map(main)], ["Ayarlar", "settings", func(): settings(func(): pause(main))],
 		["Kaydet", "save", func():
 			Game.save_game()
-			Hud.msg("Oyun kaydedildi.", Color(0.6, 1, 0.6))], ["Kontroller", "controls", func(): controls(main)],
+			Hud.msg("Oyun kaydedildi.", Color(0.6, 1, 0.6))], ["Kontroller", "controls", func(): controls(func(): pause(main))],
 		["Ana Menüye Dön (kaydeder)", "home", func(): main.to_main_menu()], ["Oyundan Çık (kaydeder)", "exit", func():
 			Game.save_game()
 			main.get_tree().quit()]]
@@ -1168,29 +1169,143 @@ static func pause(main: Node) -> void:
 			UI.slide_in(b, -24.0, 0.025 * i)
 
 
-static func controls(main: Node) -> void:
+static var _ctl_info := ""   # son atamanın kısa bilgisi (yer değiştirme vb.)
+static var _ctl_scroll := 0
+
+
+static func controls(back: Callable, keep := false) -> void:
+	if not keep:
+		_ctl_info = ""
+		_ctl_scroll = 0
+	var k := _set_keep
+	_set_keep = k or _set_sub   # ayarlardan gelindiyse yeniden çizim ayarları geri almasın
 	var bg = _full()
-	var v = _center_panel(bg, 980)
+	_set_keep = k
+	var three: bool = bg.get_viewport_rect().size.x >= 1700.0   # üç sütun sığıyorsa liste kaydırmasız
+	var v = _center_panel(bg, 1620 if three else 1180)
 	v.add_child(UI.header("KONTROLLER", 26))
-	var rows = [["WASD", "Hareket"], ["Fare", "Kamera"], ["Space", "Zıpla / çift zıplama"], ["Ctrl (basılı)", "Süper zıplama (Shinobi Striker)"],
-		["Shift", "Ninja koşusu (5 sn: tam hız), havada dash"], ["Duvara koş", "Duvarda koşu"], ["Duvarda Ctrl", "Duvar atılımı (chakra)"], ["Havada Q", "İpli kunai: nişangâha tutun"], ["Sol tık", "Kombo / dalış tekmesi"], ["Sağ tık", "Blok (tam zamanında: mükemmel blok)"],
-		["Q", "Kawarimi (genjutsu'dayken: Kai)"], ["C (basılı)", "Chakra şarjı"], ["R / T", "Alet fırlat / değiştir"], ["N", "Silahı çek / kınına sok"], ["E / orta tık", "Hedefe kilitlen"],
-		["1-9", "Jutsu slotları"], ["F", "Etkileşim"], ["Caps Lock", "Yürüyüş (aç/kapa)"], ["H / Y", "Merhem / Asker hapı"], ["G + 1-9,0,-,=", "Mühür ör"],
-		["V", "Dōjutsu: gözleri aç / kapat (basılı: Susanoo)"], ["Z / X", "Sağ / sol göz tekniği (gözler açıkken)"], ["B", "Sekiz Kapı"], ["Tab", "Ninja menüsü"],
-		["K", "Jutsular"], ["M", "Harita"], ["Esc", "Menü"]]
-	var grid = GridContainer.new()
-	grid.columns = 2
-	grid.add_theme_constant_override("h_separation", 40)
-	grid.add_theme_constant_override("v_separation", 8)
-	for r in rows:
-		var h = UI.hbox(12)
-		var kb = UI.key_badge(r[0], 13)
-		kb.custom_minimum_size = Vector2(130, 0)
+	v.add_child(UI.label("Değiştirmek istediğin tuşa tıkla, sonra yeni tuşa ya da fare düğmesine bas. Başka eylemdeki bir tuşu seçersen ikisi yer değiştirir.", 14, UI.MUTED))
+	var sc = ScrollContainer.new()
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	v.add_child(sc)
+	var cols = UI.hbox(40)
+	cols.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sc.add_child(cols)
+	var colv = [UI.vbox(4), UI.vbox(4), UI.vbox(4)] if three else [UI.vbox(4), UI.vbox(4)]
+	for c in colv:
+		c.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		cols.add_child(c)
+	var place := [0, 1, 1, 0, 0, 2] if three else [0, 0, 0, 1, 1, 1]   # grupların sütunu
+	for gi in Keys.GROUPS.size():
+		var g = Keys.GROUPS[gi]
+		var col: VBoxContainer = colv[place[gi]]
+		if col.get_child_count() > 0:
+			col.add_child(UI.spacer(0, 10, false))
+		col.add_child(UI.label(String(g[0]).to_upper(), 13, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
+		for r in g[1]:
+			var a: String = r[0]
+			var h = UI.hbox(8)
+			var l = UI.label(r[1], 15)
+			l.custom_minimum_size = Vector2(230, 0)
+			l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			h.add_child(l)
+			for i in Keys.binds[a].size():
+				var code: int = Keys.binds[a][i]
+				var b = _key_btn(Keys.code_name(code), code != Keys.defaults(a)[i], func(): _ctl_capture(back, sc, a, i))
+				h.add_child(b)
+			col.add_child(h)
+	# değişmeyen tuşlar ve tuş birleşimleri (atanan tuşla yazılır)
+	var fixed = [["Fare", "Kamera"], ["Esc", "Menü / geri"], ["%s + 1-9, 0, -, =" % Keys.name("seal_mode"), "Mühür ör"],
+		["Duvarda %s" % Keys.name("leap"), "Duvar atılımı (chakra)"], ["Havada %s" % Keys.name("substitute"), "İpli kunai: nişangâha tutun"],
+		["Havada %s" % Keys.name("attack"), "Dalış tekmesi"]]
+	var last: VBoxContainer = colv[colv.size() - 1]
+	last.add_child(UI.spacer(0, 10, false))
+	last.add_child(UI.label("SABİT", 13, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
+	for f in fixed:
+		var h = UI.hbox(8)
+		var l = UI.label(f[1], 15, UI.MUTED)
+		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		h.add_child(l)
+		var kb = UI.key_badge(f[0], 13)
+		kb.custom_minimum_size = Vector2(120, 0)
 		h.add_child(kb)
-		h.add_child(UI.label(r[1], 15))
-		grid.add_child(h)
-	v.add_child(grid)
-	v.add_child(UI.button("Geri", func(): pause(main), 200, "arrow"))
+		last.add_child(h)
+	# boy: içerik kadar, en çok ekrana sığan kadar
+	var fit = func() -> void:
+		sc.custom_minimum_size.y = minf(cols.get_combined_minimum_size().y, maxf(200.0, bg.size.y - 300.0))
+	cols.minimum_size_changed.connect(fit)
+	bg.resized.connect(fit)
+	fit.call_deferred()
+	var keep_scroll := _ctl_scroll
+	if keep_scroll > 0:
+		sc.get_v_scroll_bar().changed.connect(func(): sc.scroll_vertical = keep_scroll, CONNECT_ONE_SHOT)
+	var info = UI.label(_ctl_info, 15, UI.GOLD)
+	info.custom_minimum_size = Vector2(0, 22)
+	v.add_child(info)
+	var bot = UI.hbox(12)
+	bot.add_child(UI.button("Geri", func(): back.call(), 200, "arrow"))
+	bot.add_child(UI.button("Varsayılana Dön", func():
+		Keys.reset_all()
+		_ctl_info = "Tüm tuşlar varsayılana döndü."
+		_ctl_scroll = sc.scroll_vertical
+		controls(back, true), 240))
+	v.add_child(bot)
+
+
+static func _key_btn(text: String, changed: bool, cb: Callable) -> Button:
+	var b = Button.new()
+	b.text = text
+	b.custom_minimum_size = Vector2(120, 34)
+	b.add_theme_font_override("font", UI.font(true))
+	b.add_theme_font_size_override("font_size", 14)
+	var n = UI._box(Color(0.92, 0.9, 0.84, 0.92) if not changed else Color(UI.GOLD, 0.95), Color(0, 0, 0, 0), 0, 6, 4)
+	var hv = UI._box(Color(1, 1, 1, 1), Color(UI.GOLD, 1.0), 2, 6, 4)
+	b.add_theme_stylebox_override("normal", n)
+	b.add_theme_stylebox_override("hover", hv)
+	b.add_theme_stylebox_override("pressed", hv)
+	b.add_theme_stylebox_override("focus", hv)
+	for k in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
+		b.add_theme_color_override(k, UI.INK)
+	b.pressed.connect(func():
+		Sfx.play("click")
+		cb.call())
+	return b
+
+
+## Yeni tuşu bekle: ekranı kaplayan katman bütün tuş / fare basışlarını yutar (oyuna ve menülere gitmez)
+static func _ctl_capture(back: Callable, sc: ScrollContainer, action: String, idx: int) -> void:
+	_ctl_scroll = sc.scroll_vertical
+	var ov = ColorRect.new()
+	ov.color = Color(0, 0, 0, 0.7)
+	ov.set_anchors_preset(Control.PRESET_FULL_RECT)
+	ov.mouse_filter = Control.MOUSE_FILTER_STOP
+	ov.focus_mode = Control.FOCUS_ALL
+	var cc = CenterContainer.new()
+	cc.set_anchors_preset(Control.PRESET_FULL_RECT)
+	cc.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ov.add_child(cc)
+	var vb = UI.vbox(10)
+	vb.add_child(UI.label(Keys.label(action), 28, UI.CREAM, HORIZONTAL_ALIGNMENT_CENTER, true))
+	vb.add_child(UI.label("Yeni tuşa ya da fare düğmesine bas", 18, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER))
+	vb.add_child(UI.label("Esc: vazgeç", 14, UI.MUTED, HORIZONTAL_ALIGNMENT_CENTER))
+	cc.add_child(vb)
+	Hud.dialog_layer.get_child(Hud.dialog_layer.get_child_count() - 1).add_child(ov)
+	Keys.capturing = true
+	ov.tree_exiting.connect(func(): Keys.capturing = false)
+	ov.gui_input.connect(func(e: InputEvent):
+		if not ((e is InputEventKey or e is InputEventMouseButton) and e.pressed):
+			return
+		ov.accept_event()
+		if e is InputEventKey and e.is_echo():
+			return
+		if e is InputEventKey and (e.physical_keycode == KEY_ESCAPE or e.keycode == KEY_ESCAPE):
+			_ctl_info = ""
+		else:
+			_ctl_info = Keys.rebind(action, idx, Keys.event_code(e))
+		Keys.capturing = false
+		Menus.controls.call_deferred(back, true))
+	ov.grab_focus()
 
 
 # ================================================================== ayarlar
@@ -1198,6 +1313,7 @@ static var _set_bg: Control = null   # açık ayarlar ekranı (yeniden çizimde 
 static var _set_snap := {}           # ekran açılırkenki ayarlar: kaydetmeden çıkılırsa buna dönülür
 static var _set_keep := false        # yeniden çizim / kaydetme sürüyor: geri alma
 static var _set_scroll := 0
+static var _set_sub := false        # ayarlardan Kontroller'e geçildi (ayarlar kaydedilmeden açık sayılır)
 
 
 static func settings_open() -> bool:
@@ -1225,9 +1341,10 @@ static func settings_cancel() -> void:
 
 
 static func settings(back: Callable) -> void:
-	if not settings_open():
+	if not settings_open() and not _set_sub:
 		_set_snap = Game.settings.duplicate(true)
 		_set_scroll = 0
+	_set_sub = false
 	_set_keep = true
 	var bg = _full()
 	_set_keep = false
@@ -1249,7 +1366,7 @@ static func settings(back: Callable) -> void:
 	var state = [false, keep_scroll <= 0]   # [boy verildi, kaydırma konumu geri kondu]
 	var fit = func() -> void:
 		state[0] = true
-		sc.custom_minimum_size.y = minf(body.get_combined_minimum_size().y, maxf(160.0, bg.size.y - 180.0))
+		sc.custom_minimum_size.y = minf(body.get_combined_minimum_size().y, maxf(160.0, bg.size.y - 250.0))
 	sc.draw.connect(func():
 		if not state[0]:
 			fit.call())
@@ -1282,7 +1399,10 @@ static func settings(back: Callable) -> void:
 		sl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		sl.value_changed.connect(func(x):
 			s[key] = x
-			val.text = "%.2f" % x)
+			val.text = "%.2f" % x
+			if key in ["master", "music"]:
+				Game.apply_audio()
+				Sfx.music_a.volume_db = linear_to_db(maxf(0.001, float(s["music"]) * 0.6)))
 		h.add_child(l); h.add_child(sl); h.add_child(val)
 		gv.add_child(h)
 	var check = func(gv: Container, title: String, key: String) -> void:
@@ -1348,6 +1468,11 @@ static func settings(back: Callable) -> void:
 	var g1 = group.call("controls", "Kontrol")
 	slider.call(g1, "Fare hassasiyeti", "sens", 0.2, 3.0, 0.05)
 	check.call(g1, "Fareyi ters çevir (Y)", "invert_y")
+	g1.add_child(UI.button("Tuş Atamaları", func():
+		_set_sub = true   # ayarlar açık kalır sayılır: dönünce yarım değişiklikler korunur, Esc ile çıkılırsa geri alınır
+		_set_keep = true
+		controls(func(): settings(back))
+		_set_keep = false, 260, "controls"))
 	var g2 = group.call("monitor", "Görüntü")
 	var qr = UI.hbox(8)
 	var ql = UI.label("Grafik kalitesi", 15)
@@ -1367,7 +1492,43 @@ static func settings(back: Callable) -> void:
 	g2.add_child(gr)
 	for opt in [["Gölgeler", "shadows"], ["Anime çizgileri", "outline"], ["Yumuşak filtre", "dreamy"], ["FPS göster", "show_fps"]]:
 		check.call(gr, opt[0], opt[1])
+	# dikey eşitleme / FPS sınırı: ◀ ▶ ile seçilir, hemen uygulanır
+	var pick = func(title: String, cur_text: String, step: Callable) -> void:
+		var h = UI.hbox(12)
+		var l = UI.label(title, 15)
+		l.custom_minimum_size = Vector2(200, 0)
+		h.add_child(l)
+		var go = func(d: int) -> void:
+			step.call(d)
+			Game.apply_graphics()
+			settings(back)
+		h.add_child(_arrow_btn("◀", func(): go.call(-1)))
+		var val = UI.label(cur_text, 16, UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, true)
+		val.custom_minimum_size = Vector2(90, 0)
+		h.add_child(val)
+		h.add_child(_arrow_btn("▶", func(): go.call(1)))
+		g2.add_child(h)
+	pick.call("Dikey eşitleme (VSync)", "Açık" if bool(s.get("vsync", true)) else "Kapalı", func(_d): s["vsync"] = not bool(s.get("vsync", true)))
+	var fl: Array = Game.FPS_LIMITS
+	var fi = maxi(0, fl.find(int(s.get("max_fps", 0))))
+	pick.call("FPS sınırı", "Sınırsız" if fl[fi] == 0 else "%d" % fl[fi], func(d): s["max_fps"] = fl[posmod(fi + d, fl.size())])
+	if bool(s.get("vsync", true)):
+		g2.add_child(UI.label("Dikey eşitleme açıkken FPS ekranın yenileme hızını geçmez.", 12, UI.MUTED))
+	# ayrıntılı grafik: kalite ön ayarı bunları birlikte kurar, burada tek tek değişir
+	var aa_names := ["Kapalı", "FXAA", "MSAA 2x", "MSAA 4x"]
+	pick.call("Kenar yumuşatma", aa_names[clampi(int(s.get("aa", 2)), 0, 3)], func(d): s["aa"] = posmod(int(s.get("aa", 2)) + d, 4))
+	pick.call("Ortam gölgesi (SSAO)", "Açık" if bool(s.get("ssao", true)) else "Kapalı", func(_d): s["ssao"] = not bool(s.get("ssao", true)))
+	var rs := [0.5, 0.6, 0.7, 0.75, 0.8, 0.9, 1.0]
+	var ri = rs.find(snappedf(float(s.get("res_scale", 1.0)), 0.05))
+	ri = rs.size() - 1 if ri < 0 else ri
+	pick.call("Çözünürlük ölçeği", "%d%%" % roundi(rs[ri] * 100.0), func(d): s["res_scale"] = rs[clampi(ri + d, 0, rs.size() - 1)])
+	var gn := ["Kapalı", "Az", "Orta", "Çok"]
+	pick.call("Çimen yoğunluğu", gn[clampi(int(s.get("grass", 3)), 0, 3)], func(d): s["grass"] = clampi(int(s.get("grass", 3)) + d, 0, 3))
+	var cn := ["Az", "Orta", "Kalabalık"]
+	pick.call("Kalabalık yoğunluğu", cn[clampi(int(s.get("crowd", 2)), 0, 2)], func(d): s["crowd"] = clampi(int(s.get("crowd", 2)) + d, 0, 2))
+	g2.add_child(UI.label("Kalabalık yoğunluğu bir köye yeniden girince uygulanır.", 12, UI.MUTED))
 	var g3 = group.call("sound", "Ses")
+	slider.call(g3, "Ana ses", "master", 0.0, 1.0, 0.05)
 	slider.call(g3, "Müzik", "music", 0.0, 1.0, 0.05)
 	slider.call(g3, "Efektler", "sfx", 0.0, 1.0, 0.05)
 	v.add_child(UI.primary("Kaydet ve Geri", func():
@@ -1379,6 +1540,21 @@ static func settings(back: Callable) -> void:
 			Game.apply_graphics()
 		Sfx.music_a.volume_db = linear_to_db(maxf(0.001, float(s["music"]) * 0.6))
 		back.call(), 584, "check"))
+	var bot = UI.hbox(12)
+	bot.alignment = BoxContainer.ALIGNMENT_CENTER
+	bot.add_child(UI.button("Kaydetmeden Çık", func(): settings_cancel(), 286, "arrow"))
+	bot.add_child(UI.button("Varsayılana Dön", func():
+		# kaydedilmez: "Kaydet ve Geri" ile kalıcı olur, "Kaydetmeden Çık" ile geri alınır
+		var win = s.get("display") != Game.settings_defaults.get("display") or s.get("fullscreen") != Game.settings_defaults.get("fullscreen") or s.get("ui_scale") != Game.settings_defaults.get("ui_scale")
+		for k in Game.settings_defaults:
+			s[k] = Game.settings_defaults[k]
+		if win:
+			Game.apply_settings()
+		Game.apply_graphics()
+		Sfx.music_a.volume_db = linear_to_db(maxf(0.001, float(s["music"]) * 0.6))
+		Hud.msg("Ayarlar varsayılana döndü (kaydetmek için: Kaydet ve Geri).", Color(0.9, 0.85, 0.6))
+		settings(back), 286, "hourglass"))
+	v.add_child(bot)
 
 
 # ================================================================== ninja menüsü [Tab]

@@ -522,7 +522,7 @@ func _physics_process(dt: float) -> void:
 	dt *= Combat.player_comp()   # Sharingan algısı: dünya yavaş, oyuncu normal hızda
 	# depar sayacı her hareket kipinde sıfırlanır (duvar/ip/tutunmada Shift bırakılınca kalıyordu -> kısa basışta tam hız);
 	# jutsu/saldırı sırasında birikmez
-	if not Input.is_action_pressed("dash") or not Input.is_physical_key_pressed(KEY_SHIFT) or (combat != null and not combat.get("action") in [null, ""]):
+	if not Input.is_action_pressed("dash") or not Keys.held("dash") or (combat != null and not combat.get("action") in [null, ""]):
 		sprint_t = 0.0
 	input_locked -= dt
 	wall_cd -= dt
@@ -572,7 +572,7 @@ func _ground_air_move(dt: float) -> void:
 	var wish = wish_dir()
 	# Shift takılı kalmasın (menü açıkken / pencere odağı giderken bırakma olayı kaçınca hep koşuyordu):
 	# depar yalnız fiziksel Shift gerçekten basılıyken ve arayüz kapalıyken
-	var shift_down = Input.is_action_pressed("dash") and Input.is_physical_key_pressed(KEY_SHIFT) and not Game.ui_open
+	var shift_down = Input.is_action_pressed("dash") and Keys.held("dash") and not Game.ui_open
 	if Input.is_action_pressed("dash") and not shift_down:
 		Input.action_release("dash")
 	var sprint = shift_down and grounded and wish.length() > 0.1

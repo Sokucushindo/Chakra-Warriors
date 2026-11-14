@@ -57,8 +57,10 @@ func next_test() -> void:
 func toggle_vsync() -> void:
 	if not visible:
 		return
-	var on = DisplayServer.window_get_vsync_mode() != DisplayServer.VSYNC_DISABLED
-	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED if on else DisplayServer.VSYNC_ENABLED)
+	# ayarlardaki dikey eşitlemeyi değiştirir ve kaydeder (Ayarlar > Görüntü ile aynı)
+	Game.settings["vsync"] = DisplayServer.window_get_vsync_mode() == DisplayServer.VSYNC_DISABLED
+	Game.apply_frame()
+	Game.save_settings()
 	test_fps.clear()
 
 
