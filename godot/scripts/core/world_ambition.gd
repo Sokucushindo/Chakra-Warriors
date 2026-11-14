@@ -161,6 +161,7 @@ static func world_tick() -> void:
 			step(p)
 	kage_step()
 	WorldAssault.world_tick()   # köy yıkacak güce ulaşan biri bir köye yürür
+	WorldAkatsuki.world_tick()  # kaçaklar örgütü: kuruluş, üye alma, ödül avı, canavar avı
 	WorldJubi.world_tick()      # Rinnegan sahibi canavarları Gedō Mazō'da toplar
 
 
@@ -491,6 +492,7 @@ static func tick(dt: float) -> void:
 		return
 	WorldAssault.tick(dt)
 	WorldJubi.tick(dt)
+	WorldAkatsuki.tick(dt)
 	if Game.player == null or Game.profile.is_empty() or Missions.quiet():
 		return
 	_hunt_t += dt

@@ -515,11 +515,8 @@ func broker_dialog() -> void:
 	else:
 		opts.append({"label": "(Yasak teknikler: «Kara Listede» rütbesinde açılır)", "cb": func(): pass})
 	# Akatsuki: «Aranan Gölge» ve üstü kaçaklara davet
-	if r >= 3 and not is_akatsuki():
-		opts.append({"label": "Kızıl bulutlardan bir mesaj var...", "tip": "Akatsuki seni yanına istiyor.", "cb": _akatsuki_invite})
-	elif is_akatsuki() and Missions.active().is_empty():
-		var aj = _akatsuki_job()
-		opts.append({"label": "[S] Akatsuki: %s" % aj["title"], "tip": aj["brief"], "cb": func(): Missions.accept(aj)})
+	if WorldAkatsuki.can_invite():
+		opts.append({"label": "Kızıl bulutlardan bir mesaj var...", "tip": "Akatsuki seni görmek istiyor: mağaralarının önünde sınanacaksın.", "cb": WorldAkatsuki.invite_dialog})
 	opts.append({"label": "Ateşin başında dinlen (can/chakra, kayıt)", "cb": func():
 		if Game.player:
 			Game.player.hp = Game.player.max_hp
@@ -625,31 +622,6 @@ func kinjutsu_found(m: Dictionary, ok: bool) -> void:
 	add_infamy(60)
 	Hud.banner("YASAK TEKNİK", "Mühürlü parşömeni açtın: %s" % String(Data.jutsu[jid].get("name", jid)), Color(0.75, 0.2, 0.3))
 	Journal.add("Yasak parşömenden %s tekniğini öğrendim." % String(Data.jutsu[jid].get("name", jid)), "milestone")
-
-
-func _akatsuki_invite() -> void:
-	Hud.dialog("Kızıl Bulut Elçisi", "Gölgelerden kızıl bulutlu bir pelerin çıkıyor: \"Adın Bingo Kitabı'nda epey yükseldi. Örgütümüz kuyruklu canavarları topluyor; bize katıl, köylerin sana açamadığı kapıları biz açalım.\"", [
-		{"label": "Akatsuki'ye katıl", "cb": func():
-			flags()["akatsuki_member"] = true
-			Gear.grant(p(), "set_akatsuki", "set")
-			Gear.apply_look(p())
-			if Game.player:
-				Game.player.rebuild_model()
-			add_infamy(300)
-			Hud.banner("AKATSUKİ", "Kızıl bulutlu pelerini giydin. Akatsuki artık sana saldırmaz; simsardan örgüt görevleri al.", Color(0.85, 0.1, 0.12))
-			Game.save_game()},
-		{"label": "Reddet", "cb": func(): pass}])
-
-
-## Akatsuki görevi: bir jinchūriki'yi bul ve yen (Bingo'daki taşıyıcı ya da yeni bir kaçak taşıyıcı)
-func _akatsuki_job() -> Dictionary:
-	var h: Array = flags().get("hideout", [0, 0])
-	var at = Missions._near_spot(h, 1200.0, 2400.0)
-	var lv = maxi(int(p()["level"]), 30)
-	return {"title": "Jinchūriki Avı", "rank": "S", "village": "kacak", "giver": "Akatsuki", "hook": "Orgs.akatsuki_job_done",
-		"brief": "Örgüt bir taşıyıcının yerini buldu. Onu yen; canavar mühürlenmek üzere örgüte götürülecek.",
-		"steps": [{"kind": "kill", "at": at, "enemy": "jinchuriki", "n": 1, "boss": {"name": "Kaçak Jinchūriki", "hp": 2500.0 + lv * 50.0, "level": lv + 4, "power": 3.2},
-			"text": "Jinchūriki'yi yen."}, {"kind": "goto", "at": h, "r": 14.0, "name": "Kaçak Sığınağı", "text": "Sığınağa dön, örgüte haber ver."}]}
 
 
 func akatsuki_job_done(m: Dictionary, ok: bool) -> void:
@@ -1189,23 +1161,6 @@ func _process(dt: float) -> void:
 	if _t >= 20.0:
 		_t = 0.0
 		_events_tick()
-	# Akatsuki avı sürerken: vahşi doğada ara sıra bir çift belirir
-	if is_hunting() and int(p()["rank"]) >= 3 and not is_akatsuki() and not Missions.quiet():
-		_hunt_t += dt
-		if _hunt_t > 600.0:
-			_hunt_t = 0.0
-			var m = Game.to_map(Game.player.global_position)
-			var inside = false
-			for v in Game.world_info.get("villages", []):
-				if m.distance_to(Vector2(v["x"], v["y"])) < float(v["r"]) * 1.2:
-					inside = true
-			if not inside and randf() < 0.5:
-				var dead: Array = state().get("akatsuki_dead", [])
-				var pairs = [0, 1, 2, 3].filter(func(i): return AKATSUKI.filter(func(x): return int(x["pair"]) == i and not String(x["name"]) in dead).size() > 0)
-				if not pairs.is_empty():
-					var pp = Game.player.global_position
-					spawn_pair(pairs.pick_random(), pp + Vector3(50, 0, 30))
-					Hud.banner("KIZIL BULUTLAR", "İki Akatsuki üyesi yolunu kesti!", Color(0.85, 0.15, 0.15))
 	for e in _spawned.duplicate():
 		if not is_instance_valid(e):
 			_spawned.erase(e)

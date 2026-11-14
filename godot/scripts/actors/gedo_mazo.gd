@@ -314,6 +314,8 @@ func _pose(nm: String) -> Dictionary:
 			return {"hy": 4.7, "tx": 0.0, "hx": 0.0, "ax": 0.0, "az": 0.12, "ex": 0.0, "wx": 0.0, "lx": 0.0, "lz": 0.05, "kx": 0.0}
 		"rise":   # yerden çıkarken: dimdik, kollar yanlarda, baş hafif öne
 			return {"hy": 4.7, "tx": -0.15, "hx": 0.2, "ax": 0.2, "az": 0.2, "ex": -0.3, "wx": 0.0, "lx": 0.0, "lz": 0.05, "kx": 0.0}
+		"ritual":   # Akatsuki mühür töreni: prangalı eller göğsün önünde, avuçlar açık, parmaklar yukarı (üyeler uçlarında durur)
+			return {"hy": 4.7, "tx": 0.0, "hx": 0.12, "ax": 0.6, "az": 0.2, "ex": 1.07, "wx": 1.23, "lx": 0.0, "lz": 0.05, "kx": 0.0}
 		_:   # crouch: Hanzō savaşındaki dört ayak üstü çömelme — gövde öne eğik, eller yerde, baş kalkık
 			return {"hy": 1.7, "tx": -1.2, "hx": 1.35, "ax": 1.4, "az": 0.75, "ex": -0.3, "ez": 1.2, "wx": 1.6, "lx": 0.9, "lz": 0.42, "kx": -2.5}
 
@@ -329,6 +331,21 @@ func _apply(p: Dictionary) -> void:
 	for l in legs:
 		l["hip"].rotation = Vector3(p["lx"], 0, l["side"] * p["lz"])
 		l["kn"].rotation.x = p["kx"]
+
+
+## On parmak ucu (dünya konumu): sıra sol elden sağ ele; Akatsuki mühür töreninde üyeler bunların üstünde durur
+func finger_tips() -> Array:
+	var out = []
+	for a in arms:
+		var s: float = a["side"]
+		for f in 5:
+			var thumb = f == (0 if s > 0 else 4)
+			var fx = lerpf(-0.24, 0.24, f / 4.0) * s
+			var tip = Vector3(fx, -0.58, 0.0) + Vector3(fx * 0.9, -1, 0.0).normalized() * 0.62 + Vector3(0, 0, -0.08)
+			if thumb:
+				tip = Vector3(-0.3 * s, -0.25, -0.05) + Vector3(-0.8 * s, -0.6, -0.2).normalized() * 0.45 + Vector3(0, 0, -0.08)
+			out.append((a["wr"] as Node3D).global_transform * tip)
+	return out
 
 
 func set_pose(nm: String, dur := 0.5) -> void:

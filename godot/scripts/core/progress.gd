@@ -793,6 +793,12 @@ func interact(it: Dictionary) -> void:
 	match kind:
 		"beast_seal", "beast_talk", "mind_exit", "jubi_revive":
 			TailedBeasts.interact(it)
+		"aka_gate":
+			WorldAkatsuki.gate(it)
+		"aka_tag":
+			AkatsukiCave.tear(it)
+		"aka_leader":
+			WorldAkatsuki.leader_dialog()
 		"academy":
 			_academy()
 		"mission_board":

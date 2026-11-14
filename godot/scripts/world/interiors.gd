@@ -11,7 +11,7 @@ const TITLES := {
 	"academy": "Ninja Akademisi", "hokage": "Hokage Kulesi — Görev Ofisi", "weapon_shop": "Silah Dükkânı",
 	"pharmacy": "Eczane", "scrolls": "Parşömenci", "contract_hall": "Sözleşme Ustası — Kuchiyose Salonu", "chunin_hall": "Merkez Kule — Ön Eleme Salonu", "secret_hq": "Gizli Birlik Karargâhı", "tailor": "Terzi", "bbq": "Yakiniku Restoranı", "hospital": "Konoha Hastanesi",
 	"home_player": "Senin Evin", "home": "Bir Ev", "teahouse": "Dango ve Çay Evi", "inn": "Han (Ryokan)",
-	"summit": "Demir Kalesi — Beş Kage Zirve Salonu", "naka_shrine": "Naka Tapınağı", "rogue_hideout": "Kaçak Sığınağı", "snake_lab": "Yer Altı Laboratuvarı", "lair_cave": "Kaçakların Sığınağı", "lair_lab": "Gizli Deney İni",
+	"summit": "Demir Kalesi — Beş Kage Zirve Salonu", "naka_shrine": "Naka Tapınağı", "rogue_hideout": "Kaçak Sığınağı", "akatsuki_cave": "Akatsuki Mağarası", "snake_lab": "Yer Altı Laboratuvarı", "lair_cave": "Kaçakların Sığınağı", "lair_lab": "Gizli Deney İni",
 }
 
 var inside := ""
@@ -663,6 +663,7 @@ func _build(kind: String, seed: int) -> void:
 		"summit": _summit()
 		"naka_shrine": _naka_shrine()
 		"rogue_hideout": _rogue_hideout()
+		"akatsuki_cave": AkatsukiCave.interior(self)
 		"snake_lab": _snake_lab()
 		"creator": _creator_room(String(door.get("vid", "konoha")))
 		"lair_cave": _lair(false)

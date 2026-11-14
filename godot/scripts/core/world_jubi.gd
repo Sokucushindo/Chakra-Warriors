@@ -91,6 +91,8 @@ static func world_tick() -> void:
 			d["by"] = ""
 			d["stage"] = ""
 		var cs = WorldAmbition.people().filter(func(q): return not q.get("missing", false) and String(q.get("kage", "")) == "" and int((q.get("eye", [0, 0]) as Array)[0]) == 6)
+		if WorldAkatsuki.exists():   # örgüt varken heykel örgütün liderinindir
+			cs = cs.filter(func(q): return String(q["id"]) == String(WorldAkatsuki.D()["leader"]))
 		if cs.is_empty():
 			return
 		cs.sort_custom(func(a, b): return int(a["level"]) > int(b["level"]))
@@ -102,7 +104,7 @@ static func world_tick() -> void:
 		own.append(hb)
 	if not own.is_empty():
 		_into_mazo(p, String(own[0]))
-	elif randf() < 0.5:
+	elif randf() < 0.5 and not WorldAkatsuki.is_member(p):   # örgüt lideri ava kendi çıkmaz, takımları çıkar
 		WorldAmbition._beast(p)
 	if (d["mazo"] as Array).size() >= NINE.size():
 		_announce_revive(p)

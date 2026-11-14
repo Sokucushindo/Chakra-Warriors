@@ -638,6 +638,7 @@ static func arch_of(p: Dictionary, outfit := "") -> Dictionary:
 	a["look"] = look_of(p)
 	a["world_person"] = String(p["id"])
 	WorldAmbition.arch(a, p)   # bedenine canavar mühürlüyse jinchūriki olarak dövüşür
+	WorldAkatsuki.dress(a, p)  # Akatsuki üyesi: kızıl bulutlu pelerin
 	return a
 
 
