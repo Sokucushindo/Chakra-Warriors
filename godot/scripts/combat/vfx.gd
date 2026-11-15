@@ -780,7 +780,7 @@ static func debris(pos: Vector3, col := Color(0.5, 0.42, 0.32), n := 14, speed :
 	p.global_position = pos
 	p.scale = Vector3.ONE * size
 	p.emitting = true
-	p.finished.connect(p.queue_free)
+	FX.free_after(p)
 
 
 ## Kıvılcım / kor (ateş, patlama)

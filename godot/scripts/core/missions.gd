@@ -3442,8 +3442,24 @@ func _bb_new(force_rank := "") -> Dictionary:
 	ClanWorld.decorate_bingo(e)   # bazen bir klanın kaçağı (gözleri alınabilir)
 	if rank == "S" and not e.has("clan") and not e.has("beast") and randf() < 0.3:
 		ClanWorld.legend_pack(e)   # nadir: efsanevi imza teknikleri (Rinnegan, Jinton, Kuroi Kaminari...)
+	_bb_dress(e)
 	bb["next"] = int(bb["next"]) + 1
 	return e
+
+
+## Kalıp kaçak da karakterine uyan gerçek bir set giyer (klan / doğa / köy); dünyadan gelen kişilerinki WorldPeople.rogue_dress
+func _bb_dress(e: Dictionary) -> void:
+	if e.has("set") or e.has("person_id") or e.has("legend") or e.has("beast") or e.has("self"):
+		return
+	var sid = Outfits.rogue_set(String(e.get("clan", "")), String(e["village"]), [String(e.get("element", ""))], e.get("nat", []), String(e["look"].get("gender", "m")) == "f", String(e["name"]))
+	e["set"] = sid
+	if sid == "":
+		return
+	var lk = _bb_look(e)
+	lk.erase("keep_hair")
+	var nl = ClanWorld._hexlook(Outfits.wear_set(lk, sid))
+	nl["band_style"] = "slashed"
+	e["look"] = nl
 
 
 func _bb_host(e: Dictionary, id: String, h: Dictionary) -> void:
@@ -3757,6 +3773,7 @@ func bingo_entries() -> Array:
 func _bingo_entries_raw() -> Array:
 	var out = []
 	for e in _bingo()["list"]:
+		_bb_dress(e)   # eski kayıttaki kaçak: seti yoksa şimdi giyer
 		var x = e.duplicate(true)
 		x["look"] = _bb_look(e)
 		x["village_name"] = Game.village(e["village"]).get("name", e["village"])

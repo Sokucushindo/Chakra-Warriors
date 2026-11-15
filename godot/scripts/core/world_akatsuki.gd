@@ -431,6 +431,8 @@ static func tick(dt: float) -> void:
 			if f is Enemy and f.team == "enemy" and int((f.arch as Dictionary).get("akatsuki", -1)) >= 0:
 				f.team = "neutral"
 	_gate_tick()
+	if is_instance_valid(mate) and not mate.is_dead() and player_in() and _inside() == "":
+		Exams.follow_player([mate])   # ortak oyuncuyla yürür (takım arkadaşı takibiyle aynı sistem)
 	_raid_tick()
 	_come_tick()
 

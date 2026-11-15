@@ -180,7 +180,7 @@ static func spray(pos: Vector3, s := 1.0, dir := Vector3.UP, spread := 35.0, spe
 		VFX.scene().add_child(p)
 		p.global_position = pos
 		p.emitting = true
-		p.finished.connect(p.queue_free)
+		FX.free_after(p)
 
 
 ## Yerde kısa süren yarı saydam su halkası (sıçrayan suyun yayılması); ~1 sn'de söner

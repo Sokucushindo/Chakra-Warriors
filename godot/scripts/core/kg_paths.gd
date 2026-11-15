@@ -12,6 +12,53 @@ const RECIPES := {
 	"shakuton": ["katon", "fuuton"], "bakuton": ["doton", "raiton"], "jiton": ["doton", "fuuton"],
 }
 const JINTON := ["fuuton", "katon", "doton"]
+const BASE := ["katon", "suiton", "fuuton", "doton", "raiton"]
+## Doğa birleştirme: iki doğanın ikisinde de bu ustalığa (Mastery.el_v) ulaşan onları tek chakrada birleştirir; Jinton üç doğa ister
+const FUSE_AT := 20.0
+const FUSE3_AT := 35.0
+
+
+## Birleştirilebilecek ilk doğa (şartı dolmuş, henüz sahip olunmayan); yoksa ""
+static func fusable(p: Dictionary) -> String:
+	var els: Array = p.get("elements", [])
+	var have: Array = p.get("natures", [])
+	for n in RECIPES:
+		if n in have or n in els:
+			continue
+		var r: Array = RECIPES[n]
+		if r[0] in els and r[1] in els and Mastery.el_v(p, r[0]) >= FUSE_AT and Mastery.el_v(p, r[1]) >= FUSE_AT:
+			return n
+	if not "jinton" in have and JINTON.all(func(e): return e in els and Mastery.el_v(p, e) >= FUSE3_AT):
+		return "jinton"
+	return ""
+
+
+## İki doğada ustalaşınca birleşim uyanır (teknik atarken, o an)
+static func try_fuse(p: Dictionary) -> void:
+	if p != Game.profile:
+		return
+	var n = fusable(p)
+	if n == "":
+		return
+	Progress.awaken_nature(n, false)
+	var parts: Array = JINTON if n == "jinton" else RECIPES[n]
+	Hud.banner("DOĞA BİRLEŞİMİ", "%s — %s" % [NAMES.get(n, n.capitalize()), " + ".join(parts.map(func(e): return Elements.NAMES.get(e, e)))], Color(0.9, 0.75, 0.3))
+	Sfx.play("levelup", null, 0.6)
+	if Game.player and is_instance_valid(Game.player):
+		FX.aura(Game.player, Color(0.9, 0.75, 0.3), 2.0)
+
+
+## Menü satırı: her doğanın ustalığı ve sıradaki birleşim ("Katon 12  •  Suiton 7  →  Futton: 20 / 20")
+static func fuse_rows(p: Dictionary) -> Array:
+	var els: Array = (p.get("elements", []) as Array).filter(func(e): return e in BASE)
+	var out: Array = []
+	for n in RECIPES:
+		var r: Array = RECIPES[n]
+		if not (r[0] in els and r[1] in els):
+			continue
+		var done = n in p.get("natures", [])
+		out.append([String(NAMES.get(n, n)), String(Elements.NAMES.get(r[0], r[0])), mini(int(Mastery.el_v(p, r[0])), int(FUSE_AT)), String(Elements.NAMES.get(r[1], r[1])), mini(int(Mastery.el_v(p, r[1])), int(FUSE_AT)), done])
+	return out
 const NAMES := {"hyoton": "Hyōton (Buz)", "yoton": "Yōton (Lav)", "futton": "Futton (Kaynar Buhar)", "ranton": "Ranton (Fırtına)",
 	"shakuton": "Shakuton (Kavurucu)", "bakuton": "Bakuton (Patlama)", "jiton": "Jiton (Mıknatıs)", "jinton": "Jinton (Toz — Kekkei Tōta)"}
 ## Klansız kan soyları: doğa, uyanış seviyesi (kan doğuştan gelir: baştan uyanık, klanlardaki gibi), hangi köylerde doğar

@@ -65,6 +65,13 @@ static func t(s: String) -> String:
 	return s if r == &"" else String(r)
 
 
+var _seg_rx: RegEx
+var _sen_rx: RegEx
+var _pc_cache := {}
+var derived := {}        # "Ad: Açıklama" → "Açıklama", "Ad (ek)" → "Ad" (ekranda bölünerek gösterilenler)
+var lower := {}          # küçük harfli anahtar → çeviri (BÜYÜK / küçük yazılan başlıklar)
+
+
 func _load() -> void:
 	var f := FileAccess.open(PATH, FileAccess.READ)
 	if f == null:
@@ -82,6 +89,8 @@ func _load() -> void:
 		exact[key] = v
 		if not "%" in key:
 			continue
+		key = key.strip_edges()
+		v = v.strip_edges()
 		# şablon: yer tutucular yakalayan gruba dönüşür
 		var pat := "^"
 		var last := 0
@@ -108,6 +117,42 @@ func _load() -> void:
 		var rx := RegEx.new()
 		if rx.compile(pat) == OK:
 			templates.append([rx, v, key])
+	for k in exact:
+		var key := String(k)
+		var v := String(exact[k])
+		if "%" in key:
+			continue
+		var lo := _low(key)
+		if not lower.has(lo):
+			lower[lo] = v
+		# kenarları soyulmuş hâli: "Ganimet: " → "Ganimet", " (chakra tükendi)" → "chakra tükendi"
+		var sk := key.strip_edges()
+		var sv := v.strip_edges()
+		for pass_i in 3:
+			if sk != key and sk.length() > 2 and not exact.has(sk) and not derived.has(sk):
+				derived[sk] = sv
+			if sk.ends_with(":") and sv.ends_with(":"):
+				sk = sk.left(-1).strip_edges()
+				sv = sv.left(-1).strip_edges()
+			elif sk.begins_with("(") and sk.ends_with(")") and sv.begins_with("(") and sv.ends_with(")"):
+				sk = sk.substr(1, sk.length() - 2)
+				sv = sv.substr(1, sv.length() - 2)
+			else:
+				break
+			if sk.length() > 2 and not exact.has(sk) and not derived.has(sk):
+				derived[sk] = sv
+		var ci := key.find(": ")
+		var vi := v.find(": ")
+		if ci > 0 and vi > 0:
+			var tk := key.substr(ci + 2)
+			if not exact.has(tk) and not derived.has(tk):
+				derived[tk] = v.substr(vi + 2)
+		var pi := key.find(" (")
+		var pv := v.find(" (")
+		if pi > 0 and pv > 0:
+			var hk := key.substr(0, pi)
+			if not exact.has(hk) and not derived.has(hk):
+				derived[hk] = v.substr(0, pv)
 	# uzun (daha özgül) şablonlar önce
 	templates.sort_custom(func(a, b): return a[2].length() > b[2].length())
 
@@ -139,19 +184,77 @@ func _translate(s: String) -> String:
 		return exact[s]
 	# çok satırlı birleşik yazı: satır satır
 	if "\n" in s:
+		var whole := _one_c(s.strip_edges())
+		if whole != "":
+			return s.replace(s.strip_edges(), whole)
 		var lines := s.split("\n")
 		var changed := false
-		for i in lines.size():
-			var tl := _translate(lines[i]) if lines[i].strip_edges() != "" else lines[i]
-			if tl != lines[i]:
-				lines[i] = tl
-				changed = true
+		var i := 0
+		while i < lines.size():
+			# birkaç satıra yayılan bilinen yazı (en uzun öbek önce)
+			var hit := false
+			for j in range(mini(lines.size() - 1, i + 5), i, -1):
+				var blk := "\n".join(lines.slice(i, j + 1)).strip_edges()
+				var tb := _span(blk)
+				if tb != "":
+					lines[i] = tb
+					for k in range(j, i, -1):
+						lines.remove_at(k)
+					changed = true
+					hit = true
+					break
+			if not hit:
+				var tl := _translate(lines[i]) if lines[i].strip_edges() != "" else lines[i]
+				if tl != lines[i]:
+					lines[i] = tl
+					changed = true
+			i += 1
 		return "\n".join(lines) if changed else s
 	# baştaki / sondaki boşluk korunur
 	var st := s.strip_edges()
 	if st != s and st != "":
 		var tt := _translate(st)
 		return s.replace(st, tt) if tt != st else s
+	var one := _one(s)
+	if one != "":
+		return one
+	return _pieces(s)
+
+
+## Tek parça: tam eşleşme → türetilmiş (":" sonrası / "(" öncesi) → harf büyüklüğü farkı → şablon. Bulamazsa "".
+func _one(s: String) -> String:
+	if exact.has(s):
+		return exact[s]
+	if derived.has(s):
+		return derived[s]
+	var lo := _low(s)
+	if lower.has(lo):
+		var v := String(lower[lo])
+		if s == s.to_upper() and s != lo:
+			return v.to_upper()
+		if s == s.to_lower():
+			return v.to_lower() if v.length() > 1 and v.substr(1) == v.substr(1).to_lower() else v
+		return v
+	return _tmpl(s)
+
+
+## Parça sonuçları saklanır (her yeni birleşik yazıda bütün şablonlar yeniden denenmesin)
+func _one_c(s: String) -> String:
+	if _pc_cache.has(s):
+		return _pc_cache[s]
+	var r := _one(s)
+	if _pc_cache.size() > 6000:
+		_pc_cache.clear()
+	_pc_cache[s] = r
+	return r
+
+
+## Küçük harfe indirger; Türkçe i / ı / İ / I ayrımı kalkar ("SICAK SU ÜLKESI" ile "Sıcak Su Ülkesi" eşleşsin)
+static func _low(s: String) -> String:
+	return s.to_lower().replace("ı", "i").replace("i̇", "i")
+
+
+func _tmpl(s: String) -> String:
 	for tp in templates:
 		var m: RegExMatch = tp[0].search(s)
 		if m == null:
@@ -179,4 +282,125 @@ func _translate(s: String) -> String:
 			res += c
 			fmt_i += 1
 		return res
+	return ""
+
+
+## Birleşik yazı: önce cümle cümle ("Cümle. Cümle."), eşleşmeyen cümle ince ayraçlarla ("Hız +15%, Menzil +10%", "Kunai ×3"),
+## o da olmazsa baştaki / sondaki bilinen söz öbeğiyle ("Kaçak Sunagakure"). Eşleşen parçalar çevrilir, kalan olduğu gibi kalır.
+func _pieces(s: String) -> String:
+	if _sen_rx == null:
+		_sen_rx = RegEx.create_from_string("(?<=[.!?…])\\s+")
+		_seg_rx = RegEx.create_from_string("\\s*(?:  +|•|—|:|,|;|\\(|\\)|\\[|\\]|\\||×|/|«|»|\"|→)\\s*|\\s*[-+]?\\d+[\\d.,]*%?\\s*")
+	var ms := _sen_rx.search_all(s)
+	if ms.is_empty():
+		return _fine(s)
+	return _join(s, ms, _sent)
+
+
+func _sent(s: String) -> String:
+	if s.length() < 2:
+		return s
+	var r := _one_c(s)
+	return r if r != "" else _fine(s)
+
+
+func _fine(s: String) -> String:
+	var ms := _seg_rx.search_all(s)
+	if ms.is_empty():
+		return _words(s)
+	return _join(s, ms, _part)
+
+
+## Ayraçlarla bölünmüş yazı: her konumda, ayraçlarıyla birlikte en uzun bilinen öbek çevrilir ("Süre doldu. Tek başına koştunuz."
+## iki cümlelik tek kayıt; "Bir yem/klon ile ..." içinde ayraç geçen kayıt); eşleşmeyen tek parça yaprak işleve gider.
+func _join(s: String, ms: Array, leaf: Callable) -> String:
+	var a: Array = []   # parça başlangıcı
+	var e: Array = []   # parça sonu
+	var pos := 0
+	for m in ms:
+		a.append(pos)
+		e.append(m.get_start())
+		pos = m.get_end()
+	a.append(pos)
+	e.append(s.length())
+	var out := ""
+	var i := 0
+	var n := a.size()
+	while i < n:
+		var hit := false
+		for j in range(mini(n - 1, i + 8), i, -1):
+			var r := _span(s.substr(a[i], e[j] - a[i]))
+			if r != "":
+				out += r
+				i = j
+				hit = true
+				break
+		if not hit:
+			out += leaf.call(s.substr(a[i], e[i] - a[i]))
+		if i < n - 1:
+			out += s.substr(e[i], a[i + 1] - e[i])
+		i += 1
+	return out
+
+
+## Öbek için ucuz arama (şablon denemez): tam / türetilmiş / harf büyüklüğü farkı
+func _span(s: String) -> String:
+	if s.length() < 3:
+		return ""
+	if exact.has(s):
+		return exact[s]
+	if derived.has(s):
+		return derived[s]
+	var lo := _low(s)
+	if lower.has(lo):
+		var v := String(lower[lo])
+		return v.to_upper() if s == s.to_upper() and s != lo else v
+	return ""
+
+
+func _part(s: String) -> String:
+	if s.length() < 2:
+		return s
+	var r := _one_c(s)
+	return r if r != "" else _words(s)
+
+
+## Kısa söz öbeği: baştaki ya da sondaki en uzun bilinen parça çevrilir ("Kaçak Sunagakure", "Hokage Kulesi")
+func _words(s: String) -> String:
+	var w := s.split(" ")
+	if w.size() < 2 or w.size() > 6:
+		return s
+	for n in range(w.size() - 1, 0, -1):
+		var head := " ".join(w.slice(0, n))
+		var rest := " ".join(w.slice(n))
+		var th := _plain(head)
+		if th != "":
+			var tr2 := _plain(rest)
+			if tr2 == "" and not _is_name(rest):
+				continue   # kalan Türkçe söz: yarım çeviri ("Single başına") yerine dokunma
+			return th + " " + (tr2 if tr2 != "" else rest)
+	for n in range(1, w.size()):
+		var tail := " ".join(w.slice(n))
+		var tt := _plain(tail)
+		if tt != "" and _is_name(" ".join(w.slice(0, n))):
+			return " ".join(w.slice(0, n)) + " " + tt
 	return s
+
+
+## Çevrilmeden kalabilecek parça: özel ad / romaji (her sözcük büyük harfle ya da harf dışıyla başlar)
+func _is_name(s: String) -> bool:
+	for x in s.split(" ", false):
+		var ch := x.substr(0, 1)
+		if ch != ch.to_upper() or ch == ch.to_lower() and not ch.is_valid_int() and x.length() > 2:
+			return false
+	return true
+
+
+func _plain(s: String) -> String:
+	if s.length() < 3:
+		return ""
+	if exact.has(s):
+		return exact[s]
+	if derived.has(s):
+		return derived[s]
+	return ""

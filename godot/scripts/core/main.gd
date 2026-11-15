@@ -652,6 +652,7 @@ var _census_k := 0
 
 
 var _census := {}
+var _census_p := {}
 var _census_stack: Array = []
 var _census_line := ""
 
@@ -667,6 +668,18 @@ func _census_step() -> void:
 		if nd.get_script() != null:
 			key = String(nd.get_script().resource_path).get_file()
 		_census[key] = int(_census.get(key, 0)) + 1
+		if nd is GPUParticles3D:
+			# parçacık kimde birikiyor: sahibi (üst düğüm / betiği) + türü
+			var par = nd.get_parent()
+			var pn := ""
+			if par != null:
+				for ch in String(par.name):
+					if not ch.is_valid_int() and ch != "@":
+						pn += ch
+				if par.get_script() != null:
+					pn += "<" + String(par.get_script().resource_path).get_file() + ">"
+			var pk = "%s %s n%d ömür %.1f" % [pn, "tek" if nd.one_shot else "sürekli", nd.amount, nd.lifetime]
+			_census_p[pk] = int(_census_p.get(pk, 0)) + 1
 		if not (nd is StaticBody3D):   # çarpışma gövdelerinin içi sayılmaz (sabit, çok kalabalık)
 			_census_stack.append_array(nd.get_children(true))
 	if _census_stack.is_empty():
@@ -679,6 +692,13 @@ func _census_step() -> void:
 			_census_line += " | %s %d" % [e[1], e[0]]
 		print(_census_line)
 		_census = {}
+		var ptop := []
+		for pk in _census_p:
+			ptop.append([_census_p[pk], pk])
+		ptop.sort_custom(func(x, y): return x[0] > y[0])
+		if not ptop.is_empty() and int(ptop[0][0]) > 20:
+			print("PARCACIK " + " | ".join(ptop.slice(0, 6).map(func(e): return "%s ×%d" % [e[1], e[0]])))
+		_census_p = {}
 
 
 func _vram_log(dt: float) -> void:

@@ -268,7 +268,7 @@ func burst(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
 	else:
 		p.global_position = pos
 	p.emitting = true
-	p.finished.connect(p.queue_free)
+	free_after(p)
 	return p
 
 
@@ -562,8 +562,19 @@ func puff3d(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
 	VFX.scene().add_child(p)
 	p.global_position = pos
 	p.emitting = true
-	p.finished.connect(p.queue_free)
+	free_after(p)
 	return p
+
+
+## Tek seferlik parçacık bitince silinir. "finished" işareti her zaman gelmiyor (uzun oturumda binlerce ölü parçacık düğümü
+## birikip kare hızını düşürüyordu): ömrün iki katı + 1 sn sonra hâlâ duruyorsa zamanlayıcı siler.
+func free_after(p: GPUParticles3D) -> void:
+	p.finished.connect(p.queue_free)
+	var id := p.get_instance_id()
+	get_tree().create_timer(p.lifetime * (2.0 - p.explosiveness) + 0.4, false).timeout.connect(func():
+		var o = instance_from_id(id)
+		if o != null:
+			o.queue_free())
 
 
 func speed_lines(pos: Vector3, dir: Vector3) -> void:

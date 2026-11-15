@@ -4505,9 +4505,10 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 				2:   # mercan tarlası (küçük): bağlar
 					BijuuArts._sango(who, {"s": 0.28, "aim": aim, "dmg": dmg * 1.2, "tgt": tg})
 				3:   # kabuk yuvarlanışı
-					BijuuArts._shell_roll(who, {"s": 0.32, "aim": aim, "dmg": dmg * 1.4, "tgt": tg})
+					BijuuArts._shell_roll(who, {"s": 0.32, "aim": aim, "dmg": dmg * 1.4, "tgt": tg, "stun": 1.4, "knock": 9.0, "hard_down": true, "hit_r": 3.6})   # kombo içinde: uzağa savurmaz, yerde tutar (sis adımı kopmasın)
 				4:   # yanılsama sisi (küçük)
 					BijuuArts._kiri_genjutsu(who, {"s": 0.35, "aim": aim, "dmg": dmg, "tgt": tg})
+					Combat.hit_sphere(who, aimg + Vector3.UP * 0.8, 2.6, _kinfo(dmg, 0.5, {"element": "suiton", "knock": 0.0, "kind": "heavy", "stun": 1.2}))   # sisin yanılsaması sendeletir
 				5:   # mercan halkası kapanır + su patlaması
 					for k in 6:
 						var a = TAU * k / 6.0
@@ -4976,7 +4977,7 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 					for k in 2:
 						_clay_fly(who, "spider", hand + side * ((0.3 if i == 0 else -0.3) + (k - 0.5) * 0.3), aim + side * (k - 0.5) * 0.6, 0.35, 0.35 + k * 0.05, 0.0, dmg * 0.6, 0.6)
 				2:   # kil kuş: yukarı süzülüp hedefe dalar
-					_clay_fly(who, "bird", hand + Vector3.UP * 0.5, aim, 0.6, 0.7, 3.5, dmg * 1.2, 1.0)
+					_clay_fly(who, "bird", hand + Vector3.UP * 0.5, aim, 0.6, 0.42, 2.4, dmg * 1.2, 1.0)
 				3:   # Jirai: hedefin altına kil mayın — kısa gecikmeyle patlar
 					var p = Vector3(aim.x, Game.ground_height(aim.x, aim.z), aim.z)
 					var mine = ClayArt.spider(0.35)
