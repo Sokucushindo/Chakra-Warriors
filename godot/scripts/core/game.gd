@@ -20,6 +20,8 @@ var settings := {
 	"shadows": true, "outline": true, "dreamy": true, "blood": true, "invert_y": false, "show_fps": false, "quality": 2,
 	"vsync": true, "max_fps": 0,   # dikey eşitleme, FPS sınırı (0: sınırsız)
 	"master": 1.0,   # ana ses düzeyi (müzik ve efektlerin üstünde)
+	"ui_vol": 1.0, "bg_mute": false,   # arayüz tık sesleri; pencere arka plandayken sessiz
+	"autosave": 10, "shake": 2,   # otomatik kayıt (dakika, 0: kapalı); kamera sarsıntısı (0 kapalı, 1 az, 2 normal)
 	"lang": "",   # arayüz dili: "tr" / "en" ("": bilgisayarın diline göre)
 	# ayrıntılı grafik (kalite ön ayarı bunları birlikte kurar; tek tek de değişir)
 	"aa": 2, "ssao": true, "res_scale": 1.0, "grass": 3, "crowd": 2,
@@ -43,12 +45,68 @@ func now() -> float:
 	return clock
 
 
+var _autosave_t := 0.0
+
+
 func _process(dt: float) -> void:
 	if not paused and not get_tree().paused:
 		clock += dt
+		# otomatik kayıt: yalnız oyun akarken (menüde / duraklatmada sayılmaz)
+		var every := int(settings.get("autosave", 10))
+		if every > 0 and player and not profile.is_empty():
+			_autosave_t += dt
+			if _autosave_t >= every * 60.0 and not _in_fight():   # dövüşte bekler, bitince kaydeder
+				_autosave_t = 0.0
+				var t0 := Time.get_ticks_usec()
+				save_game()
+				last_save_ms = (Time.get_ticks_usec() - t0) / 1000.0
+				Hud.msg("Otomatik kaydedildi.", Color(0.6, 1, 0.6))
+
+
+var last_save_ms := 0.0
+
+
+## Son 15 saniyede hasar aldıysa dövüşte sayılır
+func _in_fight() -> bool:
+	for c in player.get_children():
+		if c is PlayerCombat:
+			return float(c.last_hit_t) < 15.0
+	return false
+
+
+## Görüş mesafesi değişince dünyadaki görünürlük sınırlarını yeniden ölçekle (dünya yeniden kurulmadan)
+func rescale_view(old_v: float, new_v: float) -> void:
+	if world == null or old_v <= 0.0:
+		return
+	var r := new_v / old_v
+	# tek seferde tüm ağacı taramak Konoha'da ~75 ms takılmaydı: kare başına ~1.5 ms'lik dilimlerle tara.
+	# Çocuk listesi düğüm ziyaret edilince alınır: tarama sürerken akışla eklenen parçalar (zaten yeni değerle kurulur) atlanır.
+	var stack: Array = world.get_children()
+	while not stack.is_empty():
+		var t0 := Time.get_ticks_usec()
+		while not stack.is_empty() and Time.get_ticks_usec() - t0 < 1500:
+			var n = stack.pop_back()
+			if not is_instance_valid(n):
+				continue
+			if n is GeometryInstance3D and n.visibility_range_end > 0.0:
+				n.visibility_range_end *= r
+				n.visibility_range_begin *= r
+			stack.append_array(n.get_children())
+		if not stack.is_empty():
+			await get_tree().process_frame
+
+
+## Pencere arka plana geçince sesi kapat (ayar açıksa), öne gelince geri aç
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and bool(settings.get("bg_mute", false)):
+		AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), true)
+	elif what == NOTIFICATION_APPLICATION_FOCUS_IN:
+		apply_audio()
 
 
 func _exit_tree() -> void:
+	if world and is_instance_valid(world) and world.get("vegetation"):
+		world.vegetation.finish_tasks()   # bitki iş parçacıkları oyun verisi silinmeden bitsin
 	Lang.shutdown()
 
 
@@ -728,7 +786,7 @@ func apply_graphics() -> void:
 		grass.visible = gl > 0
 		if grass.get("mat") and gl > 0:
 			grass.mat.set_shader_parameter("radius", [30.0, 30.0, 42.0, 58.0][gl])
-	npc_scale = [0.5, 0.8, 1.2][clampi(int(settings.get("crowd", q)), 0, 2)]   # kalabalık: büyük köyde 43 kişiye kadar (köye yeniden girince)
+	npc_scale = [0.45, 0.8, 1.2][clampi(int(settings.get("crowd", q)), 0, 2)]   # kalabalık: büyük köyde Az 16, Orta 28, Kalabalık 43 kişi (hemen uygulanır)
 
 
 var npc_scale := 1.0

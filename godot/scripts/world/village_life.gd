@@ -216,7 +216,7 @@ func _process(dt: float) -> void:
 		return
 	# büyük gizli köyler Konoha kadar kalabalık; küçük kasabalar daha sakin (eskiden 22 kişi koca köye dağılıp boş görünüyordu)
 	var big = v["id"] in ["konoha", "suna", "kiri", "kumo", "iwa"]
-	var base = int((36 if big else 18) * maxf(0.7, Game.npc_scale))
+	var base = int((36 if big else 18) * maxf(0.35, Game.npc_scale))
 	var target = base if phase != "gece" else int(base * 0.4)
 	var streets = _streets(v)
 	var roofs: Array = Builder.roof_points.get(v["id"], [])
@@ -238,6 +238,13 @@ func _process(dt: float) -> void:
 			n.queue_free()
 			npcs.erase(n)
 	var planned = npcs.size() + queue.size()
+	# kalabalık ayarı düşürüldü: fazlalardan, oyuncuya uzak olanı her tikte bir tane dağıt (göz önünde kaybolmasın)
+	if npcs.size() > target + 2:
+		for n in npcs:
+			if is_instance_valid(n) and n.global_position.distance_to(p) > 45.0:
+				n.queue_free()
+				npcs.erase(n)
+				break
 	var groups = 0
 	while planned < target and groups < 6:
 		groups += 1

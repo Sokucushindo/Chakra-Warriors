@@ -91,6 +91,8 @@ func play(name: String, pos = null, pitch := 1.0, vol := 1.0) -> void:
 	if stream == null:
 		return
 	var v = float(Game.settings["sfx"]) * vol * float(QUIET.get(name, 1.0))
+	if name == "click":   # arayüz sesleri ayrı düzeyde
+		v *= float(Game.settings.get("ui_vol", 1.0))
 	if v <= 0.01:
 		return
 	if pos == null:

@@ -710,12 +710,15 @@ func aura(parent: Node3D, col: Color, s := 1.0, offset := Vector3(0, 0.9, 0), du
 	p.position = offset
 	p.emitting = true
 	if dur > 0.0:
+		var wr = weakref(p)   # sahibi erken silinirse zamanlayıcı silinmiş düğümü yakalamasın (hata kaydı veriyordu)
 		get_tree().create_timer(dur).timeout.connect(func():
-			if is_instance_valid(p):
-				p.emitting = false
-				get_tree().create_timer(p.lifetime + 0.1).timeout.connect(func():
-					if is_instance_valid(p):
-						p.queue_free()))
+			var ap = wr.get_ref()
+			if ap:
+				ap.emitting = false
+				get_tree().create_timer(ap.lifetime + 0.1).timeout.connect(func():
+					var ap2 = wr.get_ref()
+					if ap2:
+						ap2.queue_free()))
 	return p
 
 

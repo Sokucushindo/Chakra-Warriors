@@ -3,6 +3,7 @@ extends Node
 ## küçük pencere / büyük arayüz ölçeğinde "Kaydet ve Geri" ekranda kalıyor mu. Oyuncunun ayar dosyası sonda geri konur.
 var main: Node
 var fails := 0
+var asked := 0
 
 
 func ok(cond: bool, what: String) -> void:
@@ -17,6 +18,10 @@ func esc() -> void:
 	ev.keycode = KEY_ESCAPE
 	ev.pressed = true
 	main._route(ev)
+	# kaydedilmemiş değişiklik uyarısı açıldıysa ikinci Esc: kaydetmeden çık
+	if Menus.settings_open() and Menus._set_bg.has_meta("asking"):
+		asked += 1
+		main._route(ev)
 
 
 func frames(n: int) -> void:
@@ -77,6 +82,7 @@ func _ready() -> void:
 	ok(is_equal_approx(float(s["sens"]), 2.5) and int(s["quality"]) == 0, "yeniden çizim değişiklikleri silmiyor")
 	esc()
 	await frames(3)
+	ok(asked == 1, "ana menü: değişiklik varken Esc önce uyarı gösteriyor")
 	ok(s == before, "ana menü: Esc değişiklikleri geri alıyor")
 	ok(is_equal_approx(get_tree().root.content_scale_factor, float(before["ui_scale"])), "ana menü: Esc arayüz ölçeğini geri alıyor")
 	ok(not Menus.settings_open() and live_children() > 0 and find_btn(Hud.dialog_layer, "Ayarlar") != null, "ana menü: Esc sonrası ana menü açık")
@@ -156,8 +162,208 @@ func _ready() -> void:
 			await frames(4)
 			await RenderingServer.frame_post_draw
 			get_viewport().get_texture().get_image().save_png(main.shot_dir.path_join("ayarlar_%dx%d_%d_alt.png" % [cfg[0].x, cfg[0].y, int(cfg[1] * 100)]))
+		# her sekme: kaydet düğmesi ekranda, görüntü
+		for tb in Menus.SET_TABS:
+			Menus._set_tab = tb[0]
+			Menus.settings(func(): Menus.main_menu(main))
+			await frames(6)
+			btn = find_btn(Hud.dialog_layer, "Kaydet ve Geri")
+			ok(area.encloses(btn.get_global_rect()), "%s / %s: Kaydet ve Geri ekranda" % [tag, tb[0]])
+			if main.shot_dir != "":
+				await RenderingServer.frame_post_draw
+				get_viewport().get_texture().get_image().save_png(main.shot_dir.path_join("ayarlar_%dx%d_%d_%s.png" % [cfg[0].x, cfg[0].y, int(cfg[1] * 100), tb[0]]))
 		esc()
 		await frames(3)
+
+	s["ui_scale"] = 1.0
+	get_tree().root.content_scale_factor = 1.0
+	await frames(3)
+	# 6) klavye: aşağı ok ilk satırı seçer, sağ ok değeri değiştirir ve seçim yeniden çizimde kalır; E sekme değiştirir
+	Menus._set_tab = "general"
+	Menus.settings(func(): Menus.main_menu(main))
+	await frames(4)
+	var before_kb = s.duplicate(true)
+	var kev = func(code: int) -> void:
+		var ev = InputEventKey.new()
+		ev.keycode = code
+		ev.physical_keycode = code
+		ev.pressed = true
+		Input.parse_input_event(ev)
+		var up = ev.duplicate()
+		up.pressed = false
+		Input.parse_input_event(up)
+	kev.call(KEY_DOWN)
+	await frames(3)
+	var fo = get_viewport().gui_get_focus_owner()
+	ok(fo != null and fo.has_meta("set_row"), "klavye: aşağı ok ilk satırı seçiyor")
+	kev.call(KEY_DOWN)
+	await frames(3)
+	var save_auto = s.get("autosave")
+	kev.call(KEY_RIGHT)
+	await frames(4)
+	fo = get_viewport().gui_get_focus_owner()
+	ok(s.get("autosave") != save_auto, "klavye: sağ ok seçili satırın değerini değiştiriyor (%s -> %s)" % [save_auto, s.get("autosave")])
+	ok(fo != null and int(fo.get_meta("set_row", -1)) == 1, "klavye: yeniden çizimde seçim aynı satırda")
+	kev.call(KEY_E)
+	await frames(4)
+	ok(Menus._set_tab == "graphics", "klavye: E sonraki sekmeye geçiyor (%s)" % Menus._set_tab)
+	kev.call(KEY_Q)
+	await frames(4)
+	ok(Menus._set_tab == "general", "klavye: Q önceki sekmeye dönüyor")
+	# fare üstüne gelince hap çerçevesi parlıyor
+	var row0: Control = Menus._set_bg.find_children("*", "", true, false).filter(func(c): return c is Control and c.has_meta("set_row"))[0]
+	var sb: StyleBoxFlat = row0.get_theme_stylebox("panel")
+	var a0 = sb.border_color.a
+	row0.mouse_entered.emit()
+	var a1 = sb.border_color.a
+	row0.mouse_exited.emit()
+	ok(a1 > a0 + 0.3 and is_equal_approx(sb.border_color.a, a0), "fare üstünde çerçeve parlıyor (%.2f -> %.2f)" % [a0, a1])
+	esc()
+	await frames(3)
+	ok(s == before_kb, "klavye denemesi Esc ile geri alındı")
+	# Tuş Atamaları: ayarlardan açılınca sol rayda Kontrol sekmesi, Geri ayarlara döner
+	Menus.settings(func(): Menus.main_menu(main))
+	await frames(3)
+	Menus._set_tab = "controls"   # açılışta Genel sekmesi: yeniden çizimle Kontrol'e geç
+	Menus.settings(func(): Menus.main_menu(main))
+	await frames(3)
+	find_btn(Hud.dialog_layer, "Tuş Atamalarını Düzenle").pressed.emit()
+	await frames(6)
+	ok(find_btn(Hud.dialog_layer, "Kontrol") != null and find_btn(Hud.dialog_layer, "Geri") != null, "tuş atamaları: sekmeler ve Geri var")
+	if main.shot_dir != "":
+		await RenderingServer.frame_post_draw
+		get_viewport().get_texture().get_image().save_png(main.shot_dir.path_join("tus_atamalari.png"))
+	find_btn(Hud.dialog_layer, "Geri").pressed.emit()
+	await frames(4)
+	ok(Menus.settings_open() and Menus._set_tab == "controls", "tuş atamaları: Geri ayarlara (Kontrol) dönüyor")
+	esc()
+	await frames(3)
+	# ana menüden Kontroller (sekmesiz)
+	Menus.controls(func(): Menus.main_menu(main))
+	await frames(6)
+	if main.shot_dir != "":
+		await RenderingServer.frame_post_draw
+		get_viewport().get_texture().get_image().save_png(main.shot_dir.path_join("kontroller_anamenu.png"))
+	esc()
+	await frames(4)
+	ok(find_btn(Hud.dialog_layer, "Yeni Oyun") != null, "kontroller: Esc ana menüye dönüyor")
+
+	# 7) gerçek fare tıklamaları: sekme, seçici oku, fare tekeri, değişiklik işareti, açıklama, uyarıdan kaydet
+	Menus.settings(func(): Menus.main_menu(main))
+	await frames(4)
+	var before_click = s.duplicate(true)
+	var click = func(pos: Vector2, btn: int) -> void:
+		var gp = get_tree().root.get_final_transform() * pos   # tuval -> pencere (ölçek + germe)
+		var mv = InputEventMouseMotion.new()
+		mv.position = gp
+		mv.global_position = gp
+		Input.parse_input_event(mv)
+		await get_tree().process_frame
+		for pressed in [true, false]:
+			var mb = InputEventMouseButton.new()
+			mb.button_index = btn
+			mb.pressed = pressed
+			mb.position = gp
+			mb.global_position = gp
+			Input.parse_input_event(mb)
+			await get_tree().process_frame
+	var tb = find_btn(Hud.dialog_layer, "Görüntü")
+	await click.call(tb.get_global_rect().get_center(), MOUSE_BUTTON_LEFT)
+	await frames(4)
+	ok(Menus._set_tab == "graphics", "tıklama: Görüntü sekmesi açıldı (%s)" % Menus._set_tab)
+	var rows: Array = Menus._set_bg.find_children("*", "", true, false).filter(func(c): return c is Control and c.has_meta("set_row"))
+	var pill: Control = rows[1]
+	var sh0 = s["shadows"]
+	await click.call(pill.get_global_rect().position + Vector2(pill.size.x - 20, pill.size.y * 0.5), MOUSE_BUTTON_LEFT)
+	await frames(4)
+	ok(s["shadows"] != sh0, "tıklama: sağ ok Gölgeler'i değiştirdi")
+	rows = Menus._set_bg.find_children("*", "", true, false).filter(func(c): return c is Control and c.has_meta("set_row"))
+	ok(rows[1].get_parent().get_child(0) is Panel, "değişiklik işareti: satırda turuncu nokta var")
+	var aa0 = int(s["aa"])
+	await click.call(rows[2].get_global_rect().get_center(), MOUSE_BUTTON_WHEEL_DOWN)
+	await frames(4)
+	ok(int(s["aa"]) == posmod(aa0 - 1, 4), "fare tekeri: değeri değiştirdi (%d -> %d)" % [aa0, int(s["aa"])])
+	rows = Menus._set_bg.find_children("*", "", true, false).filter(func(c): return c is Control and c.has_meta("set_row"))
+	rows[3].grab_focus()
+	await frames(2)
+	var found := false
+	for l in Menus._set_bg.find_children("*", "Label", true, false):
+		if "Köşelerde" in l.text:
+			found = true
+	ok(found, "açıklama: seçilen ayarın açıklaması görünüyor")
+	if main.shot_dir != "":
+		await RenderingServer.frame_post_draw
+		get_viewport().get_texture().get_image().save_png(main.shot_dir.path_join("degisiklik_isareti.png"))
+	var ev = InputEventKey.new()
+	ev.physical_keycode = KEY_ESCAPE
+	ev.keycode = KEY_ESCAPE
+	ev.pressed = true
+	main._route(ev)
+	await frames(4)
+	ok(Menus.settings_open() and Menus._set_bg.has_meta("asking"), "uyarı: kaydedilmemiş değişiklikte Esc uyarı açıyor")
+	if main.shot_dir != "":
+		await RenderingServer.frame_post_draw
+		get_viewport().get_texture().get_image().save_png(main.shot_dir.path_join("kaydetmeden_uyari.png"))
+	var sv = find_btn(Hud.dialog_layer, "Kaydet ve Çık")
+	await click.call(sv.get_global_rect().get_center(), MOUSE_BUTTON_LEFT)
+	await frames(4)
+	cf = ConfigFile.new()
+	cf.load(Game.SETTINGS_PATH)
+	ok(not Menus.settings_open() and bool(cf.get_value("ayarlar", "shadows", sh0)) != sh0, "uyarı: Kaydet ve Çık dosyaya yazıp çıktı")
+	for k in before_click:
+		s[k] = before_click[k]
+
+	# 8) Tuş Atamaları klavyeyle: aşağı ok ilk tuşu seçer, Enter + yeni tuş atar, seçim yerinde kalır;
+	#    ayarlardan kaydetmeden çıkınca tuş değişikliği de geri alınır
+	var keys_before = Keys.binds.duplicate(true)
+	Menus.settings(func(): Menus.main_menu(main))
+	await frames(3)
+	Menus._set_tab = "controls"
+	Menus.settings(func(): Menus.main_menu(main))
+	await frames(3)
+	find_btn(Hud.dialog_layer, "Tuş Atamalarını Düzenle").pressed.emit()
+	await frames(6)
+	var kp = func(code: int) -> void:
+		for pr in [true, false]:
+			var ke = InputEventKey.new()
+			ke.keycode = code
+			ke.physical_keycode = code
+			ke.pressed = pr
+			Input.parse_input_event(ke)
+			await get_tree().process_frame
+	await kp.call(KEY_DOWN)
+	await frames(2)
+	var kf = get_viewport().gui_get_focus_owner()
+	ok(kf != null and int(kf.get_meta("key_i", -1)) == 0, "tuş atamaları: aşağı ok ilk tuşu seçiyor")
+	await kp.call(KEY_DOWN)
+	await frames(2)
+	kf = get_viewport().gui_get_focus_owner()
+	var ki = int(kf.get_meta("key_i", -1)) if kf else -1
+	await kp.call(KEY_ENTER)
+	await frames(3)
+	ok(Keys.capturing, "tuş atamaları: Enter yeni tuş bekliyor")
+	await kp.call(KEY_K)
+	await frames(6)
+	kf = get_viewport().gui_get_focus_owner()
+	ok(Keys.binds != keys_before, "tuş atamaları: klavyeyle yeni tuş atandı")
+	ok(kf != null and int(kf.get_meta("key_i", -1)) == ki, "tuş atamaları: atamadan sonra seçim aynı tuşta (%d)" % ki)
+	if main.shot_dir != "":
+		await RenderingServer.frame_post_draw
+		get_viewport().get_texture().get_image().save_png(main.shot_dir.path_join("tus_klavye.png"))
+	find_btn(Hud.dialog_layer, "Geri").pressed.emit()
+	await frames(4)
+	var sev = InputEventKey.new()
+	sev.physical_keycode = KEY_ESCAPE
+	sev.keycode = KEY_ESCAPE
+	sev.pressed = true
+	main._route(sev)
+	await frames(3)
+	ok(Menus.settings_open() and Menus._set_bg.has_meta("asking"), "tuş değişikliği kaydedilmemiş sayılıyor (uyarı)")
+	main._route(sev)
+	await frames(3)
+	ok(Keys.binds == keys_before, "kaydetmeden çıkınca tuş ataması geri alındı")
+	if Keys.binds != keys_before:
+		Keys.restore(keys_before)
 
 	# oyuncunun ayarlarını geri koy
 	for k in orig:
