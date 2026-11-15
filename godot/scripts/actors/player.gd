@@ -1304,7 +1304,7 @@ func _update_camera(dt: float) -> void:
 	var shake = Vector3.ZERO
 	if Game.world and Game.world.env.shake > 0.0:
 		var s: float = Game.world.env.shake
-		shake = Vector3(randf_range(-1, 1), randf_range(-1, 1), 0) * s * 0.15
+		shake = Vector3(randf_range(-1, 1), randf_range(-1, 1), 0) * s * 0.15 * [0.0, 0.45, 1.0][clampi(int(Game.settings.get("shake", 2)), 0, 2)]   # ayar: kamera sarsıntısı
 		Game.world.env.shake = maxf(0.0, s - dt * 4.0)
 	cam.position = Vector3(0.0, 0.0, cam_cur_dist) + shake
 

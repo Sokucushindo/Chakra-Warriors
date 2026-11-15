@@ -156,8 +156,91 @@ func _ready() -> void:
 			await frames(4)
 			await RenderingServer.frame_post_draw
 			get_viewport().get_texture().get_image().save_png(main.shot_dir.path_join("ayarlar_%dx%d_%d_alt.png" % [cfg[0].x, cfg[0].y, int(cfg[1] * 100)]))
+		# her sekme: kaydet düğmesi ekranda, görüntü
+		for tb in Menus.SET_TABS:
+			Menus._set_tab = tb[0]
+			Menus.settings(func(): Menus.main_menu(main))
+			await frames(6)
+			btn = find_btn(Hud.dialog_layer, "Kaydet ve Geri")
+			ok(area.encloses(btn.get_global_rect()), "%s / %s: Kaydet ve Geri ekranda" % [tag, tb[0]])
+			if main.shot_dir != "":
+				await RenderingServer.frame_post_draw
+				get_viewport().get_texture().get_image().save_png(main.shot_dir.path_join("ayarlar_%dx%d_%d_%s.png" % [cfg[0].x, cfg[0].y, int(cfg[1] * 100), tb[0]]))
 		esc()
 		await frames(3)
+
+	s["ui_scale"] = 1.0
+	get_tree().root.content_scale_factor = 1.0
+	await frames(3)
+	# 6) klavye: aşağı ok ilk satırı seçer, sağ ok değeri değiştirir ve seçim yeniden çizimde kalır; E sekme değiştirir
+	Menus._set_tab = "general"
+	Menus.settings(func(): Menus.main_menu(main))
+	await frames(4)
+	var before_kb = s.duplicate(true)
+	var kev = func(code: int) -> void:
+		var ev = InputEventKey.new()
+		ev.keycode = code
+		ev.physical_keycode = code
+		ev.pressed = true
+		Input.parse_input_event(ev)
+		var up = ev.duplicate()
+		up.pressed = false
+		Input.parse_input_event(up)
+	kev.call(KEY_DOWN)
+	await frames(3)
+	var fo = get_viewport().gui_get_focus_owner()
+	ok(fo != null and fo.has_meta("set_row"), "klavye: aşağı ok ilk satırı seçiyor")
+	kev.call(KEY_DOWN)
+	await frames(3)
+	var save_auto = s.get("autosave")
+	kev.call(KEY_RIGHT)
+	await frames(4)
+	fo = get_viewport().gui_get_focus_owner()
+	ok(s.get("autosave") != save_auto, "klavye: sağ ok seçili satırın değerini değiştiriyor (%s -> %s)" % [save_auto, s.get("autosave")])
+	ok(fo != null and int(fo.get_meta("set_row", -1)) == 1, "klavye: yeniden çizimde seçim aynı satırda")
+	kev.call(KEY_E)
+	await frames(4)
+	ok(Menus._set_tab == "graphics", "klavye: E sonraki sekmeye geçiyor (%s)" % Menus._set_tab)
+	kev.call(KEY_Q)
+	await frames(4)
+	ok(Menus._set_tab == "general", "klavye: Q önceki sekmeye dönüyor")
+	# fare üstüne gelince hap çerçevesi parlıyor
+	var row0: Control = Menus._set_bg.find_children("*", "", true, false).filter(func(c): return c is Control and c.has_meta("set_row"))[0]
+	var sb: StyleBoxFlat = row0.get_theme_stylebox("panel")
+	var a0 = sb.border_color.a
+	row0.mouse_entered.emit()
+	var a1 = sb.border_color.a
+	row0.mouse_exited.emit()
+	ok(a1 > a0 + 0.3 and is_equal_approx(sb.border_color.a, a0), "fare üstünde çerçeve parlıyor (%.2f -> %.2f)" % [a0, a1])
+	esc()
+	await frames(3)
+	ok(s == before_kb, "klavye denemesi Esc ile geri alındı")
+	# Tuş Atamaları: ayarlardan açılınca sol rayda Kontrol sekmesi, Geri ayarlara döner
+	Menus.settings(func(): Menus.main_menu(main))
+	await frames(3)
+	Menus._set_tab = "controls"   # açılışta Genel sekmesi: yeniden çizimle Kontrol'e geç
+	Menus.settings(func(): Menus.main_menu(main))
+	await frames(3)
+	find_btn(Hud.dialog_layer, "Tuş Atamalarını Düzenle").pressed.emit()
+	await frames(6)
+	ok(find_btn(Hud.dialog_layer, "Kontrol") != null and find_btn(Hud.dialog_layer, "Geri") != null, "tuş atamaları: sekmeler ve Geri var")
+	if main.shot_dir != "":
+		await RenderingServer.frame_post_draw
+		get_viewport().get_texture().get_image().save_png(main.shot_dir.path_join("tus_atamalari.png"))
+	find_btn(Hud.dialog_layer, "Geri").pressed.emit()
+	await frames(4)
+	ok(Menus.settings_open() and Menus._set_tab == "controls", "tuş atamaları: Geri ayarlara (Kontrol) dönüyor")
+	esc()
+	await frames(3)
+	# ana menüden Kontroller (sekmesiz)
+	Menus.controls(func(): Menus.main_menu(main))
+	await frames(6)
+	if main.shot_dir != "":
+		await RenderingServer.frame_post_draw
+		get_viewport().get_texture().get_image().save_png(main.shot_dir.path_join("kontroller_anamenu.png"))
+	esc()
+	await frames(4)
+	ok(find_btn(Hud.dialog_layer, "Yeni Oyun") != null, "kontroller: Esc ana menüye dönüyor")
 
 	# oyuncunun ayarlarını geri koy
 	for k in orig:

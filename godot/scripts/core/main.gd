@@ -397,9 +397,25 @@ func _route(e: InputEvent) -> void:
 		preview_yaw += e.relative.x * 0.01
 		if preview:
 			preview.rotation.y = PI + preview_yaw   # kurulumla aynı (klan/saç değişince model ters dönüyordu)
+	if e.is_action_pressed("pause") and Menus.controls_escape():   # Kontroller: Esc geri (ana menüde de, ayarlardan gelince de)
+		return
 	if e.is_action_pressed("pause") and Menus.settings_open():   # ayarlarda Esc: kaydetmeden geri (ana menüde de, oyunda da)
 		Menus.settings_cancel()
 		return
+	if Menus.settings_open() and e.is_pressed() and not e.is_echo():
+		# Q / E ya da kol omuz tuşları: sekme değiştir; ilk yukarı / aşağı: ilk satırı seç
+		var tab_d := 0
+		if e is InputEventKey:
+			tab_d = -1 if e.physical_keycode == KEY_Q else (1 if e.physical_keycode == KEY_E else 0)
+		elif e is InputEventJoypadButton:
+			tab_d = -1 if e.button_index == JOY_BUTTON_LEFT_SHOULDER else (1 if e.button_index == JOY_BUTTON_RIGHT_SHOULDER else 0)
+		if tab_d != 0:
+			Menus.settings_tab(tab_d)
+			get_viewport().set_input_as_handled()
+			return
+		if (e.is_action("ui_down") or e.is_action("ui_up")) and Menus.settings_focus_first():
+			get_viewport().set_input_as_handled()
+			return
 	if mode != "game":
 		return
 	if e is InputEventKey and e.pressed and not e.echo and e.keycode in [KEY_F3, KEY_F4, KEY_F5]:   # performans paneli

@@ -20,6 +20,8 @@ var settings := {
 	"shadows": true, "outline": true, "dreamy": true, "blood": true, "invert_y": false, "show_fps": false, "quality": 2,
 	"vsync": true, "max_fps": 0,   # dikey eşitleme, FPS sınırı (0: sınırsız)
 	"master": 1.0,   # ana ses düzeyi (müzik ve efektlerin üstünde)
+	"ui_vol": 1.0, "bg_mute": false,   # arayüz tık sesleri; pencere arka plandayken sessiz
+	"autosave": 10, "shake": 2,   # otomatik kayıt (dakika, 0: kapalı); kamera sarsıntısı (0 kapalı, 1 az, 2 normal)
 	"lang": "",   # arayüz dili: "tr" / "en" ("": bilgisayarın diline göre)
 	# ayrıntılı grafik (kalite ön ayarı bunları birlikte kurar; tek tek de değişir)
 	"aa": 2, "ssao": true, "res_scale": 1.0, "grass": 3, "crowd": 2,
@@ -43,9 +45,28 @@ func now() -> float:
 	return clock
 
 
+var _autosave_t := 0.0
+
+
 func _process(dt: float) -> void:
 	if not paused and not get_tree().paused:
 		clock += dt
+		# otomatik kayıt: yalnız oyun akarken (menüde / duraklatmada sayılmaz)
+		var every := int(settings.get("autosave", 10))
+		if every > 0 and player and not profile.is_empty():
+			_autosave_t += dt
+			if _autosave_t >= every * 60.0:
+				_autosave_t = 0.0
+				save_game()
+				Hud.msg("Otomatik kaydedildi.", Color(0.6, 1, 0.6))
+
+
+## Pencere arka plana geçince sesi kapat (ayar açıksa), öne gelince geri aç
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and bool(settings.get("bg_mute", false)):
+		AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), true)
+	elif what == NOTIFICATION_APPLICATION_FOCUS_IN:
+		apply_audio()
 
 
 func _exit_tree() -> void:

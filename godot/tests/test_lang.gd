@@ -53,11 +53,13 @@ func _ready() -> void:
 	shot("dil_duraklat.png")
 	var lo = leftovers()
 	ok(lo.is_empty(), "duraklatma menüsü çevrili %s" % [lo])
-	Menus.settings(func(): Menus.pause(main))
-	await frames(10)
-	shot("dil_ayarlar.png")
-	lo = leftovers()
-	ok(lo.is_empty(), "ayarlar çevrili %s" % [lo])
+	for tb in Menus.SET_TABS:
+		Menus._set_tab = tb[0]
+		Menus.settings(func(): Menus.pause(main))
+		await frames(10)
+		shot("dil_ayarlar_%s.png" % tb[0])
+		lo = leftovers()
+		ok(lo.is_empty(), "ayarlar / %s çevrili %s" % [tb[0], lo])
 	Menus.controls(func(): Menus.pause(main))
 	await frames(10)
 	shot("dil_kontroller.png")
