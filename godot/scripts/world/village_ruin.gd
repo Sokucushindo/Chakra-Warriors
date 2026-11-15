@@ -53,6 +53,9 @@ static func _drop(st: Dictionary, restore: bool, host: Node) -> void:
 		_site_end(g)
 	for pair in st.get("sites", []):
 		pair[0]["off"] = true
+	for e in st.get("cm", []):
+		if is_instance_valid(e["mi"]):
+			e["mi"].mesh = e["orig"]
 	st["dead"] = true
 
 
@@ -85,7 +88,8 @@ static func tick(dt: float, host: Node) -> void:
 		if st == null:
 			if Vector2(pp.x - float(z["x"]), pp.z - float(z["z"])).length() > float(z["r"]) + 1600.0:
 				continue
-			st = {"root_ref": weakref(root), "busy": true, "groups": [], "shells": [], "ext": [], "r_idx": float(z.get("r_max", z["r"])), "applied": -1.0}
+			st = {"root_ref": weakref(root), "busy": true, "groups": [], "shells": [], "ext": [], "r_idx": float(z.get("r_max", z["r"])), "applied": -1.0,
+				"cells_on": String(z["vid"]) != "konoha", "cm": []}
 			_z[id] = st
 			_index(st, z, root, host)
 			continue
@@ -112,7 +116,13 @@ static func _index(st: Dictionary, z: Dictionary, root: Node3D, host: Node) -> v
 	var t0 = Time.get_ticks_usec()
 	var shells: Array = []
 	var begins: Array = []
+	var cells_on: bool = st.get("cells_on", false)
+	var cm: Array = []
 	for mi in root.find_children("*", "MeshInstance3D", true, false):
+		if cells_on:
+			if mi.mesh is ArrayMesh and _hits(mi.global_transform * mi.get_aabb(), c, R):
+				cm.append({"mi": mi, "orig": mi.mesh, "ab": mi.global_transform * mi.get_aabb(), "sig": 0})
+			continue
 		if mi.visibility_range_begin > 1.0 and mi.mesh != null:
 			if not mi.visibility_range_begin in begins:
 				begins.append(mi.visibility_range_begin)
@@ -197,6 +207,7 @@ static func _index(st: Dictionary, z: Dictionary, root: Node3D, host: Node) -> v
 			grid[k] = []
 		grid[k].append(g)
 	# çarpışma şekilleri: en yakın gizlenecek örneğe bağlanır
+	var free: Array = []
 	n = 0
 	for cs in root.find_children("*", "CollisionShape3D", true, false):
 		n += 1
@@ -225,7 +236,13 @@ static func _index(st: Dictionary, z: Dictionary, root: Node3D, host: Node) -> v
 						best = g
 		if best != null:
 			best["shapes"].append(cs)
-	st["groups"] = groups.values()
+		elif cells_on:
+			free.append(cs)
+	var all_groups: Array = groups.values()
+	if cells_on:
+		all_groups.append_array(_cluster(free, c, R))
+		st["cm"] = cm
+	st["groups"] = all_groups
 	st["shells"] = shells
 	st["ext"] = ext
 	st["busy"] = false
@@ -266,6 +283,12 @@ static func _apply(st: Dictionary, rr: float, is_live: bool, host: Node) -> void
 				if nd != null and is_instance_valid(nd):
 					nd.queue_free()
 				g.erase(k)
+	if st.get("cells_on", false):
+		st["pending"] = pending
+		if not pending:
+			st["applied"] = rr
+		_cells_refresh(st, host)
+		return
 	# uzak kabuklar: bölgeye değen hücrenin birleşik mesh'i gizlenir, yakın örnekleri uzaktan da çizilir
 	var any = false
 	for g in st["groups"]:
@@ -283,6 +306,192 @@ static func _apply(st: Dictionary, rr: float, is_live: bool, host: Node) -> void
 	st["pending"] = pending
 	if not pending:
 		st["applied"] = rr
+
+
+# ------------------------------------------------------------------ birleşik hücreli köyler (Konoha dışı)
+## Bu köylerde evler tek tek örnek değil: mahalle (hücre) başına birleştirilmiş mesh'in parçası. Ev = üst üste / yan yana
+## çarpışma şekilleri kümesi. Bölgedeki şekiller evlere kümelenir (en büyük şekil çekirdek, merkezi onun taban izine düşenler
+## üyesi); yıkılan evin taban izine düşen üçgenler hücre mesh'lerinin kopyasından çıkarılır (yakın / orta / uzak kademe hepsi).
+static func _shape_foot(cs: CollisionShape3D) -> Array:
+	var sh = cs.shape
+	var gt: Transform3D = cs.global_transform
+	var sc = gt.basis.get_scale()
+	var o = gt.origin
+	if sh is BoxShape3D:
+		var up: Vector3 = gt.basis.y.normalized()
+		if up.y < 0.9:
+			return []   # eğik kutu (çatı yüzü, payanda): çekirdek olmaz
+		var yaw = gt.basis.get_euler().y
+		var hx = sh.size.x * sc.x * 0.5
+		var hz = sh.size.z * sc.z * 0.5
+		return [o.x, o.z, cos(yaw), sin(yaw), hx, hz, false, sqrt(hx * hx + hz * hz), sh.size.y * sc.y, o.y - sh.size.y * sc.y * 0.5]
+	if sh is CylinderShape3D:
+		var r = sh.radius * maxf(sc.x, sc.z)
+		return [o.x, o.z, 1.0, 0.0, r, r, true, r, sh.height * sc.y, o.y - sh.height * sc.y * 0.5]
+	if sh is ConvexPolygonShape3D:
+		var r2 = 0.0
+		var y0 = 1e9
+		var y1 = -1e9
+		for q in sh.points:
+			var v: Vector3 = gt.basis * q
+			r2 = maxf(r2, v.x * v.x + v.z * v.z)
+			y0 = minf(y0, v.y)
+			y1 = maxf(y1, v.y)
+		var rc = sqrt(r2)
+		return [o.x, o.z, 1.0, 0.0, rc, rc, true, rc, y1 - y0, o.y + y0]
+	return []
+
+
+static func _in_foot(f: Array, x: float, z: float, m: float) -> bool:
+	var dx = x - float(f[0])
+	var dz = z - float(f[1])
+	if f[6]:
+		var r = float(f[4]) + m
+		return dx * dx + dz * dz <= r * r
+	return absf(dx * float(f[2]) - dz * float(f[3])) <= float(f[4]) + m and absf(dx * float(f[3]) + dz * float(f[2])) <= float(f[5]) + m
+
+
+static func _cluster(free: Array, c: Vector2, R: float) -> Array:
+	var ents: Array = []
+	for cs in free:
+		var f = _shape_foot(cs)
+		if f.is_empty() or float(f[8]) < 2.2:
+			continue   # yassı döşeme / basamak ev değildir
+		ents.append([f, cs])
+	ents.sort_custom(func(a, b): return float(a[0][7]) > float(b[0][7]))
+	var out: Array = []
+	var grid := {}
+	for e in ents:
+		var f: Array = e[0]
+		var k = Vector2i(floori(float(f[0]) / GCELL), floori(float(f[1]) / GCELL))
+		var home = null
+		for dx in range(-1, 2):
+			for dz in range(-1, 2):
+				for g in grid.get(k + Vector2i(dx, dz), []):
+					if _in_foot(g["foot"][0], float(f[0]), float(f[1]), 0.8):
+						home = g
+						break
+				if home != null:
+					break
+			if home != null:
+				break
+		if home != null:
+			home["shapes"].append(e[1])
+			home["foot"].append(f)
+			home["h"] = maxf(float(home["h"]), float(f[9]) + float(f[8]) - (home["pos"] as Vector3).y)
+			continue
+		var rad = float(f[7])
+		if rad < 1.8 or rad > 24.0 or float(f[8]) < 2.6:
+			continue   # direk / çit çekirdek olmaz; dev yapılar (kule, sur, arena) ayakta kalır
+		var dist = Vector2(float(f[0]) - c.x, float(f[1]) - c.y).length()
+		if dist > R:
+			continue
+		var pos = Vector3(float(f[0]), Game.ground_height(float(f[0]), float(f[1])), float(f[1]))
+		var prot = false
+		for it in Interact.items:
+			var ip: Vector3 = it["pos"]
+			if _in_foot(f, ip.x, ip.z, 3.0):
+				prot = true
+				break
+		var g2 = {"pos": pos, "dist": dist, "items": [], "w": float(f[4]) * 2.0, "d": float(f[5]) * 2.0, "h": float(f[9]) + float(f[8]) - pos.y, "house": true, "shapes": [e[1]],
+			"hidden": false, "prot": prot, "wall": Color(0.8, 0.76, 0.68), "roof": Color(0.55, 0.3, 0.22), "basis": Basis(Vector3.UP, atan2(float(f[3]), float(f[2]))), "foot": [f], "cid": out.size() + 1}
+		out.append(g2)
+		if not grid.has(k):
+			grid[k] = []
+		grid[k].append(g2)
+	return out
+
+
+## Yıkık evlerin üçgenlerini hücre mesh'lerinden çıkarır (özgün mesh saklanır; ev onarılınca geri gelir). Kareler boyunca çalışır.
+static func _cells_refresh(st: Dictionary, host: Node) -> void:
+	if st.get("cm_busy", false):
+		st["cm_again"] = true
+		return
+	st["cm_busy"] = true
+	var tree = host.get_tree()
+	while true:
+		st["cm_again"] = false
+		var down: Array = []
+		for g in st["groups"]:
+			if g.has("foot") and g["hidden"]:
+				down.append(g)
+		var t0 = Time.get_ticks_usec()
+		for e in st["cm"]:
+			var mi = e["mi"]
+			if not is_instance_valid(mi):
+				continue
+			var ab: AABB = e["ab"]
+			var grid := {}
+			var sig = 0
+			for g in down:
+				for f in g["foot"]:
+					var br = float(f[7]) + 1.5
+					if float(f[0]) + br < ab.position.x or float(f[0]) - br > ab.end.x or float(f[1]) + br < ab.position.z or float(f[1]) - br > ab.end.z:
+						continue
+					sig = hash([sig, g["cid"], f[0], f[1]])
+					for gx in range(floori((float(f[0]) - br) / 8.0), floori((float(f[0]) + br) / 8.0) + 1):
+						for gz in range(floori((float(f[1]) - br) / 8.0), floori((float(f[1]) + br) / 8.0) + 1):
+							var gk = Vector2i(gx, gz)
+							if not grid.has(gk):
+								grid[gk] = []
+							grid[gk].append(f)
+			if sig == int(e["sig"]):
+				continue
+			e["sig"] = sig
+			if grid.is_empty():
+				mi.mesh = e["orig"]
+				continue
+			var orig: ArrayMesh = e["orig"]
+			var nm = ArrayMesh.new()
+			var gt: Transform3D = mi.global_transform
+			var ident = gt.is_equal_approx(Transform3D.IDENTITY)
+			for s in orig.get_surface_count():
+				var arr: Array = orig.surface_get_arrays(s)
+				if orig.surface_get_primitive_type(s) != Mesh.PRIMITIVE_TRIANGLES:
+					nm.add_surface_from_arrays(orig.surface_get_primitive_type(s), arr)
+					nm.surface_set_material(nm.get_surface_count() - 1, orig.surface_get_material(s))
+					continue
+				var vs: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+				var idx = arr[Mesh.ARRAY_INDEX]
+				var has_idx = idx != null and (idx as PackedInt32Array).size() > 0
+				var cnt = ((idx as PackedInt32Array).size() if has_idx else vs.size()) / 3
+				var keep = PackedInt32Array()
+				for t in cnt:
+					var i0 = idx[t * 3] if has_idx else t * 3
+					var i1 = idx[t * 3 + 1] if has_idx else t * 3 + 1
+					var i2 = idx[t * 3 + 2] if has_idx else t * 3 + 2
+					var ctr: Vector3 = (vs[i0] + vs[i1] + vs[i2]) / 3.0
+					if not ident:
+						ctr = gt * ctr
+					var lst = grid.get(Vector2i(floori(ctr.x / 8.0), floori(ctr.z / 8.0)))
+					var kill = false
+					if lst != null:
+						for f in lst:
+							if _in_foot(f, ctr.x, ctr.z, 1.0):
+								kill = true
+								break
+					if not kill:
+						keep.append(i0)
+						keep.append(i1)
+						keep.append(i2)
+					if t % 3000 == 2999 and Time.get_ticks_usec() - t0 > 5000:
+						await tree.process_frame
+						t0 = Time.get_ticks_usec()
+						if st.get("dead", false) or not is_instance_valid(mi):
+							st["cm_busy"] = false
+							return
+				if keep.is_empty():
+					continue
+				arr[Mesh.ARRAY_INDEX] = keep
+				nm.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+				nm.surface_set_material(nm.get_surface_count() - 1, orig.surface_get_material(s))
+			if st.get("dead", false) or not is_instance_valid(mi):
+				st["cm_busy"] = false
+				return
+			mi.mesh = nm
+		if not st.get("cm_again", false):
+			break
+	st["cm_busy"] = false
 
 
 static func _rubble(g: Dictionary, host: Node, grow: bool) -> void:

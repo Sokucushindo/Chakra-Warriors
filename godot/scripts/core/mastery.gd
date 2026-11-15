@@ -46,9 +46,10 @@ static func gain(p: Dictionary, key: String, amount: float) -> void:
 		if Game.player and is_instance_valid(Game.player):
 			Combat.popup_text(Game.player.global_position + Vector3.UP * 2.1, "%s %.2f" % [NAMES.get(key, key), nv], Color(0.55, 0.85, 0.95))
 	# ikinci / üçüncü chakra doğası: ninjutsu 40 / 75'te seçim (eski yetenek ağacı düğümü yerine)
-	if key == "ninjutsu":
-		var els: Array = p.get("elements", [])
-		if (v < 40.0 and nv >= 40.0 and els.size() < 2) or (v < 75.0 and nv >= 75.0 and els.size() < 3):
+	# (her tam puanda bakılır: eski kayıtta eşiği çoktan geçmiş ya da seçimi kapatmış oyuncu da hakkını alır)
+	if key == "ninjutsu" and int(nv) > int(v):
+		var base = (p.get("elements", []) as Array).filter(func(e): return e in KgPaths.BASE).size()
+		if base < el_allowed(nv):
 			Menus._pick_element.call_deferred(null)
 	# can/chakra/stamina sınırını doğrudan büyüten ustalıklar: artış hemen statlara yansısın (eskiden yalnız Güç atlayınca
 	# yenileniyordu — dayak yiyip dayanıklılık artsa da can barı aynı kalıyordu)
@@ -58,6 +59,35 @@ static func gain(p: Dictionary, key: String, amount: float) -> void:
 	refresh_level(p)
 	if int(p["level"]) != old_lv:
 		Progress.on_power_changed()
+
+
+## Ninjutsu ustalığına göre taşınabilecek temel doğa sayısı: 40 / 75 / 110 / 150'de birer doğa daha (beş doğanın hepsi)
+const EL_AT := [40.0, 75.0, 110.0, 150.0]
+static func el_allowed(nin: float) -> int:
+	var n = 1
+	for t in EL_AT:
+		if nin >= t:
+			n += 1
+	return n
+
+
+## Doğa ustalığı: o doğadan teknik kullandıkça artar (ninjutsu ile aynı azalan getiri). İki doğada ustalaşan onları
+## tek chakrada birleştirmeyi öğrenir (KgPaths.try_fuse).
+static func el_v(p: Dictionary, el: String) -> float:
+	return float(p.get("el_mastery", {}).get(el, 0.0))
+
+
+static func gain_el(p: Dictionary, el: String, amount: float) -> void:
+	if p.is_empty() or amount <= 0.0 or not el in KgPaths.BASE:
+		return
+	if not p.has("el_mastery"):
+		p["el_mastery"] = {}
+	var v = el_v(p, el)
+	var nv = v + amount * (1.0 + Stats.skill(p, "xp")) * SPEED * Exams.xp_mult() * _rate(v)
+	p["el_mastery"][el] = nv
+	if int(nv) > int(v):
+		Hud.float_text("%s %d" % [Elements.NAMES.get(el, el), int(nv)], Color(0.8, 0.9, 1.0))
+		KgPaths.try_fuse(p)
 
 
 ## kazanım hızı: 0'da tam, 50'de ~%67, 100'de %50, 200'de ~%33 — azalan ama ezmeyen getiri.

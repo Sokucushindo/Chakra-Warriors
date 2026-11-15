@@ -15,9 +15,9 @@ python tools/gdcheck.py                 # sözdizimi denetimi (~25 sn) — her .
 python build.py test                    # test exe
 python build.py main                    # ana exe (yalnız "güncelle" denince)
 
-# test koşusu (godot/ içinden; pencere ekran dışında, Konoha önbellekten)
-BAKE_ANY=1 timeout 200 ../tools/Godot_v4.7.2-stable_win64_console.exe --log-file "../_tmp/test_godot.log" --path . --resolution 2560x1380 \
-  --position 9000,0 -- --test=res://tests/TEST.gd > ../_tmp/cikti.txt 2>&1
+# test koşusu (godot/ içinden; hd.py pencereyi ayrı Windows masaüstünde açar: ekrana gelmez, ses kapalı; 200 = süre sınırı sn)
+BAKE_ANY=1 python ../_tmp/hd.py 200 ../_tmp/cikti.txt --log-file "../_tmp/test_godot.log" --path . --resolution 2560x1380 \
+  -- --test=res://tests/TEST.gd
 
 # takılma ölçümü
 python _tmp/instr.py                    # her _process'i sarar; iş bitince MUTLAKA: python _tmp/instr.py off
@@ -41,7 +41,7 @@ TAG=X PROFV=1 bash _tmp/run_ht.sh       # 16 / 70 / 300 m/sn; 10 dakikayı aşar
 1. Kullanıcıya her zaman Türkçe yaz; iç değişken / işlev adı yazma, oyundaki karşılığını söyle.
 2. Sorma, yap. Açık karar gerektirmeyen her şeyde kendi kararını ver, sonunda kısaca bildir.
 3. Alt ajan kullanma; işi doğrudan ve sırayla yap.
-4. Godot pencereleri kullanıcının ekranına gelmez (`--position 9000,0`; test kipinde pencere zaten ekran dışı).
+4. Godot pencereleri kullanıcının ekranına gelmez: oyun testleri yalnız `_tmp/hd.py` ile açılır (`--position 9000,0` işe yaramıyor; konsol exe'sini doğrudan çağırma).
 5. Küçük hata = küçük düzeltme: ölç, o değeri kare kare yazan yeri bul, yalnız onu değiştir. Çalışan pozlara / yaklaşıma dokunma.
 6. Küçük düzeltmede test yağdırma: sayıyla çöz, tek kısa doğrulama.
 7. Her görsel değişiklik birkaç açıdan görüntüyle, her mekanik oyun içi akışla doğrulanır; doğrulanamayanı açıkça söyle.

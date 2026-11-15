@@ -299,10 +299,23 @@ static func _life(p: Dictionary) -> void:
 		WorldDay.on_promote(p)
 	elif r < 0.30:
 		_learn(p)
-		if int(p["level"]) >= 90 and (p["els"] as Array).size() < 2 and randf() < 0.3:
+		# oyuncuyla aynı yol: güçlendikçe yeni doğa (Güç 90 / 130 / 170 / 200), iki doğada ustalaşan onları birleştirir
+		var el_n = (p["els"] as Array).size()
+		var el_max = 1 + int(int(p["level"]) >= 90) + int(int(p["level"]) >= 130) + int(int(p["level"]) >= 170) + int(int(p["level"]) >= 200)
+		if el_n < el_max and randf() < 0.3:
 			_second_element(p)
 			_learn(p)
-			log_event(p, "İkinci doğasını uyandırdı (%s)" % ", ".join(p["els"]))
+			log_event(p, "%s doğasını uyandırdı (%s)" % [["", "İkinci", "Üçüncü", "Dördüncü", "Beşinci"][mini(el_n, 4)], ", ".join(p["els"])])
+		elif int(p["level"]) >= 120 and randf() < 0.12:
+			for kn in KgPaths.RECIPES:
+				var rc: Array = KgPaths.RECIPES[kn]
+				if rc[0] in p["els"] and rc[1] in p["els"] and not kn in p.get("nat", []):
+					if not p.has("nat"):
+						p["nat"] = []
+					(p["nat"] as Array).append(kn)
+					_learn(p)
+					log_event(p, "İki doğasını birleştirdi (%s)" % String(KgPaths.NAMES.get(kn, kn)))
+					break
 	elif r < 0.30 + _defect_p(p):   # görev ölümleri artık yaşanan görevden gelir (WorldDay.resolve)
 		defect(p, _defect_reason(p))
 	elif r < 0.37 and _try_path(p):
@@ -519,6 +532,11 @@ static func defect(p: Dictionary, why: String) -> Dictionary:
 			keep[k] = lk[k]
 	var nl = CharacterModel.default_look()
 	nl.merge(rog, true)
+	var sid = Outfits.rogue_set(String(p["clan"]), String(p["village"]), p["els"], p.get("nat", []), bool(p["female"]), String(p["id"]))
+	if sid != "":
+		nl = Outfits.wear_set(nl, sid)   # karakterine uyan gerçek set (klan / kan soyu / doğa / köy)
+		nl["band"] = rog.get("band")
+	p["set"] = sid
 	nl = _ser(nl)
 	nl.merge(keep, true)
 	nl["band_style"] = "slashed"
@@ -559,7 +577,25 @@ static func make_bingo(p: Dictionary) -> Dictionary:
 
 
 ## Bingo kaydı kişinin güncel hâlini taşır (Güç, jutsu, göz, klan, kan soyu)
+## Eski kayıttaki kaçak: seti yoksa şimdi giyer (kimliği aynı kalır)
+static func rogue_dress(p: Dictionary) -> void:
+	if p.has("set") or not is_rogue(p):
+		return
+	var sid = Outfits.rogue_set(String(p["clan"]), String(p["village"]), p["els"], p.get("nat", []), bool(p["female"]), String(p["id"]))
+	p["set"] = sid
+	if sid == "":
+		return
+	var lk = Missions._bb_look({"look": p.get("look", {})})
+	lk.erase("keep_hair")
+	var nl = _ser(Outfits.wear_set(lk, sid))
+	nl["band_style"] = "slashed"
+	p["look"] = nl
+
+
 static func _sync_bingo(p: Dictionary, e: Dictionary) -> void:
+	if not p.has("set") and is_rogue(p):
+		rogue_dress(p)
+		e["look"] = (p["look"] as Dictionary).duplicate()
 	var lv = int(p["level"])
 	e["level"] = lv
 	e["hp"] = 260.0 + lv * 24.0

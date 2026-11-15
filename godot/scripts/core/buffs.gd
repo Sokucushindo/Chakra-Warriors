@@ -63,11 +63,11 @@ static func describe(mods: Dictionary) -> String:
 	for k in mods:
 		if LABELS.has(k):
 			var v = float(mods[k])
-			parts.append("%s %s%d%%" % [LABELS[k], "+" if v >= 1.0 else "-", int(round(absf(v - 1.0) * 100.0))])
+			parts.append("%s %s%d%%" % [Lang.t(LABELS[k]), "+" if v >= 1.0 else "-", int(round(absf(v - 1.0) * 100.0))])
 	if mods.has("_desc"):
-		parts.append(String(mods["_desc"]))
+		parts.append(Lang.t(String(mods["_desc"])))
 	if mods.has("stealth") and not mods.has("_desc"):
-		parts.append("Gizlisin")
+		parts.append(Lang.t("Gizlisin"))
 	return ", ".join(parts)
 
 

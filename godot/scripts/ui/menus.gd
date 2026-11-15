@@ -188,6 +188,22 @@ static func _tab_summons(main: Node, body: Control) -> void:
 	var v = UI.vbox(14)
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	sc.add_child(v)
+	# Mangekyō sahibinin Sharingan'la boyun eğdirdiği (mühürlenmemiş) kuyruklu canavarlar: Bijū Kuchiyose
+	if Progress.has_eye("mangekyo"):
+		var red = Color(0.95, 0.2, 0.2)
+		var mcard = UI.card(red)
+		v.add_child(mcard)
+		var mv = UI.vbox(8)
+		mcard.add_child(mv)
+		mv.add_child(UI.label("Bijū Kuchiyose (Mangekyō)", 20, red, HORIZONTAL_ALIGNMENT_LEFT, true))
+		var bound: Array = pr.get("beast_ms", [])
+		var names: Array = bound.map(func(bid): return String(BeastModels.INFO.get(bid, {}).get("name", bid)).split(" — ")[0])
+		var mtxt = UI.label(("Sharingan'ının emrindeki canavarlar: %s." % ", ".join(names)) if not bound.is_empty() else "Henüz boyun eğdirdiğin kuyruklu canavar yok.", 16, UI.TEXT)
+		mtxt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		mv.add_child(mtxt)
+		var mtip = UI.label("Mühürlemeden bağlamak için: canavarı dövüşte diz çöktür, mühürleme penceresinde «Sharingan ile boyun eğdir» seç. Sonra Jutsular (K) ekranından «Bijū Kuchiyose»yi bir yuvaya koy; Mangekyō açıkken çağırırsın (40 sn, 120 chakra).", 14, UI.MUTED)
+		mtip.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		mv.add_child(mtip)
 	var cs: Dictionary = pr.get("contracts", {})
 	if cs.is_empty():
 		v.add_child(UI.label("Hiçbir hayvanla sözleşmen yok. Gizli bilgelerin diyarlarını bul ya da köy sözleşme ustalarına danış.", 17, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
@@ -1646,7 +1662,7 @@ static func ninja_menu(main: Node, tab := "inv", picked := "") -> void:
 	emb.position = Vector2(34, 30)
 	rail_bg.add_child(emb)
 	for t in TABS:
-		rail.add_child(UI.icon_button(t[1], t[2], func(): ninja_menu(main, t[0]), 72, t[0] == tab))
+		rail.add_child(UI.icon_button(t[1], t[2], func(): ninja_menu(main, t[0]), 66, t[0] == tab))   # 11 sekme 16:9 ve daha basık ekranlara sığsın
 	# üst çubuk: başlık + oyuncu bilgisi
 	var title = UI.label(TAB_TITLES.get(tab, ""), 34, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true)
 	title.position = Vector2(150, 30)
@@ -1696,7 +1712,7 @@ static func ninja_menu(main: Node, tab := "inv", picked := "") -> void:
 	foot.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
 	foot.position = Vector2(150, -42)
 	bg.add_child(foot)
-	for k in [["Tab", "kapat"], ["I", "envanter"], ["K", "jutsular"], ["M", "harita"]]:
+	for k in [["Tab", "menüyü kapat"], ["I", "envanter"], ["K", "jutsular"], ["M", "harita"]]:
 		foot.add_child(UI.key_badge(k[0], 12))
 		foot.add_child(UI.label(k[1] + "    ", 13, UI.MUTED))
 
@@ -2379,6 +2395,8 @@ static var _jf_mode := "learned"
 static var _jf_cat := ""
 static var _jf_el := ""
 static var _jf_text := ""
+static var _jf_page := 0
+const JF_PER := 120
 const JUTSU_CATS := [["", "Tümü"], ["ninjutsu", "Ninjutsu"], ["taijutsu", "Taijutsu"], ["genjutsu", "Genjutsu"], ["fuinjutsu", "Fūinjutsu"], ["kekkei_genkai", "Kekkei Genkai"],
 	["dojutsu", "Dōjutsu"], ["bijuu", "Kuyruklu Canavar"], ["hiden", "Hiden"], ["senjutsu", "Senjutsu"], ["kinjutsu", "Kinjutsu"], ["medical", "Tıbbi"], ["space_time", "Uzay-Zaman"], ["summoning", "Çağırma"]]
 const JUTSU_ELEMS := [["", "Tüm elementler"], ["katon", "Katon"], ["suiton", "Suiton"], ["fuuton", "Fūton"], ["raiton", "Raiton"], ["doton", "Doton"],
@@ -2408,6 +2426,7 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 	for m in modes:
 		fbar.add_child(UI.chip(m[1], _jf_mode == m[0], func():
 			_jf_mode = m[0]
+			_jf_page = 0
 			ninja_menu(main, "jutsu", picked)))
 	var search = LineEdit.new()
 	search.placeholder_text = "Ara..."
@@ -2415,6 +2434,7 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 	search.custom_minimum_size = Vector2(200, 36)
 	search.text_submitted.connect(func(t):
 		_jf_text = t
+		_jf_page = 0
 		ninja_menu(main, "jutsu", picked))
 	fbar.add_child(search)
 	var cbar = HFlowContainer.new()
@@ -2423,6 +2443,7 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 	for c in JUTSU_CATS:
 		cbar.add_child(UI.chip(c[1], _jf_cat == c[0], func():
 			_jf_cat = c[0]
+			_jf_page = 0
 			ninja_menu(main, "jutsu", picked)))
 	var ebar = HFlowContainer.new()
 	ebar.add_theme_constant_override("h_separation", 6)
@@ -2430,6 +2451,7 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 	for e in JUTSU_ELEMS:
 		ebar.add_child(UI.chip(e[1], _jf_el == e[0], func():
 			_jf_el = e[0]
+			_jf_page = 0
 			ninja_menu(main, "jutsu", picked)))
 	var shown: Array = []
 	for jid in (learned if _jf_mode == "learned" else (clan_ids if _jf_mode == "clan" else Data.jutsu.keys())):
@@ -2443,8 +2465,11 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 		if _jf_text != "" and not String(jj.get("name", jid)).to_lower().contains(_jf_text.to_lower()):
 			continue
 		shown.append(jid)
-		if shown.size() >= 120:
-			break
+	# sayfalama: liste ne kadar uzun olursa olsun hepsi görülebilir (◀ ▶)
+	var pages := maxi(1, int(ceil(shown.size() / float(JF_PER))))
+	_jf_page = clampi(_jf_page, 0, pages - 1)
+	var total_shown := shown.size()
+	shown = shown.slice(_jf_page * JF_PER, (_jf_page + 1) * JF_PER)
 	var sc = ScrollContainer.new()
 	sc.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -2468,14 +2493,27 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 				return {"jutsu": jid, "from_slot": -1}
 			card.set_drag_forwarding(drag_card, Callable(), Callable())
 		grid.add_child(card)
-	if shown.size() >= 120:
-		left.add_child(UI.label("İlk 120 sonuç gösteriliyor — filtreyi daralt.", 13, UI.MUTED))
+	if pages > 1:
+		var pg = UI.hbox(10)
+		pg.alignment = BoxContainer.ALIGNMENT_CENTER
+		left.add_child(pg)
+		pg.add_child(UI.chip("◀", false, func():
+			_jf_page = (_jf_page - 1 + pages) % pages
+			ninja_menu(main, "jutsu", picked)))
+		pg.add_child(UI.label("Sayfa %d / %d  (%d teknik)" % [_jf_page + 1, pages, total_shown], 14, UI.MUTED))
+		pg.add_child(UI.chip("▶", false, func():
+			_jf_page = (_jf_page + 1) % pages
+			ninja_menu(main, "jutsu", picked)))
 	# slot çubuğu
 	var bar = UI.card()
 	left.add_child(bar)
 	var bv = UI.vbox(8)
 	bar.add_child(bv)
-	bv.add_child(UI.label("Jutsu kartını bir slota sürükle-bırak (ya da seç ve slota tıkla). Slotlar arasında sürükleyerek yer değiştir, slottan çıkarmak için çöpe sürükle ya da sağ tıkla.", 14, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
+	var tipl = UI.label("Jutsu kartını bir slota sürükle-bırak (ya da seç ve slota tıkla). Slotlar arasında sürükleyerek yer değiştir, slottan çıkarmak için çöpe sürükle ya da sağ tıkla.", 14, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true)
+	tipl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	bv.add_child(tipl)
+	# slot karoları ekran genişliğine sığar (9 slot + çöp; sağdaki ayrıntı paneli ekran dışına itilmesin)
+	var tw := int(clampf(floor((body.get_viewport_rect().size.x - 150.0 - 40.0 - 26.0 - 420.0 - 40.0 - 90.0) / 10.0), 64.0, 112.0))
 	var sh = UI.hbox(10)
 	bv.add_child(sh)
 	var refresh_j = func() -> void:
@@ -2507,7 +2545,7 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 			if picked != "" and picked in learned:
 				assign.call(i, picked, -1)
 			elif picked != "":
-				Hud.msg("Önce bu jutsuyu öğrenmelisin.", Color(1, 0.6, 0.4)), 112)
+				Hud.msg("Önce bu jutsuyu öğrenmelisin.", Color(1, 0.6, 0.4)), tw)
 		t.tooltip_text = nm
 		if not j.is_empty():
 			var sfx_t = _jutsu_effects(String(cur), j)
@@ -2531,7 +2569,7 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 				refresh_j.call())
 		sh.add_child(t)
 	# çöp: slottan sürüklenen jutsu buraya bırakılınca slot boşalır
-	var trash = _tile(Icons.view("close", 36, Color(1, 0.5, 0.45)), "Çıkar", Color(1, 0.4, 0.35, 0.5), false, func(): pass, 112)
+	var trash = _tile(Icons.view("close", 36, Color(1, 0.5, 0.45)), "Çıkar", Color(1, 0.4, 0.35, 0.5), false, func(): pass, tw)
 	trash.tooltip_text = "Slottan çıkarmak için buraya sürükle"
 	var trash_ok = func(_at, data) -> bool:
 		return data is Dictionary and int(data.get("from_slot", -1)) >= 0
@@ -2547,6 +2585,10 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 	h.add_child(right)
 	var rv = UI.vbox(10)
 	right.add_child(rv)
+	# uzun satır paneli ekran dışına itmesin: doğrudan eklenen her yazı satır kaydırır
+	rv.child_entered_tree.connect(func(n):
+		if n is Label and n.autowrap_mode == TextServer.AUTOWRAP_OFF:
+			n.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART)
 	if picked == "":
 		rv.add_child(UI.label("Bir jutsu seç.", 16, UI.MUTED))
 		return
@@ -2807,6 +2849,29 @@ static func _tab_skills(_main: Node, body: Control) -> void:
 	ol.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	ol.custom_minimum_size = Vector2(1240, 0)
 	inner.add_child(ol)
+	# doğalar: her doğanın ustalığı, sıradaki doğa eşiği, birleştirilebilecek ara doğalar
+	var el_parts = []
+	for e in pr.get("elements", []):
+		if e in KgPaths.BASE:
+			el_parts.append("%s %d" % [Lang.t(String(Elements.NAMES.get(e, e))), int(Mastery.el_v(pr, e))])
+	var el_txt = Lang.t("Doğa ustalığı:") + "  " + "   ".join(el_parts)
+	var nin = Mastery.get_v(pr, "ninjutsu")
+	for t in Mastery.EL_AT:
+		if nin < t and el_parts.size() < 5:
+			el_txt += "      " + Lang.t("Sıradaki doğa: Ninjutsu %d") % int(t)
+			break
+	var el_l = UI.label(el_txt, 13, UI.MUTED)
+	el_l.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	inner.add_child(el_l)
+	var fz = []
+	for r in KgPaths.fuse_rows(pr):
+		fz.append(("✓ %s" % Lang.t(r[0])) if r[5] else "%s: %s %d/%d + %s %d/%d" % [Lang.t(r[0]), Lang.t(r[1]), r[2], int(KgPaths.FUSE_AT), Lang.t(r[3]), r[4], int(KgPaths.FUSE_AT)])
+	if not fz.is_empty():
+		var fl = UI.label(Lang.t("Doğa birleştirme:") + "  " + "     ".join(fz), 13, UI.MUTED)
+		fl.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+		fl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		fl.custom_minimum_size = Vector2(1240, 0)
+		inner.add_child(fl)
 
 
 # ------------------------------------------------------------------ görevler sekmesi

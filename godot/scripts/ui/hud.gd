@@ -623,7 +623,7 @@ func _update_objective_pointer(pl: Node3D) -> void:
 		compass_dir = _target_screen_dir(pl, wp)
 		var dist = Vector2(wp.x - pl.global_position.x, wp.z - pl.global_position.z).length()
 		var nm: String = Missions.target_name if Missions.target_name != "" else "Hedef"
-		compass_lbl.text = "%s — %d m" % [nm, int(dist)] if dist > 6.0 else "%s — buradasın" % nm
+		compass_lbl.text = "%s — %d m" % [Lang.t(nm), int(dist)] if dist > 6.0 else Lang.t("%s — buradasın") % Lang.t(nm)
 		compass.position.y = 84.0 if boss_box.visible else 14.0
 		compass.queue_redraw()
 	# dünyadaki ışık sütunu
@@ -768,7 +768,7 @@ func objective_changed() -> void:
 	var t: String = Progress.objective_text()
 	var m: Dictionary = Game.profile.get("active_mission", {})
 	if not m.is_empty():
-		t += "\n\n[%s] %s: %s (%d/%d)" % [m["rank"], m["title"], m["desc"], m.get("progress", 0), m["count"]]
+		t += "\n\n[%s] %s: %s (%d/%d)" % [m["rank"], Lang.t(String(m["title"])), Lang.t(String(m["desc"])), m.get("progress", 0), m["count"]]
 	objective_lbl.text = t
 	obj_progress_lbl.text = ""
 	obj_progress_lbl.visible = false
@@ -1110,13 +1110,13 @@ func _process(dt: float) -> void:
 	name_lbl.text = String(pr.get("name", ""))
 	var rname: String = Data.RANKS[int(pr.get("rank", 0))]
 	if Orgs.is_rogue():
-		rname = "%s (%s-rank)" % [Orgs.rogue_rank_name(), String(Orgs.ROGUE_RANKS[Orgs.rogue_rank()][2])]   # kaçakta köy rütbesi yok
-	rank_lbl.text = "%s  •  Güç %d" % [rname.to_upper(), int(pr.get("level", 1))]
+		rname = "%s (%s-rank)" % [Lang.t(Orgs.rogue_rank_name()), String(Orgs.ROGUE_RANKS[Orgs.rogue_rank()][2])]   # kaçakta köy rütbesi yok
+	rank_lbl.text = Lang.t("%s  •  Güç %d") % [Lang.upper(Lang.t(rname)), int(pr.get("level", 1))]
 	ryo_lbl.text = "%d Ryō" % int(pr.get("ryo", 0))
 	if buff_lbl:
 		var bl = []
 		for ln in Buffs.lines():
-			bl.append("[color=#ffd27a]%s[/color]%s: %s" % [ln[0], (" (%ds)" % int(ln[2])) if ln[2] >= 0.0 else "", ln[1]])
+			bl.append("[color=#ffd27a]%s[/color]%s: %s" % [Lang.t(String(ln[0])), (" (%ds)" % int(ln[2])) if ln[2] >= 0.0 else "", Lang.t(String(ln[1]))])
 		buff_lbl.text = "\n".join(bl)
 	_update_party(dt)
 	hp_bar.max_value = pl.max_hp; hp_bar.value = pl.hp
@@ -1143,7 +1143,7 @@ func _process(dt: float) -> void:
 		clan_bar.max_value = cm["max"]
 		clan_bar.value = cm["v"]
 		(clan_bar.get_theme_stylebox("fill") as StyleBoxFlat).bg_color = cm["col"]
-		clan_lbl.text = "%s %d" % [cm["label"], int(cm["v"])] if cm["max"] > 1.0 else String(cm["label"])
+		clan_lbl.text = "%s %d" % [Lang.t(String(cm["label"])), int(cm["v"])] if cm["max"] > 1.0 else Lang.t(String(cm["label"]))
 	var comb = pl.combat
 	if comb:
 		for i in 4:
@@ -1166,7 +1166,7 @@ func _process(dt: float) -> void:
 			_ss_t = Time.get_ticks_msec() + 2000
 			SpecialSlots.refresh(pr)
 		var j: Dictionary = Data.jutsu.get(jid, {})
-		sn[1].text = String(j.get("name", jid)).split(":")[-1].split("(")[0].strip_edges()
+		sn[1].text = Lang.t(String(j.get("name", jid))).split(":")[-1].split("(")[0].strip_edges()
 		var cd: float = SpecialSlots.cooldown(pl, jid) if j.has("virtual") else (comb.cooldowns.get(jid, 0.0) if comb else 0.0)
 		var ok = (pl.stamina if Stats.is_taijutsu(j) else pl.chakra) >= PlayerCombat.cast_cost(j)
 		sn[2].text = ("%.1f" % cd) if cd > 0.0 else ""
@@ -1178,15 +1178,15 @@ func _process(dt: float) -> void:
 			sn[0].queue_redraw()
 	var tool: String = pr.get("throw_sel", "kunai")
 	var tcd = float(pl.combat.tool_cd.get(tool, 0.0)) if pl.combat else 0.0
-	var tstate = ("%d sn" % ceili(tcd)) if tcd > 0.0 else ("hazır" if int(pr["inventory"].get(tool, 0)) > 0 else "yok")
-	tool_lbl.text = "%s   %s  (%s)\n%s   değiştir" % [Keys.name("throw"), Data.items.get(tool, {"name": tool})["name"], tstate, Keys.name("tool_next")]
+	var tstate = (Lang.t("%d sn") % ceili(tcd)) if tcd > 0.0 else Lang.t("hazır" if int(pr["inventory"].get(tool, 0)) > 0 else "yok")
+	tool_lbl.text = "%s   %s  (%s)\n%s   %s" % [Keys.name("throw"), Lang.t(String(Data.items.get(tool, {"name": tool})["name"])), tstate, Keys.name("tool_next"), Lang.t("değiştir")]
 	var pcd = get_tree().current_scene.pill_cooldown() if get_tree().current_scene.has_method("pill_cooldown") else 0.0
 	var psel = ClanMech.pill_sel()
 	if psel != "pill":
 		pcd = ClanMech.aki_pill_left(psel)
 	var scd = get_tree().current_scene.salve_cooldown() if get_tree().current_scene.has_method("salve_cooldown") else 0.0
-	item_lbl.text = "%s   Merhem  %s
-%s   %s  %s%s" % [Keys.name("salve"), ("(%d sn)" % ceili(scd)) if scd > 0.0 else "(hazır)", Keys.name("pill"), ClanMech.AKI_PILL_NAMES.get(psel, "Asker Hapı"), ("(%d sn)" % ceili(pcd)) if pcd > 0.0 else "(hazır)", ("  [%s] değiştir" % Keys.name("pill_next")) if ClanMech.pill_list().size() > 1 else ""]
+	item_lbl.text = "%s   %s  %s
+%s   %s  %s%s" % [Keys.name("salve"), Lang.t("Merhem"), (Lang.t("(%d sn)") % ceili(scd)) if scd > 0.0 else Lang.t("(hazır)"), Keys.name("pill"), Lang.t(String(ClanMech.AKI_PILL_NAMES.get(psel, "Asker Hapı"))), (Lang.t("(%d sn)") % ceili(pcd)) if pcd > 0.0 else Lang.t("(hazır)"), (Lang.t("  [%s] değiştir") % Keys.name("pill_next")) if ClanMech.pill_list().size() > 1 else ""]
 	if msg_t > 0.0:
 		msg_t -= dt
 		if msg_t <= 0.0:
@@ -1194,8 +1194,8 @@ func _process(dt: float) -> void:
 	var it = Interact.nearest(pl.global_position)
 	var catch = _near_catchable(pl)
 	var tk = _near_talker(pl) if it.is_empty() and not catch else null
-	var ptxt = it.get("label", "") if not it.is_empty() else ((String(catch.get("catch_label")) if catch.get("catch_label") != null else "Yakala!") if catch else ("Konuş: %s" % tk.display if tk else ""))
-	ptxt = String(ptxt).replace("[F] ", "").replace("[F]", "").strip_edges()
+	var ptxt = it.get("label", "") if not it.is_empty() else ((String(catch.get("catch_label")) if catch.get("catch_label") != null else "Yakala!") if catch else (Lang.t("Konuş: %s") % tk.display if tk else ""))
+	ptxt = Lang.t(String(ptxt).replace("[F] ", "").replace("[F]", "").strip_edges())
 	prompt_box.visible = ptxt != ""
 	if prompt_box.visible:
 		prompt_key.get_child(0).text = Keys.name("interact")
@@ -1314,8 +1314,8 @@ func _draw_minimap_markers(c: Control) -> void:
 		c.draw_arc(q, 7.5, 0, TAU, 16, lm["col"], 1.6)
 		c.draw_string(fnt, q + Vector2(-4, 4.5), lm["glyph"], HORIZONTAL_ALIGNMENT_LEFT, -1, 11, lm["col"])
 		if lm["pos"].distance_to(pl.global_position) < 90.0:
-			c.draw_string_outline(fnt, q + Vector2(9, 4), lm["name"], HORIZONTAL_ALIGNMENT_LEFT, -1, 11, 3, Color(0, 0, 0, 0.9))
-			c.draw_string(fnt, q + Vector2(9, 4), lm["name"], HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(1, 1, 1))
+			c.draw_string_outline(fnt, q + Vector2(9, 4), Lang.t(String(lm["name"])), HORIZONTAL_ALIGNMENT_LEFT, -1, 11, 3, Color(0, 0, 0, 0.9))
+			c.draw_string(fnt, q + Vector2(9, 4), Lang.t(String(lm["name"])), HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(1, 1, 1))
 	if Missions.has_marker:
 		var q: Vector2 = to_mm.call(Missions.target_marker)
 		var dv = q - Vector2(R, R)
@@ -1339,4 +1339,4 @@ func _draw_minimap_markers(c: Control) -> void:
 	c.draw_polyline(PackedVector2Array([tip, l, r, tip]), Color(0.1, 0.05, 0.0), 2.0)
 	var npos = Vector2(R, R) + Vector2(0, -1).rotated(rot) * (R - 14)
 	c.draw_circle(npos, 10, Color(0.1, 0.06, 0.04, 0.85))
-	c.draw_string(ThemeDB.fallback_font, npos + Vector2(-5, 6), "K", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1, 0.6, 0.3))
+	c.draw_string(ThemeDB.fallback_font, npos + Vector2(-5, 6), "N" if Lang.is_en() else "K", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1, 0.6, 0.3))

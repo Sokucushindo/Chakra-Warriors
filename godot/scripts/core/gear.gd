@@ -1711,15 +1711,15 @@ static func stats_text(id: String) -> String:
 	for k in it.get("stats", {}):
 		var v = float(it["stats"][k])
 		if k in ["speed", "melee"]:
-			parts.append("%s %+d%%" % [names[k], int(round(v * 100))])
+			parts.append("%s %+d%%" % [Lang.t(names[k]), int(round(v * 100))])
 		else:
-			parts.append("%s %+d" % [names[k], int(v)])
+			parts.append("%s %+d" % [Lang.t(names[k]), int(v)])
 	if it.has("weapon"):
-		parts.push_front("Vuruş hasarı %.1f, menzil +%.1fm" % [float(it["weapon"].get("hit", 4.2)), it["weapon"]["reach"]])
+		parts.push_front(Lang.t("Vuruş hasarı %.1f, menzil +%.1fm") % [float(it["weapon"].get("hit", 4.2)), it["weapon"]["reach"]])
 	var en = {"katon": "Katon", "suiton": "Suiton", "fuuton": "Fūton", "raiton": "Raiton", "doton": "Doton"}
 	var bo: Dictionary = it.get("boost", it.get("weapon", {}).get("boost", {}))
 	for e in bo:
-		parts.append("%s hasarı %+d%%" % [en.get(e, e), int(round(float(bo[e]) * 100))])
+		parts.append(Lang.t("%s hasarı %+d%%") % [en.get(e, e), int(round(float(bo[e]) * 100))])
 	for e in it.get("resist", {}):
-		parts.append("%s'dan alınan hasar -%d%%" % [en.get(e, e), int(round(float(it["resist"][e]) * 100))])
+		parts.append(Lang.t("%s'dan alınan hasar -%d%%") % [en.get(e, e), int(round(float(it["resist"][e]) * 100))])
 	return ", ".join(parts) if not parts.is_empty() else "—"

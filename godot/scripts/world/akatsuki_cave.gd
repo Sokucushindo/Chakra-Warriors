@@ -18,7 +18,7 @@ const ROCK_D := Color(0.19, 0.16, 0.2)
 const EXT_ROCK := Color(0.52, 0.37, 0.34)
 const RED := Color(0.7, 0.1, 0.1)
 const TAG_R := 130.0          # dört dış etiketin kapıya uzaklığı
-const TAG_WINDOW := 150.0     # dört etiket bu süre (sn) içinde sökülmeli
+const TAG_WINDOW := 480.0     # dört etiket bu süre (sn) içinde sökülmeli
 
 static var ext: Node3D
 static var ext_at := Vector3.ZERO
@@ -26,6 +26,7 @@ static var statue: GedoMazo
 static var shades: Array = []
 static var torn := {}          # sökülen dış etiketler: sıra -> gerçek saat (sn)
 static var broken := false     # Gofū Kekkai kırıldı (dış kurulum kalkana dek)
+static var copies := {}        # etiket sırası -> o etiketin yarattığı oyuncu kopyası (Enemy)
 static var dragons: Node3D
 
 
@@ -46,6 +47,10 @@ static func drop() -> void:
 	ext = null
 	torn = {}
 	broken = false
+	for ck in copies.keys():
+		if is_instance_valid(copies[ck]):
+			copies[ck].queue_free()
+	copies = {}
 	for it in Interact.items.duplicate():
 		if String(it.get("kind", "")) in ["aka_gate", "aka_tag"]:
 			Interact.items.erase(it)
@@ -108,28 +113,119 @@ static func _exterior(at: Vector3) -> void:
 		var gy: float = g.call(x, n)
 		b.boulder(Vector3(x, gy + 2.2, n), Vector3(7.0, 6.5, 6.0), EXT_ROCK.darkened(0.1), k + 9, true, k * 50.0)
 		_tag(b, Vector3(x, gy + 3.0, n - 3.2), 0.42)
-		b.interact(Vector3(x, gy + 0.8, n - 4.6), 3.2, "aka_tag", "[F] Etiketi sök (禁)", {"idx": k})
+		b.interact(Vector3(x, gy + 0.8, n - 4.6), 8.5, "aka_tag", "[F] Etiketi sök (禁)", {"idx": k})
 	b.finish()
 
 
-## Dış etiketlerden biri söküldü. Dördü TAG_WINDOW içinde sökülürse kapıdaki mühür düşer (üyeler için gerek yok).
+## Dış etiketlerden biri sökülmek istendi. Kanon (Gofū Kekkai): etikete dokunanın karşısına bariyerin yarattığı KENDİ KOPYASI
+## çıkar: o anki canı, chakrası, gücü ve teknikleriyle. Kopya yenilince etiket sökülmüş sayılır; dördü TAG_WINDOW içinde
+## sökülürse kapıdaki mühür düşer (üyeler için gerek yok). Kopyadan uzaklaşılırsa kopya dağılır, etiket yerinde kalır.
 static func tear(it: Dictionary) -> void:
-	var now = Time.get_ticks_msec() / 1000.0
 	var k = int(it.get("idx", 0))
 	if broken:
 		Hud.msg("Bariyer zaten düştü; kaya kapı açık.", Color(0.9, 0.8, 0.6))
 		return
+	_expire()
+	if torn.has(k):
+		Hud.msg("Bu etiket zaten söküldü (%d/4)." % torn.size(), Color(0.9, 0.8, 0.6))
+		return
+	if is_instance_valid(copies.get(k)):
+		Hud.msg("Önce etiketten çıkan kopyanı yen.", Color(1, 0.7, 0.5))
+		return
+	Sfx.play("seal", Game.player.global_position, 0.7)
+	var tag_at: Vector3 = it.get("pos", Game.player.global_position)
+	copies[k] = _spawn_copy(tag_at, k)
+	Hud.banner("GOFŪ KEKKAI", "Etikete dokundun: bariyer senin kopyanı yarattı. Onu yenmeden etiket sökülmez.", Color(0.9, 0.55, 0.4))
+
+
+static func _expire() -> void:
+	var now = Time.get_ticks_msec() / 1000.0
 	for q in torn.keys():   # süresi geçen etiketler yeniden yapışır
 		if now - float(torn[q]) > TAG_WINDOW:
 			torn.erase(q)
-	torn[k] = now
-	Sfx.play("seal", Game.player.global_position, 0.7)
+
+
+## Kopya yenildi: etiket söküldü
+static func _copy_down(k: int) -> void:
+	copies.erase(k)
+	if broken:
+		return
+	_expire()
+	torn[k] = Time.get_ticks_msec() / 1000.0
 	if torn.size() >= 4:
 		broken = true
 		Game.world.env.add_shake(0.5)
 		Hud.banner("GOFŪ KEKKAI DÜŞTÜ", "Dört etiket birlikte söküldü. Kaya kapıdaki mühür artık tutmuyor.", Color(0.9, 0.75, 0.4))
 	else:
 		Hud.msg("Etiket söküldü (%d/4). Hepsi %d saniye içinde sökülmezse sökülenler yeniden yapışır." % [torn.size(), int(TAG_WINDOW)], Color(0.9, 0.8, 0.6))
+
+
+## Oyuncunun kopyası: aynı görünüş, aynı Güç, yuvalardaki teknikler, o anki can ve chakra oranı
+static func _spawn_copy(tag_at: Vector3, k: int) -> Enemy:
+	var pr: Dictionary = Game.profile
+	var pl = Game.player
+	var lv = int(pr.get("level", 1))
+	var a = Enemy.archetype("rogue", 0)
+	a["respawn"] = false
+	a["name"] = "%s (Kekkai kopyası)" % String(pr.get("name", ""))
+	a["element"] = String((pr.get("elements", ["katon"]) as Array)[0])
+	Stats.npc_ninja(a, lv)
+	a["xp"] = 0
+	a["ryo"] = 0
+	a["aggr"] = 1.0
+	a["look"] = pl._look_with_age().duplicate(true)
+	var js: Array = []
+	for j in pr.get("slots", []):
+		if String(j) != "" and Data.jutsu.has(j) and not (Data.jutsu[j] as Dictionary).has("virtual") and not j in js:
+			js.append(j)
+	if not js.is_empty():
+		a["jutsu"] = js.slice(0, 6)
+		a.erase("auto_jutsu")
+	var clan = String(pr.get("clan", "none"))
+	if clan != "none" and clan != "":
+		a["clan"] = clan
+	var e = Enemy.new()
+	e.setup(a)
+	pl.get_tree().current_scene.add_child(e)
+	var dir: Vector3 = pl.global_position - tag_at
+	dir.y = 0.0
+	var at: Vector3 = tag_at + (dir.normalized() if dir.length() > 0.1 else Vector3.BACK) * 2.5
+	at.y = Game.ground_height(at.x, at.z)
+	e.global_position = at
+	e.home = at
+	e.hp = maxf(e.max_hp * clampf(pl.hp / maxf(1.0, pl.max_hp), 0.3, 1.0), 1.0)   # kanon: yaratıldığı andaki hâlin
+	e.chakra = e.max_chakra * clampf(pl.chakra / maxf(1.0, pl.max_chakra), 0.3, 1.0)
+	e.set_meta("no_loot", true)
+	if a.has("clan"):
+		ClanWorld.after_spawn_enemy(e, clan, lv, 0)
+	e.target = pl
+	FX.aura(e, Color(0.75, 0.2, 0.2), 1.2)
+	var w = CopyWatch.new()
+	w.k = k
+	w.tag_at = tag_at
+	w.foe = e
+	pl.get_tree().current_scene.add_child(w)
+	return e
+
+
+## Kopyayı izler: yenilince etiketi söker; oyuncu uzaklaşırsa (ya da dış kurulum kalkarsa) kopya dağılır
+class CopyWatch extends Node:
+	var k := 0
+	var tag_at := Vector3.ZERO
+	var foe: Enemy
+	func _process(_dt: float) -> void:
+		if not is_instance_valid(foe) or foe.dead or foe.hp <= 0.0 or foe.is_queued_for_deletion():
+			AkatsukiCave._copy_down(k)
+			queue_free()
+			return
+		var pl = Game.player
+		if pl == null or not is_instance_valid(AkatsukiCave.ext) or AkatsukiCave.broken or pl.global_position.distance_to(tag_at) > 75.0 or pl.hp <= 0.0:
+			FX.aura(foe, Color(0.75, 0.2, 0.2), 0.6)
+			foe.queue_free()
+			AkatsukiCave.copies.erase(k)
+			if pl != null and not AkatsukiCave.broken and is_instance_valid(AkatsukiCave.ext):
+				Hud.msg("Kopyadan uzaklaştın: kopya dağıldı, etiket yerinde kaldı.", Color(0.9, 0.8, 0.6))
+			queue_free()
 
 
 # ------------------------------------------------------------------ iç

@@ -422,3 +422,83 @@ static func village_near(pos = null) -> String:
 		if d < bd:
 			bd = d; best = String(v["id"])
 	return best if VILLAGE.has(best) else "konoha"
+
+
+# ------------------------------------------------------------------ kaçak ninjaların setleri
+## Kaçak ninja, karakterine uyan gerçek bir kıyafet seti giyer (oyuncunun gardırobundaki setlerle aynı): önce klanının,
+## sonra kan soyunun / doğasının, sonra eski köyünün setleri; hiçbiri yoksa pelerinli / gezgin kaçak setleri.
+## Plaj, pijama, eşofman, gelinlik, okul, kostüm gibi setler bu listelerde YOK (kaçağa yakışmaz).
+const ROGUE_CLAN := {
+	"uchiha": ["set_uchiha", "ss_yelpaze", "ss_yelpaze_kolsuz", "ss_yelpaze_takim", "ss_yelpaze_b", "ss_yelpaze_yirtik", "ss_yelpaze_kilic", "ss_yelpaze_zirh",
+		"ss_kizil_fermuar", "ss_kizil_elbise", "ss_karga_tunik", "ss_karga_cubbe", "ss_savas_reisi3", "ss_savas_reisi"],
+	"inuzuka": ["ss_inuzuka_ceket"], "nara": ["ss_golge_jonin", "ss_golge_genc"], "akimichi": ["ss_kizil_zirh", "ss_yemek"],
+	"hyuga": ["ss_kader_genc", "ss_mor_uzun", "ss_mor_etek"], "sabaku": ["ss_kizil_palto", "ss_kizil_palto2", "ss_demir_kum", "ss_ruzgar_kimono", "ss_ruzgar_zirh", "ss_ruzgar_elbise2"],
+	"shirogane": ["ss_kukla", "ss_kukla_genc", "ss_kizil_palto"], "momochi": ["ss_iblis"], "kurosuki": ["ss_iblis", "ss_kiri_genin"],
+	"yuki": ["ss_buz_kimono", "ss_buz_kimono2"], "uzumaki": ["ss_turuncu_maske", "ss_kagit_melek"], "senju": ["ss_orman_zirh", "ss_orman_zirh_genc", "ss_su_zirh", "ss_kumarbaz"],
+	"sarutobi": ["ss_sigara_jonin", "ss_ates_pelerin"], "hatake": ["ss_maskeli_gaiden", "ss_maskeli_jonin", "ss_ic_giysi"], "namikaze": ["ss_sari_simsek", "ss_sari_simsek_genc"],
+	"yotsuki": ["ss_demir_dovme"], "kaguya": ["ss_yilan_kimono"], "yuhi": ["ss_genjutsu_sargi"], "mitarashi": ["ss_tehlike_ceket"], "shimura": ["ss_kok_reisi", "set_ne"],
+	"karatachi": ["ss_kaplumbaga"], "terumi": ["ss_su_elbise"], "tsuchigumo": ["ss_kopuk"], "aburame": ["ss_anbu_kapuson"], "gekko": ["set_kenshi"],
+	"hozuki": ["ss_su_zirh", "ss_iblis"], "hoshigaki": ["ss_iblis", "ss_kiri_genin"], "jugo": ["ss_kabuk_yirtik"], "fuma": ["set_kage_no"]}
+const ROGUE_NAT := {"hyoton": ["ss_buz_kimono", "ss_buz_kimono2"], "yoton": ["ss_lav_zirh"], "futton": ["ss_buhar_zirh"], "jiton": ["ss_demir_kum"], "mokuton": ["ss_orman_zirh"],
+	"shakuton": ["ss_ates_pelerin"], "ranton": ["ss_simsek_kiyafet"]}
+const ROGUE_EL := {"katon": ["ss_ates_pelerin"], "raiton": ["ss_simsek_kiyafet"], "suiton": ["ss_su_zirh"], "fuuton": ["ss_ruzgar_elbise2"], "doton": ["ss_kaya_paltosu"]}
+const ROGUE_VILLAGE := {"konoha": ["ss_konoha_genin", "ss_son_savas"], "suna": ["ss_suna_genin", "ss_kum_striker", "set_suna"], "kiri": ["ss_kiri_genin", "ss_sis_striker_siyah", "ss_iblis"],
+	"kumo": ["ss_kumo_genin", "ss_demir_dovme"], "iwa": ["ss_iwa_genin", "ss_kaya_paltosu", "ss_kaya_striker"], "oto": ["ss_yilan_zirh", "ss_yilan_kimono", "ss_yilan_sanin", "ss_flut"],
+	"ame": ["set_ame"]}
+const ROGUE_ANY := ["ss_anbu_kapuson", "ss_kara_palto", "ss_karga_cubbe", "ss_maske_pelerin", "ss_kurucu_palto", "ss_gezgin_palto", "ss_kabuk_yirtik", "ss_bes_kalp", "ss_yilan_cubbe",
+	"ss_kizil_kayis", "ss_siyah_tulum", "ss_genis_yaka", "set_ronin", "set_tabibito", "set_kage_no", "set_kenshi"]
+## Görünüşün kimlik kısmı (set giyilince korunur)
+const LOOK_SELF := ["gender", "hair", "hair_style", "skin", "eye", "face", "face_id", "face_cut", "face_v", "eye_art", "beard", "face_mark", "face_paint", "face_paint_col",
+	"keep_hair", "own_hair", "age", "years", "age_seed", "fat", "mus", "band", "band_style", "band_wear", "village", "eye_l", "eye_r", "size"]
+
+
+static func _fits(sid: String, female: bool) -> bool:
+	var it: Dictionary = Gear.item(sid)
+	if it.is_empty() or (it.get("parts", []) as Array).is_empty():
+		return false
+	var sx = String(it.get("sex", ""))
+	return sx == "" or sx == ("f" if female else "m")
+
+
+## Kişinin verisinden (klan, kan soyu, doğa, köy, cinsiyet) setini seçer; aynı kişi hep aynı seti alır (tohum = kimliği)
+static func rogue_set(clan: String, village: String, els: Array, nat: Array, female: bool, seed_s: String) -> String:
+	var rng = RandomNumberGenerator.new()
+	rng.seed = hash(seed_s)
+	var pools: Array = []   # [ağırlık, liste]
+	pools.append([6.0, ROGUE_CLAN.get(clan, [])])
+	var nl: Array = []
+	for n in nat:
+		nl.append_array(ROGUE_NAT.get(String(n), []))
+	pools.append([3.0, nl])
+	var el_l: Array = []
+	for e in els:
+		el_l.append_array(ROGUE_EL.get(String(e), []))
+	pools.append([1.0, el_l])
+	pools.append([2.0, ROGUE_VILLAGE.get(village, [])])
+	pools.append([2.0, ROGUE_ANY])
+	var tot := 0.0
+	var ok: Array = []
+	for pw in pools:
+		var lst: Array = (pw[1] as Array).filter(func(s): return _fits(String(s), female))
+		if not lst.is_empty():
+			ok.append([float(pw[0]), lst])
+			tot += float(pw[0])
+	if ok.is_empty():
+		return ""
+	var r = rng.randf() * tot
+	for pw in ok:
+		r -= float(pw[0])
+		if r <= 0.0:
+			return String((pw[1] as Array)[rng.randi() % (pw[1] as Array).size()])
+	return String((ok[-1][1] as Array)[0])
+
+
+## Görünüşe seti giydirir: kimlik (saç, yüz, ten, yaş, alın koruyucu) kalır, kıyafetin tamamı setten gelir
+static func wear_set(L: Dictionary, sid: String) -> Dictionary:
+	var out = CharacterModel.default_look()
+	for k in LOOK_SELF:
+		if L.has(k):
+			out[k] = L[k]
+	Gear.preview_set_look(out, sid)
+	out["set_id"] = sid
+	return out

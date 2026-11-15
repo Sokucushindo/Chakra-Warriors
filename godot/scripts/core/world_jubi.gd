@@ -324,7 +324,7 @@ static func _strike() -> void:
 	if is_instance_valid(actor):
 		actor.queue_free()
 	actor = null
-	WorldAssault._add_ruin(vid, Game.from_map(c + dir * vr * 0.35), minf(vr * 0.5, 190.0), "On Kuyruk")
+	var ruin_at = Game.from_map(c + dir * vr * 0.35)
 	var defs: Array = WorldDay.war_party(vid, 9)
 	defs.shuffle()
 	var fallen = 0
@@ -341,12 +341,39 @@ static func _strike() -> void:
 	var left = STRIKES_TO_TREE - int(d["strikes"])
 	var text = "On Kuyruk %s'i vurdu: köyün yarısı yıkıntı, %d ninja öldü%s. %s" % [vn, fallen, ", Kage de aralarında" if kage_dead else "",
 		"Durdurulmazsa %d köy sonra Tanrı Ağacı'na dönüşecek." % left if left > 0 else "Artık kök salmaya hazırlanıyor."]
-	WorldAssault._announce(vid, "ON KUYRUK %s'DE" % vn.to_upper(), text)
-	_mark("Olay: On Kuyruk")
-	if WorldAssault._player_in(vid, 1.6) and Game.world and Game.world.env:
-		Game.world.env.add_shake(2.0)
-		Game.world.env.screen_flash(0.8)
-		Sfx.play("boom", null, 1.0, 0.4)
+	var finish = func() -> void:
+		WorldAssault._add_ruin(vid, ruin_at, minf(vr * 0.5, 190.0), "On Kuyruk")
+		WorldAssault._announce(vid, "ON KUYRUK %s'DE" % vn.to_upper(), text)
+		_mark("Olay: On Kuyruk")
+		if WorldAssault._player_in(vid, 1.6) and Game.world and Game.world.env:
+			Game.world.env.add_shake(2.0)
+			Game.world.env.screen_flash(0.8)
+			Sfx.play("boom", null, 1.0, 0.4)
+	# oyuncu köyde ya da yakınındaysa vuruş canlı oynanır: On Kuyruk kapının dışında belirir, ağzında dev Bijūdama toplar,
+	# köyün o mahallesine atar; top düşünce yıkıntı oluşur. Uzaktaysa sonuç hemen işlenir (haber gelir).
+	if not (WorldAssault._player_in(vid, 2.6) and Game.world and Game.world.env and Game.player):
+		finish.call()
+		return
+	actor = _spawn_jubi(pos)
+	var to_v = ruin_at - actor.global_position
+	actor.facing = atan2(to_v.x, to_v.z)
+	if is_instance_valid(actor.rig):
+		actor.rig.rotation.y = actor.facing
+	Hud.banner("ON KUYRUK KAPIDA", "%s'in kapısının dışında belirdi. Ağzında dev bir Bijūdama toplanıyor!" % vn, Color(0.75, 0.6, 1.0))
+	Sfx.play("roar", null, 1.0, 0.5)
+	Game.world.env.add_shake(1.2)
+	var beast = actor
+	var speed = 150.0
+	var tree = _scene().get_tree()
+	tree.create_timer(5.0).timeout.connect(func():
+		if not is_instance_valid(beast) or beast.dead:
+			finish.call()
+			return
+		var from: Vector3 = beast.rig.mouth_pos()
+		BijuuArts.use(beast, "jubi", "jubi_bijudama", {"s": clampf(beast.height / 14.0, 2.0, 3.5), "dmg": beast._dmg(30.0), "from": from, "aim": ruin_at + Vector3.UP * 3.0,
+			"fixed": true, "speed": speed, "col": beast.info["chakra"]})
+		Combat.popup_text(from + Vector3.UP * 6.0, "Jūbi Bijūdama", Color(0.85, 0.75, 1.0))
+		tree.create_timer(1.8 + from.distance_to(ruin_at) / speed).timeout.connect(finish))
 
 
 ## Durduruldu: canavarlar serbest, her şey temizlenir

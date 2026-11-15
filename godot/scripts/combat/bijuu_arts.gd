@@ -70,6 +70,13 @@ const TECHS := {
 		{"key": "kyubi_biso", "name": "Kyūbi Bisō", "desc": "Dokuz kuyruk sırayla yeri döver: önündeki her şey savrulur", "cd": 18.0, "cost": 55.0, "epic": true},
 		{"key": "bijudama_rendan", "name": "Bijūdama Rendan", "desc": "Art arda üç dev Kuyruklu Canavar Topu", "cd": 28.0, "cost": 90.0, "epic": true},
 	],
+	# On Kuyruk (kanon): dağları silen dev Bijūdama, kükreme şok dalgası, Tenpenchii (doğal afetler: yıldırım, hortum, deprem)
+	"jubi": [
+		{"key": "jubi_bijudama", "name": "Jūbi Bijūdama", "desc": "Ağzında uzun uzun toplanan dev Kuyruklu Canavar Topu: düştüğü yeri siler", "cd": 16.0, "cost": 80.0},
+		{"key": "biju_hoko", "name": "Bijū Hōkō: Kükreme", "desc": "Koni şok dalgası: savurur, sersemletir, ağaçları yatırır", "cd": 9.0, "cost": 20.0},
+		{"key": "tenpenchii", "name": "Tenpenchii", "desc": "Doğal afetler: gök kararır, yıldırımlar düşer, hortumlar gezer, yer sarsılıp yarılır", "cd": 30.0, "cost": 120.0, "epic": true},
+		{"key": "bijudama_rendan", "name": "Bijūdama Rendan", "desc": "Art arda üç dev Kuyruklu Canavar Topu", "cd": 28.0, "cost": 90.0, "epic": true},
+	],
 }
 
 ## Tam dönüşüm / boss pençesi: canavara özgü vuruş tarzı [element, renk, ek etki]
@@ -134,6 +141,8 @@ static func use(user: Node3D, id: String, key: String, ctx: Dictionary) -> void:
 		c["aim"] = c["from"] + _fwd(user) * 20.0
 	match key:
 		"renkudan": _renkudan(user, c)
+		"jubi_bijudama": _jubi_bijudama(user, c)
+		"tenpenchii": _tenpenchii(user, c)
 		"sabaku_taiso": _sabaku_taiso(user, c)
 		"suna_tate": _suna_tate(user, c)
 		"neko_pounce": _neko_pounce(user, c)
@@ -966,10 +975,10 @@ static func _shell_roll(user: Node3D, c: Dictionary) -> void:
 			shell.global_position = p + Vector3.UP * R
 			shell.rotate(d.cross(Vector3.UP).normalized(), -0.45)
 		st["n"] += 1
-		if int(st["n"]) % 3 == 0:
+		if true:   # her adımda yokla: küçük kabuk yakındaki rakibin içinden atlayıp geçmesin (vurulan listede, iki kez işlemez)
 			if int(st["n"]) % 9 == 0:
 				VFX.splash(_gp(p - d * 2.0 * s), 0.6 * s)
-			var hits = _hit(user, p + Vector3.UP * maxf(s, R * 0.6), maxf(2.6 * s, R * 1.3), {"dmg": dmg * 0.7, "element": "suiton", "knock": 30.0, "launch": 9.0, "kind": "heavy", "dir": d, "hitstop": 0.05}, hitlist)
+			var hits = _hit(user, p + Vector3.UP * maxf(s, R * 0.6), maxf(maxf(2.6 * s, R * 1.3), float(c.get("hit_r", 0.0))), {"dmg": dmg * 0.7, "element": "suiton", "knock": float(c.get("knock", 30.0)), "launch": 9.0, "kind": "heavy", "dir": d, "hitstop": 0.05, "stun": float(c.get("stun", 0.0)), "hard_down": bool(c.get("hard_down", false))}, hitlist)
 			hitlist.append_array(hits)
 	var done = func(p: Vector3) -> void:
 		if is_instance_valid(shell):
@@ -1994,6 +2003,99 @@ static func _bijudama_rendan(user: Node3D, c: Dictionary) -> void:
 			var prb = _shot(user, from + dir * 1.5 * s, dir * 60.0, 1.2 * s, {"dmg": float(c["dmg"]) * 0.4, "knock": 20.0, "kind": "heavy"}, vis, boom, 0.0, 4.0)
 			BijudamaFX.launch(from + dir * 1.5 * s, dir, 1.8 * s, prb)
 			Sfx.play("rasengan", from, 0.4))
+
+
+# ================================================================== ON KUYRUK
+## Jūbi Bijūdama: top ağızda uzun uzun toplanır (kaçmak için zaman), sonra hedefin o anki yerine atılır; düştüğü yeri siler.
+static func _jubi_bijudama(user: Node3D, c: Dictionary) -> void:
+	var s: float = c["s"]
+	var size = 3.4 * s
+	var charge = 1.8
+	var from0 = _live_from(user, c, s)
+	BijudamaFX.gather(from0, size, charge)
+	var grow: Node3D = BijudamaFX.ball(size)
+	VFX.scene().add_child(grow)
+	grow.global_position = from0
+	grow.scale = Vector3.ONE * 0.08
+	var tw = grow.create_tween()
+	tw.tween_property(grow, "scale", Vector3.ONE, charge).set_ease(Tween.EASE_OUT)
+	var st = {"n": 0}
+	_ticker(from0, charge, 0.05, func(_n: Node3D, _el: float) -> void:
+		if is_instance_valid(grow) and is_instance_valid(user):
+			grow.global_position = _live_from(user, c, s))
+	Sfx.play("rasengan", from0, 0.3)
+	_later(charge, user, func():
+		if is_instance_valid(grow):
+			grow.queue_free()
+		var from = _live_from(user, c, s)
+		var t = null if c.get("fixed", false) else _pick(user, c, 160.0 * s)   # fixed: verilen noktaya (köy vuruşu)
+		var aim: Vector3 = (t.global_position + Vector3.UP * float(t.height) * 0.5) if t else c["aim"]
+		var dir = (aim - from).normalized()
+		var vis = BijudamaFX.ball(size)
+		var boom = func(pos: Vector3, _t: Node3D) -> void:
+			var R = 17.0 * s
+			BijudamaFX.explode(pos, R)
+			_hit(user, pos, R, {"dmg": float(c["dmg"]) * 2.4, "knock": 55.0, "launch": 16.0, "kind": "heavy", "attacker": user})
+			var g = _gp(pos)
+			VFX.cracks(g, R * 0.9)
+			VFX.debris(g + Vector3.UP, Color(0.42, 0.36, 0.3), 26, 22.0, 0.9)
+			_shake(2.2)
+		var prb = _shot(user, from + dir * 2.0 * s, dir * float(c.get("speed", 75.0)), 2.2 * s, {"dmg": float(c["dmg"]) * 0.6, "knock": 30.0, "kind": "heavy"}, vis, boom, 0.0, 5.0)
+		BijudamaFX.launch(from + dir * 2.0 * s, dir, size, prb)
+		Sfx.play("roar", from, 0.6)
+		_shake(0.8))
+
+
+## Tenpenchii (kanon, ref refs/jubi/Ten-Tails__Tenpenchii_Anime_1): gök kararır, mavi-beyaz yıldırımlar art arda düşer, hortum
+## sütunları gezer, yer sarsılıp yarılır, moloz uçuşur. Yıldırımın düşeceği yer kısa süre önce yerde parlar (kaçılabilir).
+static func _tenpenchii(user: Node3D, c: Dictionary) -> void:
+	var s: float = c["s"]
+	var tg = _pick(user, c, 200.0 * s)
+	var center = _gp(tg.global_position if tg else c["aim"])
+	var R = 30.0 * s
+	var dur = 9.0
+	var dmg: float = c["dmg"]
+	_tint(Color(0.08, 0.07, 0.16, 0.5), dur)
+	Sfx.play("thunder", center, 0.8)
+	_shake(1.0)
+	# hortum sütunları: hedefin çevresinde dolanır, içine alanı savurur
+	var twisters: Array = []
+	for k in 3:
+		twisters.append({"a": TAU * k / 3.0 + randf(), "r": R * randf_range(0.35, 0.7), "w": randf_range(0.35, 0.6) * (1.0 if k % 2 == 0 else -1.0)})
+	_ticker(center, dur, 0.3, func(_n: Node3D, el: float) -> void:
+		if not is_instance_valid(user):
+			return
+		var live = _pick(user, c, 200.0 * s)
+		var near: Vector3 = _gp(live.global_position) if live else center
+		# yıldırım: yarısı hedefin dibine, yarısı alana rastgele; önce yerde parıltı, 0.45 sn sonra düşer
+		for q in 2:
+			var a = randf() * TAU
+			var at = _gp((near if q == 0 else center) + Vector3(cos(a), 0, sin(a)) * (randf_range(0.0, 5.0 * s) if q == 0 else randf_range(0.0, R)))
+			FX.burst(at + Vector3.UP * 0.3, {"amount": 10, "life": 0.45, "tex": FX.tex_spark, "size": 0.5 * s, "radius": 1.6 * s, "vmin": 0.5, "vmax": 2.0, "spread": 180.0,
+				"colors": [Color(0.7, 0.85, 1.0, 0.9), Color(0.5, 0.7, 1.0, 0.0)]})
+			_later(0.45, user, func():
+				VFX.bolt(at + Vector3(randf_range(-6, 6), 70.0, randf_range(-6, 6)), at, Color(0.72, 0.85, 1.0), 0.9 * s, 0.3, 5)
+				_hit(user, at + Vector3.UP * s, 3.2 * s, {"dmg": dmg * 0.9, "element": "raiton", "knock": 14.0, "launch": 6.0, "kind": "heavy", "stun": 0.5, "attacker": user})
+				VFX.debris(at + Vector3.UP * 0.5, Color(0.4, 0.36, 0.32), 5, 12.0, 0.4)
+				Sfx.play("thunder", at, 0.5, 0.25)
+				_shake(0.5))
+		# hortumlar
+		for tw in twisters:
+			tw["a"] = float(tw["a"]) + float(tw["w"]) * 0.3
+			var tp = _gp(center + Vector3(cos(float(tw["a"])), 0, sin(float(tw["a"]))) * float(tw["r"]))
+			WindFX.swirl(tp, 3.2 * s, 16.0 * s, 0.55, 8, Color(0.82, 0.86, 0.95, 0.8), true)
+			for f in _foes(user, tp + Vector3.UP * 2.0 * s, 4.2 * s):
+				f.take_hit({"dmg": dmg * 0.25, "element": "fuuton", "knock": 6.0, "launch": 9.0, "kind": "heavy", "attacker": user, "dir": Vector3.UP})
+		# deprem: 1.5 sn'de bir yer yarılır
+		if fmod(el, 1.5) < 0.3:
+			var a2 = randf() * TAU
+			var qp = _gp(near + Vector3(cos(a2), 0, sin(a2)) * randf_range(0.0, 8.0 * s))
+			VFX.cracks(qp, 6.0 * s)
+			VFX.debris(qp + Vector3.UP * 0.4, Color(0.45, 0.38, 0.3), 10, 14.0, 0.6)
+			for f in _foes(user, qp + Vector3.UP, 5.0 * s):
+				if f.has_method("is_on_floor") and f.is_on_floor():
+					f.take_hit({"dmg": dmg * 0.4, "element": "doton", "knock": 4.0, "launch": 8.0, "kind": "heavy", "attacker": user})
+			_shake(0.9))
 
 
 # ================================================================== canavara özgü pençe / vuruş

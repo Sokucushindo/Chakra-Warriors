@@ -57,6 +57,7 @@ var sub_bars = 4.0
 var invuln = 0.0
 var stun_meter := 0.0
 var stun_last_ms := 0
+var stun_from := {}   # son vuranlar: saldıran kimliği -> ms (kalabalıkta kilit kırma eşiği düşer)
 var last_hit_t = 99.0
 var aura: Node3D
 var cast_jutsu = ""
@@ -1473,6 +1474,8 @@ func _do_cast(dt: float) -> bool:
 			Mastery.gain(Game.profile, Mastery.branch_of(jd), 0.1 * (1.0 + int(jd.get("tier", 2)) * 0.3))
 			return true
 		var br = Mastery.branch_of(jd)   # teknik kendi dalını geliştirir (genjutsu, fūinjutsu, tıbbi...)
+		for jel in ([String(jd.get("element", ""))] if (jd.get("elements", []) as Array).is_empty() else jd["elements"]):
+			Mastery.gain_el(Game.profile, String(jel), 0.3 * (1.0 + int(jd.get("tier", 2)) * 0.35))   # doğa ustalığı: iki doğada ustalaşan birleştirir
 		Mastery.gain(Game.profile, br, 0.3 * (1.0 + int(jd.get("tier", 2)) * 0.35))   # temel teknikler (Henge) de hissedilir ilerletir: ~20 Henge -> Bunshin
 		if br != "ninjutsu" and br != "taijutsu" and br != "kenjutsu":
 			Mastery.gain(Game.profile, "ninjutsu", 0.06)   # chakra şekillendirme ortak temel
@@ -1598,11 +1601,24 @@ func take_hit(info: Dictionary) -> void:
 		return
 	# kombo kilidi kırıcı: üst üste sersemletilince kısa dokunulmazlık + itme patlaması (düşman kombosunda sonsuz kilit yok)
 	var now = Time.get_ticks_msec()
-	stun_meter = maxf(0.0, stun_meter - (now - stun_last_ms) / 1000.0 * 1.2) + (0.0 if (info.get("juggle", false) or hold) else (2.0 if heavy else 1.0))
+	# kalabalık: son 2.5 sn içinde kaç AYRI saldıran vurdu. Tek rakibin kombosu + dalı sonuna kadar oynanır (eşik 9);
+	# iki rakip araya girince 5, üç ve fazlası 4 (üç kişinin sırayla kilitlemesiyle 5 sn hareketsiz kalınıyordu)
+	if atk != null and is_instance_valid(atk):
+		stun_from[atk.get_instance_id()] = now
+	for sk in stun_from.keys():
+		if now - int(stun_from[sk]) > 2500:
+			stun_from.erase(sk)
+	# tek rakibin kombo içi tutan / havada vuran darbeleri sayaca yazılmaz (kombo sonuna kadar oynansın); birden çok rakip
+	# sırayla vuruyorsa onlar da yazılır, yoksa sayaç hiç dolmuyordu
+	var crowd_n := stun_from.size()
+	var soft: bool = info.get("juggle", false) or hold
+	stun_meter = maxf(0.0, stun_meter - (now - stun_last_ms) / 1000.0 * 1.2) + ((0.0 if crowd_n <= 1 else 0.8) if soft else (2.0 if heavy else 1.0))
 	stun_last_ms = now
+	var brk = 9.0 if stun_from.size() <= 1 else (5.0 if stun_from.size() == 2 else 4.0)
 	# arena kuralları: bir kombo + dalı sonuna kadar oynanır (kaçış Kawarimi); patlama yalnız üst üste ikinci komboda
-	if stun_meter >= (9.0 if Combat.storm else 4.0) and p.hp > 0.0:
+	if stun_meter >= (brk if Combat.storm else 4.0) and p.hp > 0.0:
 		stun_meter = 0.0
+		stun_from.clear()
 		invuln = 1.0
 		action = ""
 		Combat.popup_text(p.global_position + Vector3.UP * 2.3, "Kombo kırıldı!", Color(0.7, 0.9, 1.0))

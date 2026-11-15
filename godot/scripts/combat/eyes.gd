@@ -286,11 +286,8 @@ func handle_input(e: InputEvent) -> bool:
 		var held = v_held
 		v_held = -1.0
 		if held < 0.45:
-			if not active and _ems():   # Ebedi Mangekyō: V doğrudan Ebedi'yi açar (diğer göz — Byakugan vb. — birlikte açık kalır)
-				open_ms()
-			elif active and ms_on and _ems() and not (_never_closes("sag") or _never_closes("sol")):   # kanon (Sasuke): Ebedi sahibi 3 tomoe Sharingan'a döner — sonraki V kapatır (nakil gözde kapanınca zaten 3 tomoe kalır: ara adım yok)
-				drop_ms()
-			elif active and has_ms() and not ms_on and not _ems() and blind() < 1.0:   # kör göz Mangekyō'ya geçemez: V doğrudan kapatır
+			# sıra (kanon): V → 3 tomoe Sharingan → V → Mangekyō / Ebedi Mangekyō → V → kapat. Kör göz Mangekyō'ya geçemez: V doğrudan kapatır
+			if active and has_ms() and not ms_on and (blind() < 1.0 or _ems()):
 				open_ms()
 			else:
 				toggle()
