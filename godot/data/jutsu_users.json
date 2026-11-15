@@ -1126,6 +1126,24 @@
 "koton_kotai": [
 "Hiruko"
 ],
+"koton_kosojin": [
+"Metoro Konjiki"
+],
+"koton_kosa": [
+"Metoro Konjiki"
+],
+"koton_koken_hojin": [
+"Metoro Konjiki"
+],
+"koton_kotetsu_tsuchi": [
+"Metoro Konjiki"
+],
+"koton_kotai_tossin": [
+"Metoro Konjiki"
+],
+"koton_koro": [
+"Metoro Konjiki"
+],
 "koton_koken": [
 "Metoro Konjiki"
 ],
@@ -1135,16 +1153,85 @@
 "taiton_mofu_daireppa": [
 "Nowaki"
 ],
+"taiton_senpu_tatsumaki": [
+"Nowaki"
+],
+"taiton_tenku_rasen_otoshi": [
+"Nowaki"
+],
+"taiton_bofu_no_yoroi": [
+"Nowaki"
+],
+"taiton_taifu_no_me": [
+"Nowaki"
+],
+"taiton_shinku_taiha": [
+"Nowaki"
+],
+"taiton_reppu_kaitenkyaku": [
+"Nowaki"
+],
+"taiton_oikaze": [
+"Nowaki"
+],
 "taiton_reppu_shuriken": [
 "Nowaki"
 ],
 "meiton_kyuin": [
 "Hiruko"
 ],
+"meiton_kyuin_sho": [
+"Hiruko"
+],
+"meiton_kokumu": [
+"Hiruko"
+],
+"meiton_hansha_fuin": [
+"Hiruko"
+],
+"meiton_yami_no_te": [
+"Hiruko"
+],
+"meiton_kokuyodan": [
+"Hiruko"
+],
+"meiton_meiku_ho": [
+"Hiruko"
+],
+"meiton_kyuin_kosen": [
+"Hiruko"
+],
+"meiton_ankoku_kaiho": [
+"Hiruko"
+],
 "meiton_hoshutsu": [
 "Hiruko"
 ],
 "jinsoku_kosoku": [
+"Hiruko"
+],
+"jinsoku_shinsokuzan": [
+"Hiruko"
+],
+"jinsoku_zanzo": [
+"Hiruko"
+],
+"jinsoku_hyakuretsuken": [
+"Hiruko"
+],
+"jinsoku_tensokyaku": [
+"Hiruko"
+],
+"jinsoku_ikkosen": [
+"Hiruko"
+],
+"jinsoku_mikiri": [
+"Hiruko"
+],
+"jinsoku_renshunshin": [
+"Hiruko"
+],
+"jinsoku_onsoku_hakushu": [
 "Hiruko"
 ],
 "jinsoku_shunjin": [
@@ -1154,6 +1241,27 @@
 "Ameyuki"
 ],
 "deiton_kodei_kasen": [
+"Ameyuki"
+],
+"deiton_doro_bunshin": [
+"Ameyuki"
+],
+"deiton_doronuma_hikizuri": [
+"Ameyuki"
+],
+"deiton_deigandan": [
+"Ameyuki"
+],
+"deiton_deiheki": [
+"Ameyuki"
+],
+"deiton_doryu_suberi": [
+"Ameyuki"
+],
+"deiton_nendo_kyoken": [
+"Ameyuki"
+],
+"deiton_doro_yoroi": [
 "Ameyuki"
 ],
 "deiton_deisho_koka": [

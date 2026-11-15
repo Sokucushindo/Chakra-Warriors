@@ -24,6 +24,7 @@ func _ready() -> void:
 	var cc = Camera3D.new()
 	get_tree().current_scene.add_child(cc)
 	var n = 0
+	Game.profile["level"] = maxi(int(Game.profile.get("level", 1)), FightingStyles.WAKE_POWER)   # klan / kan soyu tarzı Güç 10'da uyanır
 	for st in styles:
 		Game.profile["clan"] = clan_of.get(st, "none")
 		if st.begins_with("jin_"):   # jinchūriki tarzı
@@ -65,6 +66,10 @@ func _ready() -> void:
 		for k in 6:
 			pl.global_position = b0
 			pl.facing = 0.0
+			if OS.get_environment("LOCK") != "":   # gerçek oyundaki gibi rakibe kilitli (atılış hedefe yönelir)
+				pl.combat.lock_target = e
+			if OS.get_environment("DBG_D") != "":
+				print("STY %s %d once mesafe=%.1f hedef=%s" % [st, k, pl.global_position.distance_to(e.global_position), str(pl.combat.lock_target)])
 			pl.combat.attack()
 			var c = pl.combat._combo(pl.combat.step)
 			var ht = float(c.get("hit", 0.2))
@@ -78,10 +83,12 @@ func _ready() -> void:
 			cc.current = true
 			var skx: Skeleton3D = pl.model.skel
 			var rh = skx.find_bone("RightHand")
-			print("STY %s %d grow=%s fist=%s rh_scale=%s" % [st, k, str(pl.model.overlay.grow), str(pl.model.overlay.fist), str(skx.get_bone_pose_scale(rh)) if rh >= 0 else "yok"])
+			print("STY %s %d grow=%s fist=%s rh_scale=%s hasar=%.0f mesafe=%.1f" % [st, k, str(pl.model.overlay.grow), str(pl.model.overlay.fist), str(skx.get_bone_pose_scale(rh)) if rh >= 0 else "yok", 1e9 - e.hp, pl.global_position.distance_to(e.global_position)])
 			await main.shot("sty_%s_%d" % [st, k])
 			await _w(maxf(0.05, float(c.get("dur", 0.5)) - ht - 0.05))
 		pl.cam.current = true
+		await _w(0.8)
+		print("STY %s toplam hasar=%.0f" % [st, 1e9 - e.hp])
 		e.queue_free()
 		await _w(1.6)
 	get_tree().quit()

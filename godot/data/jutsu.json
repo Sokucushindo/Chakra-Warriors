@@ -4808,6 +4808,251 @@
   "series": "Naruto Shippūden",
   "meaning": "Bataklık Sertleşmesi"
  },
+ "deiton_doro_bunshin": {
+  "id": "deiton_doro_bunshin",
+  "name": "Deiton: Doro Bunshin",
+  "name_en": "Mud Release: Mud Clone",
+  "cost": 28,
+  "cd": 16.0,
+  "element": "deiton",
+  "elements": [
+   "deiton"
+  ],
+  "natures": [
+   "deiton"
+  ],
+  "clan": "",
+  "level": 11,
+  "rank": 1,
+  "learn": "kg:deiton",
+  "desc": "Yerden kendi şeklinde bir çamur kopyası kalkar: rakipler ona saldırır; vurulunca çamur sıçrar, dibindekiler yavaşlar ve bacaklarındaki çamur kile dönüp onları kilitler.",
+  "seals": [],
+  "canon_rank": "C",
+  "tier": 2,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "self",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Mud Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Çamur Klonu"
+ },
+ "deiton_doronuma_hikizuri": {
+  "id": "deiton_doronuma_hikizuri",
+  "name": "Deiton: Doronuma Hikizuri",
+  "name_en": "Mud Release: Swamp Drag",
+  "cost": 38,
+  "cd": 15.0,
+  "element": "deiton",
+  "elements": [
+   "deiton"
+  ],
+  "natures": [
+   "deiton"
+  ],
+  "clan": "",
+  "level": 15,
+  "rank": 2,
+  "learn": "kg:deiton",
+  "desc": "Rakibin altındaki toprak bataklığa döner, çamur elleri bacaklarına yapışıp onu aşağı çeker: kımıldayamaz, çamur sıkıştıkça ezilir.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "range": "Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Mud Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Bataklığa Çekiş"
+ },
+ "deiton_deigandan": {
+  "id": "deiton_deigandan",
+  "name": "Deiton: Deigandan",
+  "name_en": "Mud Release: Mud Cannonball",
+  "cost": 36,
+  "cd": 13.0,
+  "element": "deiton",
+  "elements": [
+   "deiton"
+  ],
+  "natures": [
+   "deiton"
+  ],
+  "clan": "",
+  "level": 14,
+  "rank": 2,
+  "learn": "kg:deiton",
+  "desc": "Ağır bir çamur güllesini havaya fırlatırsın: düştüğü yerde patlayıp çamur saçar (yavaşlatır); bir an sonra çamur kile döner, hâlâ içinde olanlar yere kilitlenir.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "range": "Mid, Long",
+  "requires": {
+   "kekkei_genkai": [
+    "Mud Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Çamur Güllesi"
+ },
+ "deiton_deiheki": {
+  "id": "deiton_deiheki",
+  "name": "Deiton: Deiheki",
+  "name_en": "Mud Release: Mud Wall",
+  "cost": 34,
+  "cd": 18.0,
+  "element": "deiton",
+  "elements": [
+   "deiton"
+  ],
+  "natures": [
+   "deiton"
+  ],
+  "clan": "",
+  "level": 16,
+  "rank": 2,
+  "learn": "kg:deiton",
+  "desc": "Önünde kalın bir çamur duvarı kabarır: gelen atışlar içine gömülüp kaybolur. Birkaç saniye sonra duvar kile döner ve önüne doğru sert kil parçaları halinde patlar; ne kadar çok atış yuttuysa o kadar sert.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "shield",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Mud Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Çamur Duvarı"
+ },
+ "deiton_doryu_suberi": {
+  "id": "deiton_doryu_suberi",
+  "name": "Deiton: Doryū Suberi",
+  "name_en": "Mud Release: Mud Flow Slide",
+  "cost": 28,
+  "cd": 11.0,
+  "element": "deiton",
+  "elements": [
+   "deiton"
+  ],
+  "natures": [
+   "deiton"
+  ],
+  "clan": "",
+  "level": 12,
+  "rank": 2,
+  "learn": "kg:deiton",
+  "desc": "Ayağının altından kabaran bir çamur dalgasının sırtında ileri kayarsın: yolundakiler çarpılıp savrulur, arkanda kalan çamur izine basanlar yavaşlar.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "line",
+  "range": "Short, Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Mud Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Çamur Akıntısında Kayış"
+ },
+ "deiton_nendo_kyoken": {
+  "id": "deiton_nendo_kyoken",
+  "name": "Deiton: Nendo Kyoken",
+  "name_en": "Mud Release: Giant Clay Fist",
+  "cost": 44,
+  "cd": 16.0,
+  "element": "deiton",
+  "elements": [
+   "deiton"
+  ],
+  "natures": [
+   "deiton"
+  ],
+  "clan": "",
+  "level": 20,
+  "rank": 3,
+  "learn": "kg:deiton",
+  "desc": "Rakibin yanında yerden dev bir çamur kol kalkar, havada kile döner ve tüm ağırlığıyla yumruğunu ona indirir.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "range": "Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Mud Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Dev Kil Yumruk"
+ },
+ "deiton_doro_yoroi": {
+  "id": "deiton_doro_yoroi",
+  "name": "Deiton: Doro Yoroi",
+  "name_en": "Mud Release: Mud Armor",
+  "cost": 36,
+  "cd": 22.0,
+  "element": "deiton",
+  "elements": [
+   "deiton"
+  ],
+  "natures": [
+   "deiton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:deiton",
+  "desc": "Bedenini kalın bir çamur kaplar ve hızla kurur: kil zırh darbeleri yutar ama ağırdır. Süre bitince zırh çatlayıp dışa patlar, yakındakileri kil parçalarıyla vurur.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "self",
+  "range": "Self",
+  "requires": {
+   "kekkei_genkai": [
+    "Mud Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Çamur Zırh"
+ },
  "meiton_kyuin": {
   "id": "meiton_kyuin",
   "name": "Meiton: Kyūin",
@@ -4878,6 +5123,286 @@
   "series": "Naruto Shippūden the Movie: The Will of Fire",
   "meaning": "Karanlık Salımı: Salma"
  },
+ "meiton_kyuin_sho": {
+  "id": "meiton_kyuin_sho",
+  "name": "Meiton: Kyūin Shō",
+  "name_en": "Dark Release: Absorbing Palm",
+  "cost": 30,
+  "cd": 14.0,
+  "element": "meiton",
+  "elements": [
+   "meiton"
+  ],
+  "natures": [
+   "meiton"
+  ],
+  "clan": "",
+  "level": 15,
+  "rank": 2,
+  "learn": "kg:meiton",
+  "desc": "Rakibe atılıp işaretli avucunu göğsüne bastırırsın: onu yerinde tutar, chakrasını ve canını doğrudan emersin. Sen iyileşirsin, emilen chakra birikir.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "melee",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Dark Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden the Movie: The Will of Fire",
+  "meaning": "Emen Avuç"
+ },
+ "meiton_kokumu": {
+  "id": "meiton_kokumu",
+  "name": "Meiton: Kokumu",
+  "name_en": "Dark Release: Black Mist",
+  "cost": 44,
+  "cd": 20.0,
+  "element": "meiton",
+  "elements": [
+   "meiton"
+  ],
+  "natures": [
+   "meiton"
+  ],
+  "clan": "",
+  "level": 20,
+  "rank": 3,
+  "learn": "kg:meiton",
+  "desc": "Rakibin çevresine kara chakra sisi çökertirsin: içindekilerin chakra noktaları kapanır (jutsu yapamaz), yavaşlar ve chakrası sana akar.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "range": "Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Dark Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden the Movie: The Will of Fire",
+  "meaning": "Kara Sis"
+ },
+ "meiton_hansha_fuin": {
+  "id": "meiton_hansha_fuin",
+  "name": "Meiton: Hansha Fūin",
+  "name_en": "Dark Release: Reflection Seal",
+  "cost": 34,
+  "cd": 18.0,
+  "element": "meiton",
+  "elements": [
+   "meiton"
+  ],
+  "natures": [
+   "meiton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:meiton",
+  "desc": "İşaretli avucunu öne tutarsın: önden gelen her atış işarete emilir ve anında kara bir küre olarak atanına, bir buçuk kat güçle geri fırlatılır.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "shield",
+  "range": "Short, Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Dark Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden the Movie: The Will of Fire",
+  "meaning": "Yansıtma Mührü"
+ },
+ "meiton_yami_no_te": {
+  "id": "meiton_yami_no_te",
+  "name": "Meiton: Yami no Te",
+  "name_en": "Dark Release: Hands of Darkness",
+  "cost": 40,
+  "cd": 16.0,
+  "element": "meiton",
+  "elements": [
+   "meiton"
+  ],
+  "natures": [
+   "meiton"
+  ],
+  "clan": "",
+  "level": 16,
+  "rank": 2,
+  "learn": "kg:meiton",
+  "desc": "Rakibin çevresinde yerden altı kara chakra eli uzanıp onu kavrar: kımıldayamaz, eller chakrasını emer; sonunda sıkıp ezerler.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "range": "Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Dark Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden the Movie: The Will of Fire",
+  "meaning": "Karanlığın Elleri"
+ },
+ "meiton_kokuyodan": {
+  "id": "meiton_kokuyodan",
+  "name": "Meiton: Kokuyōdan",
+  "name_en": "Dark Release: Black Orb Bullets",
+  "cost": 30,
+  "cd": 11.0,
+  "element": "meiton",
+  "elements": [
+   "meiton"
+  ],
+  "natures": [
+   "meiton"
+  ],
+  "clan": "",
+  "level": 13,
+  "rank": 2,
+  "learn": "kg:meiton",
+  "desc": "Çevrende altı kara küre belirip döner, sonra birer birer rakibe süzülür; değen her küre chakrasını emip sana getirir.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "projectile",
+  "range": "Mid, Long",
+  "requires": {
+   "kekkei_genkai": [
+    "Dark Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden the Movie: The Will of Fire",
+  "meaning": "Kara Küre Mermileri"
+ },
+ "meiton_meiku_ho": {
+  "id": "meiton_meiku_ho",
+  "name": "Meiton: Meikū Hō",
+  "name_en": "Dark Release: Dark Void Cannon",
+  "cost": 50,
+  "cd": 20.0,
+  "element": "meiton",
+  "elements": [
+   "meiton"
+  ],
+  "natures": [
+   "meiton"
+  ],
+  "clan": "",
+  "level": 24,
+  "rank": 4,
+  "learn": "kg:meiton",
+  "desc": "Biriktirdiğin kara chakrayı bir noktada sıkıştırıp kara bir boşluk açarsın: çevresindeki rakipleri ve atışları içine çeker, sonra çöküp patlar. Ne kadar çok emdiysen o kadar büyük olur.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "range": "Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Dark Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden the Movie: The Will of Fire",
+  "meaning": "Kara Boşluk"
+ },
+ "meiton_kyuin_kosen": {
+  "id": "meiton_kyuin_kosen",
+  "name": "Meiton: Kyūin Kōsen",
+  "name_en": "Dark Release: Absorption Threads",
+  "cost": 36,
+  "cd": 16.0,
+  "element": "meiton",
+  "elements": [
+   "meiton"
+  ],
+  "natures": [
+   "meiton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:meiton",
+  "desc": "İşaretinden yakınındaki en çok üç rakibe kara emme bağları uzatırsın: her biri yavaşlar, chakrası ve canı sana akar.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "range": "Short, Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Dark Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden the Movie: The Will of Fire",
+  "meaning": "Emme Bağları"
+ },
+ "meiton_ankoku_kaiho": {
+  "id": "meiton_ankoku_kaiho",
+  "name": "Meiton: Ankoku Kaihō",
+  "name_en": "Dark Release: Darkness Release",
+  "cost": 40,
+  "cd": 16.0,
+  "element": "meiton",
+  "elements": [
+   "meiton"
+  ],
+  "natures": [
+   "meiton"
+  ],
+  "clan": "",
+  "level": 20,
+  "rank": 3,
+  "learn": "kg:meiton",
+  "desc": "Biriktirdiğin bütün kara chakrayı bir anda bedeninden salarsın: çevrende kara bir patlama, yakındaki herkesi savurur. Gücü emdiğin chakrayla büyür.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Dark Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden the Movie: The Will of Fire",
+  "meaning": "Karanlık Salınımı"
+ },
  "jinsoku_kosoku": {
   "id": "jinsoku_kosoku",
   "name": "Jinton: Kōsoku",
@@ -4947,6 +5472,286 @@
   "kinjutsu": false,
   "series": "Naruto Shippūden the Movie: The Will of Fire",
   "meaning": "Hız Salımı: Anlık Saldırı"
+ },
+ "jinsoku_shinsokuzan": {
+  "id": "jinsoku_shinsokuzan",
+  "name": "Jinton: Shinsokuzan",
+  "name_en": "Swift Release: Godspeed Slash",
+  "cost": 30,
+  "cd": 11.0,
+  "element": "jinton_swift",
+  "elements": [
+   "jinton_swift"
+  ],
+  "natures": [
+   "jinton_swift"
+  ],
+  "clan": "",
+  "level": 14,
+  "rank": 2,
+  "learn": "kg:jinton_swift",
+  "desc": "Bir anda düz bir hat boyunca rakibin arkasına geçersin; yoldakiler bir an sonra fark eder: hepsi aynı anda kesilir.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "line",
+  "range": "Short, Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Swift Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden the Movie: The Will of Fire",
+  "meaning": "Tanrı Hızında Kesik"
+ },
+ "jinsoku_zanzo": {
+  "id": "jinsoku_zanzo",
+  "name": "Jinton: Zanzō",
+  "name_en": "Swift Release: Afterimage",
+  "cost": 24,
+  "cd": 12.0,
+  "element": "jinton_swift",
+  "elements": [
+   "jinton_swift"
+  ],
+  "natures": [
+   "jinton_swift"
+  ],
+  "clan": "",
+  "level": 12,
+  "rank": 2,
+  "learn": "kg:jinton_swift",
+  "desc": "Yerinde bulanık bir ardıl görüntü bırakıp rakibin arkasında belirirsin: rakipler görüntüye saldırır, sen arkadan sert bir dirsek indirirsin.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "melee",
+  "range": "Short, Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Swift Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden the Movie: The Will of Fire",
+  "meaning": "Ardıl Görüntü"
+ },
+ "jinsoku_hyakuretsuken": {
+  "id": "jinsoku_hyakuretsuken",
+  "name": "Jinton: Hyakuretsuken",
+  "name_en": "Swift Release: Hundred Burst Fist",
+  "cost": 32,
+  "cd": 13.0,
+  "element": "jinton_swift",
+  "elements": [
+   "jinton_swift"
+  ],
+  "natures": [
+   "jinton_swift"
+  ],
+  "clan": "",
+  "level": 15,
+  "rank": 2,
+  "learn": "kg:jinton_swift",
+  "desc": "Göz takip edemeyen bir hızla yumruk yağdırırsın: kolların bulanık bir yelpazeye döner, rakip yerinde çakılı kalır; son yumruk onu uçurur.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "melee",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Swift Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden the Movie: The Will of Fire",
+  "meaning": "Yüz Patlayan Yumruk"
+ },
+ "jinsoku_tensokyaku": {
+  "id": "jinsoku_tensokyaku",
+  "name": "Jinton: Tensōkyaku",
+  "name_en": "Swift Release: Heaven Return Kick",
+  "cost": 30,
+  "cd": 12.0,
+  "element": "jinton_swift",
+  "elements": [
+   "jinton_swift"
+  ],
+  "natures": [
+   "jinton_swift"
+  ],
+  "clan": "",
+  "level": 16,
+  "rank": 2,
+  "learn": "kg:jinton_swift",
+  "desc": "Alttan bir tekmeyle rakibi göğe fırlatırsın; o daha düşmeden üstünde belirip topuğunla yere çakarsın.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "melee",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Swift Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden the Movie: The Will of Fire",
+  "meaning": "Göğe ve Geri Tekme"
+ },
+ "jinsoku_ikkosen": {
+  "id": "jinsoku_ikkosen",
+  "name": "Jinton: Ikkōsen",
+  "name_en": "Swift Release: Single Flash",
+  "cost": 26,
+  "cd": 10.0,
+  "element": "jinton_swift",
+  "elements": [
+   "jinton_swift"
+  ],
+  "natures": [
+   "jinton_swift"
+  ],
+  "clan": "",
+  "level": 13,
+  "rank": 2,
+  "learn": "kg:jinton_swift",
+  "desc": "Kunaiyi ses hızını aşan bir savuruşla fırlatırsın: çıkışta hava halka halka patlar, kunai yolundaki herkesi deler geçer.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "projectile",
+  "range": "Mid, Long",
+  "requires": {
+   "kekkei_genkai": [
+    "Swift Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden the Movie: The Will of Fire",
+  "meaning": "Tek Işık Çizgisi"
+ },
+ "jinsoku_mikiri": {
+  "id": "jinsoku_mikiri",
+  "name": "Jinton: Mikiri",
+  "name_en": "Swift Release: Foresight Evasion",
+  "cost": 28,
+  "cd": 20.0,
+  "element": "jinton_swift",
+  "elements": [
+   "jinton_swift"
+  ],
+  "natures": [
+   "jinton_swift"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:jinton_swift",
+  "desc": "Bedenin bulanık bir tetikte durur: sana gelen ilk üç darbe, sen yana kayıp boşa çıkar (kaçınılmaz darbeler hariç).",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "self",
+  "range": "Self",
+  "requires": {
+   "kekkei_genkai": [
+    "Swift Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden the Movie: The Will of Fire",
+  "meaning": "Bulanık Kaçış"
+ },
+ "jinsoku_renshunshin": {
+  "id": "jinsoku_renshunshin",
+  "name": "Jinton: Renshunshin",
+  "name_en": "Swift Release: Chain Body Flicker",
+  "cost": 40,
+  "cd": 16.0,
+  "element": "jinton_swift",
+  "elements": [
+   "jinton_swift"
+  ],
+  "natures": [
+   "jinton_swift"
+  ],
+  "clan": "",
+  "level": 20,
+  "rank": 3,
+  "learn": "kg:jinton_swift",
+  "desc": "Çevrendeki en çok beş rakibin arasında art arda ışınlanıp her birine birer darbe indirir, sonra başladığın yere dönersin.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "range": "Short, Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Swift Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden the Movie: The Will of Fire",
+  "meaning": "Zincirleme Shunshin"
+ },
+ "jinsoku_onsoku_hakushu": {
+  "id": "jinsoku_onsoku_hakushu",
+  "name": "Jinton: Onsoku Hakushu",
+  "name_en": "Swift Release: Sonic Clap",
+  "cost": 30,
+  "cd": 13.0,
+  "element": "jinton_swift",
+  "elements": [
+   "jinton_swift"
+  ],
+  "natures": [
+   "jinton_swift"
+  ],
+  "clan": "",
+  "level": 14,
+  "rank": 2,
+  "learn": "kg:jinton_swift",
+  "desc": "Avuçlarını ses hızını aşan bir hızla birbirine vurursun: önündeki hava patlayıp koni biçiminde dalga yayar; yakalananlar sersemler, geri savrulur.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "cone",
+  "range": "Short, Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Swift Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden the Movie: The Will of Fire",
+  "meaning": "Ses Hızında Alkış"
  },
  "taiton_kyofu_reppa": {
   "id": "taiton_kyofu_reppa",
@@ -5052,6 +5857,251 @@
   "kinjutsu": false,
   "series": "Sasuke Retsuden",
   "meaning": "Tayfun Shurikeni"
+ },
+ "taiton_senpu_tatsumaki": {
+  "id": "taiton_senpu_tatsumaki",
+  "name": "Taiton: Senpū Tatsumaki",
+  "name_en": "Typhoon Release: Whirlwind Tornado",
+  "cost": 38,
+  "cd": 13.0,
+  "element": "taiton",
+  "elements": [
+   "taiton"
+  ],
+  "natures": [
+   "taiton"
+  ],
+  "clan": "",
+  "level": 15,
+  "rank": 2,
+  "learn": "kg:taiton",
+  "desc": "Önüne yürüyen bir hortum salarsın: yolundakileri içine çekip havaya kaldırır, döndürür, biçer.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "line",
+  "range": "Short, Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Typhoon Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Kasırga Hortumu"
+ },
+ "taiton_tenku_rasen_otoshi": {
+  "id": "taiton_tenku_rasen_otoshi",
+  "name": "Taiton: Tenkū Rasen Otoshi",
+  "name_en": "Typhoon Release: Sky Spiral Drop",
+  "cost": 40,
+  "cd": 14.0,
+  "element": "taiton",
+  "elements": [
+   "taiton"
+  ],
+  "natures": [
+   "taiton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:taiton",
+  "desc": "Göğe sıçrar, çevrende dönen bir tayfun sütunuyla rakibin üstüne çakılırsın: iniş yerinde rüzgâr dışa patlar ve herkesi savurur.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "range": "Short, Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Typhoon Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Gökten Sarmal Düşüş"
+ },
+ "taiton_bofu_no_yoroi": {
+  "id": "taiton_bofu_no_yoroi",
+  "name": "Taiton: Bōfū no Yoroi",
+  "name_en": "Typhoon Release: Storm Armor",
+  "cost": 42,
+  "cd": 22.0,
+  "element": "taiton",
+  "elements": [
+   "taiton"
+  ],
+  "natures": [
+   "taiton"
+  ],
+  "clan": "",
+  "level": 20,
+  "rank": 3,
+  "learn": "kg:taiton",
+  "desc": "Bedeninin çevresinde sıkı dönen bir tayfun örersin: sana gelen atışlar rüzgâra kapılıp atana geri savrulur, dibine giren biçilir, yakın darbeler yumuşar.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "shield",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Typhoon Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Fırtına Zırhı"
+ },
+ "taiton_taifu_no_me": {
+  "id": "taiton_taifu_no_me",
+  "name": "Taiton: Taifū no Me",
+  "name_en": "Typhoon Release: Eye of the Typhoon",
+  "cost": 46,
+  "cd": 18.0,
+  "element": "taiton",
+  "elements": [
+   "taiton"
+  ],
+  "natures": [
+   "taiton"
+  ],
+  "clan": "",
+  "level": 20,
+  "rank": 3,
+  "learn": "kg:taiton",
+  "desc": "Rakibin olduğu yerde dönen bir tayfun gözü açarsın: çevresindekileri merkeze çeker, sonra göz yukarı patlayıp hepsini göğe fırlatır.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "range": "Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Typhoon Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Tayfunun Gözü"
+ },
+ "taiton_shinku_taiha": {
+  "id": "taiton_shinku_taiha",
+  "name": "Taiton: Shinkū Taiha",
+  "name_en": "Typhoon Release: Vacuum Wave",
+  "cost": 34,
+  "cd": 12.0,
+  "element": "taiton",
+  "elements": [
+   "taiton"
+  ],
+  "natures": [
+   "taiton"
+  ],
+  "clan": "",
+  "level": 14,
+  "rank": 2,
+  "learn": "kg:taiton",
+  "desc": "Avuçlarını birbirine vurup tayfun chakrasını yassı bir boşluk halkası olarak çevrene salarsın: halka genişleyip her yöndeki rakibi biçer, kanatır.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "range": "Short, Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Typhoon Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Boşluk Dalgası"
+ },
+ "taiton_reppu_kaitenkyaku": {
+  "id": "taiton_reppu_kaitenkyaku",
+  "name": "Taiton: Reppū Kaitenkyaku",
+  "name_en": "Typhoon Release: Gale Spinning Kick",
+  "cost": 26,
+  "cd": 9.0,
+  "element": "taiton",
+  "elements": [
+   "taiton"
+  ],
+  "natures": [
+   "taiton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 1,
+  "learn": "kg:taiton",
+  "desc": "Üç dönen tekme atarsın; her tekmeden önüne keskin bir rüzgâr yayı kopar, sonuncusu rakibi savurur.",
+  "seals": [],
+  "canon_rank": "C",
+  "tier": 2,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "melee",
+  "range": "Short, Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Typhoon Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Kasırga Döner Tekmesi"
+ },
+ "taiton_oikaze": {
+  "id": "taiton_oikaze",
+  "name": "Taiton: Oikaze",
+  "name_en": "Typhoon Release: Tailwind",
+  "cost": 28,
+  "cd": 10.0,
+  "element": "taiton",
+  "elements": [
+   "taiton"
+  ],
+  "natures": [
+   "taiton"
+  ],
+  "clan": "",
+  "level": 12,
+  "rank": 2,
+  "learn": "kg:taiton",
+  "desc": "Arkana bir tayfun rüzgârı alıp yerin üstünde süzülerek ileri fırlarsın: yolundakileri biçip yana savurursun, durduğun yerde rüzgâr patlar.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "line",
+  "range": "Short, Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Typhoon Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Arka Rüzgâr"
  },
  "koton_kodan": {
   "id": "koton_kodan",
@@ -5192,6 +6242,216 @@
   "kinjutsu": false,
   "series": "Gaara Hiden",
   "meaning": "Çelik Kılıç"
+ },
+ "koton_kosojin": {
+  "id": "koton_kosojin",
+  "name": "Kōton: Kōsōjin",
+  "name_en": "Steel Release: Steel Spear Formation",
+  "cost": 36,
+  "cd": 12.0,
+  "element": "koton",
+  "elements": [
+   "koton"
+  ],
+  "natures": [
+   "koton"
+  ],
+  "clan": "",
+  "level": 16,
+  "rank": 2,
+  "learn": "kg:koton",
+  "desc": "Avucunu yere basarsın: önünden hedefe doğru cilalı çelik mızraklar sıra sıra fışkırır, en sondaki demet rakibi havaya kaldırır. Çelik kırılmaz — savunmayı deler.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "line",
+  "range": "Short, Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Steel Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Çelik Mızrak Dizisi"
+ },
+ "koton_kosa": {
+  "id": "koton_kosa",
+  "name": "Kōton: Kōsa",
+  "name_en": "Steel Release: Steel Chain",
+  "cost": 30,
+  "cd": 12.0,
+  "element": "koton",
+  "elements": [
+   "koton"
+  ],
+  "natures": [
+   "koton"
+  ],
+  "clan": "",
+  "level": 15,
+  "rank": 2,
+  "learn": "kg:koton",
+  "desc": "Avucundan dövme çelik bir zincir fırlar: değdiği rakibe dolanıp onu sana çeker, sonra zincir sıkışıp ezer.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "projectile",
+  "range": "Short, Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Steel Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Çelik Zincir"
+ },
+ "koton_koken_hojin": {
+  "id": "koton_koken_hojin",
+  "name": "Kōton: Kōken Hōjin",
+  "name_en": "Steel Release: Steel Sword Formation",
+  "cost": 40,
+  "cd": 14.0,
+  "element": "koton",
+  "elements": [
+   "koton"
+  ],
+  "natures": [
+   "koton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:koton",
+  "desc": "Arkanda yelpaze gibi beş çelik kılıç dövülür, havada asılı kalır; sonra birer birer rakibe uçup saplanır. Her kılıç kanatır.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "projectile",
+  "range": "Mid, Long",
+  "requires": {
+   "kekkei_genkai": [
+    "Steel Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Çelik Kılıç Dizilişi"
+ },
+ "koton_kotetsu_tsuchi": {
+  "id": "koton_kotetsu_tsuchi",
+  "name": "Kōton: Kōtetsu Tsuchi",
+  "name_en": "Steel Release: Steel Hammer",
+  "cost": 44,
+  "cd": 15.0,
+  "element": "koton",
+  "elements": [
+   "koton"
+  ],
+  "natures": [
+   "koton"
+  ],
+  "clan": "",
+  "level": 20,
+  "rank": 3,
+  "learn": "kg:koton",
+  "desc": "Rakibin tepesinde dev bir çelik çekiç başı dövülür ve tüm ağırlığıyla iner: altındakini sersemletir, çevresindekileri savurur.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "range": "Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Steel Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Çelik Çekiç"
+ },
+ "koton_kotai_tossin": {
+  "id": "koton_kotai_tossin",
+  "name": "Kōton: Kōtai Tossin",
+  "name_en": "Steel Release: Steel Body Charge",
+  "cost": 28,
+  "cd": 10.0,
+  "element": "koton",
+  "elements": [
+   "koton"
+  ],
+  "natures": [
+   "koton"
+  ],
+  "clan": "",
+  "level": 14,
+  "rank": 2,
+  "learn": "kg:koton",
+  "desc": "Bedenin bir an çeliğe döner ve omuz önde gülle gibi atılırsın: savunmayı kırar, yoldakileri savurur. Kōtai açıkken çok daha sert vurur.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "melee",
+  "range": "Short, Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Steel Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Çelik Beden Hücumu"
+ },
+ "koton_koro": {
+  "id": "koton_koro",
+  "name": "Kōton: Kōrō",
+  "name_en": "Steel Release: Steel Prison",
+  "cost": 46,
+  "cd": 18.0,
+  "element": "koton",
+  "elements": [
+   "koton"
+  ],
+  "natures": [
+   "koton"
+  ],
+  "clan": "",
+  "level": 20,
+  "rank": 3,
+  "learn": "kg:koton",
+  "desc": "Rakibin çevresinden sekiz çelik çubuk fışkırıp tepede birleşir: kafese kapanan kımıldayamaz, süre sonunda çubuklar içe kapanıp ezer.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "range": "Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Steel Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Çelik Kafes"
  },
  "kemuri_hyoi": {
   "id": "kemuri_hyoi",

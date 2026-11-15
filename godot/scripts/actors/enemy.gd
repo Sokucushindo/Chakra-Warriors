@@ -1363,6 +1363,8 @@ func threat_color() -> Color:
 func take_hit(info: Dictionary) -> void:
 	if sub_inv > 0.0 and not dead:
 		return   # Kawarimi anı: darbe kütüğe gider
+	if not dead and Combat.speed_dodge(self, info):   # Jinton: Mikiri — bulanık yan adım (oyuncuyla aynı)
+		return
 	if Combat.storm and state == "knockdown" and down_land >= 0.0 and float(info.get("knock", 2.0)) > 0.5:
 		if down_otg >= 1:
 			return   # yerdeyken yalnız bir ek darbe yer (yerde sonsuz dövülmez)
