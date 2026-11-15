@@ -313,6 +313,58 @@ func _ready() -> void:
 	for k in before_click:
 		s[k] = before_click[k]
 
+	# 8) Tuş Atamaları klavyeyle: aşağı ok ilk tuşu seçer, Enter + yeni tuş atar, seçim yerinde kalır;
+	#    ayarlardan kaydetmeden çıkınca tuş değişikliği de geri alınır
+	var keys_before = Keys.binds.duplicate(true)
+	Menus.settings(func(): Menus.main_menu(main))
+	await frames(3)
+	Menus._set_tab = "controls"
+	Menus.settings(func(): Menus.main_menu(main))
+	await frames(3)
+	find_btn(Hud.dialog_layer, "Tuş Atamalarını Düzenle").pressed.emit()
+	await frames(6)
+	var kp = func(code: int) -> void:
+		for pr in [true, false]:
+			var ke = InputEventKey.new()
+			ke.keycode = code
+			ke.physical_keycode = code
+			ke.pressed = pr
+			Input.parse_input_event(ke)
+			await get_tree().process_frame
+	await kp.call(KEY_DOWN)
+	await frames(2)
+	var kf = get_viewport().gui_get_focus_owner()
+	ok(kf != null and int(kf.get_meta("key_i", -1)) == 0, "tuş atamaları: aşağı ok ilk tuşu seçiyor")
+	await kp.call(KEY_DOWN)
+	await frames(2)
+	kf = get_viewport().gui_get_focus_owner()
+	var ki = int(kf.get_meta("key_i", -1)) if kf else -1
+	await kp.call(KEY_ENTER)
+	await frames(3)
+	ok(Keys.capturing, "tuş atamaları: Enter yeni tuş bekliyor")
+	await kp.call(KEY_K)
+	await frames(6)
+	kf = get_viewport().gui_get_focus_owner()
+	ok(Keys.binds != keys_before, "tuş atamaları: klavyeyle yeni tuş atandı")
+	ok(kf != null and int(kf.get_meta("key_i", -1)) == ki, "tuş atamaları: atamadan sonra seçim aynı tuşta (%d)" % ki)
+	if main.shot_dir != "":
+		await RenderingServer.frame_post_draw
+		get_viewport().get_texture().get_image().save_png(main.shot_dir.path_join("tus_klavye.png"))
+	find_btn(Hud.dialog_layer, "Geri").pressed.emit()
+	await frames(4)
+	var sev = InputEventKey.new()
+	sev.physical_keycode = KEY_ESCAPE
+	sev.keycode = KEY_ESCAPE
+	sev.pressed = true
+	main._route(sev)
+	await frames(3)
+	ok(Menus.settings_open() and Menus._set_bg.has_meta("asking"), "tuş değişikliği kaydedilmemiş sayılıyor (uyarı)")
+	main._route(sev)
+	await frames(3)
+	ok(Keys.binds == keys_before, "kaydetmeden çıkınca tuş ataması geri alındı")
+	if Keys.binds != keys_before:
+		Keys.restore(keys_before)
+
 	# oyuncunun ayarlarını geri koy
 	for k in orig:
 		s[k] = orig[k]

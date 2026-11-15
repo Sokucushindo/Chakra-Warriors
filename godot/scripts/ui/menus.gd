@@ -1175,6 +1175,20 @@ static var _ctl_scroll := 0
 
 const CTL_ICONS := ["sandal", "hand", "chakra", "bag", "book", "scroll"]
 static var _ctl_bg: Control = null
+static var _ctl_focus := -1   # klavyeyle seçili tuş (yeniden çizimde korunur)
+
+
+## Kontroller: hiçbir tuş seçili değilken aşağı / yukarı ok ilk tuşu seçer
+static func controls_focus_first() -> bool:
+	if not is_instance_valid(_ctl_bg) or _ctl_bg.is_queued_for_deletion() or Keys.capturing:
+		return false
+	if _ctl_bg.get_viewport().gui_get_focus_owner() != null:
+		return false
+	var ks = _ctl_bg.find_children("*", "Button", true, false).filter(func(b): return b.has_meta("key_i"))
+	if ks.is_empty():
+		return false
+	ks[0].grab_focus()
+	return true
 
 
 ## Kontroller ekranında Esc: geri (tuş beklerken değil). Ele alındıysa true
@@ -1191,6 +1205,7 @@ static func controls(back: Callable, keep := false) -> void:
 	if not keep:
 		_ctl_info = ""
 		_ctl_scroll = 0
+		_ctl_focus = -1
 	var from_set := _set_sub   # ayarlardan gelindi: sol rayda ayar sekmeleri (Kontrol seçili)
 	var k := _set_keep
 	_set_keep = k or _set_sub   # ayarlardan gelindiyse yeniden çizim ayarları geri almasın
@@ -1234,7 +1249,9 @@ static func controls(back: Callable, keep := false) -> void:
 	var sc = ScrollContainer.new()
 	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	sc.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	sc.follow_focus = true
 	top.add_child(sc)
+	var keys_list := []
 	var cols = UI.hbox(24)
 	cols.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	sc.add_child(cols)
@@ -1254,7 +1271,12 @@ static func controls(back: Callable, keep := false) -> void:
 			h.get_child(0).size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			for i in Keys.binds[a].size():
 				var code: int = Keys.binds[a][i]
-				h.add_child(_key_btn(Keys.code_name(code), code != Keys.defaults(a)[i], func(): _ctl_capture(back, sc, a, i)))
+				var kb = _key_btn(Keys.code_name(code), code != Keys.defaults(a)[i], func(): _ctl_capture(back, sc, a, i))
+				var ki := keys_list.size()
+				kb.set_meta("key_i", ki)
+				kb.focus_entered.connect(func(): _ctl_focus = ki)
+				keys_list.append(kb)
+				h.add_child(kb)
 	# değişmeyen tuşlar ve tuş birleşimleri (atanan tuşla yazılır)
 	var fixed = [["Fare", "Kamera"], ["Esc", "Menü / geri"], ["%s + 1-9, 0, -, =" % Keys.name("seal_mode"), "Mühür ör"],
 		["Duvarda %s" % Keys.name("leap"), "Duvar atılımı (chakra)"], ["Havada %s" % Keys.name("substitute"), "İpli kunai: nişangâha tutun"],
@@ -1274,6 +1296,9 @@ static func controls(back: Callable, keep := false) -> void:
 		sc.get_v_scroll_bar().changed.connect(func(): sc.scroll_vertical = keep_scroll, CONNECT_ONE_SHOT)
 	if _fresh:
 		UI.pop_in(area, 0.985)
+	# klavyeyle atanan tuş yeniden çizimde seçili kalsın (sonraki tuşa ok ile geçilebilsin)
+	if _ctl_focus >= 0 and _ctl_focus < keys_list.size():
+		keys_list[_ctl_focus].call_deferred("grab_focus")
 	_set_bottom(bg, rw, "Varsayılana Dön", "hourglass", func():
 		Keys.reset_all()
 		_ctl_info = "Tüm tuşlar varsayılana döndü."
@@ -1353,8 +1378,11 @@ static func settings_open() -> bool:
 	return is_instance_valid(_set_bg) and not _set_bg.is_queued_for_deletion()
 
 
+static var _set_keys := {}   # ekran açılırkenki tuş atamaları (kaydetmeden çıkınca geri konur)
 static func _settings_revert() -> void:
 	_set_bg = null
+	if Keys.binds != _set_keys and not _set_keys.is_empty():
+		Keys.restore(_set_keys)
 	var s = Game.settings
 	var win = s.get("display") != _set_snap.get("display") or s.get("fullscreen") != _set_snap.get("fullscreen") or s.get("ui_scale") != _set_snap.get("ui_scale")
 	for k in _set_snap:
@@ -1379,6 +1407,8 @@ static func settings_cancel() -> void:
 
 ## Ekran açıldığından beri değişen ayar var mı
 static func settings_dirty() -> bool:
+	if Keys.binds != _set_keys:
+		return true
 	for k in _set_snap:
 		if Game.settings.get(k) != _set_snap[k]:
 			return true
@@ -1721,6 +1751,7 @@ static func settings_focus_first() -> bool:
 static func settings(back: Callable) -> void:
 	if not settings_open() and not _set_sub:
 		_set_snap = Game.settings.duplicate(true)
+		_set_keys = Keys.binds.duplicate(true)
 		_set_scroll = 0
 		_set_tab = "general"
 		_set_focus = -1
@@ -2036,6 +2067,8 @@ static func settings(back: Callable) -> void:
 			slider.call(k, "Fare hassasiyeti", "sens", 0.2, 3.0, 0.05, false)
 			toggle.call(k, "Fareyi ters çevir (Y)", "invert_y", false)
 			var h = _set_row(k, "Tuş atamaları", lw)
+			if Keys.binds != _set_keys:   # tuş değişikliği de kaydedilmemiş sayılır
+				h.get_child(0).add_theme_color_override("font_color", UI.GOLD)
 			var kb = UI.button("Tuş Atamalarını Düzenle", func():
 				_set_sub = true   # ayarlar açık kalır sayılır: dönünce yarım değişiklikler korunur, Esc ile çıkılırsa geri alınır
 				_set_keep = true

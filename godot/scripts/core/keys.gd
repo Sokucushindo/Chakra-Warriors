@@ -193,6 +193,16 @@ static func rebind(action: String, idx: int, code: int) -> String:
 	return info
 
 
+## Ayarlardan kaydetmeden çıkınca: tuşları ekran açılırkenki hâline döndür
+static func restore(snap: Dictionary) -> void:
+	for a in snap:
+		if binds.has(a):
+			binds[a] = (snap[a] as Array).duplicate()
+			_apply(a)
+	_refresh()
+	save()
+
+
 static func reset_all() -> void:
 	for a in _defs:
 		binds[a] = (_defs[a] as Array).duplicate()

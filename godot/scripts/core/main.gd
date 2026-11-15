@@ -397,6 +397,9 @@ func _route(e: InputEvent) -> void:
 		preview_yaw += e.relative.x * 0.01
 		if preview:
 			preview.rotation.y = PI + preview_yaw   # kurulumla aynı (klan/saç değişince model ters dönüyordu)
+	if e.is_pressed() and (e.is_action("ui_down") or e.is_action("ui_up")) and Menus.controls_focus_first():   # Kontroller: ilk ok ilk tuşu seçer
+		get_viewport().set_input_as_handled()
+		return
 	if e.is_action_pressed("pause") and Menus.controls_escape():   # Kontroller: Esc geri (ana menüde de, ayarlardan gelince de)
 		return
 	if e.is_action_pressed("pause") and Menus.settings_open():   # ayarlarda Esc: kaydetmeden geri (ana menüde de, oyunda da)
