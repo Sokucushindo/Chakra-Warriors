@@ -638,7 +638,7 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 		var n = options.size()
 		var idx = maxi(0, options.find(state.get(key)))
 		var row = UI.hbox(10)
-		var tl = UI.label(title.to_upper(), 13, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true)
+		var tl = UI.label(Lang.upper(Lang.t(title)), 13, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true)
 		tl.custom_minimum_size = Vector2(120, 0)
 		tl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		row.add_child(tl)
@@ -665,7 +665,7 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 		return cv
 	var swatches = func(title: String, key: String, cols: Array) -> void:
 		var cv: VBoxContainer = card.call()
-		cv.add_child(UI.label(title.to_upper(), 13, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
+		cv.add_child(UI.label(Lang.upper(Lang.t(title)), 13, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
 		var fl = HFlowContainer.new()
 		fl.add_theme_constant_override("h_separation", 8)
 		fl.add_theme_constant_override("v_separation", 8)
@@ -808,7 +808,7 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 	var nm = String(state.get("name", "")).strip_edges()
 	sv.add_child(UI.label(nm if nm != "" else "İsimsiz Ninja", 24, UI.CREAM, HORIZONTAL_ALIGNMENT_RIGHT, true))
 	var cname = String(Data.clans.get(state["clan"], {}).get("name", "Klansız"))
-	sv.add_child(UI.label("%s  •  %s  •  %s" % [Game.village(String(state.get("village", "konoha"))).get("name", ""), cname, el_names.get(String(state["element"]), "")], 14, UI.MUTED, HORIZONTAL_ALIGNMENT_RIGHT))
+	sv.add_child(UI.label("%s  •  %s  •  %s" % [Lang.t(String(Game.village(String(state.get("village", "konoha"))).get("name", ""))), cname, Lang.t(String(el_names.get(String(state["element"]), "")))], 14, UI.MUTED, HORIZONTAL_ALIGNMENT_RIGHT))
 	# sağ alt: eylemler
 	var bar = UI.hbox(12)
 	bar.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
@@ -993,20 +993,20 @@ static func _friends_card(main: Node, left: Control) -> void:
 	elif stt == "kaçak":
 		st_txt = "  •  Kaçak — sana borçlu" if Friends.bingo_status(id) == "spared" else ("  •  KAÇAK (Bingo Kitabı)" if Friends.bingo_status(id) != "dead" else "  •  Kaçak — yakalandı/öldü")
 	elif String(f.get("kage", "")) != "":
-		st_txt = "  •  %s!" % Progress.kage_title(String(f["kage"]))
+		st_txt = "  •  %s!" % Lang.t(String(Progress.kage_title(String(f["kage"]))))
 	elif stt == "hapiste":
-		st_txt = "  •  HAPİSTE"
+		st_txt = Lang.t("  •  HAPİSTE")
 	elif stt == "" and Orgs.is_rogue() and not f.get("rogue", false):
-		st_txt = "  •  Köyde — seni artık kaçak biliyor (dost değil)"
+		st_txt = Lang.t("  •  Köyde — seni artık kaçak biliyor (dost değil)")
 	elif not Friends.available(f):
 		var mins = ceili((float(f.get("away", 0.0)) - Time.get_unix_time_from_system()) / 60.0)
-		st_txt = ("  •  Hastanede: %s (~%d dk)" % [f["injury"], mins]) if f.has("injury") and float(f.get("inj_away", -1.0)) == float(f.get("away", 0.0)) else "  •  Köyde değil (görev)"
+		st_txt = (Lang.t("  •  Hastanede: %s (~%d dk)") % [Lang.t(String(f["injury"])), mins]) if f.has("injury") and float(f.get("inj_away", -1.0)) == float(f.get("away", 0.0)) else Lang.t("  •  Köyde değil (görev)")
 	elif not f.get("party", false):
-		st_txt = "  •  " + String(Friends.JOB_NAMES.get(Friends.job_of(f), "Evde"))
+		st_txt = "  •  " + Lang.t(String(Friends.JOB_NAMES.get(Friends.job_of(f), "Evde")))
 	var rm = Friends.romance_of(id)
 	if rm != "":
-		st_txt += "  •  %s ♥" % {"eş": "Eşin", "sevgili": "Sevgilin", "flört": "Flört"}.get(rm, rm)
-	fv.add_child(UI.label("%s  •  %s  •  %d yaşında  •  %s: %d (%s)%s" % [String(f.get("title", "")), Friends.rank_label(f), int(Aging.person_years(f)), "Güven" if f.get("rogue", false) else "Bağ", b, Friends.bond_label(f), st_txt], 13, Friends.level_color(b)))
+		st_txt += "  •  %s ♥" % Lang.t(String({"eş": "Eşin", "sevgili": "Sevgilin", "flört": "Flört"}.get(rm, rm)))
+	fv.add_child(UI.label("%s  •  %s  •  %d yaşında  •  %s: %d (%s)%s" % [String(f.get("title", "")), Friends.rank_label(f), int(Aging.person_years(f)), Lang.t("Güven") if f.get("rogue", false) else Lang.t("Bağ"), b, Lang.t(Friends.bond_label(f)), st_txt], 13, Friends.level_color(b)))
 	if f.get("rogue", false) and int(f.get("motive_known", 0)) > 0:
 		fv.add_child(UI.label("Neden kaçtı: " + String(RogueBonds.motive_of(f)[int(f["motive_known"])]), 12, Color(0.85, 0.8, 0.7), HORIZONTAL_ALIGNMENT_LEFT, true))
 	var bar = UI.bar(Friends.level_color(b), 700, 8)
@@ -1024,7 +1024,7 @@ static func _friends_card(main: Node, left: Control) -> void:
 		fv.add_child(UI.label("Sevdiği hediye: " + String(Friends.GIFTS[int(f["gift_known"])][0]), 12, Color(1, 0.75, 0.8)))
 	var fam: Array = f.get("family", [])
 	if not fam.is_empty():
-		var fl = UI.label("Ailesi: " + ", ".join(fam.map(func(m): return "%s %s%s%s" % [m["rel"], String(m["name"]), (" [%s]" % m["mix"]) if m.has("mix") else "", "" if m.get("alive", true) else " (öldü)"])), 12, UI.MUTED)
+		var fl = UI.label(Lang.t("Ailesi: ") + ", ".join(fam.map(func(m): return "%s %s%s%s" % [Lang.t(String(m["rel"])), String(m["name"]), (" [%s]" % m["mix"]) if m.has("mix") else "", "" if m.get("alive", true) else Lang.t(" (öldü)")])), 12, UI.MUTED)
 		fl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		fl.custom_minimum_size = Vector2(700, 0)
 		fv.add_child(fl)
@@ -1067,7 +1067,7 @@ static func _arrow_row(title: String, labels: Array, idx: int, on_pick: Callable
 	var n = labels.size()
 	idx = clampi(idx, 0, maxi(n - 1, 0))
 	var row = UI.hbox(10)
-	var tl = UI.label(title.to_upper(), 13, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true)
+	var tl = UI.label(Lang.upper(Lang.t(title)), 13, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true)
 	tl.custom_minimum_size = Vector2(110, 0)
 	tl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(tl)
@@ -2457,8 +2457,8 @@ static func _tab_wardrobe(main: Node, body: Control) -> void:
 	for k in [["def", "Savunma", false], ["hp", "Can", false], ["chakra", "Chakra", false], ["speed", "Hız", true], ["melee", "Yakın dövüş", true]]:
 		var v = Gear.stat(pr, k[0])
 		if v != 0.0:
-			tot.append(("%s %+d%%" % [k[1], int(round(v * 100))]) if k[2] else ("%s %+d" % [k[1], int(v)]))
-	tot.append("Silah %.1f hasar" % float(Gear.weapon(pr).get("hit", 4.2)))
+			tot.append(("%s %+d%%" % [Lang.t(k[1]), int(round(v * 100))]) if k[2] else ("%s %+d" % [Lang.t(k[1]), int(v)]))
+	tot.append(Lang.t("Silah %.1f hasar") % float(Gear.weapon(pr).get("hit", 4.2)))
 	var tl = UI.label("  •  ".join(tot), 13, UI.MUTED, HORIZONTAL_ALIGNMENT_CENTER)
 	tl.position = Vector2(220, -26)
 	tl.size = Vector2(420, 20)
@@ -2470,7 +2470,7 @@ static func _tab_wardrobe(main: Node, body: Control) -> void:
 	h.add_child(drawer)
 	var dv = _scroll(drawer, 520, 680)
 	dv.get_parent().size_flags_vertical = Control.SIZE_EXPAND_FILL
-	dv.add_child(UI.header(_slot_name(_eq_slot).to_upper(), 22))
+	dv.add_child(UI.header(Lang.upper(Lang.t(_slot_name(_eq_slot))), 22))
 	if _eq_slot == "sac":
 		_hair_panel(dv, pr["look"], refresh)
 		return
@@ -2521,7 +2521,7 @@ static func _tab_wardrobe(main: Node, body: Control) -> void:
 		row.add_child(Thumbs.gear_view(g["id"], 72, Color.html(g["c1"])))
 		var tv = UI.vbox(2)
 		tv.add_child(UI.label(it["name"], 21, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true))
-		tv.add_child(UI.label(UI.RARITY_NAMES[r] + ("   •   takılı" if not cur.is_empty() and int(cur["uid"]) == int(g["uid"]) else ""), 13, UI.RARITY[r], HORIZONTAL_ALIGNMENT_LEFT, true))
+		tv.add_child(UI.label(Lang.t(UI.RARITY_NAMES[r]) + (("   •   " + Lang.t("takılı")) if not cur.is_empty() and int(cur["uid"]) == int(g["uid"]) else ""), 13, UI.RARITY[r], HORIZONTAL_ALIGNMENT_LEFT, true))
 		row.add_child(tv)
 		detail_v.add_child(row)
 		# istatistik karşılaştırması
@@ -3275,7 +3275,7 @@ static func _tab_skills(_main: Node, body: Control) -> void:
 	var cur = String(pr.get("fight_style", ""))
 	var ci = maxi(0, styles.find(cur))
 	var sdesc = func(id: String) -> String:
-		return ("Silahsız temel yumruk-tekme kombosu. Klanın, yolun ya da bijūn yeni tarzlar açar." if id == "" or not FightingStyles.STYLES.has(id) else "Menzil: %s.  %s" % [String(FightingStyles.STYLES[id].get("range", "yakın")), String(FightingStyles.STYLES[id]["desc"])]) + "  (Silah kuşanınca silahın kendi kombosu geçerli.)"
+		return (Lang.t("Silahsız temel yumruk-tekme kombosu. Klanın, yolun ya da bijūn yeni tarzlar açar.") if id == "" or not FightingStyles.STYLES.has(id) else Lang.t("Menzil: %s.") % Lang.t(String(FightingStyles.STYLES[id].get("range", "yakın"))) + "  " + Lang.t(String(FightingStyles.STYLES[id]["desc"]))) + "  " + Lang.t("(Silah kuşanınca silahın kendi kombosu geçerli.)")
 	var sdl = UI.label(sdesc.call(cur), 14, UI.MUTED)
 	sdl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	sdl.custom_minimum_size = Vector2(1200, 0)
@@ -3326,8 +3326,8 @@ static func _tab_skills(_main: Node, body: Control) -> void:
 	var opened = []
 	for f in Stats.UNLOCK_AT:
 		var u = Stats.UNLOCK_AT[f]
-		opened.append("%s %s (%s %d)" % ["✓" if Stats.has_unlock(pr, f) else "·", f, Mastery.NAMES[u[0]], int(u[1])])
-	var ol = UI.label("Ustalıkla açılanlar:  " + "   ".join(opened), 13, UI.MUTED)
+		opened.append("%s %s (%s %d)" % ["✓" if Stats.has_unlock(pr, f) else "·", f, Lang.t(String(Mastery.NAMES[u[0]])), int(u[1])])
+	var ol = UI.label(Lang.t("Ustalıkla açılanlar:") + "  " + "   ".join(opened), 13, UI.MUTED)
 	ol.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	ol.custom_minimum_size = Vector2(1240, 0)
 	inner.add_child(ol)
@@ -3945,7 +3945,7 @@ static func shop_screen(title: String, entries: Array, buy: Callable) -> void:
 	_last_shop = title
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	var bg = _full(0.55)
-	var head = UI.label(title.to_upper(), 34, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true)
+	var head = UI.label(Lang.upper(Lang.t(title)), 34, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true)
 	head.position = Vector2(110, 40)
 	bg.add_child(head)
 	var ryo = UI.icon_label("coin", "%d Ryō" % int(Game.profile.get("ryo", 0)), 20, UI.GOLD)

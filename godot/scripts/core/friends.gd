@@ -1330,20 +1330,20 @@ static func where_text(id: String) -> String:
 		return "?"
 	var st = String(f.get("status", ""))
 	if st == "öldü":
-		return "öldü"
+		return Lang.t("öldü")
 	if st == "kaçak":
-		return "kaçak"
+		return Lang.t("kaçak")
 	if st == "hapiste":
-		return "hapiste"
+		return Lang.t("hapiste")
 	if f.get("party", false):
-		return "takımında, yanında"
+		return Lang.t("takımında, yanında")
 	if f.get("abducted", false):
-		return "kaçırıldı"
+		return Lang.t("kaçırıldı")
 	if Orgs.is_rogue() and st == "" and KinDrama.is_family(id):
-		return "köyde — gece gizlice evine uğrayabilirsin"
+		return Lang.t("köyde — gece gizlice evine uğrayabilirsin")
 	if not available(f):
-		return "hastanede" if f.has("injury") else "köy dışında (görev)"
-	return String(JOB_NAMES.get(job_of(f), "Evde")).to_lower() + "  (tıkla: haritada göster)"
+		return Lang.t("hastanede") if f.has("injury") else Lang.t("köy dışında (görev)")
+	return Lang.t(String(JOB_NAMES.get(job_of(f), "Evde")).to_lower()) + Lang.t("  (tıkla: haritada göster)")
 
 
 const JOB_NAMES := {"nöbet": "Kapıda nöbette", "antrenman": "Antrenmanda", "evde": "Evde", "görev": "Görevde (köy dışında)"}
