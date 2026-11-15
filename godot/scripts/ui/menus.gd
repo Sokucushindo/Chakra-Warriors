@@ -465,7 +465,7 @@ static func main_menu(main: Node) -> void:
 	col.add_child(UI.label("Beş Büyük Ülke'nin dünyasında kendi efsaneni yaz.", 19, UI.MUTED))
 	col.add_child(UI.spacer(0, 54, false))
 	var items = [["Yeni Oyun", "play", func(): slot_select(main, true)], ["Devam Et", "save", func(): slot_select(main, false)],
-		["Ayarlar", "settings", func(): settings(func(): main_menu(main))], ["Kontroller", "controls", func(): controls(func(): main_menu(main))], ["Çıkış", "exit", func(): main.get_tree().quit()]]
+		["Ayarlar", "settings", func(): settings(func(): main_menu(main))], ["Çıkış", "exit", func(): main.get_tree().quit()]]
 	for i in items.size():
 		var b = _menu_entry(items[i][0], items[i][1], items[i][2])
 		col.add_child(b)
@@ -1156,7 +1156,7 @@ static func pause(main: Node) -> void:
 		["Harita", "map", func(): region_map(main)], ["Ayarlar", "settings", func(): settings(func(): pause(main))],
 		["Kaydet", "save", func():
 			Game.save_game()
-			Hud.msg("Oyun kaydedildi.", Color(0.6, 1, 0.6))], ["Kontroller", "controls", func(): controls(func(): pause(main))],
+			Hud.msg("Oyun kaydedildi.", Color(0.6, 1, 0.6))],
 		["Ana Menüye Dön (kaydeder)", "home", func(): main.to_main_menu()], ["Oyundan Çık (kaydeder)", "exit", func():
 			Game.save_game()
 			main.get_tree().quit()]]
@@ -1379,8 +1379,22 @@ static func settings_open() -> bool:
 
 
 static var _set_keys := {}   # ekran açılırkenki tuş atamaları (kaydetmeden çıkınca geri konur)
+static var _view_live := -1.0   # dünyaya şu an uygulanmış görüş mesafesi (kaydırırken önizleme)
+
+
+## Görüş mesafesi önizlemesi: dünyadaki görünürlük sınırlarını ayardaki değere getir
+static func _view_preview() -> void:
+	var v := float(Game.settings["view"])
+	if Game.world and _view_live > 0.0 and not is_equal_approx(_view_live, v):
+		Game.rescale_view(_view_live, v)
+		Game.apply_graphics()   # sis
+	_view_live = v
+
+
 static func _settings_revert() -> void:
 	_set_bg = null
+	Game.settings["view"] = _set_snap.get("view", Game.settings["view"])
+	_view_preview()   # önizlenen görüş mesafesini geri al
 	if Keys.binds != _set_keys and not _set_keys.is_empty():
 		Keys.restore(_set_keys)
 	var s = Game.settings
@@ -1458,15 +1472,13 @@ static func _settings_ask() -> void:
 ## Kaydet ve geri dön
 static func _settings_save(back: Callable) -> void:
 	var s = Game.settings
-	var old_view = float(_set_snap.get("view", s["view"]))
+	_view_preview()
 	_set_bg = null   # kaydedildi: çıkarken geri alma
 	Game.save_settings()
 	if Game.player:
 		Game.player.cam.fov = s["fov"]
 	if Game.world:
 		Game.apply_graphics()
-		if not is_equal_approx(old_view, float(s["view"])):
-			Game.rescale_view(old_view, float(s["view"]))   # görüş mesafesi: dünya yeniden kurulmadan hemen
 	Sfx.music_a.volume_db = linear_to_db(maxf(0.001, float(s["music"]) * 0.6))
 	back.call()
 
@@ -1486,7 +1498,7 @@ const SET_DESC := {
 	"Çözünürlük ölçeği": "Sahneyi daha düşük çözünürlükte çizip büyütür. Düşürmek FPS'i en çok artıran ayardır.",
 	"Anime çizgileri": "Karakterlerin ve nesnelerin kenarlarındaki koyu çizgi.",
 	"Yumuşak filtre": "Hafif ışıltı ve yumuşak renk filtresi.",
-	"Görüş mesafesi": "Uzaktaki yapıların ve ağaçların ne kadar uzaktan görüneceği. Kaydedince hemen uygulanır.",
+	"Görüş mesafesi": "Uzaktaki yapıların ve ağaçların ne kadar uzaktan görüneceği. Kaydırırken hemen görürsün.",
 	"Çimen yoğunluğu": "Etrafındaki çimenin miktarı ve uzanma mesafesi.",
 	"Kalabalık yoğunluğu": "Köylerdeki insan sayısı. Hemen uygulanır; fazlalar sen bakmazken dağılır.",
 	"Görüş alanı (FOV)": "Kameranın açısı. Büyük değer daha geniş görür.",
@@ -1752,10 +1764,12 @@ static func settings(back: Callable) -> void:
 	if not settings_open() and not _set_sub:
 		_set_snap = Game.settings.duplicate(true)
 		_set_keys = Keys.binds.duplicate(true)
+		_view_live = float(Game.settings["view"])
 		_set_scroll = 0
 		_set_tab = "general"
 		_set_focus = -1
 	_set_sub = false
+	_view_preview()
 	_set_keep = true
 	var bg = _full()
 	_set_keep = false
@@ -1913,7 +1927,11 @@ static func settings(back: Callable) -> void:
 				hl.add_theme_color_override("font_color", UI.GOLD)
 			if key in ["master", "music"]:
 				Game.apply_audio()
-				Sfx.music_a.volume_db = linear_to_db(maxf(0.001, float(s["music"]) * 0.6)))
+				Sfx.music_a.volume_db = linear_to_db(maxf(0.001, float(s["music"]) * 0.6))
+			if key == "view":   # kaydırma durunca dünyaya uygula (her adımda tüm dünyayı taramasın)
+				sl.get_tree().create_timer(0.3).timeout.connect(func():
+					if is_equal_approx(float(s["view"]), x):
+						_view_preview()))
 	# ‹ değer › seçici: tek hap, içinde ince oklar, altında konum noktaları. Değişiklik hemen uygulanır, ekran yeniden çizilir
 	var pick = func(sec: VBoxContainer, title: String, cur_text: String, step: Callable, no_tr: bool, at: Vector2i) -> HBoxContainer:
 		var h = _set_row(sec, title, lw)

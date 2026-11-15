@@ -54,6 +54,30 @@ func _ready() -> void:
 	await get_tree().create_timer(3.0).timeout
 	Game.rescale_view(0.5, 1.0)
 	await get_tree().create_timer(3.0).timeout
+	# 2b) ayarlarda kaydırırken önizleme, kaydetmeden çıkınca geri dönüş
+	await get_tree().create_timer(1.0).timeout
+	var e1 = g.visibility_range_end
+	main._pause()
+	Menus._set_tab = "graphics"
+	Menus.settings(func(): Menus.pause(main))
+	await get_tree().process_frame
+	Menus._set_tab = "graphics"
+	Menus.settings(func(): Menus.pause(main))
+	await get_tree().process_frame
+	var vsl: HSlider = null
+	for sl in Menus._set_bg.find_children("*", "HSlider", true, false):
+		if is_equal_approx(sl.min_value, 0.5) and is_equal_approx(sl.max_value, 1.6):
+			vsl = sl
+	var v_old = float(Game.settings["view"])
+	vsl.value = 0.5
+	await get_tree().create_timer(2.0).timeout
+	ok(absf(g.visibility_range_end - e1 * 0.5 / v_old) < 1.0, "önizleme: kaydırınca hemen uygulandı (%.0f -> %.0f m)" % [e1, g.visibility_range_end])
+	Menus.settings_cancel()
+	await get_tree().process_frame
+	Menus.settings_cancel()
+	await get_tree().create_timer(2.0).timeout
+	ok(absf(g.visibility_range_end - e1) < 1.0, "önizleme: kaydetmeden çıkınca geri döndü (%.0f m)" % g.visibility_range_end)
+	main.resume()
 	# 3) kalabalık: Kalabalık -> Az
 	var vl = get_tree().current_scene.find_child("VillageLife", true, false)
 	Game.settings["crowd"] = 2
