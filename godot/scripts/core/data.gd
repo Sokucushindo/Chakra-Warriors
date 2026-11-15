@@ -22,6 +22,42 @@ func _ready() -> void:
 			jutsu[k]["id"] = k
 	if jutsu.has("_seals"):
 		seals = jutsu["_seals"]
+	apply_lang()
+
+
+## Dil: veri yazılarını (açıklama, eşya adı...) seçili dile çevir. Jutsu adları (romaji) değişmez; jutsunun anlamı
+## İngilizcede verideki İngilizce adıdır. Türkçe asıllar "_tr" altında saklanır: dil her değiştiğinde yerinde döner.
+const LANG_FIELDS := {"jutsu": ["desc", "meaning"], "items": ["name", "desc"], "clans": ["name", "desc", "kg"]}
+func apply_lang() -> void:
+	var en := Lang.is_en()
+	for table in LANG_FIELDS:
+		var tb: Dictionary = get(table)
+		for id in tb:
+			if tb[id] is Dictionary:
+				_lang_entry(tb[id], LANG_FIELDS[table], en, table == "jutsu")
+	for id in skills.get("nodes", {}):
+		if skills["nodes"][id] is Dictionary:
+			_lang_entry(skills["nodes"][id], ["name", "desc"], en, false)
+	for b in skills.get("branches", []):
+		if b is Dictionary:
+			_lang_entry(b, ["name"], en, false)
+
+
+func _lang_entry(e: Dictionary, fields: Array, en: bool, is_jutsu: bool) -> void:
+	if not e.has("_tr"):
+		var keep := {}
+		for f in fields:
+			if e.get(f) is String:
+				keep[f] = e[f]
+		e["_tr"] = keep
+	var tr: Dictionary = e["_tr"]
+	for f in tr:
+		if not en:
+			e[f] = tr[f]
+		elif is_jutsu and f == "meaning" and String(e.get("name_en", "")) != "":
+			e[f] = e["name_en"]
+		else:
+			e[f] = Lang.t(tr[f])
 
 
 ## 100 seviye uzun vadeli hedef: erken seviyeler hızlı, 50'den sonra yavaşlar

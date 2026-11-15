@@ -244,8 +244,9 @@ static func _pick(pool: Array, f: Dictionary, slot: String):
 
 
 static func _fill(s: String) -> String:
+	s = Lang.t(s)   # dil: yer tutucular doldurulmadan önce çevrilir
 	if s.contains("%P"):
-		s = s.replace("%P", _parent_word())
+		s = s.replace("%P", Lang.t(_parent_word()))
 	if s.contains("%s"):
 		s = s.replace("%s", String(pr().get("name", "")))
 	return s
@@ -352,10 +353,11 @@ static func topic(f: Dictionary, key: String) -> Array:
 
 ## Söz içindeki veri yerleri; veri yoksa "" (o söz atlanır)
 static func _data(s: String, f: Dictionary) -> String:
+	s = Lang.t(s)
 	if not s.contains("%"):
 		return s
 	if s.contains("%EL"):
-		return s.replace("%EL", String(EL_NAME.get(String(f.get("element", "")), "Yeni bir teknik")))
+		return s.replace("%EL", Lang.t(String(EL_NAME.get(String(f.get("element", "")), "Yeni bir teknik"))))
 	if s.contains("%BR"):
 		var best = ""
 		var bv = 2.0
@@ -363,7 +365,7 @@ static func _data(s: String, f: Dictionary) -> String:
 			if BRANCH.has(k) and float(pr()["mastery"][k]) > bv:
 				bv = float(pr()["mastery"][k])
 				best = String(k)
-		return "" if best == "" else s.replace("%BR", String(BRANCH[best]))
+		return "" if best == "" else s.replace("%BR", Lang.t(String(BRANCH[best])))
 	if s == "%FAM1" or s == "%FAM2":
 		return _family_line(f, s == "%FAM2")
 	if s == "%KIDS":
@@ -545,8 +547,8 @@ static func react(f: Dictionary, ev: String, gift := "") -> String:
 	var r = rel(f)
 	var tr = String(f.get("trait", ""))
 	var pool: Array = d.get(r, d.get(tr, d["*"]))
-	var s = String(_pick(pool, f, "re_" + ev))
-	return s.replace("%G", gift).replace("%N", String(f.get("name", "")).split(" ")[-1]).replace("%R", Friends.rank_label(f))
+	var s = Lang.t(String(_pick(pool, f, "re_" + ev)))
+	return s.replace("%G", Lang.t(gift)).replace("%N", String(f.get("name", "")).split(" ")[-1]).replace("%R", Friends.rank_label(f))
 
 
 # ====================================================================== kaçak dost

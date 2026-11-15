@@ -20,6 +20,7 @@ var settings := {
 	"shadows": true, "outline": true, "dreamy": true, "blood": true, "invert_y": false, "show_fps": false, "quality": 2,
 	"vsync": true, "max_fps": 0,   # dikey eşitleme, FPS sınırı (0: sınırsız)
 	"master": 1.0,   # ana ses düzeyi (müzik ve efektlerin üstünde)
+	"lang": "",   # arayüz dili: "tr" / "en" ("": bilgisayarın diline göre)
 	# ayrıntılı grafik (kalite ön ayarı bunları birlikte kurar; tek tek de değişir)
 	"aa": 2, "ssao": true, "res_scale": 1.0, "grass": 3, "crowd": 2,
 }
@@ -45,6 +46,10 @@ func now() -> float:
 func _process(dt: float) -> void:
 	if not paused and not get_tree().paused:
 		clock += dt
+
+
+func _exit_tree() -> void:
+	Lang.shutdown()
 
 
 func _ready() -> void:
@@ -776,8 +781,17 @@ func apply_settings() -> void:
 		DisplayServer.window_set_size(want)
 		DisplayServer.window_set_position(scr.position + (scr.size - want) / 2)
 	apply_audio()
+	Lang.apply(lang())
 	get_tree().root.content_scale_factor = float(settings.get("ui_scale", 1.0))   # arayüz ölçeği (yalnız 2B arayüz; 3B görüntü etkilenmez)
 	apply_frame()
+
+
+## Arayüz dili: ayardaki, yoksa bilgisayarın dili (Türkçe değilse İngilizce)
+func lang() -> String:
+	var l := String(settings.get("lang", ""))
+	if l in Lang.CODES:
+		return l
+	return "tr" if OS.get_locale_language() == "tr" else "en"
 
 
 ## Ana ses düzeyi (Master veriyolu; müzik ve efekt düzeyleri kendi yerlerinde çarpılır)
