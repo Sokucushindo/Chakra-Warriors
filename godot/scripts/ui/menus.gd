@@ -2942,7 +2942,8 @@ const JF_PER := 120
 const JUTSU_CATS := [["", "Tümü"], ["ninjutsu", "Ninjutsu"], ["taijutsu", "Taijutsu"], ["genjutsu", "Genjutsu"], ["fuinjutsu", "Fūinjutsu"], ["kekkei_genkai", "Kekkei Genkai"],
 	["dojutsu", "Dōjutsu"], ["bijuu", "Kuyruklu Canavar"], ["hiden", "Hiden"], ["senjutsu", "Senjutsu"], ["kinjutsu", "Kinjutsu"], ["medical", "Tıbbi"], ["space_time", "Uzay-Zaman"], ["summoning", "Çağırma"]]
 const JUTSU_ELEMS := [["", "Tüm elementler"], ["katon", "Katon"], ["suiton", "Suiton"], ["fuuton", "Fūton"], ["raiton", "Raiton"], ["doton", "Doton"],
-	["mokuton", "Mokuton"], ["hyoton", "Hyōton"], ["yoton", "Yōton"], ["futton", "Futton"], ["ranton", "Ranton"], ["bakuton", "Bakuton"], ["jinton", "Jinton"]]
+	["mokuton", "Mokuton"], ["hyoton", "Hyōton"], ["yoton", "Yōton"], ["futton", "Futton"], ["ranton", "Ranton"], ["bakuton", "Bakuton"], ["jinton", "Jinton"],
+	["shakuton", "Shakuton"], ["jiton", "Jiton"], ["shoton", "Shōton"], ["koton", "Kōton"], ["taiton", "Taiton"], ["meiton", "Meiton"], ["jinton_swift", "Jinton (Hız)"], ["deiton", "Deiton"]]
 
 
 static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:

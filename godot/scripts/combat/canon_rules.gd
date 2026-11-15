@@ -7,7 +7,7 @@ extends RefCounted
 
 const HIRA_TP := ["hiraishin_no_jutsu", "hiraishingiri", "hiraishin_ni_no_dan", "hiraishin_ranbu", "hiraishin_rasengan", "hiraishin_dorai"]
 const STORM := ["kirin"]
-const WATER := ["suiton_daibakufu_no_jutsu", "suiton_daibakuryu", "suiton_haran_bansho", "suiton_suijinheki", "suiton_bakusui_shoha",
+const WATER := ["suiton_dogo_tatsumaki", "suiton_daibakufu_no_jutsu", "suiton_daibakuryu", "suiton_haran_bansho", "suiton_suijinheki", "suiton_bakusui_shoha",
 	"suiton_suiryudan_no_jutsu", "suiryudan", "suiton_daikodan_no_jutsu", "raisuiryudan"]
 
 
@@ -87,6 +87,8 @@ static func block(c: Node3D, jid: String) -> String:
 			return "Elinde %s yok — bu teknik onunla savrulur." % ("Temari no Ōōgi" if need == ["temari_ogi"] else ("Bashōsen" if need == ["bashosen"] else "savaş yelpazesi"))
 	if jid in HIRA_TP and not hira_mark_ok(c):
 		return "Işınlanacak işaret yok — önce Hiraishin kunaisi at ya da hedefe vurup işaretle."
+	if jid == "iwa_nadare" and uphill(c) < 4.0:   # kanon: yalnız bir yamacın altında işe yarar (yamaçtan kaya çığı indirir)
+		return "Yakında yukarı yamaç yok — Iwa Nadare bir dağın eteğinde yapılır."
 	if jid in STORM and not storm_ok(c):
 		return "Gökte fırtına bulutu yok — önce Katon ile göğü ısıt ya da fırtınayı bekle."
 	return ""
@@ -97,3 +99,33 @@ static func dmg_mult(c: Node3D, jid: String) -> float:
 	if jid in WATER and not hoshigaki(c) and not water_near(c):
 		return 0.5
 	return 1.0
+
+## Yamaç yüksekliği: yapanın çevresinde (25 m içinde) kendisinden en çok ne kadar yükselen zemin var (Iwa Nadare şartı)
+static func uphill(c: Node3D) -> float:
+	if c == null or not is_instance_valid(c):
+		return 0.0
+	var p = c.global_position
+	var h0 = Game.terrain_height(p.x, p.z)
+	var best = 0.0
+	for k in 16:
+		var a = k * TAU / 16.0
+		for r in [10.0, 18.0, 25.0]:
+			var q = p + Vector3(cos(a), 0, sin(a)) * r
+			best = maxf(best, Game.terrain_height(q.x, q.z) - h0)
+	return best
+
+
+## Yamacın en yüksek yönü (Iwa Nadare kayaları oradan iner)
+static func uphill_dir(c: Node3D) -> Vector3:
+	var p = c.global_position
+	var h0 = Game.terrain_height(p.x, p.z)
+	var best = -999.0
+	var out = Vector3.FORWARD
+	for k in 16:
+		var a = k * TAU / 16.0
+		var q = p + Vector3(cos(a), 0, sin(a)) * 18.0
+		var dh = Game.terrain_height(q.x, q.z) - h0
+		if dh > best:
+			best = dh
+			out = Vector3(cos(a), 0, sin(a))
+	return out

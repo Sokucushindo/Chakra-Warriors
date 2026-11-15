@@ -276,3 +276,143 @@ static func shatter(tree: SceneTree, pos: Vector3, s := 1.0, n := 14) -> void:
 		"colors": [Color(1, 1, 1, 1), Color(0.75, 0.92, 1.0, 0.9), Color(0.7, 0.9, 1.0, 0.0)]})
 	VFX.fog(pos + Vector3.UP * 0.6 * s, {"amount": int(10 * s) + 4, "life": 1.4, "size": 1.4 * s, "radius": s, "vmin": 0.3, "vmax": 1.2, "dir": Vector3.UP, "spread": 80.0,
 		"colors": [Color(0.95, 0.98, 1.0, 0.0), Color(0.9, 0.96, 1.0, 0.55), Color(0.88, 0.95, 1.0, 0.0)]})
+
+
+# ---------------------------------------------------------------- film Hyōton yaratıkları (Narutopedia görselleri)
+# Yumuşak gövdeler Loft tüpü; +Z'ye bakacak şekilde kurulur, ClayArt._fwd ile -Z'ye çevrilir.
+static var _mats := {}
+
+
+static func toon(key: String, c: Color) -> Material:
+	if not _mats.has(key):
+		_mats[key] = Props.toon_color(c)
+	return _mats[key]
+
+
+static func _tube(b: MB, pts: Array, rad: Array, s: float) -> void:
+	var R = []
+	for r in rad:
+		R.append((r if r is Vector2 else Vector2(r, r)) * s)
+	Loft.tube(b, ClayArt._sc(pts, s), R, Color.WHITE, 12, 3)
+
+
+static func _part(b: MB, m: Material) -> MeshInstance3D:
+	var mi = MeshInstance3D.new()
+	mi.mesh = b.build(m)
+	mi.material_override = m
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return mi
+
+
+static func _glow_dots(pts: Array, size: Vector3, col: Color) -> MeshInstance3D:
+	var b = MB.new()
+	for p in pts:
+		b.add("sphere", p, size, col, Vector3.ZERO, 8)
+	var key = "dot_%s" % col
+	if not _mats.has(key):
+		var m = StandardMaterial3D.new()
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		m.albedo_color = col
+		_mats[key] = m
+	return _part(b, _mats[key])
+
+
+## Dört ayaklı gövde + kalça / diz eklemli dört bacak, dörtnal döngüsü (ön çift / arka çift faz farkı)
+static func _beast(s: float, m: Material, body_fn: Callable, front_z: float, back_z: float, hip_y: float, leg_r: float, wide: float, rate := 0.3) -> Node3D:
+	var root = Node3D.new()
+	var body = Node3D.new()
+	root.add_child(body)
+	var bb = MB.new()
+	body_fn.call(bb)
+	body.add_child(_part(bb, m))
+	var legs = []
+	var up = hip_y * 0.5
+	for leg in [[-1.0, front_z, 0.0, 1.0], [1.0, front_z, 0.12, 1.0], [-1.0, back_z, 0.5, -1.0], [1.0, back_z, 0.62, -1.0]]:
+		var hip = Node3D.new()
+		hip.position = Vector3(leg[0] * wide, hip_y, leg[1]) * s
+		var hb = MB.new()
+		_tube(hb, [Vector3.ZERO, Vector3(0, -up * 0.5, 0), Vector3(0, -up, 0)], [leg_r * 1.35, leg_r * 1.1, leg_r * 0.85], s)
+		hip.add_child(_part(hb, m))
+		var knee = Node3D.new()
+		knee.position = Vector3(0, -up, 0) * s
+		var kb = MB.new()
+		_tube(kb, [Vector3.ZERO, Vector3(0, -up * 0.5, 0), Vector3(0, -up * 0.9, 0.02), Vector3(0, -up, 0.1)], [leg_r * 0.85, leg_r * 0.7, leg_r * 0.8, leg_r * 0.5], s)
+		knee.add_child(_part(kb, m))
+		hip.add_child(knee)
+		body.add_child(hip)
+		legs.append([hip, knee, leg[2], leg[3]])
+	var tw = root.create_tween().set_loops()
+	tw.tween_method(func(ph: float):
+		for L in legs:
+			if not is_instance_valid(L[0]):
+				return
+			var a = TAU * (ph + L[2])
+			L[0].rotation.x = -sin(a) * 0.85
+			L[1].rotation.x = L[3] * (0.25 + 0.75 * maxf(0.0, sin(a + 1.3))) * 0.95
+		body.position.y = absf(sin(TAU * ph)) * 0.07 * s
+		body.rotation.x = sin(TAU * ph) * 0.07, 0.0, 1.0, rate)
+	return root
+
+
+## Rōga Nadare kurdu: kardan, tüylü boyunlu, sivri kulaklı, kabarık kuyruklu; pembe gözler (film)
+static func wolf(s := 1.0) -> Node3D:
+	var root = _beast(s, toon("snow", Color(0.86, 0.88, 0.99)), func(b: MB):
+		_tube(b, [Vector3(0, 0.6, 1.08), Vector3(0, 0.63, 0.92), Vector3(0, 0.69, 0.72), Vector3(0, 0.72, 0.58), Vector3(0, 0.64, 0.42), Vector3(0, 0.54, 0.24), Vector3(0, 0.52, 0.0), Vector3(0, 0.54, -0.22), Vector3(0, 0.55, -0.4), Vector3(0, 0.56, -0.54)],
+			[0.04, 0.085, Vector2(0.15, 0.16), Vector2(0.17, 0.18), 0.17, Vector2(0.22, 0.26), Vector2(0.19, 0.22), Vector2(0.15, 0.17), Vector2(0.17, 0.18), 0.1], s)
+		_tube(b, [Vector3(0, 0.58, 0.62), Vector3(0, 0.52, 0.82), Vector3(0, 0.47, 0.98)], [0.085, 0.06, 0.03], s)   # açık alt çene
+		for sx in [-1.0, 1.0]:
+			_tube(b, [Vector3(sx * 0.08, 0.82, 0.6), Vector3(sx * 0.11, 0.95, 0.52), Vector3(sx * 0.12, 1.03, 0.46)], [0.055, 0.04, 0.006], s)   # kulak
+			_tube(b, [Vector3(sx * 0.13, 0.64, 0.52), Vector3(sx * 0.27, 0.57, 0.36)], [0.08, 0.008], s)   # yanak tüyü
+			_tube(b, [Vector3(sx * 0.14, 0.56, 0.38), Vector3(sx * 0.26, 0.46, 0.2)], [0.08, 0.008], s)   # boyun tüyü
+		for q in 5:   # sırt boyunca geriye yatık kar tutamları
+			var z = 0.46 - q * 0.2
+			_tube(b, [Vector3(0, 0.72 - q * 0.02, z), Vector3(0, 0.9 - q * 0.03, z - 0.17)], [0.07, 0.008], s)
+		_tube(b, [Vector3(0, 0.56, -0.52), Vector3(0, 0.62, -0.8), Vector3(0, 0.54, -1.1), Vector3(0, 0.5, -1.38)], [0.07, 0.125, 0.11, 0.01], s),   # kabarık kuyruk
+		0.24, -0.38, 0.47, 0.062, 0.13)
+	root.get_child(0).add_child(_glow_dots([Vector3(-0.09, 0.745, 0.8) * s, Vector3(0.09, 0.745, 0.8) * s], Vector3(0.045, 0.032, 0.04) * s, Color(1.0, 0.5, 0.8)))
+	return ClayArt._fwd(root)
+
+
+## Haryū Mōko kaplanı: soluk buzdan iri gövde, sırtında ve dirseklerinde geriye yatık buz bıçakları, uzun dişler
+static func tiger(s := 1.0) -> Node3D:
+	var root = _beast(s, toon("ice_body", Color(0.74, 0.9, 1.0)), func(b: MB):
+		_tube(b, [Vector3(0, 0.62, 1.02), Vector3(0, 0.66, 0.9), Vector3(0, 0.72, 0.72), Vector3(0, 0.74, 0.56), Vector3(0, 0.66, 0.4), Vector3(0, 0.56, 0.22), Vector3(0, 0.54, 0.0), Vector3(0, 0.55, -0.25), Vector3(0, 0.56, -0.45), Vector3(0, 0.57, -0.6)],
+			[0.09, 0.14, Vector2(0.2, 0.19), Vector2(0.22, 0.2), 0.18, Vector2(0.25, 0.28), Vector2(0.22, 0.24), Vector2(0.18, 0.2), Vector2(0.2, 0.21), 0.11], s)
+		_tube(b, [Vector3(0, 0.6, 0.6), Vector3(0, 0.5, 0.8), Vector3(0, 0.43, 0.94)], [0.11, 0.09, 0.05], s)
+		for sx in [-1.0, 1.0]:
+			_tube(b, [Vector3(sx * 0.14, 0.86, 0.55), Vector3(sx * 0.18, 0.96, 0.5)], [0.06, 0.02], s)
+		_tube(b, [Vector3(0, 0.58, -0.58), Vector3(0, 0.6, -0.95), Vector3(0, 0.7, -1.3), Vector3(0, 0.92, -1.55)], [0.07, 0.055, 0.045, 0.02], s),
+		0.26, -0.42, 0.5, 0.078, 0.17, 0.34)
+	var body: Node3D = root.get_child(0)
+	var rng = _rng()
+	var b = MB.new()
+	for q in 6:   # sırt bıçakları
+		shard(b, Vector3(0, 0.74 - q * 0.02, 0.5 - q * 0.2) * s, Vector3(0, 1.0, -0.9), (0.5 - q * 0.04) * s, 0.06 * s, rng, Color.WHITE, 4, true)
+	for sx in [-1.0, 1.0]:
+		shard(b, Vector3(sx * 0.2, 0.62, 0.3) * s, Vector3(sx * 0.8, 0.5, -1.0), 0.55 * s, 0.055 * s, rng, Color.WHITE, 4, true)   # omuz
+		shard(b, Vector3(sx * 0.19, 0.6, -0.4) * s, Vector3(sx * 0.7, 0.5, -1.0), 0.45 * s, 0.05 * s, rng, Color.WHITE, 4, true)   # kalça
+		shard(b, Vector3(sx * 0.16, 0.66, 0.6) * s, Vector3(sx * 1.0, 0.1, -0.5), 0.4 * s, 0.04 * s, rng, Color.WHITE, 4, true)   # yanak
+		shard(b, Vector3(sx * 0.07, 0.62, 0.9) * s, Vector3(sx * 0.1, -1.0, 0.15), 0.22 * s, 0.028 * s, rng, Color.WHITE, 4, true)   # uzun diş
+	shard(b, Vector3(0, 0.9, -1.52) * s, Vector3(0, 0.6, -1.0), 0.3 * s, 0.05 * s, rng, Color.WHITE, 4, true)   # kuyruk ucu
+	body.add_child(_part(b, mat()))
+	body.add_child(_glow_dots([Vector3(-0.11, 0.78, 0.82) * s, Vector3(0.11, 0.78, 0.82) * s], Vector3(0.05, 0.035, 0.045) * s, Color(0.75, 0.95, 1.0)))
+	return ClayArt._fwd(root)
+
+
+## Ikkaku Hakugei: tek boynuzlu dev beyaz balina — küt baş, şişkin gövde, yassı kuyruk ve yüzgeçler, ileri uzanan uzun boynuz.
+## Birim boy ~8 (burun ucundan kuyruğa)
+static func whale(s := 1.0) -> Node3D:
+	var root = Node3D.new()
+	var b = MB.new()
+	_tube(b, [Vector3(0, 0, 3.0), Vector3(0, 0.05, 2.6), Vector3(0, 0.1, 1.8), Vector3(0, 0.1, 0.8), Vector3(0, 0.05, -0.4), Vector3(0, 0, -1.6), Vector3(0, 0, -2.5), Vector3(0, 0, -3.1)],
+		[0.25, Vector2(0.6, 0.5), Vector2(0.85, 0.75), Vector2(0.95, 0.85), Vector2(0.8, 0.7), Vector2(0.45, 0.4), Vector2(0.2, 0.18), 0.1], s)
+	for sx in [-1.0, 1.0]:
+		_tube(b, [Vector3(0, 0, -3.0), Vector3(sx * 0.55, 0, -3.4), Vector3(sx * 1.1, 0, -3.75)], [Vector2(0.25, 0.06), Vector2(0.36, 0.05), Vector2(0.05, 0.02)], s)
+		_tube(b, [Vector3(sx * 0.8, -0.3, 1.4), Vector3(sx * 1.3, -0.5, 1.0), Vector3(sx * 1.9, -0.6, 0.3)], [Vector2(0.22, 0.07), Vector2(0.26, 0.06), Vector2(0.05, 0.02)], s)
+	_tube(b, [Vector3(0, 0.95, -0.9), Vector3(0, 1.2, -1.25)], [Vector2(0.06, 0.2), 0.02], s)   # sırt çıkıntısı
+	root.add_child(_part(b, toon("whale", Color(0.76, 0.87, 0.97))))
+	var h = MB.new()
+	_tube(h, [Vector3(0, 0.3, 2.75), Vector3(0, 0.72, 3.8), Vector3(0, 1.15, 4.9)], [0.075, 0.045, 0.005], s)
+	root.add_child(_part(h, toon("horn", Color(0.97, 0.98, 1.0))))
+	root.add_child(_glow_dots([Vector3(-0.72, -0.05, 2.1) * s, Vector3(0.72, -0.05, 2.1) * s], Vector3(0.05, 0.07, 0.08) * s, Color(0.1, 0.16, 0.3)))
+	return ClayArt._fwd(root)

@@ -1575,7 +1575,8 @@ func _fly_bolt(owner_f: Node3D, from: Vector3, dir: Vector3, dist: float, length
 const JUTSU_TIER := {"susanoo": 1, "amaterasu_entenka": 1, "susanoo_kobushi": 2, "yasaka_no_magatama": 3, "enton_yasaka_no_magatama": 3,
 	"totsuka_no_tsurugi": 3, "yata_no_kagami": 3, "susanoo_kagutsuchi_no_yumiya": 3, "susanoo_chidori": 3,
 	"susanoo_gokakyu": 3, "susanoo_hozan": 3, "susanoo_tsukumo": 3, "indora_no_ya": 5,
-	"kamui_shuriken": 3, "kyoso_enbu": 3}
+	"kamui_shuriken": 3, "kyoso_enbu": 3, "susanoo_kaien": 3, "kanseitai_susanoo_kishin": 5,
+	"susanoo_kamui_raikiri": 3, "susanoo_dan": 2, "susanoo_retsu": 2, "susanoo_nito_no_mai": 3, "totsuka_renzokugiri": 3, "amaterasu_zanka": 3}
 var act_t = 0.0      # jutsu hareketi sürüyor (kullanıcı animasyonu eşlenmez)
 var posed = false
 

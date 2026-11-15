@@ -36,7 +36,7 @@ var _fx_t := 0.0
 var _alpha := 1.0
 const THIN := 0.42
 const HEAD_K := 0.65
-const TUBE := ["water", "fire", "lightning", "dark", "smoke", "lava", "goo"]
+const TUBE := ["water", "fire", "lightning", "dark", "smoke", "lava", "goo", "snow"]
 const RING := 10
 
 
@@ -45,7 +45,7 @@ func _ready() -> void:
 	spacing *= ep
 	radius *= ep
 	if thin < 0.0:
-		thin = {"water": 0.36, "fire": 0.34, "lightning": 0.28, "dark": 0.36, "smoke": 0.42, "lava": 0.45, "goo": 0.45, "earth": 0.5, "wood": 0.72}.get(style, THIN)
+		thin = {"water": 0.36, "fire": 0.34, "lightning": 0.28, "dark": 0.36, "smoke": 0.42, "snow": 0.5, "lava": 0.45, "goo": 0.45, "earth": 0.5, "wood": 0.72}.get(style, THIN)
 	# jutsuya özgü oranlar: aynı elementteki ejderler bile birbirinin kopyası olmasın
 	if seed_id != "":
 		var h = absi(hash(seed_id))
@@ -290,6 +290,8 @@ func _style_fx(pts: Array, dt: float) -> void:
 				gk = "mud" if (bc.r < 0.45 and bc.g < 0.35) else "mei" if bc.g > 0.65 else ("oil" if bc.g > 0.4 and bc.r < 0.8 else "molten")
 				if bc.b > 0.7 and bc.g > 0.7:
 					gk = "lime"   # kireç: gri-beyaz damla (bej Mei çamuru değil)
+			if seed_id == "ketsuryu":
+				gk = "blood"   # Chinoike kan ejderi: damlalar kan
 			if gk == "molten" and randf() < 0.4:
 				VFX.debris(p, Color(0.22, 0.12, 0.08), 2, 3.0, 0.2)   # akıştan kopan kırık kaya
 			VFX.goo_drops(p, gk, 1, maxf(0.8, radius * 0.6), 1.5)
@@ -300,6 +302,10 @@ func _style_fx(pts: Array, dt: float) -> void:
 				"gravity": Vector3(0, 0.8, 0), "rough": 0.24, "outline": 0.035, "outline_col": Color(0.18, 0.17, 0.19), "shade": 0.35,
 				"colors": [Color(0.55, 0.53, 0.56, 0.0), Color(0.5, 0.48, 0.51, 1), Color(0.38, 0.36, 0.39, 0.9), Color(0.3, 0.28, 0.3, 0.0)]})
 			VFX.embers(p, Color(1.0, 0.4, 0.1), 3, 3.0, 0.6)
+		"snow":   # kara kar ejderi (Hyōton: Kokuryū Bōfūsetsu): gövdeden savrulan kara kar taneleri + arada beyaz kırağı pırıltısı
+			FX.burst(p, {"amount": 5, "life": 0.6, "tex": FX.tex_soft, "add": false, "size": 0.26 * maxf(1.0, radius), "radius": radius * 0.9, "vmin": 1.0, "vmax": 3.5, "spread": 180.0, "gravity": Vector3(0, -2.0, 0),
+				"colors": [Color(0.05, 0.05, 0.07, 1.0), Color(0.1, 0.1, 0.14, 0.9), Color(0.2, 0.2, 0.26, 0.0)]})
+			FX.burst(p, {"amount": 2, "life": 0.5, "tex": FX.tex_spark, "add": true, "size": 0.2, "radius": radius, "vmin": 1.0, "vmax": 3.0, "spread": 180.0, "colors": [Color(1, 1, 1, 0.9), Color(0.8, 0.9, 1.0, 0.0)]})
 		"lightning":
 			FX.burst(p, {"amount": 6, "life": 0.2, "tex": FX.tex_spark, "size": 0.8, "vmin": 4.0, "vmax": 9.0, "spread": 180.0,
 				"colors": [Color(1, 1, 1, 1), col.lightened(0.4), Color(col.r, col.g, col.b, 0)]})

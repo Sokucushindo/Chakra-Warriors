@@ -26,17 +26,21 @@ const SKILLS := {
 ## ışınlanma, Shisui'nin Shunshin'i. Obito tarzı Mangekyō ayrıca kaçma tuşunu Kamui geçirgenliğine çevirir (basılı tut).
 const MS_STYLES := {
 	"itachi": {"name": "Itachi tarzı", "theme": "Kara alev, ay rüyası ve Susanoo'nun kutsal hazineleri", "eyes": ["amaterasu", "tsukuyomi"],
-		"jutsu": ["izanami", "yasaka_no_magatama", "tensha_fuin_amaterasu", "totsuka_no_tsurugi", "yata_no_kagami", "magen_karasu_bunshin"]},
+		"jutsu": ["izanami", "yasaka_no_magatama", "tensha_fuin_amaterasu", "totsuka_no_tsurugi", "yata_no_kagami", "magen_karasu_bunshin",
+			"totsuka_renzokugiri", "tsukuyomi_mode"]},
 	"sasuke": {"name": "Sasuke tarzı", "theme": "Enton: biçimlenen kara alev", "eyes": ["enton_kagutsuchi", "amaterasu_entenka"],
-		"jutsu": ["susanoo_kagutsuchi_no_yumiya", "enton_kagutsuchi_no_tsurugi", "susanoo_chidori", "indora_no_ya", "amaterasu", "susanoo"]},
+		"jutsu": ["susanoo_kagutsuchi_no_yumiya", "enton_kagutsuchi_no_tsurugi", "susanoo_chidori", "indora_no_ya", "amaterasu", "susanoo",
+			"enton_honoikazuchi", "amaterasu_zanka"]},
 	"obito": {"name": "Obito tarzı", "theme": "Kamui: içinden geçen, içine çeken, ışınlanan göz", "eyes": ["@kamui_kyuin", "@kamui_tobi"],
-		"jutsu": ["kamui", "kamuibashiri"]},
+		"jutsu": ["kamui", "kamuibashiri", "saten", "sain", "muzan", "mekkyaku", "tenso", "katon_bakufu_ranbu"]},
 	"kakashi": {"name": "Kakashi tarzı", "theme": "Uzak menzil Kamui ve şimşek", "eyes": ["kamui", "kamui_shuriken"],
-		"jutsu": ["kamui_raikiri", "raiden", "kamuibashiri", "susanoo"]},
+		"jutsu": ["kamui_raikiri", "raiden", "kamuibashiri", "susanoo", "raikiri_sosenko", "raikiri_issen", "raiju_hashiri_so", "susanoo_kamui_raikiri"]},
 	"madara": {"name": "Madara tarzı", "theme": "Susanoo ve kara alev", "eyes": ["susanoo_hozan", "susanoo_tsukumo"],
-		"jutsu": ["susanoo", "susanoo_gokakyu", "enton_yasaka_no_magatama", "kyoso_enbu"]},
+		"jutsu": ["susanoo", "susanoo_gokakyu", "enton_yasaka_no_magatama", "kyoso_enbu", "yasaka_no_magatama", "susanoo_dan", "susanoo_retsu",
+			"susanoo_nito_no_mai"]},
 	"shisui": {"name": "Shisui tarzı", "theme": "Kotoamatsukami ve göz açıp kapayan hız", "eyes": ["kotoamatsukami", "@shisui_shunshin"],
-		"jutsu": ["susanoo"]},
+		"jutsu": ["susanoo", "zanzo_bunshin", "bunshun", "uchiha_ryu_higasa_no_mai", "susanoo_kaien", "kotoamatsukami_kobo", "kotoamatsukami_zanko",
+			"kanseitai_susanoo_kishin"]},
 }
 const ABILITY_NAMES := {"@kamui_kyuin": "Kamui: içine çek", "@kamui_tobi": "Kamui: ışınlan", "@shisui_shunshin": "Shisui'nin Shunshin'i"}
 
@@ -68,13 +72,19 @@ static func ms_styles(pr: Dictionary) -> Array:
 
 ## Bu jutsu bir Mangekyō tarzına ait mi; aitse sahip olunan tarzlarda mı? (göz yuvası teknikleri jutsu listesinde ayrıca yer almaz)
 static func ms_allowed(pr: Dictionary, jid: String) -> bool:
-	var owner = ""
+	var owners: Array = []   # birden çok tarzın ortak tekniği (ör. Susanoo): herhangi birine sahip olmak yeter
 	for st in MS_STYLES:
 		if jid in MS_STYLES[st]["eyes"]:
 			return false   # göz yuvasında (V + sağ/sol göz): jutsu listesinde ikinci kopyası olmasın
 		if jid in MS_STYLES[st]["jutsu"]:
-			owner = st
-	return owner == "" or owner in ms_styles(pr)
+			owners.append(st)
+	if owners.is_empty():
+		return true
+	var mine = ms_styles(pr)
+	for st in owners:
+		if st in mine:
+			return true
+	return false
 
 
 static func ms_tracked(jid: String) -> bool:

@@ -2120,6 +2120,239 @@
   "series": "Naruto Part I",
   "meaning": "Kara Gizli Makine Tek Atış"
  },
+ "kurohigi_kiki_nihatsu": {
+  "id": "kurohigi_kiki_nihatsu",
+  "name": "Kurohigi Kiki Nihatsu",
+  "name_en": "Black Secret Technique Machine Two Shot",
+  "cost": 58,
+  "cd": 24.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "shirogane",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan:shirogane",
+  "desc": "Kuroari hedefin arkasında belirir, göğsünden çıkan iplikler hedefi sarıp kuklanın karın boşluğuna çeker. İçeride tırpan bıçaklar bir yandan öbür yana biçer.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "ninjutsu",
+  "shape": "bind",
+  "range": "Short, Mid",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto the Movie: Legend of the Stone of Gelel",
+  "meaning": "Kara Gizli Teknik: Makine İki Atış"
+ },
+ "kugutsu_samidare": {
+  "id": "kugutsu_samidare",
+  "name": "Kugutsu: Samidare",
+  "name_en": "Puppet: Early Summer Rain",
+  "cost": 50,
+  "cd": 20.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "shirogane",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan:shirogane",
+  "desc": "Karasu ve Kuroari havada belirir ve hedefin çevresine bomba yağdırır.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "range": "Mid, Long",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto: Ultimate Ninja",
+  "meaning": "Kukla: Yaz Başı Yağmuru"
+ },
+ "kugutsu_kaijin_tensen": {
+  "id": "kugutsu_kaijin_tensen",
+  "name": "Kugutsu: Kaijin Tensen",
+  "name_en": "Puppet: Revolving Blade Heavenly Drill",
+  "cost": 52,
+  "cd": 20.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "shirogane",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan:shirogane",
+  "desc": "Karasu zehirli bıçaklarını açıp kasırga gibi dönerek hedefe gider, art arda biçer; hedefi havaya savurup yanında patlar.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "ninjutsu",
+  "shape": "melee",
+  "range": "Short, Mid",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto: Ultimate Ninja",
+  "meaning": "Kukla: Dönen Bıçak Gök Matkabı"
+ },
+ "kugutsu_fundan": {
+  "id": "kugutsu_fundan",
+  "name": "Kugutsu: Fundan",
+  "name_en": "Puppet: Spewing Bullet",
+  "cost": 30,
+  "cd": 11.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "shirogane",
+  "level": 12,
+  "rank": 2,
+  "learn": "clan:shirogane",
+  "desc": "Rakip yaklaşırken Karasu'nun gövdesinden ayrılan başı üstüne gider; yandan dolanıp ağzından çıkardığı zehirli sivriyi kalkanın arkasından saplar, sersemletir.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "ninjutsu",
+  "shape": "melee",
+  "range": "Short",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto: Ultimate Ninja",
+  "meaning": "Kukla: Püsküren Mermi"
+ },
+ "hachi_bakudan_no_jutsu": {
+  "id": "hachi_bakudan_no_jutsu",
+  "name": "Hachi Bakudan no Jutsu",
+  "name_en": "Bee Bomb Technique",
+  "cost": 44,
+  "cd": 16.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "kamizuru",
+  "level": 12,
+  "rank": 2,
+  "learn": "clan:kamizuru",
+  "desc": "Üstlerine patlayıcı etiket bağlı arılar hedeflerin peşine düşer ve çarptıkları yerde patlar.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "hiden",
+  "shape": "projectile",
+  "meaning": "Arı Bombası",
+  "signature": false,
+  "range": "Short, Mid, Long",
+  "series": "Naruto"
+ },
+ "hachimitsu_no_jutsu": {
+  "id": "hachimitsu_no_jutsu",
+  "name": "Hachimitsu no Jutsu",
+  "name_en": "Bee Honey Technique",
+  "cost": 40,
+  "cd": 18.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "kamizuru",
+  "level": 12,
+  "rank": 2,
+  "learn": "clan:kamizuru",
+  "desc": "Arı sürüsü hedefi sarıp sokar; ezilen her arı yapışkan bal bırakır. Bal biriktikçe hedef önce yavaşlar, sonra kıpırdayamaz olur.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "hiden",
+  "shape": "bind",
+  "meaning": "Arı Balı",
+  "signature": false,
+  "range": "Short, Mid",
+  "series": "Naruto"
+ },
+ "iwa_hachinosu": {
+  "id": "iwa_hachinosu",
+  "name": "Iwa Hachinosu",
+  "name_en": "Rock Hive",
+  "cost": 54,
+  "cd": 26.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "kamizuru",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan:kamizuru",
+  "desc": "Kayadan bir arı kovanı kurarsın. İçindeki dev larva çevresindeki rakiplerin chakrasını yer.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "hiden",
+  "shape": "aoe",
+  "meaning": "Kaya Kovan",
+  "signature": false,
+  "range": "Short, Mid",
+  "series": "Naruto"
+ },
+ "obachi_rakka": {
+  "id": "obachi_rakka",
+  "name": "Ōbachi Rakka",
+  "name_en": "Giant Bee Drop",
+  "cost": 48,
+  "cd": 20.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "kamizuru",
+  "level": 12,
+  "rank": 2,
+  "learn": "clan:kamizuru",
+  "desc": "Dev bir arı tepeden dalar, hedefi kapıp göğe kaldırır ve yere bırakır.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "hiden",
+  "shape": "bind",
+  "meaning": "Dev Arı Düşüşü",
+  "signature": false,
+  "range": "Short, Mid",
+  "series": ""
+ },
+ "hachi_no_yoroi": {
+  "id": "hachi_no_yoroi",
+  "name": "Hachi no Yoroi",
+  "name_en": "Bee Armour",
+  "cost": 36,
+  "cd": 24.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "kamizuru",
+  "level": 5,
+  "rank": 1,
+  "learn": "clan:kamizuru",
+  "desc": "Arı sürüsü bedenini sarar: aldığın darbeler hafifler, yanına yaklaşan sokulur ve yavaşlar.",
+  "seals": [],
+  "canon_rank": "C",
+  "tier": 2,
+  "dmg_k": 1.0,
+  "category": "hiden",
+  "shape": "buff",
+  "meaning": "Arı Zırhı",
+  "signature": false,
+  "range": "Short",
+  "series": ""
+ },
  "kaze_no_yaiba": {
   "id": "kaze_no_yaiba",
   "name": "Kaze no Yaiba",
@@ -3801,6 +4034,130 @@
   "series": "Naruto Part I",
   "meaning": "Kamelya Dansı"
  },
+ "yaemugura_no_mai": {
+  "id": "yaemugura_no_mai",
+  "name": "Yaemugura no Mai",
+  "name_en": "Dance of the False Cleavers",
+  "cost": 44,
+  "cd": 17.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:shikotsumyaku",
+  "desc": "İki kemik kılıçla dalıp iki kez biçer, saplama sağanağına tutarsın; sonra hedefin arkasına geçer, bütün bedeninden fışkıran kemiklerle deşersin.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 0.9,
+  "category": "kekkei_genkai",
+  "shape": "melee",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Shikotsumyaku"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto: Ultimate Ninja",
+  "meaning": "Yapışkan Otu Dansı"
+ },
+ "genji_no_mai": {
+  "id": "genji_no_mai",
+  "name": "Genji no Mai",
+  "name_en": "Dance of the Genji",
+  "cost": 46,
+  "cd": 18.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:shikotsumyaku",
+  "desc": "Kemik kılıçla biçer, parmak kemiklerini mermi gibi atarsın; sonra havaya sıçrar, sırtından fırlayan kemikleri hedefin üstüne yığarsın.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 0.9,
+  "category": "kekkei_genkai",
+  "shape": "melee",
+  "range": "Short, Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Shikotsumyaku"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto: Ultimate Ninja",
+  "meaning": "Genji Dansı"
+ },
+ "kazaguruma": {
+  "id": "kazaguruma",
+  "name": "Kazaguruma",
+  "name_en": "Windmill",
+  "cost": 40,
+  "cd": 15.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:shikotsumyaku",
+  "desc": "Hedefin tepesinde belirir, kemiklerini uzatır ve dev bir matkap gibi dönerek üstüne inersin.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 0.9,
+  "category": "kekkei_genkai",
+  "shape": "melee",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Shikotsumyaku"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto: Ultimate Ninja",
+  "meaning": "Fırıldak"
+ },
+ "keyaki": {
+  "id": "keyaki",
+  "name": "Keyaki",
+  "name_en": "Zelkova",
+  "cost": 42,
+  "cd": 16.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:shikotsumyaku",
+  "desc": "Hedefi havaya savurur, tepesinde belirir ve kolundan fışkıran onlarca kemikle aşağı doğru deşersin.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 0.9,
+  "category": "kekkei_genkai",
+  "shape": "melee",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Shikotsumyaku"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto: Ultimate Ninja",
+  "meaning": "Zelkova Ağacı"
+ },
  "tessenka_no_mai_hana": {
   "id": "tessenka_no_mai_hana",
   "name": "Tessenka no Mai: Hana",
@@ -4345,6 +4702,1916 @@
   "kinjutsu": false,
   "series": "Naruto Part I",
   "meaning": "Ağaçla Bağlayan Ölüm"
+ },
+ "deiton_deiryu_nadare": {
+  "id": "deiton_deiryu_nadare",
+  "name": "Deiton: Deiryū Nadare",
+  "name_en": "Mud Release: Mud Flow Avalanche",
+  "cost": 40,
+  "cd": 15.0,
+  "element": "deiton",
+  "elements": [
+   "deiton"
+  ],
+  "natures": [
+   "deiton"
+  ],
+  "clan": "",
+  "level": 14,
+  "rank": 2,
+  "learn": "kg:deiton",
+  "desc": "Önüne ağır bir çamur seli salarsın; yolundakileri sürükler, çamura bulananlar yavaşlar.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "cone",
+  "range": "Short, Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Mud Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Çamur Akıntısı Çığı"
+ },
+ "deiton_kodei_kasen": {
+  "id": "deiton_kodei_kasen",
+  "name": "Deiton: Kōdei Kasen",
+  "name_en": "Mud Release: Hardening Mud Arrows",
+  "cost": 30,
+  "cd": 11.0,
+  "element": "deiton",
+  "elements": [
+   "deiton"
+  ],
+  "natures": [
+   "deiton"
+  ],
+  "clan": "",
+  "level": 12,
+  "rank": 2,
+  "learn": "kg:deiton",
+  "desc": "Üç çamur mermisi fırlatırsın; değdiği yerde sertleşip kile döner, vurulanın bacakları kilitlenir.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "projectile",
+  "range": "Short, Mid, Long",
+  "requires": {
+   "kekkei_genkai": [
+    "Mud Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Sertleşen Çamur Okları"
+ },
+ "deiton_deisho_koka": {
+  "id": "deiton_deisho_koka",
+  "name": "Deiton: Deishō Kōka",
+  "name_en": "Mud Release: Mire Hardening",
+  "cost": 52,
+  "cd": 22.0,
+  "element": "deiton",
+  "elements": [
+   "deiton"
+  ],
+  "natures": [
+   "deiton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:deiton",
+  "desc": "Çevrendeki toprağı çamura çevirirsin; içindekiler bata çıka yavaşlar, sonra çamur bir anda kile dönüp ayaklarını kilitler.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Mud Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Bataklık Sertleşmesi"
+ },
+ "meiton_kyuin": {
+  "id": "meiton_kyuin",
+  "name": "Meiton: Kyūin",
+  "name_en": "Dark Release: Absorption",
+  "cost": 30,
+  "cd": 16.0,
+  "element": "meiton",
+  "elements": [
+   "meiton"
+  ],
+  "natures": [
+   "meiton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:meiton",
+  "desc": "Sol elindeki işareti öne tutarsın: önden gelen ninjutsu atışları işarete emilir, yakındaki rakibin chakrası çekilir. Emdiğin chakra sende birikir.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "shield",
+  "range": "Short, Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Dark Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden the Movie: The Will of Fire",
+  "meaning": "Karanlık Salımı: Emme"
+ },
+ "meiton_hoshutsu": {
+  "id": "meiton_hoshutsu",
+  "name": "Meiton: Hōshutsu",
+  "name_en": "Dark Release: Release",
+  "cost": 26,
+  "cd": 10.0,
+  "element": "meiton",
+  "elements": [
+   "meiton"
+  ],
+  "natures": [
+   "meiton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:meiton",
+  "desc": "Biriken chakrayı işaretinden kara-mor bir dalga olarak salarsın; ne kadar çok emdiysen o kadar güçlü ve delici olur.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "projectile",
+  "range": "Short, Mid, Long",
+  "requires": {
+   "kekkei_genkai": [
+    "Dark Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden the Movie: The Will of Fire",
+  "meaning": "Karanlık Salımı: Salma"
+ },
+ "jinsoku_kosoku": {
+  "id": "jinsoku_kosoku",
+  "name": "Jinton: Kōsoku",
+  "name_en": "Swift Release: High Speed",
+  "cost": 32,
+  "cd": 20.0,
+  "element": "jinton_swift",
+  "elements": [
+   "jinton_swift"
+  ],
+  "natures": [
+   "jinton_swift"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:jinton_swift",
+  "desc": "7 saniye bir bulanıklık hızında hareket edersin: çok hızlısın, sana yetişemeyenin vuruşları çoğu zaman boşa gider.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "buff",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Swift Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden the Movie: The Will of Fire",
+  "meaning": "Hız Salımı: Yüksek Hız"
+ },
+ "jinsoku_shunjin": {
+  "id": "jinsoku_shunjin",
+  "name": "Jinton: Shunjin",
+  "name_en": "Swift Release: Instant Assault",
+  "cost": 36,
+  "cd": 14.0,
+  "element": "jinton_swift",
+  "elements": [
+   "jinton_swift"
+  ],
+  "natures": [
+   "jinton_swift"
+  ],
+  "clan": "",
+  "level": 14,
+  "rank": 2,
+  "learn": "kg:jinton_swift",
+  "desc": "Rakibin çevresinde bulanık bir hızla dönüp her yönden vurursun; son vuruş onu savurur.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "melee",
+  "range": "Short, Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Swift Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden the Movie: The Will of Fire",
+  "meaning": "Hız Salımı: Anlık Saldırı"
+ },
+ "taiton_kyofu_reppa": {
+  "id": "taiton_kyofu_reppa",
+  "name": "Taiton: Kyōfū Reppa",
+  "name_en": "Typhoon Release: Consecutive Bursting Strong Winds",
+  "cost": 44,
+  "cd": 15.0,
+  "element": "taiton",
+  "elements": [
+   "taiton"
+  ],
+  "natures": [
+   "taiton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:taiton",
+  "desc": "Önünde art arda patlayan dört girdap çağırırsın: yolundakileri biçip savurur, görüşlerini kapatır.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "cone",
+  "range": "Short, Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Typhoon Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Sasuke Retsuden",
+  "meaning": "Tayfun Salımı: Art Arda Patlayan Güçlü Rüzgârlar"
+ },
+ "taiton_mofu_daireppa": {
+  "id": "taiton_mofu_daireppa",
+  "name": "Taiton: Mōfū Daireppa",
+  "name_en": "Typhoon Release: Great Consecutive Bursting Extreme Winds",
+  "cost": 72,
+  "cd": 32.0,
+  "element": "taiton",
+  "elements": [
+   "taiton"
+  ],
+  "natures": [
+   "taiton"
+  ],
+  "clan": "",
+  "level": 26,
+  "rank": 3,
+  "learn": "kg:taiton",
+  "desc": "Çevrende dev bir kasırga kurarsın: içine kapılan her şeyi biçer, atışları savurur. Zayıflığı: fırtınanın gözünde sen savunmasızsın — içeri giren seni çok ağır vurur.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "range": "Short, Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Typhoon Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Sasuke Retsuden",
+  "meaning": "Tayfun Salımı: Büyük Art Arda Patlayan Şiddetli Rüzgârlar"
+ },
+ "taiton_reppu_shuriken": {
+  "id": "taiton_reppu_shuriken",
+  "name": "Taiton: Reppū Shuriken",
+  "name_en": "Typhoon Release: Gale Shuriken",
+  "cost": 30,
+  "cd": 10.0,
+  "element": "taiton",
+  "elements": [
+   "taiton"
+  ],
+  "natures": [
+   "taiton"
+  ],
+  "clan": "",
+  "level": 14,
+  "rank": 2,
+  "learn": "kg:taiton",
+  "desc": "Tayfun chakrasını beş shurikene akıtıp fırlatırsın: keskinleşir, uzağa gider, çarptıkları yerde rüzgâr patlamasına döner.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "projectile",
+  "range": "Short, Mid, Long",
+  "requires": {
+   "kekkei_genkai": [
+    "Typhoon Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Sasuke Retsuden",
+  "meaning": "Tayfun Shurikeni"
+ },
+ "koton_kodan": {
+  "id": "koton_kodan",
+  "name": "Kōton: Kōdan",
+  "name_en": "Steel Release: Steel Projectile",
+  "cost": 34,
+  "cd": 11.0,
+  "element": "koton",
+  "elements": [
+   "koton"
+  ],
+  "natures": [
+   "koton"
+  ],
+  "clan": "",
+  "level": 14,
+  "rank": 2,
+  "learn": "kg:koton",
+  "desc": "Çelikten bir top yaratıp fırlatırsın: ağır, ezici bir darbe. Yōton da taşıyorsan çelik erir, kızgın bir sarmal burguya döner ve delip geçer.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "projectile",
+  "range": "Short, Mid, Long",
+  "requires": {
+   "kekkei_genkai": [
+    "Steel Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Gaara Hiden",
+  "meaning": "Çelik Mermi"
+ },
+ "koton_kojun_no_jutsu": {
+  "id": "koton_kojun_no_jutsu",
+  "name": "Kōton: Kōjun no Jutsu",
+  "name_en": "Steel Release: Steel Shield Technique",
+  "cost": 36,
+  "cd": 18.0,
+  "element": "koton",
+  "elements": [
+   "koton"
+  ],
+  "natures": [
+   "koton"
+  ],
+  "clan": "",
+  "level": 14,
+  "rank": 2,
+  "learn": "kg:koton",
+  "desc": "Önünde yerden dövme çelik bir duvar yükselir: önündekini iter, arkana geçmek isteyen her atışı durdurur.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "shield",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Steel Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Gaara Hiden",
+  "meaning": "Çelik Kalkan"
+ },
+ "koton_kotai": {
+  "id": "koton_kotai",
+  "name": "Kōton: Kōtai",
+  "name_en": "Steel Release: Steel Body",
+  "cost": 44,
+  "cd": 24.0,
+  "element": "koton",
+  "elements": [
+   "koton"
+  ],
+  "natures": [
+   "koton"
+  ],
+  "clan": "",
+  "level": 20,
+  "rank": 3,
+  "learn": "kg:koton",
+  "desc": "Bedenin çeliğe döner: darbelere neredeyse dokunulmaz olursun, yumrukların ağırlaşır. Çelik ağırdır — yavaşlarsın.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "buff",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Steel Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden the Movie: The Will of Fire",
+  "meaning": "Çelik Beden"
+ },
+ "koton_koken": {
+  "id": "koton_koken",
+  "name": "Kōton: Kōken",
+  "name_en": "Steel Release: Steel Sword",
+  "cost": 32,
+  "cd": 12.0,
+  "element": "koton",
+  "elements": [
+   "koton"
+  ],
+  "natures": [
+   "koton"
+  ],
+  "clan": "",
+  "level": 14,
+  "rank": 2,
+  "learn": "kg:koton",
+  "desc": "Elinde çelikten bir kılıç dövülür; üç geniş, ağır savuruşla biçer, sonuncusu rakibi savurur.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "melee",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Steel Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Gaara Hiden",
+  "meaning": "Çelik Kılıç"
+ },
+ "kemuri_hyoi": {
+  "id": "kemuri_hyoi",
+  "name": "Kemuri Hyōi",
+  "name_en": "Smoke Possession",
+  "cost": 48,
+  "cd": 26.0,
+  "element": "",
+  "elements": [],
+  "clan": "iburi",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan",
+  "desc": "Duman olup yakındaki birinin ağzından, burnundan bedenine girersin ve onu ele geçirirsin: 6 saniye kendi dostlarına saldırır. Rüzgâr seni bedenden söküp dağıtır.",
+  "seals": [],
+  "canon_rank": "A",
+  "category": "hiden",
+  "shape": "bind",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "meaning": "Duman Ele Geçirme",
+  "signature": false,
+  "range": "Short",
+  "series": "Naruto Shippūden"
+ },
+ "kurama_genjutsu_raiga": {
+  "id": "kurama_genjutsu_raiga",
+  "name": "Kurama Genjutsu: Raiga",
+  "name_en": "Kurama Genjutsu: Lightning Painting",
+  "cost": 40,
+  "cd": 16.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "kurama",
+  "level": 14,
+  "rank": 2,
+  "learn": "clan:kurama",
+  "desc": "Yıldırımın hedefe düştüğü bir resim çizersin; göz göze gelen rakip için resim gerçek olur, gökten inen şimşekler onu çarpar. Beyin inandığı için zarar gerçektir.",
+  "seals": [
+   "Inu",
+   "Mi",
+   "Saru",
+   "Ushi",
+   "Tora"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "genjutsu",
+  "shape": "genjutsu_stun",
+  "range": "Short, Mid, Long",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Şimşek Resmi"
+ },
+ "kurama_genjutsu_enga": {
+  "id": "kurama_genjutsu_enga",
+  "name": "Kurama Genjutsu: Enga",
+  "name_en": "Kurama Genjutsu: Flame Painting",
+  "cost": 46,
+  "cd": 18.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "kurama",
+  "level": 16,
+  "rank": 2,
+  "learn": "clan:kurama",
+  "desc": "Rakibi yanan bir evin içine hapsedersin; kıpırdayamaz, alevler onu gerçekten yakar. Göz göze gelmeyen ya da Sharingan taşıyan hedefte tutmaz.",
+  "seals": [
+   "Inu",
+   "Mi",
+   "Saru",
+   "Ushi",
+   "Tora"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "genjutsu",
+  "shape": "bind",
+  "range": "Short, Mid",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Alev Resmi"
+ },
+ "kurama_genjutsu_dangai": {
+  "id": "kurama_genjutsu_dangai",
+  "name": "Kurama Genjutsu: Dangai",
+  "name_en": "Kurama Genjutsu: Precipice",
+  "cost": 44,
+  "cd": 17.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "kurama",
+  "level": 16,
+  "rank": 2,
+  "learn": "clan:kurama",
+  "desc": "Rakibin ayağının altında bir uçurum açılır; düştüğüne inanan beden yere çarpmanın darbesini gerçekten alır ve sersemler.",
+  "seals": [
+   "Inu",
+   "Mi",
+   "Saru",
+   "Ushi",
+   "Tora"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "genjutsu",
+  "shape": "genjutsu_stun",
+  "range": "Short, Mid",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Uçurum"
+ },
+ "kurama_ido": {
+  "id": "kurama_ido",
+  "name": "Ido",
+  "name_en": "Id",
+  "cost": 70,
+  "cd": 34.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "kurama",
+  "level": 26,
+  "rank": 3,
+  "learn": "clan:kurama",
+  "desc": "Bilinçaltındaki ikinci kişiliği, Ido'yu salarsın: arkanda dev, kara bir yanılsama canavarı belirir; bakışını yakalayan herkes korkuyla sersemler ve ezilir. Bedeli: Ido senin canından da yer.",
+  "seals": [
+   "Inu",
+   "Mi",
+   "Saru",
+   "Ushi",
+   "Tora"
+  ],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 1.0,
+  "category": "genjutsu",
+  "shape": "aoe",
+  "range": "Short, Mid",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": true,
+  "series": "Naruto Shippūden",
+  "meaning": "İd"
+ },
+ "mojajurin": {
+  "id": "mojajurin",
+  "name": "Mōjajūrin",
+  "name_en": "Fierce Snake Trample",
+  "cost": 44,
+  "cd": 17.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "mitarashi",
+  "level": 14,
+  "rank": 2,
+  "learn": "clan:mitarashi",
+  "desc": "Yenlerinden çıkan yılanlarla rakibi yakalar, çevrende defalarca savurur, havaya bırakır ve yılanlarla vurup uzaklaştırırsın.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "space_time",
+  "shape": "bind",
+  "range": "Short, Mid",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto: Ultimate Ninja 3",
+  "path": "",
+  "meaning": "Vahşi Yılan Çiğnemesi"
+ },
+ "konoha_kanransha": {
+  "id": "konoha_kanransha",
+  "name": "Konoha Kanransha",
+  "name_en": "Leaf Sweet Riot Car",
+  "cost": 40,
+  "cd": 15.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "mitarashi",
+  "level": 14,
+  "rank": 2,
+  "learn": "clan:mitarashi",
+  "desc": "Rakibi tekmeyle havaya kaldırır, ikinci tekmeyle daha yükseğe yollarsın; omuzlarına atlayıp hızlı taklalarla onu başı aşağı yere çakarsın.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "taijutsu",
+  "shape": "melee",
+  "range": "Short",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto: Ultimate Ninja 3",
+  "path": "",
+  "meaning": "Yaprak Dönme Dolabı"
+ },
+ "jarangeki": {
+  "id": "jarangeki",
+  "name": "Jarangeki",
+  "name_en": "Snake Wild Strike",
+  "cost": 42,
+  "cd": 16.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "mitarashi",
+  "level": 14,
+  "rank": 2,
+  "learn": "clan:mitarashi",
+  "desc": "Art arda kesiklerle rakibe yüklenir, arada çift dizle sıçrar, kunaiyle biçersin; sonunda iki bileğinden zehirli yılanlar salarsın.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "taijutsu",
+  "shape": "melee",
+  "range": "Short",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto: Clash of Ninja Revolution 3",
+  "path": "",
+  "meaning": "Yılan Kargaşası Saldırısı"
+ },
+ "iwa_nadare": {
+  "id": "iwa_nadare",
+  "name": "Iwa Nadare",
+  "name_en": "Rock Avalanche",
+  "cost": 50,
+  "cd": 20.0,
+  "element": "raiton",
+  "elements": [
+   "raiton"
+  ],
+  "natures": [
+   "raiton"
+  ],
+  "clan": "kurosuki",
+  "level": 16,
+  "rank": 2,
+  "learn": "clan:kurosuki",
+  "desc": "Yukarıdaki yamaca şimşek dalgası yollarsın: yamaçtan kopan kayalar yuvarlanarak rakiplerin üstüne iner. Yalnız bir yamacın eteğinde yapılabilir.",
+  "seals": [
+   "Tori",
+   "Mi",
+   "Saru",
+   "Hitsuji"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "range": "Short, Mid, Long",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto",
+  "meaning": "Kaya Çığı"
+ },
+ "ketsuryudan": {
+  "id": "ketsuryudan",
+  "name": "Ketsuryūdan",
+  "name_en": "Blood Dragon Bullet",
+  "cost": 38,
+  "cd": 14.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "chinoike",
+  "level": 14,
+  "rank": 2,
+  "learn": "clan:chinoike",
+  "desc": "Çevredeki kandan tek bir kan ejderi yaratıp rakibe yollarsın. Yakında yaralı rakip yoksa kendi bileğini keserek kan verirsin.",
+  "seals": [
+   "Inu",
+   "Mi",
+   "Saru",
+   "Ushi",
+   "Tora"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "projectile",
+  "range": "Short, Mid",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm Connections",
+  "meaning": "Kan Ejderi Mermisi"
+ },
+ "ketsuryu_shoten": {
+  "id": "ketsuryu_shoten",
+  "name": "Ketsuryū Shōten",
+  "name_en": "Blood Dragon Ascension",
+  "cost": 66,
+  "cd": 28.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "chinoike",
+  "level": 26,
+  "rank": 3,
+  "learn": "clan:chinoike",
+  "desc": "Kandan sekiz başlı bir ejder yaratırsın; başlar çevredeki rakiplere dağılıp ısırır, ısırdığını kısa süre tutar. Yakında yaralı rakip yoksa kendi kanını verirsin.",
+  "seals": [
+   "Inu",
+   "Mi",
+   "Saru",
+   "Ushi",
+   "Tora"
+  ],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "range": "Short, Mid, Long",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Kan Ejderinin Yükselişi"
+ },
+ "ketsueki_henge_no_jutsu": {
+  "id": "ketsueki_henge_no_jutsu",
+  "name": "Ketsueki Henge no Jutsu",
+  "name_en": "Blood Transformation Technique",
+  "cost": 40,
+  "cd": 20.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "chinoike",
+  "level": 16,
+  "rank": 2,
+  "learn": "clan:chinoike",
+  "desc": "Ketsuryūgan ile yaralı rakibin demirli kanını şişirirsin: bedeni irileşir, yavaşlar ve şişen kanı onu yer. Yaralı rakip yoksa kendine uygular, iri ve dayanıklı bir kılığa girersin (can bedeli).",
+  "seals": [
+   "Inu",
+   "Mi",
+   "Saru",
+   "Ushi",
+   "Tora"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "buff",
+  "range": "Short, Mid",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Kan Dönüşümü"
+ },
+ "bakujin_no_jutsu": {
+  "id": "bakujin_no_jutsu",
+  "name": "Bakujin no Jutsu",
+  "name_en": "Exploding Human Technique",
+  "cost": 54,
+  "cd": 30.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "chinoike",
+  "level": 26,
+  "rank": 3,
+  "learn": "clan:chinoike",
+  "desc": "Rakibe dokunup zehirli chakra aşılarsın. 12 saniye içinde kanamaya başlarsa beden kapkara bir maddeyle şişip patlar, çevresine de zarar verir. Senden çok güçlü olan ölmez, ağır yara alır.",
+  "seals": [
+   "Inu",
+   "Mi",
+   "Saru",
+   "Ushi",
+   "Tora"
+  ],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "bind",
+  "range": "Short",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": true,
+  "series": "Naruto Shippūden",
+  "meaning": "Patlayan İnsan"
+ },
+ "sango_rensho": {
+  "id": "sango_rensho",
+  "name": "Sango Renshō",
+  "name_en": "Coral Ripples Rising",
+  "cost": 46,
+  "cd": 17.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "karatachi",
+  "level": 14,
+  "rank": 2,
+  "learn": "clan:karatachi",
+  "desc": "Elini ya da sopanın ucunu yere vurursun: yerden uzun bir mercan sırası yükselip rakibe yürür; ulaşınca altından iri mercan dikenleri saplanır.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "ninjutsu",
+  "shape": "beam",
+  "range": "Short, Mid",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm Generations",
+  "meaning": "Mercan Dalgaları Yükselişi"
+ },
+ "sango_shogeki": {
+  "id": "sango_shogeki",
+  "name": "Sango Shōgeki",
+  "name_en": "Coral Rising Attack",
+  "cost": 32,
+  "cd": 12.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "karatachi",
+  "level": 12,
+  "rank": 2,
+  "learn": "clan:karatachi",
+  "desc": "Elini yere koyarsın: rakibin altından mercan fışkırıp onu havaya fırlatır.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "range": "Short, Mid",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm Generations",
+  "meaning": "Mercan Yükselişi Saldırısı"
+ },
+ "sento": {
+  "id": "sento",
+  "name": "Sentō",
+  "name_en": "Revolving Throw",
+  "cost": 36,
+  "cd": 13.0,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "karatachi",
+  "level": 14,
+  "rank": 2,
+  "learn": "clan:karatachi",
+  "desc": "Yagura'nın sopasıyla su sarılı darbeler indirir, sonunda kancasıyla rakibi takıp başının üstünden uzağa fırlatırsın. Elinde Yagura'nın sopası olmalı.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "taijutsu",
+  "shape": "melee",
+  "range": "Short",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm Generations",
+  "meaning": "Dönen Atış",
+  "need": "weapon:yagura_sopa"
+ },
+ "suiton_kaisui_hodan": {
+  "id": "suiton_kaisui_hodan",
+  "name": "Suiton: Kaisui Hōdan",
+  "name_en": "Water Release: Water Mass Crumbling Bullet",
+  "cost": 54,
+  "cd": 20.0,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "karatachi",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan:karatachi",
+  "desc": "Rakibin üstünde dev bir su kütlesi toplar, onu üstüne indirirsin: çevresindekiler de ezilir, ıslanır.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "range": "Short, Mid, Long",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm Generations",
+  "meaning": "Su Salımı: Çöken Su Kütlesi Mermisi"
+ },
+ "suiton_suichu_hogeki": {
+  "id": "suiton_suichu_hogeki",
+  "name": "Suiton: Suichū Hōgeki",
+  "name_en": "Water Release: Water Pillar Method Attack",
+  "cost": 48,
+  "cd": 18.0,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "karatachi",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan:karatachi",
+  "desc": "Sopanın kancasıyla rakibi havaya atar, dört yandan fışkıran su sütunlarıyla vurursun. Elinde Yagura'nın sopası olmalı.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "ninjutsu",
+  "shape": "melee",
+  "range": "Short",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm Generations",
+  "meaning": "Su Salımı: Su Sütunu Saldırısı",
+  "need": "weapon:yagura_sopa"
+ },
+ "suiton_suijun": {
+  "id": "suiton_suijun",
+  "name": "Suiton: Suijun",
+  "name_en": "Water Release: Water Shield",
+  "cost": 30,
+  "cd": 16.0,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "karatachi",
+  "level": 12,
+  "rank": 2,
+  "learn": "clan:karatachi",
+  "desc": "Fırlattığın su topu önünde bir kalkana dönüşür: yakındakileri iter, önden gelen atışları durdurur, aldığın darbeleri keser.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "ninjutsu",
+  "shape": "shield",
+  "range": "Short",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm 3",
+  "meaning": "Su Salımı: Su Kalkanı"
+ },
+ "suiton_meikyo_shisui": {
+  "id": "suiton_meikyo_shisui",
+  "name": "Suiton: Meikyō Shisui",
+  "name_en": "Water Release: Clear Mirror Still Water",
+  "cost": 34,
+  "cd": 18.0,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "karatachi",
+  "level": 14,
+  "rank": 2,
+  "learn": "clan:karatachi",
+  "desc": "Önünde berrak, kıpırtısız bir su aynası belirir ve seninle döner: önden gelen atışları durdurur, darbeleri büyük ölçüde keser. Yakında su gerekmez.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "ninjutsu",
+  "shape": "shield",
+  "range": "Short",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Boruto: Naruto Next Generations",
+  "meaning": "Su Salımı: Berrak Ayna Durgun Su"
+ },
+ "shujin_juin": {
+  "id": "shujin_juin",
+  "name": "Shūjin Juin",
+  "name_en": "Prisoner Cursed Seal",
+  "cost": 40,
+  "cd": 22.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "karatachi",
+  "level": 16,
+  "rank": 2,
+  "learn": "clan:karatachi",
+  "desc": "Yakındaki rakibin göğsüne bir lanet mührü basarsın: 7 saniye teknik kullanamaz ve yavaşlar; mühürlüyken kaçmaya çalışırsa mühür yakar.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "fuinjutsu",
+  "shape": "bind",
+  "range": "Short",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Boruto: Naruto Next Generations",
+  "meaning": "Mahkûm Lanet Mührü"
+ },
+ "hiraishin_ren_no_dan": {
+  "id": "hiraishin_ren_no_dan",
+  "name": "Hiraishin: Ren no Dan",
+  "name_en": "Flying Thunder God: Sequential Steps",
+  "cost": 58,
+  "cd": 22.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "namikaze",
+  "level": 26,
+  "rank": 3,
+  "learn": "clan:namikaze",
+  "desc": "Rakibe mühür formülünü koyup tekmeyle havaya kaldırırsın; arkasına ışınlanıp Rasengan'la yere çakar, düşen rakibin yanına yeniden ışınlanıp yüklü Rasengan'la yere gömersin.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 1.0,
+  "category": "space_time",
+  "shape": "melee",
+  "range": "Short",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm 2",
+  "meaning": "Uçan Yıldırım Tanrısı: Art Arda Adımlar"
+ },
+ "senko_enbu_ten_no_dan": {
+  "id": "senko_enbu_ten_no_dan",
+  "name": "Senkō Enbu: Ten no Dan",
+  "name_en": "Flash Swallow Dance: Heaven Step",
+  "cost": 52,
+  "cd": 20.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "namikaze",
+  "level": 22,
+  "rank": 3,
+  "learn": "clan:namikaze",
+  "desc": "Rakibi tekmeyle havaya kaldırıp çevresine Hiraishin kunaileri fırlatırsın; kunailer arasında ışınlanıp vurur, en sonda tepesinde belirip kunaiyi saplarsın.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "space_time",
+  "shape": "melee",
+  "range": "Short",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm Generations",
+  "meaning": "Şimşek Kırlangıç Dansı: Gök Adımı"
+ },
+ "shunraijin": {
+  "id": "shunraijin",
+  "name": "Shunraijin",
+  "name_en": "Instant Lightning Blade",
+  "cost": 32,
+  "cd": 12.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "namikaze",
+  "level": 14,
+  "rank": 2,
+  "learn": "clan:namikaze",
+  "desc": "Gözle izlenemeyecek hızla rakibin yanından geçerken vurur, arkasında durup kunaiyle kesersin.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "taijutsu",
+  "shape": "melee",
+  "range": "Short, Mid",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm Generations",
+  "meaning": "Anlık Şimşek Bıçağı"
+ },
+ "raiko": {
+  "id": "raiko",
+  "name": "Raikō",
+  "name_en": "Lightning Flash",
+  "cost": 36,
+  "cd": 13.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "namikaze",
+  "level": 14,
+  "rank": 2,
+  "learn": "clan:namikaze",
+  "desc": "Hiraishin kunaisiyle art arda kesikler ve dönen tekmeler; sıçrayıp diziyle çeneye vurur, dönen topuk tekmesiyle yere indirirsin.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "taijutsu",
+  "shape": "melee",
+  "range": "Short",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm 3",
+  "meaning": "Şimşek Işığı"
+ },
+ "kiiroi_senko": {
+  "id": "kiiroi_senko",
+  "name": "Kiiroi Senkō",
+  "name_en": "Yellow Flash",
+  "cost": 54,
+  "cd": 21.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "namikaze",
+  "level": 22,
+  "rank": 3,
+  "learn": "clan:namikaze",
+  "desc": "Rasengan'la rakibi havaya savurur, arkasına bir Hiraishin kunaisi atarsın; oraya ışınlanıp sırtına büyüyen ikinci bir Rasengan vurur, yere çakarsın.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "space_time",
+  "shape": "melee",
+  "range": "Short",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm 4",
+  "meaning": "Sarı Şimşek"
+ },
+ "jikukan_rasenrengan": {
+  "id": "jikukan_rasenrengan",
+  "name": "Jikūkan: Rasenrengan",
+  "name_en": "Space–Time: Spiralling Serial Spheres",
+  "cost": 60,
+  "cd": 22.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "namikaze",
+  "level": 24,
+  "rank": 3,
+  "learn": "clan:namikaze",
+  "desc": "Zikzak çizerek rakibe doğru ışınlanır, iki elindeki birer büyük Rasengan'la aynı anda vurursun.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "space_time",
+  "shape": "melee",
+  "range": "Short, Mid",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm Generations",
+  "meaning": "Uzay-Zaman: Sarmal Seri Küreler"
+ },
+ "jikukan_ninjutsu_shinsoku": {
+  "id": "jikukan_ninjutsu_shinsoku",
+  "name": "Jikūkan Ninjutsu: Shinsoku",
+  "name_en": "Space–Time Ninjutsu: Godspeed",
+  "cost": 34,
+  "cd": 12.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "namikaze",
+  "level": 16,
+  "rank": 2,
+  "learn": "clan:namikaze",
+  "desc": "Rakibe Hiraishin kunaisi atarsın; kunai isabet edince mührüne ışınlanıp arkasından yeniden saplarsın.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "space_time",
+  "shape": "projectile",
+  "range": "Short, Mid, Long",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm Generations",
+  "meaning": "Uzay-Zaman Ninjutsu: Tanrı Hızı"
+ },
+ "chokokyaku": {
+  "id": "chokokyaku",
+  "name": "Chōkōkyaku",
+  "name_en": "Super Light Foot",
+  "cost": 26,
+  "cd": 10.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "namikaze",
+  "level": 10,
+  "rank": 1,
+  "learn": "clan:namikaze",
+  "desc": "Rakibe atılıp dizine tekme atar, kayarak arkasına geçer ve aynı dize vurup onu havaya uçurursun.",
+  "seals": [],
+  "canon_rank": "C",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "taijutsu",
+  "shape": "melee",
+  "range": "Short, Mid",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm Generations",
+  "meaning": "Süper Hafif Ayak"
+ },
+ "ryubikyaku": {
+  "id": "ryubikyaku",
+  "name": "Ryūbikyaku",
+  "cost": 34,
+  "cd": 12.0,
+  "element": "",
+  "clan": "momochi",
+  "level": 12,
+  "rank": 2,
+  "learn": "clan:momochi",
+  "desc": "Kubikiribōchō ile rakibi yatay biçer, dönüp tekmeyle savurursun. Elinde Kubikiribōchō olmalı.",
+  "seals": [],
+  "canon_rank": "B",
+  "category": "taijutsu",
+  "shape": "melee",
+  "elements": [],
+  "tier": 3,
+  "dmg_k": 1.0,
+  "meaning": "Ejder Kuyruğu Ayağı",
+  "need": "weapon:kubikiribocho",
+  "name_en": "Dragon Tail Foot",
+  "signature": false,
+  "range": "Short",
+  "series": "Naruto: Ultimate Ninja",
+  "natures": []
+ },
+ "tenkoku": {
+  "id": "tenkoku",
+  "name": "Tenkoku",
+  "cost": 44,
+  "cd": 16.0,
+  "element": "",
+  "clan": "momochi",
+  "level": 14,
+  "rank": 2,
+  "learn": "clan:momochi",
+  "desc": "Bir tekme, Kubikiribōchō ile art arda kesikler ve rakibi havaya savuran bir yukarı biçme. Elinde Kubikiribōchō olmalı.",
+  "seals": [],
+  "canon_rank": "B",
+  "category": "taijutsu",
+  "shape": "melee",
+  "elements": [],
+  "tier": 3,
+  "dmg_k": 1.0,
+  "meaning": "Gök Kesen",
+  "need": "weapon:kubikiribocho",
+  "name_en": "Heaven Cutter",
+  "signature": false,
+  "range": "Short",
+  "series": "Naruto Shippūden: Ultimate Ninja Storm Generations",
+  "natures": []
+ },
+ "jikoku": {
+  "id": "jikoku",
+  "name": "Jikoku",
+  "cost": 50,
+  "cd": 18.0,
+  "element": "",
+  "clan": "momochi",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan:momochi",
+  "desc": "Bir tekme, dönen çift biçme, dirsek ve yumruk; sonunda baş üstünden inen ağır kesik rakibi geri savurur. Elinde Kubikiribōchō olmalı.",
+  "seals": [],
+  "canon_rank": "A",
+  "category": "taijutsu",
+  "shape": "melee",
+  "elements": [],
+  "tier": 4,
+  "dmg_k": 1.0,
+  "meaning": "Yer Kesen",
+  "need": "weapon:kubikiribocho",
+  "name_en": "Earth Cutter",
+  "signature": false,
+  "range": "Short",
+  "series": "Naruto Shippūden: Ultimate Ninja Storm Generations",
+  "natures": []
+ },
+ "dankoku": {
+  "id": "dankoku",
+  "name": "Dankoku",
+  "cost": 48,
+  "cd": 17.0,
+  "element": "",
+  "clan": "momochi",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan:momochi",
+  "desc": "Kubikiribōchō'yla rakibin önüne sıçrar, kılıcı üstüne indirirsin: altındaki zemin ezilir, çevresi sarsılır. Elinde Kubikiribōchō olmalı.",
+  "seals": [],
+  "canon_rank": "A",
+  "category": "taijutsu",
+  "shape": "aoe",
+  "elements": [],
+  "tier": 4,
+  "dmg_k": 1.0,
+  "meaning": "Kopan Toprak",
+  "need": "weapon:kubikiribocho",
+  "name_en": "Severed Land",
+  "signature": false,
+  "range": "Short, Mid",
+  "series": "Naruto Shippūden: Ultimate Ninja Storm Generations",
+  "natures": []
+ },
+ "suiton_dogo_tatsumaki": {
+  "id": "suiton_dogo_tatsumaki",
+  "name": "Suiton: Dogō Tatsumaki",
+  "name_en": "Water Release: Furious Roaring Tornado",
+  "cost": 66,
+  "cd": 28.0,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "funato",
+  "level": 20,
+  "rank": 3,
+  "learn": "clan:funato",
+  "desc": "Yakındaki sudan dev bir hortum kurarsın; hortumun içinde durup onu yönetirsin. Hortum hedefe yürür, dışarıdakini içine çeker, içeridekini döndürüp savurur, atılanı yutar. Yakında su yoksa yarı güçle çalışır.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "range": "Short, Mid",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Su Salımı: Kükreyen Hortum"
+ },
+ "suiton_teppunokyu": {
+  "id": "suiton_teppunokyu",
+  "name": "Suiton: Teppunokyū",
+  "name_en": "Water Release: Imminent Danger",
+  "cost": 46,
+  "cd": 17.0,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "funato",
+  "level": 18,
+  "rank": 1,
+  "learn": "clan:funato",
+  "desc": "Güçlü bir su akıntısı girdaba dönüşür; keskin dönüşlerle birkaç hedefi sırayla yutar.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "ninjutsu",
+  "shape": "projectile",
+  "range": "Short, Mid, Long",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Su Salımı: Yakın Tehlike"
+ },
+ "suiton_teppunokyu_kaiten": {
+  "id": "suiton_teppunokyu_kaiten",
+  "name": "Suiton: Teppunokyū: Kaiten",
+  "name_en": "Water Release: Imminent Danger: Revolving",
+  "cost": 44,
+  "cd": 16.0,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "funato",
+  "level": 18,
+  "rank": 1,
+  "learn": "clan:funato",
+  "desc": "Girdabın üstüne binersin; silahını tutup girdapla birlikte dönerek hedefe atılır, art arda biçersin.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "ninjutsu",
+  "shape": "melee",
+  "range": "Short, Mid",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Su Salımı: Yakın Tehlike — Dönüş"
+ },
+ "suiton_suisho": {
+  "id": "suiton_suisho",
+  "name": "Suiton: Suishō",
+  "name_en": "Water Release: Jadeite",
+  "cost": 28,
+  "cd": 10.0,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "funato",
+  "level": 12,
+  "rank": 2,
+  "learn": "clan:funato",
+  "desc": "Avucunu hedefe çevirirsin: güçlü bir su akıntısı önündekileri uzağa iter ve ıslatır.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "ninjutsu",
+  "shape": "beam",
+  "range": "Short, Mid",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Su Salımı: Yeşim"
+ },
+ "ketsueki_henkan_no_jutsu": {
+  "id": "ketsueki_henkan_no_jutsu",
+  "name": "Ketsueki Henkan no Jutsu",
+  "name_en": "Water Release: Blood Conversion Technique",
+  "cost": 64,
+  "cd": 34.0,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "funato",
+  "level": 26,
+  "rank": 3,
+  "learn": "clan:funato",
+  "desc": "Yakındaki hedefin kanını çekip saf suya çevirirsin; kurban kuruyup büzülür, sen iyileşirsin. Kanı tükenen kurban ölür; senden çok güçlü olan ölmez, ağır yara alır.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 1.0,
+  "category": "ninjutsu",
+  "shape": "bind",
+  "range": "Short",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": true,
+  "series": "Naruto Shippūden",
+  "meaning": "Kan Dönüştürme"
+ },
+ "kokumu_gakure_no_jutsu": {
+  "id": "kokumu_gakure_no_jutsu",
+  "name": "Kokumu Gakure no Jutsu",
+  "name_en": "Hiding in Black Fog Technique",
+  "cost": 30,
+  "cd": 20.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "funato",
+  "level": 8,
+  "rank": 1,
+  "learn": "clan:funato",
+  "desc": "Bedeninden kara bir sis salarsın: sis seninle akar, rakipler seni kaybeder; daha hızlı hareket edersin.",
+  "seals": [],
+  "canon_rank": "C",
+  "tier": 2,
+  "dmg_k": 1.0,
+  "category": "ninjutsu",
+  "shape": "buff",
+  "range": "Short",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Kara Sise Gizlenme"
+ },
+ "hankyotei_no_jutsu": {
+  "id": "hankyotei_no_jutsu",
+  "name": "Hankyōtei no Jutsu",
+  "name_en": "Echolocation Technique",
+  "cost": 20,
+  "cd": 18.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "funato",
+  "level": 8,
+  "rank": 1,
+  "learn": "clan:funato",
+  "desc": "Yayının telini çekip yankıları dinlersin: 40 metre içindeki rakiplerin yeri belli olur, 10 saniye fazla hasar alırlar. Yağmurda gök gürültüsü yankıları bozar.",
+  "seals": [],
+  "canon_rank": "C",
+  "tier": 2,
+  "dmg_k": 1.0,
+  "category": "ninjutsu",
+  "shape": "buff",
+  "range": "Short, Mid, Long",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Yankıyla Bulma"
+ },
+ "magen_hanagasumi": {
+  "id": "magen_hanagasumi",
+  "name": "Magen: Hanagasumi",
+  "name_en": "Demonic Illusion: Flower Mist",
+  "cost": 48,
+  "cd": 20.0,
+  "element": "",
+  "elements": [],
+  "natures": [
+   "inton"
+  ],
+  "clan": "yuhi",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan:yuhi",
+  "desc": "Rakibi dev bir çiçek tomurcuğuna hapsedersin; tomurcuk çiçekli bir patlamayla dağılır. Göz göze gelmeyen ya da Sharingan taşıyan hedefte tutmaz.",
+  "seals": [
+   "Inu",
+   "Mi",
+   "Saru",
+   "Ushi",
+   "Tora"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "genjutsu",
+  "shape": "bind",
+  "range": "Short, Mid",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto: Ultimate Ninja",
+  "meaning": "Şeytani Yanılsama: Çiçek Sisi"
+ },
+ "magen_jubaku_messatsu": {
+  "id": "magen_jubaku_messatsu",
+  "name": "Magen: Jubaku Messatsu",
+  "name_en": "Demonic Illusion: Tree Binding Destruction",
+  "cost": 54,
+  "cd": 22.0,
+  "element": "",
+  "elements": [],
+  "natures": [
+   "inton"
+  ],
+  "clan": "yuhi",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan:yuhi",
+  "desc": "Hedef, sırtında yükselen yanılsama ağacına bağlanır; sonra dört bir yandan kunailer saplanır. Göz göze gelmeyen ya da Sharingan taşıyan hedefte tutmaz.",
+  "seals": [
+   "Inu",
+   "Mi",
+   "Saru",
+   "Ushi",
+   "Tora"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "genjutsu",
+  "shape": "bind",
+  "range": "Short, Mid",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto: Ultimate Ninja",
+  "meaning": "Şeytani Yanılsama: Ağaç Bağı İmhası"
+ },
+ "magen_juto": {
+  "id": "magen_juto",
+  "name": "Magen: Jutō",
+  "name_en": "Demonic Illusion: Tree Tower",
+  "cost": 60,
+  "cd": 26.0,
+  "element": "",
+  "elements": [],
+  "natures": [
+   "inton"
+  ],
+  "clan": "yuhi",
+  "level": 20,
+  "rank": 3,
+  "learn": "clan:yuhi",
+  "desc": "Rakip bir kuleye hapsolduğu yanılsamaya düşer. Kulenin her yanındaki patlayıcı etiketler tutuşur, kule üstüne çöker.",
+  "seals": [
+   "Inu",
+   "Mi",
+   "Saru",
+   "Ushi",
+   "Tora"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "genjutsu",
+  "shape": "bind",
+  "range": "Short, Mid",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto: Ultimate Ninja",
+  "meaning": "Şeytani Yanılsama: Ağaç Kulesi"
+ },
+ "kaki_buyo": {
+  "id": "kaki_buyo",
+  "name": "Kaki Buyō",
+  "name_en": "Flower Dance",
+  "cost": 40,
+  "cd": 16.0,
+  "element": "",
+  "elements": [],
+  "natures": [
+   "inton"
+  ],
+  "clan": "yuhi",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan:yuhi",
+  "desc": "Çevrende dönen bir kiraz çiçeği klonu yapraklardan bir bariyer kurar: yaklaşana art arda vurur, havaya kaldırır; atılanı savurur.",
+  "seals": [
+   "Inu",
+   "Mi",
+   "Saru",
+   "Ushi",
+   "Tora"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "genjutsu",
+  "shape": "aoe",
+  "range": "Short",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto: Ultimate Ninja",
+  "meaning": "Çiçek Dansı"
+ },
+ "genjutsu_shinkiro": {
+  "id": "genjutsu_shinkiro",
+  "name": "Genjutsu: Shinkirō",
+  "name_en": "Genjutsu: Mirage",
+  "cost": 46,
+  "cd": 18.0,
+  "element": "",
+  "elements": [],
+  "natures": [
+   "inton"
+  ],
+  "clan": "yuhi",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan:yuhi",
+  "desc": "Ayağını yere vurursun: çevreni pembe yapraklar ve pembe bir sis sarar, rakipler seni kaybeder. Hedef görünmeyen bir yumrukla savrulur; havadayken önünde belirip vurursun.",
+  "seals": [
+   "Inu",
+   "Mi",
+   "Saru",
+   "Ushi",
+   "Tora"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "genjutsu",
+  "shape": "melee",
+  "range": "Short, Mid",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto: Ultimate Ninja",
+  "meaning": "Genjutsu: Serap"
+ },
+ "sansai": {
+  "id": "sansai",
+  "name": "Sansai",
+  "name_en": "Three Colouring",
+  "cost": 34,
+  "cd": 13.0,
+  "element": "",
+  "elements": [],
+  "natures": [
+   "inton"
+  ],
+  "clan": "yuhi",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan:yuhi",
+  "desc": "Rakibe bir kiraz yaprağı sütunu yollarsın; sütun onu göğe savurur.",
+  "seals": [
+   "Inu",
+   "Mi",
+   "Saru",
+   "Ushi",
+   "Tora"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "ninjutsu",
+  "shape": "projectile",
+  "range": "Short, Mid",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto: Ultimate Ninja",
+  "meaning": "Üç Renk"
+ },
+ "yukoju": {
+  "id": "yukoju",
+  "name": "Yūkōju",
+  "name_en": "Scarlet Invitation",
+  "cost": 32,
+  "cd": 12.0,
+  "element": "",
+  "elements": [],
+  "natures": [
+   "inton"
+  ],
+  "clan": "yuhi",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan:yuhi",
+  "desc": "Bir dirsek darbesi ve iki tekme; ardından yerden fışkıran kiraz yaprakları rakibi havaya kaldırır.",
+  "seals": [
+   "Inu",
+   "Mi",
+   "Saru",
+   "Ushi",
+   "Tora"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "taijutsu",
+  "shape": "melee",
+  "range": "Short",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto: Ultimate Ninja",
+  "meaning": "Kızıl Davet"
  },
  "mazo_no_kusari": {
   "id": "mazo_no_kusari",
@@ -5710,6 +7977,475 @@
   "series": "Naruto Shippūden",
   "meaning": "Mayın Yumruğu"
  },
+ "bakuton_sokubakukyaku": {
+  "id": "bakuton_sokubakukyaku",
+  "name": "Bakuton: Sokubakukyaku",
+  "name_en": "Explosion Release: Quick Explosive Kick",
+  "cost": 30,
+  "cd": 10.0,
+  "element": "bakuton",
+  "elements": [
+   "bakuton"
+  ],
+  "natures": [
+   "bakuton"
+  ],
+  "clan": "",
+  "level": 14,
+  "rank": 2,
+  "learn": "kg:bakuton",
+  "desc": "Ayağının altında bir patlama yaratırsın; patlama seni hedefe fırlatır ve tekmenin gücünü katlar.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "melee",
+  "range": "Short, Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Explosion Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Mobile",
+  "meaning": "Hızlı Patlayan Tekme"
+ },
+ "bakuton_shunkan_shokyaku": {
+  "id": "bakuton_shunkan_shokyaku",
+  "name": "Bakuton: Shunkan Shōkyaku",
+  "name_en": "Explosion Release: Instantaneous Incineration",
+  "cost": 70,
+  "cd": 30.0,
+  "element": "bakuton",
+  "elements": [
+   "bakuton"
+  ],
+  "natures": [
+   "bakuton"
+  ],
+  "clan": "",
+  "level": 30,
+  "rank": 3,
+  "learn": "kg:bakuton",
+  "desc": "Patlayıcı chakranın hepsini yumruğunda toplarsın. Vurduğunda patlama olmaz: beden bir anda kül olur. Toplaması uzun sürer.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "melee",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Explosion Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Mobile",
+  "meaning": "Anlık Yakıp Kül Etme"
+ },
+ "bakuton_enmakuken": {
+  "id": "bakuton_enmakuken",
+  "name": "Bakuton: Enmakuken",
+  "name_en": "Explosion Release: Smokescreen Fist",
+  "cost": 20,
+  "cd": 9.0,
+  "element": "bakuton",
+  "elements": [
+   "bakuton"
+  ],
+  "natures": [
+   "bakuton"
+  ],
+  "clan": "",
+  "level": 8,
+  "rank": 1,
+  "learn": "kg:bakuton",
+  "desc": "Mayın Yumruğu'nun yıkıcı olmayan hâli: patlama yerine duman bulutu çıkar. Öldürmez; sersemletir, dumanda kalan yavaşlar.",
+  "seals": [],
+  "canon_rank": "C",
+  "tier": 2,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "melee",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Explosion Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Duman Perdesi Yumruğu"
+ },
+ "bakuton_jirai_renken": {
+  "id": "bakuton_jirai_renken",
+  "name": "Bakuton: Jirai Renken",
+  "name_en": "Explosion Release: Landmine Barrage",
+  "cost": 44,
+  "cd": 16.0,
+  "element": "bakuton",
+  "elements": [
+   "bakuton"
+  ],
+  "natures": [
+   "bakuton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:bakuton",
+  "desc": "Art arda yumruklar; her biri bedene patlamayan bir mayın bırakır. Sonra hepsi sırayla içeriden patlar.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "melee",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Explosion Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Mayın Yumruk Yağmuru"
+ },
+ "bakuton_gansaiha": {
+  "id": "bakuton_gansaiha",
+  "name": "Bakuton: Gansaiha",
+  "name_en": "Explosion Release: Rock Shatter Wave",
+  "cost": 38,
+  "cd": 13.0,
+  "element": "bakuton",
+  "elements": [
+   "bakuton"
+  ],
+  "natures": [
+   "bakuton"
+  ],
+  "clan": "",
+  "level": 14,
+  "rank": 2,
+  "learn": "kg:bakuton",
+  "desc": "Yumruğunu yere indirir, toprağı sökersin; patlayıcı chakra yüklü kaya parçaları öne saçılır ve değdiği yerde patlar.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "projectile",
+  "range": "Short, Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Explosion Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Kaya Kıran Dalga"
+ },
+ "bakuton_hanno_soko": {
+  "id": "bakuton_hanno_soko",
+  "name": "Bakuton: Hannō Sōkō",
+  "name_en": "Explosion Release: Reactive Armour",
+  "cost": 40,
+  "cd": 24.0,
+  "element": "bakuton",
+  "elements": [
+   "bakuton"
+  ],
+  "natures": [
+   "bakuton"
+  ],
+  "clan": "",
+  "level": 14,
+  "rank": 2,
+  "learn": "kg:bakuton",
+  "desc": "Patlayıcı chakra derinde bekler: 7 saniye boyunca her darbe aldığında bedenin çevresine patlar.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aura",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Explosion Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Tepkili Zırh"
+ },
+ "bakuton_dai_jiraiken": {
+  "id": "bakuton_dai_jiraiken",
+  "name": "Bakuton: Dai Jiraiken",
+  "name_en": "Explosion Release: Great Landmine Fist",
+  "cost": 72,
+  "cd": 30.0,
+  "element": "bakuton",
+  "elements": [
+   "bakuton"
+  ],
+  "natures": [
+   "bakuton"
+  ],
+  "clan": "",
+  "level": 30,
+  "rank": 3,
+  "learn": "kg:bakuton",
+  "desc": "Sıçrayıp yumruğunu yere indirirsin. Patlama yönlüdür: sana dönmez, önündeki geniş yay üç kol hâlinde patlar.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "range": "Short, Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Explosion Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Büyük Mayın Yumruğu"
+ },
+ "jinton_bunretsu_genkai_hakuri": {
+  "id": "jinton_bunretsu_genkai_hakuri",
+  "name": "Jinton: Bunretsu Genkai Hakuri no Jutsu",
+  "name_en": "Dust Release: Split Detachment of the Primitive World Technique",
+  "cost": 80,
+  "cd": 30.0,
+  "element": "jinton",
+  "elements": [
+   "jinton"
+  ],
+  "natures": [
+   "jinton"
+  ],
+  "clan": "",
+  "level": 46,
+  "rank": 3,
+  "learn": "kg:jinton",
+  "desc": "İkiye bölünürsün. Biri hedefi havaya atar, öteki havada belirir; iki yarım iki yandan toz ışını yollar ve hedef ortada kalır.",
+  "seals": [
+   "Tora",
+   "Ne",
+   "Tori"
+  ],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "meaning": "Bölünmüş İlkel Dünyadan Ayrılış",
+  "signature": false,
+  "range": "Short, Mid",
+  "series": "Naruto Shippūden: Ultimate Ninja Storm",
+  "requires": {
+   "kekkei_genkai": [
+    "Dust Release"
+   ]
+  }
+ },
+ "jinton_genkai_hakuri_ryoiki": {
+  "id": "jinton_genkai_hakuri_ryoiki",
+  "name": "Jinton: Genkai Hakuri no Jutsu — Ryōiki",
+  "name_en": "Dust Release: Detachment of the Primitive World Technique Area",
+  "cost": 76,
+  "cd": 28.0,
+  "element": "jinton",
+  "elements": [
+   "jinton"
+  ],
+  "natures": [
+   "jinton"
+  ],
+  "clan": "",
+  "level": 46,
+  "rank": 3,
+  "learn": "kg:jinton",
+  "desc": "Taş sütunlar hedefe çarpar, taş bir yumruk üstüne iner; sonunda toz silindiri içinde kalanı siler.",
+  "seals": [
+   "Tora",
+   "Ne",
+   "Tori"
+  ],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "meaning": "İlkel Dünyadan Ayrılış: Bölge",
+  "signature": false,
+  "range": "Short, Mid",
+  "series": "Naruto Shippūden: Ultimate Ninja Storm",
+  "requires": {
+   "kekkei_genkai": [
+    "Dust Release"
+   ]
+  }
+ },
+ "jinton_chohotai": {
+  "id": "jinton_chohotai",
+  "name": "Jinton: Chōhōtai",
+  "name_en": "Dust Release: Cuboid",
+  "cost": 64,
+  "cd": 24.0,
+  "element": "jinton",
+  "elements": [
+   "jinton"
+  ],
+  "natures": [
+   "jinton"
+  ],
+  "clan": "",
+  "level": 46,
+  "rank": 3,
+  "learn": "kg:jinton",
+  "desc": "Elinden uzun bir prizma ışın çıkar ve önünü yatay süpürür; değdiği her şey toza döner.",
+  "seals": [
+   "Tora",
+   "Ne",
+   "Tori"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "beam",
+  "meaning": "Toz Prizması",
+  "signature": false,
+  "range": "Short, Mid, Long",
+  "requires": {
+   "kekkei_genkai": [
+    "Dust Release"
+   ]
+  }
+ },
+ "jinton_sosai": {
+  "id": "jinton_sosai",
+  "name": "Jinton: Sōsai",
+  "name_en": "Dust Release: Offset",
+  "cost": 46,
+  "cd": 20.0,
+  "element": "jinton",
+  "elements": [
+   "jinton"
+  ],
+  "natures": [
+   "jinton"
+  ],
+  "clan": "",
+  "level": 46,
+  "rank": 3,
+  "learn": "kg:jinton",
+  "desc": "Toz Salınımına ancak Toz Salınımıyla karşı konur: önünde dönen küp 2.5 saniye boyunca gelen teknikleri toza çevirir, içine giren de dağılır.",
+  "seals": [
+   "Tora",
+   "Ne",
+   "Tori"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "shield",
+  "meaning": "Denkleştirme",
+  "signature": false,
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Dust Release"
+   ]
+  }
+ },
+ "jinton_kyu": {
+  "id": "jinton_kyu",
+  "name": "Jinton: Kyū",
+  "name_en": "Dust Release: Sphere",
+  "cost": 60,
+  "cd": 22.0,
+  "element": "jinton",
+  "elements": [
+   "jinton"
+  ],
+  "natures": [
+   "jinton"
+  ],
+  "clan": "",
+  "level": 46,
+  "rank": 3,
+  "learn": "kg:jinton",
+  "desc": "Ağır ağır ilerleyen bir toz küresi yollarsın; içinden geçen her şey moleküllerine ayrılır.",
+  "seals": [
+   "Tora",
+   "Ne",
+   "Tori"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "projectile",
+  "meaning": "Toz Küresi",
+  "signature": false,
+  "range": "Short, Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Dust Release"
+   ]
+  }
+ },
+ "jinton_sen": {
+  "id": "jinton_sen",
+  "name": "Jinton: Sen",
+  "name_en": "Dust Release: Line",
+  "cost": 34,
+  "cd": 10.0,
+  "element": "jinton",
+  "elements": [
+   "jinton"
+  ],
+  "natures": [
+   "jinton"
+  ],
+  "clan": "",
+  "level": 46,
+  "rank": 3,
+  "learn": "kg:jinton",
+  "desc": "Kalem inceliğinde bir toz ışını. Az siler ama çabuk çıkar; savunmayı deler, hattaki herkesten geçer.",
+  "seals": [
+   "Tora",
+   "Ne",
+   "Tori"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "beam",
+  "meaning": "Toz Çizgisi",
+  "signature": false,
+  "range": "Short, Mid, Long",
+  "requires": {
+   "kekkei_genkai": [
+    "Dust Release"
+   ]
+  }
+ },
  "kibaku_nendo": {
   "id": "kibaku_nendo",
   "name": "Kibaku Nendo",
@@ -5944,7 +8680,7 @@
   "clan": "",
   "level": 10,
   "rank": 2,
-  "learn": "trainer:konoha",
+  "learn": "eye:mangekyo",
   "desc": "Rüzgârla desteklenen kasırga ateş.",
   "seals": [
    "Tora"
@@ -8674,6 +11410,292 @@
   "series": "Naruto Part I",
   "meaning": "Şimşek Kesici"
  },
+ "raikiri_soraishin": {
+  "id": "raikiri_soraishin",
+  "name": "Raikiri: Sōraishin",
+  "name_en": "Lightning Cutter: Double Lightning Quake",
+  "cost": 72,
+  "cd": 28.0,
+  "element": "raiton",
+  "elements": [
+   "raiton"
+  ],
+  "natures": [
+   "raiton"
+  ],
+  "clan": "hatake",
+  "level": 30,
+  "rank": 3,
+  "learn": "clan:hatake",
+  "desc": "Toprağın altından çıkıp çeneye vurur, geri sıçrarsın. Raikiri'yi iki eline bölersin: biri hedefi havaya atar, havada zikzak vurursun, öteki tepeden yere çakar.",
+  "seals": [
+   "Ushi",
+   "U",
+   "Saru"
+  ],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 1.0,
+  "category": "ninjutsu",
+  "shape": "melee",
+  "range": "Short, Mid",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm",
+  "meaning": "Çifte Şimşek Sarsıntısı"
+ },
+ "kage_bunshin_raikiriso": {
+  "id": "kage_bunshin_raikiriso",
+  "name": "Kage Bunshin: Raikirisō",
+  "name_en": "Shadow Clone: Twin Lightning Cutter",
+  "cost": 48,
+  "cd": 18.0,
+  "element": "raiton",
+  "elements": [
+   "raiton"
+  ],
+  "natures": [
+   "raiton"
+  ],
+  "clan": "hatake",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan:hatake",
+  "desc": "Bir gölge klonu yollarsın; klon iki elinde birer Raikiri ile hedefe dalar. Klon yolda vurulursa dağılır.",
+  "seals": [
+   "Ushi",
+   "U",
+   "Saru"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "ninjutsu",
+  "shape": "melee",
+  "range": "Short, Mid, Long",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm",
+  "meaning": "Gölge Klonu: Çift Raikiri"
+ },
+ "hakkojin": {
+  "id": "hakkojin",
+  "name": "Hakkōjin",
+  "cost": 34,
+  "cd": 12.0,
+  "element": "",
+  "clan": "hatake",
+  "level": 14,
+  "rank": 2,
+  "learn": "clan",
+  "desc": "Beyaz Işık Chakra Kılıcı ile art arda dört kesik, sonunda sıçrayıp yukarıdan aşağı tek kesik. Kılıç elinde olmalı.",
+  "seals": [],
+  "canon_rank": "B",
+  "category": "kenjutsu",
+  "shape": "melee",
+  "elements": [],
+  "tier": 3,
+  "dmg_k": 1.0,
+  "meaning": "Beyaz Işık Ağzı",
+  "need": "weapon:hakko_chakura_to",
+  "name_en": "White Light Blade",
+  "signature": false,
+  "range": "Short",
+  "series": "Naruto Shippūden: Ultimate Ninja Storm"
+ },
+ "doton_tsuchi_nami_no_jutsu": {
+  "id": "doton_tsuchi_nami_no_jutsu",
+  "name": "Doton: Tsuchi Nami no Jutsu",
+  "name_en": "Earth Release: Earth Wave Technique",
+  "cost": 40,
+  "cd": 16.0,
+  "element": "doton",
+  "elements": [
+   "doton"
+  ],
+  "natures": [
+   "doton"
+  ],
+  "clan": "hatake",
+  "level": 14,
+  "rank": 2,
+  "learn": "clan:hatake",
+  "desc": "Avucunu yere vurursun; zemin dalga gibi kabarıp öne ilerler. Az hasar verir ama önündekilerin dengesini bozar, üçüncü dalga yere serer.",
+  "seals": [
+   "Ushi",
+   "U",
+   "Saru"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "range": "Short, Mid",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Toprak Dalgası"
+ },
+ "suiton_gosuikyaku_no_jutsu": {
+  "id": "suiton_gosuikyaku_no_jutsu",
+  "name": "Suiton: Gōsuikyaku no Jutsu",
+  "name_en": "Water Release: Great Water Leg Technique",
+  "cost": 30,
+  "cd": 14.0,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "hozuki",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan:hozuki",
+  "desc": "Bedenindeki suyu bacaklarına pompalarsın: kaslar şişer. Düz hatta fırlayıp ezici bir tekme atarsın; 10 saniye daha hızlı koşar, daha sert vurursun.",
+  "seals": [
+   "Tatsu",
+   "Tori",
+   "Inu"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "hiden",
+  "shape": "buff",
+  "range": "Short, Mid",
+  "requires": {
+   "clan_or_lineage": [
+    "Hōzuki Clan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Büyük Su Bacağı"
+ },
+ "mizu_tatsumaki": {
+  "id": "mizu_tatsumaki",
+  "name": "Mizu Tatsumaki",
+  "name_en": "Tornado of Water",
+  "cost": 42,
+  "cd": 18.0,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "hozuki",
+  "level": 14,
+  "rank": 2,
+  "learn": "clan:hozuki",
+  "desc": "Çevrende dönen bir su girdabı kurarsın. Hem bariyerdir hem saldırı: yaklaşanı savurur, dışarıdan atılanı yutar; sonunda dışa patlar.",
+  "seals": [
+   "Tatsu",
+   "Tori",
+   "Inu"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "hiden",
+  "shape": "aura",
+  "range": "Short, Mid",
+  "requires": {
+   "clan_or_lineage": [
+    "Hōzuki Clan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto",
+  "meaning": "Su Hortumu"
+ },
+ "dekisui_suiho_no_jutsu": {
+  "id": "dekisui_suiho_no_jutsu",
+  "name": "Dekisui Suihō no Jutsu",
+  "name_en": "Drowning Water Blob Technique",
+  "cost": 36,
+  "cd": 20.0,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "hozuki",
+  "level": 14,
+  "rank": 2,
+  "learn": "clan:hozuki",
+  "desc": "Bedeninin bir kısmını suya çevirirsin; su hedefin başını sarar ve nefes aldırmaz. Hedef teknik kullanamaz, sonuna dek tutulursa bayılır. Uzaklaşırsan su dağılır.",
+  "seals": [
+   "Tatsu",
+   "Tori",
+   "Inu"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "hiden",
+  "shape": "bind",
+  "range": "Short, Mid",
+  "requires": {
+   "clan_or_lineage": [
+    "Hōzuki Clan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Boğan Su Damlası"
+ },
+ "suiton_suika_bakuso_no_jutsu": {
+  "id": "suiton_suika_bakuso_no_jutsu",
+  "name": "Suiton: Suika Bakusō no Jutsu",
+  "name_en": "Water Release: Hydrification Exploding Funeral Technique",
+  "cost": 64,
+  "cd": 26.0,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "hozuki",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan:hozuki",
+  "desc": "Koca bir su gölüne erirsin; göl hedefe akar, onu içine alır ve ayaklarının altında patlar. Bedenin su olduğundan sen zarar görmezsin.",
+  "seals": [
+   "Tatsu",
+   "Tori",
+   "Inu"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "hiden",
+  "shape": "aoe",
+  "range": "Short, Mid",
+  "requires": {
+   "clan_or_lineage": [
+    "Hōzuki Clan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm",
+  "meaning": "Suya Dönüp Patlayan Cenaze"
+ },
  "raisen": {
   "id": "raisen",
   "name": "Raisen",
@@ -9156,6 +12178,265 @@
   "kinjutsu": false,
   "series": "Naruto Shippūden",
   "meaning": "Altın Toz Cenaze"
+ },
+ "jiton_jakuho_no_sojin": {
+  "id": "jiton_jakuho_no_sojin",
+  "name": "Jiton: Jakuhō no Sōjin",
+  "name_en": "Magnet Release: Conserving Bee Twin Blades",
+  "cost": 34,
+  "cd": 14.0,
+  "element": "jiton",
+  "elements": [
+   "jiton"
+  ],
+  "natures": [
+   "jiton"
+  ],
+  "clan": "",
+  "level": 14,
+  "rank": 2,
+  "learn": "kg:jiton",
+  "desc": "Mıknatısladığın shurikenleri fırlatırsın. Biri değse, hatta sıyırsa hedef mıknatıslanır; artık attığın her şey ona çekilir ve savuşturulamaz.",
+  "seals": [
+   "Hitsuji"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 0.9,
+  "category": "kekkei_genkai",
+  "shape": "projectile",
+  "range": "Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Magnet Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Arı Saklayan Çifte Bıçak"
+ },
+ "satetsu_no_makingu": {
+  "id": "satetsu_no_makingu",
+  "name": "Satetsu no Mākingu",
+  "name_en": "Iron Sand Marking",
+  "cost": 20,
+  "cd": 18.0,
+  "element": "jiton",
+  "elements": [
+   "jiton"
+  ],
+  "natures": [
+   "jiton"
+  ],
+  "clan": "",
+  "level": 8,
+  "rank": 1,
+  "learn": "kg:jiton",
+  "desc": "Hedefe demir kumundan bir iz yapıştırırsın. İz durdukça fırlattığın her şey mıknatısla ona çekilir ve hedef fazla hasar alır.",
+  "seals": [
+   "Hitsuji"
+  ],
+  "canon_rank": "C",
+  "tier": 2,
+  "dmg_k": 0.5,
+  "category": "kekkei_genkai",
+  "shape": "debuff",
+  "range": "Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Magnet Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Boruto: Naruto Next Generations",
+  "meaning": "Demir Kumu İşareti"
+ },
+ "jiton_sakin_taisoso": {
+  "id": "jiton_sakin_taisoso",
+  "name": "Jiton: Sakin Taisōsō",
+  "name_en": "Magnet Release: Gold Dust Imperial Funeral Sending",
+  "cost": 62,
+  "cd": 26.0,
+  "element": "jiton",
+  "elements": [
+   "jiton"
+  ],
+  "natures": [
+   "jiton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:jiton",
+  "desc": "Altın tozu hedefi bir tepenin içine gömer; sonra tepe kendi üstüne çöker ve içindekini ezer.",
+  "seals": [
+   "Hitsuji"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "range": "Long",
+  "requires": {
+   "kekkei_genkai": [
+    "Magnet Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm",
+  "meaning": "Altın Tozu İmparatorluk Cenaze Töreni"
+ },
+ "sakin_kaihodama": {
+  "id": "sakin_kaihodama",
+  "name": "Sakin Kaihōdama",
+  "name_en": "Gold Dust World Method Ball",
+  "cost": 48,
+  "cd": 18.0,
+  "element": "jiton",
+  "elements": [
+   "jiton"
+  ],
+  "natures": [
+   "jiton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:jiton",
+  "desc": "Altın tozundan bir kütle hedefe gider ve içinden her yöne uzun dikenler fışkırır.",
+  "seals": [
+   "Hitsuji"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "projectile",
+  "range": "Short, Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Magnet Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm",
+  "meaning": "Altın Tozu Dünya Düzeni Küresi"
+ },
+ "kurogane_no_kobushi": {
+  "id": "kurogane_no_kobushi",
+  "name": "Kurogane no Kobushi",
+  "name_en": "Black Iron Fist",
+  "cost": 52,
+  "cd": 20.0,
+  "element": "jiton",
+  "elements": [
+   "jiton"
+  ],
+  "natures": [
+   "jiton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:jiton",
+  "desc": "Demir kumundan iki dev el oluşur. Biri yumruk olup uzaktaki hedefe iner, öteki önünde kalkan olup fırlatılanları durdurur.",
+  "seals": [
+   "Hitsuji"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "melee",
+  "range": "Short, Mid, Long",
+  "requires": {
+   "kekkei_genkai": [
+    "Magnet Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Boruto: Naruto Next Generations",
+  "meaning": "Kara Demir Yumruk"
+ },
+ "satetsu_renzan": {
+  "id": "satetsu_renzan",
+  "name": "Satetsu Renzan",
+  "name_en": "Iron Sand Mountain Range",
+  "cost": 44,
+  "cd": 17.0,
+  "element": "jiton",
+  "elements": [
+   "jiton"
+  ],
+  "natures": [
+   "jiton"
+  ],
+  "clan": "",
+  "level": 14,
+  "rank": 2,
+  "learn": "kg:jiton",
+  "desc": "Önünde demir kumundan bir duvar yükselir; duvardan sıradağ gibi boy boy dikenler fırlar.",
+  "seals": [
+   "Hitsuji"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Magnet Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm",
+  "meaning": "Demir Kumu Sıradağı"
+ },
+ "satetsu_soso": {
+  "id": "satetsu_soso",
+  "name": "Satetsu Sōsō",
+  "name_en": "Iron Sand Funeral",
+  "cost": 46,
+  "cd": 19.0,
+  "element": "jiton",
+  "elements": [
+   "jiton"
+  ],
+  "natures": [
+   "jiton"
+  ],
+  "clan": "",
+  "level": 14,
+  "rank": 2,
+  "learn": "kg:jiton",
+  "desc": "Demir kumu hedefi kavrayıp havaya kaldırır; dört yandan küçük dikenler saplanır, sonunda patlayıp geri savurur.",
+  "seals": [
+   "Hitsuji"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "bind",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Magnet Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm",
+  "meaning": "Demir Kumu Cenazesi"
  },
  "iso_susanoo": {
   "id": "iso_susanoo",
@@ -11415,6 +14696,295 @@
   "kinjutsu": false,
   "series": "Naruto Shippūden",
   "meaning": "Gölge Dikiş"
+ },
+ "kage_zashi_no_jutsu": {
+  "id": "kage_zashi_no_jutsu",
+  "name": "Kage Zashi no Jutsu",
+  "name_en": "Shadow Stabbing Technique",
+  "cost": 34,
+  "cd": 13.0,
+  "element": "",
+  "elements": [],
+  "natures": [
+   "inton"
+  ],
+  "clan": "nara",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan:nara",
+  "desc": "Gölgen yerden kalkar, iğne iğne sivrilir ve hedefe fırlar. Saplanır; son iğne yere serer.",
+  "seals": [
+   "Ne",
+   "Tori"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "hiden",
+  "shape": "projectile",
+  "range": "Short, Mid",
+  "requires": {
+   "clan_or_lineage": [
+    "Nara Clan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm",
+  "meaning": "Gölge Saplama"
+ },
+ "kage_onishibari_no_jutsu": {
+  "id": "kage_onishibari_no_jutsu",
+  "name": "Kage Onishibari no Jutsu",
+  "name_en": "Shadow Demon Binding Technique",
+  "cost": 52,
+  "cd": 22.0,
+  "element": "",
+  "elements": [],
+  "natures": [
+   "inton"
+  ],
+  "clan": "nara",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan:nara",
+  "desc": "Kalın, çok kollu gölge şeritleri hızla uzanır; küçük gölge eller hedefi baştan aşağı sarar. Sonra parmaklarınla pencere kurup sıkarsın: gölge ezer.",
+  "seals": [
+   "Ne",
+   "Tori"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "hiden",
+  "shape": "bind",
+  "range": "Short, Mid, Long",
+  "requires": {
+   "clan_or_lineage": [
+    "Nara Clan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm",
+  "meaning": "Gölge İblis Bağı"
+ },
+ "shinran_enbu_no_jutsu": {
+  "id": "shinran_enbu_no_jutsu",
+  "name": "Shinran Enbu no Jutsu",
+  "name_en": "Mind Disturbance Dance Performance Technique",
+  "cost": 56,
+  "cd": 26.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "yamanaka",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan:yamanaka",
+  "desc": "Shinranshin'in geniş çaplısı: önündeki herkesin bedenini ele geçirir, onları birbirine saldırtırsın.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "hiden",
+  "shape": "aoe",
+  "range": "Short, Mid",
+  "requires": {
+   "clan_or_lineage": [
+    "Yamanaka Clan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Zihin Karıştıran Dans Gösterisi"
+ },
+ "shindenshosen_jutsu": {
+  "id": "shindenshosen_jutsu",
+  "name": "Shindenshōsen Jutsu",
+  "name_en": "Mind Mystical Palm Transmission Technique",
+  "cost": 48,
+  "cd": 30.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "yamanaka",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan:yamanaka",
+  "desc": "Kendini ve yakındaki dostlarını sürekli iyileştirirsin. Teknik sürerken kıpırdayamazsın.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "hiden",
+  "shape": "heal",
+  "range": "Short, Mid, Long",
+  "requires": {
+   "clan_or_lineage": [
+    "Yamanaka Clan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm",
+  "meaning": "Zihinle Aktarılan Şifa Avucu"
+ },
+ "chakura_kami_torappu": {
+  "id": "chakura_kami_torappu",
+  "name": "Chakura Kami Torappu",
+  "name_en": "Chakra Hair Trap Technique",
+  "cost": 22,
+  "cd": 14.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "yamanaka",
+  "level": 8,
+  "rank": 1,
+  "learn": "clan:yamanaka",
+  "desc": "Saç tellerine chakra yürütür, yere uzatırsın. Üstüne basan kıpırdayamaz ve kolay hedef olur.",
+  "seals": [],
+  "canon_rank": "C",
+  "tier": 2,
+  "dmg_k": 1.0,
+  "category": "hiden",
+  "shape": "bind",
+  "range": "Short, Mid",
+  "requires": {
+   "clan_or_lineage": [
+    "Yamanaka Clan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Part I",
+  "meaning": "Chakra Saç Tuzağı"
+ },
+ "uzumaki_fuinjutsu": {
+  "id": "uzumaki_fuinjutsu",
+  "name": "Uzumaki Fūinjutsu",
+  "name_en": "Uzumaki Sealing Technique",
+  "cost": 54,
+  "cd": 24.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "uzumaki",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan:uzumaki",
+  "desc": "Elini yere indirirsin; avucundan çıkan mühür yazısı hedefin altında açılır. Mühür çalışınca üstündeki her şey bağlanır ve teknik kullanamaz.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "fuinjutsu",
+  "shape": "aoe",
+  "range": "Short, Mid",
+  "requires": {
+   "clan_or_lineage": [
+    "Uzumaki Clan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Uzumaki Mühür Tekniği"
+ },
+ "kongo_fusa_rasen_no_jin": {
+  "id": "kongo_fusa_rasen_no_jin",
+  "name": "Kongō Fūsa: Rasen no Jin",
+  "name_en": "Adamantine Sealing Chains: Spiral Formation",
+  "cost": 62,
+  "cd": 26.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "uzumaki",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan:uzumaki",
+  "desc": "Zincirler hedefin çevresinde sarmal bir bariyer kurar: içerideki çıkamaz, dışarıdan atılan geçemez. Sonra tepeden sivri bir zincir iner.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 1.0,
+  "category": "fuinjutsu",
+  "shape": "bind",
+  "range": "Short, Mid, Long",
+  "requires": {
+   "clan_or_lineage": [
+    "Uzumaki Clan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm",
+  "meaning": "Elmas Mühür Zincirleri: Sarmal Düzen"
+ },
+ "chiyu_kosho": {
+  "id": "chiyu_kosho",
+  "name": "Chiyu Kōshō",
+  "name_en": "Heal Bite",
+  "cost": 30,
+  "cd": 28.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "uzumaki",
+  "level": 14,
+  "rank": 2,
+  "learn": "clan:uzumaki",
+  "desc": "Chakranı yaraya verirsin: yanındaki yaralı dost, yoksa sen, hızla iyileşir. Kendi chakran çabuk tükenir.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "fuinjutsu",
+  "shape": "heal",
+  "range": "Short",
+  "requires": {
+   "clan_or_lineage": [
+    "Uzumaki Clan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Şifalı Isırık"
+ },
+ "jigokuzuki_ippon_nukite": {
+  "id": "jigokuzuki_ippon_nukite",
+  "name": "Jigokuzuki: Ippon Nukite",
+  "name_en": "Hell Stab: One-Finger Nukite",
+  "cost": 70,
+  "cd": 28.0,
+  "element": "raiton",
+  "elements": [
+   "raiton"
+  ],
+  "natures": [
+   "raiton"
+  ],
+  "clan": "yotsuki",
+  "level": 30,
+  "rank": 3,
+  "learn": "clan:yotsuki",
+  "desc": "Şimşek chakranın hepsini tek parmağının ucunda toplar ve saplarsın. En güçlü mızrak: savunma durduramaz.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 1.0,
+  "category": "taijutsu",
+  "shape": "rush",
+  "range": "Short",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Cehennem Saplaması: Tek Parmak"
  },
  "kage_shuriken_no_jutsu": {
   "id": "kage_shuriken_no_jutsu",
@@ -13743,6 +17313,274 @@
   "series": "Naruto Shippūden",
   "meaning": "Büyük Köpekbalığı Mermisi"
  },
+ "suiton_ameshiko": {
+  "id": "suiton_ameshiko",
+  "name": "Suiton: Ameshikō",
+  "name_en": "Water Release: Four Sharks Rain",
+  "cost": 50,
+  "cd": 18.0,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "hoshigaki",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan:hoshigaki",
+  "desc": "Avucunu yere vurursun, su göğe fışkırır; dört su köpekbalığı olup hedefe tepeden dalar. Dağılan köpekbalıkları damla boyu köpekbalıkları olarak yağmayı sürdürür.",
+  "seals": [
+   "Mi"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "ninjutsu",
+  "shape": "projectile",
+  "range": "Short, Mid",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Dört Köpekbalığı Yağmuru"
+ },
+ "suiton_suikosandan_no_jutsu": {
+  "id": "suiton_suikosandan_no_jutsu",
+  "name": "Suiton: Suikōsandan no Jutsu",
+  "name_en": "Water Release: Water Shark Shot Technique",
+  "cost": 40,
+  "cd": 14.0,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "hoshigaki",
+  "level": 14,
+  "rank": 2,
+  "learn": "clan:hoshigaki",
+  "desc": "Art arda beş su köpekbalığı yerin içinden hızla ilerler; hedefe varınca fırlayıp tepesine iner.",
+  "seals": [
+   "Mi"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "ninjutsu",
+  "shape": "projectile",
+  "range": "Short, Mid, Long",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm",
+  "meaning": "Su Köpekbalığı Saçması"
+ },
+ "suiton_mizutoge_no_jutsu": {
+  "id": "suiton_mizutoge_no_jutsu",
+  "name": "Suiton: Mizutoge no Jutsu",
+  "name_en": "Water Release: Water Spikes",
+  "cost": 36,
+  "cd": 13.0,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "hoshigaki",
+  "level": 14,
+  "rank": 2,
+  "learn": "clan:hoshigaki",
+  "desc": "Hedefin ayağının altından iri bir su dikeni fışkırır, ardından çevresinde altı diken daha. Deler, kanatır, havaya kaldırır.",
+  "seals": [
+   "Mi"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "range": "Short, Mid",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Boruto: Naruto Next Generations",
+  "meaning": "Su Dikenleri"
+ },
+ "chigiri_kyushu_no_jutsu": {
+  "id": "chigiri_kyushu_no_jutsu",
+  "name": "Chigiri Kyūshū no Jutsu",
+  "name_en": "Bloody Mist Absorption Technique",
+  "cost": 30,
+  "cd": 26.0,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "clan": "hoshigaki",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan",
+  "desc": "Kanını Samehada'ya sürersin; kılıç çevreye koyu kızıl bir sis salar. Sis 8 saniye boyunca açık yarası olan rakiplerin chakrasını emer ve sana verir. Samehada elinde olmalı.",
+  "seals": [],
+  "canon_rank": "A",
+  "category": "hiden",
+  "shape": "aura",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "need": "weapon:samehada",
+  "meaning": "Kanlı Sis Emişi",
+  "signature": false,
+  "range": "Short, Mid, Long",
+  "series": "Boruto: Naruto Next Generations"
+ },
+ "kongo_fuin_enyo_fusatsu": {
+  "id": "kongo_fuin_enyo_fusatsu",
+  "name": "Kongō Fūin: En'yō Fūsatsu",
+  "name_en": "Adamantine Seal: Monkey Yang Suppression",
+  "cost": 50,
+  "cd": 26.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "sarutobi",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan:sarutobi",
+  "desc": "Hedefin çevresine mühür etiketleri saplarsın; bariyer eterik bir maymun eli olup hedefi kafesler. Hedef kıpırdayamaz ve teknik kullanamaz. Chakranı hızla yer: chakran biterse hedef kurtulur.",
+  "seals": [
+   "Tora"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "hiden",
+  "shape": "bind",
+  "range": "Short, Mid",
+  "requires": {
+   "clan_or_lineage": [
+    "Sarutobi Clan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Boruto: Naruto Next Generations",
+  "meaning": "Elmas Mühür: Maymun Yang Bastırması"
+ },
+ "fuinjutsu_sanpo_fuin": {
+  "id": "fuinjutsu_sanpo_fuin",
+  "name": "Fūinjutsu: Sanpō Fūin",
+  "name_en": "Sealing Technique: Three Directions Seal",
+  "cost": 58,
+  "cd": 24.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "sarutobi",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan:sarutobi",
+  "desc": "İki gölge klonuyla hedefin çevresinde üçgen bir mühür kurarsın. Dört yüzlü ışık hedefi hapseder ve göğe fırlatır; yerde büyük bir çukur kalır.",
+  "seals": [
+   "Tora"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "hiden",
+  "shape": "aoe",
+  "range": "Short",
+  "requires": {
+   "clan_or_lineage": [
+    "Sarutobi Clan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Üç Yön Mührü"
+ },
+ "futon_rasen_shoheki": {
+  "id": "futon_rasen_shoheki",
+  "name": "Fūton: Rasen Shōheki",
+  "name_en": "Wind Release: Spiralling Barrier",
+  "cost": 34,
+  "cd": 16.0,
+  "element": "fuuton",
+  "elements": [
+   "fuuton"
+  ],
+  "natures": [
+   "fuuton"
+  ],
+  "clan": "sarutobi",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan:sarutobi",
+  "desc": "Avucundaki Rasengan'ı rüzgâr chakrasıyla dağıtırsın: çevrende kısa süren güçlü bir rüzgâr bariyeri oluşur. Atılanı dağıtır, yaklaşanı savurur, aldığın darbeyi büyük ölçüde keser.",
+  "seals": [
+   "Tora"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "hiden",
+  "shape": "shield",
+  "range": "Short",
+  "requires": {
+   "clan_or_lineage": [
+    "Sarutobi Clan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Boruto: Naruto Next Generations",
+  "meaning": "Sarmal Bariyer"
+ },
+ "uzusenpuhi_no_jutsu": {
+  "id": "uzusenpuhi_no_jutsu",
+  "name": "Uzusenpūhi no Jutsu",
+  "name_en": "Fire Whirlwind Vortex Technique",
+  "cost": 56,
+  "cd": 22.0,
+  "element": "katon",
+  "elements": [
+   "katon",
+   "fuuton"
+  ],
+  "natures": [
+   "katon",
+   "fuuton"
+  ],
+  "clan": "sarutobi",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan:sarutobi",
+  "desc": "Önce önüne bir alev duvarı kurarsın, sonra rüzgâr yumruğuyla alevi öne üflersin: yolundaki her şeyi kavuran bir ateş fırtınası.",
+  "seals": [
+   "Tora"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "hiden",
+  "shape": "cone",
+  "range": "Short, Mid",
+  "requires": {
+   "clan_or_lineage": [
+    "Sarutobi Clan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm",
+  "meaning": "Girdap Kasırga Ateşi"
+ },
  "suiton_daibakufu_no_jutsu": {
   "id": "suiton_daibakufu_no_jutsu",
   "name": "Suiton: Daibakufu no Jutsu",
@@ -14285,6 +18123,241 @@
   "kinjutsu": false,
   "series": "Naruto Shippūden",
   "meaning": "Vakum Dalgası"
+ },
+ "futon_shinku_reppu_hitoe": {
+  "id": "futon_shinku_reppu_hitoe",
+  "name": "Fūton: Shinkū Reppū: Hitoe",
+  "name_en": "Wind Release: Vacuum Gale: Single",
+  "cost": 40,
+  "cd": 14.0,
+  "element": "fuuton",
+  "elements": [
+   "fuuton"
+  ],
+  "natures": [
+   "fuuton"
+  ],
+  "clan": "shimura",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan",
+  "desc": "Geri sıçrarken ağzından bir vakum küresi atarsın; hedef sersemlemişken ardından keskin vakum dalgaları yollarsın.",
+  "seals": [
+   "Ne",
+   "Mi",
+   "Uma",
+   "Inu"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "ninjutsu",
+  "shape": "projectile",
+  "range": "Short, Mid",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm Generations",
+  "meaning": "Vakum Fırtınası: Tek Kat"
+ },
+ "taiju_kaiho": {
+  "id": "taiju_kaiho",
+  "name": "Taiju Kaihō",
+  "name_en": "Great Tree World Method",
+  "cost": 62,
+  "cd": 24.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "shimura",
+  "level": 20,
+  "rank": 3,
+  "learn": "clan",
+  "desc": "Avucunu yere koyarsın: önünde dev bir ağaç fışkırır, çevresindeki herkesi savurur. Ağaç durduğu sürece atılanları da keser. Hashirama hücresi taşıyanlar yapabilir.",
+  "seals": [
+   "Ne",
+   "Mi",
+   "Uma",
+   "Inu"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "hiden",
+  "shape": "aoe",
+  "range": "Short",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Impact",
+  "meaning": "Büyük Ağaç Diyarı Yöntemi",
+  "need": "senju_dna"
+ },
+ "bakuretsu_juso": {
+  "id": "bakuretsu_juso",
+  "name": "Bakuretsu Jusō",
+  "name_en": "Exploding Tree Spear",
+  "cost": 46,
+  "cd": 16.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "shimura",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan",
+  "desc": "Kolundan fışkıran kökler hedefe saplanır; ucunda sivri dallar her yöne patlar. Kanatır. Hashirama hücresi taşıyanlar yapabilir.",
+  "seals": [
+   "Ne",
+   "Mi",
+   "Uma",
+   "Inu"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "hiden",
+  "shape": "beam",
+  "range": "Short, Mid",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm Generations",
+  "meaning": "Patlayan Ağaç Mızrağı",
+  "need": "senju_dna"
+ },
+ "ne_bakuso": {
+  "id": "ne_bakuso",
+  "name": "Ne Bakusō",
+  "name_en": "Root Explosive Entombment",
+  "cost": 58,
+  "cd": 22.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "shimura",
+  "level": 20,
+  "rank": 3,
+  "learn": "clan",
+  "desc": "Kolundan çıkan iri kökler toprağa dalar ve hedefin altından yükselip onu içine gömer. Sonra kökler sıkışıp parçalanır. Hashirama hücresi taşıyanlar yapabilir.",
+  "seals": [
+   "Ne",
+   "Mi",
+   "Uma",
+   "Inu"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "hiden",
+  "shape": "bind",
+  "range": "Short, Mid",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm Generations",
+  "meaning": "Kök Patlamalı Gömü",
+  "need": "senju_dna"
+ },
+ "juin_bakusatsu_kyo": {
+  "id": "juin_bakusatsu_kyo",
+  "name": "Juin: Bakusatsu Kyō",
+  "name_en": "Cursed Seal: Killing Shout",
+  "cost": 58,
+  "cd": 22.0,
+  "element": "",
+  "elements": [],
+  "clan": "jugo",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan",
+  "desc": "Sırtındaki jetlerle yükselir, rakibin üstüne tepeden inersin: yere çakılan yumruk dev bir siyah şok dalgası yayar. Senninka gerekir.",
+  "seals": [],
+  "canon_rank": "A",
+  "category": "hiden",
+  "shape": "aoe",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "meaning": "Lanet Mührü: Öldüren Haykırış",
+  "need": "senninka",
+  "signature": false,
+  "range": "Short, Mid",
+  "series": "Naruto Shippūden: Ultimate Ninja Heroes 3"
+ },
+ "kaatsu": {
+  "id": "kaatsu",
+  "name": "Kaatsu",
+  "name_en": "Pressurisation",
+  "cost": 38,
+  "cd": 13.0,
+  "element": "",
+  "elements": [],
+  "clan": "jugo",
+  "level": 12,
+  "rank": 2,
+  "learn": "clan",
+  "desc": "Elin gövdenden büyük olana dek devleşir; açık avuçla önündeki herkesi tokatlayıp savurursun. Senninka gerekir.",
+  "seals": [],
+  "canon_rank": "B",
+  "category": "hiden",
+  "shape": "cone",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "meaning": "Basınç",
+  "need": "senninka",
+  "signature": false,
+  "range": "Short",
+  "series": "Naruto Shippūden: Ultimate Ninja Storm 2"
+ },
+ "funsai": {
+  "id": "funsai",
+  "name": "Funsai",
+  "name_en": "Pulverisation",
+  "cost": 48,
+  "cd": 18.0,
+  "element": "",
+  "elements": [],
+  "clan": "jugo",
+  "level": 14,
+  "rank": 2,
+  "learn": "clan",
+  "desc": "Sırtından çıkan jetlerle rakibe atılır, art arda yumruk ve savuruşlar indirirsin; son yumruk savurur. Senninka gerekir.",
+  "seals": [],
+  "canon_rank": "B",
+  "category": "hiden",
+  "shape": "melee",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "meaning": "Un Ufak",
+  "need": "senninka",
+  "signature": false,
+  "range": "Short, Mid",
+  "series": "Naruto Shippūden: Ultimate Ninja Storm 2"
+ },
+ "kassokuken_reishiki": {
+  "id": "kassokuken_reishiki",
+  "name": "Kassokuken: Reishiki",
+  "name_en": "Piston Fist: Style Zero",
+  "cost": 44,
+  "cd": 16.0,
+  "element": "",
+  "elements": [],
+  "clan": "jugo",
+  "level": 14,
+  "rank": 2,
+  "learn": "clan",
+  "desc": "Bir piston yumruğuyla rakibi savurur, peşinden atılıp devleşen kolunla çok daha güçlü ikinci yumruğu indirirsin. Senninka gerekir.",
+  "seals": [],
+  "canon_rank": "B",
+  "category": "hiden",
+  "shape": "melee",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "meaning": "Piston Yumruk: Sıfırıncı Biçim",
+  "need": "senninka",
+  "signature": false,
+  "range": "Short",
+  "series": "Naruto Shippūden: Ultimate Ninja Storm 2"
  },
  "futon_kazekiri_no_jutsu": {
   "id": "futon_kazekiri_no_jutsu",
@@ -17309,6 +21382,753 @@
   "series": "Naruto Shippūden",
   "meaning": "Kötülük Karışıklık Valsi"
  },
+ "raikiri_sosenko": {
+  "id": "raikiri_sosenko",
+  "name": "Raikiri: Sōsenkō",
+  "name_en": "Lightning Cutter: Twin Drilling Lights",
+  "cost": 44,
+  "cd": 18.0,
+  "element": "raiton",
+  "elements": [
+   "raiton"
+  ],
+  "natures": [
+   "raiton"
+  ],
+  "clan": "",
+  "level": 28,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "İki elinde birer Raikiri toplarsın; hedefe atılır, birini saplar, hemen ardından ötekini saplarsın.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 0.8,
+  "category": "dojutsu",
+  "shape": "melee",
+  "range": "Short, Mid",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Storm",
+  "meaning": "Raikiri: Çifte Delen Işık"
+ },
+ "raikiri_issen": {
+  "id": "raikiri_issen",
+  "name": "Raikiri Issen",
+  "name_en": "Lightning Cutter One Flash",
+  "cost": 42,
+  "cd": 17.0,
+  "element": "raiton",
+  "elements": [
+   "raiton"
+  ],
+  "natures": [
+   "raiton"
+  ],
+  "clan": "",
+  "level": 28,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Raikiri ile bir anda rakibe varır, onu kavrayıp şimşekle yerde uzun uzun sürükler ve sonunda fırlatırsın.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 0.8,
+  "category": "dojutsu",
+  "shape": "melee",
+  "range": "Short, Mid",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Storm",
+  "meaning": "Raikiri: Tek Parıltı"
+ },
+ "raiju_hashiri_so": {
+  "id": "raiju_hashiri_so",
+  "name": "Raijū Hashiri no Jutsu: Sō",
+  "name_en": "Lightning Beast Running Technique: Twin",
+  "cost": 38,
+  "cd": 14.0,
+  "element": "raiton",
+  "elements": [
+   "raiton"
+  ],
+  "natures": [
+   "raiton"
+  ],
+  "clan": "",
+  "level": 28,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "İki şimşek tazısı iki yana açılıp koşar ve hedefe yanlardan saldırır.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 0.7,
+  "category": "dojutsu",
+  "shape": "projectile",
+  "range": "Mid, Long",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Storm",
+  "meaning": "Şimşek Canavarı Koşusu: Çift"
+ },
+ "susanoo_kamui_raikiri": {
+  "id": "susanoo_kamui_raikiri",
+  "name": "Susanoo: Kamui Raikiri",
+  "name_en": "Susanoo: Kamui Lightning Cutter",
+  "cost": 70,
+  "cd": 30.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 28,
+  "rank": 3,
+  "learn": "eye:mangekyo",
+  "desc": "Susanoo'nun yumruğunda Raikiri toplanır, çevresinde Kamui girdabı döner; saplandığı yeri hem deler hem boyuta çeker.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 0.95,
+  "category": "dojutsu",
+  "shape": "melee",
+  "range": "Short, Mid",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Storm",
+  "meaning": "Susanoo: Kamui Şimşek Kesici"
+ },
+ "susanoo_dan": {
+  "id": "susanoo_dan",
+  "name": "Susanoo: Dan",
+  "name_en": "Susanoo: Sever",
+  "cost": 52,
+  "cd": 20.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 28,
+  "rank": 3,
+  "learn": "eye:mangekyo",
+  "desc": "Dirsek darbesiyle açar, Susanoo kılıcıyla ardı ardına biçer ve tepeden inen tek bir kesikle yeri yararsın.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 0.85,
+  "category": "dojutsu",
+  "shape": "melee",
+  "range": "Short, Mid",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Storm",
+  "meaning": "Susanoo: Kesip Ayırma"
+ },
+ "susanoo_retsu": {
+  "id": "susanoo_retsu",
+  "name": "Susanoo: Retsu",
+  "name_en": "Susanoo: Tear",
+  "cost": 50,
+  "cd": 19.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 28,
+  "rank": 3,
+  "learn": "eye:mangekyo",
+  "desc": "Susanoo kılıcı alttan savrulup rakibi havaya kaldırır; düşerken iki kılıç çapraz iner.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 0.82,
+  "category": "dojutsu",
+  "shape": "melee",
+  "range": "Short, Mid",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Storm",
+  "meaning": "Susanoo: Yarma"
+ },
+ "susanoo_nito_no_mai": {
+  "id": "susanoo_nito_no_mai",
+  "name": "Susanoo: Nitō no Mai",
+  "name_en": "Susanoo: Dance of Two Swords",
+  "cost": 56,
+  "cd": 22.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 28,
+  "rank": 3,
+  "learn": "eye:mangekyo",
+  "desc": "Susanoo iki kılıcını sırayla savurur; her savuruş uzağa giden bir chakra dalgası bırakır.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 0.85,
+  "category": "dojutsu",
+  "shape": "projectile",
+  "range": "Mid, Long",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Storm",
+  "meaning": "Susanoo: Çifte Kılıç Dansı"
+ },
+ "totsuka_renzokugiri": {
+  "id": "totsuka_renzokugiri",
+  "name": "Totsuka no Tsurugi: Renzokugiri",
+  "name_en": "Sword of Totsuka: Serial Slashes",
+  "cost": 58,
+  "cd": 24.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 26,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Totsuka kılıcıyla iki yatay kesik ve bir saplama; ardından ateş topuyla bitirirsin.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 0.85,
+  "category": "dojutsu",
+  "shape": "melee",
+  "range": "Short, Mid",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Storm",
+  "meaning": "Totsuka Kılıcı: Ardışık Kesik"
+ },
+ "tsukuyomi_mode": {
+  "id": "tsukuyomi_mode",
+  "name": "Tsukuyomi Mōdo",
+  "name_en": "Tsukuyomi Mode",
+  "cost": 40,
+  "cd": 35.0,
+  "element": "",
+  "elements": [],
+  "natures": [
+   "inton"
+  ],
+  "clan": "",
+  "level": 22,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Tsukuyomi bir alana yayılır: içindeki rakipler görünmez bir engele takılmış gibi ağırlaşır. Açık kaldıkça canın ve chakran erir.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 0.5,
+  "category": "dojutsu",
+  "shape": "genjutsu_stun",
+  "range": "Short, Mid",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Ultimate Ninja",
+  "meaning": "Tsukuyomi Kipi"
+ },
+ "enton_honoikazuchi": {
+  "id": "enton_honoikazuchi",
+  "name": "Enton: Honoikazuchi",
+  "name_en": "Blaze Release: Honoikazuchi",
+  "cost": 48,
+  "cd": 18.0,
+  "element": "katon",
+  "elements": [
+   "katon"
+  ],
+  "natures": [
+   "katon"
+  ],
+  "clan": "",
+  "level": 28,
+  "rank": 3,
+  "learn": "eye:mangekyo",
+  "desc": "Amaterasu bedenini sarar, sonra dikenlere dönüşüp çevrendeki herkesi deler ve tutuşturur.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 0.85,
+  "category": "dojutsu",
+  "shape": "aoe",
+  "range": "Short",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Enton: Ateş Gök Gürültüsü"
+ },
+ "amaterasu_zanka": {
+  "id": "amaterasu_zanka",
+  "name": "Amaterasu: Zanka",
+  "name_en": "Amaterasu: Lingering Fire",
+  "cost": 60,
+  "cd": 26.0,
+  "element": "katon",
+  "elements": [
+   "katon"
+  ],
+  "natures": [
+   "katon"
+  ],
+  "clan": "",
+  "level": 28,
+  "rank": 3,
+  "learn": "eye:ems",
+  "desc": "Susanoo'nun eli dev bir kara alev küresi tutar; kopan küçük küreler çevreye saçılıp tuzak olarak bekler, değene patlayıp Amaterasu bulaştırır.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 0.8,
+  "category": "dojutsu",
+  "shape": "projectile",
+  "range": "Mid, Long",
+  "requires": {
+   "eye": [
+    "Eternal Mangekyō Sharingan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Storm",
+  "meaning": "Amaterasu: Kalan Ateş"
+ },
+ "saten": {
+  "id": "saten",
+  "name": "Saten",
+  "name_en": "Chained Heaven",
+  "cost": 36,
+  "cd": 15.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 26,
+  "rank": 3,
+  "learn": "eye:mangekyo",
+  "desc": "Geçirgen hâlde rakibin içinden geçersin; bilek zincirin ona dolanır. Zincirle havaya fırlatır, Kamui ile tepesine ışınlanıp yere çakarsın.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 0.78,
+  "category": "dojutsu",
+  "shape": "melee",
+  "range": "Short",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Storm",
+  "meaning": "Zincirli Gök"
+ },
+ "sain": {
+  "id": "sain",
+  "name": "Sain",
+  "name_en": "Chain Pull",
+  "cost": 38,
+  "cd": 16.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 26,
+  "rank": 3,
+  "learn": "eye:mangekyo",
+  "desc": "Bilek zincirin uzaktaki rakibe dolanır; onu iki kez yere savurur, sonra Kamui ile üstüne ışınlanıp dönen tekmeyle indirirsin.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 0.78,
+  "category": "dojutsu",
+  "shape": "melee",
+  "range": "Short, Mid",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Storm",
+  "meaning": "Zincir Çekişi"
+ },
+ "muzan": {
+  "id": "muzan",
+  "name": "Muzan",
+  "name_en": "Cruelty",
+  "cost": 30,
+  "cd": 11.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 24,
+  "rank": 3,
+  "learn": "eye:mangekyo",
+  "desc": "Kamui ile kaybolur, rakibin tam tepesinde belirir ve üstüne çöküp kunaiyi saplarsın. Uzaktan başlatılır.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 0.7,
+  "category": "dojutsu",
+  "shape": "melee",
+  "range": "Short, Mid, Long",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Storm",
+  "meaning": "Acımasızlık"
+ },
+ "mekkyaku": {
+  "id": "mekkyaku",
+  "name": "Mekkyaku",
+  "name_en": "Annihilation",
+  "cost": 40,
+  "cd": 18.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 28,
+  "rank": 3,
+  "learn": "eye:mangekyo",
+  "desc": "Yumruk ve tekme yağdırırsın; her darbenin arasında geçirgenleşirsin, rakibin karşılığı içinden geçer.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 0.8,
+  "category": "dojutsu",
+  "shape": "melee",
+  "range": "Short",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Storm",
+  "meaning": "Yok Ediş"
+ },
+ "tenso": {
+  "id": "tenso",
+  "name": "Tensō",
+  "name_en": "Rotating Funeral",
+  "cost": 48,
+  "cd": 22.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 28,
+  "rank": 3,
+  "learn": "eye:mangekyo",
+  "desc": "Rakibi Kamui boyutuna çeker, çevreye patlayan mühürler saçar ve onu mühürlerin tam ortasına geri bırakırsın. Dev hedef boyuta sığmaz.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 0.85,
+  "category": "dojutsu",
+  "shape": "melee",
+  "range": "Short, Mid",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Storm",
+  "meaning": "Dönen Cenaze"
+ },
+ "zanzo_bunshin": {
+  "id": "zanzo_bunshin",
+  "name": "Zanzō Bunshin",
+  "name_en": "Afterimage Clone",
+  "cost": 34,
+  "cd": 14.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 26,
+  "rank": 3,
+  "learn": "eye:mangekyo",
+  "desc": "Shunshin'le hedefin çevresinde art görüntüler bırakırsın; her art görüntü kendi yerinden keser, sana gelen saldırı boşa gider.",
+  "seals": [
+   "Tora",
+   "Inu",
+   "Ne"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 0.72,
+  "category": "dojutsu",
+  "shape": "melee",
+  "range": "Short, Mid",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Art Görüntü Klonu"
+ },
+ "bunshun": {
+  "id": "bunshun",
+  "name": "Bunshun",
+  "name_en": "Body Flicker Clone Rush",
+  "cost": 30,
+  "cd": 13.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 24,
+  "rank": 3,
+  "learn": "eye:mangekyo",
+  "desc": "İki gölge klon iki yandan hedefe atılıp çarpar; arkalarından gelen gerçek beden tek kesikle bitirir.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 0.72,
+  "category": "dojutsu",
+  "shape": "melee",
+  "range": "Short, Mid",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Storm",
+  "meaning": "Klon Sıçrayışı"
+ },
+ "uchiha_ryu_higasa_no_mai": {
+  "id": "uchiha_ryu_higasa_no_mai",
+  "name": "Uchiha Ryū: Higasa no Mai",
+  "name_en": "Uchiha Style: Halo Dance",
+  "cost": 36,
+  "cd": 12.0,
+  "element": "katon",
+  "elements": [
+   "katon"
+  ],
+  "natures": [
+   "katon"
+  ],
+  "clan": "",
+  "level": 26,
+  "rank": 3,
+  "learn": "eye:mangekyo",
+  "desc": "Tantō alevle kaplanır; tek savuruşla öne doğru açılan alev halesi salınır, değdiğini yakar.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 0.74,
+  "category": "dojutsu",
+  "shape": "projectile",
+  "range": "Mid",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Storm",
+  "meaning": "Uchiha Usulü: Güneş Halesi Dansı"
+ },
+ "susanoo_kaien": {
+  "id": "susanoo_kaien",
+  "name": "Susanoo: Kaien",
+  "name_en": "Susanoo: Rotating Flame",
+  "cost": 54,
+  "cd": 20.0,
+  "element": "katon",
+  "elements": [
+   "katon"
+  ],
+  "natures": [
+   "katon"
+  ],
+  "clan": "",
+  "level": 28,
+  "rank": 3,
+  "learn": "eye:mangekyo",
+  "desc": "Susanoo'nun matkap mızrağı alev alır; dönerek hedefe saplanır, döndükçe deler ve yakar.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 0.8,
+  "category": "dojutsu",
+  "shape": "melee",
+  "range": "Short, Mid",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Storm",
+  "meaning": "Susanoo: Dönen Alev"
+ },
+ "kotoamatsukami_kobo": {
+  "id": "kotoamatsukami_kobo",
+  "name": "Kotoamatsukami: Kōbō",
+  "name_en": "Kotoamatsukami: Shaft of Light",
+  "cost": 56,
+  "cd": 45.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 30,
+  "rank": 3,
+  "learn": "eye:mangekyo",
+  "desc": "Hedef genjutsuya düşer: tepesinde dev bir Mangekyō açılır, gözden inen ışık huzmeleri onu vurur. Göz göze gelmeyen ya da direnen hedefte tutmaz.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 0.8,
+  "category": "dojutsu",
+  "shape": "genjutsu_stun",
+  "range": "Short, Mid, Long",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Storm",
+  "meaning": "Kutsal Tanrılar: Işık Huzmesi"
+ },
+ "kotoamatsukami_zanko": {
+  "id": "kotoamatsukami_zanko",
+  "name": "Kotoamatsukami: Zankō",
+  "name_en": "Kotoamatsukami: Afterglow",
+  "cost": 60,
+  "cd": 60.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 30,
+  "rank": 3,
+  "learn": "eye:mangekyo",
+  "desc": "Çevredeki bütün düşmanlara aynı anda uygulanır: görüşleri kapanır, hedeflerini yitirir ve ağırlaşırlar. Hasar vermez.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 0.5,
+  "category": "dojutsu",
+  "shape": "genjutsu_stun",
+  "range": "Short, Mid",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Shinobi Striker",
+  "meaning": "Kutsal Tanrılar: Art Işıltı"
+ },
+ "kanseitai_susanoo_kishin": {
+  "id": "kanseitai_susanoo_kishin",
+  "name": "Kanseitai Susanoo: Kishin",
+  "name_en": "Complete Body Susanoo: Fierce God",
+  "cost": 80,
+  "cd": 40.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 30,
+  "rank": 3,
+  "learn": "eye:ems",
+  "desc": "Mükemmel Susanoo göğe sıçrar, matkap kılıcını aşağı çevirip hedefin üstüne iner; indiği yer çöker.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 0.95,
+  "category": "dojutsu",
+  "shape": "melee",
+  "range": "Mid, Long",
+  "requires": {
+   "eye": [
+    "Eternal Mangekyō Sharingan"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Shinobi Striker",
+  "meaning": "Mükemmel Susanoo: Öfkeli Tanrı"
+ },
  "banbutsu_sozo_no_jutsu": {
   "id": "banbutsu_sozo_no_jutsu",
   "name": "Banbutsu Sōzō no Jutsu",
@@ -18676,6 +23496,228 @@
   "kinjutsu": false,
   "series": "Naruto Part I",
   "meaning": "On Bin Buz Yaprağı"
+ },
+ "hyoton_kokuryu_bofusetsu": {
+  "id": "hyoton_kokuryu_bofusetsu",
+  "name": "Hyōton: Kokuryū Bōfūsetsu",
+  "name_en": "Ice Release: Black Dragon Blizzard",
+  "cost": 46,
+  "cd": 15.0,
+  "element": "hyoton",
+  "elements": [
+   "hyoton"
+  ],
+  "natures": [
+   "hyoton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:hyoton",
+  "desc": "Kolunu ileri uzatırsın; kara kardan bir ejder dönerek uçar ve çarptığını göğe fırlatır.",
+  "seals": [
+   "Tora"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "projectile",
+  "range": "Long",
+  "requires": {
+   "kekkei_genkai": [
+    "Ice Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto the Movie: Ninja Clash in the Land of Snow",
+  "meaning": "Kara Ejder Tipisi"
+ },
+ "hyoton_soryu_bofusetsu": {
+  "id": "hyoton_soryu_bofusetsu",
+  "name": "Hyōton: Sōryū Bōfūsetsu",
+  "name_en": "Ice Release: Twin Dragon Blizzard",
+  "cost": 70,
+  "cd": 30.0,
+  "element": "hyoton",
+  "elements": [
+   "hyoton"
+  ],
+  "natures": [
+   "hyoton"
+  ],
+  "clan": "",
+  "level": 30,
+  "rank": 3,
+  "learn": "kg:hyoton",
+  "desc": "İki kara ejder birbirine dolanarak uçar ve hedefte dev bir kara kar kasırgasına dönüşür: içine çeker, havaya kaldırır, sonunda patlar.",
+  "seals": [
+   "Tora"
+  ],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "range": "Long",
+  "requires": {
+   "kekkei_genkai": [
+    "Ice Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto the Movie: Ninja Clash in the Land of Snow",
+  "meaning": "Çift Ejder Tipisi"
+ },
+ "hyoton_roga_nadare": {
+  "id": "hyoton_roga_nadare",
+  "name": "Hyōton: Rōga Nadare no Jutsu",
+  "name_en": "Ice Release: Wolf Fang Avalanche Technique",
+  "cost": 52,
+  "cd": 20.0,
+  "element": "hyoton",
+  "elements": [
+   "hyoton"
+  ],
+  "natures": [
+   "hyoton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:hyoton",
+  "desc": "Çığ iner, kar bir kurt sürüsüne dönüşüp düşmanlara saldırır. Şimşek değen kurt dağılır.",
+  "seals": [
+   "Tora"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "projectile",
+  "range": "Short, Mid, Long",
+  "requires": {
+   "kekkei_genkai": [
+    "Ice Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto the Movie: Ninja Clash in the Land of Snow",
+  "meaning": "Kurt Dişi Çığı"
+ },
+ "hyoton_ikkaku_hakugei": {
+  "id": "hyoton_ikkaku_hakugei",
+  "name": "Hyōton: Ikkaku Hakugei",
+  "name_en": "Ice Release: One Horned White Whale",
+  "cost": 68,
+  "cd": 28.0,
+  "element": "hyoton",
+  "elements": [
+   "hyoton"
+  ],
+  "natures": [
+   "hyoton"
+  ],
+  "clan": "",
+  "level": 30,
+  "rank": 3,
+  "learn": "kg:hyoton",
+  "desc": "Buzdan tek boynuzlu dev bir balina yerden fırlayıp hedefin üstüne çöker. Yavaştır ama düştüğü yeri ezer, geride yolu kesen buz kütleleri bırakır.",
+  "seals": [
+   "Tora"
+  ],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "range": "Short, Mid, Long",
+  "requires": {
+   "kekkei_genkai": [
+    "Ice Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto the Movie: Ninja Clash in the Land of Snow",
+  "meaning": "Tek Boynuzlu Beyaz Balina"
+ },
+ "hyoton_haryu_moko": {
+  "id": "hyoton_haryu_moko",
+  "name": "Hyōton: Haryū Mōko",
+  "name_en": "Ice Release: Tearing Dragon Fierce Tiger",
+  "cost": 50,
+  "cd": 18.0,
+  "element": "hyoton",
+  "elements": [
+   "hyoton"
+  ],
+  "natures": [
+   "hyoton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:hyoton",
+  "desc": "Buzdan dev bir kaplan hat boyunca koşar ve önüne geleni dondurur. Değdiği su tekniklerini de buza çevirir.",
+  "seals": [
+   "Tora"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "projectile",
+  "range": "Long",
+  "requires": {
+   "kekkei_genkai": [
+    "Ice Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto the Movie: Ninja Clash in the Land of Snow",
+  "meaning": "Ejder Yırtan Azgın Kaplan"
+ },
+ "hyoton_jisarenhyo": {
+  "id": "hyoton_jisarenhyo",
+  "name": "Hyōton: Jisarenhyō",
+  "name_en": "Ice Release: Earthen Consecutive Chains of Ice",
+  "cost": 36,
+  "cd": 24.0,
+  "element": "hyoton",
+  "elements": [
+   "hyoton"
+  ],
+  "natures": [
+   "hyoton"
+  ],
+  "clan": "",
+  "level": 14,
+  "rank": 2,
+  "learn": "kg:hyoton",
+  "desc": "Hedefin üstünde buz zerreleri oluşur ve onu yavaş yavaş dondurur. Teknik kullanmaya kalkarsa buz hızla yeniden sarar.",
+  "seals": [
+   "Tora"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 0.8,
+  "category": "kekkei_genkai",
+  "shape": "debuff",
+  "range": "Short, Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Ice Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Novel",
+  "meaning": "Yer Zinciri Buzu"
  },
  "raikyu": {
   "id": "raikyu",
@@ -28686,6 +33728,380 @@
   "category": "kekkei_genkai",
   "shape": "buff",
   "meaning": "Dönen Kavurucu Küreler"
+ },
+ "ranton_raiunkuha": {
+  "id": "ranton_raiunkuha",
+  "name": "Ranton: Raiunkūha",
+  "name_en": "Storm Release: Thunder Cloud Inner Wave",
+  "cost": 50,
+  "cd": 24.0,
+  "element": "ranton",
+  "elements": [
+   "ranton"
+  ],
+  "natures": [
+   "ranton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:ranton",
+  "desc": "Çevrende kalın bir fırtına bulutu halkası oluşur. Yaklaşan çarpılıp geri itilir, fırlatılanlar bulutta söner; bulut en yakın düşmana şimşek yollar.",
+  "seals": [
+   "Tora",
+   "Mi"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aura",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Storm Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden the Movie: The Will of Fire",
+  "meaning": "Fırtına Bulutu İç Dalgası"
+ },
+ "ranton_burakku_hantingu": {
+  "id": "ranton_burakku_hantingu",
+  "name": "Ranton: Burakku Hantingu",
+  "name_en": "Storm Release: Black Hunting",
+  "cost": 64,
+  "cd": 26.0,
+  "element": "ranton",
+  "elements": [
+   "ranton"
+  ],
+  "natures": [
+   "ranton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:ranton",
+  "desc": "Kara şimşekten panterler hedefi geçerken biçer; sonra arkasında tek dev panterde birleşir, ısırır ve patlar.",
+  "seals": [
+   "Tora",
+   "Inu"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "projectile",
+  "range": "Short, Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Storm Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm",
+  "meaning": "Kara Av"
+ },
+ "futton_kazan": {
+  "id": "futton_kazan",
+  "name": "Futton: Kazan no Jutsu",
+  "name_en": "Boil Release: Flower Repentance Technique",
+  "cost": 52,
+  "cd": 20.0,
+  "element": "futton",
+  "elements": [
+   "futton"
+  ],
+  "natures": [
+   "futton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:futton",
+  "desc": "Yerde birkaç noktadan aşındırıcı buhar sızar; sonra her nokta sırayla patlayıp sütun hâlinde püskürür.",
+  "seals": [
+   "Tora",
+   "Uma"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "range": "Short, Mid, Long",
+  "requires": {
+   "kekkei_genkai": [
+    "Boil Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm",
+  "meaning": "Çiçek Tövbesi"
+ },
+ "funkoto": {
+  "id": "funkoto",
+  "name": "Funkōtō",
+  "name_en": "Erupting Falling Stomp",
+  "cost": 40,
+  "cd": 15.0,
+  "element": "futton",
+  "elements": [
+   "futton"
+  ],
+  "natures": [
+   "futton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:futton",
+  "desc": "Hedefi havaya atar, peşinden sıçrar ve buharın itişiyle üstüne basıp yere çakarsın.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "melee",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Boil Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm",
+  "meaning": "Püsküren Düşüş Tepmesi"
+ },
+ "funsenwan": {
+  "id": "funsenwan",
+  "name": "Funsenwan",
+  "name_en": "Erupting Revolving Arm",
+  "cost": 36,
+  "cd": 13.0,
+  "element": "futton",
+  "elements": [
+   "futton"
+  ],
+  "natures": [
+   "futton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:futton",
+  "desc": "Buharın itişiyle topaç gibi dönersin; dönerken vuruşlar art arda iner, sonuncusu hedefi yukarı kaldırır.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "melee",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Boil Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm",
+  "meaning": "Püsküren Dönen Kol"
+ },
+ "funkaho": {
+  "id": "funkaho",
+  "name": "Funkahō",
+  "name_en": "Erupting Thrust Cannon",
+  "cost": 44,
+  "cd": 17.0,
+  "element": "futton",
+  "elements": [
+   "futton"
+  ],
+  "natures": [
+   "futton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:futton",
+  "desc": "Havaya sıçrar, dönerek tekme ve yumruk indirirsin; sonra avucundan fışkıran buhar hedefi yere çakar.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "melee",
+  "range": "Short, Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Boil Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden: Ultimate Ninja Storm",
+  "meaning": "Püsküren İtki Topu"
+ },
+ "shakuton_shakkyu_rendan": {
+  "id": "shakuton_shakkyu_rendan",
+  "name": "Shakuton: Shakkyū Rendan",
+  "name_en": "Scorch Release: Fireball Barrage",
+  "cost": 42,
+  "cd": 16.0,
+  "element": "shakuton",
+  "elements": [
+   "shakuton"
+  ],
+  "natures": [
+   "shakuton"
+  ],
+  "clan": "",
+  "level": 14,
+  "rank": 2,
+  "learn": "kg:shakuton",
+  "desc": "İki kürenin üstünde süzülürken art arda kavurucu küre atarsın; atılanın yerine hemen yenisi doğar.",
+  "seals": [
+   "Tora",
+   "Uma"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "projectile",
+  "meaning": "Kavurucu Küre Yaylımı",
+  "signature": false,
+  "series": "Naruto Mobile",
+  "range": "Short, Mid"
+ },
+ "shakuton_shakkyu_no_mai": {
+  "id": "shakuton_shakkyu_no_mai",
+  "name": "Shakuton: Shakkyū no Mai",
+  "name_en": "Scorch Release: Fireball Dance",
+  "cost": 50,
+  "cd": 19.0,
+  "element": "shakuton",
+  "elements": [
+   "shakuton"
+  ],
+  "natures": [
+   "shakuton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:shakuton",
+  "desc": "Süzülürken iki küçük kürenin döndüğü tek büyük küre atarsın. Büyük küre patlar, küçükler kopup yakındaki öteki düşmanlara gider.",
+  "seals": [
+   "Tora",
+   "Uma"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "projectile",
+  "meaning": "Kavurucu Küre Dansı",
+  "signature": false,
+  "series": "Naruto Mobile",
+  "range": "Short, Mid"
+ },
+ "shakuton_nenshokyaku": {
+  "id": "shakuton_nenshokyaku",
+  "name": "Shakuton: Nenshōkyaku",
+  "name_en": "Burning Legs",
+  "cost": 32,
+  "cd": 12.0,
+  "element": "shakuton",
+  "elements": [
+   "shakuton"
+  ],
+  "natures": [
+   "shakuton"
+  ],
+  "clan": "",
+  "level": 14,
+  "rank": 2,
+  "learn": "kg:shakuton",
+  "desc": "Ayaklarını kavurucu chakrayla sararsın. Uçan tekmeyle düşmanların içinden geçer, dönüp topukla bitirirsin; değdiğin her bedeni kurutur.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "melee",
+  "meaning": "Yanan Bacaklar",
+  "signature": false,
+  "series": "Naruto Mobile",
+  "range": "Short"
+ },
+ "shakuton_shakkyu_hoijin": {
+  "id": "shakuton_shakkyu_hoijin",
+  "name": "Shakuton: Shakkyū Hōijin",
+  "name_en": "Scorch Release: Encircling Orbs",
+  "cost": 48,
+  "cd": 22.0,
+  "element": "shakuton",
+  "elements": [
+   "shakuton"
+  ],
+  "natures": [
+   "shakuton"
+  ],
+  "clan": "",
+  "level": 14,
+  "rank": 2,
+  "learn": "kg:shakuton",
+  "desc": "Beş küre hedefin çevresinde dönerek ısıdan bir kafes kurar: hedef kıpırdayamaz ve kurur. Sonra kürelerin hepsi birden içine dalar.",
+  "seals": [
+   "Tora",
+   "Uma"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "bind",
+  "meaning": "Kuşatan Küreler",
+  "signature": false,
+  "range": "Short, Mid"
+ },
+ "shakuton_nichirin": {
+  "id": "shakuton_nichirin",
+  "name": "Shakuton: Nichirin",
+  "name_en": "Scorch Release: Sun Disc",
+  "cost": 66,
+  "cd": 30.0,
+  "element": "shakuton",
+  "elements": [
+   "shakuton"
+  ],
+  "natures": [
+   "shakuton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:shakuton",
+  "desc": "Küreler başının üstünde küçük bir güneşte birleşir. Güneş çevredeki düşmanlara ısı ışınları yollar, sonunda hedefin üstüne iner.",
+  "seals": [
+   "Tora",
+   "Uma"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "meaning": "Güneş Kursu",
+  "signature": false,
+  "range": "Short, Mid"
  },
  "iburi_ibushimi": {
   "id": "iburi_ibushimi",

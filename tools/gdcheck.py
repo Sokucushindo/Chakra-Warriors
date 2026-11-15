@@ -23,6 +23,7 @@ seen = []
 for b in bad:
     if b not in seen:
         seen.append(b)
+seen.sort(key=lambda b: ("Could not resolve class" in b) or ("Could not parse global class" in b) or ("depended scripts" in b) or ("Failed to load script" in b) or b.startswith("GDCHECK HATA"))   # asıl hata başa
 for b in seen[:40]:
     print(b)
 if not done:

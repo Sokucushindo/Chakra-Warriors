@@ -11,7 +11,7 @@ const CAT_COLOR := {
 	"dojutsu": Color(0.95, 0.15, 0.15), "summoning": Color(0.9, 0.9, 0.9), "kinjutsu": Color(0.6, 0.1, 0.25),
 }
 const NATURE_COLOR := {"inton": Color(0.35, 0.2, 0.5), "yang": Color(1.0, 0.85, 0.4), "onmyoton": Color(0.9, 0.9, 0.95),
-	"shoton": Color(0.85, 0.55, 0.95), "jinton": Color(0.95, 0.95, 1.0), "futton": Color(0.85, 0.9, 0.95), "jiton": Color(0.75, 0.6, 0.3)}
+	"shoton": Color(0.85, 0.55, 0.95), "jinton": Color(0.95, 0.95, 1.0), "futton": Color(0.85, 0.9, 0.95), "jiton": Color(0.75, 0.6, 0.3), "koton": Color(0.72, 0.75, 0.8), "taiton": Color(0.82, 0.9, 0.92), "meiton": Color(0.45, 0.25, 0.65), "jinton_swift": Color(0.95, 0.97, 1.0), "deiton": Color(0.42, 0.3, 0.2)}
 
 
 # ------------------------------------------------------------------ yardımcılar
