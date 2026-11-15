@@ -152,13 +152,13 @@ static func power(kid: Dictionary) -> float:
 static func stage_text(kid: Dictionary) -> String:
 	ensure(kid)
 	var s = stage(kid)
-	var t = {"bebek": "bebek (beşikte)", "çocuk": "evde, ders verebilirsin", "akademi": "akademi öğrencisi (gündüz okulda)" if not HomeLife.night() else "akademi öğrencisi (evde)"}.get(s, "")
+	var t = Lang.t({"bebek": "bebek (beşikte)", "çocuk": "evde, ders verebilirsin", "akademi": "akademi öğrencisi (gündüz okulda)" if not HomeLife.night() else "akademi öğrencisi (evde)"}.get(s, ""))
 	var parts = []
 	for k in LESSONS:
 		if skill(kid, k) > 0.0:
-			parts.append("%s %d" % [LESSONS[k], int(skill(kid, k))])
-	var el = String(Elements.NAMES.get(String(kid.get("element", "")), ""))
-	return "%s%s%s  •  %s benziyor" % [t, ("  •  doğası " + el) if el != "" and s != "bebek" else "", ("  •  " + ", ".join(parts)) if not parts.is_empty() else "", String(kid.get("from", "sana"))]
+			parts.append("%s %d" % [Lang.t(String(LESSONS[k])), int(skill(kid, k))])
+	var el = Lang.t(String(Elements.NAMES.get(String(kid.get("element", "")), "")))
+	return "%s%s%s  •  %s" % [t, (Lang.t("  •  doğası ") + el) if el != "" and s != "bebek" else "", ("  •  " + ", ".join(parts)) if not parts.is_empty() else "", Lang.t("%s benziyor") % Lang.t(String(kid.get("from", "sana")))]
 
 
 ## Mezuniyet: dost kaydına kalıtım ve eğitim işlenir

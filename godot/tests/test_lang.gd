@@ -28,7 +28,7 @@ func leftovers() -> Array:
 		if (l is Label or l is Button) and l.is_visible_in_tree() and not l.is_queued_for_deletion():
 			var t: String = l.tr(l.text) if l.auto_translate_mode != Node.AUTO_TRANSLATE_MODE_DISABLED else l.text
 			if RegEx.create_from_string("[çğıöşüÇĞİÖŞÜ]").search(t):
-				out.append(t.left(60))
+				out.append(t.left(240))
 	return out
 
 

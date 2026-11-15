@@ -157,5 +157,5 @@ static func rows() -> Array:
 	for rel in ["baba", "anne", "kardeş"]:
 		var id = id_of(rel)
 		if id != "":
-			o.append(["%s: %s" % [String(Friends.all()[id].get("title", rel)), Friends.all()[id]["name"]], id])
+			o.append(["%s: %s" % [Lang.t(String(Friends.all()[id].get("title", rel))), Friends.all()[id]["name"]], id])
 	return o
