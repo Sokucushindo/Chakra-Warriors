@@ -14,7 +14,9 @@ var sub_pips: Array[Panel] = []
 var slots_box: HBoxContainer
 var _ss_t := 0   # sanal (göz/canavar) slot girdilerini yenileme zamanı
 var slot_nodes: Array = []
-var tool_lbl: Label
+var side_nodes: Array = []   # yan yuvalar: [R alet, T değiştir, H merhem, Y hap] -> [kare, ad, bekleme]
+var side_state: Array = []
+const SIDE_KEYS := ["throw", "tool_next", "salve", "pill"]
 var msg_lbl: Label
 var msg_t = 0.0
 var prompt_lbl: Label
@@ -50,9 +52,6 @@ var ryo_lbl: Label
 var hp_txt: Label
 var ck_txt: Label
 var st_bar: ProgressBar   # stamina (taijutsu)
-var tool_box: PanelContainer
-var item_box: PanelContainer
-var item_lbl: Label
 var prompt_box: PanelContainer
 var prompt_key: PanelContainer
 var mm_region: Label
@@ -365,68 +364,157 @@ func _draw_portrait() -> void:
 		portrait.draw_circle(c + Vector2(-(rk * 4.5) + i * 9, 36), 3.0, UI.GOLD)
 
 
+## Alt çubuk ölçüleri: yuva SLOT_PX kare; çizim 80 birimlik tasarımdan SS oranıyla küçülür
+const SLOT_PX := 66.0
+const SS := SLOT_PX / 80.0
+const SLOT_GAP := 10.0
+const GROUP_GAP := 26.0   # yan gruplarla jutsu dizisi arası (ayırıcı çizgi ortada)
+const PAD := 12.0
+const DOCK_BOTTOM := 10.0
+
+
 func _build_slots() -> void:
-	slots_box = UI.hbox(12)
+	var sw = SLOT_COUNT * SLOT_PX + (SLOT_COUNT - 1) * SLOT_GAP
+	var side_w = 2.0 * SLOT_PX + SLOT_GAP
+	var half = sw * 0.5 + GROUP_GAP + side_w + PAD
+	var dock_h = SLOT_PX + PAD * 2.0
+	var top_y = -(dock_h + DOCK_BOTTOM) + PAD
+	# çubuğun ortak cam zemini (yan yuvalar + 9 jutsu tek parça görünsün); iç boşluk dört yanda eşit
+	var dock = Panel.new()
+	dock.add_theme_stylebox_override("panel", UI._box(Color(0.03, 0.04, 0.06, 0.5), Color(1, 1, 1, 0.07), 1, 22, 0))
+	dock.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	dock.size = Vector2(half * 2.0, dock_h)
+	dock.position = Vector2(-half, -(dock_h + DOCK_BOTTOM))
+	dock.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	game_hud.add_child(dock)
+	for sgn in [-1.0, 1.0]:
+		var dv = ColorRect.new()
+		dv.color = Color(1, 1, 1, 0.1)
+		dv.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+		dv.size = Vector2(1, SLOT_PX)
+		dv.position = Vector2(sgn * (sw * 0.5 + GROUP_GAP * 0.5), top_y)
+		dv.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		game_hud.add_child(dv)
+	slots_box = UI.hbox(int(SLOT_GAP))
 	slots_box.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	slots_box.position = Vector2(-(SLOT_COUNT * 92 - 12) * 0.5, -120)
+	slots_box.position = Vector2(-sw * 0.5, top_y)
 	game_hud.add_child(slots_box)
 	for i in SLOT_COUNT:
-		var p = Control.new()
-		p.custom_minimum_size = Vector2(80, 104)
-		p.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		p.draw.connect(_draw_slot.bind(i))
-		var nm = UI.label("", 11, UI.MUTED, HORIZONTAL_ALIGNMENT_CENTER, true)
-		nm.position = Vector2(-6, 84)
-		nm.size = Vector2(92, 16)
-		nm.clip_text = true
-		p.add_child(nm)
-		var cd = UI.label("", 13, Color(0.7, 0.85, 1), HORIZONTAL_ALIGNMENT_CENTER, true)
-		cd.position = Vector2(0, 52)
-		cd.size = Vector2(80, 20)
-		p.add_child(cd)
-		slots_box.add_child(p)
-		slot_nodes.append([p, nm, cd])
+		slot_nodes.append(_make_slot(slots_box, _draw_slot.bind(i)))
 		slot_state.append({"el": "", "cd": 0.0, "max": 1.0, "ok": true, "empty": true})
-	# sol: atılabilir alet, sağ: eşyalar (küçük cam haplar)
-	tool_box = _side_box(Vector2(-(SLOT_COUNT * 92) * 0.5 - 230, -104))
-	tool_lbl = UI.label("", 14, UI.TEXT)
-	tool_box.get_child(0).add_child(tool_lbl)
-	item_box = _side_box(Vector2((SLOT_COUNT * 92) * 0.5 + 14, -104))
-	item_lbl = UI.label("", 14, UI.TEXT)
-	item_box.get_child(0).add_child(item_lbl)
+	# sol: atılabilir alet (R) + değiştir (T), sağ: merhem (H) + hap (Y); jutsu yuvalarıyla aynı cam kare dili
+	var left_box = UI.hbox(int(SLOT_GAP))
+	left_box.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	left_box.position = Vector2(-sw * 0.5 - GROUP_GAP - side_w, top_y)
+	game_hud.add_child(left_box)
+	var right_box = UI.hbox(int(SLOT_GAP))
+	right_box.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	right_box.position = Vector2(sw * 0.5 + GROUP_GAP, top_y)
+	game_hud.add_child(right_box)
+	for i in SIDE_KEYS.size():
+		side_nodes.append(_make_slot(left_box if i < 2 else right_box, _draw_side.bind(i)))
+		side_state.append({"empty": true, "icon": "", "col": UI.ELEMENT_COLORS[""], "cd": 0.0, "max": 1.0, "ok": true, "badge": "", "badge_col": Color.WHITE, "alt": ""})
 	seal_box = UI.hbox(6)
 	seal_box.set_anchors_preset(Control.PRESET_CENTER)
 	seal_box.position = Vector2(-150, 120)
 	game_hud.add_child(seal_box)
 
 
-func _side_box(pos: Vector2) -> PanelContainer:
-	var p = PanelContainer.new()
-	p.add_theme_stylebox_override("panel", UI._box(Color(0.04, 0.05, 0.07, 0.55), Color(1, 1, 1, 0.08), 1, 14, 10))
-	p.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	p.position = pos
-	p.custom_minimum_size = Vector2(216, 64)
+## Ortak yuva iskeleti: SLOT_PX kare çizim alanı + altta ad + ortada bekleme sayısı -> [kare, ad, bekleme]
+func _make_slot(parent: Control, draw_cb: Callable) -> Array:
+	var p = Control.new()
+	p.custom_minimum_size = Vector2(SLOT_PX, SLOT_PX)
 	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var v = UI.vbox(2)
-	p.add_child(v)
-	game_hud.add_child(p)
-	return p
+	p.draw.connect(draw_cb)
+	var nm = UI.label("", 11, Color(0.93, 0.95, 1.0), HORIZONTAL_ALIGNMENT_CENTER, true)
+	nm.position = Vector2(2, SLOT_PX - 18.0)
+	nm.size = Vector2(SLOT_PX - 4.0, 16)
+	nm.clip_text = true
+	nm.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	nm.add_theme_constant_override("outline_size", 3)
+	nm.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	p.add_child(nm)
+	var cd = UI.label("", 17, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, true)
+	cd.position = Vector2(0, SLOT_PX * 0.5 - 12.0)
+	cd.size = Vector2(SLOT_PX, 24)
+	cd.add_theme_constant_override("outline_size", 6)
+	cd.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	p.add_child(cd)
+	parent.add_child(p)
+	return [p, nm, cd]
 
 
-## Jutsu slotu: yuvarlak köşeli cam kare, element simgesi, saat yönünde bekleme süresi, tuş rozeti
-func _draw_slot(i: int) -> void:
-	var p: Control = slot_nodes[i][0]
-	var st: Dictionary = slot_state[i]
+## Yuvarlak köşeli dikdörtgenin köşe noktaları (dolgu / çizgi için)
+static func _rr_pts(r: Rect2, rad: float, seg := 6) -> PackedVector2Array:
+	var pts = PackedVector2Array()
+	var cs = [Vector2(r.end.x - rad, r.position.y + rad), Vector2(r.end.x - rad, r.end.y - rad),
+		Vector2(r.position.x + rad, r.end.y - rad), Vector2(r.position.x + rad, r.position.y + rad)]
+	for c in 4:
+		for s in seg + 1:
+			var a = -PI * 0.5 + (c + float(s) / seg) * PI * 0.5
+			pts.append(cs[c] + Vector2(cos(a), sin(a)) * rad)
+	return pts
+
+
+## Dikey renk geçişli yuvarlak dikdörtgen
+static func _rr_fill(p: Control, r: Rect2, rad: float, top: Color, bot: Color) -> void:
+	var pts = _rr_pts(r, rad)
+	var cols = PackedColorArray()
+	for q in pts:
+		cols.append(top.lerp(bot, clampf((q.y - r.position.y) / maxf(1.0, r.size.y), 0.0, 1.0)))
+	p.draw_polygon(pts, cols)
+
+
+static func _rr_line(p: Control, r: Rect2, rad: float, col: Color, w: float) -> void:
+	var pts = _rr_pts(r, rad)
+	pts.append(pts[0])
+	p.draw_polyline(pts, col, w, true)
+
+
+## Ortak yuva çizimi (jutsu 1-9 ve yan R/T/H/Y): renk geçişli cam kare, simge ışıltısı + gölgesi, parlama,
+## saat yönünde bekleme süresi, tuş rozeti, bekleme bitince kısa parlama.
+## st: empty, icon, col, ok, cd, max, badge (sağ alt köşe metni), badge_col, alt (sağ üst ikinci tuş), tint, flash
+func _paint_slot(p: Control, st: Dictionary, key_text: String) -> void:
+	p.draw_set_transform(Vector2.ZERO, 0.0, Vector2(SS, SS))   # tasarım 80 birim; şekiller ölçeklenir, metin _txt_c ile keskin
 	var sz = Vector2(80, 80)
-	var ec: Color = UI.ELEMENT_COLORS.get(st["el"], UI.ELEMENT_COLORS[""])
-	var sb = UI._box(Color(0.04, 0.05, 0.07, 0.62) if not st["empty"] else Color(0.04, 0.05, 0.07, 0.35), Color(ec, 0.85) if not st["empty"] else Color(1, 1, 1, 0.1), 2 if not st["empty"] else 1, 16, 0)
-	sb.shadow_color = Color(0, 0, 0, 0.3)
-	sb.shadow_size = 6
-	p.draw_style_box(sb, Rect2(Vector2.ZERO, sz))
-	if not st["empty"]:
-		var ic = Icons.tex(UI.ELEMENT_ICONS.get(st["el"], "chakra"))
-		var col = ec if st["ok"] else Color(ec.darkened(0.5), 0.8)
-		p.draw_texture_rect(ic, Rect2(Vector2(18, 14), Vector2(44, 44)), false, col)
+	var box = Rect2(Vector2.ZERO, sz)
+	var ec: Color = st["col"]
+	var empty: bool = st["empty"]
+	var is_ready: bool = (not empty) and st["ok"] and st["cd"] <= 0.0
+	if not empty:
+		var sh = UI._box(Color(0, 0, 0, 0.5), Color(0, 0, 0, 0), 0, 16, 0)
+		sh.shadow_color = Color(0, 0, 0, 0.35)
+		sh.shadow_size = 8
+		p.draw_style_box(sh, box)
+		var top = Color(ec.r * 0.34 + 0.05, ec.g * 0.34 + 0.05, ec.b * 0.34 + 0.07, 0.9) if st["ok"] else Color(0.13, 0.13, 0.16, 0.9)
+		_rr_fill(p, box, 15.0, top, Color(0.02, 0.025, 0.04, 0.94))
+		if st["ok"]:
+			p.draw_circle(Vector2(40, 31), 31.0, Color(ec, 0.06))
+			p.draw_circle(Vector2(40, 31), 23.0, Color(ec, 0.10))
+		# ad şeridi: alt kenarda saydamdan koyuya geçiş (ad yazısı burada okunur)
+		_rr_fill(p, Rect2(Vector2(2, 54), Vector2(76, 24)), 13.0, Color(0, 0, 0, 0.0), Color(0, 0, 0, 0.62))
+		# cam parlaması: üst yarıda beyaz -> saydam
+		_rr_fill(p, Rect2(Vector2(4, 3), Vector2(72, 34)), 12.0, Color(1, 1, 1, 0.13), Color(1, 1, 1, 0.0))
+		var col = Color(1, 1, 1, 0.97) if st["ok"] else Color(0.55, 0.55, 0.6, 0.85)
+		var icr = Rect2(Vector2(17, 8), Vector2(46, 46))
+		if st["icon"] == "swap":
+			var dk = Color(0, 0, 0, 0.45)
+			for k in 2:
+				var o = Vector2(1.5, 2.5) if k == 0 else Vector2.ZERO
+				var cc = dk if k == 0 else ec.lerp(Color.WHITE, 0.45)
+				p.draw_colored_polygon(PackedVector2Array([Vector2(34, 17) + o, Vector2(34, 45) + o, Vector2(13, 31) + o]), cc)
+				p.draw_colored_polygon(PackedVector2Array([Vector2(46, 17) + o, Vector2(46, 45) + o, Vector2(67, 31) + o]), cc)
+		else:
+			p.draw_texture_rect(Icons.tex(st["icon"]), Rect2(icr.position + Vector2(1.5, 2.5), icr.size), false, Color(0, 0, 0, 0.5))
+			p.draw_texture_rect(Icons.tex(st["icon"]), icr, false, ec.lerp(Color.WHITE, 0.35) if st["ok"] else col)
+	else:
+		_rr_fill(p, box, 15.0, Color(1, 1, 1, 0.045), Color(0, 0, 0, 0.14))
+	# kenarlık: hazırsa element renginde ışıltı + çift çizgi
+	if is_ready:
+		_rr_line(p, box.grow(1.0), 16.0, Color(ec, 0.22), 5.0)
+	_rr_line(p, box.grow(-1.0), 15.0, Color(ec, 0.95) if not empty else Color(1, 1, 1, 0.07), 2.0 if not empty else 1.0)
+	if not empty:
+		_rr_line(p, box.grow(-3.5), 12.0, Color(1, 1, 1, 0.07), 1.0)
 	if st["cd"] > 0.0:
 		var k = clampf(st["cd"] / maxf(0.01, st["max"]), 0.0, 1.0)
 		var c = sz * 0.5
@@ -438,15 +526,114 @@ func _draw_slot(i: int) -> void:
 		# kareye kırp: köşeleri aşan noktaları sınırla
 		for j in pts.size():
 			pts[j] = pts[j].clamp(Vector2(2, 2), sz - Vector2(2, 2))
-		p.draw_colored_polygon(pts, Color(0, 0, 0, 0.62))
-	elif not st["ok"] and not st["empty"]:
-		p.draw_style_box(UI._box(Color(0.1, 0.2, 0.5, 0.35), Color(0, 0, 0, 0), 0, 16, 0), Rect2(Vector2.ZERO, sz))
-	# tuş rozeti
-	p.draw_circle(Vector2(12, 12), 11, Color(1, 1, 1, 0.92))
+		p.draw_colored_polygon(pts, Color(0, 0, 0, 0.64))
+		p.draw_line(c, pts[pts.size() - 1], Color(1, 1, 1, 0.4), 1.5, true)
+	elif not st["ok"] and not empty:
+		_rr_fill(p, box.grow(-2.0), 14.0, st.get("tint", Color(0.1, 0.2, 0.5, 0.35)), st.get("tint", Color(0.1, 0.2, 0.5, 0.35)))
+	# bekleme bitti: kısa beyaz parlama
+	var fl = 1.0 - float(Time.get_ticks_msec() - int(st.get("flash", -100000))) / 400.0
+	if fl > 0.0 and not empty:
+		_rr_fill(p, box, 15.0, Color(1, 1, 1, fl * 0.42), Color(ec, fl * 0.2))
+		_rr_line(p, box.grow(1.0), 16.0, Color(1, 1, 1, fl * 0.9), 3.0)
 	var f = UI.font(true)
-	var t = Keys.name("slot%d" % (i + 1))
-	var w = f.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x
-	p.draw_string(f, Vector2(12 - w * 0.5, 17), t, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, UI.INK)
+	# tuş rozeti: koyu hap, ince çerçeve (uzun tuş adı küçülür)
+	var fs = 12
+	if _txt_w(f, key_text, fs) > 30.0:
+		fs = 9
+	var bw = maxf(21.0, _txt_w(f, key_text, fs) + 11.0)
+	p.draw_style_box(UI._box(Color(0.03, 0.035, 0.05, 0.94), Color(1, 1, 1, 0.38 if not empty else 0.12), 1, 7, 0), Rect2(Vector2(3, 3), Vector2(bw, 20)))
+	_txt_c(p, f, Vector2(3 + bw * 0.5, 13), key_text, fs, Color(UI.TEXT, 1.0 if not empty else 0.45))
+	# ikinci tuş (ör. hap değiştirme): sağ üstte küçük altın rozet
+	var alt: String = st.get("alt", "")
+	if alt != "" and not empty:
+		var ax = 3.0 + bw + 12.0
+		p.draw_circle(Vector2(ax, 13), 9.5, Color(0, 0, 0, 0.55))
+		p.draw_circle(Vector2(ax, 13), 8.5, Color(UI.GOLD, 0.97))
+		_txt_c(p, f, Vector2(ax, 13), alt, 10, UI.INK)
+	# köşe rozeti (sağ üst): enerji bedeli / stok
+	var bt: String = st.get("badge", "")
+	if bt != "" and not empty:
+		var tw = _txt_w(f, bt, 12) + 11.0
+		p.draw_style_box(UI._box(Color(0.02, 0.025, 0.035, 0.85), Color(st.get("badge_col", Color.WHITE), 0.55), 1, 8, 0), Rect2(Vector2(77 - tw, 4), Vector2(tw, 18)))
+		_txt_c(p, f, Vector2(77 - tw * 0.5, 13), bt, 12, st.get("badge_col", Color.WHITE))
+	p.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## Yuva metni: font px = tasarım boyu x SS (en az 10); ölçek dönüşümü dışında çizilir (keskin)
+func _fpx(fs: int) -> int:
+	return maxi(10, roundi(fs * SS + 1.0))
+
+
+func _txt_w(f: Font, t: String, fs: int) -> float:   # tasarım birimiyle genişlik
+	return f.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, _fpx(fs)).x / SS
+
+
+func _txt_c(p: Control, f: Font, c: Vector2, t: String, fs: int, col: Color) -> void:   # c: tasarım koordinatında merkez
+	var px = _fpx(fs)
+	var w = f.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, px).x
+	p.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	p.draw_string(f, Vector2(c.x * SS - w * 0.5, c.y * SS + px * 0.36), t, HORIZONTAL_ALIGNMENT_LEFT, -1, px, col)
+	p.draw_set_transform(Vector2.ZERO, 0.0, Vector2(SS, SS))
+
+
+## Jutsu yuvası (1-9): element simgesi + enerji bedeli rozeti (chakra mavi / stamina yeşil / yetmezse kırmızı)
+func _draw_slot(i: int) -> void:
+	var st: Dictionary = slot_state[i]
+	var d = st.duplicate()
+	d["col"] = UI.ELEMENT_COLORS.get(st["el"], UI.ELEMENT_COLORS[""])
+	d["icon"] = UI.ELEMENT_ICONS.get(st["el"], "chakra")
+	var cost := int(roundf(float(st.get("cost", 0.0))))
+	d["badge"] = str(cost) if cost > 0 else ""
+	d["badge_col"] = (Color(0.55, 0.95, 0.55) if st.get("tai", false) else Color(0.55, 0.78, 1.0)) if st["ok"] else Color(1.0, 0.45, 0.4)
+	_paint_slot(slot_nodes[i][0], d, Keys.name("slot%d" % (i + 1)))
+
+
+## Yan yuva (R alet / T değiştir / H merhem / Y hap)
+func _draw_side(i: int) -> void:
+	_paint_slot(side_nodes[i][0], side_state[i], Keys.name(SIDE_KEYS[i]))
+
+
+
+const TOOL_ICONS := {"kunai": "kunai", "shuriken": "shuriken", "tag": "seal", "smoke": "bomb", "senbon": "arrow", "makibishi": "star"}
+const PILL_COLS := {"pill": Color(1.0, 0.75, 0.4), "hap_horenzai": Color(0.5, 0.9, 0.5), "hap_kare": Color(1.0, 0.9, 0.4), "hap_togarashi": Color(1.0, 0.45, 0.4)}
+
+
+## Yan yuvalar: [R] seçili alet, [T] alet değiştir, [H] merhem, [Y] hap; bekleme ve stok yuvanın üstünde
+func _update_side(pl: Node, pr: Dictionary) -> void:
+	var inv: Dictionary = pr.get("inventory", {})
+	var scene = get_tree().current_scene
+	var tool: String = pr.get("throw_sel", "kunai")
+	var tcd = float(pl.combat.tool_cd.get(tool, 0.0)) if pl.combat else 0.0
+	var tn = int(inv.get(tool, 0))
+	_set_side(0, String(Data.items.get(tool, {"name": tool})["name"]), TOOL_ICONS.get(tool, "kunai"), Color(0.85, 0.88, 0.95), tcd, tn > 0, str(tn))
+	_set_side(1, "Alet değiştir", "swap", Color(0.62, 0.65, 0.72), 0.0, true, "")
+	var scd = float(scene.salve_cooldown()) if scene.has_method("salve_cooldown") else 0.0
+	var sn_ = int(inv.get("salve", 0))
+	_set_side(2, "Merhem", "potion", Color(0.5, 0.9, 0.55), scd, sn_ > 0, str(sn_))
+	var psel = ClanMech.pill_sel()
+	var pcd = float(scene.pill_cooldown()) if scene.has_method("pill_cooldown") else 0.0
+	if psel != "pill":
+		pcd = ClanMech.aki_pill_left(psel)
+	var pn = int(inv.get("pill", 0))
+	var many = ClanMech.pill_list().size() > 1
+	_set_side(3, String(ClanMech.AKI_PILL_NAMES.get(psel, "Asker Hapı")).split("(")[0].strip_edges(), "pill", PILL_COLS.get(psel, PILL_COLS["pill"]), pcd, psel != "pill" or pn > 0, str(pn) if psel == "pill" else "", Keys.name("pill_next") if many else "")
+
+
+## Yan yuvayı güncelle; görünüm değiştiyse yeniden çizdirir
+func _set_side(i: int, nm: String, icon: String, col: Color, cd: float, ok: bool, badge: String, alt := "") -> void:
+	var sn: Array = side_nodes[i]
+	var st: Dictionary = side_state[i]
+	sn[1].text = nm
+	sn[2].text = ("%d" % ceili(cd)) if cd > 0.0 else ""
+	var mx = maxf(float(st["max"]) if float(st["cd"]) > 0.0 else 0.0, cd)
+	if float(st["cd"]) > 0.0 and cd <= 0.0 and not st["empty"]:
+		st["flash"] = Time.get_ticks_msec()
+	if st["empty"] or st["icon"] != icon or st["col"] != col or absf(st["cd"] - cd) > 0.001 or st["ok"] != ok or st["badge"] != badge or st["alt"] != alt or Time.get_ticks_msec() - int(st.get("flash", -100000)) < 420:
+		st["empty"] = false; st["icon"] = icon; st["col"] = col; st["cd"] = cd; st["max"] = mx; st["ok"] = ok
+		st["badge"] = badge; st["alt"] = alt
+		st["badge_col"] = Color(0.9, 0.9, 0.95) if ok else Color(1.0, 0.45, 0.4)
+		st["tint"] = Color(0.5, 0.08, 0.08, 0.4)
+		sn[0].queue_redraw()
 
 
 func _build_texts() -> void:
@@ -1168,25 +1355,19 @@ func _process(dt: float) -> void:
 		var j: Dictionary = Data.jutsu.get(jid, {})
 		sn[1].text = String(j.get("name", jid)).split(":")[-1].split("(")[0].strip_edges()
 		var cd: float = SpecialSlots.cooldown(pl, jid) if j.has("virtual") else (comb.cooldowns.get(jid, 0.0) if comb else 0.0)
-		var ok = (pl.stamina if Stats.is_taijutsu(j) else pl.chakra) >= PlayerCombat.cast_cost(j)
+		var cost = PlayerCombat.cast_cost(j)
+		var tai = Stats.is_taijutsu(j)
+		var ok = (pl.stamina if tai else pl.chakra) >= cost
 		sn[2].text = ("%.1f" % cd) if cd > 0.0 else ""
 		sn[2].add_theme_color_override("font_color", Color(1, 1, 1))
 		var el = String(j.get("element", ""))
 		var mx = maxf(maxf(Combat.jutsu_cd(j), float(comb.cd_max.get(jid, 0.0)) if comb and not j.has("virtual") else 0.0), cd)
-		if st["empty"] or st["el"] != el or absf(st["cd"] - cd) > 0.001 or st["ok"] != ok or st["max"] != mx:
-			st["empty"] = false; st["el"] = el; st["cd"] = cd; st["ok"] = ok; st["max"] = mx
+		if st["cd"] > 0.0 and cd <= 0.0 and not st["empty"]:
+			st["flash"] = Time.get_ticks_msec()
+		if st["empty"] or st["el"] != el or absf(st["cd"] - cd) > 0.001 or st["ok"] != ok or st["max"] != mx or int(st.get("cost", -1.0)) != int(cost) or st.get("tai", false) != tai or Time.get_ticks_msec() - int(st.get("flash", -100000)) < 420:
+			st["empty"] = false; st["el"] = el; st["cd"] = cd; st["ok"] = ok; st["max"] = mx; st["cost"] = cost; st["tai"] = tai
 			sn[0].queue_redraw()
-	var tool: String = pr.get("throw_sel", "kunai")
-	var tcd = float(pl.combat.tool_cd.get(tool, 0.0)) if pl.combat else 0.0
-	var tstate = ("%d sn" % ceili(tcd)) if tcd > 0.0 else ("hazır" if int(pr["inventory"].get(tool, 0)) > 0 else "yok")
-	tool_lbl.text = "%s   %s  (%s)\n%s   değiştir" % [Keys.name("throw"), Data.items.get(tool, {"name": tool})["name"], tstate, Keys.name("tool_next")]
-	var pcd = get_tree().current_scene.pill_cooldown() if get_tree().current_scene.has_method("pill_cooldown") else 0.0
-	var psel = ClanMech.pill_sel()
-	if psel != "pill":
-		pcd = ClanMech.aki_pill_left(psel)
-	var scd = get_tree().current_scene.salve_cooldown() if get_tree().current_scene.has_method("salve_cooldown") else 0.0
-	item_lbl.text = "%s   Merhem  %s
-%s   %s  %s%s" % [Keys.name("salve"), ("(%d sn)" % ceili(scd)) if scd > 0.0 else "(hazır)", Keys.name("pill"), ClanMech.AKI_PILL_NAMES.get(psel, "Asker Hapı"), ("(%d sn)" % ceili(pcd)) if pcd > 0.0 else "(hazır)", ("  [%s] değiştir" % Keys.name("pill_next")) if ClanMech.pill_list().size() > 1 else ""]
+	_update_side(pl, pr)
 	if msg_t > 0.0:
 		msg_t -= dt
 		if msg_t <= 0.0:
@@ -1202,7 +1383,7 @@ func _process(dt: float) -> void:
 	if prompt_box.visible and prompt_lbl.text != ptxt:
 		prompt_lbl.text = ptxt
 		prompt_box.reset_size()
-		prompt_box.position = Vector2(-prompt_box.size.x * 0.5, -168)
+		prompt_box.position = Vector2(-prompt_box.size.x * 0.5, -148)
 	var rn = Game.region_name(pl.global_position) if Engine.get_process_frames() % 20 == 0 else region_name
 	if rn != region_name:
 		region_name = rn
