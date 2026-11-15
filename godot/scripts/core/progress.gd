@@ -66,8 +66,8 @@ func refresh_story() -> void:
 	var vn = String(Game.village(home()).get("name", "Konoha")) if Game.world_info.has("villages") else "Konoha"
 	STORY.clear()
 	for t in STORY_T:
-		STORY.append(String(t).replace("{kage}", info["kage"]).replace("{vn}", vn).replace("{s1}", info["s1"]).replace("{s2}", GeninSquad.sensei_name() if not p().is_empty() else info["s2"])
-			.replace("{lookout}", info["lookout"]).replace("{dir}", info["dir"]))
+		STORY.append(Lang.t(String(t)).replace("{kage}", info["kage"]).replace("{vn}", vn).replace("{s1}", info["s1"]).replace("{s2}", GeninSquad.sensei_name() if not p().is_empty() else info["s2"])
+			.replace("{lookout}", info["lookout"]).replace("{dir}", Lang.t(String(info["dir"]))))
 
 
 ## Yeni oyunda doğma noktası: akademinin önü (Konoha'da eski nokta)

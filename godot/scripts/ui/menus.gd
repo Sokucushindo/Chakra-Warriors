@@ -1201,7 +1201,7 @@ static func controls(back: Callable, keep := false) -> void:
 		var col: VBoxContainer = colv[place[gi]]
 		if col.get_child_count() > 0:
 			col.add_child(UI.spacer(0, 10, false))
-		col.add_child(UI.label(String(g[0]).to_upper(), 13, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
+		col.add_child(UI.label(Lang.upper(Lang.t(String(g[0]))), 13, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
 		for r in g[1]:
 			var a: String = r[0]
 			var h = UI.hbox(8)
@@ -1465,6 +1465,23 @@ static func settings(back: Callable) -> void:
 	br.add_child(bv)
 	br.add_child(_arrow_btn("▶", flip_blood))
 	g0.add_child(br)
+	# dil: hemen uygulanır (ekrandaki yazılar kendiliğinden çevrilir)
+	var lr = UI.hbox(12)
+	var ll = UI.label("Dil / Language", 15)
+	ll.custom_minimum_size = Vector2(200, 0)
+	lr.add_child(ll)
+	var next_lang = func(d: int) -> void:
+		var i = Lang.CODES.find(Game.lang())
+		s["lang"] = Lang.CODES[posmod(i + d, Lang.CODES.size())]
+		Lang.apply(s["lang"])
+		settings(back)
+	lr.add_child(_arrow_btn("◀", func(): next_lang.call(-1)))
+	var lv = UI.label(Lang.NAMES[Game.lang()], 16, UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, true)
+	lv.custom_minimum_size = Vector2(90, 0)
+	lv.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	lr.add_child(lv)
+	lr.add_child(_arrow_btn("▶", func(): next_lang.call(1)))
+	g0.add_child(lr)
 	var g1 = group.call("controls", "Kontrol")
 	slider.call(g1, "Fare hassasiyeti", "sens", 0.2, 3.0, 0.05)
 	check.call(g1, "Fareyi ters çevir (Y)", "invert_y")
