@@ -1368,11 +1368,110 @@ static func _settings_revert() -> void:
 static func settings_cancel() -> void:
 	if not settings_open():
 		return
+	# kaydedilmemiş değişiklik varsa önce sor (ikinci Esc: kaydetmeden çık)
+	if settings_dirty() and not _set_bg.has_meta("asking"):
+		_settings_ask()
+		return
 	var back: Callable = _set_bg.get_meta("back")   # ekranla birlikte silinir (kalıcı değişkende tutulunca oyun kapanırken çöküyordu)
 	_settings_revert()
 	back.call()
 
 
+## Ekran açıldığından beri değişen ayar var mı
+static func settings_dirty() -> bool:
+	for k in _set_snap:
+		if Game.settings.get(k) != _set_snap[k]:
+			return true
+	return false
+
+
+## Kaydedilmemiş değişiklik uyarısı: Kaydet ve çık / Kaydetmeden çık / Vazgeç
+static func _settings_ask() -> void:
+	var bg := _set_bg
+	bg.set_meta("asking", true)
+	var ov = ColorRect.new()
+	ov.color = Color(0, 0, 0, 0.6)
+	ov.set_anchors_preset(Control.PRESET_FULL_RECT)
+	ov.mouse_filter = Control.MOUSE_FILTER_STOP
+	bg.add_child(ov)
+	var cc = CenterContainer.new()
+	cc.set_anchors_preset(Control.PRESET_FULL_RECT)
+	ov.add_child(cc)
+	var p = PanelContainer.new()
+	var psb = UI._box(Color(0.03, 0.035, 0.05, 0.97), Color(UI.GOLD, 0.5), 1, 10, 28)
+	psb.border_width_top = 3
+	psb.border_color = UI.ACCENT
+	p.add_theme_stylebox_override("panel", psb)
+	cc.add_child(p)
+	var v = UI.vbox(14)
+	p.add_child(v)
+	var t = UI.label("Kaydedilmemiş değişiklikler var", 26, UI.CREAM)
+	t.add_theme_font_override("font", _brush_font())
+	v.add_child(t)
+	v.add_child(UI.label("Değişiklikleri kaydetmeden çıkarsan eski ayarlara dönülür.", 15, UI.MUTED))
+	v.add_child(UI.spacer(0, 6, false))
+	var h = UI.hbox(12)
+	v.add_child(h)
+	var close = func() -> void:
+		if is_instance_valid(bg):
+			bg.remove_meta("asking")
+		ov.queue_free()
+	h.add_child(UI.button("Vazgeç", close, 170, "arrow"))
+	h.add_child(UI.button("Kaydetmeden Çık", func(): settings_cancel(), 230, "close"))
+	var sv = UI.primary("Kaydet ve Çık", func(): _settings_save(bg.get_meta("back")), 210, "check")
+	h.add_child(sv)
+	h.add_child(UI.spacer(0, 0, false))
+	sv.call_deferred("grab_focus")
+	UI.pop_in(p, 0.96)
+
+
+## Kaydet ve geri dön
+static func _settings_save(back: Callable) -> void:
+	var s = Game.settings
+	var old_view = float(_set_snap.get("view", s["view"]))
+	_set_bg = null   # kaydedildi: çıkarken geri alma
+	Game.save_settings()
+	if Game.player:
+		Game.player.cam.fov = s["fov"]
+	if Game.world:
+		Game.apply_graphics()
+		if not is_equal_approx(old_view, float(s["view"])):
+			Game.rescale_view(old_view, float(s["view"]))   # görüş mesafesi: dünya yeniden kurulmadan hemen
+	Sfx.music_a.volume_db = linear_to_db(maxf(0.001, float(s["music"]) * 0.6))
+	back.call()
+
+
+## Ayar açıklamaları (satırın üstüne gelince / seçilince altta görünür)
+const SET_DESC := {
+	"Dil / Language": "Arayüz dili. Hemen uygulanır.",
+	"Otomatik kayıt": "Oyun akarken belirli aralıkla kaydeder. Dövüş sırasında kaydetmez, dövüş bitince kaydeder.",
+	"Kamera sarsıntısı": "Darbelerde ve patlamalarda kameranın sarsılması. Baş dönmesi yapıyorsa azalt.",
+	"Kan efekti": "Vuruşlarda kan sıçraması.",
+	"Ekran": "Tam ekran, kenarlıksız ya da pencere boyutu.",
+	"Arayüz ölçeği": "Menülerin ve yazıların büyüklüğü. Küçük ekranlarda küçült.",
+	"Grafik kalitesi": "Aşağıdaki ayrıntıları birlikte kurar (gölge, kenar yumuşatma, görüş mesafesi…). Sonra tek tek değiştirebilirsin.",
+	"Gölgeler": "Güneş ve fener gölgeleri. Kapatmak FPS'i belirgin artırır.",
+	"Kenar yumuşatma": "Kenarlardaki tırtıkları giderir. MSAA daha temiz ama daha ağır; FXAA hafif ama biraz bulanık.",
+	"Ortam gölgesi (SSAO)": "Köşelerde ve temas noktalarında yumuşak gölge. Orta ağırlıkta.",
+	"Çözünürlük ölçeği": "Sahneyi daha düşük çözünürlükte çizip büyütür. Düşürmek FPS'i en çok artıran ayardır.",
+	"Anime çizgileri": "Karakterlerin ve nesnelerin kenarlarındaki koyu çizgi.",
+	"Yumuşak filtre": "Hafif ışıltı ve yumuşak renk filtresi.",
+	"Görüş mesafesi": "Uzaktaki yapıların ve ağaçların ne kadar uzaktan görüneceği. Kaydedince hemen uygulanır.",
+	"Çimen yoğunluğu": "Etrafındaki çimenin miktarı ve uzanma mesafesi.",
+	"Kalabalık yoğunluğu": "Köylerdeki insan sayısı. Hemen uygulanır; fazlalar sen bakmazken dağılır.",
+	"Görüş alanı (FOV)": "Kameranın açısı. Büyük değer daha geniş görür.",
+	"Dikey eşitleme (VSync)": "Ekran yırtılmasını önler; FPS'i ekranın yenileme hızıyla sınırlar.",
+	"FPS sınırı": "Saniyedeki en çok kare. Isınmayı ve fan sesini azaltır.",
+	"FPS göster": "Köşede saniyedeki kare sayısını gösterir.",
+	"Ana ses": "Bütün seslerin düzeyi.",
+	"Müzik": "Müzik düzeyi.",
+	"Efektler": "Dövüş, jutsu ve dünya sesleri.",
+	"Arayüz sesleri": "Menülerdeki tık sesleri.",
+	"Oyun arka plandayken sesi kapat": "Başka pencereye geçince oyunun sesini kapatır.",
+	"Fare hassasiyeti": "Kameranın fareyle dönme hızı.",
+	"Fareyi ters çevir (Y)": "Fareyi yukarı itince kamera aşağı bakar.",
+	"Tuş atamaları": "Bütün tuşları değiştirebileceğin ekran.",
+}
 const SET_TABS := [["general", "leaf", "Genel"], ["graphics", "monitor", "Görüntü"], ["sound", "sound", "Ses"], ["controls", "controls", "Kontrol"]]
 static var _set_tab := "general"
 static var _set_focus := -1          # klavye / kol ile seçili satır (yeniden çizimde korunur)
@@ -1557,6 +1656,8 @@ static func _set_row(sec: VBoxContainer, title: String, lw: float, size := 18, h
 	l.size_flags_vertical = Control.SIZE_FILL
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	r.add_child(l)
+	if SET_DESC.has(title):
+		r.set_meta("desc", SET_DESC[title])
 	sec.add_child(r)
 	return r
 
@@ -1641,9 +1742,29 @@ static func settings(back: Callable) -> void:
 	# ---- içerik: bölüm kartları, kaydırılabilir
 	var area = Control.new()
 	area.set_anchors_preset(Control.PRESET_FULL_RECT)
-	area.offset_left = rw + 36; area.offset_top = 90; area.offset_right = -36; area.offset_bottom = -96
+	area.offset_left = rw + 36; area.offset_top = 90; area.offset_right = -36; area.offset_bottom = -150
 	area.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bg.add_child(area)
+	# açıklama şeridi: üstüne gelinen / seçilen ayarın ne işe yaradığı
+	var dp = PanelContainer.new()
+	var dsb = UI._box(Color(0.02, 0.022, 0.03, 0.85), Color(0, 0, 0, 0), 0, 6, 10)
+	dsb.border_width_left = 3
+	dsb.border_color = Color(UI.GOLD, 0.6)
+	dsb.content_margin_left = 16
+	dp.add_theme_stylebox_override("panel", dsb)
+	dp.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	dp.offset_left = rw + 36; dp.offset_right = -36; dp.offset_top = -142; dp.offset_bottom = -96
+	dp.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bg.add_child(dp)
+	var desc = UI.label("Bir ayarın üstüne gel ya da seç: ne işe yaradığı burada yazar.", 15, UI.MUTED)
+	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc.custom_minimum_size = Vector2(120, 0)
+	desc.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	dp.add_child(desc)
+	var show_desc = func(r: Control) -> void:
+		if is_instance_valid(desc) and r.has_meta("desc"):
+			desc.text = r.get_meta("desc")
+			desc.add_theme_color_override("font_color", UI.TEXT)
 	var sc = ScrollContainer.new()
 	sc.set_anchors_preset(Control.PRESET_FULL_RECT)
 	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -1681,10 +1802,34 @@ static func settings(back: Callable) -> void:
 		c.focus_entered.connect(func():
 			_set_focus = i
 			lit[1] = true
-			paint.call())
+			paint.call()
+			var r = c.get_parent()
+			while r != null and not r.has_meta("desc") and r != body:
+				r = r.get_parent()
+			if r != null and r != body:
+				show_desc.call(r))
 		c.focus_exited.connect(func():
 			lit[1] = false
 			paint.call())
+	# kaydedilmemiş değişiklik: satır adının önünde turuncu nokta, ad altın renkli
+	var dirty = func(h: HBoxContainer, keys: Array) -> void:
+		var ch := false
+		for kk in keys:
+			if s.get(kk) != _set_snap.get(kk):
+				ch = true
+		if not ch:
+			return
+		var l: Label = h.get_child(0)
+		l.add_theme_color_override("font_color", UI.GOLD)
+		var dot = Panel.new()
+		dot.add_theme_stylebox_override("panel", UI._box(UI.ACCENT, Color(0, 0, 0, 0), 0, 4, 0))
+		dot.custom_minimum_size = Vector2(8, 8)
+		dot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		dot.tooltip_text = "Kaydedilmedi"
+		h.add_child(dot)
+		h.move_child(dot, 0)
+		l.custom_minimum_size.x -= 22.0
 	var note = func(sec: VBoxContainer, text: String) -> void:
 		var l = UI.label(text, 13, UI.MUTED)
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -1728,14 +1873,18 @@ static func settings(back: Callable) -> void:
 		bh.add_child(vl)
 		h.add_child(box)
 		mark.call(sl, bsb)
+		dirty.call(h, [key])
+		var hl: Label = h.get_child(h.get_child_count() - 2) if h.get_child(0) is Panel else h.get_child(0)
 		sl.value_changed.connect(func(x):
 			s[key] = x
 			vl.text = fmt.call(x)
+			if s.get(key) != _set_snap.get(key):
+				hl.add_theme_color_override("font_color", UI.GOLD)
 			if key in ["master", "music"]:
 				Game.apply_audio()
 				Sfx.music_a.volume_db = linear_to_db(maxf(0.001, float(s["music"]) * 0.6)))
 	# ‹ değer › seçici: tek hap, içinde ince oklar, altında konum noktaları. Değişiklik hemen uygulanır, ekran yeniden çizilir
-	var pick = func(sec: VBoxContainer, title: String, cur_text: String, step: Callable, no_tr: bool, at: Vector2i) -> void:
+	var pick = func(sec: VBoxContainer, title: String, cur_text: String, step: Callable, no_tr: bool, at: Vector2i) -> HBoxContainer:
 		var h = _set_row(sec, title, lw)
 		var go = func(d: int) -> void:
 			step.call(d)
@@ -1753,7 +1902,11 @@ static func settings(back: Callable) -> void:
 				go.call(-1)
 			elif ev.is_action_pressed("ui_right", true) or ev.is_action_pressed("ui_accept"):
 				pill.accept_event()
-				go.call(1))
+				go.call(1)
+			elif ev is InputEventMouseButton and ev.pressed and ev.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
+				# fare tekeri seçicinin üstündeyken değeri değiştirir (sayfayı kaydırmaz)
+				pill.accept_event()
+				go.call(1 if ev.button_index == MOUSE_BUTTON_WHEEL_UP else -1))
 		var ph = UI.hbox(0)
 		pill.add_child(ph)
 		var arrow = func(left: bool) -> Button:
@@ -1803,9 +1956,10 @@ static func settings(back: Callable) -> void:
 		ph.add_child(mid)
 		ph.add_child(arrow.call(false))
 		h.add_child(pill)
+		return h
 	var toggle = func(sec: VBoxContainer, title: String, key: String, def: bool) -> void:
 		var on := bool(s.get(key, def))
-		pick.call(sec, title, "Açık" if on else "Kapalı", func(_d): s[key] = not bool(s.get(key, def)), false, Vector2i(int(on), 2))
+		dirty.call(pick.call(sec, title, "Açık" if on else "Kapalı", func(_d): s[key] = not bool(s.get(key, def)), false, Vector2i(int(on), 2)), [key])
 	# sabit listeden seçim (değer listesi, görünen adlar)
 	var choose = func(sec: VBoxContainer, title: String, key: String, vals: Array, names: Array, def) -> void:
 		var cur = s.get(key, def)
@@ -1813,14 +1967,15 @@ static func settings(back: Callable) -> void:
 		for j in vals.size():
 			if vals[j] == cur:
 				i = j
-		pick.call(sec, title, names[i], func(d): s[key] = vals[clampi(i + d, 0, vals.size() - 1)], false, Vector2i(i, vals.size()))
+		dirty.call(pick.call(sec, title, names[i], func(d): s[key] = vals[clampi(i + d, 0, vals.size() - 1)], false, Vector2i(i, vals.size())), [key])
 	match _set_tab:
 		"general":
 			var g = _set_section(body, "leaf", "Genel Ayarlar")
 			# dil: hemen uygulanır (ekrandaki yazılar kendiliğinden çevrilir)
-			pick.call(g, "Dil / Language", Lang.NAMES[Game.lang()], func(d):
+			var lr = pick.call(g, "Dil / Language", Lang.NAMES[Game.lang()], func(d):
 				s["lang"] = Lang.CODES[posmod(Lang.CODES.find(Game.lang()) + d, Lang.CODES.size())]
 				Lang.apply(s["lang"]), true, Vector2i(Lang.CODES.find(Game.lang()), Lang.CODES.size()))
+			dirty.call(lr, ["lang"])
 			choose.call(g, "Otomatik kayıt", "autosave", [0, 5, 10, 15], ["Kapalı", "5 dakikada bir", "10 dakikada bir", "15 dakikada bir"], 10)
 			choose.call(g, "Kamera sarsıntısı", "shake", [0, 1, 2], ["Kapalı", "Az", "Normal"], 2)
 			toggle.call(g, "Kan efekti", "blood", true)
@@ -1828,36 +1983,37 @@ static func settings(back: Callable) -> void:
 			# ekran: ◀ Tam ekran / Pencere 1280×720 ... ▶ (küçük ekranlı bilgisayarlarda pencere ekrana sığsın)
 			var disp = Game.DISPLAYS
 			var di = maxi(0, disp.find(Game.display_key()))
-			pick.call(e, "Ekran", Game.display_label(disp[di]), func(d):
+			var dr = pick.call(e, "Ekran", Game.display_label(disp[di]), func(d):
 				s["display"] = disp[posmod(di + d, disp.size())]
 				s["fullscreen"] = s["display"] == "full"
 				Game.apply_settings(), false, Vector2i(di, disp.size()))
+			dirty.call(dr, ["display", "fullscreen"])
 			var scales = [0.75, 0.85, 1.0, 1.15, 1.3, 1.5]
 			var si = 2
 			for i in scales.size():
 				if absf(scales[i] - float(s.get("ui_scale", 1.0))) < 0.01:
 					si = i
-			pick.call(e, "Arayüz ölçeği", "%d%%" % roundi(scales[si] * 100.0), func(d):
+			var ur = pick.call(e, "Arayüz ölçeği", "%d%%" % roundi(scales[si] * 100.0), func(d):
 				s["ui_scale"] = scales[posmod(si + d, scales.size())]
 				Game.apply_settings(), false, Vector2i(si, scales.size()))
+			dirty.call(ur, ["ui_scale"])
 		"graphics":
 			var g = _set_section(body, "monitor", "Grafik Ayarları")
 			var q = int(s.get("quality", 2))
-			pick.call(g, "Grafik kalitesi", Game.QUALITY_NAMES[clampi(q, 0, 2)], func(d): Game.set_quality(posmod(q + d, 3)), false, Vector2i(clampi(q, 0, 2), 3))
+			dirty.call(pick.call(g, "Grafik kalitesi", Game.QUALITY_NAMES[clampi(q, 0, 2)], func(d): Game.set_quality(posmod(q + d, 3)), false, Vector2i(clampi(q, 0, 2), 3)), ["quality"])
 			toggle.call(g, "Gölgeler", "shadows", true)
 			choose.call(g, "Kenar yumuşatma", "aa", [0, 1, 2, 3], ["Kapalı", "FXAA", "MSAA 2x", "MSAA 4x"], 2)
 			toggle.call(g, "Ortam gölgesi (SSAO)", "ssao", true)
 			var rs := [0.5, 0.6, 0.7, 0.75, 0.8, 0.9, 1.0]
 			var ri = rs.find(snappedf(float(s.get("res_scale", 1.0)), 0.05))
 			ri = rs.size() - 1 if ri < 0 else ri
-			pick.call(g, "Çözünürlük ölçeği", "%d%%" % roundi(rs[ri] * 100.0), func(d): s["res_scale"] = rs[clampi(ri + d, 0, rs.size() - 1)], false, Vector2i(ri, rs.size()))
+			dirty.call(pick.call(g, "Çözünürlük ölçeği", "%d%%" % roundi(rs[ri] * 100.0), func(d): s["res_scale"] = rs[clampi(ri + d, 0, rs.size() - 1)], false, Vector2i(ri, rs.size())), ["res_scale"])
 			toggle.call(g, "Anime çizgileri", "outline", true)
 			toggle.call(g, "Yumuşak filtre", "dreamy", true)
 			var w = _set_section(body, "tree", "Dünya")
 			slider.call(w, "Görüş mesafesi", "view", 0.5, 1.6, 0.05, false)
 			choose.call(w, "Çimen yoğunluğu", "grass", [0, 1, 2, 3], ["Kapalı", "Az", "Orta", "Çok"], 3)
 			choose.call(w, "Kalabalık yoğunluğu", "crowd", [0, 1, 2], ["Az", "Orta", "Kalabalık"], 2)
-			note.call(w, "Görüş mesafesi (ve onu değiştiren grafik kalitesi) oyunu yeniden açınca tam uygulanır. Kalabalık yoğunluğu bir köye yeniden girince uygulanır.")
 			var c = _set_section(body, "eye", "Kamera")
 			slider.call(c, "Görüş alanı (FOV)", "fov", 55.0, 100.0, 1.0, false)
 			var f = _set_section(body, "hourglass", "Kare Hızı")
@@ -1902,15 +2058,11 @@ static func settings(back: Callable) -> void:
 		Game.apply_graphics()
 		Sfx.music_a.volume_db = linear_to_db(maxf(0.001, float(s["music"]) * 0.6))
 		Hud.msg("Ayarlar varsayılana döndü (kaydetmek için: Kaydet ve Geri).", Color(0.9, 0.85, 0.6))
-		settings(back), "Kaydet ve Geri", "check", func():
-		_set_bg = null   # kaydedildi: çıkarken geri alma
-		Game.save_settings()
-		if Game.player:
-			Game.player.cam.fov = s["fov"]
-		if Game.world:
-			Game.apply_graphics()
-		Sfx.music_a.volume_db = linear_to_db(maxf(0.001, float(s["music"]) * 0.6))
-		back.call())
+		settings(back), "Kaydet ve Geri", "check", func(): _settings_save(back))
+	# satırların açıklaması: fare üstüne gelince
+	for r in body.find_children("*", "HBoxContainer", true, false):
+		if r.has_meta("desc"):
+			r.mouse_entered.connect(show_desc.bind(r))
 
 
 # ================================================================== ninja menüsü [Tab]

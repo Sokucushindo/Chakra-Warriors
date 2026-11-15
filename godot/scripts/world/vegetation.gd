@@ -44,6 +44,17 @@ var ready_q: Array = []
 var queued := {}        # ready_q'daki anahtarlar (tekrar istenmesin)
 var last_cell = Vector2i(999999, 999999)
 var _mutex := Mutex.new()
+
+
+## Kapanışta süren üretim işlerini bekle (yoksa iş parçacığı silinmiş oyun verisine erişip hata veriyordu)
+func finish_tasks() -> void:
+	for key in tasks.keys():
+		WorkerThreadPool.wait_for_task_completion(tasks[key][0])
+	tasks.clear()
+
+
+func _exit_tree() -> void:
+	finish_tasks()
 var _specials: Array = []   # [x, y(harita), iç r, dış r, tip, yoğunluk]
 var _hrock := Vector4.ZERO   # Hokage Kayası (x0, x1, yüz hattı harita y, tepe): yar yüzünde bitki yok
 var _valley := Vector4.ZERO   # Sonun Vadisi: harita x, y, şelale n, nehir yarı genişliği (nehir şeridinde bitki yok)

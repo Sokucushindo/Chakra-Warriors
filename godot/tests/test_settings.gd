@@ -3,6 +3,7 @@ extends Node
 ## küçük pencere / büyük arayüz ölçeğinde "Kaydet ve Geri" ekranda kalıyor mu. Oyuncunun ayar dosyası sonda geri konur.
 var main: Node
 var fails := 0
+var asked := 0
 
 
 func ok(cond: bool, what: String) -> void:
@@ -17,6 +18,10 @@ func esc() -> void:
 	ev.keycode = KEY_ESCAPE
 	ev.pressed = true
 	main._route(ev)
+	# kaydedilmemiş değişiklik uyarısı açıldıysa ikinci Esc: kaydetmeden çık
+	if Menus.settings_open() and Menus._set_bg.has_meta("asking"):
+		asked += 1
+		main._route(ev)
 
 
 func frames(n: int) -> void:
@@ -77,6 +82,7 @@ func _ready() -> void:
 	ok(is_equal_approx(float(s["sens"]), 2.5) and int(s["quality"]) == 0, "yeniden çizim değişiklikleri silmiyor")
 	esc()
 	await frames(3)
+	ok(asked == 1, "ana menü: değişiklik varken Esc önce uyarı gösteriyor")
 	ok(s == before, "ana menü: Esc değişiklikleri geri alıyor")
 	ok(is_equal_approx(get_tree().root.content_scale_factor, float(before["ui_scale"])), "ana menü: Esc arayüz ölçeğini geri alıyor")
 	ok(not Menus.settings_open() and live_children() > 0 and find_btn(Hud.dialog_layer, "Ayarlar") != null, "ana menü: Esc sonrası ana menü açık")
@@ -241,6 +247,71 @@ func _ready() -> void:
 	esc()
 	await frames(4)
 	ok(find_btn(Hud.dialog_layer, "Yeni Oyun") != null, "kontroller: Esc ana menüye dönüyor")
+
+	# 7) gerçek fare tıklamaları: sekme, seçici oku, fare tekeri, değişiklik işareti, açıklama, uyarıdan kaydet
+	Menus.settings(func(): Menus.main_menu(main))
+	await frames(4)
+	var before_click = s.duplicate(true)
+	var click = func(pos: Vector2, btn: int) -> void:
+		var gp = get_tree().root.get_final_transform() * pos   # tuval -> pencere (ölçek + germe)
+		var mv = InputEventMouseMotion.new()
+		mv.position = gp
+		mv.global_position = gp
+		Input.parse_input_event(mv)
+		await get_tree().process_frame
+		for pressed in [true, false]:
+			var mb = InputEventMouseButton.new()
+			mb.button_index = btn
+			mb.pressed = pressed
+			mb.position = gp
+			mb.global_position = gp
+			Input.parse_input_event(mb)
+			await get_tree().process_frame
+	var tb = find_btn(Hud.dialog_layer, "Görüntü")
+	await click.call(tb.get_global_rect().get_center(), MOUSE_BUTTON_LEFT)
+	await frames(4)
+	ok(Menus._set_tab == "graphics", "tıklama: Görüntü sekmesi açıldı (%s)" % Menus._set_tab)
+	var rows: Array = Menus._set_bg.find_children("*", "", true, false).filter(func(c): return c is Control and c.has_meta("set_row"))
+	var pill: Control = rows[1]
+	var sh0 = s["shadows"]
+	await click.call(pill.get_global_rect().position + Vector2(pill.size.x - 20, pill.size.y * 0.5), MOUSE_BUTTON_LEFT)
+	await frames(4)
+	ok(s["shadows"] != sh0, "tıklama: sağ ok Gölgeler'i değiştirdi")
+	rows = Menus._set_bg.find_children("*", "", true, false).filter(func(c): return c is Control and c.has_meta("set_row"))
+	ok(rows[1].get_parent().get_child(0) is Panel, "değişiklik işareti: satırda turuncu nokta var")
+	var aa0 = int(s["aa"])
+	await click.call(rows[2].get_global_rect().get_center(), MOUSE_BUTTON_WHEEL_DOWN)
+	await frames(4)
+	ok(int(s["aa"]) == posmod(aa0 - 1, 4), "fare tekeri: değeri değiştirdi (%d -> %d)" % [aa0, int(s["aa"])])
+	rows = Menus._set_bg.find_children("*", "", true, false).filter(func(c): return c is Control and c.has_meta("set_row"))
+	rows[3].grab_focus()
+	await frames(2)
+	var found := false
+	for l in Menus._set_bg.find_children("*", "Label", true, false):
+		if "Köşelerde" in l.text:
+			found = true
+	ok(found, "açıklama: seçilen ayarın açıklaması görünüyor")
+	if main.shot_dir != "":
+		await RenderingServer.frame_post_draw
+		get_viewport().get_texture().get_image().save_png(main.shot_dir.path_join("degisiklik_isareti.png"))
+	var ev = InputEventKey.new()
+	ev.physical_keycode = KEY_ESCAPE
+	ev.keycode = KEY_ESCAPE
+	ev.pressed = true
+	main._route(ev)
+	await frames(4)
+	ok(Menus.settings_open() and Menus._set_bg.has_meta("asking"), "uyarı: kaydedilmemiş değişiklikte Esc uyarı açıyor")
+	if main.shot_dir != "":
+		await RenderingServer.frame_post_draw
+		get_viewport().get_texture().get_image().save_png(main.shot_dir.path_join("kaydetmeden_uyari.png"))
+	var sv = find_btn(Hud.dialog_layer, "Kaydet ve Çık")
+	await click.call(sv.get_global_rect().get_center(), MOUSE_BUTTON_LEFT)
+	await frames(4)
+	cf = ConfigFile.new()
+	cf.load(Game.SETTINGS_PATH)
+	ok(not Menus.settings_open() and bool(cf.get_value("ayarlar", "shadows", sh0)) != sh0, "uyarı: Kaydet ve Çık dosyaya yazıp çıktı")
+	for k in before_click:
+		s[k] = before_click[k]
 
 	# oyuncunun ayarlarını geri koy
 	for k in orig:
