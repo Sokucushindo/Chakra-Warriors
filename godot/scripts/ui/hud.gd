@@ -2,15 +2,9 @@ extends CanvasLayer
 ## Oyun içi arayüz (autoload "Hud"): barlar, slotlar, mini harita, mesajlar, banner'lar, diyaloglar, dükkân.
 
 var root: Control
-var hp_bar: ProgressBar
+var vit: VitalsUI   # sol üst oyuncu çerçevesi
 var buff_lbl: RichTextLabel   # aktif güçlendirmeler: ad (süre): ne verdiği
-var hp_trail: ProgressBar
-var ck_bar: ProgressBar
-var xp_bar: ProgressBar
-var clan_bar: ProgressBar   # klan kaynağı: Akimichi kalorisi / Aburame kolonisi / Inuzuka ninken canı
-var clan_lbl: Label
-var name_lbl: Label
-var sub_pips: Array[Panel] = []
+var hp_trail_v := 0.0   # can düşüş izi (sarı)
 var slots_box: HBoxContainer
 var _ss_t := 0   # sanal (göz/canavar) slot girdilerini yenileme zamanı
 var slot_nodes: Array = []
@@ -45,13 +39,6 @@ var compass_dir = Vector2.UP
 var beam: MeshInstance3D
 const SLOT_COUNT := 9
 var slot_state: Array = []
-var portrait: Control
-var portrait_hp = 1.0
-var rank_lbl: Label
-var ryo_lbl: Label
-var hp_txt: Label
-var ck_txt: Label
-var st_bar: ProgressBar   # stamina (taijutsu)
 var prompt_box: PanelContainer
 var prompt_key: PanelContainer
 var mm_region: Label
@@ -144,87 +131,23 @@ func _build_vitals() -> void:
 	dsm.shader = dsh
 	darkness.material = dsm
 	game_hud.add_child(darkness)
-	# --- oyuncu çerçevesi (sol üst): yuvarlak portre + isim + ince çubuklar
-	var frame = Control.new()
-	frame.position = Vector2(26, 22)
-	frame.size = Vector2(460, 120)
-	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	game_hud.add_child(frame)
-	portrait = Control.new()
-	portrait.position = Vector2(0, 0)
-	portrait.size = Vector2(96, 96)
-	portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	portrait.draw.connect(_draw_portrait)
-	frame.add_child(portrait)
+	# --- oyuncu çerçevesi (sol üst): shuriken portre + parşömen isim + metal çubuklar (VitalsUI, tamamı kod çizimi)
+	vit = VitalsUI.new()
+	vit.position = Vector2(26, 22)
+	game_hud.add_child(vit)
 	buff_lbl = RichTextLabel.new()
 	buff_lbl.bbcode_enabled = true
 	buff_lbl.fit_content = true
 	buff_lbl.scroll_active = false
 	buff_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	buff_lbl.position = Vector2(26, 150)
+	buff_lbl.position = Vector2(26, 252)
 	buff_lbl.size = Vector2(520, 10)
 	buff_lbl.add_theme_font_size_override("normal_font_size", 14)
 	buff_lbl.add_theme_constant_override("outline_size", 4)
 	buff_lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
 	game_hud.add_child(buff_lbl)
-	name_lbl = UI.label("", 21, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true)
-	name_lbl.position = Vector2(110, 2)
-	frame.add_child(name_lbl)
-	rank_lbl = UI.label("", 13, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true)
-	rank_lbl.position = Vector2(112, 30)
-	frame.add_child(rank_lbl)
-	var hp_stack = Control.new()
-	hp_stack.position = Vector2(110, 54)
-	hp_stack.size = Vector2(300, 12)
-	hp_stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	frame.add_child(hp_stack)
-	hp_trail = UI.bar(Color(1, 0.85, 0.55, 0.9), 300, 12)
-	hp_stack.add_child(hp_trail)
-	hp_bar = UI.bar(Color(0.4, 0.9, 0.45), 300, 12)
-	hp_bar.add_theme_stylebox_override("background", StyleBoxEmpty.new())
-	hp_stack.add_child(hp_bar)
-	hp_txt = UI.label("", 12, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true)
-	hp_txt.position = Vector2(418, 50)
-	hp_txt.size = Vector2(80, 18)
-	frame.add_child(hp_txt)
-	ck_bar = UI.bar(Color(0.3, 0.62, 1.0), 260, 8)
-	ck_bar.position = Vector2(110, 74)
-	frame.add_child(ck_bar)
-	ck_txt = UI.label("", 11, Color(0.7, 0.85, 1), HORIZONTAL_ALIGNMENT_LEFT, true)
-	ck_txt.position = Vector2(378, 70)
-	ck_txt.size = Vector2(60, 14)
-	frame.add_child(ck_txt)
-	st_bar = UI.bar(Color(0.95, 0.62, 0.22), 200, 5)
-	st_bar.position = Vector2(110, 85)
-	st_bar.tooltip_text = "Stamina — taijutsu harcar, soluklanınca dolar"
-	frame.add_child(st_bar)
-	xp_bar = UI.bar(Color(0.98, 0.8, 0.35), 260, 3)
-	xp_bar.position = Vector2(110, 93)
-	frame.add_child(xp_bar)
-	clan_bar = UI.bar(Color(1, 0.6, 0.2), 160, 6)
-	clan_bar.position = Vector2(110, 112)
-	clan_bar.visible = false
-	frame.add_child(clan_bar)
-	clan_lbl = UI.label("", 11, UI.MUTED)
-	clan_lbl.position = Vector2(276, 106)
-	clan_lbl.visible = false
-	frame.add_child(clan_lbl)
-	# kawarimi hapları
-	var row = UI.hbox(4)
-	row.position = Vector2(110, 100)
-	frame.add_child(row)
-	for i in 4:
-		var p = Panel.new()
-		p.custom_minimum_size = Vector2(20, 5)
-		p.add_theme_stylebox_override("panel", UI._box(Color(0.5, 0.95, 0.6), Color(0, 0, 0, 0), 0, 3, 0))
-		p.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		row.add_child(p)
-		sub_pips.append(p)
-	ryo_lbl = UI.label("", 14, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true)
-	ryo_lbl.position = Vector2(220, 94)
-	frame.add_child(ryo_lbl)
 	fps_lbl = UI.label("", 13, Color(0.7, 0.9, 0.7))
-	fps_lbl.position = Vector2(26, 150)
+	fps_lbl.position = Vector2(26, 252)
 	game_hud.add_child(fps_lbl)
 	# takım paneli (sol): takım arkadaşlarının adı + canı
 	party_box = UI.vbox(6)
@@ -335,33 +258,9 @@ func _refresh_portrait() -> void:
 					img.set_pixel(x, y, c)
 		portrait_tex = ImageTexture.create_from_image(img)
 		_portrait_key = key
-		portrait.queue_redraw()
+		vit.portrait_tex = portrait_tex
+		vit.queue_redraw()
 	_portrait_busy = false
-
-
-## Portre: element renginde ince halka, içinde karakterin yüzü (yoksa baş harf), dışında can yayı
-func _draw_portrait() -> void:
-	var c = Vector2(48, 48)
-	var pr = Game.profile
-	var el: String = pr.get("elements", [""])[0] if not pr.is_empty() and not pr.get("elements", []).is_empty() else ""
-	var ec: Color = UI.ELEMENT_COLORS.get(el, UI.GOLD)
-	portrait.draw_circle(c + Vector2(0, 3), 47, Color(0, 0, 0, 0.35))
-	portrait.draw_circle(c, 46, Color(0.05, 0.06, 0.08, 0.85))
-	portrait.draw_circle(c, 38, Color(ec.darkened(0.6), 0.9))
-	portrait.draw_arc(c, 44, 0, TAU, 64, Color(1, 1, 1, 0.12), 3.0, true)
-	portrait.draw_arc(c, 44, -PI * 0.5, -PI * 0.5 + TAU * portrait_hp, 64, Color(0.45, 0.95, 0.5) if portrait_hp > 0.3 else Color(1, 0.35, 0.3), 3.5, true)
-	if portrait_tex:
-		portrait.draw_texture_rect(portrait_tex, Rect2(c - Vector2(38, 38), Vector2(76, 76)), false)
-	else:
-		var nm: String = String(pr.get("name", "?")) if not pr.is_empty() else "?"
-		var ch = nm.substr(0, 1).to_upper()
-		var f = UI.font(true)
-		var fs = 40
-		var w = f.get_string_size(ch, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-		portrait.draw_string(f, c + Vector2(-w * 0.5, 14), ch, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, UI.TEXT)
-	var rk = int(pr.get("rank", 0)) if not pr.is_empty() else 0
-	for i in rk + 1:
-		portrait.draw_circle(c + Vector2(-(rk * 4.5) + i * 9, 36), 3.0, UI.GOLD)
 
 
 ## Alt çubuk ölçüleri: yuva SLOT_PX kare; çizim 80 birimlik tasarımdan SS oranıyla küçülür
@@ -492,7 +391,7 @@ func _paint_slot(p: Control, st: Dictionary, key_text: String) -> void:
 			p.draw_circle(Vector2(40, 31), 31.0, Color(ec, 0.06))
 			p.draw_circle(Vector2(40, 31), 23.0, Color(ec, 0.10))
 		# ad şeridi: alt kenarda saydamdan koyuya geçiş (ad yazısı burada okunur)
-		_rr_fill(p, Rect2(Vector2(2, 54), Vector2(76, 24)), 13.0, Color(0, 0, 0, 0.0), Color(0, 0, 0, 0.62))
+		_rr_fill(p, Rect2(Vector2(2, 54), Vector2(76, 24)), 11.5, Color(0, 0, 0, 0.0), Color(0, 0, 0, 0.62))
 		# cam parlaması: üst yarıda beyaz -> saydam
 		_rr_fill(p, Rect2(Vector2(4, 3), Vector2(72, 34)), 12.0, Color(1, 1, 1, 0.13), Color(1, 1, 1, 0.0))
 		var col = Color(1, 1, 1, 0.97) if st["ok"] else Color(0.55, 0.55, 0.6, 0.85)
@@ -1294,47 +1193,32 @@ func _process(dt: float) -> void:
 		if lk != xhair_lock:
 			xhair_lock = lk
 		xhair.queue_redraw()
-	name_lbl.text = String(pr.get("name", ""))
 	var rname: String = Data.RANKS[int(pr.get("rank", 0))]
 	if Orgs.is_rogue():
 		rname = "%s (%s-rank)" % [Lang.t(Orgs.rogue_rank_name()), String(Orgs.ROGUE_RANKS[Orgs.rogue_rank()][2])]   # kaçakta köy rütbesi yok
-	rank_lbl.text = Lang.t("%s  •  Güç %d") % [Lang.upper(Lang.t(rname)), int(pr.get("level", 1))]
-	ryo_lbl.text = "%d Ryō" % int(pr.get("ryo", 0))
 	if buff_lbl:
 		var bl = []
 		for ln in Buffs.lines():
 			bl.append("[color=#ffd27a]%s[/color]%s: %s" % [Lang.t(String(ln[0])), (" (%ds)" % int(ln[2])) if ln[2] >= 0.0 else "", Lang.t(String(ln[1]))])
 		buff_lbl.text = "\n".join(bl)
 	_update_party(dt)
-	hp_bar.max_value = pl.max_hp; hp_bar.value = pl.hp
 	var hk = clampf(pl.hp / maxf(1.0, pl.max_hp), 0.0, 1.0)
 	var hcol = Color(0.35, 0.9, 0.35) if hk > 0.5 else (Color(1, 0.8, 0.2) if hk > 0.25 else Color(1, 0.3, 0.25))
-	(hp_bar.get_theme_stylebox("fill") as StyleBoxFlat).bg_color = hcol
-	hp_txt.text = "%d / %d" % [int(pl.hp), int(pl.max_hp)]
-	if absf(portrait_hp - hk) > 0.005:
-		portrait_hp = hk
-		portrait.queue_redraw()
-	elif Engine.get_process_frames() % 60 == 0:
-		portrait.queue_redraw()
+	hp_trail_v = move_toward(hp_trail_v, pl.hp, dt * pl.max_hp * 0.35) if hp_trail_v > pl.hp else pl.hp
+	if Engine.get_process_frames() % 60 == 0:
 		_refresh_portrait()
-	hp_trail.max_value = pl.max_hp
-	hp_trail.value = move_toward(hp_trail.value, pl.hp, dt * pl.max_hp * 0.35) if hp_trail.value > pl.hp else pl.hp
-	ck_bar.max_value = pl.max_chakra; ck_bar.value = pl.chakra
-	ck_txt.text = "%d" % int(pl.chakra)
-	st_bar.max_value = pl.max_stamina; st_bar.value = pl.stamina
-	xp_bar.max_value = 600.0; xp_bar.value = Mastery.total(pr)   # toplam ustalık (yaptıkça gelişme)
+	var elm: String = pr.get("elements", [""])[0] if not pr.get("elements", []).is_empty() else ""
+	vit.el_col = UI.ELEMENT_COLORS.get(elm, UI.GOLD)
 	var cm = ClanMech.meter()
-	clan_bar.visible = not cm.is_empty()
-	clan_lbl.visible = clan_bar.visible
-	if clan_bar.visible:
-		clan_bar.max_value = cm["max"]
-		clan_bar.value = cm["v"]
-		(clan_bar.get_theme_stylebox("fill") as StyleBoxFlat).bg_color = cm["col"]
-		clan_lbl.text = "%s %d" % [Lang.t(String(cm["label"])), int(cm["v"])] if cm["max"] > 1.0 else Lang.t(String(cm["label"]))
+	var clan := {}
+	if not cm.is_empty():
+		clan = {"label": Lang.t(String(cm["label"])), "v": cm["v"], "max": cm["max"], "col": cm["col"]}
+	var combat = pl.combat
+	vit.set_state({"name": String(pr.get("name", "")), "rank_txt": Lang.t("%s  •  Güç %d") % [Lang.upper(Lang.t(rname)), int(pr.get("level", 1))],
+		"hp": pl.hp, "hp_max": pl.max_hp, "hp_col": hcol, "trail": hp_trail_v, "ck": pl.chakra, "ck_max": pl.max_chakra,
+		"sta": pl.stamina, "sta_max": pl.max_stamina, "xp": Mastery.total(pr) / 600.0, "ryo": int(pr.get("ryo", 0)),
+		"subs": combat.sub_bars if combat else 0, "rk": int(pr.get("rank", 0)), "clan": clan})
 	var comb = pl.combat
-	if comb:
-		for i in 4:
-			sub_pips[i].modulate.a = 1.0 if comb.sub_bars >= i + 1 else 0.18
 	(vignette.material as ShaderMaterial).set_shader_parameter("amount", clampf(1.0 - pl.hp / pl.max_hp * 2.5, 0.0, 0.8))
 	var dk = 0.97 if pl.has_status("kokuangyo") else 0.0
 	darkness.color.a = lerpf(darkness.color.a, dk, 0.25)

@@ -742,7 +742,7 @@ func _house_body(x: float, n: float, wdt: float, dep: float, floors: int, yaw: f
 			VillageStyles.snow_house(self, x, n, wdt, dep, floors, yaw, rng)
 			return
 	# konoha / ahşap: detaylı şablon evler (HouseKit)
-	var walls = [Color(0.96, 0.92, 0.84), Color(0.93, 0.87, 0.72), Color(0.98, 0.96, 0.9), Color(0.9, 0.84, 0.7), Color(0.86, 0.8, 0.7), Color(0.95, 0.88, 0.8)]
+	var walls = [Color(0.88, 0.82, 0.7), Color(0.85, 0.77, 0.6), Color(0.9, 0.87, 0.78), Color(0.82, 0.74, 0.6), Color(0.78, 0.72, 0.62), Color(0.87, 0.79, 0.68)]   # güneşte beyaza patlamasın (eskiden 0,96-0,98)
 	var roofs = [Color(0.78, 0.22, 0.18), Color(0.22, 0.4, 0.62), Color(0.28, 0.52, 0.32), Color(0.85, 0.45, 0.18), Color(0.5, 0.32, 0.58), Color(0.65, 0.2, 0.24), Color(0.35, 0.35, 0.4)]
 	if placer == null:
 		placer = HouseKit.Placer.new(root, key)

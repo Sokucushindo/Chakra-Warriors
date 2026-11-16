@@ -2074,7 +2074,7 @@ static func settings(back: Callable) -> void:
 			ri = rs.size() - 1 if ri < 0 else ri
 			dirty.call(pick.call(g, "Çözünürlük ölçeği", "%d%%" % roundi(rs[ri] * 100.0), func(d): s["res_scale"] = rs[clampi(ri + d, 0, rs.size() - 1)], false, Vector2i(ri, rs.size())), ["res_scale"])
 			toggle.call(g, "Anime çizgileri", "outline", true)
-			toggle.call(g, "Yumuşak filtre", "dreamy", true)
+			toggle.call(g, "Yumuşak filtre", "dreamy", false)
 			var w = _set_section(body, "tree", "Dünya")
 			slider.call(w, "Görüş mesafesi", "view", 0.5, 1.6, 0.05, false)
 			choose.call(w, "Çimen yoğunluğu", "grass", [0, 1, 2, 3], ["Kapalı", "Az", "Orta", "Çok"], 3)

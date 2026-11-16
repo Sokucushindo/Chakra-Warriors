@@ -63,13 +63,15 @@ func _ready() -> void:
 	env.ssao_enabled = true
 	env.ssao_radius = 1.2
 	env.ssao_intensity = 1.6
-	env.adjustment_enabled = false   # renk şişirme (doygunluk/kontrast) kaldırıldı
+	env.adjustment_enabled = true   # hafif doygunluk / kontrast: pastel görünümden çıkış (1,18 / 1,08; yumuşak filtre kapalıyken)
+	env.adjustment_saturation = 1.18
+	env.adjustment_contrast = 1.08
 	var we = WorldEnvironment.new()
 	we.environment = env
 	cam_attr = CameraAttributesPractical.new()
 	we.camera_attributes = cam_attr
 	add_child(we)
-	set_dreamy(bool(Game.settings.get("dreamy", true)))
+	set_dreamy(bool(Game.settings.get("dreamy", false)))
 
 	sun = DirectionalLight3D.new()
 	sun.shadow_enabled = Game.settings["shadows"]

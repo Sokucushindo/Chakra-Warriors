@@ -17,13 +17,14 @@ var biome_img: Image
 
 var settings := {
 	"sens": 1.0, "ui_scale": 1.0, "fov": 70.0, "music": 0.5, "sfx": 0.8, "view": 1.0, "fullscreen": false, "display": "",
-	"shadows": true, "outline": true, "dreamy": true, "blood": true, "invert_y": false, "show_fps": false, "quality": 2,
+	"shadows": true, "outline": true, "dreamy": false, "blood": true, "invert_y": false, "show_fps": false, "quality": 2,
 	"vsync": true, "max_fps": 0,   # dikey eşitleme, FPS sınırı (0: sınırsız)
 	"master": 1.0,   # ana ses düzeyi (müzik ve efektlerin üstünde)
 	"ui_vol": 1.0, "bg_mute": false,   # arayüz tık sesleri; pencere arka plandayken sessiz
 	"autosave": 10, "shake": 2,   # otomatik kayıt (dakika, 0: kapalı); kamera sarsıntısı (0 kapalı, 1 az, 2 normal)
 	"lang": "",   # arayüz dili: "tr" / "en" ("": bilgisayarın diline göre)
 	# ayrıntılı grafik (kalite ön ayarı bunları birlikte kurar; tek tek de değişir)
+	"look": 2,   # görünüm sürümü: 2 = yumuşak filtre kapalı + hafif doygun renk (eski kayıtlarda bir kez uygulanır)
 	"aa": 2, "ssao": true, "res_scale": 1.0, "grass": 3, "crowd": 2,
 }
 var profile: Dictionary = {}
@@ -728,6 +729,9 @@ func load_settings() -> void:
 	if cf.load(SETTINGS_PATH) == OK:
 		for k in settings.keys():
 			settings[k] = cf.get_value("ayarlar", k, settings[k])
+		if int(cf.get_value("ayarlar", "look", 0)) < 2:
+			settings["dreamy"] = false   # yeni varsayılan görünüm bir kez uygulanır; sonra ayarlardan açılabilir
+			settings["look"] = 2
 		if not cf.has_section_key("ayarlar", "aa"):   # ayrıntılı grafik öncesi kayıt: ayrıntılar kalite ön ayarından
 			_quality_details(int(settings["quality"]))
 	apply_settings()
