@@ -133,21 +133,22 @@ func _build_vitals() -> void:
 	game_hud.add_child(darkness)
 	# --- oyuncu çerçevesi (sol üst): shuriken portre + parşömen isim + metal çubuklar (VitalsUI, tamamı kod çizimi)
 	vit = VitalsUI.new()
-	vit.position = Vector2(26, 22)
+	vit.position = Vector2(22, 18)
+	vit.scale = Vector2(0.72, 0.72)   # 720x222 → ~518x160
 	game_hud.add_child(vit)
 	buff_lbl = RichTextLabel.new()
 	buff_lbl.bbcode_enabled = true
 	buff_lbl.fit_content = true
 	buff_lbl.scroll_active = false
 	buff_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	buff_lbl.position = Vector2(26, 252)
+	buff_lbl.position = Vector2(26, 190)
 	buff_lbl.size = Vector2(520, 10)
 	buff_lbl.add_theme_font_size_override("normal_font_size", 14)
 	buff_lbl.add_theme_constant_override("outline_size", 4)
 	buff_lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
 	game_hud.add_child(buff_lbl)
 	fps_lbl = UI.label("", 13, Color(0.7, 0.9, 0.7))
-	fps_lbl.position = Vector2(26, 252)
+	fps_lbl.position = Vector2(26, 190)
 	game_hud.add_child(fps_lbl)
 	# takım paneli (sol): takım arkadaşlarının adı + canı
 	party_box = UI.vbox(6)

@@ -43,6 +43,12 @@ void fragment() {
 	// çimen gibi ince bitkiler (roughness ~0.02 ile işaretli) çizgi almasın
 	float r0 = texture(normal_tex, uv).a;
 	edge *= mix(0.12, 1.0, step(0.06, r0));
+	// yaprağın arkasındaki zemin pikseli de çizgi almasın: önde duran komşu çimense sus (yoksa her yaprağa tırtıklı siyah kontur)
+	float gl = step(texture(normal_tex, uv - vec2(px.x, 0.0)).a, 0.06) * step(dl, d0 + 0.6);
+	float gr = step(texture(normal_tex, uv + vec2(px.x, 0.0)).a, 0.06) * step(dr, d0 + 0.6);
+	float gu = step(texture(normal_tex, uv + vec2(0.0, px.y)).a, 0.06) * step(du, d0 + 0.6);
+	float gd = step(texture(normal_tex, uv - vec2(0.0, px.y)).a, 0.06) * step(dd, d0 + 0.6);
+	edge *= 1.0 - max(max(gl, gr), max(gu, gd)) * 0.88;
 	edge *= strength;
 	vec2 q = uv - 0.5;
 	float vig = clamp(dot(q, q) * vignette, 0.0, 1.0);
