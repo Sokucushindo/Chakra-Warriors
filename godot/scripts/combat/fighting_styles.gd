@@ -108,6 +108,16 @@ const STYLES := {
 		"desc": "Ōnoki ve Mū'nün yasak tekniği (kekkei tōta): avuçlar arasında kurulan saydam küp hedefte genişleyip içindekini toza ayırır, ince toz konisi hattı deler, Keijūgan ile hafifleyip geri süzülürsün, Kajūgan avucuyla rakip ağırlaşıp yere çakılır; bitiriş Genkai Hakuri — dev küp. Her vuruş çok güçlü ama kurulumu uzun ve chakra yer: chakra yetmezse küp küçük kalır; dibindeki rakibe küpü tam açamazsın."},
 	"mokuton": {"name": "Mokuton — Yamato Tarzı", "key": "style_mokuton", "src": "kg:mokuton", "range": "orta (kontrol)", "stop": 4.0,
 		"desc": "Yamato'nun Mokuton'u (Senju yumruğu değil, yakalayıp hapseden ağaç): avuçtan kazıklar (Kui, yavaşlatır), ağaca dönüp uzanan kol rakibi yakalayıp çeker, ön koldan dal saplaması, hedefin çevresinden fışkıran dört sütunlu kafes (Shichūrō, bağlar), yaklaşanı iten ahşap kubbe (Mokujōheki); bitiriş Daijurin — kolundan öne fışkıran ağaç kütlesi. Hasarı orta, kontrolü güçlü; hücre nakliyle gelen ağaç chakrayı çok yer."},
+	"koton": {"name": "Kōton — Çelik Yumruk", "key": "style_koton", "src": "kg:koton", "range": "yakın", "stop": 1.8,
+		"desc": "Metoro Konjiki ve Hiruko'nun çeliği: çelikle kaplanan ağır yumruklar, ön koldan dövülen çelik kılıçla geniş kesik (kanatır), avuç yere — hedefe doğru çelik mızrak sırası (havaya kaldırır), bir an çeliğe dönen bedenle omuz hücumu (savunmayı kırar); bitiriş yumruk çelik balyoza dönüp yere iner (sersemletir). Ağır ve biraz yavaş."},
+	"taiton": {"name": "Taiton — Tayfun Eli", "key": "style_taiton", "src": "kg:taiton", "range": "orta", "stop": 4.0,
+		"desc": "Nowaki'nin tayfunu: avuç itişleriyle biçen rüzgâr yayları, dönen tekmeyle bedenin çevresinde kaldıran girdap, avuçtan hedefe yürüyen küçük hortum, yere yakın boşluk halkası; bitiriş hedefin yerinde tayfun gözü — çevreyi içe çeker, göğe fırlatır. Rakibe koşmazsın; dipte zayıfsın."},
+	"meiton": {"name": "Meiton — Emen Avuç", "key": "style_meiton", "src": "kg:meiton", "range": "yakın-orta", "stop": 2.4,
+		"desc": "Hiruko'nun karanlığı: sol avuçtaki işaretle vurdukça chakra emersin (sende birikir), kara bağla rakibi dibine çekersin, avuçtan emen kara küre, emme duruşunda çevrendekilerin chakrası sana akar; bitiriş biriken chakrayı avuçtan dalga olarak salmak — ne kadar emdiysen o kadar güçlü."},
+	"jinton_swift": {"name": "Jinton — Bulanık Hız", "key": "style_jinsoku", "src": "kg:jinton_swift", "range": "yakın", "stop": 1.6,
+		"desc": "Hız salımı: her vuruşta bulanık bir izle bir anda rakibin dibindesin — kısa sağ-sol, art arda dört yumruk, arkasına geçip dirsek (savunmayı deler), alttan göğe tekme; bitiriş havadaki rakibin üstünde belirip topukla yere çakmak. Hasarı hafif, en hızlı tarz."},
+	"deiton": {"name": "Deiton — Çamur ve Kil", "key": "style_deiton", "src": "kg:deiton", "range": "orta", "stop": 3.5,
+		"desc": "Ameyuki'nin çamuru: avuçtan atılan çamur topağı yavaşlatır, çamur şaplağı, yerde sürükleyen çamur akıntısı, hedefin dibinden kavrayan çamur elleri, değdiği yerde sertleşen topak; bitiriş çamur seli bir an sonra kile dönüp rakibi kilitler ve ezer."},
 }
 
 

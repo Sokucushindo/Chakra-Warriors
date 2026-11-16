@@ -120,7 +120,7 @@ static func respec(p: Dictionary) -> int:
 
 ## Dükkân fiyatı (Pazarlıkçı, Tüccar Dostu, Diplomat): en fazla %35 indirim
 ## Kekkei genkai doğaları (kg düğümü bunlara güç verir)
-const KG_NATURES := ["mokuton", "hyoton", "yoton", "futton", "ranton", "shakuton", "bakuton", "jiton", "shoton", "jinton", "jinton_swift", "koton"]
+const KG_NATURES := ["mokuton", "hyoton", "yoton", "futton", "ranton", "shakuton", "bakuton", "jiton", "shoton", "jinton", "jinton_swift", "koton", "taiton", "meiton", "deiton"]
 
 
 ## Oyuncu kaynaklı jutsunun kategori/doğa çarpanı (genjutsu, fūinjutsu, kekkei genkai)

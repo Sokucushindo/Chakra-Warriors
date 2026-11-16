@@ -292,6 +292,8 @@ func _choose(dist: float) -> void:
 		opts += ["elem", "elem", "elem", "roar"]
 		if dist < height * 3.5:
 			opts += ["leap", "leap"]   # aradaki mesafeyi bir sıçrayışta kapatır, iniş darbesi
+	if ally_owner != null:   # çağrılan bijū öfke evresine hiç geçmez (canı müttefikte hep tam sayılır) — yine de kanondaki gibi Bijūdama atar
+		opts += ["ball"]
 	if phase >= 2:
 		opts += ["ball", "elem"]
 	if phase >= 3:
@@ -353,8 +355,10 @@ func _claw_hit(mul: float) -> void:
 	Sfx.play("whoosh", pt, 0.5)
 
 
+## Canavarın gücü (power) hasara katılır: eskiden hesaplanıp hiç kullanılmıyordu — Güç 100-180 bijū, aynı güçteki ninjanın
+## üçte biri kadar vuruyordu (çağrılan bijū zayıf şikâyeti). Ninja jutsusu taban x power; bijū tabanı ninjanınkinin ~2 katı -> x0.55
 func _dmg(base: float) -> float:
-	return base * (1.0 + num * 0.12) * (1.0 + (phase - 1) * 0.25)
+	return base * (1.0 + num * 0.12) * (1.0 + (phase - 1) * 0.25) * maxf(1.0, power * 0.55)
 
 
 func _run_attack(_dt: float) -> void:

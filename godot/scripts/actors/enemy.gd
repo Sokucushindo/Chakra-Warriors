@@ -809,6 +809,7 @@ func _chase(dt: float) -> void:
 				return String(look.get("weapon_r", "") if look is Dictionary else "") == nd.substr(7)
 			return true)
 		ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("need", "")) != "raiton_modo" or buffs.has("raiton_chakura_modo"))
+		ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("need", "")) != "senju_dna" or String(arch.get("clan", "")) == "senju" or bool(get_meta("senju_cells", false)))   # Hashirama hücresi: oyuncuyla aynı şart
 		ready = ready.filter(func(id): return (String(Data.jutsu.get(id, {}).get("need", "")) != "senninka" or buffs.has("jugo_senninka") or buffs.has("jugo_senninka2")) and (String(Data.jutsu.get(id, {}).get("need", "")) != "senninka2" or buffs.has("jugo_senninka2")))   # Jūgo: oyuncuyla aynı şart
 		ready = ready.filter(func(id): return (String(Data.jutsu.get(id, {}).get("need", "")) != "sototoro" or buffs.has("sototoro") or buffs.has("santoro")) and (String(Data.jutsu.get(id, {}).get("need", "")) != "santoro" or buffs.has("santoro")))   # Inuzuka: kurt biçimi şartı   # Raikage nintaijutsusu: önce Raiton Chakra Modu
 		ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("need", "")) != "islak_zemin" or (target != null and is_instance_valid(target) and ClanMech.prepared_ground(target.global_position)))   # Jubaku Eisō: oyuncuyla aynı hazırlık şartı
@@ -1231,7 +1232,7 @@ func _attack_keyed() -> void:
 					h.chakra = maxf(0.0, float(h.chakra) - 6.0)
 				if h.has_method("apply_status"):
 					h.apply_status("slow", 1.5)
-		var bare = wid == "style_temel"   # çıplak el: kılıç sesi değil
+		var bare = wid == "style_temel" or wid in CharacterModel.ARM_WEAR   # çıplak el / kolluk: kılıç sesi değil
 		Sfx.play("whoosh" if bare else "swing_sword", global_position + Vector3.UP, randf_range(0.85, 1.0), 0.6)
 		if not hits.is_empty():
 			set_meta("br_landed", true)
@@ -1362,6 +1363,8 @@ func threat_color() -> Color:
 func take_hit(info: Dictionary) -> void:
 	if sub_inv > 0.0 and not dead:
 		return   # Kawarimi anı: darbe kütüğe gider
+	if not dead and Combat.speed_dodge(self, info):   # Jinton: Mikiri — bulanık yan adım (oyuncuyla aynı)
+		return
 	if Combat.storm and state == "knockdown" and down_land >= 0.0 and float(info.get("knock", 2.0)) > 0.5:
 		if down_otg >= 1:
 			return   # yerdeyken yalnız bir ek darbe yer (yerde sonsuz dövülmez)

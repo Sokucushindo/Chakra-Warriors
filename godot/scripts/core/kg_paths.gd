@@ -60,13 +60,18 @@ static func fuse_rows(p: Dictionary) -> Array:
 		out.append([String(NAMES.get(n, n)), String(Elements.NAMES.get(r[0], r[0])), mini(int(Mastery.el_v(p, r[0])), int(FUSE_AT)), String(Elements.NAMES.get(r[1], r[1])), mini(int(Mastery.el_v(p, r[1])), int(FUSE_AT)), done])
 	return out
 const NAMES := {"hyoton": "Hyōton (Buz)", "yoton": "Yōton (Lav)", "futton": "Futton (Kaynar Buhar)", "ranton": "Ranton (Fırtına)",
-	"shakuton": "Shakuton (Kavurucu)", "bakuton": "Bakuton (Patlama)", "jiton": "Jiton (Mıknatıs)", "jinton": "Jinton (Toz — Kekkei Tōta)"}
+	"shakuton": "Shakuton (Kavurucu)", "bakuton": "Bakuton (Patlama)", "jiton": "Jiton (Mıknatıs)", "jinton": "Jinton (Toz — Kekkei Tōta)", "koton": "Kōton (Çelik)", "taiton": "Taiton (Tayfun)", "meiton": "Meiton (Karanlık)", "jinton_swift": "Jinton (Hız)", "deiton": "Deiton (Çamur)"}
 ## Klansız kan soyları: doğa, uyanış seviyesi (kan doğuştan gelir: baştan uyanık, klanlardaki gibi), hangi köylerde doğar
 const SOY := {
 	"ranton": {"name": "Ranton Soyu", "nature": "ranton", "level": 1, "villages": ["kumo"], "desc": "Kumo'da Darui gibi klan adı olmayan bir soy: su ve şimşeği tek chakrada taşır."},
 	"yoton": {"name": "Yōton Soyu", "nature": "yoton", "level": 1, "villages": ["iwa"], "desc": "Iwa'da Kurotsuchi gibi ateş ve toprağı eriten kan."},
 	"bakuton": {"name": "Bakuton Soyu", "nature": "bakuton", "level": 1, "villages": ["iwa"], "desc": "Iwa Patlama Birliği'nin kanı (Gari gibi): chakra dokunduğu yerde patlar."},
 	"shakuton": {"name": "Shakuton Soyu", "nature": "shakuton", "level": 1, "villages": ["suna"], "desc": "Suna'da Pakura gibi nadir bir kan: ateş ve rüzgâr kavurucu kürelere döner."},
+	"koton": {"name": "Kōton Soyu", "nature": "koton", "level": 1, "chance": 0.04, "villages": ["iwa"], "desc": "Ishigakure'li Metoro Konjiki gibi nadir bir kan: toprak ve şimşek chakrası çeliğe döner."},
+	"taiton": {"name": "Taiton Soyu", "nature": "taiton", "level": 1, "chance": 0.03, "villages": ["kiri"], "desc": "Su Ülkesi adalarında Nowaki gibi nadir doğan kan: rüzgârı tayfuna çevirir. Çocukken köyünü yıkan fırtınanın suçu ona yüklendi."},
+	"meiton": {"name": "Meiton Soyu", "nature": "meiton", "level": 1, "chance": 0.01, "villages": ["konoha", "suna", "kiri", "kumo", "iwa"], "desc": "Adı bilinmeyen nadir bir kan (Hiruko onu Kimera tekniğiyle çaldı): elindeki işaretten rakibin chakrasını emer ve geri salar."},
+	"jinton_swift": {"name": "Hız Soyu", "nature": "jinton_swift", "level": 1, "chance": 0.01, "villages": ["konoha", "suna", "kiri", "kumo", "iwa"], "desc": "Adı bilinmeyen nadir bir kan (Hiruko onu da Kimera ile aldı): rüzgâr ve şimşek bedeni bir bulanıklık hızına taşır."},
+	"deiton": {"name": "Deiton Soyu", "nature": "deiton", "level": 1, "chance": 0.02, "villages": ["iwa", "kiri"], "desc": "Ameyuki gibi pek bilinmeyen bir kan: su ve toprak tek chakrada çamura döner; bu çamur sertleşip kile dönüşür. Kirli diye dışlanır."},
 	"shoton": {"name": "Shōton Soyu", "nature": "shoton", "level": 1, "villages": ["konoha", "suna", "kiri", "kumo", "iwa"], "desc": "Guren gibi nadir doğan kristal kanı: chakra kristale dönüşür."},
 }
 ## Kök laboratuvarı (Senju hücresi nakli) şartları

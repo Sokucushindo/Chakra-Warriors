@@ -19,12 +19,16 @@ const PARTS := {
 	"jiton": ["doton", "fuuton"],     # Mıknatıs
 	"shoton": ["doton", "fuuton"],    # Kristal (kanonda bileşimi belirsiz; toprak ağırlıklı kabul edildi)
 	"jinton": ["fuuton", "katon", "doton"],  # Toz (kekkei tōta)
+	"jinton_swift": ["fuuton", "raiton"],  # Hız (Naruto Mobile: rüzgâr + şimşek; Hiruko)
+	"deiton": ["suiton", "doton"],    # Çamur (kanon: su + toprak; Ameyuki)
+	"taiton": ["fuuton"],              # Tayfun (kanon: en az rüzgâr; Nowaki)
+	"koton": ["doton", "raiton"],     # Çelik (Naruto Mobile: toprak + şimşek; Metoro Konjiki, Hiruko)
 }
 
 const NAMES := {
 	"katon": "Ateş", "fuuton": "Rüzgar", "raiton": "Yıldırım", "doton": "Toprak", "suiton": "Su",
 	"mokuton": "Ağaç", "hyoton": "Buz", "yoton": "Lav", "futton": "Buhar", "ranton": "Fırtına",
-	"shakuton": "Kavurma", "bakuton": "Patlama", "jiton": "Mıknatıs", "shoton": "Kristal", "jinton": "Toz",
+	"shakuton": "Kavurma", "bakuton": "Patlama", "jiton": "Mıknatıs", "shoton": "Kristal", "jinton": "Toz", "koton": "Çelik", "taiton": "Tayfun", "meiton": "Karanlık", "jinton_swift": "Hız", "deiton": "Çamur",
 }
 
 ## Özel durumlar (saldıran, savunan) -> çarpan. Genel formülü ezer.
@@ -245,6 +249,11 @@ static func color_of(el: String) -> Color:
 		"jinton": return Color(0.95, 0.97, 1.0)      # beyaz ışık
 		"shoton": return Color(0.95, 0.6, 0.85)      # pembe kristal
 		"doton", "jiton": return Color(0.65, 0.5, 0.35)
+		"koton": return Color(0.72, 0.75, 0.8)      # çelik grisi
+		"taiton": return Color(0.82, 0.9, 0.92)     # tayfun: soluk gri-yeşil rüzgâr
+		"meiton": return Color(0.45, 0.25, 0.65)     # karanlık: kara-mor
+		"jinton_swift": return Color(0.95, 0.97, 1.0)
+		"deiton": return Color(0.42, 0.3, 0.2)       # koyu çamur kahvesi
 		"hyoton": return Color(0.85, 0.95, 1.0)
 		"mokuton": return Color(0.5, 0.75, 0.35)
 	return Color(1, 1, 1)

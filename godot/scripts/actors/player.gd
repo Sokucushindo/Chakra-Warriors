@@ -1321,6 +1321,8 @@ func take_hit(info: Dictionary) -> void:
 		return
 	if Combat.shirahadori_catch(self, info):   # çıplak avuçla bıçak yakalama (Shinken Shirahadori)
 		return
+	if Combat.speed_dodge(self, info):   # Jinton: Mikiri — bulanık yan adım
+		return
 	info = Combat.cap_one_shot(self, info)   # tek atan darbe: hedef güçlüyse kırpılır (AI eşitliği)
 	if float(info.get("chakra_drain", 0.0)) > 0.0:   # chakra emen teknikler — düşmanla aynı
 		chakra = maxf(0.0, chakra - float(info["chakra_drain"]))

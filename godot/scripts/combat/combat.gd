@@ -56,6 +56,32 @@ func cap_one_shot(target: Node, info: Dictionary) -> Dictionary:
 	return out
 
 
+## Jinton: Mikiri (Hız salımı): pencere açıkken gelen darbe bulanık bir yan adımla boşa çıkar (en çok "mikiri_n" darbe).
+## Oyuncu ve düşman aynı (take_hit başında çağrılır). "sure" darbeler (kaçınılamaz) işlemez. true = kaçtı.
+func speed_dodge(target: Node, info: Dictionary) -> bool:
+	if not is_instance_valid(target) or int(target.get_meta("mikiri_n", 0)) <= 0 or float(target.get_meta("mikiri_t", 0.0)) < Game.now() or info.get("sure", false):
+		return false
+	target.set_meta("mikiri_n", int(target.get_meta("mikiri_n")) - 1)
+	var atk = info.get("attacker")
+	var from: Vector3 = (atk as Node3D).global_position if atk is Node3D and is_instance_valid(atk) else target.global_position - Vector3.FORWARD
+	var v: Vector3 = target.global_position - from
+	v.y = 0.0
+	var side = Vector3(-v.z, 0, v.x).normalized() * (1.0 if randf() < 0.5 else -1.0)
+	if side.length() < 0.1:
+		side = Vector3.RIGHT
+	FX.afterimage(target, 0.5, 0.35)
+	var p0: Vector3 = target.global_position
+	var p1: Vector3 = p0 + side * 1.8
+	p1.y = Game.ground_height(p1.x, p1.z)
+	target.global_position = p1
+	for q in 3:
+		var o = Vector3.UP * (0.4 + q * 0.5)
+		WindFX.streak(func(u: float) -> Vector3: return p0.lerp(p1, u) + o, 0.15, 0.05, Color(0.95, 0.97, 1.0, 0.7), 0.0, 5)
+	popup_text(p1 + Vector3.UP * 2.1, "Iska!", Color(0.75, 0.9, 1.0))
+	Sfx.play("whoosh", p1, 1.7)
+	return true
+
+
 ## Shinken Shirahadori (kanon: çıplak avuçlarla bıçağı yakalama): pencere açıkken gelen silahlı yakın darbe boşa çıkar,
 ## saldıran sersemler. Oyuncu ve düşman aynı (take_hit başında çağrılır). true = darbe yakalandı.
 func shirahadori_catch(target: Node, info: Dictionary) -> bool:
@@ -86,6 +112,8 @@ func punch_fist(model, style_id: String, armed: bool, dur: float) -> void:
 	if model == null or not is_instance_valid(model) or model.get("overlay") == null:
 		return
 	var ov = model.overlay
+	if armed and "weapons" in model and not (model.weapons as Array).is_empty() and (model.weapons as Array).all(func(w): return String(w["kind"]) == "worn"):
+		armed = false   # kolluk (Raikage no Kote): kolda, eller boş -> sıkılı yumruk
 	if armed or style_id in PALM_STYLES:
 		return
 	var tok = randi()

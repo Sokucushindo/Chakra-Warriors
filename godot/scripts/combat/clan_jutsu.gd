@@ -169,9 +169,11 @@ func every(dur: float, dt: float, fn: Callable, done := Callable()) -> void:
 
 ## Efekt silme: çağırandan bağımsız (after() çağıran öldüyse işi atlar; silinmesi gereken efekt dünyada/hedefte kalıyordu)
 func free_after(sec: float, n: Node) -> void:
+	var w = weakref(n)   # düğüm erken silinirse lambda yakalaması hata basıyordu
 	get_tree().create_timer(sec).timeout.connect(func():
-		if is_instance_valid(n):
-			n.queue_free())
+		var x = w.get_ref()
+		if x != null and is_instance_valid(x):
+			x.queue_free())
 
 
 func after(sec: float, fn: Callable) -> void:
@@ -300,9 +302,11 @@ func attach(t: Node3D, n: Node3D, dur: float, offset := Vector3.ZERO, fit := 1) 
 		n.scale *= s
 	# temizlik çağırandan bağımsız: after() çağıran öldüyse işi atlıyordu, hedefte iz kalıyordu
 	# (Yamanaka ölünce Shindenshin işaret oku oyuncunun başında sonsuza dek kaldı)
+	var w = weakref(n)
 	get_tree().create_timer(dur).timeout.connect(func():
-		if is_instance_valid(n):
-			n.queue_free())
+		var x = w.get_ref()
+		if x != null and is_instance_valid(x):
+			x.queue_free())
 
 
 ## Yere çizilen düz çember/desen (trigram, mühür, kan gölü)

@@ -128,7 +128,7 @@ static func new_person(vid: String, rank: int, force_clan := "") -> Dictionary:
 	var nat = []
 	for k in KgPaths.SOY:
 		var s: Dictionary = KgPaths.SOY[k]
-		if vid in s.get("villages", []) and randf() < 0.07:   # klansız kan soyu: köyünde nadiren doğar (Darui, Kurotsuchi, Pakura gibi)
+		if vid in s.get("villages", []) and randf() < float(s.get("chance", 0.07)):   # klansız kan soyu: köyünde nadiren doğar (Darui, Kurotsuchi, Pakura gibi)
 			nat.append(String(s["nature"]))
 			break
 	var el = String(VIL_EL.get(vid, ELS.pick_random())) if randf() < 0.5 else String(ELS.pick_random())
