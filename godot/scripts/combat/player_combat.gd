@@ -272,6 +272,8 @@ func _start_step() -> void:
 			Combat.hit_zone(p, o, dir, 16.0, 18.0, 3.0, {"dmg": 12.0 * Stats.melee_mult(Game.profile), "knock": 14.0, "launch": 3.0, "kind": "heavy", "element": "fuuton", "hitstop": 0.04, "melee": true}))
 	# silaha özgü savuruş (kılıç "vuuşş", ağır silah "vuuum", asa "vuff"...), silahsız: yumruk savuruşu
 	var wst = String(Gear.weapon(Game.profile).get("style", "fist")) if Game.profile.get("weapon_drawn", false) else "fist"
+	if String(c.get("keyed_id", "")) in CharacterModel.ARM_WEAR:
+		wst = "fist"   # kolluk: eller boş, yumruk savuruşu
 	Sfx.play(String(SWING_SND.get(wst, "whoosh")), p.global_position, randf_range(0.92, 1.1), 0.75 if SWING_SND.has(wst) else 0.6)
 
 

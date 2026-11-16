@@ -3696,7 +3696,8 @@ func _bb_spawn(e: Dictionary, at: Vector3) -> void:
 		else:
 			a["no_clan"] = true   # rastgele klan (Hoshigaki vb.) eklenmesin
 		a["look"]["weapon_r"] = wid
-		a["kind_anim"] = "sword"
+		if not wid in CharacterModel.ARM_WEAR:   # kolluk: eller boş, yumruk dövüşü (kılıç duruşu yok)
+			a["kind_anim"] = "sword"
 		a["guard"] = 0.45
 	else:
 		ClanWorld.bingo_arch(e, a)   # klan / efsane jutsuları

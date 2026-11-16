@@ -10745,7 +10745,9 @@ var rig: WeaponRig
 
 
 const HAND_FRAME := ["tonfa", "pence", "chakra_bicak"]
-const PAIR := ["tonfa", "pence", "senbon", "kiba"]   # çift el silahı: sağ elde takılıysa ve sol boşsa sol ele de aynısı (oyuncu ve NPC)
+## Kola takılan silah (Raikage no Kote): ele değil ön kola geçer, kına girmez, eller boş kalır (yumruk)
+const ARM_WEAR := ["raikage_kote"]
+const PAIR := ["tonfa", "pence", "senbon", "kiba", "raikage_kote"]   # çift el silahı: sağ elde takılıysa ve sol boşsa sol ele de aynısı (oyuncu ve NPC)
 
 
 static func sheath_kind(id: String) -> String:
@@ -10806,6 +10808,11 @@ func _weapons() -> void:
 			var mi = MeshInstance3D.new()
 			mi.mesh = weapon_mesh(skin if skin != "" else id)
 			node = mi
+		if id in ARM_WEAR:
+			var arm: Node3D = _attach(side + "LowerArm", _forearm_xf(side)).get_child(0)
+			arm.add_child(node)
+			weapons.append({"id": id, "side": side, "kind": "worn", "node": node, "hand": arm, "sheath": arm})
+			continue
 		if id in HAND_FRAME and side == "Right":
 			# tutuş çerçevesi sağ elde z etrafında 180° dönük: yönü ele göre olan silahlar (tonfa gövdesi dirseğe,
 			# pençe el sırtına, kama bıçağı parmak eklemlerine) iki elde de aynı tarafa baksın
@@ -10853,6 +10860,16 @@ func _weapons() -> void:
 			lhand.add_child(hm)
 			weapons.append({"id": "kabutowari_cekic", "side": "Left", "kind": "belt", "node": hm, "hand": lhand, "sheath": _sheath_holder("belt", "Left", "kabutowari_cekic", hm)})
 			_make_rope()
+
+
+## Kolluk çerçevesi: z dirsekten bileğe ön kol boyunca, merkez ön kolun bilek tarafındaki üçte ikisinde; ölçek ön kol boyuna göre
+func _forearm_xf(side: String) -> Transform3D:
+	var ep = _grest(skel.find_bone(side + "LowerArm")).origin
+	var wp = _grest(skel.find_bone(side + "Hand")).origin
+	var d = wp - ep
+	var fl = d.length()
+	var b = _frame(d, Vector3.UP).scaled(Vector3.ONE * clampf(fl / 0.25, 0.6, 1.6))
+	return Transform3D(b, ep + d * 0.64)
 
 
 ## Avuç içindeki tutma noktası: parmak kökü hizasında, avucun altında; kabza parmaklara dik, namlu başparmak tarafında (+Z ön)
@@ -11079,7 +11096,7 @@ func _place_weapons() -> void:
 			if coil:
 				coil.visible = not in_hand
 				n.visible = in_hand
-		if rig and in_hand:
+		if rig and in_hand and w["kind"] != "worn":
 			rig.hold[w["side"]] = 1.0
 		if w["sheath"] != null and w["kind"] == "back":
 			for ch in (w["sheath"] as Node3D).get_children():
@@ -11105,6 +11122,10 @@ func set_drawn(on: bool, animate := true) -> void:
 		_place_weapons()
 		return
 	var w0: Dictionary = weapons[0]
+	if w0["kind"] == "worn":   # kolluk: çekilmez, kolda kalır
+		_sheath_t = -1.0
+		_place_weapons()
+		return
 	rig.reach_side = w0["side"]
 	rig.reach_arms = _reach_pose(w0["kind"], w0["side"])
 	_sheath_t = 0.0
@@ -11779,6 +11800,66 @@ static func _w_tsuba(b: MB, z: float, r: float, col: Color) -> void:
 ## her ucun ortasında açık renkli bileylenmiş ağız şeridi. Eski kavisli bıçaklar yelpaze gibi duruyordu.
 ## Tonfa: yan kabza yumrukta (z ekseni, kumaş sargılı, ucunda topuz), ana gövde serçe parmak altında ön kol boyunca (-x: dirseğe
 ## doğru) uzanır; koyu cilalı ahşap, iki uçta koyu metal bilezik + yuvarlak başlık, kabza bağlantısında metal pul, gövdede ahşap damarı.
+## Raikage no Kote (ref refs/weapons/raikage_kote_*: anime tam boy + Striker görseli): ön kola geçen kalın hardal-altın silindir
+## (~19 cm, ön kolun bilek tarafı), iki koyu oluk üç bant yapar, her bantta sıra sıra küçük perçin; kalın duvarlı, iki ucu açık
+## (ucunda iç boşluk görünür). z ön kol boyunca (+z bileğe), merkez z=0.
+static func _raikage_kote(b: MB) -> void:
+	var gold = Color(0.86, 0.7, 0.4)
+	var groove = Color(0.36, 0.23, 0.12)
+	var inner = Color(0.42, 0.3, 0.2)
+	var ro = 0.066
+	var ri = 0.047
+	var h = 0.095
+	var g = 0.0028   # oluk yarı genişliği (ref: ince koyu çizgi, bantlar tek silindir)
+	var gd = 0.0025  # oluk derinliği
+	var c = 0.004    # uç pahı
+	# profil (r, z, renk) dış yüzden, uç dudağı, iç yüz, diğer dudak: dönel yüzey
+	var prof = [
+		[ri, -h, inner], [ro - c, -h, gold], [ro, -h + c, gold],
+		[ro, -0.032 - g, gold], [ro - gd, -0.032 - g * 0.4, groove], [ro - gd, -0.032 + g * 0.4, groove], [ro, -0.032 + g, gold],
+		[ro, 0.032 - g, gold], [ro - gd, 0.032 - g * 0.4, groove], [ro - gd, 0.032 + g * 0.4, groove], [ro, 0.032 + g, gold],
+		[ro, h - c, gold], [ro - c, h, gold], [ri, h, inner], [ri, -h, inner]]
+	_lathe(b, prof, 28)
+	# perçinler: her bantta 6 sıra, bantlar arasında yarım adım kaydırılmış
+	for k in 3:
+		var z = [-0.064, 0.0, 0.064][k]
+		for j in 6:
+			var a = TAU * (j + (0.5 if k == 1 else 0.0)) / 6.0
+			var n = Vector3(cos(a), sin(a), 0)
+			b.add_xf("hemi", Transform3D(Basis(n.cross(Vector3.BACK), n, Vector3.BACK) * Basis.from_scale(Vector3(0.014, 0.008, 0.014)), n * (ro - 0.002) + Vector3(0, 0, z)), gold.darkened(0.12), 8)   # hemi: düz yüz -y, kubbe +y (dışa)
+
+
+## Dönel yüzey: prof [r, z, renk] noktalarını z ekseni etrafında döndürür; her parça kendi düz normaliyle (keskin kenar)
+static func _lathe(b: MB, prof: Array, seg: int) -> void:
+	for i in prof.size() - 1:
+		var p0 = prof[i]
+		var p1 = prof[i + 1]
+		var dr = float(p1[0]) - float(p0[0])
+		var dz = float(p1[1]) - float(p0[1])
+		var nl = Vector2(dz, -dr).normalized()   # (r, z) düzleminde dışa normal
+		var col: Color = p1[2] if p1[2] == p0[2] else (p0[2] if float(p0[0]) > float(p1[0]) else p1[2])
+		var base = b.verts.size()
+		for j in seg + 1:
+			var a = TAU * j / seg
+			var ca = cos(a)
+			var sa = sin(a)
+			for p in [p0, p1]:
+				b.verts.append(Vector3(ca * float(p[0]), sa * float(p[0]), float(p[1])))
+				b.normals.append(Vector3(ca * nl.x, sa * nl.x, nl.y))
+				b.colors.append(col)
+				b.uvs.append(Vector2(float(j) / seg, 0.0))
+		for j in seg:
+			var v0 = base + j * 2
+			var q = [v0, v0 + 1, v0 + 3, v0, v0 + 3, v0 + 2]
+			# Godot ön yüz saat yönünde: üçgen normali yüzey normaline göre ters sarılmalı
+			var A = b.verts[q[0]]
+			var nrm = b.normals[q[0]]
+			if (b.verts[q[1]] - A).cross(b.verts[q[2]] - A).dot(nrm) > 0.0:
+				q = [v0, v0 + 3, v0 + 1, v0, v0 + 2, v0 + 3]
+			for t in q:
+				b.idx.append(t)
+
+
 static func _tonfa(b: MB) -> void:
 	var wood = Color(0.33, 0.21, 0.12)
 	var dwood = Color(0.22, 0.14, 0.08)
@@ -12170,6 +12251,8 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			_w_blade(b, 0.075, 0.72, 0.032, 0.035, steel)
 		"musta":
 			_musta(b)
+		"raikage_kote":
+			_raikage_kote(b)
 		"tonfa":
 			_tonfa(b)
 		"yelpaze":
@@ -12852,7 +12935,7 @@ func _key_blade() -> void:
 ## Yumruk sapın en ucunda (silah sap boyunca kaydırılır); kılıç ucu yere girecekse yerin hemen üstüne kaldırılır.
 func _key_blade_sk(sk: Skeleton3D, blade: Vector3) -> void:
 	for w0 in weapons:
-		if w0["id"] in ["chakra_bicak", "pence"]:
+		if w0["id"] in ["chakra_bicak", "pence"] or w0["id"] in ARM_WEAR:
 			return   # muşta bıçak / pençe: yumruğa bağlı, bilek silaha göre çevrilmez (kol pozları yeter; pençenin ucu +x,
 			# kılıç gibi +z'yi "blade"e çevirmek sağ eldeki pençeyi yan yatırıyordu, sol el hiç çevrilmiyordu)
 		if w0["id"] == "sai_sol" and n_in_hand(w0):

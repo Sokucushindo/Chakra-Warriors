@@ -27,6 +27,9 @@ const INFO := {
 	"kusanagi": {"alias": ["Yılan Kılıcı", "Uzayan Diş", "Beyaz Yılan"], "el": "doton", "rank": "S",
 		"tech": "Yılan muhafızlı kılıcının ağzı bir anda uzar; kılıcı uzaktan uçurur.",
 		"villages": ["oto"], "look": {"skin": "f2ece6", "hair": "15151a", "top": "e8e6e2", "rope_belt": true}},
+	"raikage_kote": {"alias": ["Kara Şimşek", "Altın Kolluk", "Yıldırım Yumruğu"], "el": "raiton", "rank": "S",
+		"tech": "İki kolundaki altın kollukla şimşek yüklü yumruklar; darbeyi kollukla karşılayıp çarpar.",
+		"villages": ["kumo"], "clan": "yotsuki", "family": "Yotsuki", "look": {"skin": "8a5a3c", "hair": "e6d6a8"}},
 }
 const VILLAGES := ["konoha", "suna", "kiri", "kumo", "iwa", "ame", "kusa", "taki", "oto", "yu", "shimo", "tani"]
 const GIVEN_M := ["Raizen", "Kurogane", "Haruto", "Tessai", "Gekko", "Shiden", "Akito", "Zenkai", "Kaito", "Ryūga", "Tobimaru", "Seijirō", "Kazan", "Jinpachi", "Ukyo", "Daigo"]
@@ -72,7 +75,13 @@ static func state() -> Dictionary:
 		for id in s:
 			if s[id]["state"] == "holder":
 				Missions.add_weapon_holder(id, s[id])
-	return pr["legend_holders"]
+	var cur: Dictionary = pr["legend_holders"]
+	for id in INFO:   # sonradan eklenen efsane silah (eski kayıt): sahibi bir kez üretilir
+		if not cur.has(id):
+			cur[id] = {"state": "player"} if player_has(id) else _new_holder(id)
+			if cur[id]["state"] == "holder":
+				Missions.add_weapon_holder(id, cur[id])
+	return cur
 
 
 ## Bingo'daki sahip yenildi: silah oyuncuya düşer

@@ -42,6 +42,7 @@ const TABLE := {
 	"wakizashi": [preload("res://scripts/combat/wakizashi_anim.gd"), 1.0],
 	"nodachi": [preload("res://scripts/combat/nodachi_anim.gd"), 0.95],
 	"musta": [preload("res://scripts/combat/musta_anim.gd"), 1.05],
+	"raikage_kote": [preload("res://scripts/combat/kote_anim.gd"), 1.05],   # Raikage kollukları: kolluk kalkan + çekiç, şimşek
 	# dövüş tarzları (silahsız düz vuruş; FightingStyles)
 	"style_juken": [preload("res://scripts/combat/style_juken_anim.gd"), 1.05],
 	"style_akimichi": [preload("res://scripts/combat/style_akimichi_anim.gd"), 0.92],
@@ -106,7 +107,7 @@ const TABLE := {
 const RANGED := ["fuma_shuriken", "kyodai_shuriken", "fuma_makimono", "senbon", "mateki"]   # mateki: genjutsu flütü, uzakta durup çalar
 ## silah ağırlığı (0 hafif .. 1 ağır): kol/silah yaylanması (PoseOverlay.key_mass) — ağır silah gecikip taşar
 const MASS := {"temari_ogi": 0.65, "uc_tirpan": 1.0, "samehada": 0.9, "kabutowari": 0.9, "shibuki": 0.85, "gunbai": 0.8, "raijin": 0.35, "kunai": 0.1,
-	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35, "kusarigama": 0.55, "fuma_shuriken": 0.4, "kyodai_shuriken": 1.0, "fuma_makimono": 0.15, "nuibari": 0.25, "savas_cekici": 1.0, "zincirli_kunai": 0.3, "tonfa": 0.3, "bashosen": 0.35, "kubikiribocho": 0.95, "yagura_sopa": 0.4, "yelpaze": 0.6, "kongo_asa": 0.45, "kama": 0.75, "pence": 0.15, "senbon": 0.05, "hiramekarei": 0.7, "bo": 0.35, "kiba": 0.25, "tanto": 0.1, "hakko_chakura_to": 0.08, "mateki": 0.06, "wakizashi": 0.25, "nodachi": 0.7, "musta": 0.15,
+	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35, "kusarigama": 0.55, "fuma_shuriken": 0.4, "kyodai_shuriken": 1.0, "fuma_makimono": 0.15, "nuibari": 0.25, "savas_cekici": 1.0, "zincirli_kunai": 0.3, "tonfa": 0.3, "bashosen": 0.35, "kubikiribocho": 0.95, "yagura_sopa": 0.4, "yelpaze": 0.6, "kongo_asa": 0.45, "kama": 0.75, "pence": 0.15, "senbon": 0.05, "hiramekarei": 0.7, "bo": 0.35, "kiba": 0.25, "tanto": 0.1, "hakko_chakura_to": 0.08, "mateki": 0.06, "wakizashi": 0.25, "nodachi": 0.7, "musta": 0.15, "raikage_kote": 0.15,
 	"style_juken": 0.08, "style_akimichi": 0.65, "style_inuzuka": 0.12, "style_kaguya": 0.2,
 	"style_uchiha": 0.1, "style_hozuki": 0.3, "style_aburame": 0.05, "style_jugo": 0.7,
 	"style_yuki": 0.05, "style_sabaku": 0.05, "style_uzumaki": 0.1, "style_yotsuki": 0.3, "style_kamizuru": 0.05, "style_iburi": 0.05, "style_kurosuki": 0.15, "style_senju": 0.45, "style_sarutobi": 0.12, "style_hatake": 0.1, "style_nara": 0.05, "style_kapi": 0.15, "style_kil": 0.05, "style_akasuna": 0.05, "style_kagit": 0.05, "style_sumi": 0.05, "style_yilan": 0.1, "style_gama": 0.2, "style_chidori": 0.1, "style_hiraishin": 0.05, "style_rinnegan": 0.1, "style_tip": 0.12, "style_kakuzu": 0.3, "style_jashin": 0.5, "style_hachibi": 0.35, "style_silah": 0.1, "style_jin_shukaku": 0.5, "style_jin_matatabi": 0.15, "style_jin_isobu": 0.3, "style_jin_son_goku": 0.45, "style_jin_kokuo": 0.3, "style_jin_saiken": 0.1, "style_jin_chomei": 0.1, "style_jin_gyuki": 0.4, "style_jin_kurama": 0.3,
@@ -453,6 +454,15 @@ static func mods(id: String, i: int) -> Dictionary:
 				4: m.merge({"launch": 9.0, "knock": 1.0})
 				5: m.merge({"heavy": true, "knock": 12.0, "reach_add": 1.4})
 			return m
+		"raikage_kote":
+			# chakra akışı Raiton'a döner: her temas kısa uyuşturur (oyuncu + yapay zekâ aynı tablo)
+			var m = {"lunge_mul": 1.0, "knock": 2.5, "stun": 0.3, "element": "raiton", "special": "raiton", "snd": "punch"}
+			match i:
+				2: m.merge({"pull": true, "knock": 0.3, "stun": 0.9, "lunge_mul": 0.7})   # Iron Claw: kavrayıp çeker
+				3: m.merge({"knock": 8.0, "lunge_mul": 1.6})
+				4: m.merge({"heavy": true, "knock": 1.0, "stun": 0.6, "lunge_mul": 0.5})
+				5: m.merge({"heavy": true, "knock": 15.0, "stun": 1.0, "lunge_mul": 0.6})
+			return m
 		"musta":
 			var m = {"lunge_mul": 0.9, "knock": 2.0, "bleed": 1.5}
 			match i:
@@ -682,6 +692,9 @@ static func on_target(id: String, i: int, who: Node3D, h: Node3D) -> void:
 ## Vuruş anı etkileri (isabet olsun olmasın): zemin, patlama, uçan kâğıt; alan hasarı who adına (oyuncu ve düşman aynı)
 static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 	if who == null or not is_instance_valid(who):
+		return
+	if id == "raikage_kote":
+		_kote_fx(who, i, dmg)
 		return
 	var f: Vector3 = who.face_dir() if who.has_method("face_dir") else -who.global_transform.basis.z
 	f.y = 0
@@ -1204,6 +1217,58 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 					for k in 5:
 						_boom(who, gp.call(1.6 + k * 1.3) + Vector3.UP * 0.4, 0.55 + k * 0.12, dmg * 0.6, 1.6 + k * 0.15, 0.08 + k * 0.11, 3.0 if k == 4 else 1.5)
 					_shake(who, 0.6)
+
+
+## Raikage no Kote: kolluklardan şimşek (gerçek kolluk düğümlerinin yerinden); 4 yer çatlağı kıvılcım halkası,
+## 5 kolluk çarpışması + öne şimşek boşalması (alan vuruşu, sahibini / dostlarını vurmaz)
+static func _kote_nodes(who: Node3D) -> Array:
+	var out = []
+	var m = who.get("model")
+	if m != null and "weapons" in m:
+		for w in m.weapons:
+			if String(w["id"]) == "raikage_kote" and is_instance_valid(w["node"]):
+				out.append(w["node"])
+	return out
+
+
+static func _kote_fx(who: Node3D, i: int, dmg: float) -> void:
+	var col = Color(0.62, 0.8, 1.0)
+	var f: Vector3 = who.face_dir() if who.has_method("face_dir") else -who.global_transform.basis.z
+	f.y = 0
+	f = f.normalized()
+	for n in _kote_nodes(who):   # her vuruşta kolluk yüzeyinde kısa şimşek kıvrımları
+		var nd: Node3D = n
+		for k in 2:
+			var a = randf() * TAU
+			var p0 = nd.to_global(Vector3(cos(a) * 0.07, sin(a) * 0.07, randf_range(-0.09, 0.09)))
+			VFX.bolt(p0, p0 + Vector3(randf_range(-0.25, 0.25), randf_range(-0.1, 0.3), randf_range(-0.25, 0.25)), col, 0.06, 0.18, 1)
+	Sfx.play("zap", who.global_position + Vector3.UP, randf_range(1.3, 1.6), 0.35)
+	match i:
+		4:
+			var q = who.global_position + f * 1.1
+			q.y = Game.ground_height(q.x, q.z) + 0.05
+			for k in 8:
+				var a = TAU * k / 8.0
+				VFX.bolt(q, q + Vector3(cos(a), 0.15, sin(a)) * randf_range(1.2, 2.0), col, 0.14, 0.3, 2)
+			FX.hit_spark(q, col, 1.6)
+			_shake(who, 0.5)
+		5:
+			var ns = _kote_nodes(who)
+			if ns.size() >= 2:   # kolluklar çarpıştı: aralarında kıvılcım
+				var a0: Node3D = ns[0]
+				var a1: Node3D = ns[1]
+				for k in 3:
+					VFX.bolt(a0.global_position, a1.global_position, Color(0.85, 0.92, 1.0), 0.1, 0.25, 2)
+				FX.hit_spark((a0.global_position + a1.global_position) * 0.5, Color(1, 0.95, 0.75), 0.9)
+				Sfx.play("hit_heavy_weapon", a0.global_position, 1.5, 0.5)
+			var hit_list = []
+			var o = who.global_position + Vector3.UP * 1.2 + f * 0.8
+			for k in 4:
+				VFX.bolt(o, o + f * 4.5 + Vector3(randf_range(-0.8, 0.8), randf_range(-0.5, 0.6), randf_range(-0.8, 0.8)), col, 0.22, 0.4, 3)
+			for h in Combat.hit_sphere(who, o + f * 2.4, 2.0, {"dmg": dmg * 0.45, "knock": 10.0, "kind": "heavy", "hitstop": 0.05, "melee": false, "element": "raiton", "stun": 0.6}, hit_list):
+				hit_list.append(h)
+			_shake(who, 0.7)
+			VFX.slowmo(0.2, 0.25)
 
 
 static func _shake(who: Node3D, a: float) -> void:

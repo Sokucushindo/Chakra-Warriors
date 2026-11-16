@@ -1232,7 +1232,7 @@ func _attack_keyed() -> void:
 					h.chakra = maxf(0.0, float(h.chakra) - 6.0)
 				if h.has_method("apply_status"):
 					h.apply_status("slow", 1.5)
-		var bare = wid == "style_temel"   # çıplak el: kılıç sesi değil
+		var bare = wid == "style_temel" or wid in CharacterModel.ARM_WEAR   # çıplak el / kolluk: kılıç sesi değil
 		Sfx.play("whoosh" if bare else "swing_sword", global_position + Vector3.UP, randf_range(0.85, 1.0), 0.6)
 		if not hits.is_empty():
 			set_meta("br_landed", true)

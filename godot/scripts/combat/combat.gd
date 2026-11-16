@@ -112,6 +112,8 @@ func punch_fist(model, style_id: String, armed: bool, dur: float) -> void:
 	if model == null or not is_instance_valid(model) or model.get("overlay") == null:
 		return
 	var ov = model.overlay
+	if armed and "weapons" in model and not (model.weapons as Array).is_empty() and (model.weapons as Array).all(func(w): return String(w["kind"]) == "worn"):
+		armed = false   # kolluk (Raikage no Kote): kolda, eller boş -> sıkılı yumruk
 	if armed or style_id in PALM_STYLES:
 		return
 	var tok = randi()
