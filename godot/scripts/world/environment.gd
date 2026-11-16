@@ -20,13 +20,14 @@ var shake = 0.0
 var flash = 0.0
 var tint = Color(0, 0, 0, 0)
 var tint_target = Color(0, 0, 0, 0)
+var fog_k := 0.0004   # açık havada uzak pus yoğunluğu (görüş mesafesine bölünür)
 
 const PAL := {
 	# zaman: [zenith, horizon, sun color, sun energy, ambient]
 	"night": [Color(0.02, 0.04, 0.12), Color(0.08, 0.12, 0.22), Color(0.55, 0.65, 0.95), 0.34, Color(0.26, 0.3, 0.47)],   # ay ışığı: şehir karanlıkta kalmasın
-	"dawn": [Color(0.25, 0.32, 0.6), Color(0.98, 0.62, 0.42), Color(1.0, 0.62, 0.4), 0.9, Color(0.55, 0.45, 0.5)],
-	"day": [Color(0.16, 0.45, 0.95), Color(0.62, 0.82, 1.0), Color(1.0, 0.97, 0.9), 1.55, Color(0.55, 0.66, 0.88)],
-	"dusk": [Color(0.18, 0.2, 0.48), Color(1.0, 0.5, 0.3), Color(1.0, 0.5, 0.28), 0.8, Color(0.5, 0.38, 0.45)],
+	"dawn": [Color(0.25, 0.32, 0.6), Color(0.98, 0.62, 0.42), Color(1.0, 0.72, 0.52), 0.9, Color(0.55, 0.45, 0.5)],
+	"day": [Color(0.16, 0.45, 0.95), Color(0.62, 0.82, 1.0), Color(1.0, 0.88, 0.7), 1.6, Color(0.55, 0.66, 0.88)],
+	"dusk": [Color(0.18, 0.2, 0.48), Color(1.0, 0.5, 0.3), Color(1.0, 0.66, 0.46), 0.8, Color(0.5, 0.38, 0.45)],
 }
 
 
@@ -40,11 +41,17 @@ func _ready() -> void:
 	env = Environment.new()
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	# ortam + yansıma ışığı gökyüzünden: gölgede kalan yer gökten hafif mavi ışık alır (simsiyah olmaz).
+	# gök katkısı %75: kalan pay saate göre ambient rengi (gece ay ışığı tonu korunur, şehir karanlıkta kalmaz)
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
+	env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
+	env.ambient_light_sky_contribution = 0.75
 	env.ambient_light_energy = 0.3   # gölgeleri yıkamasın (koyu, belirgin gölge)
 	# anime görünüm: filmic ton eşleme renkleri soldurur; lineer + yüksek doygunluk
-	env.tonemap_mode = Environment.TONE_MAPPER_LINEAR
-	env.tonemap_exposure = 1.0
+	# AgX: parlak alanlar (bulut, güneşli duvar) patlamaz; doygunluk 1,35 renk kaybını telafi eder. Pozlama saate bağlı (_process):
+	# gündüz 0,8 (lineerle aynı parlaklık), gece 1,15 (AgX koyu tonları bastırıyor: köy karanlıkta kalmasın)
+	env.tonemap_mode = Environment.TONE_MAPPER_AGX
+	env.tonemap_exposure = 0.8
 	env.glow_enabled = true
 	env.glow_intensity = 0.3
 	env.glow_strength = 1.1
@@ -60,11 +67,13 @@ func _ready() -> void:
 	env.fog_sky_affect = 0.0
 	env.fog_height = 60.0
 	env.fog_height_density = 0.0  # yer sisi yok: puslu görünüm olmasın
+	env.fog_aerial_perspective = 0.5   # uzak pus gökyüzü renginde: görüş mesafesinin bittiği yer gökle kaynaşır
 	env.ssao_enabled = true
-	env.ssao_radius = 1.2
-	env.ssao_intensity = 1.6
+	env.ssao_radius = 1.5
+	env.ssao_intensity = 2.0
+	env.ssao_light_affect = 0.5   # güneşli yerde de etki etsin (0: yalnız ortam ışığını keser, ortam payı düşük olduğundan hiç görünmüyordu)
 	env.adjustment_enabled = true   # hafif doygunluk / kontrast: pastel görünümden çıkış (1,18 / 1,08; yumuşak filtre kapalıyken)
-	env.adjustment_saturation = 1.18
+	env.adjustment_saturation = 1.35
 	env.adjustment_contrast = 1.08
 	var we = WorldEnvironment.new()
 	we.environment = env
@@ -79,9 +88,14 @@ func _ready() -> void:
 	sun.directional_shadow_max_distance = 170.0   # 220 -> 170: aynı gölge haritası daha dar alana, yakında keskin + ucuz
 	sun.directional_shadow_blend_splits = true    # katman sınırında gölge kalitesi sıçramasın
 	sun.directional_shadow_fade_start = 0.75      # uzak uçta gölge yavaşça söner (çizgi gibi kesilmesin)
-	sun.shadow_blur = 1.2
-	sun.light_angular_distance = 0.5
+	sun.shadow_blur = 0.4                         # 1.2: bacak/kol gölgesi tek lekeye dağılıyordu
+	sun.directional_shadow_split_1 = 0.04         # ilk kademe ~7 m: karakter dibindeki gölge ayrıntılı (0.1 = 17 m idi)
+	sun.directional_shadow_split_2 = 0.12
+	sun.light_angular_distance = 0.1              # 0.5: yerden yüksek uzuvların gölgesi dağılıyordu (anime: keskin kenar)
 	add_child(sun)
+	# gölge süzgeci: yüksek kalitede bir kademe yukarı (orta kademe gölge içinde kumlanma yapıyordu); Game.apply_graphics de aynısını yapar
+	RenderingServer.directional_soft_shadow_filter_set_quality(RenderingServer.SHADOW_QUALITY_SOFT_HIGH if int(Game.settings.get("quality", 2)) >= 2 else RenderingServer.SHADOW_QUALITY_SOFT_MEDIUM)
+	RenderingServer.positional_soft_shadow_filter_set_quality(RenderingServer.SHADOW_QUALITY_SOFT_HIGH if int(Game.settings.get("quality", 2)) >= 2 else RenderingServer.SHADOW_QUALITY_SOFT_LOW)   # ev içi lamba gölgesi: düşük kademe kenarı noktalı yapıyordu
 
 	# anime çizgi + renk post-efekti (kameraya yapışık tam ekran quad)
 	post_mat = ShaderMaterial.new()
@@ -262,9 +276,15 @@ func _process(dt: float) -> void:
 	var p = _pal(time_of_day)
 	var night = 1.0 - smoothstep(0.2, 0.3, time_of_day) + smoothstep(0.72, 0.82, time_of_day)
 	night = clampf(night, 0.0, 1.0)
+	env.tonemap_exposure = lerpf(0.8, 1.15, night)
 	# güneş yayı (geceleyin ay ışığı = ters yön)
 	var ang = (time_of_day - 0.25) * TAU
 	var sun_dir = Vector3(cos(ang) * 0.75, sin(ang), 0.35).normalized()
+	if sin(ang) >= 0.05:
+		# gündüz alçak güneş: öğlen en çok ~33° yükselir (eskisi ~70°: kısa gölge, düz sahne); sabah / akşam daha da alçak, gölgeler uzun
+		var hz = Vector3(cos(ang), 0.0, 0.55).normalized()
+		var el = deg_to_rad(33.0) * sin(ang)
+		sun_dir = hz * cos(el) + Vector3.UP * sin(el)
 	if sun_dir.y < 0.05:
 		sun_dir = -sun_dir
 		sun_dir.y = maxf(sun_dir.y, 0.25)
@@ -278,6 +298,9 @@ func _process(dt: float) -> void:
 	var zen: Color = p[0].lerp(Color(0.4, 0.42, 0.48), overcast * 0.45)
 	var hor: Color = p[1].lerp(Color(0.55, 0.57, 0.62), overcast * 0.45)
 	sun.light_color = p[2]
+	# doygunluk güneş sıcaklığına göre: gündüz 1,35 (AgX telafisi); şafak / akşam turuncu güneşte 1,05 (yoksa her şey turuncuya boğuluyordu)
+	var warm = clampf((0.78 - p[2].b / maxf(p[2].r, 0.01)) / 0.32, 0.0, 1.0)
+	env.adjustment_saturation = lerpf(1.35, 1.05, warm)
 	sun.light_energy = p[3] * (1.0 - overcast * 0.4)
 	env.ambient_light_color = p[4].lerp(Color(0.5, 0.52, 0.58), overcast * 0.35)
 	env.fog_light_color = hor.lerp(Color(0.45, 0.65, 0.95), 0.4)  # pus beyaz değil, gök mavisi
@@ -287,7 +310,7 @@ func _process(dt: float) -> void:
 	if weather == "kum fırtınası":
 		env.fog_light_color = env.fog_light_color.lerp(Color(0.78, 0.62, 0.42), clampf(overcast * 1.2, 0.0, 1.0))   # kum pusu
 		env.ambient_light_color = env.ambient_light_color.lerp(Color(0.72, 0.6, 0.44), clampf(overcast, 0.0, 1.0) * 0.7)   # gölgeler mavi değil kum tonlu
-	var fog_base = 0.00012 / maxf(0.4, float(Game.settings["view"]))
+	var fog_base = fog_k / maxf(0.4, float(Game.settings["view"]))
 	env.fog_density = lerpf(fog_base, 0.006, overcast * (1.0 if weather in ["sis", "kum fırtınası"] else 0.08))
 	sky_mat.set_shader_parameter("zenith", zen)
 	sky_mat.set_shader_parameter("horizon", hor)

@@ -1414,7 +1414,7 @@ static func _settings_revert() -> void:
 	if Keys.binds != _set_keys and not _set_keys.is_empty():
 		Keys.restore(_set_keys)
 	var s = Game.settings
-	var win = s.get("display") != _set_snap.get("display") or s.get("fullscreen") != _set_snap.get("fullscreen") or s.get("ui_scale") != _set_snap.get("ui_scale")
+	var win = s.get("display") != _set_snap.get("display") or s.get("fullscreen") != _set_snap.get("fullscreen") or s.get("ui_scale") != _set_snap.get("ui_scale") or s.get("win_mode") != _set_snap.get("win_mode") or s.get("resolution") != _set_snap.get("resolution")
 	for k in _set_snap:
 		s[k] = _set_snap[k]
 	if win:
@@ -1505,7 +1505,8 @@ const SET_DESC := {
 	"Otomatik kayıt": "Oyun akarken belirli aralıkla kaydeder. Dövüş sırasında kaydetmez, dövüş bitince kaydeder.",
 	"Kamera sarsıntısı": "Darbelerde ve patlamalarda kameranın sarsılması. Baş dönmesi yapıyorsa azalt.",
 	"Kan efekti": "Vuruşlarda kan sıçraması.",
-	"Ekran": "Tam ekran, kenarlıksız ya da pencere boyutu.",
+	"Ekran modu": "Çerçevesiz tam ekran: masaüstüne hızlı geçiş. Tam ekran: oyun ekranı tek başına kullanır. Pencere: seçilen boyutta pencere.",
+	"Çözünürlük": "Pencerede pencere boyutu. Tam ekranda oyunun çizildiği çözünürlük: düşük seçmek kare hızını artırır, arayüz keskin kalır.",
 	"Arayüz ölçeği": "Menülerin ve yazıların büyüklüğü. Küçük ekranlarda küçült.",
 	"Grafik kalitesi": "Aşağıdaki ayrıntıları birlikte kurar (gölge, kenar yumuşatma, görüş mesafesi…). Sonra tek tek değiştirebilirsin.",
 	"Gölgeler": "Güneş ve fener gölgeleri. Kapatmak FPS'i belirgin artırır.",
@@ -2045,14 +2046,24 @@ static func settings(back: Callable) -> void:
 			choose.call(g, "Kamera sarsıntısı", "shake", [0, 1, 2], ["Kapalı", "Az", "Normal"], 2)
 			toggle.call(g, "Kan efekti", "blood", true)
 			var e = _set_section(body, "monitor", "Ekran ve Arayüz")
-			# ekran: ◀ Tam ekran / Pencere 1280×720 ... ▶ (küçük ekranlı bilgisayarlarda pencere ekrana sığsın)
-			var disp = Game.DISPLAYS
-			var di = maxi(0, disp.find(Game.display_key()))
-			var dr = pick.call(e, "Ekran", Game.display_label(disp[di]), func(d):
-				s["display"] = disp[posmod(di + d, disp.size())]
-				s["fullscreen"] = s["display"] == "full"
-				Game.apply_settings(), false, Vector2i(di, disp.size()))
-			dirty.call(dr, ["display", "fullscreen"])
+			# ekran modu: ◀ Çerçevesiz tam ekran / Tam ekran / Pencere ▶ ; çözünürlük: ◀ ekran / 1920 × 1080 ... ▶ (ekrana sığanlar)
+			var wm = Game.WIN_MODES
+			var wi = maxi(0, wm.find(Game.win_mode()))
+			var mr = pick.call(e, "Ekran modu", Game.win_mode_label(wm[wi]), func(d):
+				s["win_mode"] = wm[posmod(wi + d, wm.size())]
+				s["resolution"] = Game.resolution_key()
+				s["display"] = ""
+				s["fullscreen"] = s["win_mode"] != "window"
+				Game.apply_settings(), false, Vector2i(wi, wm.size()))
+			dirty.call(mr, ["win_mode", "display", "fullscreen"])
+			var ro = Game.resolution_options()
+			var rk = maxi(0, ro.find(Game.resolution_key()))
+			var rr = pick.call(e, "Çözünürlük", Game.resolution_label(ro[rk]), func(d):
+				s["win_mode"] = Game.win_mode()
+				s["resolution"] = ro[clampi(rk + d, 0, ro.size() - 1)]
+				s["display"] = ""
+				Game.apply_settings(), true, Vector2i(rk, ro.size()))
+			dirty.call(rr, ["resolution", "display"])
 			var scales = [0.75, 0.85, 1.0, 1.15, 1.3, 1.5]
 			var si = 2
 			for i in scales.size():
@@ -2117,7 +2128,7 @@ static func settings(back: Callable) -> void:
 		focusables[_set_focus].call_deferred("grab_focus")
 	_set_bottom(bg, rw, "Varsayılana Dön", "hourglass", func():
 		# kaydedilmez: "Kaydet ve Geri" ile kalıcı olur, Esc / ✕ ile geri alınır
-		var win = s.get("display") != Game.settings_defaults.get("display") or s.get("fullscreen") != Game.settings_defaults.get("fullscreen") or s.get("ui_scale") != Game.settings_defaults.get("ui_scale")
+		var win = s.get("display") != Game.settings_defaults.get("display") or s.get("fullscreen") != Game.settings_defaults.get("fullscreen") or s.get("ui_scale") != Game.settings_defaults.get("ui_scale") or s.get("win_mode") != Game.settings_defaults.get("win_mode") or s.get("resolution") != Game.settings_defaults.get("resolution")
 		for key in Game.settings_defaults:
 			s[key] = Game.settings_defaults[key]
 		if win:

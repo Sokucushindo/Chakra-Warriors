@@ -18,6 +18,7 @@ uniform float radius = 58.0;
 varying float tip;
 varying vec3 base_col;
 varying float fade;
+varying vec3 wnrm;   // yaprak yüzü (dünya): güneşe dönük açık, sırtı koyu (hepsi aynı ışığı alıyordu: zemine yapıştırılmış gibi)
 
 float hash(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }   // sinüssüz: büyük koordinatta bloklaşmaz
 float vnoise(vec2 p) {
@@ -71,6 +72,8 @@ void vertex() {
 	vec3 local = VERTEX - root0;
 	local = vec3(local.x * cos(ang) - local.z * sin(ang), local.y, local.x * sin(ang) + local.z * cos(ang));
 	local *= vec3(hs, hs * hv, hs) * s;
+	vec3 n0 = NORMAL;
+	wnrm = normalize(vec3(n0.x * cos(ang) - n0.z * sin(ang), n0.y, n0.x * sin(ang) + n0.z * cos(ang)));
 	// rüzgar
 	// rüzgar: tarlada yavaşça ilerleyen esinti dalgası + çok hafif titreşim (sakin, abartısız)
 	float wave = sin(TIME * 0.9 - dot(root.xz, vec2(0.12, 0.07))) * 0.5 + 0.5;
@@ -90,6 +93,10 @@ void vertex() {
 	}
 	VERTEX = vec3(root.x, h - 0.05, root.z) + local;
 	base_col = texture(albedo_map, ruv).rgb;
+	// tutam başına ton farkı (tek renk halı olmasın): açık-koyu + sarımsı / koyu yeşil
+	float tv = hash(cell + 21.3), th = hash(cell + 33.1);
+	base_col *= 0.86 + tv * 0.26;
+	base_col *= mix(vec3(0.88, 1.03, 0.86), vec3(1.1, 1.04, 0.8), th);   // koyu doygun yeşil <-> sarımsı (mavimsi pay rengi grileştiriyordu)
 }
 
 void fragment() {
@@ -102,17 +109,19 @@ void fragment() {
 	float lum = dot(c, vec3(0.299, 0.587, 0.114));
 	c = max(mix(vec3(lum), c, 1.08), vec3(0.0));
 	ALBEDO = c;
+	vec3 wn = FRONT_FACING ? wnrm : vec3(-wnrm.x, wnrm.y, -wnrm.z);   // arka yüz karşı yöne bakar, yukarı bileşeni aynı
+	NORMAL = normalize((VIEW_MATRIX * vec4(wn, 0.0)).xyz);
 	ROUGHNESS = 0.02;  // çizgi efekti için işaret
 }
 
 void light() {
-	float ndl = abs(dot(NORMAL, LIGHT));
+	float ndl = dot(NORMAL, LIGHT);
 	if (LIGHT_IS_DIRECTIONAL) {
 		// gölge zeminle aynı tonda (terrain.gdshader): gölgede mavimsi koyu, güneşte tam ışık
-		float t = mix(0.75, 1.0, smoothstep(0.0, 0.2, ndl));
-		vec3 shade = mix(vec3(0.3, 0.33, 0.5), vec3(1.0), t * ATTENUATION);   // koyu, belirgin gölge (eskisi 0.5: gölgeler seçilmiyordu)
+		float t = mix(0.62, 1.08, smoothstep(-0.25, 0.55, ndl));   // yüz yönüne göre: dönük açık, sırtı koyu (sarma: hiç kapkara olmaz)
+		vec3 shade = mix(vec3(0.26, 0.4, 0.42) * mix(0.8, 1.15, smoothstep(-0.25, 0.55, ndl)), vec3(1.0), t * ATTENUATION);   // gölgede de yüz yönü seçilsin
 		DIFFUSE_LIGHT += LIGHT_COLOR * shade / PI;
 	} else {
-		DIFFUSE_LIGHT += LIGHT_COLOR * mix(0.4, 1.0, smoothstep(0.0, 0.2, ndl)) * ATTENUATION / PI;
+		DIFFUSE_LIGHT += LIGHT_COLOR * mix(0.4, 1.0, smoothstep(-0.25, 0.55, ndl)) * ATTENUATION / PI;
 	}
 }

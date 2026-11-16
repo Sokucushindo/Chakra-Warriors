@@ -65,7 +65,7 @@ func _tuft_mesh() -> ArrayMesh:
 			[p1 + side * w * 0.36, Vector2(1, 0.45)], [p1 - side * w * 0.36, Vector2(0, 0.45)], [p2, Vector2(0.5, 0.0)]]
 		for tri in [[0, 1, 2], [0, 2, 3], [3, 2, 4]]:
 			for vi in tri:
-				st.set_normal(Vector3.UP)
+				st.set_normal((d * 0.6 + Vector3.UP * 0.8).normalized())   # yaprak yüzü dışa-yukarı: ışık yaprak yönüne göre
 				st.set_uv(q[vi][1])   # UV.x: yaprak enine (orta damar 0.5)
 				st.add_vertex(q[vi][0])
 	return st.commit()

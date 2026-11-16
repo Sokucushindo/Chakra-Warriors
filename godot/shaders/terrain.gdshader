@@ -24,6 +24,8 @@ uniform float texel = 4.0;
 
 varying vec3 wpos;
 varying float slope;
+varying vec3 vbump;
+varying float vgrass;   // çimen zemini: gölge tonu gri-mor yerine mavi-yeşil   // toprak kabartması (görüş uzayı): ışıkta güneş yönüne göre açık / koyu
 
 void vertex() {
 	vec3 w = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
@@ -55,7 +57,45 @@ float vnoise(vec2 p) {
 }
 float fbm(vec2 p) { float s = 0.0, a = 0.5; for (int i = 0; i < 4; i++) { s += vnoise(p) * a; p *= 2.07; a *= 0.5; } return s; }
 
+// değer gürültüsü + türevi (x: değer, yz: eğim) — kabartma eğimi tek seferde (sonlu farkla 3 kez hesaplamak pahalıydı)
+vec3 vnoise_d(vec2 p) {
+	vec2 i = floor(p), f = fract(p);
+	vec2 u = f * f * (3.0 - 2.0 * f);
+	vec2 du = 6.0 * f * (1.0 - f);
+	float a = hash(i), b = hash(i + vec2(1, 0)), c = hash(i + vec2(0, 1)), d = hash(i + vec2(1, 1));
+	float k = a - b - c + d;
+	return vec3(a + (b - a) * u.x + (c - a) * u.y + k * u.x * u.y, du * vec2((b - a) + k * u.y, (c - a) + k * u.x));
+}
+
+// yuvarlak taşlar: hücre başına en fazla bir taş, hücreden taşmaz (tek hücre bakılır); kubbe yüksekliği (m) + eğim
+vec3 pebbles(vec2 p, float cell, float dens, float rmin, float rmax) {
+	vec2 c = floor(p / cell);
+	if (hash(c + 3.7) > dens) return vec3(0.0);
+	float r = mix(rmin, rmax, hash(c + 5.9));
+	float sq = 1.0 + hash(c + 8.1) * 0.5;   // biraz yassı
+	float m = r * sq / cell;
+	vec2 o = mix(vec2(m), vec2(1.0 - m), vec2(hash(c), hash(c + 1.3)));
+	vec2 d = (p / cell - c - o) * cell;
+	d.x *= sq;
+	float k = 1.0 - dot(d, d) / (r * r);
+	if (k <= 0.0) return vec3(0.0);
+	float hk = r * 0.55;
+	float sk = sqrt(max(k, 0.03));
+	return vec3(sqrt(k) * hk, hk * 0.5 / sk * (-2.0 / (r * r)) * vec2(d.x * sq, d.y));
+}
+
+// toprak yol kabartması (m) + eğim: yumrular + seyrek taş / çakıl tümsekleri (çatlak denendi: kıvrık solucan gibi duruyordu).
+// fk / mk: ince / orta ayrıntı payı (uzakta piksel altına düşen ayrıntı söner: kıpırdama yok)
+vec3 dirt_h(vec2 p, float fk, float mk) {
+	vec3 n1 = vnoise_d(p * 0.7), n2 = vnoise_d(p * 2.3 + 5.1);
+	vec3 h = vec3(n1.x - 0.5, n1.yz * 0.7) * 0.10 * mk + vec3(n2.x - 0.5, n2.yz * 2.3) * 0.04 * mk;
+	h += pebbles(p, 0.9, 0.3, 0.07, 0.16) * 0.85 * mk;           // seyrek iri taş (7-16 cm yarıçap)
+	h += pebbles(p + 17.0, 0.35, 0.45, 0.03, 0.07) * 0.85 * fk;   // çakıl
+	return h;
+}
+
 void fragment() {
+	vgrass = 0.0;
 	vec2 uv = (wpos.xz - world_rect.xy) / world_rect.zw;
 	vec3 base = texture(albedo_map, uv).rgb;
 	vec4 bio = wh_bilin(biome_map, wpos.xz);
@@ -78,14 +118,37 @@ void fragment() {
 	if (b == 14) base = vec3(0.59, 0.57, 0.53);
 	if (b == 15) base = vec3(0.89, 0.91, 0.94);
 	// boyalı çimen: büyük açık/koyu lekeler + sarımsı çiçekli alanlar
+	float gfw = length(fwidth(wpos.xz));   // piksel başı metre (dal dışında: türev dallı akışta tanımsız)
 	if (b == 2 || b == 7 || b == 6 || b == 11 || b == 4 || b == 10) {
-		float patch = smoothstep(0.38, 0.62, n1);
+		// net kenarlı iki basamak açık/koyu alan (anime boyama; eskisi tek yumuşak geçiş: bulanık halı)
+		float patch = smoothstep(0.47, 0.51, n1) * 0.6 + smoothstep(0.6, 0.64, n1) * 0.4;
 		base *= mix(0.84, 1.14, patch);
 		base = mix(base, base * vec3(1.12, 1.08, 0.7), smoothstep(0.7, 0.85, fbm(wpos.xz * 0.03 + 7.0)) * 0.6);
 		base *= 0.93 + n3 * 0.12;
+		float gk = 1.0 - smoothstep(0.02, 0.08, gfw);   // yakın ayrıntı: uzakta söner
+		if (gk > 0.0) {
+			// temas gölgesi: çimen tutamlarının dibi koyu (grass.gdshader ile aynı 0.6 m ızgara + kayma: tutamın tam altına düşer)
+			vec2 gc = floor(wpos.xz / 0.6 + 0.5);
+			float ao = 0.0;
+			for (int gy = -1; gy <= 1; gy++) {
+				for (int gx = -1; gx <= 1; gx++) {
+					vec2 cl = gc + vec2(float(gx), float(gy));
+					vec2 ctr = cl * 0.6 + (vec2(hash(cl + 1.7), hash(cl + 9.3)) - 0.5) * 0.6;
+					float hs = 0.7 + hash(cl + 2.9) * 0.6;
+					float on = (b == 11) ? step(0.12, hash(floor(ctr * 0.18))) : 1.0;   // köyde çimensiz açıklıkta leke yok
+					ao = max(ao, (1.0 - smoothstep(0.05 * hs, 0.22 * hs, distance(wpos.xz, ctr))) * on);   // küçük: seyrek yerde çamur birikintisi gibi durmasın
+				}
+			}
+			base *= 1.0 + (0.05 - ao * 0.3) * gk;   // tutam dibi koyu, aralar biraz açık (ortalama parlaklık korunur)
+		}
 		// gerçek çimen zemini: yakında ince yaprak dokusu, uzakta iri lekeler (iki ölçek: tekrar deseni görünmesin)
 		float gt = texture(tex_grass, wpos.xz * 0.16).r * 0.6 + texture(tex_grass, wpos.xz * 0.023 + 0.37).r * 0.4;
-		base *= 1.0 + (gt - 0.5) * 0.75;
+		base *= 1.0 + (gt - 0.5) * 0.28;   // doku gri toprak fotoğrafı: güçlüyken (0.75) yeşili kirli çamur lekesine çeviriyordu
+		// koyulaşan yer kahveye değil derin yeşile gitsin: parlaklık düştükçe doygunluk artar, ton mavi-yeşile kayar
+		float glum = dot(base, vec3(0.299, 0.587, 0.114));
+		float gdark = clamp(1.0 - glum / 0.3, 0.0, 1.0);
+		base = max(mix(vec3(glum), base, 1.0 + gdark * 0.25), vec3(0.0)) * mix(vec3(1.0), vec3(0.9, 1.0, 0.96), gdark);
+		vgrass = 1.0;
 	}
 	// çöl köyü (Suna): kum taşı döşeme + seyrek yeşillik. Konoha (11) eski hâlinde: çimen zemin
 	if (b == 13) {
@@ -153,8 +216,10 @@ void fragment() {
 	// (yol dokusu 2 m/piksel: tonu ona bağlamak kare kare desen yapıyordu -> yalnız yumuşak dünya gürültüsü)
 	float blot = fbm(wpos.xz * 0.18 + vec2(13.1, 7.7));
 	float blot2 = fbm(wpos.xz * 0.6 + vec2(3.3, 1.9));
-	vec3 dirt = mix(vec3(0.5, 0.36, 0.23), vec3(0.74, 0.58, 0.39), smoothstep(0.32, 0.68, blot));   // sıcak kahve, açık-koyu alanlar
-	dirt = mix(dirt, dirt * vec3(0.78, 0.8, 0.7), smoothstep(0.55, 0.72, blot2) * 0.7);           // zeytin-koyu lekeler (ref)
+	// anime boyama: açık-koyu alanlar net kenarlı iki basamak (eskisi tek yumuşak geçiş: tonlar birbirine bulanıyordu)
+	vec3 dirt = mix(vec3(0.5, 0.36, 0.23), vec3(0.74, 0.58, 0.39), smoothstep(0.42, 0.47, blot) * 0.55 + smoothstep(0.58, 0.62, blot) * 0.45);
+	dirt = mix(dirt, dirt * vec3(0.78, 0.8, 0.7), smoothstep(0.6, 0.64, blot2) * 0.7);           // zeytin-koyu lekeler (ref)
+	dirt *= mix(0.84, 1.0, smoothstep(0.55, 0.95, rm2));   // kenara doğru koyu, orta açık (yürüme izi)
 	dirt *= 0.94 + n3 * 0.1;
 	dirt = pow(dirt, vec3(2.2));   // tonlar sRGB'de seçildi (lineer verilince soluk bej görünüyordu)
 	if (b == 14 || b == 15) dirt = vec3(0.62, 0.6, 0.56) * (0.88 + n3 * 0.16);
@@ -165,6 +230,20 @@ void fragment() {
 	float peb = vnoise(wpos.xz * 6.0);
 	dirt = mix(dirt, dirt * 1.25, smoothstep(0.82, 0.9, peb) * 0.6);
 	dirt = mix(dirt, dirt * 0.7, smoothstep(0.85, 0.93, vnoise(wpos.xz * 5.0 + 17.0)) * 0.5);
+	// kabartma (kullanıcı: "düz zemin"): yükseklikten normal + oyuk koyu / tümsek açık boyama
+	vec3 dnrm = vec3(0.0);
+	float fw = length(fwidth(wpos.xz));   // dal dışında (türev dallı akışta tanımsız)
+	float fk = 1.0 - smoothstep(0.012, 0.04, fw);
+	float mk = 1.0 - smoothstep(0.04, 0.15, fw);
+	if (road > 0.01 && mk > 0.0) {
+		vec3 hd = dirt_h(wpos.xz, fk, mk);
+		float h0 = hd.x;
+		vec2 dg = hd.yz;
+		float dl = length(dg);
+		if (dl > 0.9) dg *= 0.9 / dl;
+		dnrm = vec3(-dg.x, 0.0, -dg.y) * road;
+		dirt *= 1.0 + clamp(h0 * 3.5, -0.3, 0.25);
+	}
 	// kenar: toprağın hemen dışında koyu çim kuşağı (çim öbeklerinin gölgesi, anime boyama gibi)
 	float rim = smoothstep(0.3, 0.42, rm2) * (1.0 - road);
 	base *= 1.0 - rim * 0.28;
@@ -204,6 +283,8 @@ void fragment() {
 	base = max(mix(vec3(lum), base, 1.12), vec3(0.0));
 	ALBEDO = base;
 	ROUGHNESS = 0.95;
+	vbump = mat3(VIEW_MATRIX) * dnrm * (1.0 - rock);
+	NORMAL = normalize(NORMAL + vbump);
 }
 
 void light() {
@@ -211,7 +292,8 @@ void light() {
 	// ikinci bant yumuşak: düz zeminde ndl tam keskin eşiğe denk gelince her üçgen ayrı ton alıyor (kare kare zemin)
 	float t = smoothstep(-0.03, 0.05, ndl) * 0.6 + smoothstep(0.1, 0.65, ndl) * 0.4;
 	if (LIGHT_IS_DIRECTIONAL) {
-		vec3 shade = mix(vec3(0.3, 0.33, 0.5), vec3(1.0), t * ATTENUATION);   // koyu, belirgin gölge (eskisi 0.5: gölgeler seçilmiyordu)
+		vec3 shade = mix(mix(vec3(0.3, 0.33, 0.5), vec3(0.26, 0.4, 0.42), vgrass), vec3(1.0), t * ATTENUATION);   // koyu, belirgin gölge (eskisi 0.5: gölgeler seçilmiyordu)
+		shade *= 1.0 + clamp(dot(vbump, LIGHT) * 0.9, -0.32, 0.22) * ATTENUATION;   // tepe güneşte de kabartma seçilsin (toon bandı doyuyor)
 		DIFFUSE_LIGHT += LIGHT_COLOR * shade / PI;
 	} else {
 		DIFFUSE_LIGHT += LIGHT_COLOR * (0.35 + 0.65 * t) * ATTENUATION / PI;
