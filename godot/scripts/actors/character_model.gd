@@ -11277,18 +11277,29 @@ const KCH_HOLD := 6
 
 
 ## Fizikli zincirli silahlar: zincir başlangıcı (silah uzayı), halka boyu
-const KCHAIN := {"kusarigama": [Vector3(0, 0, -0.39), 0.048], "zincirli_kunai": [Vector3(0, 0, -0.12), 0.1]}
+const KCHAIN := {"kusarigama": [Vector3(0, 0, -0.39), 0.048], "zincirli_kunai": [Vector3(0, 0, -0.12), 0.1], "johyo": [Vector3(0, 0, -0.06), 0.12]}
 var _kch_id := "kusarigama"
 
 
 func _make_kchain(id := "kusarigama") -> void:
 	_kch_id = id
-	var mat = Props.toon_color(Color(0.12, 0.11, 0.15), 0.35)
-	var tm = TorusMesh.new()
-	tm.inner_radius = 0.012
-	tm.outer_radius = 0.022
-	tm.rings = 8
-	tm.ring_segments = 4
+	var mat = Props.toon_color(Color(0.12, 0.11, 0.15) if id != "johyo" else Color(0.72, 0.62, 0.42), 0.35)
+	var tm: Mesh
+	if id == "johyo":   # Jōhyō: halka değil örgülü ip (kısa silindir parçaları)
+		var cm = CylinderMesh.new()
+		cm.top_radius = 0.011
+		cm.bottom_radius = 0.011
+		cm.height = 0.13
+		cm.radial_segments = 6
+		cm.rings = 1
+		tm = cm
+	else:
+		var tor = TorusMesh.new()
+		tor.inner_radius = 0.012
+		tor.outer_radius = 0.022
+		tor.rings = 8
+		tor.ring_segments = 4
+		tm = tor
 	for k in KCH_N:
 		var mi = MeshInstance3D.new()
 		mi.mesh = tm
@@ -11298,7 +11309,13 @@ func _make_kchain(id := "kusarigama") -> void:
 		add_child(mi)
 		_kch.append(mi)
 	_kch_w = MeshInstance3D.new()
-	if id == "zincirli_kunai":
+	if id == "johyo":
+		# ipin ucunda kırmızı püsküllü konik dart (ref Johyo__Johyo2.png)
+		var dm = MeshInstance3D.new()
+		dm.mesh = weapon_mesh("johyo_dart")
+		dm.transform = Transform3D(Basis(Vector3.RIGHT, PI * 0.5), Vector3(0, -0.02, 0))
+		_kch_w.add_child(dm)
+	elif id == "zincirli_kunai":
 		# zincirin ucunda ikinci kunai: halkası zincire bağlı, ucu zincirden dışa bakar
 		var km = MeshInstance3D.new()
 		km.mesh = weapon_mesh("zk_ucu")
@@ -11361,7 +11378,7 @@ func _update_kchain(dt: float) -> void:
 	if pinned:
 		fixed[KCH_N] = pin
 	# kında (sırtta): zincir sapa iki yerden bağlı, ağırlık sapın üst ucunda -> kısa iki sarkık halka; savrulup uzamaz
-	var stow = _kch_id == "kusarigama" and not pinned and not kchain_start.is_valid() and not n_in_hand(w)
+	var stow = _kch_id in ["kusarigama", "johyo"] and not pinned and not kchain_start.is_valid() and not n_in_hand(w)
 	if stow:
 		fixed[KCH_N / 2] = n.to_global(Vector3(0.035, 0, -0.12))
 		fixed[KCH_N] = n.to_global(Vector3(0.0, 0, 0.14))
@@ -11420,6 +11437,9 @@ func _update_kchain(dt: float) -> void:
 			e1 = e2
 			e2 = tmp
 		var sl = L * 1.4 / 0.044   # halka boyu: segmentten biraz uzun (iç içe geçsin)
+		if _kch_id == "johyo":   # ip: silindir ekseni (Y) segment boyunca, aralıksız
+			_kch[k].global_transform = Transform3D(Basis(e1, dir * (L * 1.08 / 0.13), e2), (p0 + p1) * 0.5)
+			continue
 		_kch[k].global_transform = Transform3D(Basis(dir * sl, e1, e2 * 0.9), (p0 + p1) * 0.5)
 	var up = (_kch_p[KCH_N - 1] - _kch_p[KCH_N]).normalized()
 	var ex = up.cross(Vector3.FORWARD if absf(up.dot(Vector3.FORWARD)) < 0.9 else Vector3.RIGHT).normalized()
@@ -12294,6 +12314,24 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			b.add("torus", Vector3(0, 0, 0.027), Vector3(0.068, 0.016, 0.068), lav.darkened(0.25), Vector3(90, 0, 0), 20)
 			b.add("box", Vector3(0, 0, 0.043), Vector3(0.012, 0.03, 0.022), lav.lightened(0.1))                   # habaki (bıçak bileziği)
 			_w_blade(b, 0.035, 0.32, 0.024, 0.0, Color(0.86, 0.88, 0.94))                                           # düz parlak bıçak
+		"johyo":
+			# bambu tüp sap (zeytin-sarı), ortası kahve bez sargılı, ağzından ip çıkar (ref Johyo__Johyo2.png)
+			var bam = Color(0.68, 0.62, 0.3)
+			b.add("cyl", Vector3(0, 0, 0.06), Vector3(0.038, 0.26, 0.038), bam, Vector3(90, 0, 0), 10)
+			b.add("cyl", Vector3(0, 0, 0.19), Vector3(0.03, 0.005, 0.03), bam.darkened(0.45), Vector3(90, 0, 0), 10)
+			b.add("cyl", Vector3(0, 0, 0.05), Vector3(0.042, 0.12, 0.042), Color(0.55, 0.45, 0.36), Vector3(90, 0, 0), 10)
+			for k in 3:
+				b.add("cyl", Vector3(0, 0, 0.0 + k * 0.04), Vector3(0.044, 0.006, 0.044), Color(0.45, 0.36, 0.28), Vector3(90, 0, 0), 10)
+		"johyo_dart":
+			# konik metal dart + boğum + kırmızı püskül
+			var st2 = Color(0.72, 0.74, 0.8)
+			b.add("cone", Vector3(0, 0, 0.1), Vector3(0.022, 0.13, 0.022), st2, Vector3(90, 0, 0), 8)
+			b.add("cyl", Vector3(0, 0, 0.02), Vector3(0.016, 0.05, 0.016), st2.darkened(0.2), Vector3(90, 0, 0), 8)
+			b.add("sphere", Vector3(0, 0, -0.01), Vector3(0.02, 0.02, 0.02), st2.darkened(0.3), Vector3.ZERO, 6)
+			for k in 3:
+				b.add("box", Vector3((k - 1) * 0.012, 0.0, -0.05), Vector3(0.01, 0.006, 0.06), Color(0.82, 0.12, 0.12), Vector3((k - 1) * 18, 0, 0))
+		"shichiseiken":
+			KinginFX.build_shichiseiken(b)   # ref refs/kingin/The_Shichiseiken.png
 		"kokuto":
 			# Raidō'nun kara kılıcı (ref refs/kokuto/kokuto.png): mat kararmış, yansımasız düz ağız; koyu sap, küçük kara tsuba
 			_w_tsuka(b, -0.2, 0.05, 0.017, Color(0.1, 0.1, 0.11))
@@ -12937,7 +12975,7 @@ func _rest_tilt(on: bool, dt: float) -> void:
 
 
 ## anahtar animasyonlu silahlar: [tutuş kaydırma (yumruk sap boyunca ileri), iz başı z, iz ucu z, elden uca boy]
-const KEY_WEAPON := {"temari_ogi": [0.0, 0.3, 1.4, 1.45], "kokuto": [0.0, 0.2, 0.8, 0.82], "samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5], "uc_tirpan": [0.0, 1.1, 1.95, 1.92], "shibuki": [0.0, 0.45, 1.3, 1.45], "kabutowari": [0.0, 0.3, 0.82, 0.85], "ruzgar_bicak": [0.0, 0.1, 0.6, 0.62], "hiraishin_kunai": [0.0, 0.14, 0.47, 0.48], "homatsu_kiseru": [0.1, 0.5, 0.72, 0.72], "kusanagi": [0.0, 0.21, 1.08, 1.09], "kusarigama": [0.0, 0.3, 0.8, 0.85], "fuma_shuriken": [0.0, 0.05, 0.6, 0.62], "kyodai_shuriken": [0.0, 0.1, 1.3, 1.3], "fuma_makimono": [0.0, 0.05, 0.25, 0.26], "nuibari": [0.0, 0.1, 1.62, 1.62], "savas_cekici": [0.0, 1.1, 1.58, 1.58], "zincirli_kunai": [0.0, 0.06, 0.38, 0.38], "bashosen": [0.0, 0.55, 1.4, 1.45], "kubikiribocho": [0.0, 0.3, 1.9, 1.9], "yagura_sopa": [0.0, 0.87, 1.77, 1.8], "kongo_asa": [0.0, 0.6, 1.25, 1.26], "yelpaze": [0.0, 0.2, 0.6, 0.62], "kama": [0.0, 1.0, 1.62, 1.64], "pence": [0.0, 0.1, 0.48, 0.48], "senbon": [0.0, 0.05, 0.22, 0.22], "hiramekarei": [0.0, 0.3, 1.3, 1.33], "bo": [0.0, 0.4, 0.95, 0.95], "kiba": [0.0, 0.2, 1.11, 1.15]}   # uzunluklar silahın kendi ölçeğiyle çarpılır
+const KEY_WEAPON := {"temari_ogi": [0.0, 0.3, 1.4, 1.45], "kokuto": [0.0, 0.2, 0.8, 0.82], "shichiseiken": [0.0, 0.25, 1.3, 1.35], "johyo": [0.0, 0.05, 0.25, 0.26], "samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5], "uc_tirpan": [0.0, 1.1, 1.95, 1.92], "shibuki": [0.0, 0.45, 1.3, 1.45], "kabutowari": [0.0, 0.3, 0.82, 0.85], "ruzgar_bicak": [0.0, 0.1, 0.6, 0.62], "hiraishin_kunai": [0.0, 0.14, 0.47, 0.48], "homatsu_kiseru": [0.1, 0.5, 0.72, 0.72], "kusanagi": [0.0, 0.21, 1.08, 1.09], "kusarigama": [0.0, 0.3, 0.8, 0.85], "fuma_shuriken": [0.0, 0.05, 0.6, 0.62], "kyodai_shuriken": [0.0, 0.1, 1.3, 1.3], "fuma_makimono": [0.0, 0.05, 0.25, 0.26], "nuibari": [0.0, 0.1, 1.62, 1.62], "savas_cekici": [0.0, 1.1, 1.58, 1.58], "zincirli_kunai": [0.0, 0.06, 0.38, 0.38], "bashosen": [0.0, 0.55, 1.4, 1.45], "kubikiribocho": [0.0, 0.3, 1.9, 1.9], "yagura_sopa": [0.0, 0.87, 1.77, 1.8], "kongo_asa": [0.0, 0.6, 1.25, 1.26], "yelpaze": [0.0, 0.2, 0.6, 0.62], "kama": [0.0, 1.0, 1.62, 1.64], "pence": [0.0, 0.1, 0.48, 0.48], "senbon": [0.0, 0.05, 0.22, 0.22], "hiramekarei": [0.0, 0.3, 1.3, 1.33], "bo": [0.0, 0.4, 0.95, 0.95], "kiba": [0.0, 0.2, 1.11, 1.15]}   # uzunluklar silahın kendi ölçeğiyle çarpılır
 
 
 static var _kp_cache := {}

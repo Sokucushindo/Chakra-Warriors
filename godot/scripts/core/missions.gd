@@ -3705,6 +3705,14 @@ func _bb_spawn(e: Dictionary, at: Vector3) -> void:
 		else:
 			a["no_clan"] = true   # rastgele klan (Hoshigaki vb.) eklenmesin
 		a["look"]["weapon_r"] = wid
+		var wset: Array = WH.INFO[wid].get("set", [])
+		if not wset.is_empty():   # hazine takımı: teknikleri sahip olduğu araçlarla (oyuncuyla aynı "own:" şartı)
+			a["owns"] = wset.duplicate()
+			var js: Array = a.get("jutsu", [])
+			for x in ["kokinjo_shibari", "benihisago_kiroku", "kohaku_yobikake"]:
+				if not x in js:
+					js.append(x)
+			a["jutsu"] = js
 		if not wid in CharacterModel.ARM_WEAR:   # kolluk: eller boş, yumruk dövüşü (kılıç duruşu yok)
 			a["kind_anim"] = "sword"
 		a["guard"] = 0.45

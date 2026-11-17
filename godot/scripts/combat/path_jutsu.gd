@@ -19061,6 +19061,18 @@ func p_kioku_yomi(c: Node3D, t: Node3D) -> void:
 func p_chakura_no_ito(c: Node3D, t: Node3D) -> void:
 	KetsuryuFX.chakura_no_ito(self, c, t)
 
+## Altı Yol hazineleri (Kumo, Kinkaku–Ginkaku): Kōkinjō bağlar ve söz ruhunu çeker; Benihisago kaydeder; Kohaku çağırıp mühürler
+func p_kokinjo_shibari(c: Node3D, t: Node3D) -> void:
+	KinginFX.kokinjo_shibari(self, c, t)
+
+
+func p_benihisago_kiroku(c: Node3D, t: Node3D) -> void:
+	KinginFX.benihisago_kiroku(self, c, t)
+
+
+func p_kohaku_yobikake(c: Node3D, t: Node3D) -> void:
+	KinginFX.kohaku_yobikake(self, c, t)
+
 
 ## Mitarashi: Senei Dokuga* — gölgeden fırlayan iki yılan rakibin bacaklarını ısırır: zehir damarlara yürür (sürekli hasar,
 ## yavaşlama). Zehir sürerken ikinci ısırık daha derin işler

@@ -69,6 +69,15 @@ static func build(m: CharacterModel, kind: String, bc: Color, ch: Vector3, hip: 
 				mb.add("torus", Vector3(-0.12 + k * 0.06, 0.12, 0.012), Vector3(0.03, 0.03, 0.03), DARK, Vector3(90, 0, 0), 8)
 			for k in 2:
 				mb.add("box", Vector3(0, -0.06 + k * 0.12, 0.018), Vector3(0.32, 0.025, 0.01), bc)
+		"kokinjo":   # Altı Yol hazinesi: sırtta / omuzda dolu altın ip (ref Kokinjo.png)
+			KinginFX.build_rope_coil(mb, Vector3.ZERO, 1.1, Vector3(0, 0, 0))
+			at = ch + Vector3(0, -0.05, -0.2)
+		"benihisago":   # kırmızı bezli su kabağı, sırtta yatık (ref The_Benihisago.png)
+			KinginFX.build_gourd(mb, Vector3.ZERO, 0.75, Vector3(0, 0, 20))
+			at = ch + Vector3(0.05, -0.32, -0.3)
+		"kohaku":   # «雷» amblemli toprak küp, sırtta ipiyle (ref Kohaku_no_Johei.png)
+			KinginFX.build_pot(mb, Vector3.ZERO, 0.65)
+			at = ch + Vector3(0, -0.28, -0.32)
 		"ikiz_katana":
 			for s in [-1.0, 1.0]:
 				mb.add("box", Vector3(0, 0.1, 0), Vector3(0.05, 0.85, 0.035), bc, Vector3(0, 0, 32 * s))

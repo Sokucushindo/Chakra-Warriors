@@ -27,6 +27,9 @@ const INFO := {
 	"kusanagi": {"alias": ["Yılan Kılıcı", "Uzayan Diş", "Beyaz Yılan"], "el": "doton", "rank": "S",
 		"tech": "Yılan muhafızlı kılıcının ağzı bir anda uzar; kılıcı uzaktan uçurur.",
 		"villages": ["oto"], "look": {"skin": "f2ece6", "hair": "15151a", "top": "e8e6e2", "rope_belt": true}},
+	"shichiseiken": {"alias": ["Altın Boynuz", "Gümüş Boynuz", "Hazine Kardeşi", "Söz Avcısı"], "el": "raiton", "rank": "S",
+		"tech": "Altı Yolun Bilgesi'nin dört hazinesini taşır: altın iple söz ruhunu çeker, yassı kılıçla lanetler, su kabağına çeker, küpe mühürler.",
+		"villages": ["kumo"], "set": ["kokinjo", "benihisago", "kohaku"], "look": {"skin": "c9925f", "hair": "d8b45a", "top": "4a2f5a"}},
 	"kokuto": {"alias": ["Kara Kılıç", "Zehirli Gölge", "Sessiz Muhafız"], "el": "", "rank": "A",
 		"tech": "Işık yansıtmayan zehirli kara kılıcıyla görünmeden yaklaşır, başı hedef alır, arkana süzülür.",
 		"villages": ["konoha"], "look": {"top": "2c2f2a", "hair": "4a3020"}},
@@ -95,5 +98,8 @@ static func claim(id: String) -> void:
 	s[id] = {"state": "player"}
 	if not player_has(id):
 		Gear.grant(_p(), id)
+	for x in INFO[id].get("set", []):   # hazine takımı: sahibin taşıdığı diğer hazineler de düşer
+		if not player_has(String(x)):
+			Gear.grant(_p(), String(x))
 	Hud.banner("SİLAH DÜŞTÜ", "%s artık senin! [Tab > Ekipman]" % weapon_name(id), Color(1.0, 0.8, 0.35))
 	Sfx.play("levelup", null, 0.8)

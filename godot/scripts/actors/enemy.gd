@@ -841,6 +841,8 @@ func _chase(dt: float) -> void:
 				return String(arch.get("beast", "")) == nd.substr(4)
 			if nd.begins_with("weapon:"):   # silaha özgü teknik: oyuncuyla aynı — o silahı taşımalı
 				return String(look.get("weapon_r", "") if look is Dictionary else "") == nd.substr(7)
+			if nd.begins_with("own:"):   # sahip olunan araç (Altı Yol hazineleri): oyuncuyla aynı
+				return nd.substr(4) in (arch.get("owns", []) as Array)
 			return true)
 		ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("need", "")) != "raiton_modo" or buffs.has("raiton_chakura_modo"))
 		ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("need", "")) != "senju_dna" or String(arch.get("clan", "")) == "senju" or bool(get_meta("senju_cells", false)))   # Hashirama hücresi: oyuncuyla aynı şart

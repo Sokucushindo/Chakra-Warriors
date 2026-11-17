@@ -135,6 +135,8 @@ signal jutsu_prep(caster: Node, id: String, release_in: float)   # mühür dizil
 func execute(caster: Node3D, id: String, target: Node3D) -> void:
 	jutsu_cast.emit(caster, id)
 	Combat.note_caster(caster)   # bağ / yavaşlatma süresi güç farkına göre (Combat.cc_dur)
+	if KinginFX.on_cast(caster, id):
+		return   # Benihisago: kaydedilen lanetli kişi lanet sözünü söyledi (o tekniği kullandı) -> teknik yerine su kabağına çekilir
 	caster.set_meta("jid", id)   # hasar dengesi: bu jutsunun isabetleri ölçülmüş çarpanla
 	if String(Data.jutsu.get(id, {}).get("element", "")) == "katon":
 		caster.set_meta("katon_t", Game.now())   # Kirin: Katon ile ısınan gök fırtına bulutu toplar
