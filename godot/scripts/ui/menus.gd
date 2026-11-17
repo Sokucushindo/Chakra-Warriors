@@ -726,9 +726,8 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 			note.call(cc, String(cl_d.get("desc", "")))
 			# klanın hiden teknikleri: seviye geldikçe kendiliğinden öğrenilir
 			var cj = []
-			for k in Data.jutsu.keys():
-				if not k.begins_with("_") and String(Data.jutsu[k].get("clan", "")) == state["clan"]:
-					cj.append(Data.jutsu[k])
+			for k in ClanWorld.clan_jutsu_ids(String(state["clan"])):
+				cj.append(Data.jutsu[k])
 			cj.sort_custom(func(a, b): return int(a.get("level", 1)) < int(b.get("level", 1)))
 			if not cj.is_empty():
 				var names = cj.map(func(x): return "%s (Güç %d)" % [String(x["name"]).split(" (")[0], int(x.get("level", 1))])
@@ -2973,7 +2972,7 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 	var fbar = UI.hbox(8)
 	left.add_child(fbar)
 	var my_clan = String(pr.get("clan", "none"))
-	var clan_ids: Array = Data.jutsu.keys().filter(func(k): return not k.begins_with("_") and String(Data.jutsu[k].get("clan", "")) == my_clan and my_clan != "none")
+	var clan_ids: Array = ClanWorld.clan_jutsu_ids(my_clan)
 	var modes = [["learned", "Öğrendiklerim (%d)" % learned.size()], ["all", "Jutsu Kitabı (%d)" % Data.jutsu.size()]]
 	if not clan_ids.is_empty():
 		modes.append(["clan", "%s Teknikleri (%d)" % [Data.clans.get(my_clan, {}).get("name", my_clan), clan_ids.size()]])

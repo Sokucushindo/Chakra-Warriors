@@ -19041,6 +19041,30 @@ func p_chi_no_kusari(c: Node3D, t: Node3D) -> void:
 func p_ketsumu_no_jutsu(c: Node3D, t: Node3D) -> void:
 	Clan5FXA.ketsumu_no_jutsu(self, c, t)
 
+## Genjutsu: Ketsuryūgan (kanon) — göz teması: zayıf rakibin beyni yıkanır (dostuna saldırır), güçlüsü rüyaya düşer
+func p_genjutsu_ketsuryugan(c: Node3D, t: Node3D) -> void:
+	KetsuryuFX.genjutsu_ketsuryugan(self, c, t)
+
+
+## Ketsuryūgan: Tessui Heki* (Chino'nun demirli su duvarı) — su yoksa kendi kanından
+func p_tessui_heki(c: Node3D, t: Node3D) -> void:
+	KetsuryuFX.tessui_heki(self, c, t)
+
+
+## Ketsuryūgan: Tessui Dan* (Chino'nun demirli su damlaları)
+func p_tessui_dan(c: Node3D, t: Node3D) -> void:
+	KetsuryuFX.tessui_dan(self, c, t)
+
+
+## Ketsuryūgan: Kioku Yomi* (Sasuke Shinden: anı okuma) — dokunuş; 12 sn sıradaki 3 saldırı boşa çıkar
+func p_kioku_yomi(c: Node3D, t: Node3D) -> void:
+	KetsuryuFX.kioku_yomi(self, c, t)
+
+
+## Fūma: Chakura no Ito (kanon, Kagerō) — kalpleri bağlayan ipler: hasar paylaşılır, biri ölürse öteki de
+func p_chakura_no_ito(c: Node3D, t: Node3D) -> void:
+	KetsuryuFX.chakura_no_ito(self, c, t)
+
 
 ## Mitarashi: Senei Dokuga* — gölgeden fırlayan iki yılan rakibin bacaklarını ısırır: zehir damarlara yürür (sürekli hasar,
 ## yavaşlama). Zehir sürerken ikinci ısırık daha derin işler

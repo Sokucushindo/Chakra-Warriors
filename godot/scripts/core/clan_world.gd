@@ -152,6 +152,22 @@ var _wander_t := 480.0
 
 
 # ------------------------------------------------------------------ klan verisi
+## Klan listesinde gösterilen teknikler: klan etiketi + klanın kanon kan soyu / gözü / silahı / yolu
+const CLAN_LEARN := {"kaguya": ["kg:shikotsumyaku"], "senju": ["kg:mokuton"], "terumi": ["kg:yoton", "kg:futton"], "yuki": ["kg:hyoton"],
+	"hyuga": ["eye:byakugan"], "uchiha": ["eye:sharingan"], "fuma": ["weapon:fuma_shuriken"], "kurosuki": ["weapon:kiba"],
+	"namikaze": ["path:hiraishin"], "mitarashi": ["path:yilan"]}
+## Kanonda o klanın ninjasının imza teknikleri (başka yoldan da öğrenilebilir)
+const CLAN_SIGNATURE := {"momochi": ["kirigakure_no_jutsu", "sairento_kiringu", "suiro_no_jutsu", "suiton_suiryuudan", "suiton_daibakufu_no_jutsu", "hisenken"],
+	"gekko": ["mikazuki_no_mai", "toton_jutsu"]}
+
+
+static func clan_jutsu_ids(clan: String) -> Array:
+	if clan == "" or clan == "none":
+		return []
+	var tags: Array = CLAN_LEARN.get(clan, [])
+	return Data.jutsu.keys().filter(func(k): return not String(k).begins_with("_") and (String(Data.jutsu[k].get("clan", "")) == clan or String(Data.jutsu[k].get("learn", "")) in tags or String(k) in CLAN_SIGNATURE.get(clan, [])))
+
+
 static func clan_name(c: String) -> String:
 	return NAMES.get(c, String(Data.clans.get(c, {}).get("name", c.capitalize())))
 
