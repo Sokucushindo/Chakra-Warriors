@@ -789,63 +789,7 @@ static func m_susanoo_hozan(c: Node3D, t: Node3D) -> void:
 # ------------------------------------------------------------------ Susanoo: Tsukumo
 ## Susanoo iki elini kaldırır, ellerinin çevresinde onlarca chakra oku biçimlenir ve hedefe yağar.
 static func m_susanoo_tsukumo(c: Node3D, t: Node3D) -> void:
-	var sn = Susanoo.of(c, "susanoo_tsukumo")
-	if sn == null:
-		return
-	var H = sn.h()
-	var S = H / 1.8
-	var col = sn.color()
-	var tg = Jutsu._tg(c, t, 34.0 + H * 1.2)
-	var aim = _aim_fn(c, tg, 20.0 + H * 0.6)
-	var d = _turn(c, aim.call())
-	var side = d.cross(Vector3.UP).normalized()
-	_pj().busy(c, 1.2)
-	_anim(c, "cast", 0.9)
-	sn.hide_weapons(1.8)
-	sn.pose({"arms": Susanoo.arm(true, d * 0.55 + Vector3.UP * 0.55 + side * 0.45, d * 0.75 + Vector3.UP * 0.55) + Susanoo.arm(false, d * 0.55 + Vector3.UP * 0.55 - side * 0.45, d * 0.75 + Vector3.UP * 0.55), "spine": -6.0}, 1.8)
-	var spears = []
-	var smb = MB.new()
-	smb.add("cyl", Vector3(0, 0, 0.0), Vector3(0.04, 1.0, 0.04), Color.WHITE, Vector3(90, 0, 0), 6)
-	smb.add("cone", Vector3(0, 0, -0.62), Vector3(0.1, 0.25, 0.1), Color.WHITE, Vector3(-90, 0, 0), 6)
-	for k in 16:
-		_later(0.15 + k * 0.025, func():
-			if not is_instance_valid(sn):
-				return
-			var u = (k / 15.0) * 2.0 - 1.0
-			var base = sn.hand(true).lerp(sn.hand(false), 0.5) + side * u * S * 0.9 + Vector3.UP * (S * 0.25 + (1.0 - u * u) * S * 0.5)
-			var sp = sn.chakra_mesh(smb, 1.6)
-			_scene().add_child(sp)
-			sp.global_transform = Transform3D(_zbasis(-(aim.call() - base).normalized()) * Basis.from_scale(Vector3.ONE * S * 0.45), base)
-			sp.scale = Vector3.ONE * 0.05
-			sp.create_tween().tween_property(sp, "scale", Vector3.ONE * S * 0.45, 0.2).set_trans(Tween.TRANS_BACK)
-			spears.append(sp))
-	Sfx.play("chakra", c.global_position, 0.8)
-	_later(0.75, func():
-		if is_instance_valid(sn):
-			sn.pose({"arms": Susanoo.arm(true, d * 0.9 + side * 0.25, d) + Susanoo.arm(false, d * 0.9 - side * 0.25, d), "spine": 10.0}, 0.8, true))
-	_later(0.8, func():
-		for k in spears.size():
-			var sp: MeshInstance3D = spears[k]
-			_later(k * 0.035, func():
-				if not is_instance_valid(sp):
-					return
-				if not is_instance_valid(c):
-					sp.queue_free()
-					return
-				var from = sp.global_position
-				var to: Vector3 = aim.call() + Vector3(randf_range(-1, 1), randf_range(-0.5, 0.5), randf_range(-1, 1)) * (1.0 + S * 0.1)
-				var dir = (to - from).normalized()
-				sp.global_transform = Transform3D(_zbasis(-dir) * Basis.from_scale(Vector3.ONE * S * 0.45), from)
-				VFX.trail(sp, S * 0.05, col.lightened(0.5), col, Color(col.r, col.g, col.b, 0), 14, 1.0)
-				var dur = clampf(from.distance_to(to) / 80.0, 0.12, 0.8)
-				var tw = sp.create_tween()
-				tw.tween_property(sp, "global_position", to, dur)
-				tw.tween_callback(func():
-					sp.queue_free()
-					if is_instance_valid(c):
-						Combat.hit_sphere(c, to, 1.6 + S * 0.08, Jutsu._inf(c, "susanoo_tsukumo", 0.3, {"knock": 3.0, "kind": "heavy"}))
-						FX.impact(to, col, 0.6 + S * 0.05)))
-		Sfx.play("whoosh", c.global_position, 1.3))
+	NinjutsuFXG.susanoo_tsukumo(_pj(), c, t)
 
 
 # ================================================================== KAMUI (Kakashi / Obito) — ortak boyut çekişi

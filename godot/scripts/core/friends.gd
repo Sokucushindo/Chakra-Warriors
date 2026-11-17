@@ -2380,7 +2380,7 @@ static func party_max() -> int:
 
 ## ---------------------------------------------------------------- akademi döngüsü: mezuniyet, büyüyen çocuklar, öğretmenlik
 const GRAD_EVERY := 1800.0    # ~30 dk oyunda bir mezuniyet
-const CHILD_GROW := 5400.0    # çocuklar ~1.5 saatte akademi çağına gelir
+const CHILD_GROW := 12.0 * Aging.YEAR    # çocuklar ~1.5 saatte akademi çağına gelir
 const HAIRS := [Color(0.1, 0.1, 0.12), Color(0.35, 0.22, 0.12), Color(0.85, 0.7, 0.35), Color(0.75, 0.35, 0.2), Color(0.2, 0.25, 0.45), Color(0.6, 0.6, 0.62), Color(0.9, 0.55, 0.65)]
 var _grad_nodes := {}
 var _gt := 0.0

@@ -1348,22 +1348,7 @@ func j_baika(c: Node3D, _t: Node3D) -> void:
 
 
 func j_nikudan(c: Node3D, t: Node3D) -> void:
-	var m = _mult(c)
-	var ball = PathJutsu.get_pinst()._aki_ball(c, 1.6)   # kanon: kıyafet renginde, saç tutamlı top
-	c.add_child(ball)
-	ball.position = Vector3(0, 1.6, 0)
-	c.model.visible = false
-	Sfx.play("earth", c.global_position, 0.8)
-	var hit = []
-	_dash(c, t, 1.3, 22.0, func(pt):
-		ball.rotation.x -= 0.35
-		FX.dust(_ground(c.global_position), 0.5)
-		for h in Combat.hit_sphere(c, pt, 2.2, {"dmg": 18.0 * m, "knock": 16.0, "launch": 5.0, "kind": "heavy", "hitstop": 0.06}, hit):
-			hit.append(h), func():
-		ball.queue_free()
-		if is_instance_valid(c):
-			c.model.visible = true
-			FX.smoke_puff(c.global_position + Vector3.UP, 1.2, 12))
+	AkijugoFXA.nikudan(self, c, t)
 
 
 # ---------------------------------------------------------------- Aburame
@@ -1748,34 +1733,7 @@ func j_hyoton_spears(c: Node3D, t: Node3D) -> void:
 
 
 func j_bone_bullets(c: Node3D, t: Node3D) -> void:
-	var m = _mult(c)
-	_ticks(8, 0.07, func(_i):
-		if not is_instance_valid(c):
-			return
-		var pr = Projectile.new()
-		pr.shooter = c
-		pr.vel = _aim(c, t).rotated(Vector3.UP, randf_range(-0.04, 0.04)) * 48.0
-		pr.radius = 0.25
-		pr.homing = t
-		pr.homing_turn = 1.5
-		pr.info = {"dmg": 6.0 * m, "knock": 2.0, "kind": "light", "hitstop": 0.02}
-		var mi = MeshInstance3D.new()
-		var b = MB.new()
-		# referans (Teshi Sendan karesi): iki ucu şişkin, yuvarlak beyaz parmak kemiği boğumu
-		b.add("cyl", Vector3.ZERO, Vector3(0.2, 0.42, 0.2), Color(0.98, 0.97, 0.94), Vector3(90, 0, 0), 10)
-		b.add("sphere", Vector3(0, 0, -0.24), Vector3(0.3, 0.3, 0.26), Color(0.98, 0.97, 0.94), Vector3.ZERO, 10)
-		b.add("sphere", Vector3(0, 0, 0.24), Vector3(0.3, 0.3, 0.26), Color(0.95, 0.94, 0.9), Vector3.ZERO, 10)
-		mi.mesh = b.build(Props.toon())
-		pr.add_child(mi)
-		pr.spin = Vector3(0, 0, 25)
-		VFX.trail(pr, 0.22, Color(1, 1, 1), Color(0.95, 0.92, 0.8), Color(0.8, 0.75, 0.6, 0.0), 10)
-		pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
-			FX.hit_spark(pos, Color(0.95, 0.93, 0.85), 1.2)
-			FX.burst(pos, {"amount": 10, "life": 0.5, "size": 0.25, "vmin": 3, "vmax": 7, "add": false, "gravity": Vector3(0, -12, 0), "colors": [Color(0.97, 0.95, 0.88), Color(0.9, 0.88, 0.8, 0)]})
-		get_tree().current_scene.add_child(pr)
-		pr.global_position = _hand(c)
-		FX.burst(_hand(c), {"amount": 6, "life": 0.25, "size": 0.3, "vmin": 1, "vmax": 3, "colors": [Color(1, 1, 1), Color(0.9, 0.85, 0.7, 0)]})
-		Sfx.play("kunai", c.global_position, 0.8, 0.6))
+	FinalFX1.bone_bullets(self, c, t)
 
 
 func j_bone_armor(c: Node3D, _t: Node3D) -> void:
@@ -1857,38 +1815,7 @@ func _chain_line(parent: Node3D, a: Vector3, b: Vector3, sag := 0.4, grow := 0.2
 
 
 func j_chakra_chains(c: Node3D, t: Node3D) -> void:
-	var m = _mult(c)
-	if t == null or c.global_position.distance_to(t.global_position) > 28.0:
-		Hud.msg("Chakra zincirleri: hedef çok uzak", Color(1, 0.85, 0.4))
-		return
-	var root = Node3D.new()
-	get_tree().current_scene.add_child(root)
-	var center = _ground(t.global_position)
-	var back = c.global_position + Vector3.UP * 1.3 - (c.face_dir() if c.has_method("face_dir") else Vector3.FORWARD) * 0.3
-	var cm = _chain_mat()
-	# kanon: birkaç zincir kullanıcının sırtından çıkar, ötekiler yere dalıp hedefin çevresinden fışkırır; hepsi hedefe dolanır
-	for k in 5:
-		var a = k * TAU / 5.0 + 0.4
-		var base = back + Vector3(cos(a), sin(a) * 0.6, 0) * 0.3 if k < 3 else center + Vector3(cos(a), 0, sin(a)) * 3.5
-		var top = t.global_position + Vector3.UP * (0.8 + k * 0.25)
-		_chain_line(root, base, top, -0.35 if k < 3 else 0.2, 0.25, cm)
-	# gövdeye dolanan zincir halkaları (referans: Dokuz Kuyruk'u saran zincirler)
-	for wv in 3:
-		var hy = 0.7 + wv * 0.35
-		var R = 0.42
-		var a0 = wv * 1.3
-		for seg in 6:
-			var p1 = t.global_position + Vector3(cos(a0 + seg * TAU / 6.0) * R, hy + seg * 0.02, sin(a0 + seg * TAU / 6.0) * R)
-			var p2 = t.global_position + Vector3(cos(a0 + (seg + 1) * TAU / 6.0) * R, hy + (seg + 1) * 0.02, sin(a0 + (seg + 1) * TAU / 6.0) * R)
-			_chain_line(root, p1, p2, 0.0, 0.0, cm)
-	VFX.shockwave(t.global_position + Vector3.UP * 1.2, Color(1, 0.8, 0.3), 3.0, 0.3, false)
-	FX.aura(t, Color(1.0, 0.8, 0.3), 0.9, Vector3(0, 1.0, 0), 5.0)
-	Sfx.play("clink", center, 0.7)
-	if t.has_method("apply_status"):
-		t.apply_status("bind", 5.0)
-	Combat.hit_sphere(c, t.global_position + Vector3.UP, 1.4, {"dmg": 12.0 * m, "knock": 0.0, "kind": "light"})
-	Combat.popup_text(t.global_position + Vector3.UP * 2.6, "Mühürlendi!", Color(1, 0.85, 0.4))
-	get_tree().create_timer(5.0).timeout.connect(root.queue_free)
+	Clan3FXA.chakra_chains(PathJutsu.get_pinst(), c, t)
 
 
 # ---------------------------------------------------------------- Hozuki
@@ -1912,44 +1839,11 @@ func water_body(c: Node3D, dur: float, drops := true) -> void:
 
 
 func j_suika(c: Node3D, _t: Node3D) -> void:
-	# referans (Suika karesi): bedenin KENDİSİ suya döner. Oyuncu: Buff; düşman: aynı kural meta "suika_until" (Enemy.take_hit)
-	if c is Player:
-		Buffs.add("suika", 15.0, {"_desc": "Hafif darbeler içinden geçer (chakra yer), ağır darbe yarı hasar; Raiton 2x hasar ve bedeni dağıtır"})
-		Hud.msg("Suika no Jutsu: 15 sn hafif darbeler içinden geçer (chakra harcar). Raiton'a karşı çok zayıf!", Color(0.5, 0.75, 1))
-	else:
-		c.set_meta("suika_until", Time.get_ticks_msec() / 1000.0 + 15.0)
-	var a = FX.aura(c, Color(0.35, 0.65, 1.0), 1.0, Vector3(0, 0.9, 0), 0.0)
-	water_body(c, 15.0)
-	get_tree().create_timer(15.0).timeout.connect(func():
-		if is_instance_valid(a):
-			a.emitting = false
-			get_tree().create_timer(1.0).timeout.connect(a.queue_free))
-	Sfx.play("water", c.global_position, 1.2)
+	FinalFX0.suika(self, c, _t)
 
 
 func j_water_gun(c: Node3D, t: Node3D) -> void:
-	var m = _mult(c)
-	var pr = Projectile.new()
-	pr.shooter = c
-	pr.vel = _aim(c, t) * 42.0   # 70 m/s'de mermi görünmüyordu
-	pr.radius = 0.5
-	pr.info = {"dmg": 14.0 * m, "knock": 5.0, "kind": "light", "element": "suiton", "hitstop": 0.03}
-	pr.add_child(VFX.water_ball(1.3))
-	# parmaktan fışkıran mavi su + mermiden kopan mavi damlalar
-	VFX.puffs(_hand(c), {"amount": 10, "life": 0.35, "size": 0.35, "radius": 0.2, "vmin": 4.0, "vmax": 9.0, "dir": _aim(c, t), "spread": 20.0, "gravity": Vector3(0, -14, 0),
-		"glow": 1.05, "water": true, "outline_col": Color(0.05, 0.25, 0.7), "outline": 0.045, "colors": [Color(0.75, 0.92, 1.0, 1), Color(0.3, 0.62, 1.0, 1), Color(0.2, 0.5, 0.95, 0.0)]})
-	pr.on_tick = func(p: Projectile, _dt: float) -> void:
-		if randf() < 0.6:
-			VFX.puffs(p.global_position, {"amount": 2, "life": 0.4, "size": 0.22, "radius": 0.15, "vmin": 0.5, "vmax": 2.0, "dir": Vector3.UP, "spread": 70.0, "gravity": Vector3(0, -16, 0),
-				"glow": 1.05, "water": true, "outline_col": Color(0.05, 0.25, 0.7), "outline": 0.045, "colors": [Color(0.75, 0.92, 1.0, 1), Color(0.3, 0.62, 1.0, 1), Color(0.2, 0.5, 0.95, 0.0)]})
-	VFX.trail(pr, 0.6, Color(0.9, 0.97, 1.0), Color(0.3, 0.6, 1.0), Color(0.1, 0.35, 0.9, 0.0), 14)
-	VFX.shockwave(_hand(c), Color(0.6, 0.85, 1.0), 2.5, 0.25, false, _aim(c, t))
-	Projectile.trail(pr, [Color(0.85, 0.95, 1, 0.9), Color(0.3, 0.6, 1, 0)], 0.35, 30, 0.25, FX.tex_smoke, false)
-	pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
-		VFX.splash(pos, 1.2)
-	get_tree().current_scene.add_child(pr)
-	pr.global_position = _hand(c)
-	Sfx.play("water", c.global_position, 1.8, 0.6)
+	FinalFX0.water_gun(self, c, t)
 
 
 # ---------------------------------------------------------------- Jinchuriki: kuyruklu canavar bombası

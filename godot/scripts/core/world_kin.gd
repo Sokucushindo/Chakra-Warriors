@@ -8,7 +8,7 @@ extends ScenePoser
 ## · Köyde görünür: evli çiftler çocuklarıyla gezer (durup konuşur, çocuğun saçını okşar, çocuk etraflarında koşar);
 ##   konuşursan kendi hayatlarını anlatırlar. Mezarlıkta yakınını kaybeden biri mezar başında diz çöker.
 
-const KID_GROW := 5400.0      # sn (oyun süresi): doğumdan mezuniyete
+const KID_GROW := 12.0 * Aging.YEAR      # sn (oyun süresi): doğumdan mezuniyete
 const KID_WALK := 1200.0      # bu yaştan sonra anne-babasıyla gezmeye çıkar
 
 static var walk: WorldKin

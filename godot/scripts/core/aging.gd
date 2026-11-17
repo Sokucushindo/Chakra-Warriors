@@ -3,7 +3,7 @@ class_name Aging
 ## Görünüş CharacterModel'de (look "years" / "fat" / "mus"): evre boyu, ağaran saç, yüz çizgileri, kambur, göbek / kas.
 ## Güce ya da ölüme etkisi YOK (yalnız görünüş).
 
-const YEAR := 450.0   # sn / yıl: WorldKin çocukları 5400 sn'de (12 yaş) genin olur, aynı takvim
+const YEAR := 2400.0   # sn / yıl (oyunda 2 gün): 450'de karakter günde ~2.7 yaş büyüyordu (kullanıcı: çok hızlı yaşlanıyor)
 const RANK_MIN := [0.0, 12.0, 16.0, 20.0, 20.0]     # rütbe atlayınca en az bu yaş
 const RANK_START := [8.0, 12.0, 16.0, 22.0, 26.0]   # yaşı bilinmeyen eski kayıt
 const GREY := Color(0.7, 0.7, 0.72)
@@ -69,13 +69,43 @@ static func player_years() -> float:
 	if not pr.has("born_t"):
 		set_years(pr, float(RANK_START[rk]))
 	var y = years(pr)
+	var b0 = float(pr.get("born_t", 0.0))
 	if y < float(RANK_MIN[rk]):   # rütbe atladı: en az o rütbenin yaşı
 		y = float(RANK_MIN[rk])
 		set_years(pr, y)
 	if rk == 0 and y > 11.9:      # Akademi öğrencisi mezun olana dek çocuk
 		y = 11.9
 		set_years(pr, y)
+	var shift = b0 - float(pr.get("born_t", 0.0))
+	if absf(shift) > 0.01:
+		_kin_shift(shift)   # senin yaşın sıçradı / durdu: aile aynı farkla kayar (ağabey senden küçük kalmasın)
+	if not pr.get("kin_age_ok", false):
+		pr["kin_age_ok"] = true
+		_kin_repair(y)
 	return y
+
+
+## Ailenin doğum anını senin kaymanla aynı miktarda kaydırır
+static func _kin_shift(shift: float) -> void:
+	for f in Friends.all().values():
+		if f is Dictionary and String(f.get("kin", "")) in ["baba", "anne", "kardeş"] and f.has("born_t"):
+			f["born_t"] = float(f["born_t"]) - shift
+
+
+## Eski kayıt onarımı: ağabey/abla senden büyük, küçük kardeş küçük, anne-baba en az 20 yaş büyük
+static func _kin_repair(me: float) -> void:
+	for f in Friends.all().values():
+		if not (f is Dictionary) or not f.has("born_t"):
+			continue
+		var k = String(f.get("kin", ""))
+		var y = years(f)
+		var r = _h(String(f.get("id", f.get("name", "?"))), 3)
+		if k == "kardeş" and f.get("elder", false) and y < me + 1.0:
+			set_years(f, me + 2.0 + r * 3.0)
+		elif k == "kardeş" and not f.get("elder", false) and y > me - 1.0:
+			set_years(f, maxf(6.0, me - 2.0 - r * 3.0))
+		elif k in ["baba", "anne"] and y < me + 20.0:
+			set_years(f, me + 23.0 + r * 9.0)
 
 
 ## Ömür: kişiye göre 76-92 yıl. Dolunca mezun çocuğun varsa yol ona geçer (Legacy.old_age)

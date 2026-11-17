@@ -94,6 +94,7 @@ static func ensure() -> void:
 		f["loyalty"] = 95
 		if String(df[0]) == "kardeş":
 			f["elder"] = elder
+			f.erase("born_t")   # yaş "elder" bilinmeden kurulmuş olabilir: yeniden, ağabey/abla senden büyük olacak şekilde
 			f["pupil_lv"] = 12.0 if elder else 6.0
 			f["taught"] = []
 		f["family"] = [{"rel": "Çocuğu" if String(df[0]) != "kardeş" else "Kardeşi", "name": "%s (sen)" % pr().get("name", ""), "alive": true}]
