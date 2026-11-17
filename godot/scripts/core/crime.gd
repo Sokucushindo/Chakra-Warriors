@@ -103,6 +103,7 @@ func attack(v: Node, alarm := false) -> void:
 	if not is_instance_valid(v):
 		return
 	var at: Vector3 = v.global_position
+	var comps: Array = [] if alarm else _companions(v)   # birlikte gezenler (sohbet eşi, takım lideri / üyeleri) savaşa katılır
 	var fid = String(v.get_meta("friend_id", ""))
 	var civ = not Friends.is_ninja(v) and fid == ""
 	var plv = int(Game.profile.get("level", 1))
@@ -148,6 +149,10 @@ func attack(v: Node, alarm := false) -> void:
 	victims.append({"node": e, "vid": _village_at(at), "fid": fid, "civ": civ, "dead": false})
 	var who = String(v.display)
 	v.queue_free()
+	for cmp in comps:
+		if is_instance_valid(cmp) and not cmp.is_queued_for_deletion():
+			cmp.set_meta("struck", true)
+			attack(cmp, true)   # arkadaşını koruyor: suç kaydı yalnız ilk saldırı için
 	if alarm:
 		return
 	if fid != "":
@@ -156,6 +161,38 @@ func attack(v: Node, alarm := false) -> void:
 		f["party"] = false
 		Friends.log_event(f, "Ona saldırdın")
 	commit(ATTACK, "%s kişisine saldırdın" % who, at)
+
+
+## Saldırılan kişiyle birlikte gezenler: sohbet eşi, takım lideri, aynı lidere bağlı takım üyeleri (yakındakiler; çocuklar hariç)
+func _companions(v: Node) -> Array:
+	var out: Array = []
+	var lead = v.get("follow")
+	var root: Node = lead if lead != null and is_instance_valid(lead) else v
+	var cand: Array = []
+	var bd = v.get("buddy")
+	if bd != null and is_instance_valid(bd):
+		cand.append(bd)
+	if root != v:
+		cand.append(root)
+	var par = v.get_parent()
+	if par != null:
+		for n in par.get_children():
+			if n != v and n.get("follow") == root:
+				cand.append(n)
+	for n in cand:
+		if n == v or n in out or not is_instance_valid(n) or not n is Node3D or n.is_queued_for_deletion():
+			continue
+		if (n as Node3D).global_position.distance_to(v.global_position) > 25.0:
+			continue
+		var lk = n.get("look")
+		if lk is Dictionary and String(lk.get("age", "adult")) == "child":
+			continue
+		if String(n.get("role") if n.get("role") != null else "") in ["kid", "child", "student"]:
+			continue
+		if attack_option(n).is_empty():
+			continue
+		out.append(n)
+	return out
 
 
 ## Takımdaki dosta ihanet

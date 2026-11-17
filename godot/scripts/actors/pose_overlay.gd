@@ -77,6 +77,7 @@ const THUMB_SEG := ["Metacarpal", "Proximal", "Distal"]
 static var STANCE := {
 	"w_blade": [["RightUpperArm", Vector3(-0.22, -0.93, 0.28)], ["RightLowerArm", Vector3(-0.05, -0.35, 0.94)], ["LeftUpperArm", Vector3(0.22, -0.97, 0.06)], ["LeftLowerArm", Vector3(0.1, -0.9, 0.42)]],   # kunai: sağ el kalça önünde öne dönük, sol kol rahat aşağıda
 	"w_sword": [["RightUpperArm", Vector3(-0.15, -0.8, 0.55)], ["RightLowerArm", Vector3(0.3, -0.2, 0.93)], ["LeftUpperArm", Vector3(0.2, -0.8, 0.55)], ["LeftLowerArm", Vector3(-0.45, -0.15, 0.88)]],
+	"w_nanato": [["RightUpperArm", Vector3(-0.85, 0.1, 0.35)], ["RightLowerArm", Vector3(-0.1, 0.95, 0.25)], ["LeftUpperArm", Vector3(0.85, 0.1, 0.35)], ["LeftLowerArm", Vector3(0.1, 0.95, 0.25)]],   # Killer B Akurobatto (video 0:00): dirsekler yanda-yukarı, ön kollar dik — dirsek kılıçları dışa bakar
 	"w_kubi": [["RightUpperArm", Vector3(-0.45, -0.6, 0.66)], ["RightLowerArm", Vector3(0.25, 0.75, 0.6)]],   # Zabuza: yumruk sağ omzun önünde, ağız omza yaslı geriye
 	"w_shoulder": [["RightUpperArm", Vector3(-0.75, -0.25, 0.6)], ["RightLowerArm", Vector3(0.15, 0.95, 0.2)]],
 	"w_dual": [["LeftUpperArm", Vector3(0.4, -0.8, 0.45)], ["LeftLowerArm", Vector3(0.1, -0.35, 0.93)], ["RightUpperArm", Vector3(-0.4, -0.8, 0.45)], ["RightLowerArm", Vector3(-0.1, -0.35, 0.93)]],
@@ -110,7 +111,7 @@ func _ready() -> void:
 		"plant": {"_Plant": 1},
 		"cast": {"_Cast": 1},
 		# silah duruşları (bekleme/koşu): ters tutuş kunai, iki elle kılıç, omuzda ağır silah, çift bıçak alçak, yelpaze yanda
-		"w_blade": {}, "w_raijin": {}, "w_gunbai": {}, "w_sword": {}, "w_shoulder": {}, "w_kubi": {}, "w_samehada": {}, "w_dual": {}, "w_fan": {}, "w_tirpan": {}, "w_shibuki": {}, "w_kabuto": {}, "w_ruzgar": {}, "w_kusa": {}, "w_kgama": {},
+		"w_blade": {}, "w_raijin": {}, "w_gunbai": {}, "w_sword": {}, "w_shoulder": {}, "w_kubi": {}, "w_nanato": {}, "w_samehada": {}, "w_dual": {}, "w_fan": {}, "w_tirpan": {}, "w_shibuki": {}, "w_kabuto": {}, "w_ruzgar": {}, "w_kusa": {}, "w_kgama": {},
 	}
 
 

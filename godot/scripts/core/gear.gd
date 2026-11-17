@@ -903,6 +903,7 @@ const ITEMS := {
 	# --- efsanevi silahlar (satılmaz: S/A görevleri ve boss ödülü). special: vuruş yeteneği
 	"kubikiribocho": {"name": "Kubikiribōchō", "slot": "sag", "price": 0, "rank": 4, "legend": true, "desc": "Sis'in Yedi Kılıcı'ndan dev satır. Delikli ağzı kesilenin kanıyla kendini onarır: vuruşlar can çalar.", "stats": {"hp": 40, "speed": -0.06}, "weapon": {"hit": 8.5, "dmg": 2.4, "reach": 1.3, "style": "heavy", "special": "lifesteal"}, "c1": Color(0.78, 0.8, 0.84)},
 	"samehada": {"name": "Samehada", "slot": "sag", "price": 0, "rank": 4, "legend": true, "desc": "Pullarla kaplı, sargılı canlı kılıç. Değdiği düşmanın chakrasını emer. Kuşanılıyken Suiton jutsuları %10 güçlü.", "stats": {"chakra": 60, "speed": -0.05}, "weapon": {"hit": 7.5, "dmg": 2.2, "reach": 1.2, "style": "heavy", "special": "drain", "boost": {"suiton": 0.10}}, "c1": Color(0.25, 0.32, 0.5)},
+	"nanato": {"name": "Nanatō (Killer B'nin Yedi Kılıcı)", "slot": "sag", "price": 0, "rank": 4, "legend": true, "desc": "Killer B'nin yedi ince kılıcı: Akurobatto stilinde elde değil ağızda, boyunda, koltuk altında, dirseklerde, dizde ve karında tutulur. Gövdenin dansı savurur — öngörülemez açılar, yerden süpürme, fırlatma ve birden saplama (kanatır). Kılıflıyken sırttaki kara kında.", "stats": {"speed": 0.06}, "weapon": {"hit": 6.0, "dmg": 1.9, "reach": 1.1, "style": "sword"}, "c1": Color(0.75, 0.1, 0.12)},
 	"kiba": {"name": "Kiba (İkiz Yıldırım Kılıcı)", "slot": "el", "price": 0, "rank": 4, "legend": true, "desc": "Yedi Kılıç'tan ikiz yıldırım kılıçları, her elde bir tane. Her kesikte Raiton akar ve uyuşturur; kancalı dikenlerle çeker, bitirişte gökten yıldırım çağırır.", "stats": {"speed": 0.04}, "weapon": {"hit": 6.5, "dmg": 1.8, "reach": 0.8, "style": "sword", "special": "raiton"}, "c1": Color(0.95, 0.85, 0.35)},
 	"hiramekarei": {"name": "Hiramekarei", "slot": "sag", "price": 0, "rank": 4, "legend": true, "desc": "Çift saplı geniş kılıç. Chakra depolar, ağzını uzatıp devasa bir bıçağa çevirir.", "stats": {"chakra": 40}, "weapon": {"hit": 7.5, "dmg": 2.1, "reach": 1.7, "style": "heavy", "special": "extend"}, "c1": Color(0.3, 0.45, 0.75)},
 	"shibuki": {"name": "Shibuki", "slot": "sag", "price": 0, "rank": 4, "legend": true, "desc": "Kalın mor rulolu, ağzı patlayıcı mühür kâğıtlarından kılıç. Ağır: rulo arkadan savrulur; her darbe patlar, kâğıtları serpip uzaktan da patlatır.", "stats": {"def": 2}, "weapon": {"hit": 7, "dmg": 2.0, "reach": 1.1, "style": "heavy", "special": "explode"}, "c1": Color(0.85, 0.8, 0.65)},
@@ -925,7 +926,7 @@ const ITEMS := {
 }
 
 ## Efsanevi silahlar (dükkânda yok; A/S görevleri, boss düşürmesi)
-const LEGENDARY := ["yagura_sopa", "kubikiribocho", "samehada", "kiba", "hiramekarei", "shibuki", "nuibari", "kabutowari", "chokuto", "raijin", "ruzgar_bicak", "fuma_shuriken", "gunbai", "bashosen", "uc_tirpan"]
+const LEGENDARY := ["nanato", "yagura_sopa", "kubikiribocho", "samehada", "kiba", "hiramekarei", "shibuki", "nuibari", "kabutowari", "chokuto", "raijin", "ruzgar_bicak", "fuma_shuriken", "gunbai", "bashosen", "uc_tirpan"]
 
 
 static func random_legendary() -> String:

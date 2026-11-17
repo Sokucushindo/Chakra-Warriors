@@ -36,6 +36,7 @@ const TABLE := {
 	"hiramekarei": [preload("res://scripts/combat/hirame_anim.gd"), 1.0],
 	"bo": [preload("res://scripts/combat/bo_anim.gd"), 1.05],
 	"kiba": [preload("res://scripts/combat/kiba_anim.gd"), 1.0],
+	"nanato": [preload("res://scripts/combat/nanato_anim.gd"), 1.08],   # Killer B Akurobatto: dans ritmi, hızlı
 	"tanto": [preload("res://scripts/combat/tanto_anim.gd"), 1.05],
 	"mateki": [preload("res://scripts/combat/mateki_anim.gd"), 1.0],   # Tayuya flütü
 	"hakko_chakura_to": [preload("res://scripts/combat/hakko_anim.gd"), 1.15],   # Hatake beyaz ışık tantōsu: kendi kombosu
@@ -107,7 +108,7 @@ const TABLE := {
 const RANGED := ["fuma_shuriken", "kyodai_shuriken", "fuma_makimono", "senbon", "mateki"]   # mateki: genjutsu flütü, uzakta durup çalar
 ## silah ağırlığı (0 hafif .. 1 ağır): kol/silah yaylanması (PoseOverlay.key_mass) — ağır silah gecikip taşar
 const MASS := {"temari_ogi": 0.65, "uc_tirpan": 1.0, "samehada": 0.9, "kabutowari": 0.9, "shibuki": 0.85, "gunbai": 0.8, "raijin": 0.35, "kunai": 0.1,
-	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35, "kusarigama": 0.55, "fuma_shuriken": 0.4, "kyodai_shuriken": 1.0, "fuma_makimono": 0.15, "nuibari": 0.25, "savas_cekici": 1.0, "zincirli_kunai": 0.3, "tonfa": 0.3, "bashosen": 0.35, "kubikiribocho": 0.95, "yagura_sopa": 0.4, "yelpaze": 0.6, "kongo_asa": 0.45, "kama": 0.75, "pence": 0.15, "senbon": 0.05, "hiramekarei": 0.7, "bo": 0.35, "kiba": 0.25, "tanto": 0.1, "hakko_chakura_to": 0.08, "mateki": 0.06, "wakizashi": 0.25, "nodachi": 0.7, "musta": 0.15, "raikage_kote": 0.15,
+	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35, "kusarigama": 0.55, "fuma_shuriken": 0.4, "kyodai_shuriken": 1.0, "fuma_makimono": 0.15, "nuibari": 0.25, "savas_cekici": 1.0, "zincirli_kunai": 0.3, "tonfa": 0.3, "bashosen": 0.35, "kubikiribocho": 0.95, "yagura_sopa": 0.4, "yelpaze": 0.6, "kongo_asa": 0.45, "kama": 0.75, "pence": 0.15, "senbon": 0.05, "hiramekarei": 0.7, "bo": 0.35, "kiba": 0.25, "nanato": 0.3, "tanto": 0.1, "hakko_chakura_to": 0.08, "mateki": 0.06, "wakizashi": 0.25, "nodachi": 0.7, "musta": 0.15, "raikage_kote": 0.15,
 	"style_juken": 0.08, "style_akimichi": 0.65, "style_inuzuka": 0.12, "style_kaguya": 0.2,
 	"style_uchiha": 0.1, "style_hozuki": 0.3, "style_aburame": 0.05, "style_jugo": 0.7,
 	"style_yuki": 0.05, "style_sabaku": 0.05, "style_uzumaki": 0.1, "style_yotsuki": 0.3, "style_kamizuru": 0.05, "style_iburi": 0.05, "style_kurosuki": 0.15, "style_senju": 0.45, "style_sarutobi": 0.12, "style_hatake": 0.1, "style_nara": 0.05, "style_kapi": 0.15, "style_kil": 0.05, "style_akasuna": 0.05, "style_kagit": 0.05, "style_sumi": 0.05, "style_yilan": 0.1, "style_gama": 0.2, "style_chidori": 0.1, "style_hiraishin": 0.05, "style_rinnegan": 0.1, "style_tip": 0.12, "style_kakuzu": 0.3, "style_jashin": 0.5, "style_hachibi": 0.35, "style_silah": 0.1, "style_jin_shukaku": 0.5, "style_jin_matatabi": 0.15, "style_jin_isobu": 0.3, "style_jin_son_goku": 0.45, "style_jin_kokuo": 0.3, "style_jin_saiken": 0.1, "style_jin_chomei": 0.1, "style_jin_gyuki": 0.4, "style_jin_kurama": 0.3,
@@ -470,6 +471,16 @@ static func mods(id: String, i: int) -> Dictionary:
 				4: m.merge({"knock": 0.6, "lunge_mul": 0.3})
 				5: m.merge({"heavy": true, "knock": 16.0, "bleed": 5.0})
 			return m
+		"nanato":
+			# Akurobatto: ince ağızlar kanatır; süpürme yere serer, dönüş havaya savurur, fırlatma orta menzil, bitiriş birden saplama
+			var m = {"lunge_mul": 0.8, "knock": 3.0, "bleed": 1.5}
+			match i:
+				1: m.merge({"knock": 5.0, "bleed": 2.5})
+				2: m.merge({"heavy": true, "knock": 2.0, "reach_add": 0.7})
+				3: m.merge({"launch": 9.0, "knock": 2.0, "reach_add": 0.6})
+				4: m.merge({"lunge_mul": 0.0, "knock": 1.0})
+				5: m.merge({"heavy": true, "knock": 13.0, "bleed": 6.0, "lunge_mul": 1.4, "reach_add": 0.9})
+			return m
 		"kiba":
 			# her vuruş Raiton: kısa uyuşma
 			var m = {"lunge_mul": 0.9, "knock": 2.0, "stun": 0.25}
@@ -695,6 +706,9 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 		return
 	if id == "raikage_kote":
 		_kote_fx(who, i, dmg)
+		return
+	if id == "nanato":
+		NanatoFX.strike(who, i, dmg)
 		return
 	var f: Vector3 = who.face_dir() if who.has_method("face_dir") else -who.global_transform.basis.z
 	f.y = 0

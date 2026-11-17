@@ -10786,6 +10786,51 @@ func hold_temp(id: String, dur: float, side := "Right", scl := 1.0, roll := 0.0,
 	return node
 
 
+## Nanatō (Killer B Akurobatto, Narutopedia + ref Acrobat.PNG): yedi kılıç gövdede tutulur — ağız, boynun sağı, sol koltuk altı,
+## iki dirsek, sağ diz, karın. Çekiliyken her biri kendi kemiğine bağlı (gövde dansı savurur), kılıflıyken sırttaki kara kında
+## sapları omuzdan yukarı. Model uzayı: +Z ön, +X karakterin solu
+func _nanato_attach() -> void:
+	var gp = func(bn: String) -> Vector3:
+		var bi = skel.find_bone(bn)
+		return _grest(bi).origin if bi >= 0 else Vector3.ZERO
+	var head: Vector3 = gp.call("Head")
+	var neck: Vector3 = gp.call("Neck")
+	var spine: Vector3 = gp.call("Spine")
+	var ch: Vector3 = gp.call("UpperChest") if skel.find_bone("UpperChest") >= 0 else gp.call("Chest")
+	var slots = [
+		["Head", head + Vector3(0.0, 0.05, 0.1), Vector3(-1, 0, 0.08), Vector3.UP],              # ağız: yatay, ağız sağa
+		["Neck", neck + Vector3(-0.09, 0.02, 0.0), Vector3(-0.35, 0.8, -0.5), Vector3(1, 0, 0)],  # boynun sağı: yukarı-geri
+		["LeftUpperArm", gp.call("LeftUpperArm") + Vector3(-0.02, -0.12, 0.0), Vector3(0.2, -0.25, -0.95), Vector3.UP],   # sol koltuk altı: geriye
+		["RightLowerArm", gp.call("RightLowerArm"), Vector3(-0.15, 0.1, -0.98), Vector3.UP],       # sağ dirsek: dirsek ucundan dışa
+		["LeftLowerArm", gp.call("LeftLowerArm"), Vector3(0.15, 0.1, -0.98), Vector3.UP],          # sol dirsek
+		["RightLowerLeg", gp.call("RightLowerLeg") + Vector3(0, 0, -0.05), Vector3(-0.4, 0.05, -0.92), Vector3.UP],   # sağ diz arkası
+		["Spine", spine + Vector3(0.0, 0.05, 0.12), Vector3(-0.95, -0.1, 0.3), Vector3.UP],        # karın: sağa-öne
+	]
+	var bz = ch.z - 0.2
+	var bzz = _back_z(ch.y - 0.06)
+	if bzz < 0.0:
+		bz = bzz - 0.06
+	for i in slots.size():
+		var sl: Array = slots[i]
+		if skel.find_bone(String(sl[0])) < 0:
+			continue
+		var mi = MeshInstance3D.new()
+		mi.mesh = weapon_mesh("nanato")
+		var hold: Node3D = _attach(String(sl[0]), Transform3D(_frame(sl[2], sl[3]), sl[1])).get_child(0)
+		hold.add_child(mi)
+		var sx = (i - 3) * 0.05
+		var sh: Node3D = _attach("UpperChest" if skel.find_bone("UpperChest") >= 0 else "Chest", Transform3D(_frame(Vector3(sx * 0.25, -1.0, 0.0), Vector3(0, 0, -1)), Vector3(sx, ch.y + 0.14, bz))).get_child(0)
+		weapons.append({"id": "nanato", "side": "Right", "kind": "back" if i == 0 else "nanato", "node": mi, "hand": hold, "sheath": sh})
+	# sırttaki kara lake kın kutusu (çekiliyken de sırtta kalır)
+	var box = MB.new()
+	box.add("box", Vector3(0, 0, 0), Vector3(0.42, 0.9, 0.08), Color(0.07, 0.07, 0.08))
+	box.add("box", Vector3(0, 0.43, 0.0), Vector3(0.44, 0.04, 0.09), Color(0.6, 0.08, 0.1))
+	var bm = MeshInstance3D.new()
+	bm.mesh = box.build(weapon_mesh("nanato").surface_get_material(0) if weapon_mesh("nanato").get_surface_count() > 0 else null)
+	if bm.mesh != null:
+		_attach("UpperChest" if skel.find_bone("UpperChest") >= 0 else "Chest", Transform3D(Basis.IDENTITY, Vector3(0, ch.y - 0.29, bz - 0.01))).get_child(0).add_child(bm)
+
+
 func has_weapon() -> bool:
 	return not weapons.is_empty()
 
@@ -10808,6 +10853,10 @@ func _weapons() -> void:
 			var mi = MeshInstance3D.new()
 			mi.mesh = weapon_mesh(skin if skin != "" else id)
 			node = mi
+		if id == "nanato":
+			if side == "Right":
+				_nanato_attach()
+			continue
 		if id in ARM_WEAR:
 			var arm: Node3D = _attach(side + "LowerArm", _forearm_xf(side)).get_child(0)
 			arm.add_child(node)
@@ -11096,7 +11145,7 @@ func _place_weapons() -> void:
 			if coil:
 				coil.visible = not in_hand
 				n.visible = in_hand
-		if rig and in_hand and w["kind"] != "worn":
+		if rig and in_hand and w["kind"] != "worn" and w["id"] != "nanato":   # Akurobatto: kılıçlar elde değil, eller boş
 			rig.hold[w["side"]] = 1.0
 		if w["sheath"] != null and w["kind"] == "back":
 			for ch in (w["sheath"] as Node3D).get_children():
@@ -12397,6 +12446,20 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			b.add_mesh(kb2, Transform3D(Basis.IDENTITY, Vector3(0, 0, 0.11)))   # el sapın ortasında (tsuba yumruğun önünde)
 		"samehada", "samehada_acik", "hiramekarei", "hiramekarei_yari", "shibuki", "nuibari", "kabutowari", "kabutowari_cekic":
 			MistSwords.build(id, b)   # Sis'in Yedi Kılıcı: referansla modellendi
+		"nanato":
+			# Killer B'nin kılıcı (ref refs/bee_swords: Acrobat.PNG, Killer_B.png): ince düz gümüş ağız, sivri uç, siper yok;
+			# kırmızı sap üstünde siyah baklava sargı, ucunda kare altın başlık, ağız dibinde altın bilezik
+			var red = Color(0.72, 0.08, 0.1)
+			var gold = Color(0.95, 0.74, 0.2)
+			var silv = Color(0.84, 0.86, 0.9)
+			b.add("cyl", Vector3(0, 0, -0.13), Vector3(0.03, 0.25, 0.03), red, Vector3(90, 0, 0), 8)
+			for k in 5:
+				b.add("box", Vector3(0, 0, -0.03 - 0.045 * k), Vector3(0.033, 0.033, 0.014), Color(0.08, 0.06, 0.07), Vector3(0, 0, 45))
+			b.add("box", Vector3(0, 0, -0.27), Vector3(0.046, 0.046, 0.04), gold)
+			b.add("cyl", Vector3(0, 0, 0.005), Vector3(0.036, 0.02, 0.036), gold, Vector3(90, 0, 0), 8)
+			b.add("box", Vector3(0, 0, 0.42), Vector3(0.01, 0.032, 0.8), silv)
+			b.add("box", Vector3(0, 0.012, 0.42), Vector3(0.012, 0.007, 0.8), Color(0.97, 0.98, 1.0))
+			b.add("cone", Vector3(0, 0, 0.85), Vector3(0.01, 0.07, 0.032), silv, Vector3(90, 0, 0), 4)
 		"chokuto":
 			b.add("cyl", Vector3(0, 0, -0.08), Vector3(0.032, 0.22, 0.032), Color(0.85, 0.85, 0.85), Vector3(90, 0, 0), 8)
 			b.add("box", Vector3(0, 0, 0.04), Vector3(0.05, 0.05, 0.02), dark)
@@ -12935,7 +12998,7 @@ func _key_blade() -> void:
 ## Yumruk sapın en ucunda (silah sap boyunca kaydırılır); kılıç ucu yere girecekse yerin hemen üstüne kaldırılır.
 func _key_blade_sk(sk: Skeleton3D, blade: Vector3) -> void:
 	for w0 in weapons:
-		if w0["id"] in ["chakra_bicak", "pence"] or w0["id"] in ARM_WEAR:
+		if w0["id"] in ["chakra_bicak", "pence", "nanato"] or w0["id"] in ARM_WEAR:
 			return   # muşta bıçak / pençe: yumruğa bağlı, bilek silaha göre çevrilmez (kol pozları yeter; pençenin ucu +x,
 			# kılıç gibi +z'yi "blade"e çevirmek sağ eldeki pençeyi yan yatırıyordu, sol el hiç çevrilmiyordu)
 		if w0["id"] == "sai_sol" and n_in_hand(w0):
@@ -13049,7 +13112,7 @@ func react(world_dir: Vector3, amp: float, head := false, up := 0.0, heavy := 0.
 	dangle_kick(world_dir.normalized() * (1.5 + amp * 3.0 + heavy * 4.0) + Vector3.UP * up * 2.0)
 
 
-const STANCE_ID := {"samehada": "w_samehada", "gunbai": "w_gunbai", "raijin": "w_raijin", "uc_tirpan": "w_tirpan", "shibuki": "w_shibuki", "kabutowari": "w_kabuto", "ruzgar_bicak": "w_ruzgar", "kusanagi": "w_kusa", "kusarigama": "w_kgama", "kubikiribocho": "w_kubi"}
+const STANCE_ID := {"samehada": "w_samehada", "gunbai": "w_gunbai", "raijin": "w_raijin", "uc_tirpan": "w_tirpan", "shibuki": "w_shibuki", "kabutowari": "w_kabuto", "ruzgar_bicak": "w_ruzgar", "kusanagi": "w_kusa", "kusarigama": "w_kgama", "kubikiribocho": "w_kubi", "nanato": "w_nanato"}
 ## bekleme duruşunda iki elle tutulan silahlar: sol el IK ile kabzaya, sağ elin altına (kabza ekseninde -Z)
 static var TWO_HAND_IDLE := {"raijin": -0.1, "shibuki": 0.2}   # shibuki: sağ el sapın arka ucunda, sol el 0.2 önde (taramada sapa 4 mm oturdu)   # silaha özel duruş
 const STANCE_OF := {"blade": "w_blade", "dual": "w_dual", "sickle": "w_dual", "claw": "w_dual", "sword": "w_sword", "heavy": "w_shoulder", "staff": "w_shoulder", "chain": "w_dual", "fan": "w_fan"}   # kusarigama alçak tek el (omuzda bıçak kafaya değmesin)

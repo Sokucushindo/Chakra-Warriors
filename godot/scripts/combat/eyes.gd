@@ -989,9 +989,14 @@ func on_close_kill(who: String) -> void:
 
 
 ## Mangekyō (kanon, ikinci yol): 3 tomoe iken YANINDA savaşan dost biri (takım arkadaşı, eskort edilen, peşinden gelen) gözünün
-## önünde ÖLÜRSE. Yalnız gerçek ölüm sayılır (die çağrısı) — yaralanma/bayılma açmaz. Uzaktaki ölüm sayılmaz (40 m).
-func on_ally_died(ally: Node3D) -> void:
+## önünde ÖLÜRSE. Yalnız gerçek ölüm sayılır — yaralanma/bayılma açmaz (takım arkadaşının yere düşmesi çağırmaz; kalıcı ölümü
+## KinDrama.slain çağırır). Kanon: SEVDİĞİN birinin ölümü — yakınlık >= 60 şart (tanımadığın eskort / yabancı açmaz). 40 m.
+func on_ally_died(ally: Node3D, fid := "") -> void:
 	if ally == null or not is_instance_valid(ally) or p == null:
+		return
+	if fid == "":
+		fid = String(ally.get_meta("friend_id", ""))
+	if fid == "" or Friends.closeness(fid) < 60:
 		return
 	if ally.global_position.distance_to(p.global_position) > 40.0:
 		return

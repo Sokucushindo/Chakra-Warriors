@@ -61,9 +61,22 @@ static func ensure_formed() -> Dictionary:
 	var others = ELS.filter(func(e): return not e in mine)
 	others.shuffle()
 	var mates = []
+	# köyün gerçek klanları (dünya verisi Data.clans "villages"): her arkadaş bir ihtimalle klanlı doğar — Uchiha, Hyūga, Nara...
+	var home = Progress.home()
+	var vclans: Array = Data.clans.keys().filter(func(c): return c != "none" and home in (Data.clans[c] as Dictionary).get("villages", []))
 	for i in 2:
 		var nm: Array = names[i]
-		mates.append({"name": nm[0], "gender": nm[1], "hair_style": nm[2], "hair": _a(hairs[i]), "top": _a(tops[i]), "element": others[i % others.size()], "medic": i == 1})
+		var m = {"name": nm[0], "gender": nm[1], "hair_style": nm[2], "hair": _a(hairs[i]), "top": _a(tops[i]), "element": others[i % others.size()], "medic": i == 1, "clan": ""}
+		if not vclans.is_empty() and rng.randf() < 0.4:
+			var c: String = vclans[rng.randi() % vclans.size()]
+			m["clan"] = c
+			var el = String(ClanWorld.MAIN_EL.get(c, ""))
+			if el != "":
+				m["element"] = el
+			var ch: Array = ClanWorld.LOOK.get(c, {}).get("hair", [])
+			if not ch.is_empty():
+				m["hair"] = _a(ch[rng.randi() % ch.size()])
+		mates.append(m)
 	var hi = Progress.home_info()
 	var s_fem = rng.randf() < 0.35   # kanon: Kurenai gibi kadın jōnin hocalar da var
 	var sensei = {"name": "%s-sensei" % ChuninExam.gen_name(s_fem, rng).split(" ")[-1], "gender": "f" if s_fem else "m", "hair": _a(hairs[2]),
@@ -113,8 +126,31 @@ static func register_friends() -> void:
 		var rank = 2 if key == "sensei" else 0
 		fs[id] = {"name": nm, "role": "teacher" if key == "sensei" else "spar", "ninja": true, "look": Friends._ser(lk), "bond": 10 if key == "sensei" else 20,
 			"village": Progress.home(), "party": false, "last_talk": 0.0, "element": String((sq["sensei"] if key == "sensei" else sq["mates"][int(key.substr(1))]).get("element", ELS[absi(hash(key)) % ELS.size()])),
-			"clan": "", "eye": [0, 0], "rank": rank, "family": Friends._family("", female, rank), "status": "", "log": [], "news": "",
+			"clan": "" if key == "sensei" else String(sq["mates"][int(key.substr(1))].get("clan", "")),
+			"eye": [0, 0] if key == "sensei" else [int(ClanWorld.EYE_KIND.get(String(sq["mates"][int(key.substr(1))].get("clan", "")), 0)), 1], "rank": rank, "family": Friends._family("", female, rank), "status": "", "log": [], "news": "",
 			"title": "Jōnin hocan" if key == "sensei" else "Takım arkadaşın", "squad_key": key}
+
+
+## Ölen takım arkadaşı gözlü bir klandansa ve aranız iyiyse (yakınlık >= 30) yanında ölürken bir gözünü sana bırakır.
+## Göz kavanoza konur; nakil hastanede (Eyes / EyeSurgery sistemi). Bir arkadaş yalnız bir kez.
+func _bequeath_eye(id: String, node) -> void:
+	var f: Dictionary = Friends.all().get(id, {})
+	if f.is_empty() or f.get("eye_given", false):
+		return
+	var ek = int(ClanWorld.EYE_KIND.get(String(f.get("clan", "")), 0))
+	if ek <= 0 or Friends.closeness(id) < 30:
+		return
+	var pl = Game.player
+	if pl == null or (node is Node3D and is_instance_valid(node) and (node as Node3D).global_position.distance_to(pl.global_position) > 40.0):
+		return
+	var gid = {1: "goz_sharingan", 2: "goz_byakugan", 3: "goz_ketsuryugan"}.get(ek, "")
+	if gid == "":
+		return
+	f["eye_given"] = true
+	var lvl = clampi(1 + int(pr().get("level", 1)) / 25, 1, 3)
+	Gear.grant(pr(), gid, "", null, null, {"lvl": lvl, "origin": "nakil", "from": String(f.get("name", ""))})
+	Hud.dialog(String(f.get("name", "")), "Gözüm... al onu. Ben göremeyeceğim ama sen... benim yerime gör.", [])
+	Hud.msg("%s gözünü sana bıraktı — Tab > Gözler > Saklanan Gözler; nakil hastanede." % String(f.get("name", "")), Color(1, 0.55, 0.55), 7.0)
 
 
 static func _name_of_static(key: String) -> String:
@@ -210,6 +246,7 @@ static func mate_arch(i: int, level: int) -> Dictionary:
 	var m: Dictionary = sq["mates"][i % 2]
 	var a = Enemy.archetype("genin_rival", i)
 	a["no_clan"] = true
+	var mclan = String(m.get("clan", ""))
 	var hi = Progress.home_info()
 	a["name"] = "%s (takım)" % m["name"]
 	a["respawn"] = false
@@ -220,7 +257,17 @@ static func mate_arch(i: int, level: int) -> Dictionary:
 	a["ryo"] = 0
 	a["element"] = m["element"]
 	var auto = Enemy.auto_jutsu("genin_rival", String(m["element"]), level)
-	if not auto.is_empty():
+	if mclan != "":
+		# klanlı arkadaş: klanının teknikleri (oyuncuyla aynı veri) + doğasından bir teknik
+		a.erase("no_clan")
+		a["clan"] = mclan
+		var js: Array = ClanWorld.clan_jutsu(mclan, level, 3)
+		for x in auto.slice(0, 1):
+			if not x in js:
+				js.append(x)
+		if not js.is_empty():
+			a["jutsu"] = js
+	elif not auto.is_empty():
 		a["jutsu"] = auto
 		a["auto_jutsu"] = auto.duplicate()
 		a["auto_lv"] = level
@@ -339,6 +386,9 @@ func _spawn(key: String) -> Node:
 	e.set_meta("respawn", false)
 	e.set_meta("friend_id", fid(key))
 	get_tree().current_scene.add_child(e)
+	var mc = String(a.get("clan", ""))
+	if mc != "":
+		ClanWorld.after_spawn_enemy(e, mc, int(a.get("level", 10)))   # gözler (Sharingan / Byakugan...) + klan davranışı
 	if e.nameplate:
 		e.nameplate.modulate = Color(0.55, 1.0, 0.6) if key != "sensei" else Color(0.6, 0.85, 1.0)
 	var pp = Game.player.global_position
@@ -400,6 +450,7 @@ func _process(dt: float) -> void:
 			var f: Dictionary = Friends.all().get(fid(m["key"]), {})
 			if not f.is_empty() and randf() < (0.03 if m["key"] == "sensei" else 0.05):
 				# kalıcı ölüm (nadir): Friends kaydı ölür; yakın ölüm Mangekyō uyanışını tetikleyebilir
+				_bequeath_eye(fid(m["key"]), n)   # gözlü arkadaş: son nefesinde bir gözünü sana bırakır (aranız iyiyse)
 				KinDrama.slain(fid(m["key"]), n, [], Game.player.global_position, "Takım görevinde senin yanında öldü")
 				m["node"] = null
 				m["down"] = 1e9

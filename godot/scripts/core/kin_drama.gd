@@ -213,7 +213,7 @@ static func _kill(fid: String, node: Node, seen: bool) -> void:
 	var f: Dictionary = Friends.all()[fid]
 	var e = entry()
 	if seen and node is Node3D and Game.player.combat and Game.player.combat.modes and Game.player.combat.modes.get("eyes"):
-		Game.player.combat.modes.eyes.on_ally_died(node)
+		Game.player.combat.modes.eyes.on_ally_died(node, fid)
 	f["status"] = "öldü"
 	f["party"] = false
 	f.erase("injury")
@@ -241,7 +241,7 @@ static func slain(fid: String, body, foes: Array, at: Vector3, what: String) -> 
 	var has_body = body != null and is_instance_valid(body) and body is Node3D
 	var bp: Vector3 = body.global_position if has_body else at
 	if has_body and pl.global_position.distance_to(bp) < 60.0 and pl.combat and pl.combat.modes and pl.combat.modes.get("eyes"):
-		pl.combat.modes.eyes.on_ally_died(body)
+		pl.combat.modes.eyes.on_ally_died(body, fid)
 	f["status"] = "öldü"
 	f["party"] = false
 	f.erase("injury")

@@ -1011,6 +1011,9 @@ static func _teach(pid: String, jid: String, from_quest: bool) -> void:
 	if jid.begins_with("bashosen_") and not "bashosen" in Gear.owned_ids(pr()):
 		Gear.grant(pr(), "bashosen")
 		Hud.msg("Bashōsen artık senin: Bashōsen teknikleri için yelpazeyi kuşan.", Color(1, 0.6, 0.6), 5.0)
+	if jid == "hachibi_yedi_kilic" and not "nanato" in Gear.owned_ids(pr()):
+		Gear.grant(pr(), "nanato")   # B'nin yedi kılıcı: toplama talimini bitirene verilir (Akurobatto stili)
+		Hud.msg("Nanatō artık senin: yedi kılıcı kuşan, Akurobatto ile dövüş.", Color(1, 0.4, 0.4), 5.0)
 	if pid == "kapi" and not "gates" in pr().get("skills", []):
 		pr()["skills"].append("gates")   # Sekiz Kapı modu (B) bu yolla açılır
 		Hud.msg("Sekiz Kapı açıldı: B tuşuyla kapıları zorla.", Color(0.5, 1, 0.5))
