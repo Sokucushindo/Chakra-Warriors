@@ -1139,7 +1139,7 @@
   "level": 18,
   "rank": 3,
   "learn": "quest:signature",
-  "desc": "Ağızda, elde ve koltuk altında tutulan yedi kılıçla dönerek yapılan öngörülemez kılıç kombosu.",
+  "desc": "Ağızda, elde ve koltuk altında tutulan yedi kılıçla dönerek yapılan öngörülemez kılıç kombosu. Nanatō (Killer B'nin yedi kılıcı) kuşanılı olmalı.",
   "seals": [],
   "canon_rank": "A",
   "tier": 4,
@@ -1151,7 +1151,8 @@
   "signature": true,
   "kinjutsu": false,
   "series": "Naruto Shippūden",
-  "meaning": "Yedi Kılıç Dansı"
+  "meaning": "Yedi Kılıç Dansı",
+  "need": "weapon:nanato"
  },
  "kongo_roheki": {
   "id": "kongo_roheki",

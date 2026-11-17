@@ -369,7 +369,7 @@ const EXTRA_JUTSU := {
 		"seals": [], "desc": "Şimşekli kol ve ahtapot koluyla çift lariat; yolundakiler savrulur."},
 	"hachibi_ahtapot_kollari": {"need": "jin:gyuki", "name": "Takoashi Ude (Ahtapot Kolları)", "cost": 40, "cd": 14, "element": "", "level": 22, "rank": 3, "tier": 4, "shape": "aoe", "learn": "path:hachibi", "category": "ninjutsu",
 		"seals": [], "desc": "Sırttan çıkan dev ahtapot kolları yeri döver, yakalayıp sıkar."},
-	"hachibi_yedi_kilic": { "dmg_k": 0.26,"name": "Nanatō Ranbu (Yedi Kılıç Dansı)", "cost": 45, "cd": 16, "element": "", "level": 24, "rank": 3, "tier": 4, "shape": "melee", "learn": "path:hachibi", "category": "kenjutsu",
+	"hachibi_yedi_kilic": { "need": "weapon:nanato", "dmg_k": 0.26,"name": "Nanatō Ranbu (Yedi Kılıç Dansı)", "cost": 45, "cd": 16, "element": "", "level": 24, "rank": 3, "tier": 4, "shape": "melee", "learn": "path:hachibi", "category": "kenjutsu",
 		"seals": [], "desc": "Kollar, koltuk altı, ağız: yedi kılıçla dönen kasırga kesik dansı."},
 	"hachibi_kuyruk_zirhi": {"need": "jin:gyuki", "name": "Bijū Koromo (Kuyruk Örtüsü)", "cost": 40, "cd": 40, "element": "", "level": 26, "rank": 4, "tier": 5, "shape": "mode", "learn": "path:hachibi", "category": "ninjutsu",
 		"seals": [], "desc": "Mor çakra örtüsü ve sekiz kuyruk: 20 sn güç, dayanıklılık, kollar otomatik saldırır."},

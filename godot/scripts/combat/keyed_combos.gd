@@ -4697,23 +4697,10 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 			match i:
 				0:   # dokunaç kırbacı (Gyūki'nin gerçek Takoashi Ude dokunacı, insan ölçeği)
 					BijuuArts._tako_ude(who, {"s": 0.45, "dmg": dmg * 1.1, "aim": aimb, "tgt": tg, "base_h": 1.6})
-				1:   # yedi kılıç dönüşü (kollar/koltuk altı/ağız)
-					var root = Node3D.new()
-					who.add_child(root)
-					root.position = Vector3.UP * 1.2
-					for k in 7:
-						var a = k * TAU / 7.0
-						var b = MB.new()
-						b.add("box", Vector3(0, 0, 0.6), Vector3(0.04, 0.12, 1.2), Color(0.8, 0.82, 0.86))
-						b.add("cyl", Vector3(0, 0, -0.05), Vector3(0.04, 0.15, 0.04), Color(0.15, 0.12, 0.1), Vector3(90, 0, 0), 6)
-						var sw = MeshInstance3D.new()
-						sw.mesh = b.build(Props.toon())
-						root.add_child(sw)
-						sw.rotation.y = a
-						sw.position = Vector3(cos(a), (k % 3 - 1) * 0.3, sin(a)) * 0.4
-					var tw = root.create_tween()
-					tw.tween_property(root, "rotation:y", TAU * 2.0, 0.4)
-					tw.tween_callback(root.queue_free)
+				1:   # Ran Taijutsu (kanon: B'nin "Disturbance Taijutsu"su): ritimle dönen düzensiz tekme — kılıç yok (kılıçlar yalnız Nanatō
+					# kuşanınca, Akurobatto). Ayaktan Sekiz Kuyruk mürekkebi savrulur, yerde mürekkep izi kalır
+					var fp = who.global_position + f * 1.1
+					pjb._ink_splash(Vector3(fp.x, Game.ground_height(fp.x, fp.z) + 0.05, fp.z), 6)
 					Combat.hit_sphere(who, who.global_position + Vector3.UP, 2.6, _kinfo(dmg, 1.2, {"element": "", "knock": 5.0, "kind": "heavy", "bleed": 1.5}))
 				2:   # mürekkep tükürüğü: kara mürekkep seli — kör eder, yavaşlatır
 					var mouth = who.global_position + Vector3.UP * 1.55 + f * 0.35

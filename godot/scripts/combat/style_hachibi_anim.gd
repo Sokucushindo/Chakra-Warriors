@@ -1,9 +1,9 @@
 extends RefCounted
 ## Yol tarzı — Sekiz Kuyruk (Killer B). YAKIN-ORTA. Görseller oyunun gerçek sistemleri: Gyūki'nin Takoashi Ude dokunaçları
 ## (BijuuArts._tako_ude), mürekkep seli (stream_fx + mürekkep mat_water), Raiton örtüsü (PathJutsu._rai_cloak), yedi kılıç
-## (p_hachibi_yedi_kilic ile aynı kılıç gövdesi), kuyruklu canavar topu (PathJutsu._bijuball). Kanon: B ritimle dövüşür,
+## (p_hachibi_yedi_kilic ile aynı kılıç gövdesi), kuyruklu canavar topu (PathJutsu._bijuball); kılıç yok (yedi kılıç yalnız Nanatō kuşanınca). Kanon: B ritimle dövüşür,
 ## Lariat'ı Raikage ile aynı (şimşekli kol), kollarının altında/ağzında kılıçlarla döner, ahtapot kolu çıkarır, mürekkep tükürür.
-## 1 dokunaç kırbacı, 2 yedi kılıç dönüşü (çevre), 3 mürekkep tükürüğü (kör eder, yavaşlatır), 4 Lariat (şimşekli kol atılışı),
+## 1 dokunaç kırbacı, 2 Ran Taijutsu (ritimli dönen tekme, mürekkep), 3 mürekkep tükürüğü (kör eder, yavaşlatır), 4 Lariat (şimşekli kol atılışı),
 ## 5 dokunaçla kavrayıp yere çarpma, 6 bitiriş: Sekiz Kuyruk topu (küçük canavar topu).
 
 const C = preload("res://scripts/combat/style_common.gd")

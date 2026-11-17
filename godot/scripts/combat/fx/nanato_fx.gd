@@ -186,3 +186,50 @@ static func _throw(who: Node3D, f: Vector3, side: Vector3, h: float, dmg: float)
 			blood(at, -aim, 5))
 		var st = from
 		thrust(st, st + aim * 3.0, 0.05, 0.15)
+
+
+# ================================================================== Nanatō teknikleri (oyundaki gerçek kılıç modeliyle)
+## Akurobatto stilinin gerçek yedi kılıcını çek (kuşanmışsa): kılıçlar gövdedeki yerlerine geçer
+static func draw_real(who: Node3D) -> bool:
+	var m = who.get("model")
+	if m == null or not is_instance_valid(m) or m.get("weapons") == null:
+		return false
+	for w in m.weapons:
+		if String(w.get("id", "")) == "nanato":
+			if who is Player:
+				Game.profile["weapon_drawn"] = true
+			m.set_drawn(true, false)
+			return true
+	return false
+
+
+## Kombo adımının pozunu oynat (Akurobatto: 3 = breakdance dönüşü); süre: vuruş anına kadar
+static func play_step(who: Node3D, i: int, spd := 1.0) -> float:
+	var K = preload("res://scripts/combat/keyed_combos.gd")
+	var st: Array = K.steps("nanato")
+	var m = who.get("model")
+	if st.is_empty() or m == null or m.get("overlay") == null:
+		return 0.25
+	var ks: Dictionary = st[clampi(i, 0, st.size() - 1)]
+	var sp = K.speed("nanato") * spd
+	m.overlay.play_keys(ks, sp)
+	return float(ks["hit"]) / sp
+
+
+## Yedi gerçek kılıç gövdenin çevresinde ağızları dışa dönük döner (kılıç kuşanılmamış dövüş tarzında da aynı model)
+static func orbit(who: Node3D, dur: float, turns: float, h := 1.2) -> void:
+	var root = Node3D.new()
+	who.add_child(root)
+	root.position = Vector3.UP * h
+	var mesh = CharacterModel.weapon_mesh("nanato")
+	var spots = [[0.0, 0.25], [0.9, -0.1], [1.8, 0.35], [2.7, -0.3], [3.6, 0.1], [4.5, -0.2], [5.4, 0.4]]   # ağız, koltuk altı, dirsekler, diz, karın hizaları
+	for s in spots:
+		var a: float = s[0]
+		var mi = MeshInstance3D.new()
+		mi.mesh = mesh
+		root.add_child(mi)
+		mi.position = Vector3(sin(a), float(s[1]), cos(a)) * Vector3(0.32, 1.0, 0.32)
+		mi.rotation = Vector3(float(s[1]) * -0.6, a, 0.0)
+	var tw = root.create_tween()
+	tw.tween_property(root, "rotation:y", TAU * turns, dur)
+	tw.tween_callback(root.queue_free)

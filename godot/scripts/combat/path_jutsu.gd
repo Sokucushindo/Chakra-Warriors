@@ -5332,21 +5332,24 @@ func p_zesshi_nensan(c: Node3D, t: Node3D) -> void:
 	NinjutsuFXE.zesshi_nensan(self, c, t)
 
 
-## Akrobat: ağızda, ellerde, koltuk altlarında yedi kılıçla kendi etrafında dönerek kesme
+## Akurobatto (kanon, Killer B): Nanatō şart — yedi kılıç ağızda, boyunda, koltuk altında, dirseklerde, dizde ve karında
+## (oyundaki gerçek kılıçlar gövdeye geçer); breakdance dönüşüyle ileri akar, her dönüş çelik yayı keser, kanatır
 func p_akurobatto(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.2)
 	var tt = tg(c, t, 6.0)
 	var d = _face(c, tt)
-	for side in ["RightHand", "LeftHand", "RightUpperArm", "LeftUpperArm", "Head"]:
-		_hand_blade(c, 1.2, Color(0.82, 0.85, 0.9), 1.0, side)
+	NanatoFX.draw_real(c)
+	NanatoFX.play_step(c, 3, 1.15)
 	every(1.0, 0.1, func(_i, k):
 		if not live(c):
 			return
 		if c is CharacterBody3D:
 			c.velocity = d * 5.0 + Vector3.UP * (2.0 if k < 0.2 else 0.0)
 		var at = c.global_position + Vector3.UP * 1.1
-		_arc_cut(at, d.rotated(Vector3.UP, k * TAU * 3.0), -40.0, 40.0, Color(0.95, 0.97, 1.0), 2.0)
-		mhit(c, at, 2.4, inf(c, "akurobatto", 0.3, {"knock": 3.0, "kind": "light", "bleed": 2.0})), Callable())
+		var a0 = k * TAU * 3.0
+		NanatoFX.arc(at + Vector3.UP * (0.4 * sin(a0)), d, d.cross(Vector3.UP).normalized(), 1.5, a0, a0 + 2.2, 0.14, 0.2)
+		hit(c, at, 2.4, inf(c, "akurobatto", 0.3, {"knock": 3.0, "kind": "light", "bleed": 2.0}), [])
+	)
 	Sfx.play("clink", c.global_position, 1.0)
 
 
@@ -11479,24 +11482,17 @@ func p_hachibi_ahtapot_kollari(c: Node3D, t: Node3D) -> void:
 ## Yedi Kılıç Dansı: kollar, koltuk altları ve ağızda kılıçlarla dönen kesik kasırgası
 func p_hachibi_yedi_kilic(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.3)
-	var root = Node3D.new()
-	c.add_child(root)
-	root.position = Vector3.UP * 1.2
-	for k in 7:
-		var a = k * TAU / 7.0
-		var b = MB.new()
-		b.add("box", Vector3(0, 0, 0.6), Vector3(0.04, 0.12, 1.2), Color(0.8, 0.82, 0.86))
-		b.add("cyl", Vector3(0, 0, -0.05), Vector3(0.04, 0.15, 0.04), PDARK, Vector3(90, 0, 0), 6)
-		var sw = mesh_of(b)
-		root.add_child(sw)
-		sw.rotation.y = a
-		sw.position = Vector3(cos(a), (k % 3 - 1) * 0.3, sin(a)) * 0.4
-	var tw = root.create_tween()
-	tw.tween_property(root, "rotation:y", TAU * 5.0, 1.2)
-	tw.tween_callback(root.queue_free)
-	every(1.2, 0.15, func(_i, _k):
+	# Nanatō şart (need weapon:nanato): gerçek yedi kılıç gövdede, beden iki tur breakdance dönüşü; her tur üç seviyede çelik yay
+	NanatoFX.draw_real(c)
+	NanatoFX.play_step(c, 3, 0.85)
+	every(1.2, 0.15, func(_i, k):
 		if live(c):
-			VFX.shockwave(c.global_position + Vector3.UP * 1.2, Color(0.85, 0.88, 0.95), 4.0, 0.15, true)
+			var at = c.global_position
+			var f = c.face_dir() if c.has_method("face_dir") else Vector3.FORWARD
+			f.y = 0.0
+			f = f.normalized()
+			var a0 = k * TAU * 5.0
+			NanatoFX.arc(at + Vector3.UP * [0.45, 1.0, 1.55][_i % 3], f, f.cross(Vector3.UP).normalized(), 2.6, a0, a0 + 2.6, 0.16, 0.22)
 			hit(c, c.global_position + Vector3.UP, 3.2, inf(c, "hachibi_yedi_kilic", 0.35, {"knock": 4.0, "kind": "light", "bleed": 1.5})), Callable())
 	Sfx.play("blade", c.global_position, 0.6)
 
