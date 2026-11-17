@@ -16,14 +16,15 @@ var albedo_tex: Texture2D
 var biome_img: Image
 
 var settings := {
-	"sens": 1.0, "ui_scale": 1.0, "fov": 70.0, "music": 0.5, "sfx": 0.8, "view": 1.0, "fullscreen": false, "display": "",
-	"shadows": true, "outline": true, "dreamy": true, "blood": true, "invert_y": false, "show_fps": false, "quality": 2,
+	"sens": 1.0, "ui_scale": 1.0, "fov": 70.0, "music": 0.5, "sfx": 0.8, "view": 1.0, "fullscreen": false, "display": "", "win_mode": "", "resolution": "",
+	"shadows": true, "outline": true, "dreamy": false, "blood": true, "invert_y": false, "show_fps": false, "quality": 2,
 	"vsync": true, "max_fps": 0,   # dikey eşitleme, FPS sınırı (0: sınırsız)
 	"master": 1.0,   # ana ses düzeyi (müzik ve efektlerin üstünde)
 	"ui_vol": 1.0, "bg_mute": false,   # arayüz tık sesleri; pencere arka plandayken sessiz
 	"autosave": 10, "shake": 2,   # otomatik kayıt (dakika, 0: kapalı); kamera sarsıntısı (0 kapalı, 1 az, 2 normal)
 	"lang": "",   # arayüz dili: "tr" / "en" ("": bilgisayarın diline göre)
 	# ayrıntılı grafik (kalite ön ayarı bunları birlikte kurar; tek tek de değişir)
+	"look": 2,   # görünüm sürümü: 2 = yumuşak filtre kapalı + hafif doygun renk (eski kayıtlarda bir kez uygulanır)
 	"aa": 2, "ssao": true, "res_scale": 1.0, "grass": 3, "crowd": 2,
 }
 var profile: Dictionary = {}
@@ -728,6 +729,9 @@ func load_settings() -> void:
 	if cf.load(SETTINGS_PATH) == OK:
 		for k in settings.keys():
 			settings[k] = cf.get_value("ayarlar", k, settings[k])
+		if int(cf.get_value("ayarlar", "look", 0)) < 2:
+			settings["dreamy"] = false   # yeni varsayılan görünüm bir kez uygulanır; sonra ayarlardan açılabilir
+			settings["look"] = 2
 		if not cf.has_section_key("ayarlar", "aa"):   # ayrıntılı grafik öncesi kayıt: ayrıntılar kalite ön ayarından
 			_quality_details(int(settings["quality"]))
 	apply_settings()
@@ -765,6 +769,10 @@ func apply_graphics() -> void:
 		env.sun.shadow_enabled = bool(settings["shadows"])
 		env.sun.directional_shadow_max_distance = [80.0, 120.0, 170.0][q]
 		env.sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS if q < 2 else DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS
+		env.sun.directional_shadow_split_1 = 0.1 if q < 2 else 0.04   # 2 kademede tek sınır: dar tutulursa geri kalan alan bulanır
+		# yüksek kalitede gölge süzgeci bir kademe yukarı: orta kademe gölge içinde kumlanma (parazit) yapıyordu (~1.5-2 ms)
+		RenderingServer.directional_soft_shadow_filter_set_quality(RenderingServer.SHADOW_QUALITY_SOFT_HIGH if q >= 2 else RenderingServer.SHADOW_QUALITY_SOFT_MEDIUM)
+		RenderingServer.positional_soft_shadow_filter_set_quality(RenderingServer.SHADOW_QUALITY_SOFT_HIGH if q >= 2 else RenderingServer.SHADOW_QUALITY_SOFT_LOW)   # ev içi lamba gölgesi: düşük kademe kenarı noktalı yapıyordu
 		if env.post:
 			env.post.visible = bool(settings["outline"])
 		env.set_dreamy(bool(settings.get("dreamy", true)))
@@ -776,7 +784,7 @@ func apply_graphics() -> void:
 		if vp:
 			vp.msaa_3d = [Viewport.MSAA_DISABLED, Viewport.MSAA_DISABLED, Viewport.MSAA_2X, Viewport.MSAA_4X][clampi(aa, 0, 3)]
 			vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA if aa == 1 else Viewport.SCREEN_SPACE_AA_DISABLED
-			vp.scaling_3d_scale = clampf(float(settings.get("res_scale", 1.0)), 0.5, 1.0)
+			vp.scaling_3d_scale = clampf(float(settings.get("res_scale", 1.0)) * display_render_scale(), 0.25, 1.0)
 		var ee = env.get("env")
 		if ee:
 			ee.ssao_enabled = bool(settings.get("ssao", true))
@@ -800,26 +808,72 @@ func save_settings() -> void:
 	apply_settings()
 
 
-## Ekran seçenekleri: tam ekran ya da sabit boyutlu pencere (ekrandan büyükse ekrana sığdırılır)
-const DISPLAYS := ["full", "max", "1280x720", "1366x768", "1600x900", "1920x1080", "2560x1440"]
+## Ekran: mod (çerçevesiz tam ekran / tam ekran / pencere) + çözünürlük.
+## Pencerede çözünürlük = pencere boyutu ("" = ekranı kapla). Tam ekranda monitörün kendi çözünürlüğü değişmez (Godot desteklemez):
+## seçilen çözünürlük 3B çizim çözünürlüğü olur (arayüz keskin kalır, kare hızı kazancı aynıdır).
+const WIN_MODES := ["borderless", "full", "window"]
+const RESOLUTIONS := ["1280x720", "1366x768", "1600x900", "1920x1080", "2560x1440", "3840x2160"]
 
 
-static func display_label(k: String) -> String:
+static func win_mode_label(k: String) -> String:
 	match k:
+		"borderless": return "Çerçevesiz tam ekran"
 		"full": return "Tam ekran"
-		"max": return "Pencere (ekranı kapla)"
-	return "Pencere %s" % k.replace("x", " × ")
+	return "Pencere"
 
 
-func display_key() -> String:
+## Ayardaki ekran modu (eski "display" kaydından da çevrilir)
+func win_mode() -> String:
+	var m = String(settings.get("win_mode", ""))
+	if m in WIN_MODES:
+		return m
 	var d = String(settings.get("display", ""))
-	if d == "" or not d in DISPLAYS:
-		d = "full" if bool(settings.get("fullscreen", false)) else "max"
-	return d
+	if d == "full" or (d == "" and bool(settings.get("fullscreen", false))):
+		return "borderless"
+	return "window"
+
+
+func resolution_key() -> String:
+	var r = String(settings.get("resolution", ""))
+	if r == "" and String(settings.get("win_mode", "")) == "":
+		var d = String(settings.get("display", ""))
+		if d.contains("x"):
+			r = d
+	return r if r in RESOLUTIONS else ""
+
+
+## Seçicide gösterilen çözünürlükler: ekrana sığanlar; ilk seçenek "" (pencerede ekranı kapla, tam ekranda ekranın kendi çözünürlüğü)
+func resolution_options() -> Array:
+	var scr = DisplayServer.screen_get_size(DisplayServer.window_get_current_screen())
+	var out := [""]
+	for r in RESOLUTIONS:
+		var pp = r.split("x")
+		if int(pp[0]) <= scr.x and int(pp[1]) <= scr.y and int(pp[0]) != scr.x:
+			out.append(r)
+	return out
+
+
+func resolution_label(r: String) -> String:
+	if r == "":
+		if win_mode() == "window":
+			return Lang.t("Ekranı kapla")
+		var scr = DisplayServer.screen_get_size(DisplayServer.window_get_current_screen())
+		return Lang.t("%d × %d (ekran)") % [scr.x, scr.y]
+	return r.replace("x", " × ")
+
+
+## Tam ekranda seçilen çözünürlüğün 3B çizim payı (pencerede 1)
+func display_render_scale() -> float:
+	var r = resolution_key()
+	if win_mode() == "window" or r == "":
+		return 1.0
+	var scr = DisplayServer.screen_get_size(DisplayServer.window_get_current_screen())
+	return clampf(float(r.split("x")[0]) / maxf(1.0, float(scr.x)), 0.25, 1.0)
 
 
 func apply_settings() -> void:
-	var d = display_key()
+	var m = win_mode()
+	var r = resolution_key()
 	if Array(OS.get_cmdline_user_args()).any(func(ta): return String(ta).begins_with("--test=")) and not "--onscreen" in OS.get_cmdline_user_args():
 		# test koşusu: pencere ekranın dışında açılır (kullanıcının önüne gelmesin), boyutu ekran kadar (ölçümler aynı kalsın)
 		var tscr = DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen())
@@ -827,13 +881,16 @@ func apply_settings() -> void:
 		DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_NO_FOCUS, true)
 		DisplayServer.window_set_size(tscr.size)
 		DisplayServer.window_set_position(tscr.position + Vector2i(tscr.size.x * 3 + 400, 0))
-	elif d == "full":
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
-	elif d == "max":
+	elif m == "borderless":
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)   # Godot'ta FULLSCREEN = çerçevesiz pencere tam ekran (alt-tab hızlı)
+	elif m == "full":
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN)   # özel tam ekran
+	elif r == "":
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MAXIMIZED)
 	else:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
-		var pp = d.split("x")
+		var pp = r.split("x")
 		var scr = DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen())
 		var want = Vector2i(mini(int(pp[0]), scr.size.x), mini(int(pp[1]), scr.size.y - 32))
 		DisplayServer.window_set_size(want)
@@ -842,6 +899,7 @@ func apply_settings() -> void:
 	Lang.apply(lang())
 	get_tree().root.content_scale_factor = float(settings.get("ui_scale", 1.0))   # arayüz ölçeği (yalnız 2B arayüz; 3B görüntü etkilenmez)
 	apply_frame()
+	apply_graphics()   # tam ekranda çözünürlük = 3B çizim ölçeği
 
 
 ## Arayüz dili: ayardaki, yoksa bilgisayarın dili (Türkçe değilse İngilizce)

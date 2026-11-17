@@ -61,6 +61,7 @@ static func mesh(kind: String, pal := "green", seed := 0, lod := false, far := f
 	t.bark = BARK.get(pal, BARK["green"])
 	t.lod = lod or far
 	t.far = far
+	t.bb = kind in BB_KINDS
 	t.call("_" + kind)
 	var m = t._commit()
 	m.set_meta("anime_tree", [kind, pal, seed])   # Builder paketleri: kendi orta/uzak kademeleri (genel sadeleştirici kartları bozar)
@@ -74,6 +75,10 @@ var bark: Color
 var lod := false
 var far := false   # çok uzak kademe (700 m+): taçta birkaç büyük kart, 3 kenarlı gövde
 var tex := "leaf"
+## Kameraya dönen yaprak kartları (kabarık taç; godotshaders "stylized fluffy tree leaves" fikri): deneme türleri.
+## Yakın / orta / uzak kopyalar aynı kodla (clump) kurulduğu için hepsi döner. Kart merkezi + boyu CUSTOM0, köşenin ekran düzlemindeki yeri CUSTOM1 (anime_leaf.gdshader); boyu 0 olan kart dönmez.
+const BB_KINDS := ["forest", "broad", "oak", "slender"]
+var bb := false
 var sb := SurfaceTool.new()   # gövde
 var sl := SurfaceTool.new()   # yaprak kartları
 var nb := 0
@@ -89,6 +94,8 @@ const MAX_ROOT_COLS := 18
 func _init() -> void:
 	sb.begin(Mesh.PRIMITIVE_TRIANGLES)
 	sl.begin(Mesh.PRIMITIVE_TRIANGLES)
+	sl.set_custom_format(0, SurfaceTool.CUSTOM_RGBA_FLOAT)
+	sl.set_custom_format(1, SurfaceTool.CUSTOM_RGBA_FLOAT)
 
 
 func _commit() -> ArrayMesh:
@@ -227,8 +234,14 @@ func clump(c: Vector3, r: float, cc: Vector3, y0: float, y1: float, cards := 6, 
 			var on := (pp - cc)
 			var vn := (on.normalized() * 0.75 + (pp - c).normalized() * 0.25 + Vector3(0, 0.12, 0)).normalized()
 			vs.append([pp, cr[1], col, vn])
+		# ekran düzleminde köşe (kart kendi içinde rastgele döner: öbekler aynı yöne dizilmesin)
+		var sc := [Vector2(-0.5, -0.5), Vector2(0.5, -0.5), Vector2(0.5, 0.5), Vector2(-0.5, 0.5)]
+		var br := rng.randf() * TAU
 		for k in [0, 1, 2, 0, 2, 3]:
 			var w = vs[k]
+			var co: Vector2 = (sc[k] as Vector2).rotated(br)
+			sl.set_custom(0, Color(p.x, p.y, p.z, size * 0.82 if bb else 0.0))   # dönen kart %18 küçük: hep tam yüzle göründüğünden üst üste binme (GPU) artıyordu
+			sl.set_custom(1, Color(co.x, co.y, 0.0, 0.0))
 			sl.set_color(w[2])
 			sl.set_normal(w[3])
 			sl.set_uv(w[1])
@@ -472,6 +485,8 @@ func _frond_card(a: Vector3, b: Vector3, v0: float, v1: float, w: float, d: Vect
 	var vs = [[a - side, Vector2(0, 1.0 - v0), col0], [a + side, Vector2(1, 1.0 - v0), col0], [b + side, Vector2(1, 1.0 - v1), col1], [b - side, Vector2(0, 1.0 - v1), col1]]
 	for k in [0, 1, 2, 0, 2, 3]:
 		var w2 = vs[k]
+		sl.set_custom(0, Color(0, 0, 0, 0))   # palmiye yaprağı dönmez
+		sl.set_custom(1, Color(0, 0, 0, 0))
 		sl.set_color(w2[2])
 		sl.set_normal((nrm + Vector3(0, 0.4, 0)).normalized())
 		sl.set_uv(w2[1])

@@ -304,7 +304,7 @@ func lamp(x: float, y: float, d: float, col := Color(1.0, 0.78, 0.5), energy := 
 	l.omni_range = rng_
 	l.omni_attenuation = 1.2
 	l.shadow_enabled = true   # iç mekânda eşya / karakter gölgesi (oda başına birkaç lamba: ucuz)
-	l.shadow_blur = 1.5
+	l.shadow_blur = 0.8   # 1.5: lamba gölgesinin kenarı noktalı desene dönüşüyordu
 	l.shadow_bias = 0.06
 	room.add_child(l)
 	l.global_position = L(x, y, d)
@@ -387,7 +387,7 @@ func shell(W: float, D: float, H: float, wall := Color(0.93, 0.88, 0.76), floor_
 	key.spot_angle = clampf(rad_to_deg(atan2(maxf(W, D) * 0.62, H)), 40.0, 80.0)
 	key.spot_attenuation = 0.6
 	key.shadow_enabled = true
-	key.shadow_blur = 1.2
+	key.shadow_blur = 0.8   # 1.2: kenar noktalı desen
 	room.add_child(key)
 	# kapı tarafı tavandan odanın içine açılı: gölgeler ayak dibinde kalmaz, uzar
 	var kp = L(W * 0.18, H - 0.15, D * 0.22)

@@ -12881,5 +12881,12 @@
 "食 amblemli kırık beyaz tişört üstüne geniş kollu kısa yeşil ceket, gümüş plakalı kırmızı kemer, koyu kırmızı kapri, siyah açık burunlu bot.": "A short green jacket with wide sleeves over an off-white T-shirt with a 食 emblem, a red belt with silver plates, dark red capris, black open-toe boots.",
 "👁 Dōjutsu / sensör ile yan sıradakinin kâğıdını oku": "👁 Read your neighbour's paper with dōjutsu / sensing",
 "🔒 Öğrenilmedi — ": "🔒 Not learned — ",
-"🔔 ZİL!": "🔔 BELL!"
+"🔔 ZİL!": "🔔 BELL!",
+"Ekran modu": "Display mode",
+"Çözünürlük": "Resolution",
+"Çerçevesiz tam ekran": "Borderless fullscreen",
+"Ekranı kapla": "Fill the screen",
+"%d × %d (ekran)": "%d × %d (screen)",
+"Çerçevesiz tam ekran: masaüstüne hızlı geçiş. Tam ekran: oyun ekranı tek başına kullanır. Pencere: seçilen boyutta pencere.": "Borderless fullscreen: quick switching to the desktop. Fullscreen: the game uses the screen exclusively. Window: a window of the chosen size.",
+"Pencerede pencere boyutu. Tam ekranda oyunun çizildiği çözünürlük: düşük seçmek kare hızını artırır, arayüz keskin kalır.": "In a window, the window size. In fullscreen, the resolution the game renders at: a lower value raises the frame rate while the interface stays sharp."
 }

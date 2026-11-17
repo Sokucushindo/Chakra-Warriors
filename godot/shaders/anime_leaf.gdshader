@@ -8,10 +8,19 @@ uniform sampler2D leaf_tex : source_color, filter_linear_mipmap, repeat_disable;
 uniform float alpha_cut = 0.5;
 uniform float sway = 1.0;
 uniform float flutter = 1.0;
+uniform float billboard = 1.0;   // kameraya dönen kart payı (CUSTOM0.w = kart boyu > 0 olanlar)
 uniform vec3 shadow_tint = vec3(0.32, 0.4, 0.47);
 global uniform float g_night;
 
 void vertex() {
+	// kabarık taç: kart ekran düzlemine döner (her açıdan dolu görünür). Gölge çiziminde (ortografik) dönmez: gölge kıpırdamasın
+	if (CUSTOM0.w > 0.0 && billboard > 0.0 && PROJECTION_MATRIX[3][3] < 0.5) {
+		vec3 rw = INV_VIEW_MATRIX[0].xyz;
+		vec3 uw = INV_VIEW_MATRIX[1].xyz;
+		mat3 mb = mat3(MODEL_MATRIX);
+		vec3 off = inverse(mb) * ((rw * CUSTOM1.x + uw * CUSTOM1.y) * CUSTOM0.w * length(mb[0]));
+		VERTEX = mix(VERTEX, CUSTOM0.xyz + off, billboard);
+	}
 	if (sway > 0.0) {
 		vec3 w = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 		float k = max(VERTEX.y - 1.5, 0.0);
