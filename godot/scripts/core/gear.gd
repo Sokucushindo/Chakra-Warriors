@@ -885,7 +885,10 @@ const ITEMS := {
 	# Maymun Kral'ın dönüştüğü asa (yalnız çağrı süresince elde): vuruşta uzar
 	"kongo_asa": {"name": "Elmas Asa (Kongō Nyoi)", "slot": "sag", "price": 0, "rank": 4, "desc": "Maymun Kral'ın dönüştüğü kırılmaz asa. Vuruşta boyu uzar.", "stats": {"def": 6, "melee": 0.15}, "weapon": {"hit": 7.5, "dmg": 2.1, "reach": 1.9, "style": "staff", "special": "extend"}, "c1": Color(0.12, 0.12, 0.14)},
 	"bo": {"name": "Bō Sopası", "slot": "sag", "price": 180, "rank": 0, "desc": "Uzun ahşap sopa. Geniş vuruş alanı.", "stats": {"def": 2}, "weapon": {"hit": 5, "dmg": 1.3, "reach": 1.0, "style": "staff"}, "c1": Color(0.45, 0.32, 0.2)},
-	"mizrak": {"removed": true, "name": "Yari Mızrağı", "slot": "sag", "price": 650, "rank": 2, "desc": "Uzun mızrak. En uzun menzil.", "stats": {}, "weapon": {"hit": 6, "dmg": 1.55, "reach": 1.4, "style": "staff"}, "c1": Color(0.75, 0.77, 0.8)},
+	"mizrak": {"name": "Yari (Mızrak)", "slot": "sag", "price": 650, "rank": 2, "desc": "İki elle tutulan uzun mızrak (Tenten'in cephaneliğinden). En uzun yakın menzil: dürtmeler, uçla süpürme, bütün bedenle ileri atılış.", "stats": {"def": 1}, "weapon": {"hit": 6.0, "dmg": 1.55, "reach": 1.5, "style": "staff"}, "c1": Color(0.75, 0.77, 0.8)},
+	"kamci": {"name": "Kamçı", "slot": "sag", "price": 480, "rank": 1, "desc": "Deri saplı uzun örgü kamçı (Tenten'in cephaneliğinden). Ucu gecikip şaklar; rakibe dolanıp bağlar ve sert çeker.", "stats": {"speed": 0.05}, "weapon": {"hit": 4.8, "dmg": 1.2, "reach": 1.7, "style": "chain"}, "c1": Color(0.3, 0.18, 0.1)},
+	"sansetsukon": {"name": "Sansetsukon (Üç Parçalı Sopa)", "slot": "sag", "price": 720, "rank": 2, "desc": "Kısa zincirlerle bağlı üç ağaç sopa (Tenten'in cephaneliğinden). Elde tek parça, öteki ikisi savrulup geniş yaylar çizer; baş üstünden inişi sersemletir.", "stats": {"def": 1}, "weapon": {"hit": 5.6, "dmg": 1.45, "reach": 1.2, "style": "chain"}, "c1": Color(0.5, 0.3, 0.16)},
+	"nunchaku": {"name": "Nunchaku", "slot": "sag", "price": 550, "rank": 1, "desc": "Kısa zincirle bağlı iki sert ağaç sopa (Tenten'in cephaneliğinden). Sağ eldeki sopa savrulunca uçtaki sopa gecikip kırbaç gibi çarpar: hızlı, art arda darbeler; ağır inişler sersemletir.", "stats": {"speed": 0.06}, "weapon": {"hit": 5.0, "dmg": 1.25, "reach": 0.7, "style": "chain"}, "c1": Color(0.45, 0.18, 0.1)},
 	"johyo": {"name": "Jōhyō (İpli Dart)", "slot": "sag", "price": 700, "rank": 1, "desc": "Bambu saplı uzun ip, ucunda kırmızı püsküllü metal dart (kanon: Gaara'nın Matsuri'ye öğrettiği silah). Uzak menzil: dart rakibi yaklaştırmaz, ip dolanıp bağlar ve sana çeker.", "stats": {"speed": 0.04}, "weapon": {"hit": 5.0, "dmg": 1.25, "reach": 1.6, "style": "chain"}, "c1": Color(0.68, 0.62, 0.3)},
 	"kusarigama": {"name": "Kusarigama", "slot": "sag", "price": 1400, "rank": 2, "desc": "Hanzō tipi zincirli orak: uzun saplı orak, sap dibinden zincir ve çan ağırlık. Orta menzil: kancalayıp çeker, ağırlığı fırlatır ve döndürür, orağı zincirle fırlatıp geri çeker.", "stats": {"melee": 0.05}, "weapon": {"hit": 5.8, "dmg": 1.5, "reach": 1.3, "style": "chain"}, "c1": Color(0.2, 0.17, 0.29)},
 	"el_shuriken": {"removed": true, "name": "Dev Shuriken", "slot": "sag", "price": 700, "rank": 2, "desc": "Elde tutulan dev dört kollu shuriken. Kesici savuruşlar.", "stats": {}, "weapon": {"hit": 6, "dmg": 1.6, "reach": 0.8, "style": "heavy"}, "c1": Color(0.5, 0.52, 0.56)},
@@ -957,7 +960,7 @@ const SHOP_CLOTHES := ["uchiha_yakali", "uchiha_uzun", "uchiha_beyaz", "uchiha_p
 	"panco", "yirtik_pelerin", "jinbaori", "kesis_cubbesi", "kesa", "bantli_palto", "mino", "gece_pelerini",
 	"omuz_zirhi", "dizlik", "agir_zirh", "uzun_sargi_eldiven", "tespih", "sirt_sepeti", "bel_parsomenleri", "bel_cantasi", "sashimono", "ip_kangali"]
 const SHOP_WEAPONS := ["mateki", "sai", "kunai", "senbon", "tonfa", "bo", "tanto", "kama", "zincirli_kunai", "pence", "musta",
-	"wakizashi", "katana", "yelpaze", "kusarigama", "johyo", "savas_cekici", "chakra_bicak", "nodachi", "kyodai_shuriken", "fuma_makimono"]
+	"wakizashi", "katana", "yelpaze", "kusarigama", "johyo", "nunchaku", "mizrak", "kamci", "sansetsukon", "savas_cekici", "chakra_bicak", "nodachi", "kyodai_shuriken", "fuma_makimono"]
 ## Sadece görev ödülü olarak düşen (dükkânda satılmayan) parçalar dahil ödül havuzu
 const REWARD_POOL := ["kafa_bandaji", "gozluk", "kasa", "kapuson", "atki", "kol_sargisi", "eldiven", "kolluk", "bacak_koruma", "tabi", "hakama",
 	"kisa_pelerin", "haori", "dev_parsomen", "sirt_shuriken", "senbon", "kama", "pence", "zincirli_kunai", "wakizashi",
@@ -1438,8 +1441,6 @@ static func apply_look(p: Dictionary) -> void:
 			g0["id"] = "kunai"
 		elif String(g0.get("id", "")) == "ikiz_hancer":   # oyundan kaldırıldı: tantoya döner
 			g0["id"] = "tanto"
-		elif String(g0.get("id", "")) == "mizrak":   # oyundan kaldırıldı: bo sopasına döner
-			g0["id"] = "bo"
 	var L: Dictionary = p["look"]
 	# Kage seti giyiliyse şapka o köyün renginde/kanjisinde (Kazekage seti -> yeşil şapka, rüzgâr)
 	L["kage_vid"] = {"set_hokage": "konoha", "set_kazekage": "suna", "set_mizukage": "kiri", "set_raikage": "kumo", "set_tsuchikage": "iwa"}.get(String(equipped(p, "set").get("id", "")), null)
