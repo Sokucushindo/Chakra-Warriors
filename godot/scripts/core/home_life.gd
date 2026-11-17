@@ -806,7 +806,7 @@ func _meal() -> void:
 	_quality(4, 3)
 	f["last_meal"] = Time.get_unix_time_from_system()
 	Friends.log_event(f, "Evde birlikte yemek yediniz")
-	Hud.msg("Ev yemeği: can ve chakra doldu; 6 dakika güç +%12, alınan hasar -%10.", Color(1.0, 0.85, 0.5))
+	Hud.msg("Ev yemeği: can ve chakra doldu; 6 dakika güç +%12.", Color(1.0, 0.85, 0.5))
 	for e in eaters:
 		if is_instance_valid(e):
 			_stand(e)

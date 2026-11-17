@@ -50,6 +50,8 @@ TAG=X PROFV=1 bash _tmp/run_ht.sh       # 16 / 70 / 300 m/sn; 10 dakikayı aşar
 9. Kanon önce: jutsu / klan / yol mekaniği animedeki gibi işler (şart, bedel, zayıflık). Denge için yalnız sayılar oynar;
    genel oyun kuralı kanonla çakışırsa anime kazanır.
 10. Her jutsu kendine özgü görünüş ve mekanik; renk değiştirilmiş kalıp, görünür geometrik kabuk, her efekte duman yok.
+    MUTLAK: hiçbir jutsu HAZIR EFEKTE dayanmaz (ortak çarpma / akış / mermi / duman, başka doğanın yardımcısı: çamura su,
+    kara şimşeğe şimşek...). Görünen her şey o tekniğin kendi kodunda, kaynaktan, sıfırdan üretilir. Teslimden önce grep ile kontrol.
 11. Önce oyunda o işi yapan sistemi bul ve onu kullan (yeni paralel sistem kurma).
 12. Her mekanik değişiklik yapay zekâ için de geçerli (bekleme süresi, sersemletme, silah bonusu…).
 13. Dünya oyuncu merkezli değil: düşman oyuncuya göre ölçeklenmez, olay kişinin gerçek yerinde olur, görev sırasında araya olay / doğuş girmez.

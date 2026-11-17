@@ -1158,6 +1158,10 @@ func _set_two_hand(on: bool, dur: float, off := 0.32) -> void:
 func substitute() -> void:
 	if sub_bars < 1.0 or action in ["cast"]:
 		return
+	if p.chakra < Combat.KAWARIMI_COST:   # chakrası tükenen Kawarimi yapamaz (düşmanla aynı)
+		Combat.popup_text(p.global_position + Vector3.UP * 2.2, "Chakra yetmiyor", Color(0.6, 0.75, 1.0))
+		return
+	p.chakra -= Combat.KAWARIMI_COST
 	sub_bars -= 1.0
 	var from = p.global_position
 	FX.smoke_puff(from + Vector3.UP * 0.9, 1.0, 16)
@@ -1454,6 +1458,7 @@ func begin_cast(jid: String) -> void:
 	# mühürler + jutsuya özel hazırlık/salınım koreografisi (CastAnim)
 	cast_anim = CastAnim.play(p, jid, 0.3 if from_combo else -1.0)
 	cast_time = cast_anim.release_t
+	Jutsu.jutsu_prep.emit(p, jid, cast_time)
 	if seals.size() > 0:
 		Hud.show_seals(seals)
 

@@ -53,6 +53,8 @@ static func water_near(c: Node3D) -> bool:
 
 
 static func hoshigaki(c: Node3D) -> bool:
+	if c == null or not is_instance_valid(c):
+		return false
 	if c is Player:
 		return String(Game.profile.get("clan", "")) == "hoshigaki"
 	return c.get("arch") is Dictionary and String(c.arch.get("clan", "")) == "hoshigaki"

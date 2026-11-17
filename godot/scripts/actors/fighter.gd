@@ -87,6 +87,23 @@ func apply_status(name: String, dur: float) -> void:
 	if dur <= 0.0:
 		return
 	statuses[name] = maxf(statuses.get(name, 0.0), dur)
+	if name == "bind":
+		Combat.tag_bind(self)
+		_try_nawanuke()
+
+
+## Düşmanın Nawanuke'si (oyuncuyla aynı kural: tekniği bilen, fiziksel bağdan 0.5 sn sonra sıyrılır, 5 chakra)
+func _try_nawanuke() -> void:
+	if not (get("arch") is Dictionary) or not "nawanuke_no_jutsu" in (get("arch").get("jutsu", []) as Array):
+		return
+	if not Combat.bind_physical(self) or float(get("chakra")) < 5.0:
+		return
+	get_tree().create_timer(0.5).timeout.connect(func():
+		if not is_instance_valid(self) or not has_status("bind") or float(get("chakra")) < 5.0:
+			return
+		set("chakra", float(get("chakra")) - 5.0)
+		statuses.erase("bind")
+		Combat.popup_text(global_position + Vector3.UP * 2.2, "Nawanuke!", Color(0.9, 0.85, 0.6)))
 
 
 func has_status(name: String) -> bool:
@@ -95,7 +112,8 @@ func has_status(name: String) -> bool:
 
 ## Kendi buff'ı (Buffs.add atan düşmansa buraya yönlendirir)
 func add_buff(name: String, dur: float, mods: Dictionary) -> void:
-	buffs[name] = {"t": dur, "mods": mods}
+	buffs[name] = {"t": dur, "mods": mods}   # önce kayıt: kalkan buff'ın ömrüne bağlı
+	buffs[name]["mods"] = Combat.armor_to_shield(self, name, mods)   # yüzde indirim yok: engel -> kalkan (Buffs.add ile aynı)
 
 
 func buff_mod(key: String) -> float:
@@ -114,7 +132,10 @@ func take_hit(info: Dictionary) -> void:
 	var dmg: float = info.get("dmg", 5.0) * em * react * Combat.jutsu_factor(info) * (1.0 - Gear.elem_resist(self, String(info.get("element", ""))))   # set direnci (AI)
 	if has_status("marked"):
 		dmg *= 1.25   # Dinamik İşaretleme / algılama: işaretli hedef fazla hasar alır
-	dmg *= buff_mod("armor")   # kendi zırh buff'ı (Doton zırhı vb.)
+	dmg *= maxf(1.0, buff_mod("armor"))   # yalnız bedel (zırh kırılması); savunma kalkanla (Combat.absorb)
+	dmg = Combat.absorb(self, dmg)
+	if dmg <= 0.0:
+		return
 	if has_status("armor_broken"):
 		dmg *= 1.2   # Kabutowari: zırhı kırılan 5 sn fazla hasar alır
 	var atk = info.get("attacker")
@@ -294,7 +315,7 @@ func stagger(t: float) -> void:
 
 ## Hareket + arazi; wish: istenen yatay hız
 func step_move(wish: Vector3, dt: float, turn := true) -> void:
-	var slow = 0.45 if has_status("slow") else 1.0
+	var slow = 0.45 if has_status("slow") else Combat.exhaust_k(self)
 	var hv = Vector3(velocity.x, 0, velocity.z)
 	if state in ["hitstun", "knockdown", "dead"]:
 		hv = hv.move_toward(Vector3.ZERO, dt * (8.0 if state == "knockdown" else 25.0))

@@ -1216,19 +1216,14 @@ static func release(c: Node3D, origin: Vector3, col: Color, g: float, tier: int,
 	var ep = epic
 	epic = 1.0
 	var feet = Vector3(c.global_position.x, Game.jutsu_floor(c.global_position.x, c.global_position.z) + 0.08, c.global_position.z)
-	# halka/yıldız şekli yok (yapay duruyordu): çıkış noktasında kısa ışık çakması + ince kıvılcım, ayakta az yumuşak toz
-	FX.light(origin, col.lightened(0.35), 2.0 + 1.5 * g, 6.0 + 3.0 * g, 0.15)
-	FX.burst(origin, {"amount": int(8 + 6 * g), "life": 0.25, "tex": FX.tex_spark, "size": 0.8 + 0.4 * g, "vmin": 4.0, "vmax": 9.0 + 4.0 * g, "spread": 180.0, "damp": 3.0,
-		"colors": [Color(1, 1, 1, 0.9), col.lightened(0.4), Color(col.r, col.g, col.b, 0)]})
-	if tier >= 3:
-		FX.dust(feet, 0.5 + 0.25 * g)
+	# KURAL (kullanıcı 2026-11-16, "her jutsumda aynı efektleri görüyorum"): her jutsuda çıkan ORTAK görsel yok —
+	# ışık çakması, kıvılcım, ayak tozu, ekran hız çizgileri, ekran flaşı kaldırıldı. Görünen her şey tekniğin kendi
+	# kodunda. Kalan yalnız his: kamera sarsıntısı, kısa yavaş çekim, kameranın geri çekilmesi.
+	var _unused = [origin, col, g, feet]
 	var is_pl = c is Player
 	if Game.world:
 		Game.world.env.add_shake((0.08 + 0.1 * tier) * (1.0 if is_pl else 0.5))
-		if tier >= 4 and is_pl:
-			Game.world.env.screen_flash(0.05 * tier)
 	if is_pl and big and tier >= 3:
-		screen_lines(0.25 + 0.08 * tier, 0.35 + 0.12 * tier, col.lightened(0.6))
 		slowmo(0.35, 0.08 + 0.03 * tier)
 		cinematic(c, 1.2 + tier * 0.8, 0.3 + 0.1 * tier)
 	epic = ep

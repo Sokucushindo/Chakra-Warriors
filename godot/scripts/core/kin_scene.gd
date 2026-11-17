@@ -192,7 +192,7 @@ func _bento() -> void:
 	await _wait(1.6)
 	pl.hp = pl.max_hp
 	Buffs.add("anne_bentosu", 300.0, {"melee": 1.08, "armor": 0.92})
-	Hud.msg("Annenin bentosu: can doldu; 5 dakika güç +%8, alınan hasar -%8.", Color(1.0, 0.85, 0.5))
+	Hud.msg("Annenin bentosu: can doldu; 5 dakika güç +%8.", Color(1.0, 0.85, 0.5))
 	f["kin_bento"] = Time.get_unix_time_from_system()
 	Friends.add_bond(id, 2, true)
 

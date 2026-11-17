@@ -1536,7 +1536,14 @@ static func _og_ok(q: Vector3, space) -> bool:
 	var hit = space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(q.x, gh + 60.0, q.z), Vector3(q.x, gh - 1.0, q.z), 1))
 	# üstte 25 m'ye kadar bir şey varsa dolu (bina, kubbe ev, çatı, kaya); içi boş binalarda gövde testi
 	# çakışma bulamaz, o yüzden yüksek kubbe çatılar (Suna 12-18 m) da dolu sayılır
-	if not hit.is_empty() and float(hit["position"].y) > gh + 1.0 and float(hit["position"].y) < gh + 25.0:
+	# (2026-11-16: sınır 25 m idi -> Kazekage kubbesi / Mizukage binası (38 m) gibi yüksek, içi boş kabukların içi "açık
+	# zemin" sayılıyordu: görev noktası / doğuş / oyuncu kabuğun içine düşüyordu. Işının başladığı 60 m'ye dek her şey dolu.)
+	if not hit.is_empty() and float(hit["position"].y) > gh + 1.0:
+		return false
+	# içeriden yukarı ışın: tek yüzlü kabuk binalar (Kazekage / Mizukage, pişmiş köy gövdesi) yukarıdan inen ışına görünmez,
+	# içerisi "açık" sanılıyordu (köy merkezi Suna'da 2 m, Kiri'de 38 m tavanın altı). Üstü 60 m içinde kapalıysa dolu.
+	var up = space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(q.x, gh + 0.6, q.z), Vector3(q.x, gh + 60.0, q.z), 1))
+	if not up.is_empty() and not (up["collider"] is CharacterBody3D):
 		return false
 	# gövde boyunda çakışma (yandan değen kaya/duvar/ağaç gövdesi, ışının ıskaladığı içbükey kaya)
 	for hy in [0.7, 1.5]:
@@ -3066,6 +3073,8 @@ func _tick_stealth(dt: float, s: Dictionary) -> void:
 		var d = to.length()
 		if d < 2.5:
 			seen = 10.0
+		elif Combat.hidden_from(e, pl):
+			pass   # gizlenme tekniği (Kakuremino vb.): gözcü göremez (Combat.hidden_from)
 		elif d < rng and absf(to.y) < 6.0 and e.face_dir().dot(Vector3(to.x, 0, to.z).normalized()) > cos(deg_to_rad(38.0)):
 			seen = maxf(seen, (1.0 - d / rng) * 2.2 + 0.6)
 	if st["alarm"]:

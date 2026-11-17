@@ -35,6 +35,8 @@ func _physics_process(dt: float) -> void:
 	if life <= 0.0:
 		_finish(global_position, null)
 		return
+	if homing and is_instance_valid(homing) and not homing.is_dead() and ((homing is Player and homing.evade_t > 0.0) or (homing is Enemy and homing.state == "dodge")):
+		homing = null   # hedef yana sekti: güdüm kopar, mermi dümdüz geçer (oyuncu ve düşman aynı)
 	if homing and is_instance_valid(homing) and not homing.is_dead():
 		var want: Vector3 = (homing.global_position + Vector3.UP * homing.height * 0.5 - global_position).normalized() * vel.length()
 		vel = vel.lerp(want, minf(1.0, homing_turn * dt))

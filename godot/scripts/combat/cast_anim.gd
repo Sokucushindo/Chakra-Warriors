@@ -431,14 +431,9 @@ func _on_seal(idx: int) -> void:
 	var sname: String = seals[idx]
 	var info: Dictionary = SEALS.get(sname, {})
 	Sfx.play("seal", f.global_position, 1.0 + idx * 0.05, 0.7 if is_player else 0.4)
-	# mühür anında ellerde chakra kıvılcımı
-	var hp = (_hand_pos("Left") + _hand_pos("Right")) * 0.5
-	var ec = _elem_color()
-	FX.burst(hp, {"amount": 8, "life": 0.25, "tex": FX.tex_spark, "size": 0.25, "vmin": 0.5, "vmax": 1.8, "gravity": Vector3.ZERO,
-		"colors": [Color(1, 1, 1, 0.95), Color(ec.r, ec.g, ec.b, 0.0)]})
-	# son mühür: rütbe ölçekli hazırlık (içe çöken halka + toplanan chakra)
-	if idx == seals.size() - 1:
-		VFX.gather(hp, ec, JutsuEngine.grand(f, j))
+	# KURAL (2026-11-16): mühürde / son mühürde ORTAK görsel yok (eskiden her jutsuda aynı kıvılcım + içe çöken halka);
+	# hazırlığın görüneni tekniğin kendi kodunda
+	var _u = info
 	# mühür adı oyuncu için HUD'da (Hud.show_seals) gösterilir; düşmanda başın üstünde küçük yazı
 	if not is_player and f.global_position.distance_to(Game.player.global_position if Game.player else f.global_position) < 18.0:
 		Combat.popup_text(f.global_position + Vector3.UP * 2.3, sname, Color(0.85, 0.92, 1.0, 0.8))
@@ -449,52 +444,21 @@ func _charge_fx(dt: float) -> void:
 	if _charge_fx_t > 0.0:
 		return
 	_charge_fx_t = 0.06
-	match style:
-		"charge":
-			var hp = _hand_pos("Right")
-			var col = Color(0.8, 0.9, 1.0) if String(j.get("element", "")) == "raiton" else Color(0.45, 0.7, 1.0)
-			FX.burst(hp, {"amount": 8, "life": 0.2, "tex": FX.tex_spark, "size": 0.25, "vmin": 1.5, "vmax": 4.0, "gravity": Vector3.ZERO,
-				"colors": [Color(col.r, col.g, col.b, 1.0), Color(col.r, col.g, col.b, 0.0)]})
-			if randf() < 0.3:
-				Sfx.play("chidori" if String(j.get("element", "")) == "raiton" else "rasengan", hp, randf_range(0.9, 1.2), 0.25)
-		"medical":
-			for s in ["Left", "Right"]:
-				FX.burst(_hand_pos(s), {"amount": 3, "life": 0.4, "tex": FX.tex_spark, "size": 0.2, "vmin": 0.2, "vmax": 0.6, "gravity": Vector3(0, 1, 0),
-					"colors": [Color(0.5, 1.0, 0.6, 0.9), Color(0.3, 1.0, 0.5, 0.0)]})
-		"power":
-			FX.burst(f.global_position + Vector3.UP * 0.2, {"amount": 6, "life": 0.35, "tex": FX.tex_smoke, "add": false, "size": 0.6, "vmin": 1.0, "vmax": 3.0, "gravity": Vector3(0, 2, 0),
-				"colors": [Color(0.8, 0.75, 0.65, 0.6), Color(0.8, 0.75, 0.65, 0.0)]})
-		"breath":
-			var mouth = f.global_position + Vector3.UP * 1.55 * (model.age_scale if model else 1.0)
-			FX.burst(mouth, {"amount": 2, "life": 0.3, "tex": FX.tex_spark, "size": 0.15, "vmin": 0.2, "vmax": 0.6, "gravity": Vector3.ZERO,
-				"colors": [_elem_color(), Color(_elem_color().r, _elem_color().g, _elem_color().b, 0.0)]})
-		"sense":
-			if randf() < 0.3:
-				FX.ring(f.global_position + Vector3.UP * 1.6, Color(0.7, 0.6, 1.0), 0.6, 0.25, false)
+	# KURAL (2026-11-16): hazırlıkta ORTAK görsel yok (eskiden her tarzda aynı kıvılcım / duman / halka); yalnız ses
+	if style == "charge" and randf() < 0.3:
+		Sfx.play("chidori" if String(j.get("element", "")) == "raiton" else "rasengan", _hand_pos("Right"), randf_range(0.9, 1.2), 0.25)
 
 
 func _on_release() -> void:
 	var clip: String = st.get("clip", "idle")
 	if clip != "idle":
 		model.play(clip, 0.06, 1.4, true)
+	# KURAL (2026-11-16): salınımda ORTAK görsel yok (eskiden tarza göre aynı yer halkası / duman / hız çizgisi her jutsuda);
+	# yalnız ses — görünen her şey tekniğin kendi kodunda
 	match style:
 		"ground":
-			FX.impact(f.global_position, _elem_color(), 0.9)
-			FX.ring(f.global_position + Vector3.UP * 0.1, _elem_color(), 3.5, 0.35)
 			Sfx.play("earth", f.global_position, 1.2, 0.5)
 		"summon":
-			# çağırma mührü: yerde yayılan kara yazı halkası (duman jutsunun kendisinden gelir)
-			FX.ring(f.global_position + Vector3.UP * 0.05, Color(0.1, 0.08, 0.06), 3.2, 0.6)
-			FX.ring(f.global_position + Vector3.UP * 0.05, Color(0.1, 0.08, 0.06), 1.8, 0.45)
-			FX.dust(f.global_position, 0.6)
 			Sfx.play("poof", f.global_position, 0.9, 0.6)
-		"spin", "clone":
-			if not jid.contains("moku") and not jid.contains("suisho") and not jid.contains("mizu"):   # ahşap / kristal / su klonu: duman yok   # ahşap / kristal klon: duman yok   # ahşap klon bedenden filizlenir, duman yok (ref)
-				FX.smoke_puff(f.global_position + Vector3.UP, 0.9, 12)
-		"power":   # güç açılışı: halka + kükreme (ayak dibinde duman topu yok — duman kuralı)
-			FX.ring(f.global_position + Vector3.UP * 0.1, Color(1, 0.95, 0.8), 4.0, 0.4)
+		"power":
 			Sfx.play("roar", f.global_position, 1.4, 0.35)
-		"flicker":
-			FX.smoke_puff(f.global_position + Vector3.UP, 0.5, 8)
-		"charge", "palm", "two_palm", "rush":
-			FX.speed_lines(f.global_position + Vector3.UP, f.face_dir() if f.has_method("face_dir") else -f.global_transform.basis.z)

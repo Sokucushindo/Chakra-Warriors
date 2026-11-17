@@ -31,31 +31,31 @@ const SETS := {
 	"set_chunin": {"name": "Konoha Chūnin Shōzoku", "slot": "set", "price": 600, "rank": 2, "village": "konoha", "desc": "Lacivert yüksek yakalı gömlek ve pantolon, omuzluklu yeşil taktik yelek, baldır sargıları.",
 		"stats": {"def": 14, "hp": 25, "speed": 0.03}, "c1": Color(0.12, 0.15, 0.3), "c2": Color(0.12, 0.15, 0.3),
 		"parts": [["uzun_gomlek", Color(0.12, 0.15, 0.3), Color(0.12, 0.15, 0.3)], ["ninja_pant", Color(0.12, 0.15, 0.3), null], ["chunin_yelek", Color(0.46, 0.56, 0.44), null], ["sandalet", Color(0.12, 0.15, 0.3), Color(0.92, 0.92, 0.9)]]},
-	"set_jonin": {"name": "Konoha Jōnin Shōzoku", "slot": "set", "price": 0, "rank": 3, "village": "konoha", "desc": "Chūnin takımının üstüne parmaksız eldiven; yelek daha koyu yeşil. Katon jutsuları %10 güçlü, Katon'dan alınan hasar %10 az.",
+	"set_jonin": {"name": "Konoha Jōnin Shōzoku", "slot": "set", "price": 0, "rank": 3, "village": "konoha", "desc": "Chūnin takımının üstüne parmaksız eldiven; yelek daha koyu yeşil. Katon jutsuları %10 güçlü.",
 		"boost": {"katon": 0.10}, "resist": {"katon": 0.10}, "stats": {"def": 17, "hp": 30, "chakra": 25, "melee": 0.04}, "c1": Color(0.12, 0.15, 0.3), "c2": Color(0.12, 0.15, 0.3),
 		"parts": [["uzun_gomlek", Color(0.12, 0.15, 0.3), Color(0.12, 0.15, 0.3)], ["ninja_pant", Color(0.12, 0.15, 0.3), null], ["chunin_yelek", Color(0.38, 0.48, 0.36), null], ["eldiven", Color(0.1, 0.12, 0.22), null], ["sandalet", Color(0.12, 0.15, 0.3), Color(0.92, 0.92, 0.9)]]},
 	"set_suna_chunin": {"name": "Suna Chūnin Shōzoku", "slot": "set", "price": 600, "rank": 2, "village": "suna", "desc": "Koyu gömlek ve pantolon, geniş omuzluklu kahverengi taktik yelek.",
 		"stats": {"def": 13, "hp": 30, "speed": 0.03}, "c1": Color(0.1, 0.1, 0.16), "c2": Color(0.1, 0.1, 0.16),
 		"parts": [["uzun_gomlek", Color(0.1, 0.1, 0.16), Color(0.1, 0.1, 0.16)], ["ninja_pant", Color(0.1, 0.1, 0.15), null], ["suna_yelek", Color(0.46, 0.37, 0.28), null], ["sandalet", Color(0.08, 0.08, 0.1), Color(0.92, 0.92, 0.9)]]},
-	"set_suna_jonin": {"name": "Suna Jōnin Shōzoku", "slot": "set", "price": 0, "rank": 3, "village": "suna", "desc": "Suna takımı; daha koyu yelek ve parmaksız eldiven. Fūton ve Doton jutsuları %5 güçlü, bunlardan alınan hasar %5 az.",
+	"set_suna_jonin": {"name": "Suna Jōnin Shōzoku", "slot": "set", "price": 0, "rank": 3, "village": "suna", "desc": "Suna takımı; daha koyu yelek ve parmaksız eldiven. Fūton ve Doton jutsuları %5 güçlü.",
 		"boost": {"fuuton": 0.05, "doton": 0.05}, "resist": {"fuuton": 0.05, "doton": 0.05}, "stats": {"def": 16, "hp": 35, "chakra": 25, "melee": 0.04}, "c1": Color(0.1, 0.1, 0.16), "c2": Color(0.1, 0.1, 0.16),
 		"parts": [["uzun_gomlek", Color(0.1, 0.1, 0.16), Color(0.1, 0.1, 0.16)], ["ninja_pant", Color(0.1, 0.1, 0.15), null], ["suna_yelek", Color(0.38, 0.3, 0.22), null], ["eldiven", Color(0.08, 0.08, 0.1), null], ["sandalet", Color(0.08, 0.08, 0.1), Color(0.92, 0.92, 0.9)]]},
 	"set_kiri_chunin": {"name": "Kiri Chūnin Shōzoku", "slot": "set", "price": 600, "rank": 2, "village": "kiri", "desc": "Siyah gömlek ve pantolon, önlüklü plakalı lila yelek, açık mavi çizgili kol ve kaval koruyucuları.",
 		"stats": {"def": 14, "chakra": 25}, "c1": Color(0.08, 0.08, 0.1), "c2": Color(0.08, 0.08, 0.1),
 		"parts": [["uzun_gomlek", Color(0.08, 0.08, 0.1), Color(0.08, 0.08, 0.1)], ["ninja_pant", Color(0.08, 0.08, 0.1), null], ["kiri_yelek", Color(0.56, 0.53, 0.66), null], ["kiri_koruma", Color(0.6, 0.72, 0.9), null], ["sandalet", Color(0.08, 0.08, 0.1), Color(0.92, 0.92, 0.9)]]},
-	"set_kiri_jonin": {"name": "Kiri Jōnin Shōzoku", "slot": "set", "price": 0, "rank": 3, "village": "kiri", "desc": "Kiri takımı; daha koyu yelek. Suiton jutsuları %10 güçlü, Suiton'dan alınan hasar %10 az.",
+	"set_kiri_jonin": {"name": "Kiri Jōnin Shōzoku", "slot": "set", "price": 0, "rank": 3, "village": "kiri", "desc": "Kiri takımı; daha koyu yelek. Suiton jutsuları %10 güçlü.",
 		"boost": {"suiton": 0.10}, "resist": {"suiton": 0.10}, "stats": {"def": 17, "chakra": 35, "hp": 20}, "c1": Color(0.08, 0.08, 0.1), "c2": Color(0.08, 0.08, 0.1),
 		"parts": [["uzun_gomlek", Color(0.08, 0.08, 0.1), Color(0.08, 0.08, 0.1)], ["ninja_pant", Color(0.08, 0.08, 0.1), null], ["kiri_yelek", Color(0.46, 0.43, 0.56), null], ["kiri_koruma", Color(0.52, 0.64, 0.84), null], ["sandalet", Color(0.08, 0.08, 0.1), Color(0.92, 0.92, 0.9)]]},
 	"set_kumo_chunin": {"name": "Kumo Chūnin Shōzoku", "slot": "set", "price": 600, "rank": 2, "village": "kumo", "desc": "Lacivert gömlek ve pantolon, tek omuz askılı beyaz yelek, beyaz kaval koruyucuları.",
 		"stats": {"def": 13, "melee": 0.06, "speed": 0.03}, "c1": Color(0.1, 0.12, 0.25), "c2": Color(0.1, 0.12, 0.25),
 		"parts": [["uzun_gomlek", Color(0.1, 0.12, 0.25), Color(0.1, 0.12, 0.25)], ["ninja_pant", Color(0.1, 0.12, 0.25), null], ["kumo_yelek", Color(0.88, 0.88, 0.86), null], ["kumo_kaval", Color(0.86, 0.84, 0.82), null], ["sandalet", Color(0.08, 0.08, 0.1), Color(0.92, 0.92, 0.9)]]},
-	"set_kumo_jonin": {"name": "Kumo Jōnin Shōzoku", "slot": "set", "price": 0, "rank": 3, "village": "kumo", "desc": "Kumo chūnin takımının aynısı (eldiven koruyucuların rengini karartıyordu). Fūton ve Raiton jutsuları %5 güçlü, bunlardan alınan hasar %5 az.",
+	"set_kumo_jonin": {"name": "Kumo Jōnin Shōzoku", "slot": "set", "price": 0, "rank": 3, "village": "kumo", "desc": "Kumo chūnin takımının aynısı (eldiven koruyucuların rengini karartıyordu). Fūton ve Raiton jutsuları %5 güçlü.",
 		"boost": {"fuuton": 0.05, "raiton": 0.05}, "resist": {"fuuton": 0.05, "raiton": 0.05}, "stats": {"def": 16, "melee": 0.08, "hp": 25}, "c1": Color(0.1, 0.12, 0.25), "c2": Color(0.1, 0.12, 0.25),
 		"parts": [["uzun_gomlek", Color(0.1, 0.12, 0.25), Color(0.1, 0.12, 0.25)], ["ninja_pant", Color(0.1, 0.12, 0.25), null], ["kumo_yelek", Color(0.88, 0.88, 0.86), null], ["kumo_kaval", Color(0.86, 0.84, 0.82), null], ["sandalet", Color(0.08, 0.08, 0.1), Color(0.92, 0.92, 0.9)]]},
 	"set_iwa_chunin": {"name": "Iwa Chūnin Shōzoku", "slot": "set", "price": 600, "rank": 2, "village": "iwa", "desc": "Tek kollu kırmızı üst ve pantolon, karın plakalı kahverengi yelek, file baldır.",
 		"stats": {"def": 15, "hp": 30, "speed": -0.01}, "c1": Color(0.72, 0.16, 0.2), "c2": Color(0.72, 0.16, 0.2),
 		"parts": [["tek_kol_ust", Color(0.72, 0.16, 0.2), Color(0.72, 0.16, 0.2)], ["iwa_pant", Color(0.72, 0.16, 0.2), null], ["iwa_yelek", Color(0.36, 0.27, 0.19), null], ["sandalet", Color(0.08, 0.08, 0.1), Color(0.3, 0.3, 0.33)]]},
-	"set_iwa_jonin": {"name": "Iwa Jōnin Shōzoku", "slot": "set", "price": 0, "rank": 3, "village": "iwa", "desc": "Iwa takımı; daha koyu yelek, parmaksız eldiven. Doton jutsuları %10 güçlü, Doton'dan alınan hasar %10 az.",
+	"set_iwa_jonin": {"name": "Iwa Jōnin Shōzoku", "slot": "set", "price": 0, "rank": 3, "village": "iwa", "desc": "Iwa takımı; daha koyu yelek, parmaksız eldiven. Doton jutsuları %10 güçlü.",
 		"boost": {"doton": 0.10}, "resist": {"doton": 0.10}, "stats": {"def": 18, "hp": 35, "chakra": 20}, "c1": Color(0.66, 0.14, 0.18), "c2": Color(0.66, 0.14, 0.18),
 		"parts": [["tek_kol_ust", Color(0.66, 0.14, 0.18), Color(0.66, 0.14, 0.18)], ["iwa_pant", Color(0.66, 0.14, 0.18), null], ["iwa_yelek", Color(0.3, 0.22, 0.15), null], ["eldiven", Color(0.08, 0.08, 0.1), null], ["sandalet", Color(0.08, 0.08, 0.1), Color(0.3, 0.3, 0.33)]]},
 	"set_akatsuki": {"name": "Akatsuki Shōzoku", "slot": "set", "price": 0, "rank": 3, "desc": "Kızıl bulutlu dik yakalı siyah pelerin, koyu pantolon.",
@@ -1677,7 +1677,7 @@ static func elem_boost(actor, el: String) -> float:
 static func elem_resist(actor, el: String) -> float:
 	if el == "":
 		return 0.0
-	return clampf(float(set_of(actor).get("resist", {}).get(el, 0.0)), 0.0, 0.9)
+	return 0.0   # element direnci (alınan hasar indirimi) kaldırıldı — kullanıcı 2026-11-16
 
 
 ## Oyuncu ve AI aynı kural: savaşçının elindeki silahın verisi (yoksa yumruk)
@@ -1710,6 +1710,8 @@ static func stats_text(id: String) -> String:
 	var parts = []
 	var names = {"def": "Savunma", "hp": "Can", "chakra": "Chakra", "speed": "Hız", "melee": "Yakın dövüş"}
 	for k in it.get("stats", {}):
+		if k == "def":
+			continue   # savunma (alınan hasar indirimi) kaldırıldı — kullanıcı 2026-11-16
 		var v = float(it["stats"][k])
 		if k in ["speed", "melee"]:
 			parts.append("%s %+d%%" % [Lang.t(names[k]), int(round(v * 100))])
@@ -1721,6 +1723,4 @@ static func stats_text(id: String) -> String:
 	var bo: Dictionary = it.get("boost", it.get("weapon", {}).get("boost", {}))
 	for e in bo:
 		parts.append(Lang.t("%s hasarı %+d%%") % [en.get(e, e), int(round(float(bo[e]) * 100))])
-	for e in it.get("resist", {}):
-		parts.append(Lang.t("%s'dan alınan hasar -%d%%") % [en.get(e, e), int(round(float(it["resist"][e]) * 100))])
 	return ", ".join(parts) if not parts.is_empty() else "—"

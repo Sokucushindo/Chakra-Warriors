@@ -13,6 +13,8 @@ const BRANCH := {"genjutsu": "genjutsu", "fuinjutsu": "fuinjutsu", "medical": "i
 
 
 static func branch_of(j: Dictionary) -> String:
+	if String(j.get("learn", "")) == "path:kapi":
+		return "taijutsu"   # Sekiz Kapı teknikleri (Lotus, Asa Kujaku...) yasak ama saf taijutsu: taijutsu ustalığıyla güçlenir
 	return String(BRANCH.get(String(j.get("category", "ninjutsu")), "ninjutsu"))
 const SP_PER := 4.0   # her 4 toplam ustalık puanında 1 yetenek puanı
 ## Gelişme hızı (kullanıcı 2026-11-05: "30-40 dk'da rahat jōnin oluyorsun, en az 3-4 saat sürmeli"): bütün kazanımlar x0.17 (~6 kat yavaş;

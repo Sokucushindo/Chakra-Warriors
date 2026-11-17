@@ -429,6 +429,206 @@ func foe_count(cap: int) -> int:
 	return clampi(party_size(), 1, maxi(1, cap))
 
 
+## YAKALANMA (kanon: büyük teknik tetikteki rakibe değmez; isabeti açık getirir — Lee'nin havaya kaldırıp Omote Renge'si,
+## Naruto'nun Neji'ye alttan / klonla gelişi, Kakashi'nin Zabuza'yı köpeklerle tutup Chidori'si). Yakalanmış rakip
+## büyük jutsudan kaçamaz: sersem / bağlı / donmuş / uykuda / korkuda, sendeliyor / yerde / havada savrulmuş,
+## kendi saldırısının ya da mühürünün içinde, ya da saldıran arkasında. Oyuncu ve düşman aynı.
+## KALKAN (kullanıcı 2026-11-16: "alınan hasar -%" indirimleri kaldırıldı). Kanon savunma teknikleri yüzde indirim değil:
+##  · fiziksel engel (Susanoo, kum / kemik / kristal / taş zırh, kubbe, duvar, kalkan) darbeyi EMER, kırılınca söner
+##  · içinden geçirme (Kamui, yerin altı, su beden, ikame beden, Yata aynası; eski armor <= 0.05) süre boyunca darbe boşa gider
+##  · güç modları (Bilge, kuyruk örtüsü, Sekiz Kapı, Karma, yemek, tapınak...; melee/speed/jutsu artıranlar) indirim almaz
+## Buffs.add / Fighter.add_buff her armor < 1 buff'ı buradan geçirir; kalkan buff'ın ömrüne bağlıdır. Oyuncu ve düşman aynı.
+const MODE_KEYS := ["melee", "speed", "jutsu"]
+const ARMOR_FORMS := ["kessho_yoroi", "bone_armor", "domu", "raiton_armor", "yoton_yoroi", "raigeki_no_yoroi", "iwa_no_yoroi", "koka",
+	"suna_no_yoroi", "nenkin_yoroi", "hiruko", "jugo_kalkan", "kurogane_tsubasa"]
+func armor_to_shield(n: Node, bname: String, mods: Dictionary) -> Dictionary:
+	var a = float(mods.get("armor", 1.0))
+	if a >= 1.0:
+		return mods
+	mods = mods.duplicate()
+	mods.erase("armor")
+	var mode := false
+	for k in MODE_KEYS:
+		if float(mods.get(k, 1.0)) > 1.0:
+			mode = true
+	if (mode and not bname in ARMOR_FORMS) or n == null or not is_instance_valid(n):
+		return mods
+	if a <= 0.05:
+		set_shield(n, bname, -1.0)
+	else:
+		set_shield(n, bname, float(n.get("max_hp")) * (1.0 - a) * 0.6)
+	if not mods.has("_desc"):
+		mods["_desc"] = "kalkan: darbeyi emer, kırılınca söner" if a > 0.05 else "darbeler boşa gider"
+	return mods
+
+
+## hp < 0: içinden geçirme (her darbe boşa). regen: darbe almadan 3 sn sonra saniyede %12 dolar (Susanoo yeniden şekillenir).
+func set_shield(n: Node, bname: String, hp: float, regen := false) -> void:
+	var sh: Dictionary = n.get_meta("shields", {})
+	sh[bname] = {"hp": hp, "max": hp, "regen": regen, "t": 0.0}
+	n.set_meta("shields", sh)
+
+
+func _shield_alive(n: Node, bname: String) -> bool:
+	if n is Player:
+		return Buffs.active.has(bname)
+	return "buffs" in n and (n.buffs as Dictionary).has(bname)
+
+
+## Gelen hasarı kalkanlarla karşılar; kalanı döner (<= 0: darbe tamamen tutuldu, tepki yok).
+func absorb(n: Node, dmg: float) -> float:
+	if dmg <= 0.0 or not n.has_meta("shields"):
+		return dmg
+	var sh: Dictionary = n.get_meta("shields")
+	var now = Game.now()
+	var pos: Vector3 = (n as Node3D).global_position + Vector3.UP * 1.5
+	for bname in sh.keys():
+		if not _shield_alive(n, bname):
+			sh.erase(bname)
+			continue
+		var s: Dictionary = sh[bname]
+		if float(s["max"]) < 0.0:
+			popup_text(pos, "Iska!", Color(0.75, 0.9, 1.0))
+			return 0.0
+		if s["regen"] and float(s["hp"]) < float(s["max"]):
+			s["hp"] = minf(float(s["max"]), float(s["hp"]) + float(s["max"]) * 0.12 * maxf(0.0, now - float(s["t"]) - 3.0))
+		s["t"] = now
+		if float(s["hp"]) <= 0.0:
+			continue
+		var took = minf(float(s["hp"]), dmg)
+		s["hp"] = float(s["hp"]) - took
+		dmg -= took
+		if float(s["hp"]) <= 0.0:
+			popup_text(pos, "Kalkan kırıldı!", Color(1.0, 0.6, 0.4))
+			FX.hit_spark(pos, Color(0.7, 0.85, 1.0), 1.6)
+			Sfx.play("hit_heavy", pos, 0.8)
+		if dmg <= 0.0:
+			FX.hit_spark(pos, Color(0.6, 0.8, 1.0), 0.8)
+			return 0.0
+	if sh.is_empty():
+		n.remove_meta("shields")
+	return dmg
+
+
+## Chakra tükenmesi (kanon: dövüşü chakra bitirir — Kakashi Sharingan'dan sonra yığıldı, Sasuke chakrası bitince
+## Orochimaru'yu tutamadı): chakrası %12'nin altındaki ninja yavaşlar (x0.8). Kawarimi chakra ister (KAWARIMI_COST).
+## Oyuncu ve düşman aynı (Player.status_speed, Fighter.step_move).
+const KAWARIMI_COST := 8.0
+func exhaust_k(n: Node) -> float:
+	if not ("chakra" in n) or not ("max_chakra" in n) or float(n.max_chakra) <= 20.0:
+		return 1.0
+	if float(n.chakra) < float(n.max_chakra) * 0.12:
+		if not n.has_meta("tukendi"):
+			n.set_meta("tukendi", true)
+			popup_text((n as Node3D).global_position + Vector3.UP * 2.3, "Chakra tükendi", Color(0.6, 0.75, 1.0))
+		return 0.8
+	if n.has_meta("tukendi") and float(n.chakra) > float(n.max_chakra) * 0.2:
+		n.remove_meta("tukendi")
+	return 1.0
+
+
+## GİZLİLİK (2026-11-16): "stealth" buff'ları (Kakuremino, Suiton Kakuremino, yer altı, Meisaigakure...) eskiden yalnız
+## "Gizlisin" yazıyordu, hiçbir düşman / gözcü bakmıyordu. Ortak kural — gizli hedef görülmez, şunlar hariç:
+##  · saldırırken / mühür dizerken (gizlilik bozulur) ya da 2.5 m'den yakında
+##  · Byakugan / Rinnegan / Tenseigan / Jōgan her gizlenmeyi görür; Sharingan chakra gizlenmesini görür ama örtüyü (cloth) değil
+##  · örtü (Kakuremino) kokuyu saklamaz: Inuzuka koklar
+##  · örtünün kalitesi (stealth 0..1, ustalıktan) bakanın ustalığından düşükse usta ninja seçer (Konohamaru'nun yatay desenli örtüsü)
+## Oyuncu ve düşman aynı (düşmanın gizlenmesi oyuncunun dostlarını / takımını da aynı kuralla şaşırtır).
+func stealth_of(n: Node) -> float:
+	var q := 0.0
+	if n is Player:
+		for b in Buffs.active.values():
+			q = maxf(q, float(b["mods"].get("stealth", 0.0)))
+	elif "buffs" in n:
+		for b in (n.buffs as Dictionary).values():
+			q = maxf(q, float(b["mods"].get("stealth", 0.0)))
+	return q
+
+
+## ALGILAMA (kanon algılayıcı ninja): algılama tekniği (Kanchi, Kagura Shingan, Kekkai Tengai Hōjin...) atanın menzili
+## içinde gizlenmiş herkes görülür. Oyuncu ve düşman aynı; düşman algılayıcı oyuncunun gizlenmesini bozar.
+func start_sensing(n: Node, r: float, dur: float) -> void:
+	n.set_meta("sense_r", r)
+	n.set_meta("sense_until", Game.now() + dur)
+
+
+func sensing_r(n: Node) -> float:
+	if n == null or not is_instance_valid(n) or Game.now() > float(n.get_meta("sense_until", 0.0)):
+		return 0.0
+	return float(n.get_meta("sense_r", 0.0))
+
+
+func hidden_from(viewer: Node, n: Node) -> bool:
+	if viewer == null or n == null or not is_instance_valid(viewer) or not is_instance_valid(n):
+		return false
+	var q = stealth_of(n)
+	if q <= 0.0:
+		return false
+	var dv = (viewer as Node3D).global_position.distance_to((n as Node3D).global_position)
+	if dv < 2.5:
+		return false
+	if dv <= sensing_r(viewer):
+		return false   # algılayıcı chakrayı hisseder: göze dayalı gizlenme ondan kaçamaz (kanon: Karin, Kanchi)
+	if n is Player:
+		var pc = n.get("combat")
+		if pc != null and String(pc.action) in ["attack", "cast", "throw"]:
+			return false
+	elif "state" in n and String(n.state) in ["attack", "cast", "throw"]:
+		return false
+	var cloth = String(n.get_meta("stealth_kind", "")) == "cloth"
+	var ek = int(viewer.get_meta("eyes").get("kind", 0)) if viewer.has_meta("eyes") else 0
+	if ek in [2, 6, 7, 8]:
+		return false
+	if ek in [1, 4, 5] and not cloth:
+		return false
+	if cloth and viewer.get("arch") is Dictionary and String(viewer.arch.get("clan", "")) == "inuzuka":
+		return false
+	var vs = float(viewer.get("skill")) if viewer.get("skill") != null else 0.5
+	return q >= 1.0 or q > vs
+
+
+## Bağın kaynağı: bağlayan jutsu (cc_src'nin son tekniği). Nawanuke yalnız fiziksel bağı çözer (kanon: ip / tel / düğüm).
+func tag_bind(n: Node) -> void:
+	var jid := ""
+	var now = Time.get_ticks_msec() / 1000.0
+	if cc_src != null and is_instance_valid(cc_src) and now - cc_src_t < 3.0 and cc_src.has_meta("jid"):
+		jid = String(cc_src.get_meta("jid"))
+	n.set_meta("bind_jid", jid)
+
+
+## Fiziksel bağ mı: element yok (gölge / kum / ağaç / su / ateş bağları elementli), Nara / Sabaku / Senju klan tekniği değil,
+## genjutsu değil. Kaynağı bilinmeyen bağ (alet: tel, ip, kusari) fiziksel sayılır.
+func bind_physical(n: Node) -> bool:
+	var jd: Dictionary = Data.jutsu.get(String(n.get_meta("bind_jid", "")), {})
+	if jd.is_empty():
+		return true
+	if String(jd.get("element", "")) != "" or String(jd.get("category", "")) in ["genjutsu", "dojutsu", "senjutsu", "kekkei_genkai"]:
+		return false
+	return not String(jd.get("clan", "")) in ["nara", "sabaku", "senju", "uzumaki", "aburame"]
+
+
+const CAUGHT_STATUS := ["stun", "bind", "frozen", "sleep", "fear", "kokuangyo", "mud"]
+func caught(n: Node, attacker: Node = null) -> bool:
+	if n == null or not is_instance_valid(n):
+		return false
+	if n.has_method("has_status"):
+		for s in CAUGHT_STATUS:
+			if n.has_status(s):
+				return true
+	if n is Player:
+		var pc = n.get("combat")
+		if pc != null and String(pc.action) in ["attack", "cast", "throw", "hitstun", "knockdown", "charge"]:
+			return true
+	elif "state" in n and String(n.state) in ["attack", "cast", "throw", "hitstun", "knockdown", "charge"]:
+		return true
+	if attacker is Node3D and is_instance_valid(attacker) and n is Node3D and n.has_method("face_dir"):
+		var to_a: Vector3 = (attacker as Node3D).global_position - (n as Node3D).global_position
+		to_a.y = 0.0
+		if to_a.length() > 0.5 and n.face_dir().dot(to_a.normalized()) < -0.35:   # arkadan (~110°+)
+			return true
+	return false
+
+
 func hostile(a: Node, b: Node) -> bool:
 	if a == b or b == null or a == null:
 		return false
@@ -468,6 +668,7 @@ func hit_sphere(attacker: Node3D, center: Vector3, radius: float, info: Dictiona
 		if capsule_hit(center, f, radius):
 			var inf = info.duplicate()
 			inf["attacker"] = attacker
+			inf["_r"] = radius   # alan genişliği: geniş alandan kaçış tam değil, sıyırır (Player.take_hit)
 			if not inf.has("dir"):
 				var d: Vector3 = f.global_position - attacker.global_position
 				d.y = 0

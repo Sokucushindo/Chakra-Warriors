@@ -32,7 +32,7 @@ const ACADEMY_Q := [
 
 const SPECIALTIES := [
 	{"id": "sorgu", "title": "Sorgu ve İşkence Birimi", "icon": "eye", "desc": "Zihin okuma, sorgu ustalığı. Bingo Kitabı muhbirleri ücretsiz, düşmanlar seni gördüğünde tereddüt eder (+%8 yakın dövüş).", "mods": {"melee": 1.08}},
-	{"id": "bariyer", "title": "Bariyer Takımı", "icon": "seal", "desc": "Köyün kalkanı. Alınan hasar kalıcı olarak −%10.", "mods": {"armor": 0.9}},
+	{"id": "bariyer", "title": "Bariyer Takımı", "icon": "seal", "desc": "Köyün kalkanı: bariyer ve mühür tekniklerinde ustasın. Jutsu hasarı +%8.", "mods": {"jutsu": 1.08}},
 	{"id": "sensor", "title": "Sensör Birliği", "icon": "target", "desc": "Chakra algısı: yazılı sınavlarda güvenli kopya, menzil +%10, gizlilikte düşmanları uzaktan sezersin.", "mods": {"reach": 1.1}},
 	{"id": "zehir", "title": "Zehir ve İlaç Uzmanı", "icon": "potion", "desc": "Silahlarına zehir sürersin: yakın dövüş +%12.", "mods": {"melee": 1.12}},
 	{"id": "silah", "title": "Silah Ustası", "icon": "sword", "desc": "Her türlü ninja aletinde ustalık: yakın dövüş +%10, hız +%4.", "mods": {"melee": 1.1, "speed": 1.04}},

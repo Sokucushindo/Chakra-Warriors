@@ -568,6 +568,10 @@ func _physics_process(_dt: float) -> void:
 		sb.global_transform = Transform3D(Basis(Vector3.UP, yaw), Vector3(tr[0], tr[1] - 0.3, tr[2]))
 		var trunk: CollisionShape3D = sb.get_child(0)
 		_set_limbs(sb, t, int(tr[6]) if tr.size() > 6 else 0, s)
+		var wst = WorldDamage.trees.get(tid)
+		if wst != null and String(wst.get("state", "")) == "char":
+			_char_body(sb, t, s)   # kül olmuş ağaç: çarpışma kömür gövdenin kendi şekli
+			continue
 		if t in CONVEX:
 			trunk.shape = convex[t][mini(int(tr[6]) if tr.size() > 6 else 0, convex[t].size() - 1)]
 			trunk.scale = Vector3.ONE * s
@@ -605,6 +609,33 @@ func _physics_process(_dt: float) -> void:
 				var d = Vector3(sin(a), 0, cos(a))
 				(bc.shape as BoxShape3D).size = Vector3(1.4, 0.8, L) * s
 				bc.transform = Transform3D(Basis(Vector3.UP, a), (d * (Props.FOREST_TRUNK_R + L * 0.5) + Vector3(0, br[0], 0)) * s)
+
+
+## Ağacın durumu değişti (kül oldu / yeniden yeşerdi): gövdesi bir sonraki fizik karesinde baştan kurulsun
+## (yakında kalan ağacın gövdesine normalde dokunulmaz).
+func release_tree(id: Vector3i) -> void:
+	for k in body_tree.size():
+		if body_tree[k] == id:
+			body_tree[k] = null
+	last_cell = Vector2i(999999, 999999)
+
+
+## Yanıp kül olan ağaç (WorldDamage._tree_burnt): görünüş kömür gövde (_char_mesh: kısa gövde + birkaç kara dal). Eskiden
+## canlı ağacın dal kutuları / kapsülleri ve tam boy gövdesi açık kalıyordu = kül ağacın çevresinde ve üstünde görünmez,
+## tırmanılabilir dallar ("ormanda tırmanılabilen görünmez yapılar", 2026-11-16). Çarpışma = kömür gövdenin boyu ve kalınlığı.
+func _char_body(sb: StaticBody3D, t: int, s: float) -> void:
+	var trunk: CollisionShape3D = sb.get_child(0)
+	trunk.shape = trunk.get_meta("cyl")
+	trunk.scale = Vector3.ONE
+	var geo: Array = WorldDamage.TREE_GEOM[t]
+	var th = (3.2 if t == 3 else float(geo[1]) + float(geo[2]) * 0.3) * s
+	var sh: CylinderShape3D = trunk.shape
+	sh.radius = (0.3 if t == 3 else float(geo[3])) * s
+	sh.height = th
+	trunk.position = Vector3(0, th * 0.5, 0)
+	for ch in sb.get_children():
+		if ch != trunk:
+			(ch as CollisionShape3D).disabled = true
 
 
 func _set_limbs(sb: StaticBody3D, t: int, v: int, s: float) -> void:

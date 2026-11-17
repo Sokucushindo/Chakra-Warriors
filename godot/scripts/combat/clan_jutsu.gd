@@ -2657,17 +2657,7 @@ func c_chinoike_chi_no_ame(c: Node3D, t: Node3D) -> void:
 # ================================================================== HOSHİGAKİ — köpekbalıkları
 ## Beş Köpekbalığı: her köpekbalığı ayrı bir düşmanı kovalar
 func c_hoshigaki_same(c: Node3D, t: Node3D) -> void:
-	var list = enemies_near(c, c.global_position, 30.0)
-	var tt = tg(c, t, 30.0)
-	if tt and not tt in list:
-		list.push_front(tt)
-	for k in 7:
-		var target = list[k % list.size()] if not list.is_empty() else null
-		var d = (Jutsu._aim(c, t)).rotated(Vector3.UP, (k - 3) * 0.28)
-		var shark = JutsuEngine.shape_mesh("shark", Color(0.35, 0.65, 1.0), 1.2, "suiton")
-		var pr = shot(c, c.global_position + Vector3.UP * 1.2 + d, d, 22.0, shark, inf(c, "hoshigaki_same", 0.5, {"knock": 8.0, "kind": "heavy"}), target, false, 3.0)
-		WaterArt.ptrail(pr, [Color(0.8, 0.95, 1), Color(0.3, 0.6, 1.0), Color(0.2, 0.4, 0.9, 0)], 0.8, 30, 0.4)
-	Sfx.play("water", c.global_position, 0.8)
+	SuitonFXE.hoshigaki_same(self, c, t)
 
 
 ## Büyük Köpekbalığı Mermisi: dev köpekbalığı yolundaki düşman jutsularını yutar ve her yuttuğunda büyür
@@ -2691,47 +2681,7 @@ func c_suiton_daikodan_no_jutsu(c: Node3D, t: Node3D) -> void:
 
 ## Bin Köpekbalığı: ağzından boşalan dev su seli (30 m genişliğinde) öne akar; içinde onlarca köpekbalığı yüzer, değdiğini ısırır
 func c_suiton_senshokuko(c: Node3D, t: Node3D) -> void:
-	var d = fwd(c, t)
-	var side = d.cross(Vector3.UP)
-	var b = MB.new()
-	b.add("sphere", Vector3.ZERO, Vector3(30.0, 6.0, 9.0), Color.WHITE, Vector3.ZERO, 20)
-	var flood = place(b, gp(c.global_position + d * 4.0), VFX.mat_water(Color(0.04, 0.25, 0.7), Color(0.15, 0.5, 0.95), Color(0.6, 0.86, 1.0), Vector3(0, 0, 1), 0.82))
-	flood.look_at(flood.global_position + d, Vector3.UP)
-	flood.scale = Vector3(0.2, 0.2, 0.2)
-	var tw = flood.create_tween()
-	tw.tween_property(flood, "scale", Vector3.ONE, 0.4).set_ease(Tween.EASE_OUT)
-	var sharks = []
-	for k in 22:
-		var s = JutsuEngine.shape_mesh("shark", Color(0.3, 0.6, 1.0), 1.0, "suiton")
-		get_tree().current_scene.add_child(s)
-		sharks.append([s, randf_range(-13, 13), randf_range(0.5, 4.5), randf_range(-3.5, 3.5), randf() * TAU])
-	busy(c, 0.8)
-	VFX.slowmo(0.55, 0.35)
-	var bitten = {}
-	every(2.4, 1.0 / 30.0, func(i, k):
-		var center = gp(c.global_position + d * (4.0 + k * 30.0))
-		flood.global_position = center + Vector3.UP * 1.0
-		for sh in sharks:
-			var ph = i * 0.18 + sh[4]
-			var p = center + side * (sh[1] + sin(ph) * 1.5) + Vector3.UP * (sh[2] + sin(ph * 1.7) * 0.6) + d * (sh[3] + cos(ph) * 1.2)
-			sh[0].look_at(p + d + side * cos(ph) * 0.5, Vector3.UP)
-			sh[0].global_position = p
-		if i % 3 == 0:
-			VFX.splash(center + side * randf_range(-13, 13) + Vector3.UP * 4.0, 2.0)
-		for e in enemies_near(c, center, 15.0):
-			var v = e.global_position - center
-			if absf(v.dot(d)) < 5.0:
-				e.global_position = gp(e.global_position + d * 0.5)   # sel sürükler
-				st(e, "slow", 0.4)
-				var key = e.get_instance_id()
-				if Time.get_ticks_msec() - int(bitten.get(key, 0)) > 400:
-					bitten[key] = Time.get_ticks_msec()
-					hit(c, e.global_position + Vector3.UP, 1.0, inf(c, "suiton_senshokuko", 0.18, {"knock": 3.0, "kind": "light", "element": "suiton"})), func():
-		for sh in sharks:
-			sh[0].queue_free()
-		fade_free(flood, 0.0, 0.5))
-	shake(0.8)
-	Sfx.play("water", c.global_position, 0.4)
+	SuitonFXE.suiton_senshokuko(self, c, t)
 
 
 ## Su Hapsi Köpekbalığı Dansı: 50 m çapında dev su kubbesi yükselir; içinde normal boy köpekbalıkları dolaşır.
@@ -2983,18 +2933,7 @@ func c_sofushasan_no_tachi(c: Node3D, t: Node3D) -> void:
 
 ## Shuriken Gölge Klonu: tek shuriken havada yirmi dörde bölünür, hedefe yağar
 func c_shuriken_kage_bunshin_no_jutsu(c: Node3D, t: Node3D) -> void:
-	var d = Jutsu._aim(c, t)
-	var tt = tg(c, t, 35.0)
-	var pr = shot(c, Jutsu._hand(c), d, 26.0, _fuma_mesh(0.35), {"dmg": 1.0, "knock": 0.0}, null, false, 0.3)
-	pr.spin = Vector3(0, 30, 0)
-	after(0.22, func():
-		var p = pr.global_position if is_instance_valid(pr) else Jutsu._hand(c) + d * 5.0
-		FX.smoke_puff(p, 0.6, 8)
-		for k in 24:
-			var dd = d.rotated(Vector3.UP, randf_range(-0.5, 0.5)).rotated(d.cross(Vector3.UP).normalized(), randf_range(-0.25, 0.25))
-			var s = shot(c, p, dd, 34.0, _fuma_mesh(0.3), inf(c, "shuriken_kage_bunshin_no_jutsu", 0.09, {"knock": 1.0, "kind": "light"}), tt if k % 3 == 0 else null, false, 1.4)
-			s.spin = Vector3(0, 30, 0))
-	Sfx.play("kunai", c.global_position)
+	NinjutsuFXD.shuriken_kage_bunshin_no_jutsu(PathJutsu.get_pinst(), c, t)
 
 
 ## Rüzgar Çarkı: rüzgara sarılı dev shuriken etrafında 8 m yarıçapla üç sn döner, her şeyi biçer
@@ -3558,21 +3497,7 @@ func c_sumigasumi_no_jutsu(c: Node3D, t: Node3D) -> void:
 
 ## Ahtapot Tutuşu: yerdeki parşömenden mürekkep dokunaçları fışkırır, dört düşmanı yakalayıp sıkar
 func c_fuinjutsu_okutopasu_horudo(c: Node3D, t: Node3D) -> void:
-	var center = gp(Jutsu._aim_ground(c, t, 6.0, 16.0))
-	var b = MB.new()
-	b.add("box", Vector3.ZERO, Vector3(3.0, 0.02, 1.0), Color(0.95, 0.92, 0.82))
-	var scroll = place(b, center + Vector3.UP * 0.05)
-	fade_free(scroll, 4.0, 0.3)
-	var inkm = flat_mat(Color(0.03, 0.03, 0.05, 1.0))
-	var list = enemies_near(c, center, 12.0).slice(0, 4)
-	for e in list:
-		tether(func(): return center + Vector3.UP * 0.2, func(): return e.global_position + Vector3.UP * 1.0 if is_instance_valid(e) else center, 0.45, inkm, 3.5)
-		st(e, "bind", 3.5)
-		every(3.5, 0.5, func(_i, _k):
-			if live(e):
-				hit(c, e.global_position + Vector3.UP, 0.8, inf(c, "fuinjutsu_okutopasu_horudo", 0.2, {"knock": 0.0})))
-	FX.burst(center + Vector3.UP, {"amount": 40, "life": 0.6, "size": 0.6, "vmin": 3, "vmax": 7, "add": false, "colors": [Color(0.04, 0.04, 0.06), Color(0.04, 0.04, 0.06, 0)]})
-	Sfx.play("water", center, 0.5)
+	FuinjutsuFXB.fuinjutsu_okutopasu_horudo(self, c, t)
 
 
 # ================================================================== KAZAHANA — çöl rüzgarı
@@ -3673,44 +3598,12 @@ func c_kazahana_fujin_ya(c: Node3D, t: Node3D) -> void:
 # ================================================================== KARATACHİ — Sis kılıç ustalığı
 ## Sessiz Öldürme: sis çöker, kaybolursun; bir buçuk sn sonra en yakın düşmanın arkasında belirip üç kez kesersin
 func c_sairento_kiringu(c: Node3D, _t: Node3D) -> void:
-	FX.burst(c.global_position + Vector3.UP, {"amount": 120, "life": 4.0, "tex": FX.tex_smoke, "add": false, "size": 3.0, "vmin": 1, "vmax": 4, "gravity": Vector3.ZERO,
-		"colors": [Color(0.85, 0.88, 0.92, 0.0), Color(0.85, 0.88, 0.92, 0.85), Color(0.85, 0.88, 0.92, 0)]})
-	for e in enemies_near(c, c.global_position, 15.0):
-		if e.has_method("lose_target"):
-			e.lose_target(2.5)
-	if c.get("model"):
-		c.model.visible = false
-	after(1.4, func():
-		if not is_instance_valid(c):
-			return
-		c.model.visible = true
-		var list = enemies_near(c, c.global_position, 18.0)
-		if list.is_empty():
-			return
-		var e = list[0]
-		var behind = e.global_position - (e.face_dir() if e.has_method("face_dir") else Vector3.FORWARD) * (e.radius + 0.9)
-		c.global_position = gp(behind)
-		if c is Player:
-			c.combat.face_to(e)
-		every(0.45, 0.15, func(i, _k):
-			anim(c, ["slash_a", "slash_b", "slash_a"][i], 2.6)
-			hit(c, e.global_position + Vector3.UP, 1.2, inf(c, "sairento_kiringu", 0.7, {"knock": 3.0 if i < 2 else 12.0, "kind": "heavy", "hitstop": 0.05}))
-			Sfx.play("kunai", c.global_position, 1.3)))
+	NinjutsuFXD.sairento_kiringu(PathJutsu.get_pinst(), c, _t)
 
 
 ## Kemik Parçalama: kılıç bedenin içinden geçer: zırhı yok sayan ağır kesik, kanama ve sersemleme
 func c_chigiri_toho_honenuki(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 6.0)
-	var d = fwd(c, t)
-	busy(c, 0.5)
-	anim(c, "slash_b", 1.6)
-	after(0.2, func():
-		var p = (tt.global_position if live(tt) else c.global_position + d * 2.0) + Vector3.UP
-		tether(func(): return p - d * 1.5, func(): return p + d * 1.5, 0.1, glow(Color(0.85, 0.2, 0.25)), 0.25)
-		for h in hit(c, p, 1.5, inf(c, "chigiri_toho_honenuki", 2.2, {"knock": 2.0, "kind": "heavy", "burn": 6.0, "hitstop": 0.15})):
-			st(h, "stun", 1.0)
-			FX.burst(h.global_position + Vector3.UP, {"amount": 20, "life": 0.5, "size": 0.4, "vmin": 2, "vmax": 6, "add": false, "colors": [Color(0.75, 0.05, 0.08), Color(0.5, 0.0, 0.03, 0)]})
-		Sfx.play("kunai", p, 0.8))
+	NinjutsuFXA.chigiri_core(PathJutsu.get_pinst(), c, t)
 
 # ================================================================== YOTSUKİ — yıldırım güreşi
 func _lightning_limb(c: Node3D, dur: float) -> void:

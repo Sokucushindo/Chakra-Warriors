@@ -914,12 +914,22 @@ func load_game(slot: int) -> bool:
 	return true
 
 
+## Takma ad zincirini sonuna dek çöz (kurama_kokuangyo -> yuhi_kokuangyo -> kokuangyo; tek adımda eski kayıtta jutsu
+## sessizce kayboluyordu). Döngüye karşı en çok 8 adım.
+static func _alias_end(al: Dictionary, j: String) -> String:
+	for i in 8:
+		if not al.has(j):
+			break
+		j = String(al[j])
+	return j
+
+
 ## Birleştirilen kopya jutsular (Data jutsu._aliases) ve kaldırılan eşyalar eski kayıtlarda güncellenir
 func _migrate_jutsu_ids() -> void:
 	var al: Dictionary = Data.jutsu.get("_aliases", {})
 	var learned: Array = []
 	for j in profile.get("learned", []):
-		var nj = String(al.get(j, j))
+		var nj = _alias_end(al, String(j))
 		if Data.jutsu.has(nj) and not nj in learned:
 			learned.append(nj)
 	profile["learned"] = learned
@@ -929,7 +939,7 @@ func _migrate_jutsu_ids() -> void:
 			break
 	var slots: Array = profile.get("slots", [])
 	for i in slots.size():
-		var sj = String(al.get(slots[i], slots[i]))
+		var sj = _alias_end(al, String(slots[i]))
 		slots[i] = sj if Data.jutsu.has(sj) else ""
 	var inv: Dictionary = profile.get("inventory", {})
 	for k in inv.keys():   # klan tekniğine dönüşen jutsuların satılık parşömenleri kalktı

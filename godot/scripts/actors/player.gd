@@ -50,6 +50,11 @@ var flip_axis := Vector3.RIGHT
 var flip_sgn := 1.0
 var evade_t := 0.0         # kaçış atlayışı sürüyor: yüz dönmez, darbe ıskalar
 var evade_n := 0
+var evade_inv := 0.0       # kaçışın darbeyi boşa çıkaran penceresi (sn; art arda kaçışta ve chakrasızken kısalır)
+var evade_chain := 0       # art arda kaçış sayısı (1.6 sn içinde): her biri bir öncekinden kısa
+var evade_last := -9.0
+var fight_until := 0.0     # darbe alınca savaş hâli bu ana dek sürer (Ctrl kapalı)
+var _no_leap_msg := 0.0
 var evade_face := false    # kaçış atlayışından yere inene dek yüz dönmez
 var ndash_t := 0.0         # öne ninja atılışı sürüyor
 var ndash_ghost := 0.0
@@ -65,6 +70,7 @@ var dash_t = 0.0
 var wall_n = Vector3.ZERO  # 0 ise duvarda değil
 var wall_cd = 0.0
 var wall_stall = 0.0       # duvarda yukarı basılıyken ilerleyemeden geçen süre (saçak/balkon altı)
+var _wall_block := 0.0     # duvarda aşağı / yana basılıyken ilerleyemeden geçen süre (altında çıkıntı, yanında köşe)
 # kenara tutunup üstüne çıkma (duvar tepesi, saçak, balkon): 3 noktalı eğri boyunca kısa geçiş
 var mantle_t = -1.0
 var mantle_pts: Array = []
@@ -173,11 +179,36 @@ func _unhandled_input(e: InputEvent) -> void:
 		Sfx.play("seal", global_position, 1.2)
 		get_viewport().set_input_as_handled()
 		return
+	# Nawanuke (kanon: "akademide öğretilen ilk teknik — bağlanınca düğümü çöz ya da eklemlerini çıkar"): fiziksel bağdan
+	# (ip, tel, zincir, ağ) Q ile kurtul. Gölge / kum / ağaç / element bağı chakradır, çözülmez (Combat.bind_physical).
+	if e.is_action_pressed("substitute") and has_status("bind") and "nawanuke_no_jutsu" in Game.profile.get("learned", []):
+		get_viewport().set_input_as_handled()
+		if not Combat.bind_physical(self):
+			Combat.popup_text(global_position + Vector3.UP * 2.2, "Chakra bağı: çözülmez", Color(0.7, 0.7, 0.8))
+			return
+		if chakra < 5.0:
+			return
+		chakra -= 5.0
+		statuses.erase("bind")
+		input_locked = 0.0
+		velocity = -face_dir() * 6.0 + Vector3.UP * 5.0   # sıyrılıp geri sıçrar
+		Combat.popup_text(global_position + Vector3.UP * 2.2, "Nawanuke!", Color(0.9, 0.85, 0.6))
+		Sfx.play("whoosh", global_position, 1.3)
+		Mastery.gain(Game.profile, "ninjutsu", 0.05)
+		return
 	if fly_src != "":
 		# uçarken Space/Ctrl yükselip alçalır (_fly_move); havada zıplamada kanatlı Susanoo da burada değil
 		return
 	if e.is_action_pressed("jump") and not grounded and wall_n == Vector3.ZERO and has_meta("wing_flight"):
 		start_flight("susanoo", get_meta("wing_flight"))
+		return
+	if (e.is_action_pressed("leap") or (e.is_action_released("leap") and leap_charge >= 0.0)) and in_fight():
+		# savaşta süper zıplama / duvar atılımı yok (kaçmak çok kolaydı): kaçış = çift Space + yön
+		leap_charge = -1.0
+		_show_leap_ui(false)
+		if e.is_action_pressed("leap") and Game.now() > _no_leap_msg:
+			_no_leap_msg = Game.now() + 2.0
+			Combat.popup_text(global_position + Vector3.UP * 2.2, "Savaşta süper zıplama yok", Color(0.85, 0.85, 0.9))
 		return
 	if e.is_action_pressed("leap") and wall_n != Vector3.ZERO:
 		_wall_boost()
@@ -296,6 +327,19 @@ func _jump() -> void:
 ## yöne doğru döner: geriye basınca geri takla, yana basınca yan takla. Her basışta sırayla başka bir hareket:
 ## toplanmış takla -> gergin (uzanmış) takla -> burgu.
 const EVADE_SPEED := 15.0
+const EVADE_COST := 3.0
+
+
+## Savaş hâli: sana saldıran düşman yakında ya da az önce darbe yedin. Ctrl (süper zıplama) kapalı.
+func in_fight() -> bool:
+	if Game.now() < fight_until:
+		return true
+	for f in get_tree().get_nodes_in_group("fighters"):
+		if f == self or not (f is Enemy) or f.dead or f.target != self or not Combat.hostile(f, self):
+			continue
+		if f.state in ["chase", "attack", "cast", "ranged", "guard", "dodge", "leap", "charge"] and f.global_position.distance_to(global_position) < 40.0:
+			return true
+	return false
 func _try_evade() -> bool:
 	if Time.get_ticks_msec() - jump_ms > 340 or cam_giant or fly_src != "":
 		return false
@@ -306,9 +350,21 @@ func _try_evade() -> bool:
 	if d.length() < 0.1:
 		return false
 	d = d.normalized()
+	# bedel (kanon: dövüşü chakra tükenmesi bitirir): her kaçış chakra yer; art arda kaçış gittikçe kısalır;
+	# chakrasız kaçış kısa ve darbeyi boşa çıkarmaz. Düşman da aynı kurala bağlı (Enemy._dodge)
+	var now = Game.now()
+	evade_chain = evade_chain + 1 if now - evade_last < 1.6 else 0
+	evade_last = now
+	var k = pow(0.72, evade_chain)
+	if chakra >= EVADE_COST:
+		chakra -= EVADE_COST
+		evade_inv = 0.2 * k
+	else:
+		k *= 0.55
+		evade_inv = 0.0
 	jumps = 2
 	evade_face = true
-	velocity = d * EVADE_SPEED + Vector3.UP * 3.0   # alçak ve seri: yükselmez, yana / geriye kayar
+	velocity = d * EVADE_SPEED * maxf(k, 0.35) + Vector3.UP * 3.0   # alçak ve seri: yükselmez, yana / geriye kayar
 	dash_t = 0.3
 	evade_t = 0.46
 	# yüz: kameranın baktığı yön (rakibe dönük kalır)
@@ -685,8 +741,9 @@ func _ground_air_move(dt: float) -> void:
 	# duvar koşusuna geç
 	if is_on_wall() and wall_cd <= 0.0 and not swimming and not cam_giant and evade_t <= 0.0 and ndash_t <= 0.0:   # dev canavar ağaca/eve duvar koşusu yapmaz (gövde havada asılı kalıyordu)
 		var n = get_wall_normal()
+		var overhang = n.y < -0.2   # yüzey üstüne eğik (aşağı bakıyor, ~12°+): altında koşulmaz (Suna eğik plakaları, kule etekleri)
 		n.y = 0.0
-		if n.length() > 0.5:
+		if n.length() > 0.5 and not overhang:
 			n = n.normalized()
 			if wish.dot(-n) > 0.35 and _wall_tall(n):
 				_enter_wall(n, false)
@@ -900,6 +957,16 @@ func _terrain_wall_move(dt: float) -> void:
 	var up_amt = wish.dot(-n)
 	var side_amt = wish.dot(side)
 	var spd = WALL_SPEED * (1.4 if Input.is_action_pressed("dash") else 1.0) * (1.0 + Stats.skill(Game.profile, "wall_run"))
+	if has_meta("train_top"):
+		# tırmanma eğitimi (Ki / Gake Nobori): kendiliğinden yukarı; ustalığın yettiği yükseklikte ayak / el kayar
+		up_amt = 1.0
+		side_amt = 0.0
+		spd = WALL_SPEED * float(get_meta("train_spd", 0.8))
+		if global_position.y >= float(get_meta("train_top")):
+			velocity = n * 4.0 + Vector3.UP * 1.0
+			_leave_wall()
+			wall_cd = 1.0
+			return
 	Mastery.gain(Game.profile, "chakra", dt * 0.02)   # ağaç/duvar tırmanma: chakra kontrolü antrenmanı (0.004 idi)
 	if wall_boost_t > 0.0:
 		wall_boost_t -= dt
@@ -985,6 +1052,16 @@ func _wall_move(dt: float) -> void:
 	var up_amt = wish.dot(-n)
 	var side_amt = wish.dot(side)
 	var spd = WALL_SPEED * (1.4 if Input.is_action_pressed("dash") else 1.0) * (1.0 + Stats.skill(Game.profile, "wall_run"))
+	if has_meta("train_top"):
+		# tırmanma eğitimi (Ki / Gake Nobori): kendiliğinden yukarı; ustalığın yettiği yükseklikte ayak / el kayar
+		up_amt = 1.0
+		side_amt = 0.0
+		spd = WALL_SPEED * float(get_meta("train_spd", 0.8))
+		if global_position.y >= float(get_meta("train_top")):
+			velocity = n * 4.0 + Vector3.UP * 1.0
+			_leave_wall()
+			wall_cd = 1.0
+			return
 	if wall_boost_t > 0.0:
 		wall_boost_t -= dt
 		spd *= 2.3
@@ -1013,7 +1090,21 @@ func _wall_move(dt: float) -> void:
 		if wall_stall > 0.45:
 			velocity = n * 5.0 + Vector3.UP * 2.0
 			_leave_wall()
+			wall_cd = 0.8   # aynı engele hemen yeniden yapışıp bırak-yapış döngüsüne girmesin
 			return
+	# aşağı / yana da kapalıysa (altında çıkıntı, yanında köşe): istenen hareketin üçte birinden azı oluyorsa 0.35 sn sonra
+	# duvardan ayrıl. Eskiden yalnız yukarı takılma yakalanıyordu: Suna'da duvarda 1.5-4 sn asılı kalıyordu (ölçüm 2026-11-16)
+	var want_d = move.length() * dt
+	if up_amt <= 0.2 and want_d > 0.02 and global_position.distance_to(pre) < want_d * 0.33:
+		_wall_block += dt
+		if _wall_block > 0.35:
+			_wall_block = 0.0
+			velocity = n * 4.0 + Vector3.UP * 1.5
+			_leave_wall()
+			wall_cd = 0.8
+			return
+	else:
+		_wall_block = 0.0
 	var space = get_world_3d().direct_space_state
 	var center = global_position + Vector3.UP * 0.9
 	# eğimli yüzeyde yüzey merkezden daha uzakta kalır (45° kubbede ~1.3 m): kısa ışın "duvar bitti" sanıp fırlatıyordu
@@ -1036,6 +1127,13 @@ func _wall_move(dt: float) -> void:
 		_leave_wall()
 		return
 	var hn: Vector3 = hit["normal"]
+	if hn.y < -0.3 and not has_meta("train_top"):   # eğitimde gövde boyunca dalların altından geçilir (4.5 m'de ilk dal)
+		# yüzey sarkmaya döndü (saçak altı, eğik plaka): ters dönüp yapışmak yerine duvardan ayrıl; hemen yeniden
+		# yapışmasın (ileri basılıyken bırak-yapış döngüsünde 1.5-4 sn asılı kalıyordu, ölçüm 2026-11-16)
+		velocity = n * 4.0 + Vector3.DOWN * 1.0
+		_leave_wall()
+		wall_cd = 0.8
+		return
 	hn.y = 0
 	if hn.length() > 0.5:
 		wall_n = hn.normalized()  # köşeleri dön
@@ -1210,6 +1308,8 @@ func _mantle_move(dt: float) -> void:
 
 
 func _leave_wall() -> void:
+	if has_meta("train_top"):   # Ki / Gake Nobori eğitimi: durduğun / kaydığın yere kunai işareti (PathJutsu.climb_mark)
+		PathJutsu.climb_mark(self, wall_n)
 	wall_stall = 0.0
 	terrain_wall = false
 	wall_n = Vector3.ZERO
@@ -1316,8 +1416,29 @@ func is_dead() -> bool:
 
 func take_hit(info: Dictionary) -> void:
 	Combat.note_hit(self, info)
-	if evade_t > 0.14 and not info.get("sure", false):   # kaçış atlayışının ilk anı: darbe boşa gider
-		Combat.popup_text(global_position + Vector3.UP * 2.1, "Iska!", Color(0.75, 0.9, 1.0))
+	var atk0 = info.get("attacker")
+	if atk0 != null and is_instance_valid(atk0) and atk0 != self:
+		fight_until = Game.now() + 5.0
+	if evade_t > 0.46 - evade_inv and not info.get("sure", false):   # kaçış atlayışının ilk anı: darbe boşa gider
+		# geniş alan tekniği (Gōryūka gibi) tam kaçılamaz: sıyırır (az hasar, sersemletmez)
+		if not info.get("melee", false) and float(info.get("_r", 0.0)) >= 3.0:
+			info = info.duplicate()
+			info["dmg"] = float(info.get("dmg", 5.0)) * 0.35
+			for s in ["stun", "launch", "knock", "bind"]:
+				info.erase(s)
+			Combat.popup_text(global_position + Vector3.UP * 2.1, "Sıyırdı", Color(1.0, 0.75, 0.5))
+		else:
+			Combat.popup_text(global_position + Vector3.UP * 2.1, "Iska!", Color(0.75, 0.9, 1.0))
+			chakra = minf(max_chakra, chakra + EVADE_COST)   # tam zamanında kaçış: chakrası geri gelir
+			return
+	# hazır Kawarimi (jutsu yuvası): darbeyi kütük alır, rakibin arkasında belirirsin (Q'daki sistemin kendisi; düşmanla aynı)
+	if Game.now() < float(get_meta("kawa_armed_until", 0.0)) and atk0 is Node3D and is_instance_valid(atk0) and atk0 != self and not info.get("sure", false) and combat:
+		remove_meta("kawa_armed_until")
+		var at = global_position
+		combat.sub_bars += 1.0          # jutsu bedeli zaten ödendi: hak ve chakra yemesin
+		chakra += Combat.KAWARIMI_COST
+		combat.substitute()
+		PathJutsu.kawa_trap(self, at)
 		return
 	if Combat.shirahadori_catch(self, info):   # çıplak avuçla bıçak yakalama (Shinken Shirahadori)
 		return
@@ -1332,10 +1453,12 @@ func take_hit(info: Dictionary) -> void:
 		Jutsu.end_henge(self)
 	# ekipman savunması: her puan ~%1.2 azaltır (en fazla %50)
 	# savunma azalan getirili: 20 puan %25, 40 puan %40, en fazla %45 (tam zırh ölümsüz yapmasın)
-	var dfn = maxf(0.0, Gear.stat(Game.profile, "def"))
-	var armor = Buffs.mod("armor") * (1.0 - minf(dfn / (dfn + 60.0), 0.45)) * (1.0 - clampf(Stats.skill(Game.profile, "def"), 0.0, 0.5))
+	# kıyafet savunması ve yetenek ağacı "alınan hasar azaltma" kaldırıldı (kullanıcı 2026-11-16); yalnız armor > 1 bedeller kalır
+	var armor = maxf(1.0, Buffs.mod("armor"))
 	info = info.duplicate()
-	info["dmg"] = info.get("dmg", 5.0) * armor
+	info["dmg"] = Combat.absorb(self, info.get("dmg", 5.0) * armor)   # kanon savunma = kalkan (Susanoo, zırh, kubbe...)
+	if float(info["dmg"]) <= 0.0:
+		return
 	if combat:
 		combat.take_hit(info)
 
@@ -1353,6 +1476,8 @@ func apply_status(n: String, d: float) -> void:
 	if d <= 0.0:
 		return
 	statuses[n] = maxf(statuses.get(n, 0.0), d)
+	if n == "bind":
+		Combat.tag_bind(self)   # bağın kaynağı (Nawanuke: fiziksel mi chakra mı)
 	if n in ["stun", "bind", "frozen"]:
 		input_locked = maxf(input_locked, d)
 
@@ -1379,7 +1504,7 @@ func _tick_status(dt: float) -> void:
 func status_speed() -> float:
 	if has_status("slow") or has_status("mud") or has_status("chilled"):
 		return 0.55
-	return 1.0
+	return Combat.exhaust_k(self)
 
 
 func respawn(pos: Vector3) -> void:

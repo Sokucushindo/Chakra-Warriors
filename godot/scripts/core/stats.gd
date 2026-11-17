@@ -16,7 +16,7 @@ static func skill(p: Dictionary, key: String) -> float:
 	var v = 0.0
 	match key:
 		"guard": v = M.call("taijutsu") * 0.004
-		"def": v = M.call("dayaniklilik") * 0.004
+		"def": v = 0.0   # alınan hasar azaltma kaldırıldı (kullanıcı 2026-11-16)
 		"regen_chakra": v = M.call("chakra") * 0.01
 		"regen_hp": v = M.call("dayaniklilik") * 0.01
 		"poison_resist": v = M.call("dayaniklilik") * 0.004
@@ -238,5 +238,6 @@ static func jutsu_mult(p: Dictionary, branch := "ninjutsu") -> float:
 	var m = 1.0 + mv * 0.045   # yakın dövüşle aynı eğri (NPC gücüyle eşit)
 	m += skill(p, "jutsu")
 	m += clan_bonus(p, "jutsu")
-	m *= Buffs.mod("jutsu")
+	# taijutsu teknikleri bedenin gücüyle vurur: kapılar / Raiton zırhı gibi yakın dövüş güçlendirmeleri işler (kanon: Lotus kapıyla)
+	m *= Buffs.mod("melee") if branch == "taijutsu" else Buffs.mod("jutsu")
 	return m

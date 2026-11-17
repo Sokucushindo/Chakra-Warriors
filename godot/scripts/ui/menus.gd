@@ -2488,7 +2488,7 @@ static func _tab_wardrobe(main: Node, body: Control) -> void:
 		make_slot.call("susanoo", Vector2(392, 620), false)
 	# toplam istatistikler (karakterin üstünde)
 	var tot = []
-	for k in [["def", "Savunma", false], ["hp", "Can", false], ["chakra", "Chakra", false], ["speed", "Hız", true], ["melee", "Yakın dövüş", true]]:
+	for k in [["hp", "Can", false], ["chakra", "Chakra", false], ["speed", "Hız", true], ["melee", "Yakın dövüş", true]]:
 		var v = Gear.stat(pr, k[0])
 		if v != 0.0:
 			tot.append(("%s %+d%%" % [Lang.t(k[1]), int(round(v * 100))]) if k[2] else ("%s %+d" % [Lang.t(k[1]), int(v)]))
@@ -2561,7 +2561,7 @@ static func _tab_wardrobe(main: Node, body: Control) -> void:
 		# istatistik karşılaştırması
 		var mine = it.get("stats", {})
 		var theirs = Gear.item(cur["id"]).get("stats", {}) if not cur.is_empty() else {}
-		var names = {"def": "Savunma", "hp": "Can", "chakra": "Chakra", "speed": "Hız", "melee": "Yakın dövüş"}
+		var names = {"hp": "Can", "chakra": "Chakra", "speed": "Hız", "melee": "Yakın dövüş"}
 		for k in names:
 			var a = float(mine.get(k, 0.0)); var b = float(theirs.get(k, 0.0))
 			if a == 0.0 and b == 0.0:

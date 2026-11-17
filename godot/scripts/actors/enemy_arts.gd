@@ -132,6 +132,7 @@ static func _ms_strain(e: Enemy, amount: float) -> void:
 		if sn and is_instance_valid(sn):
 			sn.queue_free()
 		e.remove_meta("ea_susanoo")
+		e.buffs.erase("susanoo")   # kalkan Susanoo ile söner
 
 
 ## Düşman İzanagi (oyuncuyla aynı kural, kanon): Sharingan sahibi düşman canı %35'in altına inince bir kez,
@@ -229,6 +230,9 @@ static func random_susanoo(n: Node) -> Dictionary:
 static func _susanoo_after(e: Enemy, sn: Susanoo, col: Array) -> void:
 	e.set_meta("ea_susanoo", sn)
 	e.arch["guard"] = 0.7   # Susanoo içinde darbeleri çoğunlukla tutar
+	# oyuncunun Susanoo'suyla aynı kalkan (kademeye göre canın %50-140'ı, darbe almadan 3 sn sonra yeniden şekillenir)
+	e.add_buff("susanoo", 9999.0, {})
+	Combat.set_shield(e, "susanoo", e.max_hp * [0.0, 0.5, 0.7, 0.9, 1.1, 1.4][clampi(int(sn.tier), 0, 5)], true)
 	var fs = sn.scale
 	sn.scale = fs * 0.1
 	sn.create_tween().tween_property(sn, "scale", fs, 0.6).set_trans(Tween.TRANS_BACK)

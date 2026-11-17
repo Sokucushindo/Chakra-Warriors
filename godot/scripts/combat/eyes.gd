@@ -752,8 +752,10 @@ func _start_susanoo() -> void:
 	p.add_child(sn)
 	sn.build(Game.profile, -1, p.model)
 	susanoo_node = sn
-	var armor = [1.0, 0.65, 0.58, 0.5, 0.42, 0.35][sn.tier]   # alınan hasar çarpanı (eskiden %8'e kadar iniyordu: ölümsüzlük)
-	Buffs.add("susanoo", 9999.0, {"armor": armor})
+	# kanon: Susanoo darbeyi gövdesiyle tutar (Kirin'i karşıladı), çatlar, chakra ile yeniden şekillenir -> kademeye göre
+	# kalkan canı, darbe almadan 3 sn sonra dolar. Eskiden kademeye göre "alınan hasar -%35..65" idi (kaldırıldı).
+	Buffs.add("susanoo", 9999.0, {"_desc": "kalkan: darbeyi gövdesiyle tutar, çatlarsa yeniden şekillenir"})
+	Combat.set_shield(p, "susanoo", p.max_hp * [0.0, 0.5, 0.7, 0.9, 1.1, 1.4][sn.tier], true)
 	var final_scale = sn.scale
 	sn.scale = final_scale * 0.1
 	sn.create_tween().tween_property(sn, "scale", final_scale, 0.6).set_trans(Tween.TRANS_BACK)

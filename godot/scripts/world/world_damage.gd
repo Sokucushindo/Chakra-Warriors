@@ -354,6 +354,9 @@ func _tree_burnt(id: Vector3i, st: Dictionary) -> void:
 	st["t"] = _now
 	_set_char(st["inst"], 0.0)
 	_set_hidden(st["inst"], true)
+	var vg = _veg()
+	if vg:
+		vg.release_tree(id)   # gövde çarpışması kömür gövdeye insin (Vegetation._char_body)
 	if _char >= MAX_CHAR:
 		_restore_oldest("char")
 	_char += 1
@@ -387,6 +390,11 @@ func _topple(id: Vector3i, tr: Array, from: Vector3, force: float, st) -> void:
 	var nst = {"tr": tr, "state": "fall", "t": _now, "inst": inst}
 	trees[id] = nst
 	gone[id] = true
+	# devrilen ağacın gövde çarpışması hemen kalksın: Vegetation gövdeleri yalnız oyuncu 16 m'lik yeni hücreye geçince
+	# yeniden dağıtıyordu -> devrilen ağacın yerinde görünmez, tırmanılabilir gövde kalıyordu ("ormanda görünmez yapılar")
+	var veg = _veg()
+	if veg:
+		veg.last_cell = Vector2i(999999, 999999)
 	var base = Vector3(tr[0], tr[1] - 0.3, tr[2])
 	var d = Vector3(tr[0] - from.x, 0, tr[2] - from.z)
 	if d.length() < 0.1:
@@ -486,7 +494,7 @@ func _restore_tree(id: Vector3i) -> void:
 	gone.erase(id)
 	var veg = _veg()
 	if veg:
-		veg.last_cell = Vector2i(999999, 999999)
+		veg.release_tree(id)   # kül gövdeden canlı ağaç gövdesine dön
 
 
 func _restore_oldest(state: String) -> void:

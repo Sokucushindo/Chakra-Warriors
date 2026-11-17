@@ -14,6 +14,13 @@ const MODE_GROUP := ["hachimon", "hachimon_3", "kairiki_muso", "barion", "chi_no
 
 
 func add(name: String, dur: float, mods: Dictionary) -> void:
+	# "alınan hasar -%" indirimi yok (kullanıcı 2026-11-16: "her yerden alınan hasar çok düşünce aşırı OP oluyor"):
+	# güç modları / yemek / tapınak indirimsiz; kanon engeller kalkana, içinden geçirme ıskaya döner (Combat.armor_to_shield).
+	# armor > 1 (zırh kırılması gibi bedeller) kalır. Oyuncu ve düşman aynı (Fighter.add_buff).
+	if caster != null and is_instance_valid(caster) and not (caster is Player) and caster.has_method("add_buff"):
+		caster.add_buff(name, dur, mods)   # düşman / klon / çağrı: kalkan dönüşümü Fighter.add_buff'ta
+		return
+	mods = Combat.armor_to_shield(Game.player, name, mods)   # fiziksel engel -> kalkan, içinden geçirme -> ıska, mod -> yok
 	if caster != null and is_instance_valid(caster) and not (caster is Player):
 		if caster.has_method("add_buff"):
 			caster.add_buff(name, dur, mods)

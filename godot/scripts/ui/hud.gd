@@ -447,6 +447,8 @@ func _make_slot(parent: Control, draw_cb: Callable) -> Array:
 ## Yuvarlak köşeli dikdörtgenin köşe noktaları (dolgu / çizgi için)
 static func _rr_pts(r: Rect2, rad: float, seg := 6) -> PackedVector2Array:
 	var pts = PackedVector2Array()
+	# yarıçap kutunun yarısını aşarsa köşe yayları üst üste biner -> çokgen kendini keser, çizim hatası (yuva ad şeridi 24 / 13)
+	rad = maxf(0.0, minf(rad, minf(r.size.x, r.size.y) * 0.5 - 0.5))
 	var cs = [Vector2(r.end.x - rad, r.position.y + rad), Vector2(r.end.x - rad, r.end.y - rad),
 		Vector2(r.position.x + rad, r.end.y - rad), Vector2(r.position.x + rad, r.position.y + rad)]
 	for c in 4:

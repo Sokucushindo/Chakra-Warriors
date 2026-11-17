@@ -71,6 +71,10 @@ var wander_to = Vector3.ZERO
 ## arch["skill"] verilmezse güçten türetilir: haydut ~0.1, chūnin ~0.4, jōnin ~0.6, S-rank/boss ~0.9
 var skill := 0.2
 var dodge_cd := 0.0
+var _dg_chain := 0       # art arda kaçış (oyuncuyla aynı kural)
+var _dg_last := -9.0
+var _dg_k := 1.0
+var _dg_inv := 0.0       # kaçışın darbeyi boşa çıkaran penceresi (oyuncunun evade_inv'i ile aynı)
 var hit_times: Array = []     # son darbelerin zamanı (kombodan sıyrılma)
 var dodge_dir := Vector3.ZERO
 var _saw_busy := false
@@ -381,17 +385,28 @@ func _ready() -> void:
 	if arch.has("beast"):
 		FX.aura(self, BeastModels.INFO[arch["beast"]]["chakra"], 1.2, Vector3(0, 0.9, 0), 0.0)   # sönmeyen canavar chakrası
 	if skill > 0.35:
-		Jutsu.jutsu_cast.connect(_on_someone_cast)
+		Jutsu.jutsu_prep.connect(_on_someone_prep)
 	if arch.get("clan_auto", false) and not has_node("ClanTrait"):
 		ClanWorld.after_spawn_enemy(self, String(arch["clan"]), level)   # klan gözleri (Sharingan/Byakugan...) + klan davranışı
 
 
-## Usta düşman, hedefi jutsu yaparken mühürleri okur ve yana atılır
-func _on_someone_cast(caster: Node, _id: String) -> void:
-	if dead or caster != target or not is_instance_valid(caster) or dodge_cd > 0.0:
+## Usta düşman, hedefi mühür dizerken okur ve salınım anında yana seker (zarsız). Tepki süresi ustalıktan:
+## mühür ondan kısaysa (kombodan jutsuya geçiş 0.3 sn) yetişemez. Yakalanmışsa (Combat.caught: sersem, yerde,
+## kendi saldırısında, arkadan) kaçamaz. Küçük teknikleri (rütbe C ve altı) yalnız usta (0.6+) okur.
+func _on_someone_prep(caster: Node, id: String, release_in: float) -> void:
+	if dead or caster != target or not is_instance_valid(caster) or caster.global_position.distance_to(global_position) > 30.0:
 		return
-	if caster.global_position.distance_to(global_position) < 30.0 and randf() < skill * 0.4:
-		_dodge(caster, true)
+	var jd: Dictionary = Data.jutsu.get(id, {})
+	if String(jd.get("category", "")) in ["medical"] or String(jd.get("shape", "")) in ["transform", "stealth", "sensor", "utility", "heal", "revive", "clone", "counter"]:
+		return
+	if int(jd.get("tier", 2)) < 3 and skill < 0.6:
+		return
+	var react = lerpf(0.6, 0.15, skill)
+	if release_in < react:
+		return
+	get_tree().create_timer(maxf(release_in - 0.05, react)).timeout.connect(func():
+		if is_instance_valid(self) and not dead and is_instance_valid(caster) and dodge_cd <= 0.0 and not Combat.caught(self, caster):
+			_dodge(caster, true))
 
 
 func _charge_begin() -> void:
@@ -418,6 +433,17 @@ func _dodge(from: Node3D, side := true) -> void:
 	if state in ["hitstun", "knockdown", "cast", "attack"] or has_status("stun") or has_status("bind"):
 		return
 	dodge_cd = lerpf(2.6, 1.0, skill)
+	# oyuncunun kaçışıyla aynı bedel (Player._try_evade): 3 chakra, art arda kaçış kısalır, chakrasız kısa
+	var now = Game.now()
+	_dg_chain = _dg_chain + 1 if now - _dg_last < 1.6 else 0
+	_dg_last = now
+	_dg_k = pow(0.72, _dg_chain)
+	if chakra >= 3.0:
+		chakra -= 3.0
+		_dg_inv = 0.2 * _dg_k
+	else:
+		_dg_k *= 0.55
+		_dg_inv = 0.0
 	var away = global_position - from.global_position
 	away.y = 0
 	away = away.normalized() if away.length() > 0.01 else -face_dir()
@@ -656,7 +682,7 @@ func _physics_process(dt: float) -> void:
 					_dodge(target, false)
 					ranged_cd = minf(ranged_cd, 0.3)
 		"dodge":
-			step_move(dodge_dir * (16.0 + skill * 8.0), dt, false)
+			step_move(dodge_dir * (16.0 + skill * 8.0) * maxf(_dg_k, 0.35), dt, false)
 			if state_t > 0.22:
 				state = "chase"
 				attack_cd = minf(attack_cd, 0.15)   # kaçtıktan sonra hemen karşılık
@@ -687,13 +713,19 @@ func _think(dt: float) -> void:
 		return
 	think_t = 0.25
 	var pl = Game.player
+	# hedef gizlendi (Kakuremino, yer altı...): izini kaybeder (dibindeyse 2.5 m görür — Combat.hidden_from)
+	if target != null and is_instance_valid(target) and Combat.hidden_from(self, target):
+		target = null
+		if state in ["chase", "recover", "guard"]:
+			state = "idle"
+		Combat.popup_text(global_position + Vector3.UP * (height + 0.8), "?", Color(0.85, 0.85, 0.6))
 	if blind_t > 0.0 or (target != null and is_instance_valid(target) and not Combat.hostile(self, target)):
 		target = null   # hedef artık dost (yardım kabul edildi, takım değişti): bırak
 	elif target == null or not is_instance_valid(target) or target.is_dead():
 		var prev = target
 		target = null
 		# kovalama sürerken hedef bırakılmaz (oyuncu sıçrayıp kaçınca görüşten çıktı diye unutulmuyordu)
-		if prev != null and is_instance_valid(prev) and not prev.is_dead() and Combat.hostile(self, prev) and state in ["chase", "leap", "attack", "recover"] 				and global_position.distance_to(prev.global_position) < (110.0 if _is_ninja() else 60.0) and not (prev == pl and Buffs.has("henge")):
+		if prev != null and is_instance_valid(prev) and not prev.is_dead() and Combat.hostile(self, prev) and state in ["chase", "leap", "attack", "recover"] 				and global_position.distance_to(prev.global_position) < (110.0 if _is_ninja() else 60.0) and not (prev == pl and Buffs.has("henge")) and not Combat.hidden_from(self, prev):
 			target = prev
 		# görüş: ninja düşmanlar uzaktan fark eder (eskiden 26 m, yanına kadar gelmek gerekiyordu)
 		var best = (55.0 if not (arch.get("jutsu", []) as Array).is_empty() else 40.0) if not Buffs.has("henge") else 0.0
@@ -703,6 +735,8 @@ func _think(dt: float) -> void:
 			if f.get("team") == "dummy":
 				continue
 			var d = global_position.distance_to(f.global_position)
+			if Combat.hidden_from(self, f):
+				continue   # gizlenme tekniği: fark edilmez
 			if f == pl and Buffs.has("henge"):
 				continue
 			if f == pl:
@@ -780,12 +814,12 @@ func _chase(dt: float) -> void:
 	# chakrası biten jutsucu: araya mesafe koyup chakra toplar (oyuncuyla aynı kural); dibindeyse önce geri sıçrar
 	if chg_cd <= 0.0 and _is_ninja() and not has_status("sealed"):
 		var costs = (arch.get("jutsu", []) as Array).filter(func(id): return Data.jutsu.has(id) and not Stats.is_taijutsu(Data.jutsu[id])).map(func(id): return jutsu_cost(id))
+		# kanon: chakrası azalan ninja dövüşün ortasında durup yoğurmaz, taijutsu / aletle sürdürür; toplamayı ancak rakip
+		# uzaktayken (14 m+) ya da yakalanmışken (yerde, sersem, kendi tekniğinde) yapar. Ölçüm (2026-11-16): eskiden rakip
+		# 4 m ötedeyken bile toplayıp dövüşün %16-23'ünü duruyordu.
 		if not costs.is_empty() and chakra < float(costs.min()):
-			if d > 3.6:
+			if d > 14.0 or (d > 3.6 and Combat.caught(target, self)):
 				_charge_begin()
-				return
-			elif dodge_cd <= 0.0:
-				_dodge(target, false)
 				return
 	# menzilli: jutsu ya da kunai
 	# jutsu kullanan düşman: uzaktan ve sık atar, yakında da arada bir (eskiden 5-24 m, %30)
@@ -830,6 +864,7 @@ func _chase(dt: float) -> void:
 			jgap = nowj + randf_range(2.5, 4.0) / (1.0 + skill * 1.5)   # usta ninja mühürü hızlı dizer: Güç 30 1.7-2.8 sn, Güç 80 1.3-2.1 sn
 			set_meta("cast_id", pick)
 			state = "cast"
+			Jutsu.jutsu_prep.emit(self, pick, 0.55)
 			CastAnim.play(self, get_meta("cast_id"), 0.55)  # mühür + atma koreografisi
 			state_t = 0.0
 			model.play("idle", 0.05)
@@ -1363,8 +1398,37 @@ func threat_color() -> Color:
 func take_hit(info: Dictionary) -> void:
 	if sub_inv > 0.0 and not dead:
 		return   # Kawarimi anı: darbe kütüğe gider
+	# hazır Kawarimi (jutsu yuvası; oyuncuyla aynı — Player.take_hit): bloktan önce gelir, darbeyi kütük alır, saldıranın
+	# arkasına geçer; usta ninjanın kütüğü etiketli patlar (PathJutsu.kawa_trap). Bedeli jutsuda ödendi.
+	var katk = info.get("attacker")
+	if not dead and Game.now() < float(get_meta("kawa_armed_until", 0.0)) and katk is Node3D and is_instance_valid(katk) and not info.get("sure", false):
+		remove_meta("kawa_armed_until")
+		var kat = global_position
+		FX.smoke_puff(kat + Vector3.UP, 0.9, 14)
+		Combat.kawarimi_log(kat, Vector3(info.get("dir", Vector3.ZERO)))
+		var behind = katk.global_position - katk.face_dir() * 2.0 if katk.has_method("face_dir") else global_position
+		behind.y = _floor_y(behind.x, behind.z)
+		global_position = PlayerCombat.safe_dest(self, global_position, behind)
+		Combat.popup_text(global_position + Vector3.UP * 2.2, "Kawarimi!", Color(0.9, 0.9, 0.6))
+		PathJutsu.kawa_trap(self, kat)
+		sub_inv = 0.5
+		target = katk
+		state = "chase"
+		attack_cd = 0.0
+		return
 	if not dead and Combat.speed_dodge(self, info):   # Jinton: Mikiri — bulanık yan adım (oyuncuyla aynı)
 		return
+	if not dead and state == "dodge" and state_t < _dg_inv and not info.get("sure", false):   # kaçışın ilk anı (Player.take_hit ile aynı)
+		if not info.get("melee", false) and float(info.get("_r", 0.0)) >= 3.0:
+			info = info.duplicate()
+			info["dmg"] = float(info.get("dmg", 5.0)) * 0.35
+			for s in ["stun", "launch", "knock", "bind"]:
+				info.erase(s)
+			Combat.popup_text(global_position + Vector3.UP * (height + 0.4), "Sıyırdı", Color(1.0, 0.75, 0.5))
+		else:
+			Combat.popup_text(global_position + Vector3.UP * (height + 0.4), "Iska!", Color(0.75, 0.9, 1.0))
+			chakra = minf(max_chakra, chakra + 3.0)
+			return
 	if Combat.storm and state == "knockdown" and down_land >= 0.0 and float(info.get("knock", 2.0)) > 0.5:
 		if down_otg >= 1:
 			return   # yerdeyken yalnız bir ek darbe yer (yerde sonsuz dövülmez)
@@ -1420,16 +1484,12 @@ func take_hit(info: Dictionary) -> void:
 		return
 	if not info.get("kamui", false) and EnemyArts.kamui_phase(self):
 		return   # Kamui geçirgenliği: darbe içinden geçti (katılaşma anında vurulabilir)
-	# Susanoo içindeki düşman: darbeler Susanoo'ya çarpar (oyuncunun İnsansı kademesiyle aynı azaltma; eskiden hiç azaltmıyordu)
+	# Susanoo içindeki düşman: darbeler Susanoo'ya çarpar -> savrulmaz; hasarı Susanoo kalkanı emer (Combat.absorb, oyuncuyla
+	# aynı: EnemyArts._susanoo_after). Eski "%50 / Entenka %40 azaltma" kaldırıldı (kullanıcı 2026-11-16).
 	if has_meta("ea_susanoo") and is_instance_valid(get_meta("ea_susanoo")):
 		info = info.duplicate()
-		info["dmg"] = float(info.get("dmg", 5.0)) * 0.5
 		info["knock"] = float(info.get("knock", 2.0)) * 0.2
 		info["launch"] = 0.0
-	# Amaterasu: Entenka (oyuncudaki Buff ile aynı): kara alevli Susanoo hasarı %40 azaltır
-	if has_meta("entenka_until") and Time.get_ticks_msec() < int(get_meta("entenka_until")):
-		info = info.duplicate()
-		info["dmg"] = float(info.get("dmg", 5.0)) * 0.6
 	# Yata no Kagami (oyuncudaki Buff ile aynı): ayna kalkan açıkken gelen hasar %95 azalır
 	if has_meta("yata_until") and Time.get_ticks_msec() < int(get_meta("yata_until")):
 		info = info.duplicate()
@@ -1488,6 +1548,7 @@ func take_hit(info: Dictionary) -> void:
 		info = info.duplicate()
 		info["dmg"] = info.get("dmg", 5.0) * Combat.block_pass(info, 0.15) * Combat.jutsu_factor(info)   # jutsu bloğu deler (büyüdükçe daha çok)
 		info["kind"] = "guarded"
+		info["dmg"] = maxf(0.0, Combat.absorb(self, float(info["dmg"])))   # kalkan blokta da önce emer (oyuncuyla aynı sıra)
 		hp -= info["dmg"]
 		if hp <= 0.0:   # bloklanan darbe de öldürebilir (yoksa can eksiye düşüp düşman ölümsüz kalıyordu)
 			hp = 0.0
@@ -1508,11 +1569,13 @@ func take_hit(info: Dictionary) -> void:
 	var chain = hit_times.filter(func(t2): return now_k - t2 < 1.4).size() + 1
 	var do_sub := false
 	if Combat.storm:
-		do_sub = info.get("melee", false) and _is_ninja() and sub_bars >= 1.0 and chain >= 5 - int(round(skill * 3.0)) and not has_status("bind") and not has_status("stun")
+		do_sub = info.get("melee", false) and _is_ninja() and sub_bars >= 1.0 and chakra >= Combat.KAWARIMI_COST and chain >= 5 - int(round(skill * 3.0)) and not has_status("bind") and not has_status("stun")
 		if do_sub:
 			sub_bars -= 1.0
+			chakra -= Combat.KAWARIMI_COST
 			hit_times.clear()
-	elif sub_cd <= 0.0 and randf() < maxf(arch.get("sub", 0.0), skill * 0.25) and hp < max_hp * (0.7 + skill * 0.2):
+	elif sub_cd <= 0.0 and chakra >= Combat.KAWARIMI_COST and randf() < maxf(arch.get("sub", 0.0), skill * 0.25) and hp < max_hp * (0.7 + skill * 0.2):
+		chakra -= Combat.KAWARIMI_COST
 		do_sub = true
 		sub_cd = lerpf(16.0, 9.0, skill)
 	if do_sub:

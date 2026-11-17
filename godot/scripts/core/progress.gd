@@ -834,7 +834,7 @@ func interact(it: Dictionary) -> void:
 			Buffs.add("shrine", 300.0, {"armor": 0.9, "melee": 1.05})
 			Game.player.chakra = Game.player.max_chakra
 			Game.save_game()
-			Hud.dialog("Tapınak", "Ellerini birleştirip dua ettin. İçin huzurla doldu: 5 dakika boyunca alınan hasar -%10, güç +%5. Chakran yenilendi. (Oyun kaydedildi)", [respec_option()])
+			Hud.dialog("Tapınak", "Ellerini birleştirip dua ettin. İçin huzurla doldu: 5 dakika boyunca güç +%5. Chakran yenilendi. (Oyun kaydedildi)", [respec_option()])
 		"trainer":
 			var vid: String = it.get("village", home())
 			var topts = trainer_options(it["kinds"]) if it.has("kinds") else village_trainer_options(vid)
