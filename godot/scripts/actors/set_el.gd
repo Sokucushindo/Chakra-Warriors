@@ -5,7 +5,7 @@ extends RefCounted
 const A = preload("res://scripts/actors/set_v2_a.gd")
 const SETS := ["set_shugonin"]
 ## Parti dosyaları: her biri DONE listesi + recipe(k, sid). Listeye giren set eski yapımın yerine geçer.
-const PART_FILES := ["res://scripts/actors/set_el_a.gd", "res://scripts/actors/set_el_b.gd", "res://scripts/actors/set_el_c.gd", "res://scripts/actors/set_el_d.gd", "res://scripts/actors/set_el_e.gd"]
+const PART_FILES := ["res://scripts/actors/set_el_a.gd", "res://scripts/actors/set_el_b.gd", "res://scripts/actors/set_el_c.gd", "res://scripts/actors/set_el_d.gd", "res://scripts/actors/set_el_e.gd", "res://scripts/actors/set_el_f.gd", "res://scripts/actors/set_el_g.gd", "res://scripts/actors/set_el_h.gd"]
 ## Biten set -> parti dosyası (_tmp/kiyafet/el_sync.py yazar): oyunda parti betikleri yalnız gerekince yüklenir
 const MAP := {"set_aburame": "set_el_a.gd", "set_aogiri": "set_el_e.gd", "set_chinoike": "set_el_c.gd", "set_funato": "set_el_c.gd", "set_hagoromo": "set_el_d.gd", "set_iburi": "set_el_c.gd", "set_iwa_eski": "set_el_d.gd", "set_iwa_kunoichi": "set_el_e.gd", "set_jinmon": "set_el_b.gd", "set_kaguya": "set_el_a.gd", "set_keimu": "set_el_a.gd", "set_konoha_eski": "set_el_d.gd", "set_kumo_kenshi": "set_el_e.gd", "set_kumo_kunoichi": "set_el_e.gd", "set_kumo_uta": "set_el_d.gd", "set_kurama": "set_el_c.gd", "set_kuro_iryo": "set_el_e.gd", "set_kusa": "set_el_b.gd", "set_oinin": "set_el_d.gd", "set_oto": "set_el_a.gd", "set_oto_yonin": "set_el_a.gd", "set_rengo": "set_el_a.gd", "set_sansho": "set_el_d.gd", "set_shimo": "set_el_b.gd", "set_taki": "set_el_b.gd", "set_tani": "set_el_c.gd", "set_uzumaki_haha": "set_el_e.gd", "set_uzushio": "set_el_b.gd", "set_yamanaka": "set_el_c.gd", "set_yu": "set_el_b.gd"}
 static var _cache := {}
