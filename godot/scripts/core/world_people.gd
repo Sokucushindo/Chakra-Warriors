@@ -201,7 +201,7 @@ static func look_of(p: Dictionary) -> Dictionary:
 		if uni != "":
 			lk = Outfits.wear_set(lk, uni)
 			lk["keep_hair"] = true
-		elif int(p.get("rank", 0)) >= 1 and String(p.get("village", "")) in ["konoha", "suna", "kiri", "kumo", "iwa"]:
+		elif int(p.get("rank", 0)) >= 1 and Outfits.has_uniform(String(p.get("village", ""))):
 			# chūnin ve üstü köyünün üniformasını giyer (azı kendi kıyafetiyle: kanonda da öyle)
 			var rng = RandomNumberGenerator.new()
 			rng.seed = hash(String(p.get("id", "")) + "|uniforma")

@@ -88,7 +88,7 @@ const SETS := {
 	"set_keimu": {"name": "Keimu Butai Shōzoku", "slot": "set", "price": 900, "rank": 2, "clan": "uchiha", "village": "konoha", "desc": "Konoha Askeri Polisi'nin üniforması: dik yakalı yeşil-gri yelek, kolda birlik arması, sırtta yelpaze. Yalnız köydeki Uchiha'lar.",
 		"stats": {"def": 13, "chakra": 20, "melee": 0.04}, "c1": Color(0.1, 0.12, 0.2), "c2": Color(0.1, 0.12, 0.2),
 		"parts": [["uzun_gomlek", Color(0.1, 0.12, 0.2), Color(0.1, 0.12, 0.2)], ["bol_pantolon", Color(0.09, 0.1, 0.17), null], ["duz_yelek", Color(0.29, 0.33, 0.27), null], ["sandalet", Color(0.1, 0.1, 0.12), Color(0.92, 0.92, 0.9)]]},
-	"set_oto": {"name": "Oto Shōzoku", "slot": "set", "price": 420, "rank": 1, "village": "oto", "desc": "Otogakure ninjalarının kıyafeti: 死 yazılı açık renk üst, kırmızı ip kuşak, benekli pantolon ve atkı.",
+	"set_oto": {"name": "Oto Shōzoku", "slot": "set", "price": 420, "rank": 1, "desc": "Otogakure ninjalarının kıyafeti: 死 yazılı açık renk üst, kırmızı ip kuşak, benekli pantolon ve atkı.",
 		"stats": {"def": 7, "speed": 0.02, "chakra": 10}, "c1": Color(0.77, 0.62, 0.42), "c2": Color(0.77, 0.62, 0.42),
 		"parts": [["uzun_gomlek", Color(0.77, 0.62, 0.42), Color(0.77, 0.62, 0.42)], ["ninja_pant", Color(0.58, 0.59, 0.65), null], ["gri_boyunluk", Color(0.56, 0.57, 0.63), null], ["eldiven", Color(0.1, 0.1, 0.12), null], ["sandalet", Color(0.1, 0.1, 0.12), Color(0.92, 0.92, 0.9)]]},
 	"set_aburame": {"name": "Aburame Gaitō", "slot": "set", "price": 500, "rank": 0, "clan": "aburame", "desc": "Aburame klanının kapüşonlu uzun yeşil paltosu. Bedeni örter; böcekler içinde yaşar.",
@@ -100,6 +100,30 @@ const SETS := {
 	"set_kaguya": {"name": "Kaguya Shōzoku", "slot": "set", "price": 450, "rank": 1, "clan": "kaguya", "desc": "Kaguya klanı savaşçılarının açık gri kimonosu ve kalın mor burgu ip kuşağı.",
 		"stats": {"def": 8, "hp": 20, "melee": 0.05}, "c1": Color(0.72, 0.73, 0.78), "c2": Color(0.72, 0.73, 0.78),
 		"parts": [["kimono_ust", Color(0.72, 0.73, 0.78), Color(0.72, 0.73, 0.78)], ["hakama", Color(0.2, 0.2, 0.25), null], ["sandalet", Color(0.1, 0.1, 0.12), Color(0.92, 0.92, 0.9)]]},
+	"set_oto_yonin": {"name": "Oto no Yonin Shōzoku", "slot": "set", "price": 1300, "rank": 2, "desc": "Otogakure'nin seçkin dörtlüsünün giysisi: açık bej tunik, belde kalın mor burgu ip, koyu şort ve kolluk.",
+		"stats": {"def": 12, "speed": 0.03, "chakra": 25}, "c1": Color(0.77, 0.71, 0.59), "c2": Color(0.77, 0.71, 0.59),
+		"parts": [["tunik", Color(0.77, 0.71, 0.59), Color(0.77, 0.71, 0.59)], ["kisa_sort", Color(0.17, 0.17, 0.19), null], ["burgu_ip_kusak", Color(0.45, 0.38, 0.66), null], ["sandalet", Color(0.1, 0.1, 0.12), Color(0.92, 0.92, 0.9)]]},
+	"set_taki": {"name": "Taki Shōzoku", "slot": "set", "price": 520, "rank": 1, "desc": "Takigakure ninjalarının deniz mavisi giysisi, çapraz koyu kuşakla.",
+		"stats": {"def": 8, "hp": 20, "speed": 0.02}, "c1": Color(0.2, 0.45, 0.47), "c2": Color(0.2, 0.45, 0.47),
+		"parts": [["uzun_gomlek", Color(0.2, 0.45, 0.47), Color(0.2, 0.45, 0.47)], ["ninja_pant", Color(0.16, 0.33, 0.37), null], ["sandalet", Color(0.1, 0.1, 0.12), Color(0.92, 0.92, 0.9)]]},
+	"set_uzushio": {"name": "Uzushio Yoroi", "slot": "set", "price": 1100, "rank": 1, "clan": "uzumaki", "desc": "Uzumaki klanının eski savaş zırhı; sırtında kızıl girdap, omuzlarında burgu ip.",
+		"stats": {"def": 14, "hp": 35, "chakra": 20}, "c1": Color(0.2, 0.15, 0.13), "c2": Color(0.2, 0.15, 0.13),
+		"parts": [["uzun_gomlek", Color(0.2, 0.15, 0.13), Color(0.2, 0.15, 0.13)], ["hakama", Color(0.18, 0.13, 0.12), null], ["sengoku_kahve", Color(0.32, 0.24, 0.19), null], ["zori", Color(0.2, 0.16, 0.12), Color(0.6, 0.15, 0.13)]]},
+	"set_jinmon": {"name": "Jinmon Butai Shōzoku", "slot": "set", "price": 2200, "rank": 3, "village": "konoha", "desc": "Konoha Sorgu ve İşkence Birliği: gri dik yakalı üniforma, üstüne uzun siyah palto. Yalnız Konoha jōninleri.",
+		"stats": {"def": 16, "chakra": 30, "hp": 25}, "c1": Color(0.3, 0.31, 0.36), "c2": Color(0.3, 0.31, 0.36),
+		"parts": [["yakali", Color(0.3, 0.31, 0.36), Color(0.3, 0.31, 0.36)], ["ninja_pant", Color(0.28, 0.29, 0.34), null], ["uzun_trench", Color(0.09, 0.09, 0.11), Color(0.09, 0.09, 0.11)], ["sandalet", Color(0.1, 0.1, 0.12), Color(0.92, 0.92, 0.9)]]},
+	"set_kusa": {"name": "Kusa Shōzoku", "slot": "set", "price": 520, "rank": 2, "desc": "Kusagakure ninjalarının ot yeşili yelekli üniforması.",
+		"stats": {"def": 11, "hp": 20, "chakra": 15}, "c1": Color(0.17, 0.22, 0.15), "c2": Color(0.17, 0.22, 0.15),
+		"parts": [["uzun_gomlek", Color(0.17, 0.22, 0.15), Color(0.17, 0.22, 0.15)], ["ninja_pant", Color(0.15, 0.19, 0.14), null], ["chunin_yelek", Color(0.26, 0.42, 0.21), null], ["sandalet", Color(0.1, 0.1, 0.12), Color(0.92, 0.92, 0.9)]]},
+	"set_yu": {"name": "Yu Shōzoku", "slot": "set", "price": 520, "rank": 2, "desc": "Yugakure ninjalarının sıcak kızıl yelekli üniforması.",
+		"stats": {"def": 11, "hp": 20, "chakra": 15}, "c1": Color(0.24, 0.17, 0.15), "c2": Color(0.24, 0.17, 0.15),
+		"parts": [["uzun_gomlek", Color(0.24, 0.17, 0.15), Color(0.24, 0.17, 0.15)], ["ninja_pant", Color(0.21, 0.15, 0.14), null], ["chunin_yelek", Color(0.6, 0.3, 0.22), null], ["sandalet", Color(0.1, 0.1, 0.12), Color(0.92, 0.92, 0.9)]]},
+	"set_shimo": {"name": "Shimo Shōzoku", "slot": "set", "price": 520, "rank": 2, "desc": "Shimogakure ninjalarının soğuk gri-mavi yelekli üniforması.",
+		"stats": {"def": 11, "hp": 20, "chakra": 15}, "c1": Color(0.2, 0.24, 0.3), "c2": Color(0.2, 0.24, 0.3),
+		"parts": [["uzun_gomlek", Color(0.2, 0.24, 0.3), Color(0.2, 0.24, 0.3)], ["ninja_pant", Color(0.18, 0.21, 0.27), null], ["chunin_yelek", Color(0.48, 0.57, 0.66), null], ["sandalet", Color(0.1, 0.1, 0.12), Color(0.92, 0.92, 0.9)]]},
+	"set_tani": {"name": "Tani Shōzoku", "slot": "set", "price": 520, "rank": 2, "desc": "Tanigakure ninjalarının toprak rengi yelekli üniforması.",
+		"stats": {"def": 11, "hp": 20, "chakra": 15}, "c1": Color(0.23, 0.2, 0.17), "c2": Color(0.23, 0.2, 0.17),
+		"parts": [["uzun_gomlek", Color(0.23, 0.2, 0.17), Color(0.23, 0.2, 0.17)], ["ninja_pant", Color(0.2, 0.17, 0.15), null], ["chunin_yelek", Color(0.46, 0.37, 0.27), null], ["sandalet", Color(0.1, 0.1, 0.12), Color(0.92, 0.92, 0.9)]]},
 	"set_kage_no": {"name": "Kage no Shinobi", "slot": "set", "price": 450, "rank": 1, "desc": "Gölge ninja üstü, siyah taktik pantolon, kayış koşum, siyah tabi. Gece görevleri için sessiz giysi.",
 		"stats": {"def": 7, "speed": 0.06}, "c1": Color(0.1, 0.1, 0.12), "c2": Color(0.18, 0.18, 0.2),
 		"parts": [["golge_ust", Color(0.1, 0.1, 0.12), Color(0.18, 0.18, 0.2)], ["siyah_pant", Color(0.08, 0.08, 0.1), null], ["kayis_kosum", Color(0.25, 0.2, 0.16), null], ["siyah_tabi", Color(0.08, 0.08, 0.1), null]]},
@@ -189,7 +213,7 @@ static func rank_gear_ok(id: String) -> bool:
 
 
 const ANBU_SETS := ["set_anbu_konoha", "set_anbu_kaptan", "set_anbu_yami", "set_anbu_kasumi", "set_anbu_wakate", "set_anbu_byakue"]
-const SHOP_SETS := ["set_rengo", "set_keimu", "set_oto", "set_aburame", "set_shugonin", "set_kaguya", "set_joki", "set_goken", "set_genin", "set_shinobi", "set_chunin", "set_suna_chunin", "set_kiri_chunin", "set_kumo_chunin", "set_iwa_chunin", "set_uchiha", "set_suna", "set_tabibito", "set_iryonin", "set_kenpo", "set_kenshi", "set_samurai", "set_sengoku", "set_kage_no", "set_ame", "set_soryo", "set_ronin", "set_yuki_tabi", "set_matsuri", "set_kurenai_kenpo", "set_ne", "set_sennin_shugyo"]
+const SHOP_SETS := ["set_oto_yonin", "set_taki", "set_uzushio", "set_jinmon", "set_kusa", "set_yu", "set_shimo", "set_tani", "set_rengo", "set_keimu", "set_oto", "set_aburame", "set_shugonin", "set_kaguya", "set_joki", "set_goken", "set_genin", "set_shinobi", "set_chunin", "set_suna_chunin", "set_kiri_chunin", "set_kumo_chunin", "set_iwa_chunin", "set_uchiha", "set_suna", "set_tabibito", "set_iryonin", "set_kenpo", "set_kenshi", "set_samurai", "set_sengoku", "set_kage_no", "set_ame", "set_soryo", "set_ronin", "set_yuki_tabi", "set_matsuri", "set_kurenai_kenpo", "set_ne", "set_sennin_shugyo"]
 ## Boş bırakılamayan yuvalar (çıplak kalınmaz)
 const REQUIRED := ["govde", "bacak", "ayak"]
 

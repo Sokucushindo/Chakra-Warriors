@@ -382,16 +382,23 @@ static func _npc_band_wear(L: Dictionary, arch: String, village: String) -> void
 
 ## Köy ninjasına köyünün GERÇEK chūnin/jōnin setini giydirir (yelek modeli, üst/alt, koruyucular).
 ## Eskiden birçok yer yalnız L["vest"] = köy rengi yazıyordu: model Konoha yeleği kalıyordu (kullanıcı: "Kumo chūnini Konoha kıyafeti").
+const MINOR_UNIFORM := {"kusa": "set_kusa", "taki": "set_taki", "yu": "set_yu", "shimo": "set_shimo", "tani": "set_tani", "ame": "set_ame", "oto": "set_oto"}
+
+
+static func has_uniform(vid: String) -> bool:
+	return vid in ["konoha", "suna", "kiri", "kumo", "iwa"] or MINOR_UNIFORM.has(vid)
+
+
 static func village_set(L: Dictionary, vid := "", jonin := false) -> void:
 	if vid == "":
 		vid = String(L.get("village", Progress.home()))
 	var vk = {"konoha": "", "suna": "suna_", "kiri": "kiri_", "kumo": "kumo_", "iwa": "iwa_"}
-	if vk.has(vid):
+	if vk.has(vid) or MINOR_UNIFORM.has(vid):
 		var keep = {}
 		for k in ["hair", "hair_style", "gender", "skin", "eye", "age", "face_paint", "face_paint_col", "keep_hair", "own_hair"]:
 			if L.has(k):
 				keep[k] = L[k]
-		var sid = "set_%s%s" % [vk[vid], "jonin" if jonin else "chunin"]
+		var sid = String(MINOR_UNIFORM[vid]) if MINOR_UNIFORM.has(vid) else "set_%s%s" % [vk[vid], "jonin" if jonin else "chunin"]
 		Gear.preview_set_look(L, sid)
 		L.merge(keep, true)
 		L["set_id"] = sid
@@ -499,7 +506,11 @@ const TYPE_WEAR := [
 	{"set": "set_kaguya", "clan": "kaguya", "rank": 0, "p": 0.7},
 	{"set": "set_keimu", "clan": "uchiha", "village": "konoha", "rank": 1, "p": 0.45},
 	{"set": "set_shugonin", "village": "konoha", "rank": 3, "p": 0.05},
+	{"set": "set_oto_yonin", "village": "oto", "rank": 2, "p": 0.35},
 	{"set": "set_oto", "village": "oto", "rank": 0, "p": 0.75},
+	{"set": "set_uzushio", "clan": "uzumaki", "rank": 1, "p": 0.3},
+	{"set": "set_jinmon", "village": "konoha", "rank": 2, "p": 0.04},
+	{"set": "set_taki", "village": "taki", "rank": 0, "p": 0.6},
 	{"set": "set_rengo", "villages": ["konoha", "suna", "kiri", "kumo", "iwa"], "rank": 2, "p": 0.07},
 ]
 

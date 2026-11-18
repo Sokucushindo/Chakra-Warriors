@@ -3,7 +3,7 @@ extends RefCounted
 
 const A = preload("res://scripts/actors/set_v2_a.gd")
 
-const SETS := ["set_rengo", "set_keimu", "set_oto", "set_aburame", "set_shugonin", "set_kaguya"]
+const SETS := ["set_rengo", "set_keimu", "set_oto", "set_aburame", "set_shugonin", "set_kaguya", "set_oto_yonin", "set_taki", "set_uzushio", "set_jinmon", "set_kusa", "set_yu", "set_shimo", "set_tani"]
 
 const G_SHINOBI := [[-0.6, 0.8, 0.5, 0.8], [0.5, 0.8, 0.35, 0.15], [-0.1, 0.8, -0.55, 0.15], [0.05, 0.55, 0.2, 0.4], [-0.6, -0.35, -0.75, -0.75], [-0.25, -0.25, -0.1, -0.85], [-0.1, -0.85, 0.4, -0.85], [0.15, -0.2, 0.3, -0.4], [0.65, -0.35, 0.8, -0.7]]
 const G_SHI := [[-0.8, 0.8, 0.8, 0.8], [-0.2, 0.8, -0.7, -0.1], [-0.35, 0.35, 0.1, 0.35], [0.1, 0.35, -0.5, -0.75], [-0.3, 0.2, 0.0, -0.1], [0.35, 0.8, 0.35, -0.6], [0.35, -0.6, 0.85, -0.75], [0.35, 0.2, 0.8, 0.4]]
@@ -37,6 +37,14 @@ static func build(m, sid: String, g: Dictionary) -> void:
 		"set_aburame": _aburame(c)
 		"set_shugonin": _shugonin(c)
 		"set_kaguya": _kaguya(c)
+		"set_oto_yonin": _yonin(c)
+		"set_taki": _taki(c)
+		"set_uzushio": _uzushio(c)
+		"set_jinmon": _jinmon(c)
+		"set_kusa": _koy(c, A.K("3f6a34"), A.K("dfe6c8"))
+		"set_yu": _koy(c, A.K("a8503a"), A.K("f0dcc8"))
+		"set_shimo": _koy(c, A.K("7f93a8"), A.K("e6eef4"))
+		"set_tani": _koy(c, A.K("7a6248"), A.K("e4d8c0"))
 	var made = m._sk_end(g)
 	_cache[key] = [made.mesh if made != null else null, c["dg"]]
 	A._dangles(m, c["dg"])
@@ -139,3 +147,56 @@ static func _kaguya(c: Dictionary) -> void:
 		A._ring(c, h + 0.036 + 0.0021 * k, 0.003, 0.017, lt, -PI + k * 0.45, -PI + k * 0.45 + 0.2)
 	A._dg(c, "Hips", Vector3(-0.14, h + 0.03, -0.1), Vector3(-0.1, -1.0, -0.12).normalized(), 0.5, 0.04, pur, 0.22)
 	A._dg(c, "Hips", Vector3(-0.09, h + 0.03, -0.13), Vector3(0.0, -1.0, -0.1).normalized(), 0.38, 0.032, lt, 0.22)
+
+
+## Oto Dörtlüsü (ref Full_Tayuya, Versus_Sound_Four): açık bej tunik, önü açık etek parçası, bilekte koyu kolluk
+static func _yonin(c: Dictionary) -> void:
+	var n: float = c["N"]; var h: float = c["H"]
+	var ln = A.K("9c9078")
+	A._seam(c, [Vector2(-0.07, n - 0.01), Vector2(0.03, n - 0.16), Vector2(0.05, h + 0.12)], 0.009, 0.004, ln)
+	A._seam(c, [Vector2(0.07, n - 0.01), Vector2(0.02, n - 0.1)], 0.009, 0.004, ln)
+	A._stitch(c, Vector2(-0.13, h - 0.14), Vector2(0.13, h - 0.14), 14, ln)
+	A._cuff(c, 0.92, 0.05, 0.006, A.K("2a2830"))
+
+
+## Takigakure (ref Shibuki1): deniz mavisi üst, çapraz koyu kuşak, biyeli yaka ve manşet
+static func _taki(c: Dictionary) -> void:
+	var n: float = c["N"]; var h: float = c["H"]
+	var dk = A.K("1f3a5a"); var lt = A.K("7fc0c4")
+	A._neck(c, 0.0, 0.045, 0.01, lt, 0.14)
+	A._seam(c, [Vector2(0.13, n - 0.05), Vector2(0.0, n - 0.2), Vector2(-0.125, h + 0.08)], 0.02, 0.005, dk, true, 0.012)
+	A._seam(c, [Vector2(0.13, n - 0.05), Vector2(0.0, n - 0.2), Vector2(-0.125, h + 0.08)], 0.02, 0.005, dk, false, 0.012)
+	A._belt(c, h + 0.035, 0.03, dk, A.K("9fb0b8"), 0.034)
+	A._cuff(c, 0.94, 0.026, 0.004, lt)
+
+
+## Uzushio / Uzumaki (ref Ashina_Uzumaki, Uzumaki-Senju_clans): koyu kahve zırh, sırtta kızıl girdap, omuzda burgu ip
+static func _uzushio(c: Dictionary) -> void:
+	var n: float = c["N"]; var h: float = c["H"]; var ch: float = c["C"]
+	var red = A.K("b8322a"); var rope = A.K("d8cfb8")
+	A._spiral(c, 0.0, ch + 0.0, 0.075, 2.0, 0.014, red, false)
+	A._spiral(c, 0.0, ch - 0.06, 0.04, 1.7, 0.009, red, true)
+	A._ring(c, h + 0.05, 0.03, 0.012, rope)
+	for s in [-1.0, 1.0]:
+		A._seam(c, [Vector2(s * 0.14, n - 0.02), Vector2(s * 0.06, n - 0.14)], 0.016, 0.008, rope, true, VL * 0.6)
+
+
+## Sorgu ve İşkence Birliği (ref Ibiki_Blazing): gri dik yakalı üniforma, kemer, uzun siyah palto
+static func _jinmon(c: Dictionary) -> void:
+	var n: float = c["N"]; var h: float = c["H"]
+	var dk = A.K("24262c"); var m = A.K("8a8e96")
+	A._neck(c, 0.0, 0.06, 0.014, A.K("555862"), 0.14)
+	A._btns(c, 0.0, n - 0.08, h + 0.09, 5, 0.008, m)
+	A._seam(c, [Vector2(0.0, n - 0.05), Vector2(0.0, h + 0.05)], 0.005, 0.002, dk)
+	A._belt(c, h + 0.04, 0.03, dk, m, 0.042)
+
+
+## Kendi üniforma kaynağı olmayan küçük köyler: köy renginde yelek, sırtta köy rengi arma, kolda bant
+static func _koy(c: Dictionary, col: Color, lt: Color) -> void:
+	var h: float = c["H"]; var ch: float = c["C"]
+	_round(c, 0.0, ch + 0.01, 0.05, 0.005, lt, false)
+	_round(c, 0.0, ch + 0.01, 0.028, 0.005, col, false, VL + 0.005)
+	A._belt(c, h + 0.035, 0.026, A.K("23252a"), A.K("8a8e96"), 0.034)
+	A._cuff(c, 0.94, 0.022, 0.004, col.darkened(0.25))
+	for s in [-1.0, 1.0]:
+		A._ring_x(c, s * (float(c["UA"]) + 0.08), 0.024, 0.004, col)

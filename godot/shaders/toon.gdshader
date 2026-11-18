@@ -313,7 +313,7 @@ void fragment() {
 	if (hide_masked && COLOR.a > 0.5) discard;
 	if (layer == 2 && outer_cover == 2) discard;
 	if (layer == 2 && outer_cover == 1 && !(rest.z > 0.0 && abs(rest.x) < outer_gap)) discard;   // dış giysinin altından taşmasın
-	if (leg_cover_hem > -50.0 && layer < 2 && rest.y < rig_b.x - 0.02 && rest.y > max(leg_cover_hem + 0.07, rig_b.z + 0.1) && !(outer_cover == 1 && rest.z > 0.0 && abs(rest.x) < max(outer_gap, 0.04) + 0.075)) discard;
+	if (leg_cover_hem > -50.0 && layer < 2 && rest.y < rig_b.x - 0.02 && rest.y > max(leg_cover_hem + 0.07, (outer_cover != 1 && leg_cover_hem < rig_b.z + 0.25) ? rig_b.z + 0.1 : rig_b.y + 0.02) && !(outer_cover == 1 && rest.z > 0.0 && abs(rest.x) < max(outer_gap, 0.04) + 0.075)) discard;
 	bool scalp = layer == 0 && (rest.y > scalp_cut.x || (rest.z < scalp_cut.y && rest.y > scalp_cut.z));
 	if (scalp && scalp_col.a < 0.5) discard;
 	if (palette_mode) {

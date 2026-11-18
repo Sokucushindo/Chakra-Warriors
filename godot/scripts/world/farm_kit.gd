@@ -1,7 +1,6 @@
 extends RefCounted
 ## Tarlalar: araziyi izleyen parseller. Kutu yok; pirinç tarlası = alçak toprak setler arasında su ve tek tek pirinç öbekleri,
-## sebze bahçesi = sürülmüş toprak, yuvarlak sırtlar ve sıra sıra ekin. Su seviyesi parsel başına düzdür; arazi su üstüne çıkan
-## yerde kıyı kendiliğinden oluşur, hiçbir parça havada kalmaz.
+## sebze bahçesi = sürülmüş toprak, yuvarlak sırtlar ve sıra sıra ekin. Her katman araziyi izler, hiçbir parça havada kalmaz.
 
 const SOIL := Color(0.36, 0.26, 0.17)
 const SOIL_D := Color(0.27, 0.19, 0.13)
@@ -107,35 +106,26 @@ static func paddy(b: Builder, x: float, n: float, yaw: float, wd: float, dp: flo
 	var cw: Vector3 = _at(b, x, n, yaw, 0.0, 0.0)
 	var soil: MB = b._cell(cw, 2)
 	var crop: MB = b._cell(cw, 1)
-	var S = maxi(2, int(round(dp / 6.0)))
+	var S = maxi(3, int(round(dp / 4.5)))
 	var hu = wd * 0.5
 	var sd = dp / S
 	for k in S:
 		var v0 = -dp * 0.5 + k * sd
 		var v1 = v0 + sd
-		var sum = 0.0
-		var lo = INF
-		for j in 3:
-			for i in 4:
-				var h = _at(b, x, n, yaw, lerpf(-hu, hu, i / 3.0), lerpf(v0, v1, j / 2.0)).y
-				sum += h
-				lo = minf(lo, h)
-		var level = minf(sum / 12.0, lo + 0.34) + 0.05   # parselin suyu düz; yüksek köşede kıyı oluşur
-		_sheet(soil, b, x, n, yaw, -hu + 0.2, hu - 0.2, v0 + 0.2, v1 - 0.2, level, 0.0, WATER, WATER_D, rng)
+		_sheet(soil, b, x, n, yaw, -hu + 0.2, hu - 0.2, v0 + 0.2, v1 - 0.2, INF, 0.07, WATER, WATER_D, rng)   # su bütün parseli kaplar, araziyi izler
 		var C = [Vector2(-hu, v0), Vector2(hu, v0), Vector2(hu, v1), Vector2(-hu, v1)]
 		for e in 4:
 			if e == 2 and k < S - 1:
 				continue   # ortak set bir kez
-			_ridge(soil, b, x, n, yaw, C[e], C[(e + 1) % 4], 0.55, 0.4, BUND_G, BUND, rng, level - 0.06)
+			_ridge(soil, b, x, n, yaw, C[e], C[(e + 1) % 4], 0.55, 0.42, BUND_G, BUND, rng)
 		var u = -hu + 0.85
 		while u < hu - 0.7:
 			var v = v0 + 0.75 + rng.randf_range(0.0, 0.2)
 			while v < v1 - 0.6:
 				var p = _at(b, x, n, yaw, u + rng.randf_range(-0.08, 0.08), v + rng.randf_range(-0.08, 0.08))
-				if p.y < level + 0.03:
-					p.y = level - 0.02
-					var ripe = rng.randf()
-					_tuft(crop, p, 5, rng.randf_range(0.55, 0.78), 0.022, 0.3, Color(0.27, 0.47, 0.2), Color(0.55, 0.72, 0.28).lerp(Color(0.78, 0.72, 0.32), ripe * 0.5), rng)
+				p.y += 0.05
+				var ripe = rng.randf()
+				_tuft(crop, p, 5, rng.randf_range(0.55, 0.78), 0.022, 0.3, Color(0.27, 0.47, 0.2), Color(0.55, 0.72, 0.28).lerp(Color(0.78, 0.72, 0.32), ripe * 0.5), rng)
 				v += 0.72
 			u += 0.82
 	var c0: Vector3 = _at(b, x, n, yaw, 0.0, 0.0)
