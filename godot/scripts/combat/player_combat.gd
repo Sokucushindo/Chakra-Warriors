@@ -1184,6 +1184,10 @@ func substitute() -> void:
 	p.velocity = Vector3.ZERO
 	action = ""
 	invuln = 0.5
+	if p.has_status("stun"):   # sersemleten darbeyi kütük aldı: kurtulan beden sersem kalmaz
+		p.statuses.erase("stun")
+		if not p.has_status("bind") and not p.has_status("frozen"):
+			p.input_locked = 0.0
 	FX.smoke_puff(dest + Vector3.UP * 0.9, 0.7, 10)
 	Progress.on_technique_used("kawarimi")
 

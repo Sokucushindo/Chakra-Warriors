@@ -506,6 +506,40 @@ const TYPE_WEAR := [
 	{"set": "set_kaguya", "clan": "kaguya", "rank": 0, "p": 0.7},
 	{"set": "set_keimu", "clan": "uchiha", "village": "konoha", "rank": 1, "p": 0.45},
 	{"set": "set_shugonin", "village": "konoha", "rank": 3, "p": 0.05},
+	{"set": "set_uzumaki_haha", "clan": "uzumaki", "rank": 0, "p": 0.2},
+	{"set": "set_sansho", "village": "ame", "rank": 3, "p": 0.25},
+	{"set": "set_kumo_uta", "village": "kumo", "rank": 3, "p": 0.12},
+	{"set": "set_kumo_kenshi", "village": "kumo", "rank": 2, "p": 0.15},
+	{"set": "set_kumo_kunoichi", "village": "kumo", "rank": 2, "p": 0.3},
+	{"set": "set_aogiri", "village": "kiri", "rank": 3, "p": 0.12},
+	{"set": "set_iwa_kunoichi", "village": "iwa", "rank": 2, "p": 0.3},
+	{"set": "set_kuro_iryo", "rank": 2, "p": 0.03},
+	{"set": "set_tetsu_sho", "village": "tetsu", "rank": 2, "p": 0.5},
+	{"set": "set_uzushio_hime", "clan": "uzumaki", "rank": 1, "p": 0.2},
+	{"set": "set_taka_kenshi", "clan": "hozuki", "rank": 1, "p": 0.4},
+	{"set": "set_kurosuki", "clan": "kurosuki", "rank": 0, "p": 0.6},
+	{"set": "set_nidaime_koromo", "village": "kiri", "rank": 3, "p": 0.08},
+	{"set": "set_kiri_atki", "village": "kiri", "rank": 3, "p": 0.1},
+	{"set": "set_kiri_kenshi", "village": "kiri", "rank": 2, "p": 0.15},
+	{"set": "set_kiri_kunoichi", "village": "kiri", "rank": 2, "p": 0.25},
+	{"set": "set_kumo_kyodai", "village": "kumo", "rank": 3, "p": 0.08},
+	{"set": "set_suna_rojo", "village": "suna", "rank": 3, "p": 0.15},
+	{"set": "set_kazekiri", "village": "suna", "rank": 3, "p": 0.15},
+	{"set": "set_shakunetsu", "village": "suna", "rank": 2, "p": 0.25},
+	{"set": "set_yogan", "village": "iwa", "rank": 3, "p": 0.15},
+	{"set": "set_awa", "village": "kiri", "rank": 1, "p": 0.06},
+	{"set": "set_nanao", "village": "taki", "rank": 1, "p": 0.35},
+	{"set": "set_nekomata", "village": "kumo", "rank": 2, "p": 0.2},
+	{"set": "set_genso", "village": "konoha", "rank": 2, "p": 0.12},
+	{"set": "set_yamanaka", "clan": "yamanaka", "rank": 1, "p": 0.6},
+	{"set": "set_kurama", "clan": "kurama", "rank": 0, "p": 0.65},
+	{"set": "set_chinoike", "clan": "chinoike", "rank": 0, "p": 0.7},
+	{"set": "set_iburi", "clan": "iburi", "rank": 0, "p": 0.7},
+	{"set": "set_funato", "clan": "funato", "rank": 0, "p": 0.7},
+	{"set": "set_hagoromo", "clan": "hagoromo", "rank": 0, "p": 0.6},
+	{"set": "set_oinin", "village": "kiri", "rank": 2, "p": 0.15},
+	{"set": "set_konoha_eski", "village": "konoha", "rank": 3, "p": 0.1},
+	{"set": "set_iwa_eski", "village": "iwa", "rank": 2, "p": 0.15},
 	{"set": "set_oto_yonin", "village": "oto", "rank": 2, "p": 0.35},
 	{"set": "set_oto", "village": "oto", "rank": 0, "p": 0.75},
 	{"set": "set_uzushio", "clan": "uzumaki", "rank": 1, "p": 0.3},
@@ -516,7 +550,7 @@ const TYPE_WEAR := [
 
 
 ## Kişiye türü uyan kanon set ("" = kendi kıyafeti); aynı kişi hep aynı sonucu alır
-static func type_set(clan: String, village: String, rank: int, seed_s: String) -> String:
+static func type_set(clan: String, village: String, rank: int, seed_s: String, female := false) -> String:
 	var rng = RandomNumberGenerator.new()
 	rng.seed = hash(seed_s + "|tip")
 	for e in TYPE_WEAR:
@@ -525,7 +559,7 @@ static func type_set(clan: String, village: String, rank: int, seed_s: String) -
 			continue
 		if e.has("villages") and not village in e["villages"]:
 			continue
-		if roll < float(e["p"]):
+		if roll < float(e["p"]) and _fits(String(e["set"]), female):
 			return String(e["set"])
 	return ""
 

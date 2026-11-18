@@ -1644,8 +1644,9 @@ func take_hit(info: Dictionary) -> void:
 	var chain = hit_times.filter(func(t2): return now_k - t2 < 1.4).size() + 1
 	var do_sub := false
 	if Combat.storm:
-		do_sub = info.get("melee", false) and _is_ninja() and sub_bars >= 1.0 and chakra >= Combat.KAWARIMI_COST and chain >= 5 - int(round(skill * 3.0)) and not has_status("bind") and not has_status("stun")
+		do_sub = info.get("melee", false) and _is_ninja() and sub_bars >= 1.0 and chakra >= Combat.KAWARIMI_COST and chain >= 5 - int(round(skill * 3.0)) and not has_status("bind")
 		if do_sub:
+			statuses.erase("stun")   # oyuncuyla aynı: Kawarimi sersemlemeden kurtarır
 			sub_bars -= 1.0
 			chakra -= Combat.KAWARIMI_COST
 			hit_times.clear()

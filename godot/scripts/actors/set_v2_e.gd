@@ -3,7 +3,7 @@ extends RefCounted
 
 const A = preload("res://scripts/actors/set_v2_a.gd")
 
-const SETS := ["set_rengo", "set_keimu", "set_oto", "set_aburame", "set_shugonin", "set_kaguya", "set_oto_yonin", "set_taki", "set_uzushio", "set_jinmon", "set_kusa", "set_yu", "set_shimo", "set_tani"]
+const SETS := ["set_rengo", "set_keimu", "set_oto", "set_aburame", "set_shugonin", "set_kaguya", "set_oto_yonin", "set_taki", "set_uzushio", "set_jinmon", "set_kusa", "set_yu", "set_shimo", "set_tani", "set_yamanaka", "set_kurama", "set_chinoike", "set_iburi", "set_funato", "set_hagoromo", "set_oinin", "set_konoha_eski", "set_iwa_eski", "set_sansho", "set_kumo_uta", "set_kumo_kenshi", "set_kumo_kunoichi", "set_aogiri", "set_iwa_kunoichi", "set_kuro_iryo", "set_uzumaki_haha", "set_tetsu_sho", "set_taka_kunoichi", "set_taka_kenshi", "set_nidaime_koromo", "set_uzushio_hime", "set_kumo_kyodai", "set_kiri_kenshi", "set_kurosuki", "set_kiri_kunoichi", "set_kiri_atki", "set_suna_rojo", "set_kazekiri", "set_shakunetsu", "set_yogan", "set_awa", "set_nanao", "set_nekomata", "set_genso"]
 
 const G_SHINOBI := [[-0.6, 0.8, 0.5, 0.8], [0.5, 0.8, 0.35, 0.15], [-0.1, 0.8, -0.55, 0.15], [0.05, 0.55, 0.2, 0.4], [-0.6, -0.35, -0.75, -0.75], [-0.25, -0.25, -0.1, -0.85], [-0.1, -0.85, 0.4, -0.85], [0.15, -0.2, 0.3, -0.4], [0.65, -0.35, 0.8, -0.7]]
 const G_SHI := [[-0.8, 0.8, 0.8, 0.8], [-0.2, 0.8, -0.7, -0.1], [-0.35, 0.35, 0.1, 0.35], [0.1, 0.35, -0.5, -0.75], [-0.3, 0.2, 0.0, -0.1], [0.35, 0.8, 0.35, -0.6], [0.35, -0.6, 0.85, -0.75], [0.35, 0.2, 0.8, 0.4]]
@@ -38,6 +38,41 @@ static func build(m, sid: String, g: Dictionary) -> void:
 		"set_shugonin": _shugonin(c)
 		"set_kaguya": _kaguya(c)
 		"set_oto_yonin": _yonin(c)
+		"set_yamanaka": _yamanaka(c)
+		"set_suna_rojo": _suna_rojo(c)
+		"set_kazekiri": _kazekiri(c)
+		"set_shakunetsu": _shakunetsu(c)
+		"set_yogan": _yogan(c)
+		"set_awa": _awa(c)
+		"set_nanao": _nanao(c)
+		"set_nekomata": _nekomata(c)
+		"set_genso": _genso(c)
+		"set_taka_kunoichi": _taka_kunoichi(c)
+		"set_taka_kenshi": _taka_kenshi(c)
+		"set_nidaime_koromo": _nidaime(c)
+		"set_uzushio_hime": _uzushio_hime(c)
+		"set_kumo_kyodai": _kumo_kyodai(c)
+		"set_kiri_kenshi": _kiri_kenshi(c)
+		"set_kurosuki": _kurosuki(c)
+		"set_kiri_kunoichi": _kiri_kunoichi(c)
+		"set_kiri_atki": _kiri_atki(c)
+		"set_sansho": _sansho(c)
+		"set_kumo_uta": _kumo_uta(c)
+		"set_kumo_kenshi": _kumo_kenshi(c)
+		"set_kumo_kunoichi": _kumo_kunoichi(c)
+		"set_aogiri": _aogiri(c)
+		"set_iwa_kunoichi": _iwa_kunoichi(c)
+		"set_kuro_iryo": _kuro_iryo(c)
+		"set_uzumaki_haha": _uzumaki_haha(c)
+		"set_tetsu_sho": _tetsu_sho(c)
+		"set_kurama": _kurama(c)
+		"set_chinoike": _chinoike(c)
+		"set_iburi": _iburi(c)
+		"set_funato": _funato(c)
+		"set_hagoromo": _hagoromo(c)
+		"set_oinin": _oinin(c)
+		"set_konoha_eski": _konoha_eski(c)
+		"set_iwa_eski": _iwa_eski(c)
 		"set_taki": _taki(c)
 		"set_uzushio": _uzushio(c)
 		"set_jinmon": _jinmon(c)
@@ -200,3 +235,331 @@ static func _koy(c: Dictionary, col: Color, lt: Color) -> void:
 	A._cuff(c, 0.94, 0.022, 0.004, col.darkened(0.25))
 	for s in [-1.0, 1.0]:
 		A._ring_x(c, s * (float(c["UA"]) + 0.08), 0.024, 0.004, col)
+
+
+## Yamanaka (ref Inoichi_Full_Appearance): yelek üstüne kolsuz kızıl uzun üst, biyeli kenar
+static func _yamanaka(c: Dictionary) -> void:
+	var n: float = c["N"]; var h: float = c["H"]
+	var lt = A.K("d8c07a"); var dk = A.K("1c2238")
+	for s in [-1.0, 1.0]:
+		A._seam(c, [Vector2(s * 0.085, n - 0.05), Vector2(s * 0.11, h + 0.05), Vector2(s * 0.12, h - 0.24)], 0.008, 0.003, lt, true, VL * 0.8)
+	A._belt(c, h + 0.035, 0.024, dk, A.K("8a8e96"), 0.03)
+	A._cuff(c, 0.94, 0.022, 0.004, dk)
+
+
+## Kurama (ref Unkai_Kurama): açık gri kimono, turuncu ve yeşil kat yaka
+static func _kurama(c: Dictionary) -> void:
+	var n: float = c["N"]; var h: float = c["H"]
+	var o = A.K("c8782e"); var g = A.K("4f7a62")
+	A._seam(c, [Vector2(-0.075, n), Vector2(0.05, n - 0.2), Vector2(0.09, h + 0.08)], 0.016, 0.004, o)
+	A._seam(c, [Vector2(-0.058, n), Vector2(0.066, n - 0.2), Vector2(0.105, h + 0.08)], 0.009, 0.005, g)
+	A._seam(c, [Vector2(0.075, n), Vector2(0.015, n - 0.11)], 0.016, 0.004, o)
+	A._ring(c, h + 0.04, 0.06, 0.008, A.K("3c4a58"))
+
+
+## Chinoike (ref Chinoike_Clan): gri yolcu giysisi, koyu sargılar, kan kırmızısı bel bağı
+static func _chinoike(c: Dictionary) -> void:
+	var n: float = c["N"]; var h: float = c["H"]; var kn: float = c["Kn"]
+	var dk = A.K("2a2a30"); var red = A.K("8e1f2a")
+	A._neck(c, 0.0, 0.06, 0.014, dk, 0.15)
+	A._ring(c, h + 0.04, 0.026, 0.009, red)
+	A._dg(c, "Hips", Vector3(0.1, h + 0.03, 0.12), Vector3(0.05, -1.0, 0.05).normalized(), 0.3, 0.04, red, 0.25)
+	A._seam(c, [Vector2(0.0, n - 0.03), Vector2(0.0, h + 0.07)], 0.006, 0.003, dk)
+	for s in [-1.0, 1.0]:
+		for k in 3:
+			A._ring(c, kn - 0.08 - k * 0.07, 0.022, 0.005, dk, -PI, PI, 0.004, s)
+
+
+## Iburi (ref Iburi_Ichizoku): köylü giysisi, yamalar, ip kuşak
+static func _iburi(c: Dictionary) -> void:
+	var n: float = c["N"]; var h: float = c["H"]
+	var pt = A.K("6a5a44"); var st = A.K("c8b89a")
+	A._plate(c, 0.08, n - 0.2, 0.07, 0.06, 0.004, pt, true, 0.15, 0.006)
+	A._stitch(c, Vector2(0.045, n - 0.17), Vector2(0.115, n - 0.17), 6, st)
+	A._plate(c, -0.06, h + 0.14, 0.06, 0.05, 0.004, pt, false, -0.2, 0.006)
+	A._ring(c, h + 0.04, 0.014, 0.008, A.K("b0a07c"))
+
+
+## Funato (ref Shizuku): beyaz deniz cübbesi, mavi biye, geniş bel
+static func _funato(c: Dictionary) -> void:
+	var n: float = c["N"]; var h: float = c["H"]
+	var b = A.K("3f6f9e")
+	A._neck(c, 0.0, 0.05, 0.012, b, 0.15)
+	A._seam(c, [Vector2(0.0, n - 0.03), Vector2(0.0, h + 0.07)], 0.012, 0.003, b)
+	A._ring(c, h + 0.04, 0.05, 0.008, b)
+	A._cuff(c, 0.92, 0.03, 0.005, b)
+
+
+## Hagoromo (ref Kagero_in_disguise): koyu gri pelerin, boyunda kızıl bağ
+static func _hagoromo(c: Dictionary) -> void:
+	var n: float = c["N"]
+	var red = A.K("8c2a30")
+	A._neck(c, -0.01, 0.04, 0.03, red, 0.18)
+	A._dg(c, "UpperChest", Vector3(0.0, n - 0.05, 0.15), Vector3(0.0, -1.0, 0.08).normalized(), 0.2, 0.05, red, 0.3)
+
+
+## Kiri Av Ninjası (ref Anbu_Haku): koyu kimono, göğüste çapraz krem kuşak, çizgili etek
+static func _oinin(c: Dictionary) -> void:
+	var n: float = c["N"]; var h: float = c["H"]; var kn: float = c["Kn"]
+	var cr = A.K("cfc6a4"); var dk = A.K("2c2a24")
+	A._seam(c, [Vector2(0.12, n - 0.04), Vector2(0.0, n - 0.2), Vector2(-0.12, h + 0.06)], 0.024, 0.005, cr, true, 0.01)
+	A._seam(c, [Vector2(0.12, n - 0.04), Vector2(0.0, n - 0.2), Vector2(-0.12, h + 0.06)], 0.024, 0.005, cr, false, 0.01)
+	A._ring(c, h + 0.04, 0.05, 0.009, cr)
+	for k in 12:
+		A._mer(c, -PI + k * TAU / 12.0, h - 0.04, kn + 0.04, 0.005, 0.002, dk)
+
+
+## Eski Konoha yeleği (ref Konoha_flak_jacket_older): açık haki yelek, önde beyaz akış çizgileri, kolda girdap
+static func _konoha_eski(c: Dictionary) -> void:
+	var n: float = c["N"]; var h: float = c["H"]; var ch: float = c["C"]
+	var w = A.K("e8e6d6"); var navy = A.K("161c3c")
+	for s in [-1.0, 1.0]:
+		A._seam(c, [Vector2(s * 0.12, ch - 0.02), Vector2(s * 0.07, ch - 0.12), Vector2(s * 0.11, h + 0.1)], 0.007, 0.003, w, true, VL)
+		A._spiral(c, s * (float(c["UA"]) + 0.075), n - 0.045, 0.02, 1.6, 0.005, A.K("c03028"), true)
+	A._spiral(c, 0.0, ch + 0.03, 0.05, 1.7, 0.01, A.K("c03028"), false)
+	A._belt(c, h + 0.03, 0.024, navy, A.K("8a8e96"), 0.03)
+
+
+## Eski Iwa yeleği (ref Old_Iwa_Flak_Jacket): gri yelek, karında büyük cep, koyu kemer
+static func _iwa_eski(c: Dictionary) -> void:
+	var h: float = c["H"]; var ch: float = c["C"]
+	var g = A.K("5a5a66"); var dk = A.K("2c2a30")
+	A._plate(c, 0.0, ch - 0.17, 0.17, 0.085, 0.008, g, true, 0.0, VL)
+	A._seam(c, [Vector2(-0.085, ch - 0.13), Vector2(0.085, ch - 0.13)], 0.006, 0.003, dk, true, VL + 0.008)
+	A._belt(c, h + 0.035, 0.03, dk, A.K("8a8e96"), 0.036)
+
+
+## Yağmur ülkesi savaş ustası (ref Hanzo_full_appearance): gri giysi, göğüs zırhında sarmal, kayışlar
+static func _sansho(c: Dictionary) -> void:
+	var h: float = c["H"]; var ch: float = c["C"]
+	var dk = A.K("34363a")
+	A._spiral(c, 0.0, ch - 0.03, 0.055, 2.0, 0.009, dk, true)
+	A._spiral(c, 0.0, ch - 0.0, 0.055, 2.0, 0.009, dk, false)
+	A._belt(c, h + 0.04, 0.034, dk, A.K("8a8e96"), 0.044)
+	A._cuff(c, 0.9, 0.05, 0.006, dk)
+	A._dg(c, "Hips", Vector3(-0.13, h + 0.02, -0.08), Vector3(-0.1, -1.0, -0.08).normalized(), 0.34, 0.07, A.K("4a4c50"), 0.25)
+
+
+## Kumo'nun gösterişli savaşçısı (ref B_body): kolsuz üst, belde kalın kırmızı-beyaz burgu ip, uzun beyaz bel örtüsü
+static func _kumo_uta(c: Dictionary) -> void:
+	var h: float = c["H"]
+	var r = A.K("c0302a"); var w = A.K("eeeae0")
+	A._ring(c, h + 0.05, 0.04, 0.016, r)
+	for k in 12:
+		A._ring(c, h + 0.035 + 0.0025 * k, 0.004, 0.018, w, -PI + k * 0.52, -PI + k * 0.52 + 0.2)
+	for s in [-1.0, 1.0]:
+		A._dg(c, "Hips", Vector3(s * 0.14, h + 0.02, 0.05), Vector3(s * 0.12, -1.0, 0.03).normalized(), 0.46, 0.1, w, 0.22)
+
+
+## Kumo kılıç ustası (ref Darui_full_body): kolsuz koyu üst, tek omuzdan inen beyaz örtü, belden sarkan bez
+static func _kumo_kenshi(c: Dictionary) -> void:
+	var n: float = c["N"]; var h: float = c["H"]
+	var w = A.K("e8e6dc"); var g = A.K("4a4a48")
+	for fr in [true, false]:
+		A._seam(c, [Vector2(0.12, n - 0.03), Vector2(0.03, n - 0.18), Vector2(-0.1, h + 0.07)], 0.04, 0.005, w, fr, 0.008)
+	A._ring(c, h + 0.03, 0.05, 0.009, g)
+	A._dg(c, "Hips", Vector3(0.0, h - 0.02, 0.14), Vector3(0.0, -1.0, 0.05).normalized(), 0.38, 0.2, g, 0.25)
+
+
+## Kumo kunoichi (ref Samui_full_body): gri kısa elbise, geniş açık gri kuşak, kolda bant
+static func _kumo_kunoichi(c: Dictionary) -> void:
+	var h: float = c["H"]
+	A._ring(c, h + 0.08, 0.06, 0.008, A.K("c8c8cc"))
+	A._ring(c, h + 0.115, 0.012, 0.009, A.K("8a2a4a"))
+	A._cuff(c, 0.86, 0.06, 0.006, A.K("8a2a4a"))
+
+
+## Kiri kıdemlisi (ref Ao_s_Appearance): koyu boğazlı üst, uzun deniz yeşili palto, krem yaka şeridi
+static func _aogiri(c: Dictionary) -> void:
+	var n: float = c["N"]; var h: float = c["H"]
+	var cr = A.K("d8cfa8")
+	A._neck(c, 0.0, 0.07, 0.016, A.K("3a3a3e"), 0.14)
+	for s in [-1.0, 1.0]:
+		A._seam(c, [Vector2(s * 0.075, n - 0.02), Vector2(s * 0.085, n - 0.2), Vector2(s * 0.1, h + 0.02), Vector2(s * 0.11, h - 0.3)], 0.022, 0.005, cr, true, VL * 0.7)
+	A._side_box(c, h + 0.0, 1.9, 0.0, 0.08, 0.07, 0.03, A.K("6a5238"), 0.03)
+
+
+## Iwa kunoichi (ref Kurotsuchi_Online): kahve yelek, kızıl dik yaka ve önlük
+static func _iwa_kunoichi(c: Dictionary) -> void:
+	var h: float = c["H"]
+	var r = A.K("a83a30")
+	A._neck(c, 0.0, 0.055, 0.014, r, 0.14)
+	A._belt(c, h + 0.04, 0.028, A.K("3a2a20"), A.K("c8a040"), 0.034)
+	A._dg(c, "Hips", Vector3(0.0, h - 0.01, 0.14), Vector3(0.0, -1.0, 0.04).normalized(), 0.42, 0.2, r, 0.25)
+
+
+## Şifacı kimonosu (ref Shizune_full): siyah kimono, beyaz kat yaka
+static func _kuro_iryo(c: Dictionary) -> void:
+	var n: float = c["N"]; var h: float = c["H"]
+	var w = A.K("ece8dc")
+	A._seam(c, [Vector2(-0.075, n), Vector2(0.04, n - 0.17), Vector2(0.07, h + 0.13)], 0.018, 0.004, w)
+	A._seam(c, [Vector2(0.075, n), Vector2(0.015, n - 0.09)], 0.018, 0.004, w)
+
+
+## Uzumaki ev giysisi (ref Kushina_Uzumaki_full): krem bluz üstüne askılı uzun yeşil önlük elbise
+static func _uzumaki_haha(c: Dictionary) -> void:
+	var n: float = c["N"]; var h: float = c["H"]; var ch: float = c["C"]
+	var g = A.K("4f6a3c")
+	for s in [-1.0, 1.0]:
+		A._seam(c, [Vector2(s * 0.07, n - 0.02), Vector2(s * 0.095, ch - 0.06)], 0.03, 0.005, g, true, 0.006)
+		A._seam(c, [Vector2(s * 0.07, n - 0.02), Vector2(s * 0.095, ch - 0.06)], 0.03, 0.005, g, false, 0.006)
+	A._plate(c, 0.0, (ch - 0.06 + h) * 0.5, 0.21, ch - 0.06 - h, 0.005, g, true, 0.0, 0.006)
+	A._plate(c, 0.0, (ch - 0.06 + h) * 0.5, 0.21, ch - 0.06 - h, 0.005, g, false, 0.0, 0.006)
+	A._ring(c, h + 0.03, 0.03, 0.008, g.darkened(0.2))
+
+
+## Demir Ülkesi komutanı (ref Mifune_full): koyu yeşil zırh ceketi, beyaz yaka, gri hakama
+static func _tetsu_sho(c: Dictionary) -> void:
+	var n: float = c["N"]; var h: float = c["H"]
+	var w = A.K("e6e2d4")
+	A._seam(c, [Vector2(-0.07, n + 0.005), Vector2(0.03, n - 0.15)], 0.022, 0.006, w, true, VL * 0.6)
+	A._seam(c, [Vector2(0.07, n + 0.005), Vector2(0.01, n - 0.08)], 0.022, 0.006, w, true, VL * 0.6)
+	A._ring(c, h + 0.04, 0.05, 0.01, A.K("d0ccba"))
+
+
+## Taka kunoichi (ref Karin_full): boydan fermuarlı lavanta ceket, açık yeşil bel bağı
+static func _taka_kunoichi(c: Dictionary) -> void:
+	var n: float = c["N"]; var h: float = c["H"]
+	A._neck(c, 0.0, 0.05, 0.012, A.K("8e7fa8"), 0.14)
+	A._zip(c, n - 0.03, h - 0.02, A.K("e4e0ec"))
+	A._ring(c, h + 0.05, 0.03, 0.008, A.K("a8b490"))
+
+
+## Su kılıççısı (ref Suigetsu_body): kolsuz mor üst, kahve kemer, belden sarkan bej örtü
+static func _taka_kenshi(c: Dictionary) -> void:
+	var h: float = c["H"]
+	A._belt(c, h + 0.03, 0.032, A.K("5a4430"), A.K("b09a60"), 0.04)
+	A._dg(c, "Hips", Vector3(-0.1, h + 0.0, -0.12), Vector3(-0.12, -1.0, -0.1).normalized(), 0.55, 0.16, A.K("b0a282"), 0.2)
+
+
+## Kiri büyüğü (ref Second_Mizukage-Full): boydan çizgili gri cübbe, koyu bel kuşağı, kocaman dik yaka
+static func _nidaime(c: Dictionary) -> void:
+	var n: float = c["N"]; var h: float = c["H"]; var kn: float = c["Kn"]
+	var ln = A.K("8c8e94")
+	A._neck(c, 0.015, 0.1, 0.03, A.K("c8b4b0"), 0.2, 0.006)
+	A._ring(c, h + 0.05, 0.07, 0.012, A.K("34363c"))
+	for k in 16:
+		A._mer(c, -PI + k * TAU / 16.0, h - 0.04, kn - 0.1, 0.005, 0.003, ln, 0.0, 0.03)
+		A._mer(c, -PI + k * TAU / 16.0, n - 0.1, h + 0.1, 0.004, 0.003, ln, 0.0, 0.02)
+
+
+## Uzushio hanımı (ref Mito): beyaz kimono, deniz yeşili kat yaka, geniş kuşak
+static func _uzushio_hime(c: Dictionary) -> void:
+	var n: float = c["N"]; var h: float = c["H"]
+	var g = A.K("2f8a86")
+	A._seam(c, [Vector2(-0.075, n), Vector2(0.04, n - 0.17), Vector2(0.07, h + 0.13)], 0.018, 0.004, g)
+	A._seam(c, [Vector2(0.075, n), Vector2(0.015, n - 0.09)], 0.018, 0.004, g)
+	A._ring(c, h + 0.08, 0.09, 0.009, A.K("d8d2c0"))
+	A._ring(c, h + 0.08, 0.014, 0.012, g)
+
+
+## Kumo kardeşleri (ref Kinkaku_Tools): beyaz üst, mor yaka ve kuşak
+static func _kumo_kyodai(c: Dictionary) -> void:
+	var n: float = c["N"]; var h: float = c["H"]
+	var m = A.K("4a3a78")
+	A._seam(c, [Vector2(-0.08, n), Vector2(0.04, n - 0.17), Vector2(0.08, h + 0.1)], 0.03, 0.005, m)
+	A._seam(c, [Vector2(0.08, n), Vector2(0.015, n - 0.09)], 0.03, 0.005, m)
+	A._ring(c, h + 0.05, 0.06, 0.01, m)
+
+
+## Kiri kılıççısı (ref Mangetsu_hozuki): kolsuz siyah üst, geniş kahve bel bağı
+static func _kiri_kenshi(c: Dictionary) -> void:
+	var h: float = c["H"]
+	A._ring(c, h + 0.03, 0.075, 0.01, A.K("5a4632"))
+	A._ring(c, h + 0.03, 0.014, 0.013, A.K("2a2018"))
+
+
+## Kurosuki (ref Raiga-Ranmaru): boyunda sargı katları, koyu yelek
+static func _kurosuki(c: Dictionary) -> void:
+	var h: float = c["H"]
+	for k in 3:
+		A._neck(c, -0.012 + k * 0.022, 0.018, 0.012 + (2 - k) * 0.004, A.K("d4d0c4"), 0.15)
+	A._belt(c, h + 0.03, 0.03, A.K("26262a"), A.K("8a8e96"), 0.036)
+
+
+## Kiri kunoichi (ref Ameyuri_ringo): dikey çizgili zeytin tunik, krem yaka
+static func _kiri_kunoichi(c: Dictionary) -> void:
+	var n: float = c["N"]; var h: float = c["H"]
+	A._neck(c, 0.0, 0.05, 0.012, A.K("d8cfa8"), 0.14)
+	for k in 14:
+		A._mer(c, -PI + k * TAU / 14.0, n - 0.08, h - 0.1, 0.005, 0.003, A.K("4a4426"), 0.0, 0.012)
+	A._ring(c, h + 0.03, 0.03, 0.009, A.K("2c2a20"))
+
+
+## Genç Kiri ustası (ref Yagura): kalın atkının altında sade üst, koyu kemer
+static func _kiri_atki(c: Dictionary) -> void:
+	A._belt(c, float(c["H"]) + 0.035, 0.026, A.K("26303a"), A.K("8a8e96"), 0.032)
+	A._cuff(c, 0.94, 0.03, 0.005, A.K("26303a"))
+
+
+## Suna büyüğü (ref Chiyo): koyu kuşak, önde dikiş; kalın krem boyunluk parçadan gelir
+static func _suna_rojo(c: Dictionary) -> void:
+	var n: float = c["N"]; var h: float = c["H"]
+	A._seam(c, [Vector2(0.0, n - 0.1), Vector2(0.0, h + 0.07)], 0.006, 0.003, A.K("6a6270"))
+	A._ring(c, h + 0.045, 0.05, 0.009, A.K("5a4f60"))
+
+
+## Rüzgâr kesici (ref Baki_Naruto_Mobile): yüksek yaka, sağ uylukta sargı
+static func _kazekiri(c: Dictionary) -> void:
+	var h: float = c["H"]; var kn: float = c["Kn"]
+	A._neck(c, 0.0, 0.07, 0.018, A.K("3e4230"), 0.15)
+	A._wraps(c, 1.0, h - 0.12, (h + kn) * 0.5, 4, 0.024, A.K("e6e2d6"))
+	A._belt(c, h + 0.035, 0.028, A.K("2c2e24"), A.K("8a8e96"), 0.034)
+
+
+## Kızgın sıcak ustası (ref Scorch_Release): boyun bağlı koyu üst, geniş gri kuşak
+static func _shakunetsu(c: Dictionary) -> void:
+	var n: float = c["N"]; var h: float = c["H"]
+	A._neck(c, 0.0, 0.05, 0.012, A.K("1c1c22"), 0.13)
+	A._seam(c, [Vector2(0.0, n - 0.02), Vector2(0.0, n - 0.12)], 0.007, 0.003, A.K("8a8a94"))
+	A._ring(c, h + 0.05, 0.07, 0.01, A.K("8a8a94"))
+	A._dg(c, "Hips", Vector3(0.09, h + 0.02, 0.12), Vector3(0.04, -1.0, 0.04).normalized(), 0.3, 0.06, A.K("8a8a94"), 0.25)
+
+
+## Lav ustası (ref Roshi_OL): koyu kuşak, bir yanda sarkan kahve deri önlük
+static func _yogan(c: Dictionary) -> void:
+	var n: float = c["N"]; var h: float = c["H"]
+	var br = A.K("6e5230")
+	A._seam(c, [Vector2(-0.075, n), Vector2(0.04, n - 0.17), Vector2(0.08, h + 0.09)], 0.02, 0.004, A.K("2e2024"))
+	A._seam(c, [Vector2(0.075, n), Vector2(0.015, n - 0.09)], 0.02, 0.004, A.K("2e2024"))
+	A._ring(c, h + 0.05, 0.05, 0.01, A.K("3a2a2c"))
+	A._dg(c, "Hips", Vector3(0.13, h + 0.01, 0.06), Vector3(0.1, -1.0, 0.03).normalized(), 0.4, 0.15, br, 0.3)
+	A._side_box(c, h + 0.0, -1.9, 0.0, 0.07, 0.07, 0.03, br, 0.03)
+
+
+## Köpük gezgini (ref Utakata_full): açık mavi uzun giysi, koyu mavi yaka, turuncu kuşak ve sarkan uçları
+static func _awa(c: Dictionary) -> void:
+	var n: float = c["N"]; var h: float = c["H"]
+	var o = A.K("e0802c"); var b = A.K("3c4f9a")
+	for s in [-1.0, 1.0]:
+		A._seam(c, [Vector2(s * 0.075, n - 0.01), Vector2(s * 0.03, n - 0.2)], 0.02, 0.005, b, true, VL * 0.6)
+	A._ring(c, h + 0.05, 0.06, 0.014, o, -PI, PI, 0.045)
+	A._dg(c, "Hips", Vector3(0.03, h + 0.03, 0.17), Vector3(0.03, -1.0, 0.05).normalized(), 0.62, 0.05, o, 0.22)
+	A._dg(c, "Hips", Vector3(-0.04, h + 0.03, 0.17), Vector3(-0.03, -1.0, 0.05).normalized(), 0.5, 0.05, o, 0.22)
+
+
+## Şelale kunoichisi (ref Fu_OL): göğüste çapraz kırmızı bant
+static func _nanao(c: Dictionary) -> void:
+	var n: float = c["N"]; var h: float = c["H"]; var ch: float = c["C"]
+	var r = A.K("c0342c")
+	for fr in [true, false]:
+		A._seam(c, [Vector2(0.12, n - 0.03), Vector2(-0.12, ch - 0.1)], 0.015, 0.004, r, fr, 0.008)
+		A._seam(c, [Vector2(-0.12, n - 0.03), Vector2(0.12, ch - 0.1)], 0.015, 0.004, r, fr, 0.012)
+	A._ring(c, h + 0.0, 0.022, 0.008, r)
+
+
+## Kumo jinchūriki kunoichisi (ref Yugito_Full): koyu mor üst, kırmızı bel bağı ve sarkan ucu
+static func _nekomata(c: Dictionary) -> void:
+	var h: float = c["H"]
+	var r = A.K("9c2a3a")
+	A._ring(c, h + 0.04, 0.04, 0.01, r)
+	A._dg(c, "Hips", Vector3(-0.1, h + 0.02, 0.11), Vector3(-0.05, -1.0, 0.04).normalized(), 0.26, 0.05, r, 0.25)
+
+
+## Genjutsu ustası (ref Kurenai_full): sargı elbisenin üstünde kırmızı bel ve yaka
+static func _genso(c: Dictionary) -> void:
+	var n: float = c["N"]; var h: float = c["H"]
+	var r = A.K("a8323a")
+	A._seam(c, [Vector2(-0.07, n), Vector2(0.03, n - 0.13)], 0.016, 0.004, r, true, 0.008)
+	A._seam(c, [Vector2(0.07, n), Vector2(0.01, n - 0.08)], 0.016, 0.004, r, true, 0.008)
+	A._ring(c, h + 0.08, 0.018, 0.008, r)

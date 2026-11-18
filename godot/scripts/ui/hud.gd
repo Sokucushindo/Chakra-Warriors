@@ -134,7 +134,7 @@ func _build_vitals() -> void:
 	# --- oyuncu çerçevesi (sol üst): shuriken portre + parşömen isim + metal çubuklar (VitalsUI, tamamı kod çizimi)
 	vit = VitalsUI.new()
 	vit.position = Vector2(22, 18)
-	vit.scale = Vector2(0.72, 0.72)   # 720x222 → ~518x160
+	vit.scale = Vector2(0.72, 0.72)   # 720x239 → ~518x172
 	game_hud.add_child(vit)
 	buff_lbl = RichTextLabel.new()
 	buff_lbl.bbcode_enabled = true
@@ -486,7 +486,7 @@ func _draw_slot(i: int) -> void:
 	d["icon"] = UI.ELEMENT_ICONS.get(st["el"], "chakra")
 	var cost := int(roundf(float(st.get("cost", 0.0))))
 	d["badge"] = str(cost) if cost > 0 else ""
-	d["badge_col"] = (Color(0.55, 0.95, 0.55) if st.get("tai", false) else Color(0.55, 0.78, 1.0)) if st["ok"] else Color(1.0, 0.45, 0.4)
+	d["badge_col"] = (Color(1.0, 0.72, 0.35) if st.get("tai", false) else Color(0.55, 0.78, 1.0)) if st["ok"] else Color(1.0, 0.45, 0.4)
 	_paint_slot(slot_nodes[i][0], d, Keys.name("slot%d" % (i + 1)))
 
 

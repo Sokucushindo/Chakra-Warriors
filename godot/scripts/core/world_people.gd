@@ -197,7 +197,7 @@ static func look_of(p: Dictionary) -> Dictionary:
 	var lk = Missions._bb_look({"look": p.get("look", {})})
 	lk["keep_hair"] = true
 	if not is_rogue(p) and lk.get("set_id") in [null, ""]:
-		var uni = Outfits.type_set(String(p.get("clan", "")), String(p.get("village", "")), int(p.get("rank", 0)), String(p.get("id", "")))
+		var uni = Outfits.type_set(String(p.get("clan", "")), String(p.get("village", "")), int(p.get("rank", 0)), String(p.get("id", "")), bool(p.get("female", false)))
 		if uni != "":
 			lk = Outfits.wear_set(lk, uni)
 			lk["keep_hair"] = true

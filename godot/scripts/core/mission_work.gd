@@ -46,6 +46,11 @@ static func active() -> bool:
 
 func _process(dt: float) -> void:
 	_apply_poses(dt)
+	if rider_kind in ["load", "sack", "chest", "cat"] and is_instance_valid(rider) and Missions.active().is_empty():   # görev bitti: taşınan eşya üstünde kalmaz (uzaklaşınca silinme kuralı sırttakine işlemez)
+		rider.queue_free()
+		rider = null
+		rider_kind = ""
+		load_n = 0
 	if is_instance_valid(rider) and Game.player != null:
 		var pl = Game.player
 		var fd = _fd(pl)
@@ -5120,6 +5125,8 @@ func _act_pack(it: Dictionary) -> void:
 			_jitem("pack", "[F] Örtmeden yola çık", (d["root"] as Node3D).global_position + Vector3(-1.8, 0, 0.6), d["root"], {"mode": "go"}, 1.6)
 			Hud.msg("Karakolda küfeni açtıracaklar. Üstünü pirinçle örtebilirsin.", Color(1, 0.9, 0.6), 5.0)
 		"cover":
+			if rider_kind != "load" or not is_instance_valid(rider):   # küfe teslim edildi: pirinç çuvalı yeni küfe açmasın
+				return
 			await _act_back(it)
 			Missions.active()["flags"]["covered"] = true
 			Hud.float_text("Mal pirinç çuvalının altında", Color(0.8, 1, 0.8))
