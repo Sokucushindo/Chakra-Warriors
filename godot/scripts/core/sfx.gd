@@ -37,8 +37,8 @@ func _ready() -> void:
 	if vd:
 		for f in vd.get_files():
 			var fn = f.replace(".import", "")
-			if not fn.ends_with(".ogg"):
-				continue
+			if not (fn.ends_with(".ogg") or (fn.begins_with("step_") and fn.ends_with(".wav"))):
+				continue   # .wav varyant: sentezlenmiş ayak sesleri (tools/sfx_steps.py)
 			var base = fn.get_basename()
 			var k = base.rfind("_v")
 			if k < 0 or not base.substr(k + 2).is_valid_int():

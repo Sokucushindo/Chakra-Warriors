@@ -1,4 +1,7 @@
 {
+"Oyun": "Game",
+"Grafik": "Graphics",
+"Fare ve Tuşlar": "Mouse and Keys",
 "\n\n\"Ama henüz çok zayıfsın. Güç %d olunca gel.\"": "\n\n\"But you're still far too weak. Come back when you reach Power %d.\"",
 "\n\n%s akademide; akşam eve döner.": "\n\n%s is at the Academy; returns home in the evening.",
 "\n\n%s'in notu: \"Antrenman alanındayım. İstersen gel, birlikte çalışalım.\"": "\n\nNote from %s: \"I'm at the training ground. Come if you like; we can train together.\"",

@@ -8312,9 +8312,15 @@ func _cloth_details() -> void:
 		var np = _grest(neck).origin
 		var c = MB.new()
 		var cc: Color = look["top2"] if ts == "ceket" else look["top"]
-		c.add("cyl", Vector3(0, 0.035, 0.0), Vector3(0.15, 0.12, 0.15), cc, Vector3.ZERO, 16)
+		# yaka boyna göre: boyun -> baş kemiği mesafesiyle ölçeklenir, üst kenarı çenenin altında biter
+		# (sabit 12 cm silindir boyundan 9.5 cm yukarı çıkıp ağzı ve çeneyi örtüyordu; ağız boyundan ~0.5 ölçü yukarıda)
+		var hn = _bp("Head").y - np.y if skel.find_bone("Head") >= 0 else 0.08
+		hn = clampf(hn, 0.04, 0.14)
+		var ch = hn * 0.5           # yaka boyu
+		var cy = hn * -0.1          # merkez: üst kenar boyun + 0.15 ölçü (çene altı), alt kenar omuzlara girer
+		c.add("cyl", Vector3(0, cy, 0.0), Vector3(0.15, ch, 0.15), cc, Vector3.ZERO, 16)
 		if ts == "ceket":
-			c.add("box", Vector3(0, 0.03, 0.074), Vector3(0.012, 0.09, 0.006), Color(0.85, 0.85, 0.85))
+			c.add("box", Vector3(0, cy, 0.074), Vector3(0.012, ch * 0.92, 0.006), Color(0.85, 0.85, 0.85))
 		_mesh_on("Neck", c.build(Props.toon()), Transform3D(Basis.IDENTITY, np))
 	if ts == "ceket" and look["vest"] == null:
 		var cb = skel.find_bone("UpperChest")

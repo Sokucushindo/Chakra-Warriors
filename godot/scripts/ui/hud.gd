@@ -281,15 +281,17 @@ func _build_slots() -> void:
 	var top_y = -(dock_h + DOCK_BOTTOM) + PAD
 	# çubuğun ortak cam zemini (yan yuvalar + 9 jutsu tek parça görünsün); iç boşluk dört yanda eşit
 	var dock = Panel.new()
-	dock.add_theme_stylebox_override("panel", UI._box(Color(0.03, 0.04, 0.06, 0.5), Color(1, 1, 1, 0.07), 1, 22, 0))
+	var dsb = UI.ink_panel(0.8, 0, Color(0.02, 0.018, 0.016))   # yırtık kenarlı mürekkep zemin (oyuncu çerçevesiyle aynı dil)
+	dock.add_theme_stylebox_override("panel", dsb)
 	dock.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	dock.size = Vector2(half * 2.0, dock_h)
-	dock.position = Vector2(-half, -(dock_h + DOCK_BOTTOM))
+	# mürekkep dokusunun yırtık kenarı ~18 px saydam: zemin yuvaların dışına taşsın diye dört yandan büyütülür
+	dock.size = Vector2(half * 2.0 + 44.0, dock_h + 30.0)
+	dock.position = Vector2(-half - 22.0, -(dock_h + DOCK_BOTTOM) - 15.0)
 	dock.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	game_hud.add_child(dock)
 	for sgn in [-1.0, 1.0]:
 		var dv = ColorRect.new()
-		dv.color = Color(1, 1, 1, 0.1)
+		dv.color = Color(UI.ACCENT, 0.55)
 		dv.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 		dv.size = Vector2(1, SLOT_PX)
 		dv.position = Vector2(sgn * (sw * 0.5 + GROUP_GAP * 0.5), top_y)
@@ -384,19 +386,12 @@ func _paint_slot(p: Control, st: Dictionary, key_text: String) -> void:
 	var empty: bool = st["empty"]
 	var is_ready: bool = (not empty) and st["ok"] and st["cd"] <= 0.0
 	if not empty:
-		var sh = UI._box(Color(0, 0, 0, 0.5), Color(0, 0, 0, 0), 0, 16, 0)
-		sh.shadow_color = Color(0, 0, 0, 0.35)
-		sh.shadow_size = 8
-		p.draw_style_box(sh, box)
-		var top = Color(ec.r * 0.34 + 0.05, ec.g * 0.34 + 0.05, ec.b * 0.34 + 0.07, 0.9) if st["ok"] else Color(0.13, 0.13, 0.16, 0.9)
-		_rr_fill(p, box, 15.0, top, Color(0.02, 0.025, 0.04, 0.94))
+		var top = Color(ec.r * 0.22 + 0.05, ec.g * 0.22 + 0.045, ec.b * 0.22 + 0.04, 0.92) if st["ok"] else Color(0.1, 0.09, 0.085, 0.92)
+		_rr_fill(p, box, 2.0, top, Color(0.03, 0.027, 0.025, 0.95))
 		if st["ok"]:
-			p.draw_circle(Vector2(40, 31), 31.0, Color(ec, 0.06))
-			p.draw_circle(Vector2(40, 31), 23.0, Color(ec, 0.10))
+			p.draw_circle(Vector2(40, 31), 24.0, Color(ec, 0.08))
 		# ad şeridi: alt kenarda saydamdan koyuya geçiş (ad yazısı burada okunur)
-		_rr_fill(p, Rect2(Vector2(2, 54), Vector2(76, 24)), 11.5, Color(0, 0, 0, 0.0), Color(0, 0, 0, 0.62))
-		# cam parlaması: üst yarıda beyaz -> saydam
-		_rr_fill(p, Rect2(Vector2(4, 3), Vector2(72, 34)), 12.0, Color(1, 1, 1, 0.13), Color(1, 1, 1, 0.0))
+		_rr_fill(p, Rect2(Vector2(1, 54), Vector2(78, 25)), 1.0, Color(0, 0, 0, 0.0), Color(0, 0, 0, 0.66))
 		var col = Color(1, 1, 1, 0.97) if st["ok"] else Color(0.55, 0.55, 0.6, 0.85)
 		var icr = Rect2(Vector2(17, 8), Vector2(46, 46))
 		if st["icon"] == "swap":
@@ -410,13 +405,13 @@ func _paint_slot(p: Control, st: Dictionary, key_text: String) -> void:
 			p.draw_texture_rect(Icons.tex(st["icon"]), Rect2(icr.position + Vector2(1.5, 2.5), icr.size), false, Color(0, 0, 0, 0.5))
 			p.draw_texture_rect(Icons.tex(st["icon"]), icr, false, ec.lerp(Color.WHITE, 0.35) if st["ok"] else col)
 	else:
-		_rr_fill(p, box, 15.0, Color(1, 1, 1, 0.045), Color(0, 0, 0, 0.14))
-	# kenarlık: hazırsa element renginde ışıltı + çift çizgi
+		_rr_fill(p, box, 2.0, Color(0, 0, 0, 0.25), Color(0, 0, 0, 0.4))
+	# kenarlık: ince açık mürekkep çizgi; hazırsa element renginde; altta element rengi fırça şeridi
 	if is_ready:
-		_rr_line(p, box.grow(1.0), 16.0, Color(ec, 0.22), 5.0)
-	_rr_line(p, box.grow(-1.0), 15.0, Color(ec, 0.95) if not empty else Color(1, 1, 1, 0.07), 2.0 if not empty else 1.0)
+		_rr_line(p, box.grow(1.0), 2.0, Color(ec, 0.35), 3.0)
+	_rr_line(p, box.grow(-0.75), 2.0, Color(UI.TEXT, 0.4) if not empty else Color(UI.TEXT, 0.16), 1.5)
 	if not empty:
-		_rr_line(p, box.grow(-3.5), 12.0, Color(1, 1, 1, 0.07), 1.0)
+		p.draw_rect(Rect2(Vector2(3, 74), Vector2(74, 3)), Color(ec, 0.95))
 	if st["cd"] > 0.0:
 		var k = clampf(st["cd"] / maxf(0.01, st["max"]), 0.0, 1.0)
 		var c = sz * 0.5
@@ -431,12 +426,12 @@ func _paint_slot(p: Control, st: Dictionary, key_text: String) -> void:
 		p.draw_colored_polygon(pts, Color(0, 0, 0, 0.64))
 		p.draw_line(c, pts[pts.size() - 1], Color(1, 1, 1, 0.4), 1.5, true)
 	elif not st["ok"] and not empty:
-		_rr_fill(p, box.grow(-2.0), 14.0, st.get("tint", Color(0.1, 0.2, 0.5, 0.35)), st.get("tint", Color(0.1, 0.2, 0.5, 0.35)))
+		_rr_fill(p, box.grow(-2.0), 1.0, st.get("tint", Color(0.1, 0.2, 0.5, 0.35)), st.get("tint", Color(0.1, 0.2, 0.5, 0.35)))
 	# bekleme bitti: kısa beyaz parlama
 	var fl = 1.0 - float(Time.get_ticks_msec() - int(st.get("flash", -100000))) / 400.0
 	if fl > 0.0 and not empty:
-		_rr_fill(p, box, 15.0, Color(1, 1, 1, fl * 0.42), Color(ec, fl * 0.2))
-		_rr_line(p, box.grow(1.0), 16.0, Color(1, 1, 1, fl * 0.9), 3.0)
+		_rr_fill(p, box, 2.0, Color(1, 1, 1, fl * 0.42), Color(ec, fl * 0.2))
+		_rr_line(p, box.grow(1.0), 2.0, Color(1, 1, 1, fl * 0.9), 3.0)
 	var f = UI.font(true)
 	# tuş rozeti: koyu hap, ince çerçeve (uzun tuş adı küçülür)
 	var fs = 12
@@ -450,8 +445,8 @@ func _paint_slot(p: Control, st: Dictionary, key_text: String) -> void:
 	if alt != "" and not empty:
 		var ax = 3.0 + bw + 12.0
 		p.draw_circle(Vector2(ax, 13), 9.5, Color(0, 0, 0, 0.55))
-		p.draw_circle(Vector2(ax, 13), 8.5, Color(UI.GOLD, 0.97))
-		_txt_c(p, f, Vector2(ax, 13), alt, 10, UI.INK)
+		p.draw_circle(Vector2(ax, 13), 8.5, Color(UI.ACCENT, 0.97))
+		_txt_c(p, f, Vector2(ax, 13), alt, 10, UI.CREAM)
 	# köşe rozeti (sağ üst): enerji bedeli / stok
 	var bt: String = st.get("badge", "")
 	if bt != "" and not empty:
@@ -546,8 +541,8 @@ func _build_texts() -> void:
 	game_hud.add_child(msg_lbl)
 	# etkileşim ipucu: tuş rozeti + metin, mürekkep hap
 	prompt_box = PanelContainer.new()
-	var psb = UI._box(Color(0.04, 0.05, 0.07, 0.72), Color(1, 1, 1, 0.1), 1, 22, 7, 0.0)
-	psb.content_margin_left = 10; psb.content_margin_right = 18
+	var psb = UI.brush(Color(0, 0, 0, 0.72), "s", 7)
+	psb.content_margin_left = 12; psb.content_margin_right = 34
 	prompt_box.add_theme_stylebox_override("panel", psb)
 	prompt_box.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	prompt_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -573,7 +568,9 @@ func _build_texts() -> void:
 	game_hud.add_child(doom_lbl)
 	# görev paneli (sağda, minimap altında)
 	var obj = PanelContainer.new()
-	var osb = UI._box(Color(0.04, 0.05, 0.07, 0.5), Color(1, 1, 1, 0.07), 1, 14, 14)
+	var osb = UI._box(Color(0.03, 0.027, 0.025, 0.5), Color(0, 0, 0, 0), 0, 2, 14)
+	osb.border_width_left = 3
+	osb.border_color = Color(UI.ACCENT, 0.9)
 	obj.add_theme_stylebox_override("panel", osb)
 	obj.anchor_left = 1.0; obj.anchor_right = 1.0
 	obj.offset_left = -392; obj.offset_right = -18; obj.offset_top = 312
@@ -581,7 +578,7 @@ func _build_texts() -> void:
 	obj.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var ov = UI.vbox(4)
 	obj.add_child(ov)
-	ov.add_child(UI.icon_label("mission", "GÖREV", 13, UI.GOLD))
+	ov.add_child(UI.icon_label("mission", "GÖREV", 13, UI.ACCENT))
 	objective_lbl = UI.label("", 14, Color(UI.TEXT, 0.92))
 	objective_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	objective_lbl.custom_minimum_size = Vector2(346, 0)
@@ -618,7 +615,8 @@ func _build_minimap() -> void:
 	ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ring.draw.connect(func():
 		ring.draw_circle(Vector2(120, 124), 126, Color(0, 0, 0, 0.3))
-		ring.draw_circle(Vector2(120, 120), 124, Color(0.04, 0.05, 0.07, 0.85)))
+		ring.draw_circle(Vector2(120, 120), 124, Color(0.04, 0.035, 0.03, 0.85))
+		ring.draw_arc(Vector2(120, 120), 121, 0.0, TAU, 96, Color(UI.ACCENT, 0.85), 2.0, true))
 	minimap.add_child(ring)
 	var tr = TextureRect.new()
 	tr.texture = map_tex
@@ -642,7 +640,7 @@ void fragment(){
 	float vig = smoothstep(0.3, 0.5, length(q));
 	col.rgb *= 1.0 - vig * 0.35;
 	float edge = smoothstep(0.465, 0.48, length(q)) - smoothstep(0.49, 0.5, length(q));
-	COLOR = mix(col, vec4(0.98, 0.55, 0.12, 1.0), edge);
+	COLOR = mix(col, vec4(0.05, 0.045, 0.04, 1.0), edge);   // mürekkep halka
 }"""
 	sm.shader = sh
 	tr.material = sm
@@ -920,7 +918,7 @@ func dialog(title: String, text: String, options: Array) -> void:
 	root.add_child(grad)
 	var many = options.size() > 4
 	var box = PanelContainer.new()
-	box.add_theme_stylebox_override("panel", UI.glass(18, 24, 0.84))
+	box.add_theme_stylebox_override("panel", UI.ink_panel(0.88, 22))
 	box.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	box.custom_minimum_size = Vector2(1180, 230)
 	box.position = Vector2(-590, -280 - (180 if many else 0))
@@ -932,8 +930,11 @@ func dialog(title: String, text: String, options: Array) -> void:
 	var v = UI.vbox(10)
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	h.add_child(v)
-	var plate = UI.label(title, 22, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true)
+	var plate = UI.label(title, 24, UI.CREAM, HORIZONTAL_ALIGNMENT_LEFT, true)
 	v.add_child(plate)
+	var pl = UI.brush_line(110)
+	pl.custom_minimum_size.y = 10
+	v.add_child(pl)
 	var body = UI.label(text, 19, UI.TEXT)
 	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	body.custom_minimum_size = Vector2(560 if not many else 900, 0)
@@ -1003,7 +1004,7 @@ func dialog(title: String, text: String, options: Array) -> void:
 			box.global_position.y = maxf(20.0, vh - 30.0 - box.size.y))
 
 
-## Hap şeklinde diyalog seçeneği
+## Diyalog seçeneği: sade satır, üzerine gelince kırmızı fırça darbesi
 func _pill(text: String, cb: Callable, w: float, muted := false) -> Button:
 	var b = Button.new()
 	b.text = text
@@ -1012,17 +1013,16 @@ func _pill(text: String, cb: Callable, w: float, muted := false) -> Button:
 	b.clip_text = true
 	b.add_theme_font_override("font", UI.font(not muted))
 	b.add_theme_font_size_override("font_size", 16)
-	var n = UI._box(Color(1, 1, 1, 0.03 if muted else 0.07), Color(1, 1, 1, 0.06 if muted else 0.12), 1, 22, 8)
+	var n = UI.brush(Color(0, 0, 0, 0.3 if muted else 0.6), "a", 8)
 	n.content_margin_left = 22
-	var hv = n.duplicate()
-	hv.bg_color = Color(UI.GOLD, 0.9)
-	hv.border_color = Color(1, 1, 1, 0.3)
+	var hv = UI.brush(UI.ACCENT, "a", 8)
+	hv.content_margin_left = 22
 	for k in [["normal", n], ["hover", hv], ["pressed", hv], ["focus", hv]]:
 		b.add_theme_stylebox_override(k[0], k[1])
 	b.add_theme_color_override("font_color", UI.MUTED if muted else UI.TEXT)
-	b.add_theme_color_override("font_hover_color", UI.INK)
-	b.add_theme_color_override("font_focus_color", UI.INK)
-	b.add_theme_color_override("font_pressed_color", UI.INK)
+	b.add_theme_color_override("font_hover_color", Color(1, 0.97, 0.93))
+	b.add_theme_color_override("font_focus_color", Color(1, 0.97, 0.93))
+	b.add_theme_color_override("font_pressed_color", Color(1, 0.97, 0.93))
 	b.pressed.connect(func():
 		Sfx.play("click")
 		cb.call())
@@ -1034,7 +1034,7 @@ func _pill(text: String, cb: Callable, w: float, muted := false) -> Button:
 func _dialog_portrait(title: String) -> Control:
 	var frame = Panel.new()
 	frame.custom_minimum_size = Vector2(170, 170)
-	frame.add_theme_stylebox_override("panel", UI._box(Color(0.03, 0.035, 0.05, 0.9), Color(UI.GOLD, 0.65), 2, 85, 0))
+	frame.add_theme_stylebox_override("panel", UI._box(Color(0.03, 0.027, 0.025, 0.9), Color(UI.ACCENT, 0.85), 2, 85, 0))
 	frame.clip_contents = true
 	var who: Node = null
 	if Game.player:
@@ -1207,7 +1207,7 @@ func _process(dt: float) -> void:
 		buff_lbl.text = "\n".join(bl)
 	_update_party(dt)
 	var hk = clampf(pl.hp / maxf(1.0, pl.max_hp), 0.0, 1.0)
-	var hcol = Color(0.35, 0.9, 0.35) if hk > 0.5 else (Color(1, 0.8, 0.2) if hk > 0.25 else Color(1, 0.3, 0.25))
+	var hcol = Color(0.45, 0.74, 0.4) if hk > 0.5 else (Color(0.9, 0.7, 0.3) if hk > 0.25 else Color(0.9, 0.26, 0.2))   # mürekkep tonları
 	hp_trail_v = move_toward(hp_trail_v, pl.hp, dt * pl.max_hp * 0.35) if hp_trail_v > pl.hp else pl.hp
 	if Engine.get_process_frames() % 60 == 0:
 		_refresh_portrait()

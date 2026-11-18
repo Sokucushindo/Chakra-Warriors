@@ -386,31 +386,68 @@ func jutsu_floor(x: float, z: float) -> float:
 	return ground_height(x, z)
 
 
-## Adım sesi: iç mekân tahta, köy sokağı taş, yol toprak, gerisi çimen/toprak (3 varyasyon)
+## Adım sesi: zeminin ekranda boyandığı malzemeyle aynı (terrain.gdshader):
+## yol / sokak her yerde toprak boyanır (taş köy 14 ve karlı köy 15 sokağı gri taş, kum köy/çöl kumlu);
+## yol dışı: Konoha (11) ve yeşil biyomlar çimen, kar, kaya, kum, su kendi sesi. İç mekân tahta, in taş.
 func step_sound(p: Vector3) -> String:
 	var v = randi() % 3
 	var it = Interiors.inst
 	if it and it.inside != "":
 		return "step_stone%d" % v if it.inside.begins_with("lair_") else "step_wood%d" % v
+	var b = biome_at(p.x, p.z)   # 1 kumsal, 3 çöl, 13 Suna | 2 orman, 4 yağmur, 6 pirinç, 7 çimen, 10 bataklık, 11 Konoha | 5 kaya, 9 dağ, 14 taş köy | 8 kar, 15 karlı köy
 	var th = terrain_height(p.x, p.z)
 	if p.y > th + 1.3 and p.y > water_level(p.x, p.z, th) + 0.8:   # çatı, köprü, balkon, dal: altındaki toprağın sesi değil
-		return ("step_stone%d" % v) if biome_at(p.x, p.z) in [5, 9, 13, 14, 15] else ("step_wood%d" % v)
-	if biome_at(p.x, p.z) in [1, 3, 13]:
-		return "step_sand"   # kumsal, çöl, Suna (sokakları da sıkışmış kum; eskiden taş/toprak adımı tahta gibi çalıyordu)
-	if road_at(p.x, p.z, "street") > 0.3:
-		return "step_stone%d" % v
-	if road_at(p.x, p.z) > 0.3:
-		return "step_dirt%d" % v
+		return ("step_stone%d" % v) if b in [5, 9, 13, 14, 15] else ("step_wood%d" % v)
 	if water_level(p.x, p.z, terrain_height(p.x, p.z)) > terrain_height(p.x, p.z) + 0.02:
 		return "step_water"   # suyun içinde/üstünde yürüme: şıpırtı
-	var b = biome_at(p.x, p.z)   # 2 orman, 4 yağmur, 6 pirinç, 7 çimen, 10 bataklık | 5 kaya, 9 dağ, 14 taş köy
-	if b in [2, 4, 6, 7, 10]:
-		return "step_grass%d" % v
+	if road_at(p.x, p.z) > 0.3:
+		if b in [14, 15]:
+			return "step_stone%d" % v   # taş döşeli köy sokağı
+		if b in [1, 3, 13]:
+			return "step_sand"
+		return "step_dirt%d" % v      # toprak yol / sokak (Konoha dahil)
+	if b in [1, 3, 13]:
+		return "step_sand"
 	if b in [8, 15]:
-		return "step_snow"   # karlı dağ/köy: gerçek kar adımı (CC0 varyantlı)
+		return "step_snow"
 	if b in [5, 9, 14]:
 		return "step_stone%d" % v
+	if b in [2, 4, 6, 7, 10, 11]:
+		return "step_grass%d" % v
 	return "step_dirt%d" % v
+
+
+var _foot_alt := false
+
+
+## Islak zemin payı 0..1: yağmur (açıkta), bataklık, nehir kıyısı çamuru
+func step_wetness(p: Vector3) -> float:
+	var it = Interiors.inst
+	if it and it.inside != "":
+		return 0.0
+	var b = biome_at(p.x, p.z)
+	if b in [1, 3, 13, 8, 15]:
+		return 0.0   # kum / kar kendi sesiyle
+	var w = 0.0
+	if world and world.env and world.env.weather == "yağmur" and world.env.overcast > 0.4:
+		w = 0.55
+	if b == 10:
+		w = maxf(w, 0.7)   # bataklık
+	if b in [5, 9, 14] or road_at(p.x, p.z, "street") > 0.3:
+		return w   # taş / sokak: yalnız yağmurla ıslanır (nehir kıyısı çamuru burada çalmaz)
+	return maxf(w, clampf((wet_at(p.x, p.z) - 0.55) * 1.6, 0.0, 0.6))
+
+
+## Ayak sesi (oyuncu ve düşman ortak): zemin sesi + ıslak zeminde şıpırtı.
+## Sol/sağ ayak hafif farklı tonda: aynı "tak tak" tekrarı kırılır.
+func play_step(p: Vector3, pitch: float, vol: float) -> void:
+	var n = step_sound(p)
+	_foot_alt = not _foot_alt
+	pitch *= 0.97 if _foot_alt else 1.03
+	Sfx.play(n, p, pitch, vol)   # toprak / çim / taş / tahta: sıfırdan sentezlenmiş tek vuruşlu sesler (tools/sfx_steps.py)
+	var wet = step_wetness(p)
+	if wet > 0.05 and n != "step_water":
+		Sfx.play("step_water", p, pitch * 1.1, vol * wet * 0.6)
 
 
 func biome_at(x: float, z: float) -> int:
@@ -931,6 +968,13 @@ func apply_frame() -> void:
 # ------------------------------------------------------------------ kayıt
 func save_path(slot: int) -> String:
 	return "%s/kayit_%d.json" % [SAVE_DIR, slot]
+
+
+## Kayıt yuvasını kalıcı olarak sil
+func delete_slot(slot: int) -> void:
+	var p := save_path(slot)
+	if FileAccess.file_exists(p):
+		DirAccess.remove_absolute(p)
 
 
 func save_game() -> void:
