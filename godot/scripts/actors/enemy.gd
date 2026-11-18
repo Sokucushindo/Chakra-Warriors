@@ -266,7 +266,7 @@ func jutsu_cost(id: String) -> float:
 	if Game.has_meta("sandbox"):   # deneme alanında oyuncuya bedava: düşmana da (AI eşitliği)
 		return 0.0
 	var fk = float(Gear.weapon_of(self).get("fuuton_cost", 1.0)) if "fuuton" in Data.jutsu.get(id, {}).get("elements", []) else 1.0
-	return float(Data.jutsu.get(id, {}).get("cost", 0)) * (1.0 + (float(level) - 1.0) * 0.045) * fk
+	return float(Data.jutsu.get(id, {}).get("cost", 0)) * Stats.JUTSU_COST_K * fk
 
 
 func setup(a: Dictionary) -> void:

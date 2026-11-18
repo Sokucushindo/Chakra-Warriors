@@ -284,7 +284,7 @@ func _start_step() -> void:
 ## Jutsu chakra maliyeti: gücü gibi seviyeyle büyür (sabit kalınca yüksek seviyede chakra hiç bitmiyordu);
 ## yetenek indirimi en fazla %30
 ## Gerçek atış bedeli ve kaynağı (HUD yuvası ve begin_cast aynı hesabı kullanır: yuva "hazır" görünüp
-## "yeterli chakra yok" demesin): taijutsu -> stamina (seviyeyle şişmez), diğerleri -> chakra (seviyeyle büyür)
+## "yeterli chakra yok" demesin): taijutsu -> stamina (seviyeyle şişmez), diğerleri -> chakra (sabit bedel: rezerv büyüdükçe daha çok atılır)
 static func cast_cost(j: Dictionary) -> float:
 	if Game.has_meta("sandbox"):
 		return 0.0
@@ -292,8 +292,7 @@ static func cast_cost(j: Dictionary) -> float:
 
 
 static func jutsu_cost(j: Dictionary) -> float:
-	var lv = int(Game.profile.get("level", 1))
-	var c = float(j.get("cost", 0)) * (1.0 + (lv - 1) * 0.045) * clampf(1.0 + Stats.skill(Game.profile, "jutsu_cost"), 0.7, 1.0)
+	var c = float(j.get("cost", 0)) * Stats.JUTSU_COST_K * clampf(1.0 + Stats.skill(Game.profile, "jutsu_cost"), 0.7, 1.0)
 	# nakil Senju hücresi: beden yabancı hücreyle savaşır, Mokuton daha çok chakra yer (Senju kanında yok)
 	if "mokuton" in j.get("elements", []) and Game.profile.get("flags", {}).get("senju_cells", false) and String(Game.profile.get("clan", "")) != "senju":
 		c *= KgPaths.LAB_COST_MULT

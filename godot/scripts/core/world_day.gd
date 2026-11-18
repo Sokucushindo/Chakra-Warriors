@@ -1081,10 +1081,52 @@ static func _stage_async(people: Array, from: Vector3, to: Vector3, slow: bool, 
 	grp["pending"] = false
 
 
+## Kaçak oyuncu: yoldaki köy takımı çizik alın bandını görünce sözü bırakıp saldırır (gerçek kişiler, kendi güçleriyle).
+## Dostların saldırmaz; görev / sınav sırasında araya girilmez.
+static func _rogue_alarm(g: Dictionary) -> void:
+	if g.get("alarm", false) or not Orgs.is_rogue() or Missions.quiet() or Game.player.hp <= 0.0:
+		return
+	var seen = false
+	for n in g["nodes"]:
+		if is_instance_valid(n) and n.global_position.distance_to(Game.player.global_position) < 22.0:
+			seen = true
+			break
+	if not seen:
+		return
+	g["alarm"] = true
+	g["said"] = true
+	var first = true
+	for n in g["nodes"]:
+		if not is_instance_valid(n) or n.has_meta("friend_id"):
+			continue
+		var q = WorldPeople.get_p(String(n.get_meta("world_person", "")))
+		if q.is_empty() or not WorldPeople.alive(q):
+			continue
+		if first:
+			first = false
+			n.say(["Çizik alın bandı... Bu bir kaçak! Saldırın!", "Bingo Kitabı'ndaki yüz! Kaçırmayın!", "Kaçak ninja! Köy adına, dur orada!"].pick_random(), 3.0)
+		var a = WorldPeople.arch_of(q)
+		a["respawn"] = false
+		var at: Vector3 = n.global_position
+		var e = Enemy.new()
+		e.setup(a)
+		e.adopt_model(n)
+		Game.player.get_tree().current_scene.add_child(e)
+		at.y = Game.ground_height(at.x, at.z)
+		e.global_position = at
+		e.home = at
+		e.team = "enemy"
+		e.set_meta("faction", String(q["village"]))
+		e.target = Game.player
+		_stage.erase(String(q["id"]))
+		n.queue_free()
+
+
 static func _bubbles() -> void:
 	if Game.player == null:
 		return
 	for g in _groups:
+		_rogue_alarm(g)
 		if g["said"]:
 			continue
 		if (g["nodes"] as Array).is_empty():

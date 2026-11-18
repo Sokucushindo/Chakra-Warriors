@@ -929,6 +929,8 @@ func _hunter_tick(dt: float) -> void:
 		return   # Kefaret görevinde av-ninjaları gelmez (köy affı bekliyor)
 	if Missions.quiet():
 		return   # görev/antrenman ortasında av ekibi gelmez (sayaç da işlemez)
+	if Interiors.inst and Interiors.inst.inside != "":
+		return   # sığınak / mağara / bina içi: dışarıdaki av ekibi seni bulamaz (içerisi dünyada uzak bir yerde durur)
 	_hunter_t += dt
 	if _hunter_t < _hunter_next:
 		return

@@ -213,6 +213,10 @@ static func is_taijutsu(j: Dictionary) -> bool:
 	return String(j.get("category", "")) == "taijutsu"
 
 
+## Jutsu bedeli sabittir (Güç ile büyümez): chakra rezervini geliştiren aynı tekniği daha çok atar, yetmeyen hiç atamaz.
+const JUTSU_COST_K := 2.0
+
+
 static func max_chakra(p: Dictionary) -> float:
 	var v = 80.0 + Mastery.get_v(p, "chakra") * 7.0   # chakra kontrolü ustalığı
 	return v + Gear.stat(p, "chakra") + clan_bonus(p, "chakra") + skill(p, "chakra")

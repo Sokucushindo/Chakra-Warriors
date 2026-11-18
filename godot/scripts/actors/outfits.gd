@@ -436,8 +436,8 @@ const ROGUE_CLAN := {
 	"shirogane": ["ss_kukla", "ss_kukla_genc", "ss_kizil_palto"], "momochi": ["ss_iblis"], "kurosuki": ["ss_iblis", "ss_kiri_genin"],
 	"yuki": ["ss_buz_kimono", "ss_buz_kimono2"], "uzumaki": ["ss_turuncu_maske", "ss_kagit_melek"], "senju": ["ss_orman_zirh", "ss_orman_zirh_genc", "ss_su_zirh", "ss_kumarbaz"],
 	"sarutobi": ["ss_sigara_jonin", "ss_ates_pelerin"], "hatake": ["ss_maskeli_gaiden", "ss_maskeli_jonin", "ss_ic_giysi"], "namikaze": ["ss_sari_simsek", "ss_sari_simsek_genc"],
-	"yotsuki": ["ss_demir_dovme"], "kaguya": ["ss_yilan_kimono"], "yuhi": ["ss_genjutsu_sargi"], "mitarashi": ["ss_tehlike_ceket"], "shimura": ["ss_kok_reisi", "set_ne"],
-	"karatachi": ["ss_kaplumbaga"], "terumi": ["ss_su_elbise"], "tsuchigumo": ["ss_kopuk"], "aburame": ["ss_anbu_kapuson"], "gekko": ["set_kenshi"],
+	"yotsuki": ["ss_demir_dovme"], "kaguya": ["set_kaguya", "ss_yilan_kimono"], "yuhi": ["ss_genjutsu_sargi"], "mitarashi": ["ss_tehlike_ceket"], "shimura": ["ss_kok_reisi", "set_ne"],
+	"karatachi": ["ss_kaplumbaga"], "terumi": ["ss_su_elbise"], "tsuchigumo": ["ss_kopuk"], "aburame": ["set_aburame", "ss_anbu_kapuson"], "gekko": ["set_kenshi"],
 	"hozuki": ["ss_su_zirh", "ss_iblis"], "hoshigaki": ["ss_iblis", "ss_kiri_genin"], "jugo": ["ss_kabuk_yirtik"], "fuma": ["set_kage_no"]}
 const ROGUE_NAT := {"hyoton": ["ss_buz_kimono", "ss_buz_kimono2"], "yoton": ["ss_lav_zirh"], "futton": ["ss_buhar_zirh"], "jiton": ["ss_demir_kum"], "mokuton": ["ss_orman_zirh"],
 	"shakuton": ["ss_ates_pelerin"], "ranton": ["ss_simsek_kiyafet"]}
@@ -445,7 +445,7 @@ const ROGUE_EL := {"katon": ["ss_ates_pelerin"], "raiton": ["ss_simsek_kiyafet"]
 const ROGUE_VILLAGE := {"konoha": ["ss_konoha_genin", "ss_son_savas"], "suna": ["ss_suna_genin", "ss_kum_striker", "set_suna"], "kiri": ["ss_kiri_genin", "ss_sis_striker_siyah", "ss_iblis"],
 	"kumo": ["ss_kumo_genin", "ss_demir_dovme"], "iwa": ["ss_iwa_genin", "ss_kaya_paltosu", "ss_kaya_striker"], "oto": ["ss_yilan_zirh", "ss_yilan_kimono", "ss_yilan_sanin", "ss_flut"],
 	"ame": ["set_ame"]}
-const ROGUE_ANY := ["ss_anbu_kapuson", "ss_kara_palto", "ss_karga_cubbe", "ss_maske_pelerin", "ss_kurucu_palto", "ss_gezgin_palto", "ss_kabuk_yirtik", "ss_bes_kalp", "ss_yilan_cubbe",
+const ROGUE_ANY := ["set_oto", "set_oto", "ss_anbu_kapuson", "ss_kara_palto", "ss_karga_cubbe", "ss_maske_pelerin", "ss_kurucu_palto", "ss_gezgin_palto", "ss_kabuk_yirtik", "ss_bes_kalp", "ss_yilan_cubbe",
 	"ss_kizil_kayis", "ss_siyah_tulum", "ss_genis_yaka", "set_ronin", "set_tabibito", "set_kage_no", "set_kenshi"]
 ## Görünüşün kimlik kısmı (set giyilince korunur)
 const LOOK_SELF := ["gender", "hair", "hair_style", "skin", "eye", "face", "face_id", "face_cut", "face_v", "eye_art", "beard", "face_mark", "face_paint", "face_paint_col",
@@ -491,6 +491,32 @@ static func rogue_set(clan: String, village: String, els: Array, nat: Array, fem
 		if r <= 0.0:
 			return String((pw[1] as Array)[rng.randi() % (pw[1] as Array).size()])
 	return String((ok[-1][1] as Array)[0])
+
+
+## Türüne göre kanon kıyafet: kim giyer (klan, köy, rütbe 0 genin .. 3 jōnin), kişilerin ne kadarı. Striker setleri burada YOK (kullanıcı reddetti).
+const TYPE_WEAR := [
+	{"set": "set_aburame", "clan": "aburame", "rank": 0, "p": 0.8},
+	{"set": "set_kaguya", "clan": "kaguya", "rank": 0, "p": 0.7},
+	{"set": "set_keimu", "clan": "uchiha", "village": "konoha", "rank": 1, "p": 0.45},
+	{"set": "set_shugonin", "village": "konoha", "rank": 3, "p": 0.05},
+	{"set": "set_oto", "village": "oto", "rank": 0, "p": 0.75},
+	{"set": "set_rengo", "villages": ["konoha", "suna", "kiri", "kumo", "iwa"], "rank": 2, "p": 0.07},
+]
+
+
+## Kişiye türü uyan kanon set ("" = kendi kıyafeti); aynı kişi hep aynı sonucu alır
+static func type_set(clan: String, village: String, rank: int, seed_s: String) -> String:
+	var rng = RandomNumberGenerator.new()
+	rng.seed = hash(seed_s + "|tip")
+	for e in TYPE_WEAR:
+		var roll = rng.randf()
+		if String(e.get("clan", clan)) != clan or String(e.get("village", village)) != village or rank < int(e["rank"]):
+			continue
+		if e.has("villages") and not village in e["villages"]:
+			continue
+		if roll < float(e["p"]):
+			return String(e["set"])
+	return ""
 
 
 ## Görünüşe seti giydirir: kimlik (saç, yüz, ten, yaş, alın koruyucu) kalır, kıyafetin tamamı setten gelir

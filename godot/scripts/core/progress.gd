@@ -735,23 +735,36 @@ func on_player_died() -> void:
 	get_tree().create_timer(2.5).timeout.connect(func():
 		# kaçak köy hastanesinde doğamaz: sığınağında uyanır
 		var pos = Missions.open_ground(Orgs.hideout_spawn(), 6.0) if Orgs.is_rogue() else _hospital_pos()
-		Game.player.respawn(pos)
-		_calm_after_death(pos))
+		_calm_after_death(pos)   # sen baygınken olur: uyandığında kimse başında değildir
+		Game.player.respawn(pos))
 
 
-## Doğduğun yerin çevresinde seni hedefleyen düşmanlar (kalıcı olanlar) peşini bırakıp evine döner; geçici olanlar çekilip gider
+## Baygınken saatler geçer: seni kovalayanlar peşini bırakır, uyanacağın yerin başındaki düşmanlar çekip gider.
+## Geçici gelenler dağılır, kalıcı olanlar evine (evi buradaysa uzağa) döner; aynı düşmanın içinde tekrar tekrar doğulmaz.
 func _calm_after_death(pos: Vector3) -> void:
+	if Game.world:
+		Game.world.env.time_of_day = fposmod(Game.world.env.time_of_day + 0.25, 1.0)
 	for f in get_tree().get_nodes_in_group("fighters"):
-		if not f is Enemy or not is_instance_valid(f) or f.is_dead() or String(f.team) in ["player", "neutral"]:
+		if not f is Enemy or not is_instance_valid(f) or f.is_dead() or not Combat.hostile(Game.player, f):
 			continue
-		if f.global_position.distance_to(pos) > 120.0 and f.target != Game.player:
+		var hunting: bool = f.target == Game.player
+		var close: bool = f.global_position.distance_to(pos) < 70.0
+		if not hunting and not close:
 			continue
-		if f.target == Game.player or f.global_position.distance_to(pos) < 60.0:
-			f.lose_target(30.0)
-			f.state = "idle"
-			if f.get("home") != null and f.home.distance_to(pos) < 60.0 and not bool(f.arch.get("respawn", true)):
-				FX.smoke_puff(f.global_position + Vector3.UP, 0.7, 8)   # yalnız bu dövüş için gelmiş: çekilir
-				f.queue_free()
+		f.lose_target(180.0)
+		f.state = "idle"
+		if f.global_position.distance_to(pos) >= 150.0:
+			continue   # uzakta kaldı: yalnız peşini bırakır
+		var h: Vector3 = f.home
+		if h.distance_to(pos) < 60.0 and not bool(f.arch.get("respawn", true)):
+			f.queue_free()   # yalnız bu dövüş için gelmişti
+			continue
+		if h.distance_to(pos) < 150.0:
+			var a = randf() * TAU
+			h = Missions.open_ground(pos + Vector3(cos(a), 0.0, sin(a)) * randf_range(190.0, 240.0), 40.0)
+			f.home = h
+		f.velocity = Vector3.ZERO
+		f.global_position = h + Vector3.UP * 0.2
 
 
 func _process(_dt: float) -> void:
