@@ -7,7 +7,7 @@ extends ClanJutsu
 ##   Silah Ustası Yolu: parşömenden gerçek silah yağmuru, zincirle çekme/kancalanma, telli silah fırtınası, demir yelpaze kalkanı,
 ##               gökten dev topuz, efsanevi Bashōsen'in dört sargısı.
 
-const PSTYLE := {
+const PSTYLE := {"kugutsu_modoki": "sense", "rensha": "throw", "jikki_uematsu": "two_palm", "ribashiburu": "summon", "kawara_shuriken": "power", "samidare_kekka": "spin", "ayametori": "two_palm", "nadeshiko_shinku_enbu": "throw", "hari_jigoku": "power", "shisho_tenketsu": "power", 
 	"sen_ei_jashu": "two_palm", "jagei_jubaku": "sense", "hebi_bunshin_no_jutsu": "clone", "sen_ei_tajashu": "two_palm",
 	"kuchiyose_rashomon": "summon", "kusanagi_kuchi": "breath", "gogyo_fuin": "palm", "sen_ei_ranjashu": "ground",
 	"ten_no_juin": "power", "juin_ni_no_dankai": "power", "mandara_no_jin": "breath", "orochimaru_ryu_no_kawarimi_no_jutsu": "power",
@@ -19944,3 +19944,135 @@ func p_hagoromo_soki_giri(c: Node3D, t: Node3D) -> void:
 ## çevreyi sarsarsın
 func p_hagoromo_ukyu_rakuha(c: Node3D, t: Node3D) -> void:
 	Clan4FXA.hagoromo_ukyu_rakuha(self, c, t)
+
+
+## Parti 1: görünüm ve işleyiş combat/fx/jutsu_p1_fx.gd içinde
+func p_chikatsu_saisei(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p1_fx.gd").chikatsu_saisei(self, c, t)
+
+
+func p_saisei_kekkai(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p1_fx.gd").saisei_kekkai(self, c, t)
+
+
+func p_biju_soshingeki(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p1_fx.gd").biju_soshingeki(self, c, t)
+
+
+func p_tenpenchii(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p1_fx.gd").tenpenchii(self, c, t)
+
+
+func p_yosakugiri(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p1_fx.gd").yosakugiri(self, c, t)
+
+
+## Kagerō Ninpō: Utakata — dört ateşböceği kanadı, anlık geçiş, enerji boşalması; kullanan ölümün eşiğinde
+func p_kagero_utakata(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p2_fx.gd").kagero_utakata(self, c, t)
+
+
+## Kōmori Seichū — yarasa sürüsü çevreyi tarar, ses dalgalarıyla saldırır
+func p_komori_seichu(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p2_fx.gd").komori_seichu(self, c, t)
+
+
+## Enmaku Rō — dağılan duman klonlarının dumanı hedefi sarıp bağlar
+func p_enmaku_ro(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p2_fx.gd").enmaku_ro(self, c, t)
+
+
+## Saibō no Kasseijutsu — ağır yaralı dostun hücrelerini uyandıran ameliyat tekniği
+func p_saibo_kasseijutsu(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p2_fx.gd").saibo_kasseijutsu(self, c, t)
+
+
+## Chakura no Hari — hedefi kovalayan, niteliği değişen chakra iğneleri
+func p_chakura_no_hari(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p2_fx.gd").chakura_no_hari(self, c, t)
+
+
+func p_samidare_kekka(c: Node3D, t: Node3D) -> void:
+	preload("res://scripts/combat/fx/jutsu_p3_fx.gd").samidare_kekka(self, c, t)
+
+
+func p_ayametori(c: Node3D, t: Node3D) -> void:
+	preload("res://scripts/combat/fx/jutsu_p3_fx.gd").ayametori(self, c, t)
+
+
+func p_nadeshiko_shinku_enbu(c: Node3D, t: Node3D) -> void:
+	preload("res://scripts/combat/fx/jutsu_p3_fx.gd").nadeshiko_shinku_enbu(self, c, t)
+
+
+func p_hari_jigoku(c: Node3D, t: Node3D) -> void:
+	preload("res://scripts/combat/fx/jutsu_p3_fx.gd").hari_jigoku(self, c, t)
+
+
+func p_shisho_tenketsu(c: Node3D, t: Node3D) -> void:
+	preload("res://scripts/combat/fx/jutsu_p3_fx.gd").shisho_tenketsu(self, c, t)
+
+
+## Jibakujutsu — havaya yazılan kanji bedene geçer: 操 denetim, 滅 yıkım
+func p_jibakujutsu(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p4_fx.gd").jibakujutsu(self, c, t)
+
+
+## Bunshin Kaiten Kakato Otoshi — klonlarla dönerek topuk indirme
+func p_bunshin_kakato(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p4_fx.gd").bunshin_kakato(self, c, t)
+
+
+## Kokūn — Chōmei'nin gücüyle koruyucu koza
+func p_kokun(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p4_fx.gd").kokun(self, c, t)
+
+
+## Tsuchi Kurenai — ateşlenen matkap araziyi yarar
+func p_tsuchi_kurenai(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p4_fx.gd").tsuchi_kurenai(self, c, t)
+
+
+## Maengan — bilek fırlatıcısından duman bombası yağmuru
+func p_maengan(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p4_fx.gd").maengan(self, c, t)
+
+
+## Parti 5: görünüm ve işleyiş combat/fx/jutsu_p5_fx.gd içinde
+func p_eikeso_i(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p5_fx.gd").eikeso_i(self, c, t)
+
+
+func p_sumerudama(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p5_fx.gd").sumerudama(self, c, t)
+
+
+func p_enryu(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p5_fx.gd").enryu(self, c, t)
+
+
+func p_konshin_betsuri(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p5_fx.gd").konshin_betsuri(self, c, t)
+
+
+func p_aian_meiden(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p5_fx.gd").aian_meiden(self, c, t)
+
+
+func p_kugutsu_modoki(c: Node3D, t: Node3D) -> void:
+	preload("res://scripts/combat/fx/jutsu_p6_fx.gd").kugutsu_modoki(self, c, t)
+
+
+func p_rensha(c: Node3D, t: Node3D) -> void:
+	preload("res://scripts/combat/fx/jutsu_p6_fx.gd").rensha(self, c, t)
+
+
+func p_jikki_uematsu(c: Node3D, t: Node3D) -> void:
+	preload("res://scripts/combat/fx/jutsu_p6_fx.gd").jikki_uematsu(self, c, t)
+
+
+func p_ribashiburu(c: Node3D, t: Node3D) -> void:
+	preload("res://scripts/combat/fx/jutsu_p6_fx.gd").ribashiburu(self, c, t)
+
+
+func p_kawara_shuriken(c: Node3D, t: Node3D) -> void:
+	preload("res://scripts/combat/fx/jutsu_p6_fx.gd").kawara_shuriken(self, c, t)

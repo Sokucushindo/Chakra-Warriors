@@ -24,7 +24,7 @@ const MOON := 1800.0             # ağaç dikildikten Mugen Tsukuyomi'ye: 4 yıl
 const SHOW_R := 2600.0           # On Kuyruk bu mesafeden sahnede (dev: uzaktan görünür)
 const TREE_R := 3800.0
 const GUARD_R := 520.0
-const GIFTS := ["gudodama", "rikudo_sennin_modo", "rikudo_senjutsu", "rikudo_no_yo_no_chikara", "rikudo_no_in_no_chikara"]
+const GIFTS := ["tenpenchii", "gudodama", "rikudo_sennin_modo", "rikudo_senjutsu", "rikudo_no_yo_no_chikara", "rikudo_no_in_no_chikara"]
 
 static var actor: TailedBeast = null
 static var tree: ShinjuTree = null
