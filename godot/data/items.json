@@ -17,23 +17,221 @@
   "kind": "throw",
   "desc": "Saplandığı yerde patlar."
  },
- "smoke": {
-  "name": "Duman Bombası",
-  "price": 30,
-  "kind": "throw",
-  "desc": "Düşmanlar seni kaybeder."
- },
  "senbon": {
   "name": "Senbon",
   "price": 6,
   "kind": "throw",
   "desc": "Üçlü hızlı iğne: az hasar, %35 zehir (yavaşlatır)."
  },
+ "smoke": {
+  "name": "Kemuridama",
+  "price": 30,
+  "kind": "throw",
+  "desc": "Kâğıda sarılı duman topu. Bulutun ardını kimse göremez, sen görürsün. Algılayıcı, Byakugan ve Inuzuka burnu aldanmaz; rüzgâr dağıtır."
+ },
  "makibishi": {
   "name": "Makibishi",
   "price": 20,
   "kind": "throw",
-  "desc": "Yere diken saçar: üstünden geçen düşman yaralanır ve yavaşlar (8 sn)."
+  "desc": "Yere diken saçar. Üstünde koşanın ayağına batar, topallatır; her diken bir kez batar. Duran ya da zıplayan etkilenmez."
+ },
+ "hikaridama": {
+  "name": "Hikaridama",
+  "price": 40,
+  "kind": "throw",
+  "desc": "Işık bombası: ışığa bakanı kör eder, yakındaysan seni de. Gölge tekniklerinin menzilini kısa süre uzatır."
+ },
+ "togarashi_dama": {
+  "name": "Tōgarashi-dama",
+  "price": 35,
+  "kind": "throw",
+  "desc": "Üçlü acı biber topu. Tozun içindeki herkesi genjutsudan kurtarır, yenisini tutturmaz; içindeki öksürüp yavaşlar."
+ },
+ "bakusaidama": {
+  "name": "Bakusaidama",
+  "price": 95,
+  "kind": "throw",
+  "desc": "Kunai kaynaklı demir küre, içinde gizli etiket. Değdiği an parçalanır; kunailer her yöne saçılıp çevreye saplanır. Ne kadar yakınsan o kadar çok yersin."
+ },
+ "kibaku_fuda": {
+  "name": "Kibaku Fuda",
+  "price": 50,
+  "kind": "throw",
+  "desc": "Patlayıcı etiket. Değdiği yüzeye ya da kişiye yapışır, en çok beş tane. Aleti iki kez atınca Sıçan mührüyle sırayla patlarlar. Alev de tutuşturur, süresi dolan kendiliğinden patlar."
+ },
+ "kosen": {
+  "name": "Kōsen",
+  "price": 60,
+  "kind": "throw",
+  "desc": "Ucu kunaili ince çelik tel. Rakibe değerse dolanıp bağlar; Katon doğan varsa ateş telden akıp onu yakar. Yere düşerse ayak hizasında gerilir: üstünden koşan tökezler."
+ },
+ "sode_kunai": {
+  "name": "Sode Kunai",
+  "price": 90,
+  "kind": "throw",
+  "desc": "Kolluğun içindeki yaylı tel: kunai bir anda fırlar, geri çekilir. Kısa menzil. Rakip vuruşa kalkmışken yakalarsan saldırısını keser, sert yaralar. Blok tutarken de basılır."
+ },
+ "nuno_maki": {
+  "name": "Nuno Maki",
+  "price": 110,
+  "kind": "throw",
+  "desc": "Sırttaki kumaş rulosunu yönetme. Rakibi sarar ve mühürler; blok tutarken çevrende dönüp üç darbeyi durdurur (kuru kumaş ateşte yanar, ıslakken dayanır); canın azken seni örtüp kaçırır. Sırtta Nuno Maki rulosu şart."
+ },
+ "zoketsugan": {
+  "name": "Zōketsugan",
+  "price": 90,
+  "kind": "use",
+  "desc": "Kan yapımını hızlandıran hap. Eksik canının yarıya yakınını birkaç saniyede yerine koyar; çok yaralıyken işe yarar. [O] ile seç, [Y] ile yut."
+ },
+ "fuin_fuda": {
+  "name": "Fūin Fuda",
+  "price": 70,
+  "kind": "throw",
+  "desc": "Kunaiye bağlı kızıl mühür etiketi. Yazı bedene yayılır: çağrılmış yaratığı mühürler, ninjanın Kuchiyose yapmasını keser. Bitmeden yer değiştirirse düşer. Üç etiket birleşirse hedef düğümlenir."
+ },
+ "kekkai_fuda": {
+  "name": "Kekkai Fuda",
+  "price": 85,
+  "kind": "throw",
+  "desc": "İndiği yere dört 結 etiketi saplar: dışarıdan mermi ve düşman giremez. Yakında kalmalısın, chakra akar. Alan jutsularını durdurmaz; içerideki düşman etiketleri sökebilir."
+ },
+ "suzu": {
+  "name": "Suzu",
+  "price": 70,
+  "kind": "throw",
+  "desc": "Üç çıngıraklı senbon, altından bir sessiz senbon. Rakip sese döner, sessiz olan vurur. Çıngıraklar ipiyle çalar: iki çalışı yakından duyan felç olur, çevresinde sahte kopyalar görür. Uzaklaşan kurtulur."
+ },
+ "boenkyo": {
+  "name": "Bōenkyō",
+  "price": 80,
+  "kind": "throw",
+  "desc": "Gözdeki dürbünü açar: görüş daralır, görüşteki rakiplerin mesafesi yazar, nişangâha en yakın olan uzaktan kilitlenir. Yüzde Bōenkyō takılı olmalı."
+ },
+ "toge_dama": {
+  "name": "Toge-dama",
+  "price": 75,
+  "kind": "throw",
+  "desc": "Barutlu diken topu, üçlü atılır. Havada patlar, dikenler her yöne uçar. Siperin ardındakini vurmaz."
+ },
+ "kemuri_fuda": {
+  "name": "Kemuri Fuda",
+  "price": 95,
+  "kind": "throw",
+  "desc": "煙 yazılı etiket. Elde açılır, yeşil duman yavaşça çevreyi kaplar: düşman göremez, sen ve yoldaşların görürsünüz. Rüzgâr dağıtır."
+ },
+ "chusha_bari": {
+  "name": "Chūsha-bari",
+  "price": 80,
+  "kind": "throw",
+  "desc": "Tıbbi uyku iğnesi. Değen önce uyuşur, sonra uyur; darbe alınca uyanır. Kısa sürede ikinci doz canından yer. Panzehir korur."
+ },
+ "raizutsu": {
+  "name": "Raizutsu",
+  "price": 65,
+  "kind": "throw",
+  "desc": "Bambu tüp. Yere vurunca göğe tek şimşek çıkar: yakındakileri çarpar, yoldaşların sana yönelir. Bedeli: uzaktaki düşmanlar da yerini öğrenir."
+ },
+ "hyodama": {
+  "name": "Hyōdama",
+  "price": 85,
+  "kind": "throw",
+  "desc": "Kunaiye iple bağlı mavi kristal küre. Çarptığı yerde topraktan buz dikenleri fışkırır: içindekileri havaya kaldırır, kısa süre dondurur."
+ },
+ "mushu_dokugiri": {
+  "name": "Mushū no Dokugiri",
+  "price": 90,
+  "kind": "throw",
+  "desc": "Etiketle saçılan kokusuz toz. İçindeki düşmanın duyuları bulanır: yavaşlar, tepkisi düşer. Sen etkilenmezsin."
+ },
+ "kosho_mimikazari": {
+  "name": "Koshō Mimikazari",
+  "price": 45,
+  "kind": "throw",
+  "desc": "Biber dolu küpe. Sıkınca yakındaki rakibin yüzüne fışkırır, kör eder; sen geri sıçrarsın."
+ },
+ "hiko_tsubasa": {
+  "name": "Hikō Tsubasa",
+  "price": 1800,
+  "kind": "throw",
+  "desc": "Chakrayla uçuran kanatlar. Yerden kaldırmaz: havadayken aç. Uçtukça chakra yer; alçalıp yere değince kapanır."
+ },
+ "yuki_ita": {
+  "name": "Yuki Ita",
+  "price": 260,
+  "kind": "throw",
+  "desc": "Kar kayağı. Yalnız karlı bölgede: tuşla bin, hızla kay, tuşla in."
+ },
+ "kibaku_dama": {
+  "name": "Kibaku-dama",
+  "price": 80,
+  "kind": "throw",
+  "desc": "Patlayıcı etiketlerden top. Seker, yuvarlanır; rakibe değince ya da fitili bitince patlar."
+ },
+ "doku": {
+  "name": "Doku",
+  "price": 60,
+  "kind": "throw",
+  "desc": "Kesici silaha sürülen zehir. Altı kesik ya da yarım dakika dayanır; zehir biriktikçe yavaşlatır, sonunda chakrayı keser. Blok tutana işlemez."
+ },
+ "gedokuyaku": {
+  "name": "Gedokuyaku",
+  "price": 55,
+  "kind": "throw",
+  "desc": "Panzehir kapsülü. Zehirliysen kendine vurursun, değilse yakındaki zehirli yoldaşına atarsın; kısa süre yeni zehirden de korur."
+ },
+ "kemuri_senkodan": {
+  "name": "Kemuri Senkōdan",
+  "price": 75,
+  "kind": "throw",
+  "desc": "Bilimsel ninja aracı: çarpınca güçlü ses ve ışık. Bakmayanı da sersemletir, keskin duyuları bile kapatır. Yakındaysan seni ve yoldaşlarını da vurur; duvar korur."
+ },
+ "okarina": {
+  "name": "Okarina",
+  "price": 240,
+  "kind": "throw",
+  "desc": "Kil okarina. Kısa ezgi çevrendeki yoldaşlarını ve seni güçlendirip hızlandırır, genjutsudan çıkarır. Çalarken savunmasızsın."
+ },
+ "eiyu_mizu": {
+  "name": "Eiyū no Mizu",
+  "price": 0,
+  "kind": "throw",
+  "desc": "Takigakure'nin Kahraman Suyu. Kısa süre chakran tükenmez, gücün artar, küçük silahlar üstünden savrulur. Bedeli ömründür: her şişe yıllarını alır. Tek kullanımlık."
+ },
+ "agiz_kozu": {
+  "name": "Fukumi-bi",
+  "price": 30,
+  "kind": "throw",
+  "desc": "Ağızda saklanan köz. Isırıp tükürürsün: elin dolu olsa da olur. Az yakar, patlayıcı etiket gibi aleve duyarlı şeyleri tutuşturur."
+ },
+ "aobiko": {
+  "name": "Aobiko",
+  "price": 110,
+  "kind": "throw",
+  "desc": "Mavi ateş tozu kesesi. Yere yayılır; su, yağmur, Suiton ya da ıslak biri değince büyük patlar. Fukiya kuşanılıyken tozlu taş üflersin."
+ },
+ "inochi_kare": {
+  "name": "Inochi no Karē",
+  "price": 65,
+  "kind": "throw",
+  "desc": "Ölmek üzere olanı kaldıran acı köri. Can azken çok daha iyi gelir, yakındaki bitkin yoldaşa da yedirirsin. Acıya alışık değilsen seni bayıltabilir. Tek kullanımlık."
+ },
+ "genjutsu_kosui": {
+  "name": "Genjutsu Yaburi no Kōsui",
+  "price": 150,
+  "kind": "throw",
+  "desc": "Suna'nın koku panzehri. Sıkınca çevrede yoldaşların genjutsusu bir süre sürekli çözülür. Rüzgâr doğası kokuyu daha uzağa taşır."
+ },
+ "genjutsu_yaku": {
+  "name": "Genjutsu Yaku",
+  "price": 180,
+  "kind": "throw",
+  "desc": "Yutturulan felç hapı. Rakibin dibine girip ağzına tıkman gerekir; blok tutana işlemez. Bedeni kısa süre tutar, zihni bulandırır."
+ },
+ "bijugan": {
+  "name": "Bijūgan",
+  "price": 0,
+  "kind": "throw",
+  "desc": "Kuyruklu chakra pelerini veren kapsül. Chakran ne kadar doluysa o kadar kuyruk açılır; kuyruklar darbeleri savuşturur. Süreli; sersemlersen söner. Tek kullanımlık."
  },
  "salve": {
   "name": "Şifalı Merhem",

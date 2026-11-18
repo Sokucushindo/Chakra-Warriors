@@ -1543,7 +1543,7 @@ func setup(l: Dictionary) -> void:
 		var lr = _grest(skel.find_bone("LeftHand"))
 		rig.left_holder = (lr.basis.orthonormalized().inverse() * _grip_xf("Left").basis.orthonormalized())
 		rig.left_grip_pos = lr.basis.orthonormalized().inverse() * (_grip_xf("Left").origin - lr.origin)
-	drawn = look.get("drawn", true)
+	drawn = look.get("drawn", not look.get("npc", false))   # NPC silahı kınında / sırtında taşır; dövüşte çeker
 	_place_weapons()
 	_register_forearm_lock()
 	apply_age(look.get("age", "adult"))
@@ -1570,6 +1570,8 @@ func _queue_shadow_trim() -> void:
 
 func _shadow_trim() -> void:
 	_trim_queued = false
+	if not is_inside_tree():
+		return   # model bu arada sahneden alındı (kıyafet / silah değişiminde yeniden kurulum)
 	var npc = not (get_parent() is Player)
 	for mi in find_children("*", "MeshInstance3D", true, false):
 		if mi.mesh == null or String(mi.name) in SHADOW_KEEP:
@@ -8116,6 +8118,10 @@ func _accessories() -> void:
 					m.add("sphere", Vector3(0.075 * sx, 0.1, -0.005), Vector3(0.05, 0.05, 0.025), fg, Vector3.ZERO, 8)
 				m.add("sphere", Vector3(0, -0.04, 0.045), Vector3(0.05, 0.035, 0.03), Color(0.3, 0.25, 0.25), Vector3.ZERO, 8)
 		_mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, hc + Vector3(0, -0.03, 0.085)))
+	elif fs == "boenkyo":
+		var bm = MB.new()
+		load("res://scripts/combat/fx/boenkyo_fx.gd").head(bm)   # refs/goz_durbunu
+		_mesh_on("Head", bm.build(Props.toon()), Transform3D(Basis.IDENTITY, hc + Vector3(0.05, 0.02, 0.125)))
 	elif fs in ["kitsune", "tengu", "oni"]:
 		# festival maskeleri (yüzü saran kabuk + desen); model önü +Z
 		var m = MB.new()
@@ -10728,13 +10734,13 @@ func _attachments() -> void:
 ## Silah kını yeri: pouch = kunai çantası/kılıfı (görünmez), hip = sol kalçada kınlı kılıç (çapraz çekiş),
 ## back = sırtta çapraz (dev kılıçlar, sopalar), low_back = belin arkasında yatay, belt = yan kalçada asılı
 const SHEATH_OF := {"blade": "pouch", "dual": "pouch", "claw": "pouch", "sickle": "belt", "sword": "hip", "heavy": "back", "staff": "back", "chain": "belt", "fan": "back"}
-const SHEATH_ID := {"temari_ogi": "back", "mateki": "belt", "raijin": "belt", "tanto": "low_back", "ikiz_hancer": "low_back", "tonfa": "belt", "bashosen": "back", "yagura_sopa": "back", "kama": "back", "sai": "belt", "kiba": "back", "nodachi": "back", "kusanagi": "hip", "hiraishin_kunai": "belt", "kusarigama": "back", "fuma_shuriken": "back", "kyodai_shuriken": "back", "fuma_makimono": "back"}
+const SHEATH_ID := {"chakra_oltasi": "back", "ryujin": "belt", "kuwa": "back", "naitosodo": "belt", "hono_ken": "back", "gariando": "back", "ei_yumi": "pouch", "ei_yumi_yay": "back", "igne_tufegi": "belt", "dako": "back", "kunai_hasshaki": "back", "flail": "belt", "kusari_fubo": "belt", "cift_tirpan": "back", "kunai_to": "back", "yumi": "pouch", "sapan": "pouch", "yumi_yay": "back", "sapan_catal": "belt", "arbalet": "back", "fukiya": "back", "temari_ogi": "back", "mateki": "belt", "raijin": "belt", "tanto": "low_back", "ikiz_hancer": "low_back", "tonfa": "belt", "bashosen": "back", "yagura_sopa": "back", "kama": "back", "sai": "belt", "kiba": "back", "nodachi": "back", "kusanagi": "hip", "hiraishin_kunai": "belt", "kusarigama": "back", "fuma_shuriken": "back", "kyodai_shuriken": "back", "fuma_makimono": "back"}
 ## Kınlı kılıçlar: [kın başı z, kın ucu z, kalınlık, genişlik] (silah uzayında, kabza 0, namlu +Z)
-const SAYA := {"katana": [0.075, 0.84, 0.042, 0.06], "kokuto": [0.075, 0.84, 0.042, 0.06], "wakizashi": [0.05, 0.6, 0.04, 0.055], "nodachi": [0.1, 1.38, 0.05, 0.11],
+const SAYA := {"kurosawa": [0.085, 1.1, 0.044, 0.062], "katana": [0.075, 0.84, 0.042, 0.06], "kokuto": [0.075, 0.84, 0.042, 0.06], "wakizashi": [0.05, 0.6, 0.04, 0.055], "nodachi": [0.1, 1.38, 0.05, 0.11],
 	"tanto": [0.06, 0.4, 0.045, 0.045], "chokuto": [0.13, 0.9, 0.05, 0.05]}
 const SHEATH_DUR := 0.42
 const KATANA_TIP_DOWN := -75.0
-const BACK_TIP_UP := ["kama", "savas_cekici", "uc_tirpan", "mizrak", "kabutowari", "kusarigama"]
+const BACK_TIP_UP := ["chakra_oltasi", "kuwa", "hono_ken", "kajiki_mori", "dako", "jidanda", "cift_tirpan", "nunoboko", "katoringu", "natato", "kunai_to", "kama", "savas_cekici", "uc_tirpan", "mizrak", "shakujo", "ono", "sasumata", "konbo", "kanabo", "kabutowari", "kusarigama"]
 
 var weapons: Array = []     # [{id, side, kind, node, hand, sheath}]
 var drawn := true           # silah elde mi (oyuncu: kınında başlar, saldırınca çekilir)
@@ -10744,10 +10750,12 @@ var _swapped := false
 var rig: WeaponRig
 
 
-const HAND_FRAME := ["tonfa", "pence", "chakra_bicak"]
+const HAND_FRAME := ["tekko", "tonfa", "pence", "chakra_bicak", "katar"]
 ## Kola takılan silah (Raikage no Kote): ele değil ön kola geçer, kına girmez, eller boş kalır (yumruk)
-const ARM_WEAR := ["raikage_kote"]
-const PAIR := ["tonfa", "pence", "senbon", "kiba", "raikage_kote"]   # çift el silahı: sağ elde takılıysa ve sol boşsa sol ele de aynısı (oyuncu ve NPC)
+const ARM_WEAR := ["sekka_kote", "tenro_doriru", "hiraki_tate", "nobi_ude", "hasami_kote", "soha_kote", "doriru_ude", "tsurukame", "enmaku_kote", "shinobigote", "oni_kote", "bilek_senbon", "kyomei_supika", "raikage_kote", "tate"]
+const PAIR := ["tenro_doriru", "fujaku", "soha_kote", "nester", "tekko", "kusari_fundo", "tonfa", "pence", "senbon", "kiba", "raikage_kote", "katar"]   # çift el silahı: sağ elde takılıysa ve sol boşsa sol ele de aynısı (oyuncu ve NPC)
+## Sağ el mermiyi / oku tutar, sol ele asıl silah gelir: [sol el modeli, kın türü]
+const LEFT_BOW := {"ei_yumi": ["ei_yumi_yay", "back"], "yumi": ["yumi_yay", "back"], "sapan": ["sapan_catal", "belt"]}
 
 
 static func sheath_kind(id: String) -> String:
@@ -10871,9 +10879,30 @@ func _weapons() -> void:
 				_nanato_attach()
 			continue
 		if id in ARM_WEAR:
-			var arm: Node3D = _attach(side + "LowerArm", _forearm_xf(side)).get_child(0)
+			var aside: String = "Left" if id in ["tate", "tsurukame"] else side   # kalkan sol kolda, sağ el boş yumruk
+			var arm: Node3D = _attach(aside + "LowerArm", _forearm_xf(aside)).get_child(0)
 			arm.add_child(node)
-			weapons.append({"id": id, "side": side, "kind": "worn", "node": node, "hand": arm, "sheath": arm})
+			weapons.append({"id": id, "side": aside, "kind": "worn", "node": node, "hand": arm, "sheath": _tate_back() if id in ["tate", "tsurukame"] else arm})
+			if id == "sekka_kote":
+				load("res://scripts/combat/fx/sekka_kote_fx.gd").attach(node)
+			if id == "tenro_doriru":
+				load("res://scripts/combat/fx/tenro_doriru_fx.gd").attach(node)
+			if id == "hiraki_tate":
+				load("res://scripts/combat/fx/hiraki_tate_fx.gd").attach(node)   # blokta / pencerede açılır
+			if id == "hasami_kote":
+				load("res://scripts/combat/fx/hasami_kote_fx.gd").attach(node, self, aside)
+			if id == "soha_kote":
+				load("res://scripts/combat/fx/soha_kote_fx.gd").attach(node, aside)
+			if id == "doriru_ude":
+				load("res://scripts/combat/fx/doriru_ude_fx.gd").attach(node)
+			if id == "enmaku_kote":
+				load("res://scripts/combat/fx/enmaku_kote_fx.gd").attach(node, self)   # sırta giden hortum
+			if id == "oni_kote":
+				load("res://scripts/combat/fx/oni_kote_fx.gd").attach(node)
+			if id == "kyomei_supika" and aside == "Right":   # elin arkasındaki bej plaka (ref)
+				var kp_mi = MeshInstance3D.new()
+				kp_mi.mesh = weapon_mesh("kyomei_plaka")
+				_attach("RightHand", _grip_xf("Right")).get_child(0).add_child(kp_mi)
 			continue
 		if id in HAND_FRAME and side == "Right":
 			# tutuş çerçevesi sağ elde z etrafında 180° dönük: yönü ele göre olan silahlar (tonfa gövdesi dirseğe,
@@ -10881,7 +10910,7 @@ func _weapons() -> void:
 			var wrap = Node3D.new()
 			wrap.add_child(node)
 			# pençe: yalnız parmak yönü (x) ters çevrilir, el sırtı plakası (+y) sırtta kalır -> Y etrafında; diğerleri Z etrafında
-			node.transform.basis = Basis(Vector3.UP, PI) if id == "pence" else Basis(Vector3.BACK, PI)
+			node.transform.basis = Basis(Vector3.UP, PI) if id in ["pence", "katar"] else Basis(Vector3.BACK, PI)
 			node = wrap
 		var hand: Node3D = _attach(side + "Hand", _grip_xf(side)).get_child(0)
 		hand.add_child(node)
@@ -10897,6 +10926,30 @@ func _weapons() -> void:
 			# halkaya bağlı siyah kurdele: iki uç, rüzgârda/savuruşta dalgalanır (ikincil hareket)
 			for sx in [-1.0, 1.0]:
 				dangle_strip("", Vector3(0.0, 0.0, -0.2), Vector3(0.18 * sx, -0.3, -1.0), 0.34, 0.06, Color(0.08, 0.08, 0.1), 0.16, Vector3(0, 1, 0), 0.004, node)
+		if id == "natato":
+			load("res://scripts/combat/fx/natato_fx.gd").attach(node)   # sırt yarısı + menteşeli ağız, katlı başlar
+		if id == "kaeri_yari":
+			load("res://scripts/combat/fx/kaeri_yari_fx.gd").attach(node)   # iç içe üç boğum, toplu başlar
+		if id == "kunai_to":
+			load("res://scripts/combat/fx/kunai_to_fx.gd").attach(node)
+			dangle_strip("", Vector3(0.0, 0.0, -0.26), Vector3(0.1, -0.4, -1.0), 0.3, 0.05, Color(0.88, 0.87, 0.84), 0.16, Vector3(0, 1, 0), 0.004, node)   # sargı ucu
+		if id == "katoringu":
+			load("res://scripts/combat/fx/katoringu_fx.gd").attach(node)   # dönen namlular
+		if id == "flail":
+			load("res://scripts/combat/fx/flail_fx.gd").attach(node, self)   # gerçek zincir + dikenli baş
+		if id == "kusari_fubo":
+			load("res://scripts/combat/fx/kusari_fubo_fx.gd").attach(node, self)
+		if id == "kajiki_mori":
+			load("res://scripts/combat/fx/kajiki_mori_fx.gd").attach(node)   # sap dibinden sarkan halat
+		if id == "ryujin":
+			load("res://scripts/combat/fx/ryujin_fx.gd").attach(node)
+			dangle_strip("", Vector3(0.0, 0.0, -0.3), Vector3(0.1, -0.5, -1.0), 0.42, 0.05, Color(0.78, 0.38, 0.12), 0.16, Vector3(0, 1, 0), 0.006, node)   # örgülü püskül
+		if id == "chakra_oltasi":
+			load("res://scripts/combat/fx/chakra_oltasi_fx.gd").attach(node, self)   # kızıl ip + kanca
+		if id == "shakujo":
+			_shk_rings(node)   # başın iki yanında serbest sallanan halkalar
+		if id == "konbo":
+			load("res://scripts/combat/fx/konbo_fx.gd").attach_chain(node)   # sap dibinden başa sarkan zincir
 		if id in KCHAIN and _kch.is_empty():
 			_make_kchain(id)   # kusarigama: sap dibinden zincir + çan ağırlık; zincirli kunai: halkadan uzun zincir + ikinci kunai
 		if SAYA.has(id):
@@ -10907,6 +10960,8 @@ func _weapons() -> void:
 			node.add_child(_wind_ribbons())   # dönen rüzgar şeritleri (her kare döner, _wind_air)
 		var kind = sheath_kind(id)
 		weapons.append({"id": id, "side": side, "kind": kind, "node": node, "hand": hand, "sheath": _sheath_holder(kind, side, id, node)})
+		if id == "kusari_fundo" and side == "Left":
+			load("res://scripts/combat/fx/kusari_fundo_fx.gd").attach_chain(weapons)   # iki avuç arasında sarkan zincir
 		if id in ["chakra_bicak", "sai"] and side == "Right" and skel.find_bone("LeftHand") >= 0:
 			# Asuma'nın bıçaklı muştaları çift: sol ele de aynısı (sağ elde 180° çevrilmiş çerçeve, solda düz)
 			var lm = MeshInstance3D.new()
@@ -10914,6 +10969,18 @@ func _weapons() -> void:
 			var lh: Node3D = _attach("LeftHand", _grip_xf("Left")).get_child(0)
 			lh.add_child(lm)
 			weapons.append({"id": id + "_sol", "side": "Left", "kind": "pouch", "node": lm, "hand": lh, "sheath": null})
+		if LEFT_BOW.has(id) and side == "Right" and skel.find_bone("LeftHand") >= 0 and (look.get("weapon_l") == null or String(look.get("weapon_l")) == ""):
+			var lb_id: String = LEFT_BOW[id][0]
+			var lb = MeshInstance3D.new()
+			lb.mesh = weapon_mesh(lb_id)
+			var lb_hand: Node3D = _attach("LeftHand", _grip_xf("Left")).get_child(0)
+			lb_hand.add_child(lb)
+			weapons.append({"id": lb_id, "side": "Left", "kind": LEFT_BOW[id][1], "node": lb, "hand": lb_hand, "long": true, "sheath": _sheath_holder(LEFT_BOW[id][1], "Left", lb_id, lb)})
+			if id == "yumi":   # sadak sağ omzun arkasında, oklar omuzdan görünür (Taruho.png)
+				var ch_q = _grest(skel.find_bone("UpperChest")).origin
+				var q_mi = MeshInstance3D.new()
+				q_mi.mesh = weapon_mesh("yumi_ebira")
+				_attach("UpperChest", Transform3D(_frame(Vector3(-0.42, 1.0, -0.05), Vector3(0, 0, -1)), ch_q + Vector3(0.1, -0.22, minf(_back_z(ch_q.y - 0.06), -0.08) - 0.07))).get_child(0).add_child(q_mi)
 		if id == "kabutowari" and side == "Right" and skel.find_bone("LeftHand") >= 0:
 			# Kabutowari ikilisi: sol elde çekiç (kılıflıyken sol kalçada; balta sırtta), halkalar arası halat
 			var hm = MeshInstance3D.new()
@@ -10963,6 +11030,15 @@ static func _z_span(n: Node3D) -> Vector2:
 	return Vector2(ab.position.z, ab.end.z)
 
 
+## Kalkan kındayken sırtta (Gamaken gibi; `ahsap_kalkan` sırt eşyasıyla aynı yer): göbek dışa, yüz sırta yaslı
+func _tate_back() -> Node3D:
+	var ch = _grest(skel.find_bone("UpperChest")).origin
+	var bz = _back_z(ch.y - 0.06)
+	var pad = 0.03 + (0.025 if look.get("vest") != null else 0.0) + (0.04 if look.get("outer_style") != null else 0.0)
+	var b = Basis(Vector3(0, 0, -1), Vector3.UP, Vector3.RIGHT)
+	return _attach("UpperChest", Transform3D(b, ch + Vector3(0, -0.1, minf(bz, -0.08) - pad - 0.02))).get_child(0)
+
+
 func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Node3D:
 	if kind == "pouch":
 		return null
@@ -10998,6 +11074,10 @@ func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Nod
 					near_x = -0.12   # yassı gövde yarı kalınlığı (uçtaki pul dikenleri AABB'yi büyütüp silahı sırttan uzaklaştırıyordu)
 				elif id == "savas_cekici":
 					near_x = -0.035   # sap yarı kalınlığı: blok kafa (0.62 m) AABB'yi büyütüp sapı sırttan uzak tutuyordu
+				elif id == "sasumata":
+					near_x = -0.045   # sap yarı kalınlığı: çatal kolları AABB'yi büyütüp sapı sırttan uzak tutmasın
+				elif id == "konbo":
+					near_x = -0.05   # sap yarı kalınlığı: dev baş AABB'yi büyütüp sapı sırttan uzak tutmasın
 				center.z = bz - pad + near_x + 0.02
 			var mid2 = mid if L > 1.2 else mid * 0.8
 			xf = Transform3D(b, center - b.z * mid2)
@@ -11216,6 +11296,7 @@ func _weapon_process(dt: float) -> void:
 		return
 	_update_rope()
 	_update_kchain(dt)
+	_update_shk(dt)
 	_wind_air(dt)
 	if _sheath_t >= 0.0:
 		_sheath_t += dt / SHEATH_DUR
@@ -12475,6 +12556,172 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			b.add("cyl", Vector3(0, 0, 0.1), Vector3(0.036, 1.7, 0.036), Color(0.45, 0.32, 0.2), Vector3(90, 0, 0), 8)
 			for z in [-0.72, 0.92]:
 				b.add("cyl", Vector3(0, 0, z), Vector3(0.042, 0.08, 0.042), dark, Vector3(90, 0, 0), 8)
+		"yumi":
+			load("res://scripts/combat/fx/yumi_fx.gd").build_arrow(b, -0.3)   # sağ eldeki ok
+		"yumi_yay":
+			load("res://scripts/combat/fx/yumi_fx.gd").build_bow(b)
+		"yumi_yay_k":
+			load("res://scripts/combat/fx/yumi_fx.gd").build_grip(b)          # kolları ve kirişi düzenek çizer
+		"yumi_ebira":
+			load("res://scripts/combat/fx/yumi_fx.gd").build_quiver(b)
+		"arbalet":
+			load("res://scripts/combat/fx/arbalet_fx.gd").build_full(b)
+		"arbalet_govde":
+			load("res://scripts/combat/fx/arbalet_fx.gd").build_body(b)
+		"fukiya":
+			load("res://scripts/combat/fx/fukiya_fx.gd").build_pipe(b)
+		"bilek_senbon":
+			load("res://scripts/combat/fx/bilek_senbon_fx.gd").build_full(b)
+		"bilek_senbon_k":
+			load("res://scripts/combat/fx/bilek_senbon_fx.gd").build_body(b)   # namlu ve teller düzenekten
+		"kyomei_supika":
+			load("res://scripts/combat/fx/kyomei_supika_fx.gd").build_full(b)
+		"kyomei_plaka":
+			load("res://scripts/combat/fx/kyomei_supika_fx.gd").build_plate(b)
+		"sapan":
+			load("res://scripts/combat/fx/sapan_fx.gd").build_shot(b)
+		"sapan_catal":
+			load("res://scripts/combat/fx/sapan_fx.gd").build_full(b)
+		"sapan_catal_k":
+			load("res://scripts/combat/fx/sapan_fx.gd").build_fork(b)
+		"amagasa", "amagasa_y", "amagasa_a", "amagasa_kilic", "amagasa_govde":
+			load("res://scripts/combat/fx/amagasa_fx.gd").model(b, id)   # refs/amagasa
+		"sasumata":
+			load("res://scripts/combat/fx/sasumata_fx.gd").model(b)   # refs/sasumata (Gamaken)
+		"konbo", "konbo_sap", "konbo_bas", "konbo_kanat", "konbo_gomu":
+			load("res://scripts/combat/fx/konbo_fx.gd").model(b, id)   # refs/konbo
+		"kanabo":
+			load("res://scripts/combat/fx/kanabo_fx.gd").model(b)   # refs/kanabo (Doki)
+		"ono":
+			load("res://scripts/combat/fx/ono_fx.gd").model(b)   # refs/ono (Sabu)
+		"tate", "tate_kirik":
+			load("res://scripts/combat/fx/tate_fx.gd").model(b, id)   # refs/tate
+		"katar":
+			load("res://scripts/combat/fx/katar_fx.gd").model(b)   # H kabzalı yumruk hançeri
+		"natato":
+			load("res://scripts/combat/fx/natato_fx.gd").model(b)
+		"natato_sirt":
+			load("res://scripts/combat/fx/natato_fx.gd").model_spine(b)
+		"natato_agiz":
+			load("res://scripts/combat/fx/natato_fx.gd").model_edge(b)
+		"oni_kote":
+			load("res://scripts/combat/fx/oni_kote_fx.gd").model(b)
+		"kunai_to":
+			load("res://scripts/combat/fx/kunai_to_fx.gd").model(b)
+		"kaeri_yari":
+			load("res://scripts/combat/fx/kaeri_yari_fx.gd").model(b)
+		"kaeri_yari_kok":
+			load("res://scripts/combat/fx/kaeri_yari_fx.gd").model_base(b)
+		"kaeri_yari_2":
+			load("res://scripts/combat/fx/kaeri_yari_fx.gd").model_2(b)
+		"kaeri_yari_3":
+			load("res://scripts/combat/fx/kaeri_yari_fx.gd").model_3(b)
+		"kusari_fundo":
+			load("res://scripts/combat/fx/kusari_fundo_fx.gd").model(b)
+		"doku_sise":
+			load("res://scripts/combat/fx/doku_fx.gd").build_vial(b)
+		"gedokuyaku":
+			load("res://scripts/combat/fx/gedokuyaku_fx.gd").build(b)
+		"kurosawa":
+			load("res://scripts/combat/fx/kurosawa_fx.gd").build(b)
+		"tekko":
+			load("res://scripts/combat/fx/tekko_fx.gd").build(b)
+		"shinobigote":
+			load("res://scripts/combat/fx/shinobigote_fx.gd").model(b)   # refs/shinobigote
+		"katoringu":
+			load("res://scripts/combat/fx/katoringu_fx.gd").model(b)   # refs/katoringu
+		"katoringu_namlu":
+			load("res://scripts/combat/fx/katoringu_fx.gd").drum_model(b)
+		"nunoboko":
+			load("res://scripts/combat/fx/nunoboko_fx.gd").model(b)   # refs/nunoboko
+		"flail":
+			load("res://scripts/combat/fx/flail_fx.gd").model(b)
+		"kusari_fubo":
+			load("res://scripts/combat/fx/kusari_fubo_fx.gd").model(b)
+		"cift_tirpan":
+			load("res://scripts/combat/fx/cift_tirpan_fx.gd").model(b)
+		"nester":
+			load("res://scripts/combat/fx/nester_fx.gd").model(b)
+		"kunai_hasshaki":
+			load("res://scripts/combat/fx/kunai_hasshaki_fx.gd").build(b)
+		"enmaku_kote":
+			load("res://scripts/combat/fx/enmaku_kote_fx.gd").build(b)
+		"igne_tufegi":
+			load("res://scripts/combat/fx/igne_tufegi_fx.gd").model(b)   # refs/igne_tufegi
+		"dako", "dako_sap", "dako_bas":
+			load("res://scripts/combat/fx/dako_fx.gd").model(b, id)   # refs/dako
+		"tsurukame", "tsurukame_kirik":
+			load("res://scripts/combat/fx/tsurukame_fx.gd").model(b, id)   # refs/tsurukame
+		"jidanda", "jidanda_sap", "jidanda_top", "jidanda_acik":
+			load("res://scripts/combat/fx/jidanda_fx.gd").model(b, id)   # refs/jidanda
+		"hasami_kote":
+			load("res://scripts/combat/fx/hasami_kote_fx.gd").model(b)
+		"hasami_kote_k":
+			load("res://scripts/combat/fx/hasami_kote_fx.gd").model_base(b)
+		"hasami_kote_a":
+			load("res://scripts/combat/fx/hasami_kote_fx.gd").model_blade(b)
+		"soha_kote":
+			load("res://scripts/combat/fx/soha_kote_fx.gd").model(b)
+		"doriru_ude":
+			load("res://scripts/combat/fx/doriru_ude_fx.gd").model(b)
+		"doriru_ude_g":
+			load("res://scripts/combat/fx/doriru_ude_fx.gd").model_body(b)
+		"doriru_ude_e":
+			load("res://scripts/combat/fx/doriru_ude_fx.gd").model_head(b)
+		"kajiki_mori":
+			load("res://scripts/combat/fx/kajiki_mori_fx.gd").model(b)
+		"kajiki_mori_o":
+			load("res://scripts/combat/fx/kajiki_mori_fx.gd").model_awake(b)
+		"ei_yumi":
+			load("res://scripts/combat/fx/ei_yumi_fx.gd").build_hand(b)
+		"ei_yumi_yay":
+			load("res://scripts/combat/fx/ei_yumi_fx.gd").build_bow(b)
+		"hono_ken":
+			load("res://scripts/combat/fx/hono_ken_fx.gd").build(b)
+		"gariando":
+			load("res://scripts/combat/fx/gariando_fx.gd").build(b)
+		"gariando_k":
+			load("res://scripts/combat/fx/gariando_fx.gd").build_hilt(b)
+		"fujaku":
+			load("res://scripts/combat/fx/fujaku_fx.gd").build(b)
+		"fujaku_bir":
+			load("res://scripts/combat/fx/fujaku_fx.gd").build_merged(b)
+		"okarina":
+			load("res://scripts/combat/fx/okarina_fx.gd").build(b)
+		"eiyu_mizu":
+			load("res://scripts/combat/fx/eiyu_mizu_fx.gd").build(b)
+		"kuwa":
+			load("res://scripts/combat/fx/kuwa_fx.gd").model(b)
+		"naitosodo", "naitosodo_uzun":
+			load("res://scripts/combat/fx/naitosodo_fx.gd").model(b, id)   # refs/naitosodo
+		"hiraki_tate", "hiraki_tate_acik":
+			load("res://scripts/combat/fx/hiraki_tate_fx.gd").model(b, id)   # refs/hiraki_tate
+		"nobi_ude", "nobi_ude_sap", "nobi_ude_el":
+			load("res://scripts/combat/fx/nobi_ude_fx.gd").model(b, id)   # refs/nobi_ude
+		"sekka_kote":
+			load("res://scripts/combat/fx/sekka_kote_fx.gd").model(b)
+		"tenro_doriru":
+			load("res://scripts/combat/fx/tenro_doriru_fx.gd").model(b)
+		"tenro_doriru_k":
+			load("res://scripts/combat/fx/tenro_doriru_fx.gd").model_cuff(b)
+		"tenro_doriru_u":
+			load("res://scripts/combat/fx/tenro_doriru_fx.gd").model_bit(b)
+		"ryujin":
+			load("res://scripts/combat/fx/ryujin_fx.gd").model(b)
+		"jo":
+			b.add("cyl", Vector3(0, 0, 0.18), Vector3(0.03, 1.27, 0.03), Color(0.56, 0.42, 0.27), Vector3(90, 0, 0), 8)
+		"chakra_oltasi":
+			load("res://scripts/combat/fx/chakra_oltasi_fx.gd").build(b)
+		"inochi_kare":
+			load("res://scripts/combat/fx/inochi_kare_fx.gd").build(b)
+		"genjutsu_kosui":
+			load("res://scripts/combat/fx/genjutsu_kosui_fx.gd").build(b)
+		"genjutsu_yaku":
+			load("res://scripts/combat/fx/genjutsu_yaku_fx.gd").build(b)
+		"bijugan":
+			load("res://scripts/combat/fx/bijugan_fx.gd").build(b)
+		"shakujo":
+			b.add_mesh(_shk_mb())   # refs/shakujo (Kazuma_NM.png)
 		"mizrak":
 			# yari: koyu ağaç sap, metal bilezik, yaprak biçimli yassı ağız, kızıl püskül; dipte metal uç
 			b.add("cyl", Vector3(0, 0, 0.2), Vector3(0.032, 1.8, 0.032), Color(0.35, 0.22, 0.15), Vector3(90, 0, 0), 8)
@@ -12990,8 +13237,8 @@ func set_dojutsu(kind: int, tomoe := 3) -> void:
 ## Uzun ağızlı silahlar (Samehada, Kubikiribōchō, Kiba...) beklerken elin ekseninde kalınca başın önünden geçip yüzü kapatıyordu:
 ## duruştayken ağız omzun üstünden başın arkasına yatırılır; saldırıda kolla aynı hizaya döner
 ## Bekleme yönü model uzayında: [ağız yönü (+Z ön, +X karakterin solu), kalınlık ekseni ipucu]
-const REST_DIR := {"kubikiribocho": [Vector3(-0.12, 0.42, -0.9), Vector3(-1, 0, 0)]}
-static var REST_TILT_OF := {"samehada": Vector3(0, 0, 0), "gunbai": Vector3(0, 0, 0), "uc_tirpan": Vector3(0, 0, -164), "shibuki": Vector3(0, 0, 171.6), "kabutowari": Vector3(0, 0, 112.1)}   # tırpan: yalnız sap ekseni etrafında (bıçaklar sırtın arkasında aşağı sarkar), sap yönü kol pozundan   # gunbai: silah yumruğun içinden düz geçer; yönü kol pozu verir (w_gunbai)   # silaha özel bekleme eğimi (kafanın içinden geçmesin)
+const REST_DIR := {"ei_yumi": [Vector3(0.1, -0.7, 0.7), Vector3(1, 0, 0)], "ei_yumi_yay": [Vector3(0.0, 1.0, 0.12), Vector3(0, 0, 1)], "amagasa": [Vector3(0.04, 1.0, 0.1), Vector3(1, 0, 0)], "sasumata": [Vector3(0.0, 1.0, 0.03), Vector3(1, 0, 0)], "yumi": [Vector3(0.1, -0.7, 0.7), Vector3(1, 0, 0)], "yumi_yay": [Vector3(0.0, 1.0, 0.12), Vector3(0, 0, 1)], "sapan_catal": [Vector3(0.0, 1.0, 0.12), Vector3(0, 0, 1)], "arbalet": [Vector3(0.12, -0.2, 0.97), Vector3(1, 0, 0)], "fukiya": [Vector3(0.0, 1.0, 0.03), Vector3(1, 0, 0)], "kubikiribocho": [Vector3(-0.12, 0.42, -0.9), Vector3(-1, 0, 0)], "shakujo": [Vector3(0.0, 1.0, 0.03), Vector3(1, 0, 0)]}   # Shakujō: dik, baş yukarıda, geniş yüzü önde
+static var REST_TILT_OF := {"cift_tirpan": Vector3(0, 0, -164), "samehada": Vector3(0, 0, 0), "gunbai": Vector3(0, 0, 0), "uc_tirpan": Vector3(0, 0, -164), "shibuki": Vector3(0, 0, 171.6), "kabutowari": Vector3(0, 0, 112.1)}   # tırpan: yalnız sap ekseni etrafında (bıçaklar sırtın arkasında aşağı sarkar), sap yönü kol pozundan   # gunbai: silah yumruğun içinden düz geçer; yönü kol pozu verir (w_gunbai)   # silaha özel bekleme eğimi (kafanın içinden geçmesin)
 const REST_TILT := Vector3(-25.0, -55.0, 0.0)
 const IDLE_GRIP := {"samehada": 0.3}
 ## kalın saplar: kabza avucun derinine (parmaklar sarabilsin; eskiden sap parmakların önünden geçiyordu) — tutucu uzayında
@@ -13028,8 +13275,121 @@ func _rest_tilt(on: bool, dt: float) -> void:
 		n.position = GRIP_OFF.get(w["id"], Vector3.ZERO) + n.transform.basis.z.normalized() * float(IDLE_GRIP.get(w["id"], 0.0)) * n.transform.basis.get_scale().z
 
 
+## Shakujō gövdesi (silah uzayı: +Z baş, x-z düzleminde yassı baş). static_rings: jutsuda elde beliren asa için sabit halkalar
+const SHK_HEAD := 0.94
+const SHK_PIVOT := [Vector3(-0.078, 0.0, 0.972), Vector3(0.078, 0.0, 0.972)]
+static var _shk_ring_mesh: ArrayMesh
+
+
+static func _shk_seg(b: MB, a: Vector3, c: Vector3, d: float, col: Color) -> void:
+	var y = c - a
+	var yn = y.normalized()
+	var xn = yn.cross(Vector3.UP if absf(yn.y) < 0.9 else Vector3.RIGHT).normalized()
+	var zn = xn.cross(yn)
+	b.add_xf("cyl", Transform3D(Basis(xn * d, y * 1.08, zn * d), (a + c) * 0.5), col, 6)
+
+
+static func _shk_ring_add(b: MB, xf: Transform3D, col: Color) -> void:
+	var w = 0.07
+	var h = 0.095
+	b.add_xf("torus", xf * Transform3D(Basis(Vector3(w, 0, 0), Vector3(0, 0, 0.06), Vector3(0, -h, 0)), Vector3(0, -h * 0.5, 0)), col, 14)
+
+
+static func _shk_mb(static_rings := false) -> MB:
+	var b = MB.new()
+	var shaft = Color(0.23, 0.26, 0.2)
+	var gold = Color(0.86, 0.66, 0.2)
+	var dg = Color(0.6, 0.42, 0.12)
+	b.add("cyl", Vector3(0, 0, 0.07), Vector3(0.036, 1.58, 0.036), shaft, Vector3(90, 0, 0), 8)
+	b.add("cyl", Vector3(0, 0, -0.71), Vector3(0.045, 0.05, 0.045), gold, Vector3(90, 0, 0), 8)
+	b.add("cone", Vector3(0, 0, -0.79), Vector3(0.04, 0.11, 0.04), gold, Vector3(-90, 0, 0), 6)
+	b.add("cyl", Vector3(0, 0, 0.855), Vector3(0.047, 0.012, 0.047), dg, Vector3(90, 0, 0), 8)
+	b.add("cyl", Vector3(0, 0, 0.89), Vector3(0.052, 0.06, 0.052), gold, Vector3(90, 0, 0), 8)
+	b.add("cyl", Vector3(0, 0, 0.925), Vector3(0.07, 0.022, 0.07), gold, Vector3(90, 0, 0), 8)
+	# çift loblu baş: iki yanda açık çerçeve, ortada ince dil, tepede yassı sivri uç
+	var pts = [Vector2(0.0, 0.0), Vector2(0.04, 0.006), Vector2(0.078, 0.04), Vector2(0.093, 0.09), Vector2(0.08, 0.138), Vector2(0.046, 0.16), Vector2(0.016, 0.15), Vector2(0.0, 0.13)]
+	var smooth: Array = []
+	for k in pts.size() - 1:
+		var pa: Vector2 = pts[maxi(k - 1, 0)]
+		var pb: Vector2 = pts[mini(k + 2, pts.size() - 1)]
+		for j in 5:
+			smooth.append((pts[k] as Vector2).cubic_interpolate(pts[k + 1], pa, pb, j / 5.0))
+	smooth.append(pts[pts.size() - 1])
+	for sx in [-1.0, 1.0]:
+		for k in smooth.size() - 1:
+			var p0: Vector2 = smooth[k]
+			var p1: Vector2 = smooth[k + 1]
+			_shk_seg(b, Vector3(p0.x * sx, 0, SHK_HEAD + p0.y), Vector3(p1.x * sx, 0, SHK_HEAD + p1.y), 0.016, gold)
+	_shk_seg(b, Vector3(0, 0, SHK_HEAD), Vector3(0, 0, SHK_HEAD + 0.13), 0.01, dg)
+	b.add("sphere", Vector3(0, 0, SHK_HEAD + 0.065), Vector3(0.028, 0.01, 0.052), gold, Vector3.ZERO, 8)
+	b.add("box", Vector3(0, 0, SHK_HEAD + 0.145), Vector3(0.042, 0.01, 0.016), gold)
+	b.add("cone", Vector3(0, 0, SHK_HEAD + 0.205), Vector3(0.048, 0.12, 0.01), gold, Vector3(90, 0, 0), 4)
+	if static_rings:
+		for pv in SHK_PIVOT:
+			_shk_ring_add(b, Transform3D(Basis(Vector3.RIGHT, Vector3.BACK, Vector3.DOWN), pv), gold)
+	return b
+
+
+var _shk: Array = []   # sallanan halkalar: {n, w, pv, p, o}
+
+
+func _shk_rings(weapon: Node3D) -> void:
+	if _shk_ring_mesh == null:
+		var mb = MB.new()
+		_shk_ring_add(mb, Transform3D.IDENTITY, Color(0.86, 0.66, 0.2))
+		_shk_ring_mesh = mb.build(Props.toon())
+	for pv in SHK_PIVOT:
+		var r = MeshInstance3D.new()
+		r.mesh = _shk_ring_mesh
+		r.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		weapon.add_child(r)
+		r.position = pv
+		r.basis = Basis(Vector3.RIGHT, Vector3.BACK, Vector3.DOWN)
+		_shk.append({"n": r, "w": weapon, "pv": pv, "live": false, "p": Vector3.ZERO, "o": Vector3.ZERO})
+
+
+## Halkalar ağırlıklı sarkaç: asa ne yöne dönerse dönsün yerçekimiyle sarkar, savuruşta geride kalıp sallanır
+func _update_shk(dt: float) -> void:
+	if _shk.is_empty():
+		return
+	var cam = get_viewport().get_camera_3d()
+	if cam == null or cam.global_position.distance_squared_to(global_position) > 900.0 or not is_visible_in_tree():
+		for r in _shk:
+			r["live"] = false
+		return
+	var L = 0.05
+	var h = minf(dt, 0.033)
+	for r in _shk:
+		var n: MeshInstance3D = r["n"]
+		var w: Node3D = r["w"]
+		if not is_instance_valid(n) or not is_instance_valid(w):
+			continue
+		var wx: Transform3D = w.global_transform
+		var sc = wx.basis.get_scale().x
+		var pv: Vector3 = wx * (r["pv"] as Vector3)
+		var LL = L * sc
+		if not r["live"]:
+			r["live"] = true
+			r["p"] = pv + Vector3.DOWN * LL
+			r["o"] = r["p"]
+		var p: Vector3 = r["p"]
+		var v: Vector3 = (p - (r["o"] as Vector3)) * 0.93
+		r["o"] = p
+		p += v + Vector3.DOWN * 9.8 * h * h
+		var d = p - pv
+		p = pv + (d.normalized() if d.length() > 0.0001 else Vector3.DOWN) * LL
+		r["p"] = p
+		var up = (pv - p).normalized()
+		var nor: Vector3 = wx.basis.y.normalized()
+		var x = up.cross(nor)
+		if x.length() < 0.05:
+			x = wx.basis.x
+		x = x.normalized()
+		n.global_transform = Transform3D(Basis(x * sc, up * sc, x.cross(up) * sc), pv)
+
+
 ## anahtar animasyonlu silahlar: [tutuş kaydırma (yumruk sap boyunca ileri), iz başı z, iz ucu z, elden uca boy]
-const KEY_WEAPON := {"temari_ogi": [0.0, 0.3, 1.4, 1.45], "kokuto": [0.0, 0.2, 0.8, 0.82], "shichiseiken": [0.0, 0.25, 1.3, 1.35], "johyo": [0.0, 0.05, 0.25, 0.26], "nunchaku": [0.0, 0.0, 0.28, 0.3], "mizrak": [0.0, 0.5, 1.45, 1.48], "kamci": [0.0, 0.0, 0.22, 0.24], "sansetsukon": [0.0, 0.0, 0.62, 0.64], "samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5], "uc_tirpan": [0.0, 1.1, 1.95, 1.92], "shibuki": [0.0, 0.45, 1.3, 1.45], "kabutowari": [0.0, 0.3, 0.82, 0.85], "ruzgar_bicak": [0.0, 0.1, 0.6, 0.62], "hiraishin_kunai": [0.0, 0.14, 0.47, 0.48], "homatsu_kiseru": [0.1, 0.5, 0.72, 0.72], "kusanagi": [0.0, 0.21, 1.08, 1.09], "kusarigama": [0.0, 0.3, 0.8, 0.85], "fuma_shuriken": [0.0, 0.05, 0.6, 0.62], "kyodai_shuriken": [0.0, 0.1, 1.3, 1.3], "fuma_makimono": [0.0, 0.05, 0.25, 0.26], "nuibari": [0.0, 0.1, 1.62, 1.62], "savas_cekici": [0.0, 1.1, 1.58, 1.58], "zincirli_kunai": [0.0, 0.06, 0.38, 0.38], "bashosen": [0.0, 0.55, 1.4, 1.45], "kubikiribocho": [0.0, 0.3, 1.9, 1.9], "yagura_sopa": [0.0, 0.87, 1.77, 1.8], "kongo_asa": [0.0, 0.6, 1.25, 1.26], "yelpaze": [0.0, 0.2, 0.6, 0.62], "kama": [0.0, 1.0, 1.62, 1.64], "pence": [0.0, 0.1, 0.48, 0.48], "senbon": [0.0, 0.05, 0.22, 0.22], "hiramekarei": [0.0, 0.3, 1.3, 1.33], "bo": [0.0, 0.4, 0.95, 0.95], "kiba": [0.0, 0.2, 1.11, 1.15]}   # uzunluklar silahın kendi ölçeğiyle çarpılır
+const KEY_WEAPON := {"ryujin": [0.0, 0.14, 0.98, 1.0], "kuwa": [0.0, 0.8, 1.1, 1.13], "naitosodo": [0.0, 0.15, 0.7, 0.72], "hono_ken": [0.0, 0.2, 1.1, 1.17], "gariando": [0.0, 0.2, 1.0, 1.06], "kajiki_mori": [0.0, 0.95, 1.9, 1.95], "igne_tufegi": [0.0, 0.3, 0.45, 0.47], "dako": [0.0, 0.5, 1.3, 1.4], "jidanda": [0.0, 0.7, 1.6, 1.65], "kunai_hasshaki": [0.0, 0.2, 0.62, 0.66], "cift_tirpan": [0.0, 0.9, 1.5, 1.55], "katoringu": [0.0, 0.9, 1.3, 1.34], "nunoboko": [0.0, 0.5, 2.35, 2.45], "natato": [0.0, 0.3, 1.42, 1.45], "kunai_to": [0.0, 0.1, 1.02, 1.05], "kaeri_yari": [0.0, 0.5, 1.44, 1.46], "ono": [0.0, 0.5, 1.5, 1.55], "katar": [0.0, 0.1, 0.44, 0.44], "amagasa": [0.0, 0.5, 1.0, 1.05], "sasumata": [0.0, 1.25, 1.85, 1.9], "konbo": [0.0, 0.35, 0.95, 0.98], "kanabo": [0.0, 0.6, 1.36, 1.4], "fukiya": [0.1, 0.5, 0.72, 0.72], "shakujo": [0.0, 0.7, 1.2, 1.24], "temari_ogi": [0.0, 0.3, 1.4, 1.45], "kokuto": [0.0, 0.2, 0.8, 0.82], "shichiseiken": [0.0, 0.25, 1.3, 1.35], "johyo": [0.0, 0.05, 0.25, 0.26], "nunchaku": [0.0, 0.0, 0.28, 0.3], "mizrak": [0.0, 0.5, 1.45, 1.48], "kamci": [0.0, 0.0, 0.22, 0.24], "sansetsukon": [0.0, 0.0, 0.62, 0.64], "samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5], "uc_tirpan": [0.0, 1.1, 1.95, 1.92], "shibuki": [0.0, 0.45, 1.3, 1.45], "kabutowari": [0.0, 0.3, 0.82, 0.85], "ruzgar_bicak": [0.0, 0.1, 0.6, 0.62], "hiraishin_kunai": [0.0, 0.14, 0.47, 0.48], "homatsu_kiseru": [0.1, 0.5, 0.72, 0.72], "kusanagi": [0.0, 0.21, 1.08, 1.09], "kusarigama": [0.0, 0.3, 0.8, 0.85], "fuma_shuriken": [0.0, 0.05, 0.6, 0.62], "kyodai_shuriken": [0.0, 0.1, 1.3, 1.3], "fuma_makimono": [0.0, 0.05, 0.25, 0.26], "nuibari": [0.0, 0.1, 1.62, 1.62], "savas_cekici": [0.0, 1.1, 1.58, 1.58], "zincirli_kunai": [0.0, 0.06, 0.38, 0.38], "bashosen": [0.0, 0.55, 1.4, 1.45], "kubikiribocho": [0.0, 0.3, 1.9, 1.9], "yagura_sopa": [0.0, 0.87, 1.77, 1.8], "kongo_asa": [0.0, 0.6, 1.25, 1.26], "yelpaze": [0.0, 0.2, 0.6, 0.62], "kama": [0.0, 1.0, 1.62, 1.64], "pence": [0.0, 0.1, 0.48, 0.48], "senbon": [0.0, 0.05, 0.22, 0.22], "hiramekarei": [0.0, 0.3, 1.3, 1.33], "bo": [0.0, 0.4, 0.95, 0.95], "kiba": [0.0, 0.2, 1.11, 1.15]}   # uzunluklar silahın kendi ölçeğiyle çarpılır
 
 
 static var _kp_cache := {}
@@ -13095,7 +13455,7 @@ func _key_blade() -> void:
 ## Yumruk sapın en ucunda (silah sap boyunca kaydırılır); kılıç ucu yere girecekse yerin hemen üstüne kaldırılır.
 func _key_blade_sk(sk: Skeleton3D, blade: Vector3) -> void:
 	for w0 in weapons:
-		if w0["id"] in ["chakra_bicak", "pence", "nanato"] or w0["id"] in ARM_WEAR:
+		if w0["id"] in ["tekko", "chakra_bicak", "pence", "nanato", "katar", "kusari_fundo"] or w0["id"] in ARM_WEAR:
 			return   # muşta bıçak / pençe: yumruğa bağlı, bilek silaha göre çevrilmez (kol pozları yeter; pençenin ucu +x,
 			# kılıç gibi +z'yi "blade"e çevirmek sağ eldeki pençeyi yan yatırıyordu, sol el hiç çevrilmiyordu)
 		if w0["id"] == "sai_sol" and n_in_hand(w0):
@@ -13114,7 +13474,7 @@ func _key_blade_sk(sk: Skeleton3D, blade: Vector3) -> void:
 		var sc: Vector3 = n.transform.basis.get_scale()
 		if not w.has("key_pos0"):
 			w["key_pos0"] = GRIP_OFF.get(w["id"], Vector3.ZERO)   # bekleme tutuş kaydırması anahtar animasyona taşınmasın
-		if not w.has("trail") and is_inside_tree() and w["id"] != "kokuto":   # Kokutō: yansımasız kara ağız — parlak iz yok (KokutoFX koyu gölge çizer)
+		if not w.has("trail") and is_inside_tree() and not w["id"] in ["ei_yumi", "igne_tufegi", "jidanda", "katoringu", "nunoboko", "flail", "kusari_fubo", "cift_tirpan", "nester", "hono_ken", "fujaku", "chakra_oltasi", "kurosawa", "kokuto", "yumi", "arbalet", "fukiya", "sapan", "kunai_hasshaki"]:   # Kokutō: yansımasız kara ağız — parlak iz yok (KokutoFX koyu gölge çizer)
 			var tr = SwordTrail.new()
 			tr.node = n
 			var kp0: Array = weapon_kp(String(w["id"]), n)
@@ -13164,7 +13524,7 @@ func _key_blade_sk(sk: Skeleton3D, blade: Vector3) -> void:
 				_edge_x = _edge_x.slerp(ex.normalized(), 0.35) if _edge_x != Vector3.ZERO else ex.normalized()
 			if _edge_x != Vector3.ZERO:
 				x = (_edge_x - z * _edge_x.dot(z)).normalized()
-		if w["id"] in ["uc_tirpan", "kusarigama"]:
+		if w["id"] in ["uc_tirpan", "kusarigama", "cift_tirpan"]:
 			# tırpan / kusarigama: bıçak tarafı (+Y) savuruş yönünde önde — keskin beyaz dış kenar keser; sap ekseni etrafında hıza göre döner
 			var tv: Vector3 = overlay._key_bv
 			var tx = tv.cross(z)
@@ -13173,7 +13533,7 @@ func _key_blade_sk(sk: Skeleton3D, blade: Vector3) -> void:
 			var px = _edge_x - z * _edge_x.dot(z)
 			if px.length() > 0.05:
 				x = px.normalized()
-		if w["id"] in ["shibuki", "kubikiribocho", "yagura_sopa", "kama"]:   # kubikiri: keskin kenar da -Y; yagura: büyük kanca + çiçek -Y
+		if w["id"] in ["kuwa", "shibuki", "kubikiribocho", "yagura_sopa", "kama", "ono"]:   # kubikiri: keskin kenar da -Y; yagura: büyük kanca + çiçek -Y
 			# Shibuki: AĞIZ kenarı (kâğıtlı geniş taraf, silah -Y) savuruş yönünde önde — kılıç gibi kenarla vurur.
 			# -Y hız yönünde => x = z × hız (dikey bileşen)
 			var sv: Vector3 = overlay._key_bv
@@ -13209,9 +13569,9 @@ func react(world_dir: Vector3, amp: float, head := false, up := 0.0, heavy := 0.
 	dangle_kick(world_dir.normalized() * (1.5 + amp * 3.0 + heavy * 4.0) + Vector3.UP * up * 2.0)
 
 
-const STANCE_ID := {"samehada": "w_samehada", "gunbai": "w_gunbai", "raijin": "w_raijin", "uc_tirpan": "w_tirpan", "shibuki": "w_shibuki", "kabutowari": "w_kabuto", "ruzgar_bicak": "w_ruzgar", "kusanagi": "w_kusa", "kusarigama": "w_kgama", "kubikiribocho": "w_kubi", "nanato": "w_nanato", "kokuto": "w_kokuto"}
+const STANCE_ID := {"kajiki_mori": "w_shakujo", "ei_yumi": "w_yumi", "kunai_hasshaki": "w_arbalet", "cift_tirpan": "w_tirpan", "amagasa": "w_shakujo", "sasumata": "w_shakujo", "yumi": "w_yumi", "sapan": "w_yumi", "arbalet": "w_arbalet", "fukiya": "w_shakujo", "shakujo": "w_shakujo", "samehada": "w_samehada", "gunbai": "w_gunbai", "raijin": "w_raijin", "uc_tirpan": "w_tirpan", "shibuki": "w_shibuki", "kabutowari": "w_kabuto", "ruzgar_bicak": "w_ruzgar", "kusanagi": "w_kusa", "kusarigama": "w_kgama", "kubikiribocho": "w_kubi", "nanato": "w_nanato", "kokuto": "w_kokuto"}
 ## bekleme duruşunda iki elle tutulan silahlar: sol el IK ile kabzaya, sağ elin altına (kabza ekseninde -Z)
-static var TWO_HAND_IDLE := {"raijin": -0.1, "shibuki": 0.2}   # shibuki: sağ el sapın arka ucunda, sol el 0.2 önde (taramada sapa 4 mm oturdu)   # silaha özel duruş
+static var TWO_HAND_IDLE := {"kunai_hasshaki": 0.26, "arbalet": 0.3, "raijin": -0.1, "shibuki": 0.2}   # shibuki: sağ el sapın arka ucunda, sol el 0.2 önde (taramada sapa 4 mm oturdu)   # silaha özel duruş
 const STANCE_OF := {"blade": "w_blade", "dual": "w_dual", "sickle": "w_dual", "claw": "w_dual", "sword": "w_sword", "heavy": "w_shoulder", "staff": "w_shoulder", "chain": "w_dual", "fan": "w_fan"}   # kusarigama alçak tek el (omuzda bıçak kafaya değmesin)
 var stance := ""
 

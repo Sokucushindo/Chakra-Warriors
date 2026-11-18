@@ -59,6 +59,12 @@ func cap_one_shot(target: Node, info: Dictionary) -> Dictionary:
 ## Jinton: Mikiri (Hız salımı): pencere açıkken gelen darbe bulanık bir yan adımla boşa çıkar (en çok "mikiri_n" darbe).
 ## Oyuncu ve düşman aynı (take_hit başında çağrılır). "sure" darbeler (kaçınılamaz) işlemez. true = kaçtı.
 func speed_dodge(target: Node, info: Dictionary) -> bool:
+	if target.has_meta("olta_uke") and load("res://scripts/combat/fx/chakra_oltasi_fx.gd").parry(target, info):
+		return true   # Chakra oltası: Sao-uke
+	if load("res://scripts/combat/fx/mugen_kogai_fx.gd").absorb(target, info):
+		return true   # Mugen Kōgai: chakralı vuruş yutuldu
+	if target.has_meta("kuro_uke") and load("res://scripts/combat/fx/kurosawa_fx.gd").parry(target, info):
+		return true   # Kurosawa: Uke-kamae
 	if not is_instance_valid(target) or int(target.get_meta("mikiri_n", 0)) <= 0 or float(target.get_meta("mikiri_t", 0.0)) < Game.now() or info.get("sure", false):
 		return false
 	target.set_meta("mikiri_n", int(target.get_meta("mikiri_n")) - 1)
@@ -163,6 +169,8 @@ func cc_power_k(n: Node) -> float:
 func cc_dur(n: Node, kind: String, d: float) -> float:
 	if d <= 0.0:
 		return d
+	if kind in ["fear", "kokuangyo"] and load("res://scripts/combat/fx/chakura_yoroi_fx.gd").stops_genjutsu(n):
+		return 0.0   # Chakura no Yoroi: genjutsu tutmaz
 	if kind in SLOWS:
 		return d * cc_power_k(n)
 	if not kind in CC:
@@ -561,6 +569,8 @@ func sensing_r(n: Node) -> float:
 func hidden_from(viewer: Node, n: Node) -> bool:
 	if viewer == null or n == null or not is_instance_valid(viewer) or not is_instance_valid(n):
 		return false
+	if get_tree().has_group("kemuri_bulut") and load("res://scripts/combat/fx/kemuridama_fx.gd").veiled(viewer, n):
+		return true
 	var q = stealth_of(n)
 	if q <= 0.0:
 		return false
@@ -662,6 +672,8 @@ func faction_hostile(fa: String, fb: String) -> bool:
 func hit_sphere(attacker: Node3D, center: Vector3, radius: float, info: Dictionary, exclude: Array = []) -> Array:
 	var hits: Array = []
 	WorldDamage.impact(center, radius, info)   # ağaçlar/evler yanar, devrilir, yıkılır
+	if String(info.get("element", "")) == "fuuton" and get_tree().has_group("kemuri_bulut"):
+		load("res://scripts/combat/fx/kemuridama_fx.gd").wind(center, radius)   # rüzgâr dumanı dağıtır
 	for f in get_tree().get_nodes_in_group("fighters"):
 		if f in exclude or not hostile(attacker, f) or f.is_dead():
 			continue
@@ -677,6 +689,8 @@ func hit_sphere(attacker: Node3D, center: Vector3, radius: float, info: Dictiona
 			hits.append(f)
 			if inf.get("melee", false):
 				_lion_drain(attacker, f)
+				if attacker.has_meta("doku_n"):
+					load("res://scripts/combat/fx/doku_fx.gd").on_melee(attacker, f)
 	if attacker is Player:
 		for n in get_tree().get_nodes_in_group("ambient_team"):
 			if is_instance_valid(n) and not n.dead and capsule_hit(center, n, radius):
@@ -778,6 +792,8 @@ func nearest_enemy(from: Node3D, max_d: float, dir := Vector3.ZERO, cone := -1.0
 		var v: Vector3 = f.global_position - from.global_position
 		var d = v.length()
 		if d > bd:
+			continue
+		if get_tree().has_group("kemuri_bulut") and load("res://scripts/combat/fx/kemuridama_fx.gd").veiled(from, f):
 			continue
 		if dir != Vector3.ZERO and cone > -1.0:
 			var vf = Vector3(v.x, 0, v.z).normalized()

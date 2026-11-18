@@ -220,13 +220,34 @@ static func try_extra_life() -> bool:
 
 # ------------------------------------------------------------------ Akimichi hapları
 ## Akimichi hapları tükenmez, her birinin kendi bekleme süresi var (sn): kırmızı en ağır bedelli olduğu için en uzun
-const AKI_PILL_CD := {"hap_horenzai": 90.0, "hap_kare": 180.0, "hap_togarashi": 600.0}
-const AKI_PILL_NAMES := {"pill": "Asker Hapı", "hap_horenzai": "Yeşil Hap (Hōrenzai)", "hap_kare": "Sarı Hap (Karē)", "hap_togarashi": "Kırmızı Hap (Tōgarashi)"}
+const AKI_PILL_CD := {"zoketsugan": 150.0, "seishingan": 90.0, "hap_horenzai": 90.0, "hap_kare": 180.0, "hap_togarashi": 600.0}
+const AKI_PILL_NAMES := {"zoketsugan": "Zōketsugan", "seishingan": "Seishingan", "pill": "Asker Hapı", "hap_horenzai": "Yeşil Hap (Hōrenzai)", "hap_kare": "Sarı Hap (Karē)", "hap_togarashi": "Kırmızı Hap (Tōgarashi)"}
 
 
 ## Seçilebilir haplar: herkes asker hapı; Akimichi ayrıca üç renkli hap
 static func pill_list() -> Array:
-	return ["pill"] + AKI_PILLS if clan() == "akimichi" else ["pill"]
+	var l: Array = ["pill"] + AKI_PILLS if clan() == "akimichi" else ["pill"]
+	if int(Game.profile.get("inventory", {}).get("zoketsugan", 0)) > 0:
+		l.append("zoketsugan")
+	if load(EXTRA_PILLS["seishingan"]).available():
+		l.append("seishingan")
+	return l
+
+
+## Klan dışı haplar: kendi dosyasında; bekleme süresi renkli haplarla aynı kayıtta
+const EXTRA_PILLS := {"zoketsugan": "res://scripts/combat/fx/zoketsugan_fx.gd", "seishingan": "res://scripts/combat/fx/seishingan_fx.gd"}
+
+
+static func use_extra_pill(id: String) -> void:
+	var left = aki_pill_left(id)
+	if left > 0.0:
+		Hud.msg("%s hazır değil: %d sn" % [AKI_PILL_NAMES[id], ceili(left)], Color(1, 0.75, 0.5))
+		return
+	if not load(EXTRA_PILLS[id]).use(Game.player):
+		return
+	if not Game.profile.has("aki_pill_cd"):
+		Game.profile["aki_pill_cd"] = {}
+	Game.profile["aki_pill_cd"][id] = Time.get_ticks_msec() / 1000.0 + float(AKI_PILL_CD[id])
 
 
 static func pill_sel() -> String:
@@ -253,6 +274,9 @@ static func aki_pill_left(id: String) -> float:
 
 ## [Y] seçili Akimichi hapı (yeşil / sarı / kırmızı); seçili hap asker hapıysa false
 static func use_aki_pill() -> bool:
+	if EXTRA_PILLS.has(pill_sel()):
+		use_extra_pill(pill_sel())
+		return true
 	if clan() != "akimichi":
 		return false
 	var id = pill_sel()

@@ -265,7 +265,8 @@ static func auto_jutsu(kind: String, el: String, lv: int) -> Array:
 func jutsu_cost(id: String) -> float:
 	if Game.has_meta("sandbox"):   # deneme alanında oyuncuya bedava: düşmana da (AI eşitliği)
 		return 0.0
-	return float(Data.jutsu.get(id, {}).get("cost", 0)) * (1.0 + (float(level) - 1.0) * 0.045)
+	var fk = float(Gear.weapon_of(self).get("fuuton_cost", 1.0)) if "fuuton" in Data.jutsu.get(id, {}).get("elements", []) else 1.0
+	return float(Data.jutsu.get(id, {}).get("cost", 0)) * (1.0 + (float(level) - 1.0) * 0.045) * fk
 
 
 func setup(a: Dictionary) -> void:
@@ -351,6 +352,9 @@ func _maybe_clan(a: Dictionary) -> void:
 
 func _ready() -> void:
 	super._ready()
+	if model is CharacterModel:
+		model.set_drawn(false, false)   # silah kınında başlar (oyuncu gibi); dövüşe girince çeker
+	OMORI.npc_ready(self)
 	home = global_position
 	WorldPeople.on_enemy_ready(self)
 	nameplate = Label3D.new()
@@ -595,6 +599,8 @@ func _physics_process(dt: float) -> void:
 			Jutsu.execute(self, esc, target)
 		return
 	_think(dt)
+	_update_drawn(dt)
+	OMORI.npc_tick(self)
 	if arch.has("style"):
 		BossStyles.tick(self, dt)
 	if EnemyArts.wants(self):
@@ -712,6 +718,9 @@ func _think(dt: float) -> void:
 	if think_t > 0.0:
 		return
 	think_t = 0.25
+	if target != null and hp < max_hp * 0.55 and _is_ninja():   # oyuncuyla aynı haplar, aynı bedel
+		load("res://scripts/combat/fx/zoketsugan_fx.gd").ai(self)
+		load("res://scripts/combat/fx/seishingan_fx.gd").ai(self)
 	var pl = Game.player
 	# hedef gizlendi (Kakuremino, yer altı...): izini kaybeder (dibindeyse 2.5 m görür — Combat.hidden_from)
 	if target != null and is_instance_valid(target) and Combat.hidden_from(self, target):
@@ -849,6 +858,8 @@ func _chase(dt: float) -> void:
 		ready = ready.filter(func(id): return (String(Data.jutsu.get(id, {}).get("need", "")) != "senninka" or buffs.has("jugo_senninka") or buffs.has("jugo_senninka2")) and (String(Data.jutsu.get(id, {}).get("need", "")) != "senninka2" or buffs.has("jugo_senninka2")))   # Jūgo: oyuncuyla aynı şart
 		ready = ready.filter(func(id): return (String(Data.jutsu.get(id, {}).get("need", "")) != "sototoro" or buffs.has("sototoro") or buffs.has("santoro")) and (String(Data.jutsu.get(id, {}).get("need", "")) != "santoro" or buffs.has("santoro")))   # Inuzuka: kurt biçimi şartı   # Raikage nintaijutsusu: önce Raiton Chakra Modu
 		ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("need", "")) != "islak_zemin" or (target != null and is_instance_valid(target) and ClanMech.prepared_ground(target.global_position)))   # Jubaku Eisō: oyuncuyla aynı hazırlık şartı
+		if Game.now() < float(get_meta("fuin_until", 0.0)):   # Fūin Fuda: oyuncuyla aynı Kuchiyose kilidi
+			ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("category", "")) != "summoning" and not String(id).begins_with("kuchiyose"))
 		if has_status("sealed"):   # tenketsu kapalı: chakra yoğrulamaz, yalnız taijutsu (oyuncuyla aynı kural)
 			ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("category", "")) == "taijutsu")
 		ready = ready.filter(func(id): return (stamina >= Stats.tai_stamina_cost(Data.jutsu.get(id, {}))) if Stats.is_taijutsu(Data.jutsu.get(id, {})) else chakra >= jutsu_cost(id))   # chakrası/staminası yetmeyen teknik atılmaz
@@ -881,10 +892,15 @@ func _chase(dt: float) -> void:
 			state_t = 0.0
 			model.play("throw", 0.05, 1.6, true)
 			var s = global_position + Vector3.UP * 1.4
-			var nn = 3 if tk in ["shuriken", "senbon"] and randf() < 0.5 else 1
+			var nn = 3 if tk in ["shuriken", "senbon", "togarashi_dama", "toge_dama"] and randf() < 0.5 else 1
 			var aim = (target.global_position + Vector3.UP - s).normalized()
+			if tk == "smoke":   # kanon: kendini örter; ayağının önüne atıp sıyrılır
+				aim = (global_position + Vector3.UP * 0.2 + (target.global_position - global_position).normalized() * 2.0 - s).normalized()
 			for i in nn:
 				Projectile.tool(self, s, aim.rotated(Vector3.UP, deg_to_rad((i - (nn - 1) * 0.5) * 7.0)), tk, target)
+			if tk == "smoke":
+				state = "flee"
+				state_t = 0.0
 			return
 	var kid = _keyed_id()
 	var stop_d = 9.0 if kid in KEYED.RANGED else (FightingStyles.stop_dist(kid) if kid.begins_with("style_") else 1.6)   # uzun menzil silahı / tarz (Aburame böcek, Hōzuki su): uzakta durup atar
@@ -1088,6 +1104,32 @@ var key_i := 0          # bu saldırı dizisindeki kombo adımı
 var key_step := {}      # oynayan adım: {hit, len, two, i}
 
 
+const OMORI = preload("res://scripts/combat/omori.gd")
+const AmagasaFX = preload("res://scripts/combat/fx/amagasa_fx.gd")
+const TateFX = preload("res://scripts/combat/fx/tate_fx.gd")
+const ChakuraYoroiFX = preload("res://scripts/combat/fx/chakura_yoroi_fx.gd")
+const HirakiTateFX = preload("res://scripts/combat/fx/hiraki_tate_fx.gd")
+const NunoFX = preload("res://scripts/combat/fx/nuno_maki_fx.gd")
+const KusariFundoFX = preload("res://scripts/combat/fx/kusari_fundo_fx.gd")
+## Silah dövüşte elde, sakinleşince kınında (oyuncuyla aynı çekme / kınlama hareketi)
+var _calm_t := 0.0
+func _update_drawn(dt: float) -> void:
+	if not (model is CharacterModel) or not model.has_weapon():
+		return
+	var foe_ok = target != null and is_instance_valid(target)
+	var pl = Game.player
+	var seen = pl != null and global_position.distance_to(pl.global_position) < 40.0
+	if state != "idle" or foe_ok:
+		_calm_t = 0.0
+		if not model.drawn:
+			# rakip dibindeyse kol hareketi vuruşu kesmesin: silah doğrudan ele gelir
+			model.set_drawn(true, seen and not (foe_ok and global_position.distance_to(target.global_position) < 3.0))
+	elif model.drawn:
+		_calm_t += dt
+		if _calm_t >= 4.0:
+			model.set_drawn(false, seen)
+
+
 func _keyed_id() -> String:
 	var k = _keyed_id0()
 	# arena kuralları: silahsız, tarzsız düşman da oyuncunun temel kombosunu (aynı el yapımı hareketler) kullanır
@@ -1143,6 +1185,7 @@ func _swing_keyed(wid: String) -> void:
 func _ready_tools() -> Array:
 	var now = Game.now()
 	var kinds = ["kunai", "shuriken"] + (["senbon"] if String(arch.get("kind", "")) in ["kiri", "oto", "rogue"] else [])
+	kinds += load("res://scripts/combat/fx/alet_kit.gd").ai_tools(self)
 	return kinds.filter(func(k): return now >= float(tool_cd.get(k, 0.0)))
 
 
@@ -1257,7 +1300,7 @@ func _attack_keyed() -> void:
 		var pt = global_position + Vector3.UP * 1.1 + face_dir() * (radius + reach * 0.6)
 		if Combat.storm and target != null and is_instance_valid(target):
 			pt.y += clampf(target.global_position.y - global_position.y, -0.5, 1.4)   # havadaki / yerdeki rakibe nişan (oyuncuyla aynı)
-		var hits = Combat.hit_sphere(self, pt, reach * 0.65, info)
+		var hits = [] if km.get("shot", false) else Combat.hit_sphere(self, pt, reach * 0.65, info)
 		for h in hits:
 			if mv.has("spike") and "velocity" in h:   # yere çakma
 				h.velocity = face_dir() * 3.0 + Vector3.DOWN * float(mv["spike"])
@@ -1270,7 +1313,8 @@ func _attack_keyed() -> void:
 				if h.has_method("apply_status"):
 					h.apply_status("slow", 1.5)
 		var bare = wid == "style_temel" or wid in CharacterModel.ARM_WEAR   # çıplak el / kolluk: kılıç sesi değil
-		Sfx.play("whoosh" if bare else "swing_sword", global_position + Vector3.UP, randf_range(0.85, 1.0), 0.6)
+		if not km.get("shot", false):
+			Sfx.play("whoosh" if bare else "swing_sword", global_position + Vector3.UP, randf_range(0.85, 1.0), 0.6)
 		if not hits.is_empty():
 			set_meta("br_landed", true)
 			_combo_landed(0.8 if km.get("heavy", false) else 0.3)
@@ -1419,6 +1463,20 @@ func take_hit(info: Dictionary) -> void:
 		attack_cd = 0.0
 		return
 	if not dead and Combat.speed_dodge(self, info):   # Jinton: Mikiri — bulanık yan adım (oyuncuyla aynı)
+		return
+	if not dead and NunoFX.block(self, info):   # oyuncuyla aynı
+		return
+	if not dead and KusariFundoFX.parry(self, info):   # oyuncuyla aynı
+		return
+	if not dead and (guarding or has_meta("soha_uke")):
+		load("res://scripts/combat/fx/soha_kote_fx.gd").on_guarded(self, info)
+	if not dead and ChakuraYoroiFX.block(self, info):   # bariyer: jutsu ve atılan alet tam durur
+		return
+	if not dead and HirakiTateFX.parry(self, info):   # açık kalkan: silah tam durur
+		return
+	if not dead and TateFX.block(self, info):   # oyuncuyla aynı
+		return
+	if not dead and AmagasaFX.parry(self, info):   # oyuncuyla aynı
 		return
 	if not dead and state == "dodge" and state_t < _dg_inv and not info.get("sure", false):   # kaçışın ilk anı (Player.take_hit ile aynı)
 		if not info.get("melee", false) and float(info.get("_r", 0.0)) >= 3.0:

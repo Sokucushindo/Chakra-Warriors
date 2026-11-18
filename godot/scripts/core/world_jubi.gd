@@ -648,6 +648,9 @@ static func absorbed() -> void:
 		if Data.jutsu.has(j) and not j in pr["learned"]:
 			pr["learned"].append(j)
 			got.append(String(Data.jutsu[j]["name"]))
+	if not (pr["gear"] as Array).any(func(g): return String(g.get("id", "")) == "nunoboko"):
+		Gear.grant(pr, "nunoboko")
+		got.append("Nunoboko no Ken")
 	var was_boss = String(d["stage"]) in ["boss", "tree"]
 	d["stage"] = "host"
 	d["mazo"] = []

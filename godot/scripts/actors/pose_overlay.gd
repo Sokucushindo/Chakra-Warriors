@@ -77,6 +77,7 @@ const THUMB_SEG := ["Metacarpal", "Proximal", "Distal"]
 static var STANCE := {
 	"w_blade": [["RightUpperArm", Vector3(-0.22, -0.93, 0.28)], ["RightLowerArm", Vector3(-0.05, -0.35, 0.94)], ["LeftUpperArm", Vector3(0.22, -0.97, 0.06)], ["LeftLowerArm", Vector3(0.1, -0.9, 0.42)]],   # kunai: sağ el kalça önünde öne dönük, sol kol rahat aşağıda
 	"w_sword": [["RightUpperArm", Vector3(-0.15, -0.8, 0.55)], ["RightLowerArm", Vector3(0.3, -0.2, 0.93)], ["LeftUpperArm", Vector3(0.2, -0.8, 0.55)], ["LeftLowerArm", Vector3(-0.45, -0.15, 0.88)]],
+	"w_shakujo": [["RightUpperArm", Vector3(-0.28, -0.93, 0.2)], ["RightLowerArm", Vector3(-0.1, -0.4, 0.91)], ["LeftUpperArm", Vector3(0.2, -0.97, 0.05)], ["LeftLowerArm", Vector3(0.1, -0.9, 0.42)]],   # Shakujō: sağ elde dik, dipçik yere yakın (Kazuma duruşu)
 	"w_kokuto": [["RightUpperArm", Vector3(-0.45, -0.85, -0.25)], ["RightLowerArm", Vector3(-0.2, -0.6, -0.75)], ["LeftUpperArm", Vector3(0.3, -0.75, 0.55)], ["LeftLowerArm", Vector3(-0.2, 0.3, 0.93)]],   # Raidō: kara ağız gövdenin arkasında aşağıda saklı, sol el önde
 	"w_nanato": [["RightUpperArm", Vector3(-0.85, 0.1, 0.35)], ["RightLowerArm", Vector3(-0.1, 0.95, 0.25)], ["LeftUpperArm", Vector3(0.85, 0.1, 0.35)], ["LeftLowerArm", Vector3(0.1, 0.95, 0.25)]],   # Killer B Akurobatto (video 0:00): dirsekler yanda-yukarı, ön kollar dik — dirsek kılıçları dışa bakar
 	"w_kubi": [["RightUpperArm", Vector3(-0.45, -0.6, 0.66)], ["RightLowerArm", Vector3(0.25, 0.75, 0.6)]],   # Zabuza: yumruk sağ omzun önünde, ağız omza yaslı geriye
@@ -91,6 +92,8 @@ static var STANCE := {
 	"w_ruzgar": [["RightUpperArm", Vector3(-0.2, -0.8, 0.55)], ["RightLowerArm", Vector3(0.0, -0.1, 1.0)], ["RightHand", Vector3(-0.447, -0.894, 0.0)]],   # Rüzgar bıçağı: düz tutuş, bıçak ileri (ruzgarchakrabicagi.png)
 	"w_kabuto": [["RightUpperArm", Vector3(-0.3, -0.9, 0.3)], ["RightLowerArm", Vector3(-0.05, -0.45, 0.9)], ["RightHand", Vector3(-0.333, -0.667, -0.667)], ["LeftUpperArm", Vector3(0.75, -0.25, 0.6)], ["LeftLowerArm", Vector3(-0.15, 0.95, 0.2)], ["LeftHand", Vector3(0.894, 0.0, -0.447)]],   # Kabutowari: balta sağda alçak-önde, çekiç sol omuzda (kabuto4)
 	"w_kgama": [["RightUpperArm", Vector3(-0.25, -0.9, 0.35)], ["RightLowerArm", Vector3(0.15, -0.1, 0.98)], ["RightHand", Vector3(0.0, 0.0, 1.0)], ["LeftUpperArm", Vector3(0.25, -0.85, 0.45)], ["LeftLowerArm", Vector3(-0.3, -0.25, 0.92)]],   # Hanzō kusarigaması: tek el, sap önde yukarı, zincir dipten sarkar
+	"w_yumi": [["RightUpperArm", Vector3(-0.22, -0.95, 0.12)], ["RightLowerArm", Vector3(-0.05, -0.6, 0.8)], ["LeftUpperArm", Vector3(0.25, -0.93, 0.2)], ["LeftLowerArm", Vector3(0.1, -0.35, 0.93)]],   # sol elde dik yay / çatal, sağ elde ok / mermi aşağıda
+	"w_arbalet": [["RightUpperArm", Vector3(-0.25, -0.85, 0.45)], ["RightLowerArm", Vector3(0.2, -0.25, 0.95)], ["LeftUpperArm", Vector3(0.25, -0.85, 0.45)], ["LeftLowerArm", Vector3(-0.35, -0.15, 0.92)]],   # iki elle bel hizasında, namlu önde-aşağı
 	"w_tirpan": [["RightUpperArm", Vector3(-0.3, -0.85, 0.42)], ["RightLowerArm", Vector3(0.25, 0.55, 0.8)], ["RightHand", Vector3(0.98, 0.14, -0.14)]],   # tırpan omuzda: yumruk göğüs önünde, sap sağ omzun üstünden geriye, bıçaklar sırtın arkasında
 }
 
@@ -112,7 +115,7 @@ func _ready() -> void:
 		"plant": {"_Plant": 1},
 		"cast": {"_Cast": 1},
 		# silah duruşları (bekleme/koşu): ters tutuş kunai, iki elle kılıç, omuzda ağır silah, çift bıçak alçak, yelpaze yanda
-		"w_blade": {}, "w_raijin": {}, "w_gunbai": {}, "w_sword": {}, "w_shoulder": {}, "w_kubi": {}, "w_nanato": {}, "w_kokuto": {}, "w_samehada": {}, "w_dual": {}, "w_fan": {}, "w_tirpan": {}, "w_shibuki": {}, "w_kabuto": {}, "w_ruzgar": {}, "w_kusa": {}, "w_kgama": {},
+		"w_blade": {}, "w_raijin": {}, "w_gunbai": {}, "w_sword": {}, "w_shoulder": {}, "w_kubi": {}, "w_nanato": {}, "w_kokuto": {}, "w_shakujo": {}, "w_samehada": {}, "w_dual": {}, "w_fan": {}, "w_tirpan": {}, "w_shibuki": {}, "w_kabuto": {}, "w_ruzgar": {}, "w_kusa": {}, "w_kgama": {}, "w_yumi": {}, "w_arbalet": {},
 	}
 
 

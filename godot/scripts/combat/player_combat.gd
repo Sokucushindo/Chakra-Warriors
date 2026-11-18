@@ -103,6 +103,9 @@ func _unhandled_input(e: InputEvent) -> void:
 		throw_tool()
 	elif e.is_action_pressed("weapon_draw"):
 		toggle_weapon()
+	elif e.is_action_pressed("omori"):
+		if not busy():
+			preload("res://scripts/combat/omori.gd").toggle(p)
 	elif e.is_action_pressed("lock"):
 		toggle_lock()
 	elif e.is_action_pressed("summon_cmd"):   # Kuchiyose komutu: Saldır -> Koru -> Bekle -> Takip
@@ -274,7 +277,8 @@ func _start_step() -> void:
 	var wst = String(Gear.weapon(Game.profile).get("style", "fist")) if Game.profile.get("weapon_drawn", false) else "fist"
 	if String(c.get("keyed_id", "")) in CharacterModel.ARM_WEAR:
 		wst = "fist"   # kolluk: eller boş, yumruk savuruşu
-	Sfx.play(String(SWING_SND.get(wst, "whoosh")), p.global_position, randf_range(0.92, 1.1), 0.75 if SWING_SND.has(wst) else 0.6)
+	if not c.get("shot", false):   # uzak atış: savuruş sesi yok
+		Sfx.play(String(SWING_SND.get(wst, "whoosh")), p.global_position, randf_range(0.92, 1.1), 0.75 if SWING_SND.has(wst) else 0.6)
 
 
 ## Jutsu chakra maliyeti: gücü gibi seviyeyle büyür (sabit kalınca yüksek seviyede chakra hiç bitmiyordu);
@@ -293,6 +297,8 @@ static func jutsu_cost(j: Dictionary) -> float:
 	# nakil Senju hücresi: beden yabancı hücreyle savaşır, Mokuton daha çok chakra yer (Senju kanında yok)
 	if "mokuton" in j.get("elements", []) and Game.profile.get("flags", {}).get("senju_cells", false) and String(Game.profile.get("clan", "")) != "senju":
 		c *= KgPaths.LAB_COST_MULT
+	if "fuuton" in j.get("elements", []):
+		c *= float(Gear.weapon(Game.profile).get("fuuton_cost", 1.0))   # Fujaku: az chakrayla üst düzey rüzgâr
 	return c
 
 
@@ -547,7 +553,7 @@ func _do_attack(dt: float) -> bool:
 			_raijin_fx(int(c["rai"]), pt)
 		if c.has("keyed_id"):
 			KEYED.on_strike(c["keyed_id"], int(c["keyed_i"]), p, float(c["dmg"]) * Stats.melee_mult(Game.profile))   # zemin/patlama/uçan kâğıt
-		var hits = Combat.hit_sphere(p, pt, c["reach"] * 0.65 * Buffs.mod("reach"), _hit_info(c))
+		var hits = [] if c.get("shot", false) else Combat.hit_sphere(p, pt, c["reach"] * 0.65 * Buffs.mod("reach"), _hit_info(c))
 		if not hits.is_empty() and c.has("keyed_id") and step == COMBO.size() - 1:
 			VFX.slowmo(0.3, 0.22)   # bitiriş isabeti: kısa ağır çekim + sert sarsıntı
 			if Game.world:
@@ -787,7 +793,7 @@ func _combo_base(i: int) -> Dictionary:
 			c["keyed_id"] = wid
 			c["keyed_i"] = i
 			c["lunge"] = float(c["lunge"]) * float(km.get("lunge_mul", 1.0))
-			for mk in ["heavy", "knock", "launch", "stun", "special", "element", "snd"]:
+			for mk in ["heavy", "knock", "launch", "stun", "special", "element", "snd", "shot"]:
 				if km.has(mk):
 					c[mk] = km[mk]
 			c["reach"] = float(c["reach"]) + float(km.get("reach_add", 0.0))
@@ -1226,11 +1232,24 @@ static func tool_owned(id: String) -> bool:
 
 func throw_tool() -> void:
 	_break_henge()
+	var sel_u = str(Game.profile.get("throw_sel", "kunai"))
+	if sel_u in ["hiko_tsubasa", "yuki_ita", "doku", "gedokuyaku", "okarina", "eiyu_mizu", "agiz_kozu", "aobiko", "inochi_kare", "genjutsu_kosui", "genjutsu_yaku", "bijugan"]:   # atılmaz: silaha sürülür / enjekte edilir
+		load("res://scripts/combat/fx/%s_fx.gd" % sel_u).player_use(p)
+		return
+	if sel_u == "kibaku_fuda":   # yapıştır / çift basışla Sıçan mührü (eylem sürerken de patlatılabilir)
+		load("res://scripts/combat/fx/kibaku_fuda_fx.gd").player_use(p)
+		return
 	if action != "" and action != "guard":
 		return
 	var tool: String = Game.profile.get("throw_sel", "kunai")
 	if not tool_owned(tool):
 		Hud.msg("%s sende yok — pazardan bir kez al, sonra sınırsız." % Data.items.get(tool, {"name": tool})["name"], Color(1, 0.6, 0.5))
+		return
+	if tool == "nuno_maki" and not load("res://scripts/combat/fx/nuno_maki_fx.gd").has_roll(p):
+		Hud.msg("Sırtında kumaş rulosu yok: Nuno Maki'yi sırt yuvasına tak.", Color(1, 0.75, 0.5))
+		return
+	if tool == "boenkyo" and not load("res://scripts/combat/fx/boenkyo_fx.gd").has_scope(p):
+		Hud.msg("Yüzünde Bōenkyō takılı değil.", Color(1, 0.75, 0.5))
 		return
 	if float(tool_cd.get(tool, 0.0)) > 0.0:
 		Hud.msg("%s hazır değil: %d sn" % [Data.items.get(tool, {"name": tool})["name"], ceili(float(tool_cd[tool]))], Color(1, 0.75, 0.5))
@@ -1249,7 +1268,7 @@ func throw_tool() -> void:
 		p.facing = atan2(-aim.x, -aim.z)
 	p.model.play("throw", 0.05, 1.8, true)
 	Sfx.play("kunai", start)
-	var n = 3 if tool in ["shuriken", "senbon"] else 1
+	var n = 3 if tool in ["shuriken", "senbon", "togarashi_dama", "toge_dama"] else 1
 	if Stats.has_unlock(Game.profile, "multi_throw") and tool in ["kunai", "shuriken"]:
 		n += 2  # Silah Yağmuru
 	for i in n:
@@ -1306,6 +1325,9 @@ func begin_cast(jid: String) -> void:
 	# Jūken ile tenketsu kapatıldıysa chakra yoğrulamaz: yalnız taijutsu (düşmanla aynı kural)
 	if p.has_status("sealed") and String(j.get("category", "")) != "taijutsu":
 		Hud.msg("Chakra noktaların kapalı: şimdilik yalnız taijutsu yapabilirsin.", Color(0.6, 0.8, 1.0))
+		return
+	if Game.now() < float(p.get_meta("fuin_until", 0.0)) and (String(j.get("category", "")) == "summoning" or String(jid).begins_with("kuchiyose")):
+		Hud.msg("Mühür etiketi üstünde: çağırma yapılamıyor.", Color(0.9, 0.35, 0.4))
 		return
 	# dōjutsu teknikleri: göz açık olmadan yapılamaz (V)
 	if String(j.get("learn", "")).begins_with("eye:") and not String(j.get("learn", "")).ends_with("susanoo"):

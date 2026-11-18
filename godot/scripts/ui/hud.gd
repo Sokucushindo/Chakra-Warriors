@@ -496,8 +496,8 @@ func _draw_side(i: int) -> void:
 
 
 
-const TOOL_ICONS := {"kunai": "kunai", "shuriken": "shuriken", "tag": "seal", "smoke": "bomb", "senbon": "arrow", "makibishi": "star"}
-const PILL_COLS := {"pill": Color(1.0, 0.75, 0.4), "hap_horenzai": Color(0.5, 0.9, 0.5), "hap_kare": Color(1.0, 0.9, 0.4), "hap_togarashi": Color(1.0, 0.45, 0.4)}
+const TOOL_ICONS := {"agiz_kozu": "flame", "aobiko": "bomb", "inochi_kare": "potion", "genjutsu_kosui": "leaf", "genjutsu_yaku": "pill", "bijugan": "pill", "mushu_dokugiri": "bomb", "kosho_mimikazari": "flame", "hiko_tsubasa": "star", "yuki_ita": "arrow", "okarina": "leaf", "eiyu_mizu": "potion", "toge_dama": "bomb", "kemuri_fuda": "seal", "chusha_bari": "arrow", "kemuri_senkodan": "eye", "kunai": "kunai", "shuriken": "shuriken", "tag": "seal", "smoke": "bomb", "senbon": "arrow", "makibishi": "star", "hikaridama": "eye", "togarashi_dama": "flame", "kibaku_dama": "bomb", "hyodama": "bomb", "raizutsu": "bomb", "suzu": "star", "boenkyo": "eye", "bakusaidama": "bomb", "kibaku_fuda": "seal", "doku": "flame", "gedokuyaku": "pill", "kosen": "arrow", "sode_kunai": "kunai", "nuno_maki": "seal", "fuin_fuda": "seal", "kekkai_fuda": "seal"}
+const PILL_COLS := {"zoketsugan": Color(0.85, 0.2, 0.22), "seishingan": Color(0.7, 0.4, 0.95), "pill": Color(1.0, 0.75, 0.4), "hap_horenzai": Color(0.5, 0.9, 0.5), "hap_kare": Color(1.0, 0.9, 0.4), "hap_togarashi": Color(1.0, 0.45, 0.4)}
 
 
 ## Yan yuvalar: [R] seçili alet, [T] alet değiştir, [H] merhem, [Y] hap; bekleme ve stok yuvanın üstünde

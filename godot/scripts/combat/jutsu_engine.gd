@@ -1095,6 +1095,8 @@ static func _genjutsu(c: Node3D, d: Dictionary, t: Node3D) -> void:
 	Sfx.play("genjutsu", c.global_position)
 	var gm = (1.0 + Stats.skill(Game.profile, "gen_power")) if c is Player else 1.0
 	for tg in targets:
+		if Game.now() < float(tg.get_meta("togarashi_until", 0.0)):
+			continue
 		tg.apply_status("stun", (1.6 + tier * 0.4) * gm)
 		tg.apply_status("fear", (1.6 + tier * 0.4) * gm)
 		if tier >= 3:

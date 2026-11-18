@@ -224,47 +224,26 @@ func block() -> void:
 
 
 # ------------------------------------------------------------------ ninja aletleri
-## Makibishi alanı: 3.2 m yarıçapında yerde dikenler; içinden geçen düşman (atanın düşmanı) yaralanır ve yavaşlar
+## Makibishi alanı: dikenler tek tek saçılır; koşarak basanın ayağına batar (makibishi_fx.gd)
 static func caltrops(who: Node3D, at: Vector3, dur: float) -> void:
-	var tree = who.get_tree() if is_instance_valid(who) else Engine.get_main_loop()
-	var root = Node3D.new()
-	tree.current_scene.add_child(root)
-	at.y = Game.jutsu_floor(at.x, at.z)
-	root.global_position = at
-	var b = MB.new()
-	for k in 26:
-		var a = randf() * TAU
-		var r = sqrt(randf()) * 3.0
-		var q = Vector3(cos(a) * r, 0.05, sin(a) * r)
-		for j in 3:
-			b.add("cone", q, Vector3(0.05, 0.12, 0.05), Color(0.28, 0.28, 0.3), Vector3(randf_range(-40, 40), 0, randf_range(-40, 40) + j * 60), 4)
-	var mi = MeshInstance3D.new()
-	mi.mesh = b.build(Props.toon())
-	root.add_child(mi)
-	var tm = Timer.new()
-	tm.wait_time = 0.35
-	tm.autostart = true
-	root.add_child(tm)
-	var left = [dur]
-	tm.timeout.connect(func():
-		left[0] -= 0.35
-		if left[0] <= 0.0 or not is_instance_valid(who):
-			root.queue_free()
-			return
-		for f in root.get_tree().get_nodes_in_group("fighters"):
-			if not Combat.hostile(who, f) or f.is_dead():
-				continue
-			if Vector2(f.global_position.x - at.x, f.global_position.z - at.z).length() < 3.2 and absf(f.global_position.y - at.y) < 1.0:
-				if f.has_method("apply_status"):
-					f.apply_status("slow", 1.0)
-				f.take_hit({"dmg": 3.0, "knock": 0.0, "kind": "light", "attacker": who, "dir": Vector3.ZERO}))
+	load(ALET_FX["makibishi"]).scatter(who, at, dur)
+
+
+## Kendi dosyasında yaşayan araçlar (görsel + mekanik orada). load: projectile <-> fx döngüsel preload olmasın.
+const ALET_FX := {"agiz_kozu": "res://scripts/combat/fx/agiz_kozu_fx.gd", "aobiko": "res://scripts/combat/fx/aobiko_fx.gd", "inochi_kare": "res://scripts/combat/fx/inochi_kare_fx.gd", "genjutsu_kosui": "res://scripts/combat/fx/genjutsu_kosui_fx.gd", "genjutsu_yaku": "res://scripts/combat/fx/genjutsu_yaku_fx.gd", "bijugan": "res://scripts/combat/fx/bijugan_fx.gd", "mushu_dokugiri": "res://scripts/combat/fx/mushu_dokugiri_fx.gd", "kosho_mimikazari": "res://scripts/combat/fx/kosho_mimikazari_fx.gd", "hiko_tsubasa": "res://scripts/combat/fx/hiko_tsubasa_fx.gd", "yuki_ita": "res://scripts/combat/fx/yuki_ita_fx.gd", "okarina": "res://scripts/combat/fx/okarina_fx.gd", "eiyu_mizu": "res://scripts/combat/fx/eiyu_mizu_fx.gd", "toge_dama": "res://scripts/combat/fx/toge_dama_fx.gd", "kemuri_fuda": "res://scripts/combat/fx/kemuri_fuda_fx.gd", "chusha_bari": "res://scripts/combat/fx/chusha_bari_fx.gd", "kemuri_senkodan": "res://scripts/combat/fx/kemuri_senkodan_fx.gd", "doku": "res://scripts/combat/fx/doku_fx.gd", "gedokuyaku": "res://scripts/combat/fx/gedokuyaku_fx.gd", "makibishi": "res://scripts/combat/fx/makibishi_fx.gd", "smoke": "res://scripts/combat/fx/kemuridama_fx.gd",
+	"hikaridama": "res://scripts/combat/fx/hikaridama_fx.gd", "togarashi_dama": "res://scripts/combat/fx/togarashi_dama_fx.gd",
+	"kibaku_dama": "res://scripts/combat/fx/kibaku_dama_fx.gd", "hyodama": "res://scripts/combat/fx/hyodama_fx.gd", "raizutsu": "res://scripts/combat/fx/raizutsu_fx.gd", "boenkyo": "res://scripts/combat/fx/boenkyo_fx.gd", "suzu": "res://scripts/combat/fx/suzu_fx.gd", "bakusaidama": "res://scripts/combat/fx/bakusaidama_fx.gd", "kibaku_fuda": "res://scripts/combat/fx/kibaku_fuda_fx.gd",
+	"kosen": "res://scripts/combat/fx/kosen_fx.gd", "sode_kunai": "res://scripts/combat/fx/sode_kunai_fx.gd", "nuno_maki": "res://scripts/combat/fx/nuno_maki_fx.gd",
+	"fuin_fuda": "res://scripts/combat/fx/fuin_fuda_fx.gd", "kekkai_fuda": "res://scripts/combat/fx/kekkai_fuda_fx.gd"}
 
 
 static func tool(who: Node3D, start: Vector3, dir: Vector3, kind: String, target: Node3D) -> Projectile:
+	if ALET_FX.has(kind):
+		return load(ALET_FX[kind]).launch(who, start, dir, target)
 	var pr = Projectile.new()
 	pr.shooter = who
-	pr.vel = dir * {"smoke": 30.0, "senbon": 75.0, "makibishi": 22.0}.get(kind, 55.0)
-	pr.gravity = 14.0 if kind == "makibishi" else (1.0 if kind == "senbon" else 3.0)
+	pr.vel = dir * (75.0 if kind == "senbon" else 55.0)
+	pr.gravity = 1.0 if kind == "senbon" else 3.0
 	pr.radius = 0.15
 	pr.stick = kind in ["kunai", "shuriken", "senbon"]
 	var mult = Stats.melee_mult(Game.profile) * (1.0 + Stats.skill(Game.profile, "throw_dmg") + (Stats.skill(Game.profile, "tag_dmg") if kind == "tag" else 0.0) + Mastery.get_v(Game.profile, "shurikenjutsu") * 0.02) if who is Player else 1.0
@@ -285,8 +264,6 @@ static func tool(who: Node3D, start: Vector3, dir: Vector3, kind: String, target
 			b.add_mesh(sb, Transform3D(Basis(Vector3.RIGHT, PI * 0.5), Vector3.ZERO))
 			pr.spin = Vector3(0, 30, 0)
 			pr.info["dmg"] = 6.0 * mult
-		"smoke":
-			b.add("sphere", Vector3.ZERO, Vector3(0.18, 0.18, 0.18), Color(0.2, 0.2, 0.22))
 		"senbon":   # ince uzun iğne
 			b.add("cyl", Vector3(0, 0, -0.05), Vector3(0.012, 0.32, 0.012), Color(0.75, 0.77, 0.82), Vector3(90, 0, 0), 4)
 			pr.info["dmg"] = 4.0 * mult
@@ -294,11 +271,6 @@ static func tool(who: Node3D, start: Vector3, dir: Vector3, kind: String, target
 				if tgt != null and is_instance_valid(tgt) and tgt.has_method("apply_status") and randf() < 0.35:
 					tgt.apply_status("slow", 3.0)
 					Combat.popup_text(tgt.global_position + Vector3.UP * 2.2, "Zehir!", Color(0.6, 0.9, 0.4))
-		"makibishi":   # avuç dolusu diken torbası: yere düşünce saçılır
-			b.add("sphere", Vector3.ZERO, Vector3(0.14, 0.12, 0.14), Color(0.3, 0.3, 0.32))
-			pr.info["dmg"] = 2.0
-			pr.on_hit = func(pos: Vector3, _t: Node3D) -> void:
-				Projectile.caltrops(who, pos, 8.0)
 	mi.mesh = b.build(Props.toon())
 	# hayran modeli varsa kunai görseli (namlu uçuş yönüne, -Z)
 	var tn = SFProps.weapon_node(kind, SFProps.THROWN) if kind in ["kunai", "tag"] else null
@@ -314,15 +286,6 @@ static func tool(who: Node3D, start: Vector3, dir: Vector3, kind: String, target
 			who.get_tree().create_timer(0.6).timeout.connect(func():
 				FX.explosion(at, 0.8)
 				Combat.hit_sphere(who, at, 3.5, {"dmg": 30.0 * mult, "knock": 14.0, "launch": 6.0, "kind": "heavy", "hitstop": 0.08}))
-	elif kind == "smoke":
-		pr.on_hit = func(pos: Vector3, _t: Node3D) -> void:
-			FX.burst(pos, {"amount": 50, "life": 6.0, "tex": FX.tex_smoke, "add": false, "size": 6.0, "radius": 3.0,
-				"vmin": 0.5, "vmax": 2.0, "damp": 1.0, "explosive": 0.6,
-				"colors": [Color(0.85, 0.85, 0.88, 0), Color(0.8, 0.8, 0.82, 0.9), Color(0.8, 0.8, 0.82, 0.85), Color(0.8, 0.8, 0.85, 0)]})
-			Sfx.play("poof", pos)
-			for f in who.get_tree().get_nodes_in_group("fighters"):
-				if f.has_method("lose_target") and f.global_position.distance_to(pos) < 12.0:
-					f.lose_target(5.0)
 	who.get_tree().current_scene.add_child(pr)
 	pr.global_position = start
 	# iz

@@ -1,3 +1,15 @@
+// Sharingan tomoe'si: halka üstünde yuvarlak baş + başa bitişik, halka boyunca geriye incelen kuyruk (virgül). a = başın açısı
+bool tomoe_ink(vec2 q, float a) {
+	float ring = 0.55;
+	float head = 0.13;
+	float reach = 0.72;   // kuyruk boyu (radyan)
+	if (length(q - vec2(cos(a), sin(a)) * ring) < head) return true;
+	float back = mod(a - atan(q.y, q.x), 6.28318);
+	if (back > reach) return false;
+	float w = head * pow(1.0 - back / reach, 1.4);
+	return abs(length(q) - (ring + head - w)) < w;   // dış kenar baştan kesintisiz sürer
+}
+
 // Özelleştirilebilir Mangekyō / Ebedi Mangekyō deseni (3B göz ve 2B önizleme ortak)
 // a: x stil (0 çark, 1 yıldız, 2 taç yaprak, 3 shuriken, 4 sarmal, 5 haç, 6 tomoe halkası, 7 orak, 8 pervane, 9 çiçek, 10 elmas,
 //    11 halkalar, 12 kanca, 13 dört bıçak, 14 altı köşeli yıldız, 15 kelebek, 16 kar tanesi, 17 kalkan), y kanat sayısı, z kıvrım, w kalınlık

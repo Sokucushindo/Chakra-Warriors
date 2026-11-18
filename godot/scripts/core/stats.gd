@@ -144,7 +144,7 @@ static func sense_radius(p: Dictionary) -> float:
 
 ## Sarf malzemesi istif sınırı: merhem/hap 10, atılabilir 40; "carry" ile artar
 static func carry_cap(p: Dictionary, id: String) -> int:
-	var base = 40 if id in ["kunai", "shuriken", "senbon"] else (20 if id in ["tag", "smoke"] else 10)
+	var base = 40 if id in ["kunai", "shuriken", "senbon"] else (20 if id in ["tag", "smoke", "hikaridama", "togarashi_dama", "kibaku_fuda"] else 10)
 	return int(base * (1.0 + skill(p, "carry")))
 
 

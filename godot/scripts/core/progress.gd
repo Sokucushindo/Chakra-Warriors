@@ -514,6 +514,11 @@ func clan_starter_kit(pr: Dictionary) -> void:
 			Gear.grant(pr, "hakko_chakura_to", "sag" if Gear.equipped(pr, "sag").is_empty() else "")
 			Gear.apply_look(pr)
 			Hud.msg("Aile yadigârı: Hakkō Chakura Tō (babandan kalan tantō)  [Tab > Ekipman]", Color(0.85, 0.9, 1.0), 6.0)
+	if not pr["flags"].get("senju_kolye", false):   # Senju yadigârı (kanon: Hashirama'dan torunlarına); parayla satılmaz
+		pr["flags"]["senju_kolye"] = true
+		if str(pr.get("clan", "")) == "senju" and not "shodai_kubikazari" in Gear.owned_ids(pr):
+			Gear.grant(pr, "shodai_kubikazari")
+			Hud.msg("Aile yadigârı: İlk Hokage'nin kolyesi  [Tab > Ekipman]", Color(0.7, 0.95, 0.9), 6.0)
 	if pr.get("flags", {}).get("clan_kit", false):
 		return
 	if not pr.has("flags"):
@@ -894,14 +899,14 @@ Tıbbi ninja kavanozuna bakıp başını salladı: \"Başkasının gözünü bur
 				Hud.dialog("Kapı Nöbetçisi", Talk.keeper("gate"), gopts)
 		"shop_weapons":
 			Hud.dialog("Silah Dükkânı", Talk.keeper("weapon"), [
-				{"label": "Ninja aletleri", "cb": func(): Hud.shop("Silah Dükkânı", ["kunai", "shuriken", "senbon", "tag", "makibishi", "smoke"])},
+				{"label": "Ninja aletleri", "cb": func(): Hud.shop("Silah Dükkânı", ["kunai", "shuriken", "mushu_dokugiri", "kosho_mimikazari", "hiko_tsubasa", "yuki_ita", "toge_dama", "kemuri_fuda", "chusha_bari", "senbon", "tag", "makibishi", "smoke", "kemuri_senkodan", "okarina", "agiz_kozu", "aobiko", "inochi_kare", "hikaridama", "togarashi_dama", "doku", "gedokuyaku", "kibaku_dama", "hyodama", "raizutsu", "suzu", "boenkyo", "bakusaidama", "kibaku_fuda", "kosen", "sode_kunai", "nuno_maki", "fuin_fuda", "kekkai_fuda"])},
 				{"label": "Silahlar (sağ el / sol el) — stok yarım saatte bir değişir", "cb": func(): Hud.gear_shop("Silahçı", Gear.shop_stock("w", String(it.get("village", home()))))},
 				{"label": "Kıyafetler ve zırhlar", "cb": func(): Hud.gear_shop("Terzi", Gear.shop_stock("c", String(it.get("village", home()))))},
 			])
 		"shop_weapons_old":
 			Hud.shop("Silah Dükkânı", ["kunai", "shuriken", "tag", "smoke", "scroll_katon_housenka", "scroll_suiton_suijinheki", "scroll_fuuton_daitoppa", "scroll_doton_doryuheki"])
 		"shop_items":
-			Hud.shop("Eczane", ["salve", "pill", "smoke"])
+			Hud.shop("Eczane", ["salve", "pill", "zoketsugan", "smoke"])
 		"shop_scrolls":
 			var sc = scroll_shop_items(14)
 			if sc.is_empty():
@@ -1119,6 +1124,10 @@ func _weights_tick() -> void:
 		_wt_last = Vector3.INF
 		return
 	var pl = Game.player
+	if bool(p().get("omori_off", false)):   # Omori çıkarıldı: yavaşlatma ve antrenman yok, beden hafif
+		_wt_last = Vector3.INF
+		Buffs.add("omori_serbest", 0.5, {"speed": preload("res://scripts/combat/omori.gd").FREE_SPEED, "_name": "Omori Çıktı", "_desc": "ağırlıklar yerde: çok hızlısın"})
+		return
 	Buffs.add("agirlik", 0.5, {"speed": 0.75, "_name": "Bacak Ağırlıkları", "_desc": "yavaşsın; koştukça dayanıklılık artar"})
 	var pos = pl.global_position
 	if _wt_last != Vector3.INF and pl.grounded and pl.input_locked <= 0.0:

@@ -11330,14 +11330,7 @@ func p_jashin_kazik(c: Node3D, t: Node3D) -> void:
 	busy(c, 0.6)
 	var tt = tg(c, t, 18.0)
 	var from = hand_pos(c, true)
-	var spike = MeshInstance3D.new()
-	var cm = CylinderMesh.new()
-	cm.top_radius = 0.0; cm.bottom_radius = 0.04; cm.height = 1.4
-	spike.mesh = cm
-	spike.material_override = _flat_glow(Color(0.08, 0.08, 0.1))
-	var holder = Node3D.new()
-	holder.add_child(spike)
-	spike.rotation.x = PI * 0.5
+	var holder = load("res://scripts/combat/fx/kaeri_yari_fx.gd").flying()   # kuşanılan mızrağın kendisi
 	var pr = shot(c, from, aim_at(c, tt, from), 40.0, holder, inf(c, "jashin_kazik", 1.0, {"knock": 2.0, "kind": "heavy", "bleed": 3.0}), tt, false, 0.6, func(p, h):
 		VFX.debris(p, Color(0.6, 0.05, 0.05), 8, 4.0, 0.2)
 		if h and live(h):
@@ -13161,11 +13154,7 @@ func jutsu_weapon(c: Node3D, kind: String, dur: float) -> Node3D:
 					b.add("cyl", Vector3(sin(a3), cos(a3), -0.02) * 1.25, Vector3(0.3, 0.03, 0.3), Color(0.5, 0.25, 0.6), Vector3(90, 0, 0), 14)
 				b.add("cyl", Vector3(0, -0.1, 0), Vector3(0.14, 0.3, 0.14), Color(0.2, 0.16, 0.14), Vector3.ZERO, 8)
 			"shakujo":
-				b.add("cyl", Vector3(0, 0.6, 0), Vector3(0.06, 2.0, 0.06), Color(0.35, 0.22, 0.12), Vector3.ZERO, 8)
-				b.add("torus", Vector3(0, 1.75, 0), Vector3(0.45, 0.45, 0.45), Color(0.75, 0.65, 0.3), Vector3(90, 0, 0), 14)
-				for k in 4:
-					b.add("torus", Vector3((k - 1.5) * 0.12, 1.5, 0), Vector3(0.14, 0.14, 0.14), Color(0.8, 0.7, 0.35), Vector3(90, 0, 0), 8)
-				b.add("cone", Vector3(0, 2.05, 0), Vector3(0.1, 0.25, 0.1), Color(0.75, 0.65, 0.3), Vector3.ZERO, 6)
+				b.add_mesh(CharacterModel._shk_mb(true), Transform3D(Basis(Vector3.RIGHT, -PI * 0.5), Vector3(0, 0.38, 0)))   # silahla aynı asa (refs/shakujo)
 			"katana":
 				b.add("box", Vector3(0, 0.65, 0), Vector3(0.05, 1.0, 0.012), Color(0.85, 0.88, 0.92))
 				b.add("box", Vector3(0, 0.12, 0), Vector3(0.16, 0.03, 0.1), Color(0.25, 0.2, 0.12))

@@ -850,7 +850,8 @@ static func jouro_senbon(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	sh.create_tween().tween_property(sh, "scale", Vector3(3.0, 1, 3.0), 0.6).set_ease(Tween.EASE_OUT)
 	fade_free(sh, shm, 2.0, 0.6)
 	pj.after(0.5, func():
-		for k in 40:
+		var needles := 56 if CanonRules.weapon_ids(c).any(func(w): return Gear.base_id(String(w)) == "amagasa") else 40   # elde gerçek Amagasa: daha çok iğne
+		for k in needles:
 			pj.after(randf() * 0.9, func():
 				var q: Vector3 = at + Vector3(randf_range(-1.2, 1.2), 8.6, randf_range(-1.2, 1.2))
 				pj.shot(c, q, (at + Vector3(randf_range(-3, 3), 0, randf_range(-3, 3)) - q).normalized(), 40.0, _needle(k % 3 == 0), pj.inf(c, "jouro_senbon", 0.07, {"knock": 0.3, "kind": "light", "bleed": 1.0}), null, false, 0.5, func(p, h):

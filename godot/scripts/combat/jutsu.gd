@@ -1292,7 +1292,12 @@ func kurama_ido_check(c: Node3D) -> void:
 
 
 ## Nara gölgesi ışığa bağlı (anime: gün batımında gölge uzar, öğlen kısalır, karanlıkta gölge zayıf)
+## Hikaridama patlayınca gölgeler kısa süre uzar (kanon: Nara klanı bu yüzden sever)
 func shadow_k() -> float:
+	return _shadow_tod_k() * (1.6 if Game.now() < float(Game.get_meta("hikari_kage_until", 0.0)) else 1.0)
+
+
+func _shadow_tod_k() -> float:
 	var tod = float(Game.world.env.time_of_day) if Game.world and Game.world.get("env") else 0.5
 	if (tod > 0.22 and tod < 0.32) or (tod > 0.68 and tod < 0.8):
 		return 1.5   # şafak / gün batımı: uzun gölgeler

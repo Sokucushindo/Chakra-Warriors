@@ -8,6 +8,12 @@ signal died
 
 const RUN := 11.0
 const WALK := 2.4   # Caps Lock: sakin köylü yürüyüşü
+const AmagasaFX = preload("res://scripts/combat/fx/amagasa_fx.gd")
+const TateFX = preload("res://scripts/combat/fx/tate_fx.gd")
+const ChakuraYoroiFX = preload("res://scripts/combat/fx/chakura_yoroi_fx.gd")
+const HirakiTateFX = preload("res://scripts/combat/fx/hiraki_tate_fx.gd")
+const NunoFX = preload("res://scripts/combat/fx/nuno_maki_fx.gd")
+const KusariFundoFX = preload("res://scripts/combat/fx/kusari_fundo_fx.gd")
 var walking := false
 const DASH := 17.0   # anime: ninja koşusu hızlı ama araç hızında değil
 const GRAV := 36.0
@@ -813,7 +819,7 @@ func start_flight(src: String, cfg := {}) -> void:
 		_end_rope()
 	grounded = false
 	velocity.y = maxf(velocity.y, 6.0)
-	if String(src) != "kami":   # kâğıt kanat havalanışı dumansız (kâğıt savrulur)
+	if not String(src) in ["kami", "hiko_tsubasa", "yuki_ita"]:   # kâğıt kanat havalanışı dumansız (kâğıt savrulur)
 		FX.smoke_puff(global_position + Vector3.UP * 0.3, 0.8, 10)
 	Hud.msg("%s: Space yüksel, Ctrl alçal, Shift hızlan" % String(cfg.get("name", "Uçuş")), Color(0.8, 0.9, 1.0), 2.5)
 
@@ -821,6 +827,7 @@ func start_flight(src: String, cfg := {}) -> void:
 func stop_flight() -> void:
 	if fly_src == "":
 		return
+	var was_src = fly_src
 	fly_src = ""
 	if is_instance_valid(fly_vis):
 		var v = fly_vis
@@ -829,7 +836,8 @@ func stop_flight() -> void:
 		tw.tween_callback(v.queue_free)
 	fly_vis = null
 	model.overlay.set_pose("leap", 0.0)
-	FX.smoke_puff(global_position + Vector3.UP * 0.3, 0.6, 8)
+	if not was_src in ["hiko_tsubasa", "yuki_ita"]:
+		FX.smoke_puff(global_position + Vector3.UP * 0.3, 0.6, 8)
 
 
 func flight_source() -> String:
@@ -866,6 +874,8 @@ func _fly_move(dt: float) -> void:
 		pass
 	move_and_slide()
 	var g = Game.ground_height(global_position.x, global_position.z)
+	if fly_cfg.get("hug", false):   # kar kayağı: zemine yapışır
+		global_position.y = g + 0.25
 	if global_position.y < g + 0.25:
 		global_position.y = g + 0.25
 		velocity.y = maxf(velocity.y, 0.0)
@@ -886,7 +896,7 @@ func _fly_move(dt: float) -> void:
 		model.overlay.set_pose("leap", clampf(hv.length() / maxf(spd, 1.0), 0.25, 1.0))
 	if is_instance_valid(fly_vis):
 		fly_vis.rotation.y = facing
-		fly_vis.position.y = sin(fly_cfg["t"] * 2.5) * 0.06
+		fly_vis.position.y = 0.0 if fly_cfg.get("hug", false) else sin(fly_cfg["t"] * 2.5) * 0.06
 
 
 ## Süper zıplamanın tepesinde öne takla (kalça etrafında)
@@ -1444,6 +1454,20 @@ func take_hit(info: Dictionary) -> void:
 		return
 	if Combat.speed_dodge(self, info):   # Jinton: Mikiri — bulanık yan adım
 		return
+	if NunoFX.block(self, info):   # dönen kumaş darbeyi tam durdurur (düşmanla aynı)
+		return
+	if KusariFundoFX.parry(self, info):   # gergin zincir yakın darbeyi yakalar (düşmanla aynı)
+		return
+	if has_meta("soha_uke") or (combat and combat.action == "guard"):
+		load("res://scripts/combat/fx/soha_kote_fx.gd").on_guarded(self, info)
+	if ChakuraYoroiFX.block(self, info):   # bariyer: jutsu ve atılan alet tam durur
+		return
+	if HirakiTateFX.parry(self, info):   # açık kalkan: silah tam durur
+		return
+	if TateFX.block(self, info):   # kalkan: önden gelen darbe tam durur (düşmanla aynı)
+		return
+	if AmagasaFX.parry(self, info):   # açık şemsiye önden gelen darbeyi karşılar (düşmanla aynı)
+		return
 	info = Combat.cap_one_shot(self, info)   # tek atan darbe: hedef güçlüyse kırpılır (AI eşitliği)
 	if float(info.get("chakra_drain", 0.0)) > 0.0:   # chakra emen teknikler — düşmanla aynı
 		chakra = maxf(0.0, chakra - float(info["chakra_drain"]))
@@ -1459,6 +1483,8 @@ func take_hit(info: Dictionary) -> void:
 	info["dmg"] = Combat.absorb(self, info.get("dmg", 5.0) * armor)   # kanon savunma = kalkan (Susanoo, zırh, kubbe...)
 	if float(info["dmg"]) <= 0.0:
 		return
+	if float(info.get("poison", 0.0)) > 0.0:
+		load("res://scripts/combat/fx/doku_fx.gd").add(self, float(info["poison"]))
 	if combat:
 		combat.take_hit(info)
 
@@ -1467,6 +1493,8 @@ var statuses = {}  # element durumları: burn, wet, frozen, chilled, shocked, mu
 
 
 func apply_status(n: String, d: float) -> void:
+	if n in ["fear", "kokuangyo"] and Game.now() < float(get_meta("togarashi_until", 0.0)):
+		return   # biber tozu içinde genjutsu tutmaz
 	if n in ["stun", "bind", "fear", "kokuangyo"]:
 		d /= 1.0 + Stats.skill(Game.profile, "gen_resist")  # genjutsu direnci
 		if n != "bind" and Stats.has_unlock(Game.profile, "kai") and not statuses.has("_kai_tip"):
@@ -1491,6 +1519,8 @@ func _tick_status(dt: float) -> void:
 		statuses[k] -= dt
 		if statuses[k] <= 0.0:
 			statuses.erase(k)
+	if has_status("poison"):
+		load("res://scripts/combat/fx/doku_fx.gd").tick(self, dt)
 	if has_status("burn"):
 		hp -= 4.0 * clampf(1.0 - Stats.skill(Game.profile, "poison_resist"), 0.2, 1.0) * dt
 		if randf() < dt * 8.0:
