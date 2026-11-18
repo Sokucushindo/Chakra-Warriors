@@ -613,7 +613,8 @@ func _palm_release(c: Node3D) -> void:
 
 
 func _hand_dash(c: Node3D, t: Node3D, hand: Node3D, charge: float, speed: float, info: Dictionary, col: Color, grind := false, run := false, chidori_pose := true) -> void:
-	var tw = create_tween()
+	var tid: int = t.get_instance_id() if is_instance_valid(t) else 0   # silinen hedefi yakalamasın
+	var tw = c.create_tween()
 	tw.tween_interval(charge)
 	var state = {"t": 0.0, "done": false}
 	tw.tween_callback(func():
@@ -623,16 +624,17 @@ func _hand_dash(c: Node3D, t: Node3D, hand: Node3D, charge: float, speed: float,
 		timer.wait_time = 1.0 / 60.0
 		c.add_child(timer)
 		timer.timeout.connect(func():
+			var tt = instance_from_id(tid) if tid != 0 and is_instance_id_valid(tid) else null
 			state["t"] += 1.0 / 60.0
 			if state["done"] or not is_instance_valid(c):
 				timer.queue_free()
 				return
 			var d: Vector3
 			if c is Player:
-				d = _aim_flat(c, t)
+				d = _aim_flat(c, tt)
 				c.facing = atan2(-d.x, -d.z)
-			elif t and is_instance_valid(t) and not t.is_dead():
-				d = (t.global_position - c.global_position)
+			elif tt and is_instance_valid(tt) and not tt.is_dead():
+				d = (tt.global_position - c.global_position)
 				d.y = 0
 				d = d.normalized()
 				c.facing = atan2(-d.x, -d.z) if c is Player else c.facing
@@ -875,20 +877,22 @@ func _ticks(n: int, interval: float, fn: Callable, done := Callable()) -> void:
 
 ## Genel hücum: dur saniye boyunca hedefe/ileri koş, her karede on_tick(nokta) çağır
 func _dash(c: Node3D, t: Node3D, dur: float, speed: float, on_tick: Callable, on_end := Callable()) -> void:
+	var tid: int = t.get_instance_id() if is_instance_valid(t) else 0   # silinen hedefi yakalamasın
 	var st = {"t": 0.0}
 	var timer = Timer.new()
 	timer.wait_time = 1.0 / 60.0
 	c.add_child(timer)
 	timer.timeout.connect(func():
+		var tt = instance_from_id(tid) if tid != 0 and is_instance_id_valid(tid) else null
 		st["t"] += 1.0 / 60.0
 		if not is_instance_valid(c):
 			timer.queue_free()
 			return
 		var d: Vector3 = c.face_dir()
 		if c is Player:
-			d = _aim_flat(c, t)
-		elif t and is_instance_valid(t) and not t.is_dead():
-			d = t.global_position - c.global_position
+			d = _aim_flat(c, tt)
+		elif tt and is_instance_valid(tt) and not tt.is_dead():
+			d = tt.global_position - c.global_position
 			d.y = 0
 			d = d.normalized()
 			if c is Player:
