@@ -1049,7 +1049,7 @@ func _footsteps(_dt: float) -> void:
 		_step_ph = -1.0
 		return
 	if model.footstep_cross(_step_ph):
-		Sfx.play(Game.step_sound(global_position), global_position, randf_range(0.88, 1.05), 0.2)
+		Game.play_step(global_position, randf_range(0.88, 1.05), 0.2)
 		GroundMarks.step(self, false)   # kumda/karda iz (oyuncuyla aynı)
 	_step_ph = model.anim_progress() if model.current in CharacterModel.FOOT_PHASES else -1.0
 

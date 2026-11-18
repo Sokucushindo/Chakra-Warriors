@@ -1,7 +1,8 @@
 class_name VitalsUI
 extends Control
-## Sol üst oyuncu çerçevesi (tamamı kod çizimi): shuriken biçimli çelik-ahşap portre, parşömen üstünde isim,
-## metal çerçeveli can / chakra çubukları, Ryō, EXP, klan kaynağı. Hud her karede set_state çağırır;
+## Sol üst oyuncu çerçevesi, arayüzün sumi-e dilinde (dokular: tools/make_ui_brush.py): kâğıda yayılmış mürekkep lekesi
+## üstünde kırmızı ensō içinde portre, yırtık kenarlı washi plakada mürekkep isim + hanko, fırça oluklarında akan
+## mürekkep can / chakra çubukları, mon sikkesi yığını, kütükler, EXP, klan kaynağı. Hud her karede set_state çağırır;
 ## yalnız görünür değer değişince yeniden çizilir.
 
 const W := 720.0
@@ -22,36 +23,34 @@ uniform float trail = 0.0;
 uniform vec2 sz = vec2(380.0, 22.0);
 uniform float speed = 1.0;
 
-float cap_d(vec2 p, vec2 s) {
-	float r = min(s.x, s.y) * 0.5;
-	vec2 q = abs(p - s * 0.5) - (s * 0.5 - vec2(r));
-	return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r;
-}
+float h1(float x) { return fract(sin(x * 127.1) * 43758.5453); }
+float n1(float x) { float i = floor(x); float f = fract(x); f = f * f * (3.0 - 2.0 * f); return mix(h1(i), h1(i + 1.0), f); }
 
 void fragment() {
 	vec2 p = UV * sz;
-	float fw = max(sz.x * frac, min(sz.y, 6.0));
-	float tw = max(sz.x * trail, sz.y);
+	// fırça ucu: her kıl satırı farklı yerde biter
+	float row = n1(p.y * 0.9 + 3.0) * 0.6 + n1(p.y * 2.3) * 0.4;
+	float endf = sz.x * frac - row * min(10.0, sz.x * frac * 0.5);
+	float endt = sz.x * trail - row * 8.0;
 	vec4 o = vec4(0.0);
-	if (trail > frac + 0.002) {
-		float a = 1.0 - smoothstep(-0.7, 0.7, cap_d(p, vec2(tw, sz.y)));
-		o = vec4(mix(trail_col.rgb * 1.1, trail_col.rgb * 0.6, UV.y), a);
+	if (trail > frac + 0.002 && p.x < endt) {
+		o = vec4(mix(trail_col.rgb * 1.05, trail_col.rgb * 0.55, UV.y), 0.85);
 	}
-	if (frac > 0.003) {
-		float a = 1.0 - smoothstep(-0.7, 0.7, cap_d(p, vec2(fw, sz.y)));
-		float t = UV.y;
-		vec3 base = mix(col.rgb * 1.45, col.rgb * 0.42, smoothstep(0.0, 1.0, t));
-		float w1 = sin(p.x * 0.05 - TIME * 1.3 * speed + sin(p.y * 0.35 + p.x * 0.02) * 1.6);
-		float w2 = sin(p.x * 0.12 + p.y * 0.28 + TIME * 0.8 * speed);
-		float w3 = sin(p.x * 0.021 - TIME * 0.5 * speed + 1.7);
-		base += vec3(1.0) * (smoothstep(0.7, 1.0, w1) * 0.20 + smoothstep(0.8, 1.0, w2) * 0.10);
-		base *= 0.92 + 0.08 * w3;
-		base += vec3(0.30) * (1.0 - smoothstep(0.0, 0.5, t));
-		base *= 1.0 - 0.25 * smoothstep(0.75, 1.0, t);
-		float e = exp(-pow((p.x - fw + 2.0) / 7.0, 2.0));
-		base += col.rgb * 0.6 * e + vec3(0.25) * e;
-		o.rgb = (o.a < 0.001) ? base : mix(o.rgb, base, a);
-		o.a = max(o.a, a);
+	if (frac > 0.003 && p.x < endf) {
+		// derinlik: üst açık, alt koyu (ıslak mürekkep)
+		vec3 base = mix(col.rgb * 1.3, col.rgb * 0.5, smoothstep(0.0, 1.0, UV.y));
+		// kıl izleri: satır satır yoğunluk, yavaşça akar
+		float streak = n1(p.y * 1.6 + 11.0 + floor(p.x * 0.01));
+		float flow = n1(p.x * 0.03 - TIME * 0.9 * speed + p.y * 0.07);
+		base *= 0.82 + 0.18 * streak;
+		base += col.rgb * 0.22 * smoothstep(0.65, 1.0, flow);
+		// ıslak parlama: üst kenarda kesik kesik açık şerit
+		float sheen = (1.0 - smoothstep(0.08, 0.32, UV.y)) * smoothstep(0.08, 0.0, abs(UV.y - 0.16) - 0.06);
+		base += vec3(0.32) * sheen * (0.55 + 0.45 * n1(p.x * 0.06 - TIME * 0.5 * speed));
+		// uç: ıslak mürekkep birikintisi parlar
+		float e = exp(-pow((p.x - endf + 3.0) / 6.0, 2.0));
+		base += col.rgb * 0.45 * e + vec3(0.18) * e;
+		o = vec4(base, 1.0);
 	}
 	COLOR = o;
 }
@@ -92,6 +91,7 @@ func _init() -> void:
 	custom_minimum_size = Vector2(W, H)
 	size = Vector2(W, H)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS   # çerçeve 0.72 ölçekte: dokular küçülünce tırtıklanmasın
 	if _fill_shader == null:
 		_fill_shader = Shader.new()
 		_fill_shader.code = FILL_SHADER
@@ -216,22 +216,24 @@ static func _num(n: int) -> String:
 func _draw() -> void:
 	if st.is_empty():
 		return
-	_draw_scroll()
 	_draw_portrait()
+	_draw_name()
 	var cf = cond_font()
-	_t(self, cf, Vector2(142, 73), String(st["rank_txt"]), 19, Color(1.0, 0.86, 0.5), 5, Color(0.1, 0.05, 0.0, 0.9))
-	_bar_frame(HP_R, 4.0)
-	_bar_frame(CK_R, 4.0)
-	_coins(Vector2(BX + 4, 185))
-	_rf(self, Rect2(410, 161, 106, 26), 12.0, Color(0, 0, 0, 0.42), Color(0, 0, 0, 0.3))
-	_rl(self, Rect2(410, 161, 106, 26), 12.0, Color(0.8, 0.85, 0.95, 0.35), 1.0)
-	_bar_frame(XP_R, 2.0)
+	draw_style_box(UI.brush(Color(0.02, 0.018, 0.016, 0.88), "a", 0), Rect2(122, 59, 330, 26))
+	_t(self, UI.font(true), Vector2(140, 78), String(st["rank_txt"]), 18, Color(1.0, 0.86, 0.5), 2, Color(0.05, 0.03, 0.02, 0.92))
+	_bar_frame(HP_R)
+	_bar_frame(CK_R)
+	_bar_frame(XP_R)
 	_ticks(XP_R)
 	_leaf(Vector2(COL_X + 11, XP_R.get_center().y), 22.0)
-	_t(self, cf, Vector2(COL_X + 28, XP_R.get_center().y + 6), "EXP", 17, Color(1.0, 0.6, 0.25), 4)
+	_t(self, cf, Vector2(COL_X + 28, XP_R.get_center().y + 6), "EXP", 17, Color(0.98, 0.7, 0.38), 4)
+	# Ryō + kütük satırı: kısa mürekkep oluk üstünde
+	draw_style_box(UI.brush(Color(0.02, 0.018, 0.016, 0.72), "a", 0), Rect2(BX - 10, 162, 250, 32))
+	draw_style_box(UI.brush(Color(0.02, 0.018, 0.016, 0.72), "s", 0), Rect2(408, 162, 130, 32))
+	_coins(Vector2(BX + 6, 178))
 	var cl: Dictionary = st["clan"]
 	if not cl.is_empty():
-		_bar_frame(KR_R, 2.0)
+		_bar_frame(KR_R)
 		_ticks(KR_R)
 		_gem(Vector2(COL_X + 11, KR_R.get_center().y), cl["c"])
 
@@ -242,16 +244,19 @@ func _draw_dyn() -> void:
 		return
 	var f = UI.font(true)
 	var cf = cond_font()
-	_t(dyn, f, Vector2(COL_X, HP_R.position.y + 17), "%d / %d" % [st["hp"], st["hp_max"]], 18, st["hp_col"].lerp(Color.WHITE, 0.6), 4)
-	_t(dyn, f, Vector2(COL_X, CK_R.position.y + 15), "%d / %d" % [st["ck"], st["ck_max"]], 16, Color(0.72, 0.88, 1.0), 4)
+	# çubukların üst kenarında ince parlak çizgi (dolgunun üstünde: ıslak yüzey)
+	for r in [HP_R, CK_R]:
+		dyn.draw_line(r.position + Vector2(1, 1), Vector2(r.end.x - 1, r.position.y + 1), Color(1, 1, 1, 0.12), 1.0)
+	_t(dyn, f, Vector2(COL_X, HP_R.position.y + 17), "%d / %d" % [st["hp"], st["hp_max"]], 18, st["hp_col"].lerp(Color.WHITE, 0.55), 4)
+	_t(dyn, f, Vector2(COL_X, CK_R.position.y + 15), "%d / %d" % [st["ck"], st["ck_max"]], 16, Color(0.72, 0.86, 1.0), 4)
 	# stamina: yalnız dolu değilken (taijutsu harcar)
 	if st["staf"] < 199:
 		var sr := Rect2(BX + 6, 139, 190, 3)
 		dyn.draw_rect(sr.grow(1.5), Color(0, 0, 0, 0.55))
-		dyn.draw_rect(Rect2(sr.position, Vector2(sr.size.x * st["staf"] / 200.0, sr.size.y)), Color(1.0, 0.7, 0.25))
-	_t(dyn, f, Vector2(BX + 98, 181), "%s Ryō" % _num(st["ryo"]), 18, Color(1.0, 0.86, 0.45), 5, Color(0.2, 0.1, 0.0, 0.9))
+		dyn.draw_rect(Rect2(sr.position, Vector2(sr.size.x * st["staf"] / 200.0, sr.size.y)), Color(0.93, 0.72, 0.4))
+	_t(dyn, f, Vector2(BX + 66, 185), "%s Ryō" % _num(st["ryo"]), 18, Color(1.0, 0.86, 0.5), 4, Color(0.12, 0.06, 0.0, 0.9))
 	for i in 4:
-		_log(dyn, Vector2(428 + i * 24, 174), i < st["subs"])
+		_log(dyn, Vector2(432 + i * 24, 178), i < st["subs"])
 	var cl: Dictionary = st["clan"]
 	if not cl.is_empty():
 		var lt := String(cl["l"])
@@ -273,172 +278,131 @@ static func _rl(p: Control, r: Rect2, rad: float, col: Color, w: float) -> void:
 	Hud._rr_line(p, r, minf(rad, minf(r.size.x, r.size.y) * 0.49), col, w)
 
 
-## Metal çubuk çerçevesi + koyu iç (sabit)
-func _bar_frame(r: Rect2, fw: float) -> void:
-	var rad := r.size.y * 0.5
-	var fr := r.grow(fw)
-	_rf(self, Rect2(fr.position + Vector2(0, 2), fr.size), rad + fw, Color(0, 0, 0, 0.4), Color(0, 0, 0, 0.4))
-	_rf(self, fr, rad + fw, Color(0.95, 0.96, 1.0), Color(0.38, 0.42, 0.52))
-	_rl(self, fr.grow(-1.2), rad + fw - 1.0, Color(1, 1, 1, 0.45), 1.0)
-	_rl(self, fr.grow(-0.5), rad + fw, Color(0.04, 0.05, 0.07, 0.95), 1.2)
-	_rl(self, fr.grow(-fw + 0.5), rad + 0.5, Color(0, 0, 0, 0.6), 1.0)
-	if fw < 3.0:
-		_rf(self, r, rad, Color(0.16, 0.13, 0.11, 0.97), Color(0.08, 0.06, 0.05, 0.97))
-	else:
-		_rf(self, r, rad, Color(0.01, 0.025, 0.03, 0.97), Color(0.06, 0.09, 0.09, 0.97))
+## Çubuk oluğu: arkada kalın mürekkep fırça darbesi (kuru kuyruk değer sütununun altına uzanır), içte koyu oluk + iç gölge
+func _bar_frame(r: Rect2) -> void:
+	var th := r.size.y
+	var pad := clampf(th * 0.55, 5.0, 12.0)
+	var g := Rect2(r.position.x - 16.0, r.position.y - pad, r.size.x + 44.0, th + pad * 2.0)   # kuru kuyruk çubuğun ucunda biter, sayılara taşmaz
+	draw_style_box(UI.brush(Color(0, 0, 0, 0.35), "a", 0), Rect2(g.position + Vector2(2, 3), g.size))
+	draw_style_box(UI.brush(Color(0.025, 0.022, 0.02, 0.9), "a", 0), g)
+	draw_rect(r.grow(1.0), Color(0, 0, 0, 0.85))
+	draw_rect(r, Color(0.075, 0.066, 0.058))
+	draw_rect(Rect2(r.position, Vector2(r.size.x, minf(3.0, th * 0.3))), Color(0, 0, 0, 0.45))   # iç gölge
 
 
 ## Ölçek çentikleri (ince çubuk boşken delik gibi görünmesin)
 func _ticks(r: Rect2) -> void:
 	for i in range(1, 10):
 		var x := r.position.x + r.size.x * float(i) / 10.0
-		draw_line(Vector2(x, r.position.y + 1.5), Vector2(x, r.end.y - 1.5), Color(1, 1, 1, 0.13), 1.0)
+		draw_line(Vector2(x, r.position.y + 1.0), Vector2(x, r.end.y - 1.0), Color(1, 1, 1, 0.1), 1.0)
 
 
-func _draw_scroll() -> void:
-	var x0 := 116.0
-	var x1 := 470.0
-	var y0 := 6.0
-	var y1 := 46.0
-	var n := 14
-	var pts := PackedVector2Array()
-	for i in n + 1:
-		pts.append(Vector2(x0 + (x1 - x0) * float(i) / n, y0 + sin(float(i) * 1.7) * 1.3))
-	for i in range(n, -1, -1):
-		pts.append(Vector2(x0 + (x1 - x0) * float(i) / n, y1 + sin(float(i) * 2.3 + 1.0) * 1.3))
-	# gölge
-	var sh := PackedVector2Array()
-	for p in pts:
-		sh.append(p + Vector2(0, 4))
-	draw_colored_polygon(sh, Color(0, 0, 0, 0.32))
-	var cols := PackedColorArray()
-	var mid := (x0 + x1) * 0.5
-	for p in pts:
-		var ex := pow(absf(p.x - mid) / (mid - x0), 4.0)
-		var v := clampf((p.y - y0) / (y1 - y0), 0.0, 1.0)
-		cols.append(Color(0.95, 0.89, 0.72).lerp(Color(0.80, 0.68, 0.46), v * 0.55 + ex * 0.5))
-	draw_polygon(pts, cols)
-	# kâğıt lifleri + kenar
-	for i in 5:
-		var yy := y0 + 8.0 + i * 8.0
-		draw_line(Vector2(x0 + 24 + i * 11, yy), Vector2(x1 - 40 - i * 17, yy + 1.0), Color(0.55, 0.4, 0.2, 0.07), 1.0)
-	draw_polyline(pts + PackedVector2Array([pts[0]]), Color(0.45, 0.32, 0.16, 0.55), 1.2, true)
-	# iki ucu sarılı rulo
-	for e in [x0, x1]:
-		var sgn := 1.0 if e == x1 else -1.0
-		var cx: float = e + sgn * 1.0
-		var rect := PackedVector2Array([Vector2(cx - 6, y0 - 3), Vector2(cx + 6, y0 - 3), Vector2(cx + 6, y1 + 3), Vector2(cx - 6, y1 + 3)])
-		var rc := PackedColorArray([Color(0.62, 0.48, 0.28), Color(0.93, 0.85, 0.66), Color(0.5, 0.37, 0.2), Color(0.5, 0.37, 0.2)])
-		draw_polygon(rect, rc)
-		draw_polygon(PackedVector2Array([Vector2(cx - 6, y0 - 3), Vector2(cx - 1, y0 - 3), Vector2(cx - 1, y1 + 3), Vector2(cx - 6, y1 + 3)]), PackedColorArray([Color(0.5, 0.37, 0.2), Color(0.95, 0.88, 0.7), Color(0.95, 0.88, 0.7), Color(0.5, 0.37, 0.2)]))
-		draw_colored_polygon(_ell(Vector2(cx, y0 - 3), 6.0, 2.2), Color(0.98, 0.93, 0.78))
-		draw_colored_polygon(_ell(Vector2(cx, y1 + 3), 6.0, 2.2), Color(0.45, 0.32, 0.17))
-	# isim: kaligrafik mürekkep, kalın fırça görünümü (kontur aynı renkte), kısa isim parşömende ortalanır
+## İsim plakası: yırtık kenarlı washi şerit, mürekkep isim, sağ uçta kırmızı hanko
+func _draw_name() -> void:
+	var plate := Rect2(118, 2, 364, 54)
+	var sb := StyleBoxTexture.new()
+	sb.texture = UI._t("washi")
+	sb.set_texture_margin_all(16)
+	sb.modulate_color = Color(0, 0, 0, 0.4)
+	draw_style_box(sb, Rect2(plate.position + Vector2(3, 4), plate.size))
+	sb.modulate_color = Color.WHITE
+	draw_style_box(sb, plate)
 	var nm := String(st["name"])
-	var f = ink_font()
-	var fs := 42
-	while fs > 18 and f.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x > 300.0:
+	var f = UI.title_font()
+	var fs := 38
+	while fs > 18 and f.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x > 270.0:
 		fs -= 2
 	var nw := f.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-	var nx := maxf(146.0, 300.0 - nw * 0.5)
-	var ny := 26.0 + fs * 0.36
-	var ink := Color(0.1, 0.055, 0.03)
-	draw_string(f, Vector2(nx + 1.5, ny + 1.5), nm, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(1, 1, 1, 0.28))
-	draw_string_outline(f, Vector2(nx, ny), nm, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, 3, ink)
+	var nx := plate.position.x + 18.0 + (290.0 - nw) * 0.5
+	var ny := plate.get_center().y + fs * 0.34
+	var ink := Color(0.09, 0.06, 0.045)
+	draw_string(f, Vector2(nx, ny + 1.0), nm, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(ink, 0.25))
+	draw_string_outline(f, Vector2(nx, ny), nm, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, 1, ink)
 	draw_string(f, Vector2(nx, ny), nm, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, ink)
+	# hanko: rütbe mührü
+	var hr := Rect2(plate.end.x - 50, plate.position.y + 9, 36, 36)
+	draw_texture_rect(UI._t("seal"), hr, false, Color(UI.ACCENT, 0.92))
+	var kf = UI.seal_font()
+	var ch := "忍"
+	var cw := kf.get_string_size(ch, HORIZONTAL_ALIGNMENT_LEFT, -1, 24).x
+	draw_string(kf, Vector2(hr.get_center().x - cw * 0.5, hr.get_center().y + 9), ch, HORIZONTAL_ALIGNMENT_LEFT, -1, 24, Color(1, 0.95, 0.88, 0.95))
 
 
 func _draw_portrait() -> void:
-	var rot := -PI * 0.5
-	draw_circle(C + Vector2(0, 5), 72.0, Color(0, 0, 0, 0.32))
-	# ahşap plakalar (sivri uçların arasında)
-	for i in 6:
-		var am := rot + PI / 6.0 + PI / 3.0 * i
-		var pts := PackedVector2Array([C])
-		for k in 9:
-			var a := am + (float(k) - 4.0) * 0.085
-			pts.append(C + Vector2(cos(a), sin(a)) * 67.0)
-		_metal(pts, C, 67.0, Color(0.60, 0.38, 0.19), Color(0.22, 0.12, 0.06))
-		_outline(pts, Color(0.1, 0.05, 0.02, 0.85), 1.5)
-		for g in 3:
-			var ga := am + (float(g) - 1.0) * 0.07
-			draw_line(C + Vector2(cos(ga), sin(ga)) * 54.0, C + Vector2(cos(ga), sin(ga)) * 64.0, Color(0.15, 0.07, 0.03, 0.4), 1.0)
-	# çelik shuriken uçları
-	var star := _star(C, 77.0, 44.0, 6, rot)
-	_metal(star, C, 77.0, Color(0.86, 0.89, 0.94), Color(0.26, 0.29, 0.35))
-	_outline(star, Color(0.06, 0.07, 0.09, 0.95), 1.6)
-	for i in 6:
-		var a := rot + PI / 3.0 * i
-		draw_line(C + Vector2(cos(a), sin(a)) * 56.0, C + Vector2(cos(a), sin(a)) * 72.0, Color(1, 1, 1, 0.35), 1.2, true)
-	# çelik halka
-	draw_colored_polygon(_circ(C, 54.0, 56), Color(0.05, 0.06, 0.08))
-	_metal(_circ(C, 52.5, 56), C, 52.5, Color(0.88, 0.9, 0.95), Color(0.3, 0.33, 0.4))
-	_metal(_circ(C, 43.0, 56), C, 43.0, Color(0.3, 0.33, 0.4), Color(0.85, 0.88, 0.93))
-	draw_arc(C, 48.0, PI * 0.9, PI * 1.65, 20, Color(1, 1, 1, 0.5), 1.5, true)
-	for i in 10:
-		var a := TAU * float(i) / 10.0 + 0.3
-		var rp := C + Vector2(cos(a), sin(a)) * 48.0
-		draw_circle(rp + Vector2(0.6, 0.9), 2.4, Color(0, 0, 0, 0.5))
-		draw_circle(rp, 2.2, Color(0.55, 0.58, 0.64))
-		draw_circle(rp + Vector2(-0.6, -0.7), 0.9, Color(1, 1, 1, 0.8))
-	# yüz
-	draw_circle(C, 41.0, el_col.darkened(0.65))
+	# kâğıda yayılmış mürekkep lekesi zemin
+	draw_texture_rect(UI._t("ink_disc"), Rect2(C - Vector2(90, 90), Vector2(180, 180)), false, Color(0.025, 0.022, 0.02, 0.92))
+	draw_circle(C, 43.0, el_col.darkened(0.72))
 	if portrait_tex:
-		draw_texture_rect(portrait_tex, Rect2(C - Vector2(40, 40), Vector2(80, 80)), false)
+		draw_texture_rect(portrait_tex, Rect2(C - Vector2(41, 41), Vector2(82, 82)), false)
 	else:
 		var nm := String(st["name"]).substr(0, 1).to_upper()
-		var fb = UI.font(true)
+		var fb = UI.title_font()
 		var w := fb.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, 40).x
-		draw_string(fb, C + Vector2(-w * 0.5, 14), nm, HORIZONTAL_ALIGNMENT_LEFT, -1, 40, UI.TEXT)
-	draw_arc(C, 41.0, 0.0, TAU, 48, Color(0, 0, 0, 0.55), 2.5, true)
-	# rütbe plakası: koyu çelik yay (yıldızlar ahşap uçların üstünde karışmasın)
-	var pa0 := PI * 0.5 - 1.0
-	var pa1 := PI * 0.5 + 1.0
-	draw_arc(C, 59.0, pa0, pa1, 28, Color(0.03, 0.035, 0.05), 19.0, true)
-	draw_arc(C, 59.0, pa0, pa1, 28, Color(0.2, 0.22, 0.28), 16.0, true)
-	draw_arc(C, 59.0, pa0, pa1, 28, Color(0.09, 0.1, 0.13), 12.0, true)
-	draw_arc(C, 66.0, pa0 + 0.04, pa1 - 0.04, 28, Color(1, 1, 1, 0.22), 1.2, true)
-	# rütbe yıldızları (halkanın alt kavsinde): kazanılan = gümüş shuriken
+		draw_string(fb, C + Vector2(-w * 0.5, 14), nm, HORIZONTAL_ALIGNMENT_LEFT, -1, 40, UI.CREAM)
+	draw_arc(C, 43.0, 0.0, TAU, 64, Color(0, 0, 0, 0.75), 2.5, true)
+	draw_arc(C, 45.0, 0.0, TAU, 64, Color(UI.CREAM, 0.18), 1.0, true)
+	# ensō: önce gölgesi, sonra kırmızı fırça halkası
+	var er := Rect2(C - Vector2(78, 78), Vector2(156, 156))
+	draw_texture_rect(UI._t("enso"), Rect2(er.position + Vector2(2, 3), er.size), false, Color(0, 0, 0, 0.55))
+	draw_texture_rect(UI._t("enso"), er, false, UI.ACCENT)
+	# rütbe: halkanın altında altı elmas; kazanılan = krem, içinde kırmızı nokta; kalan = koyu, ince krem kenar
 	for i in 6:
-		var a := PI * 0.5 + (float(i) - 2.5) * 0.3
-		var sp := C + Vector2(cos(a), sin(a)) * 59.0
-		var lit: bool = i < int(st["rk"])
-		var sr := _star(sp, 8.5, 3.0, 4, 0.4)
-		if lit:
-			draw_colored_polygon(_star(sp + Vector2(0, 1.5), 8.5, 3.0, 4, 0.4), Color(0, 0, 0, 0.5))
-			_metal(sr, sp, 8.5, Color(0.95, 0.96, 1.0), Color(0.45, 0.48, 0.56))
-			_outline(sr, Color(0.05, 0.06, 0.08, 0.95), 1.0)
-			draw_circle(sp, 1.4, Color(0.1, 0.1, 0.12))
+		var a := PI * 0.5 + (float(i) - 2.5) * 0.25
+		var sp := C + Vector2(cos(a), sin(a)) * 72.0
+		var d := PackedVector2Array([sp + Vector2(0, -6.5), sp + Vector2(4.6, 0), sp + Vector2(0, 6.5), sp + Vector2(-4.6, 0)])
+		var dsh := PackedVector2Array()
+		for q in d:
+			dsh.append(q + Vector2(1, 1.5))
+		draw_colored_polygon(dsh, Color(0, 0, 0, 0.6))
+		if i < int(st["rk"]):
+			draw_colored_polygon(d, UI.CREAM)
+			_outline(d, Color(0.08, 0.05, 0.03, 0.9), 1.2)
+			draw_circle(sp, 1.6, UI.ACCENT)
 		else:
-			draw_colored_polygon(sr, Color(0.06, 0.07, 0.09, 0.9))
-			_outline(sr, Color(0.75, 0.8, 0.9, 0.6), 1.0)
+			draw_colored_polygon(d, Color(0.06, 0.055, 0.05, 0.92))
+			_outline(d, Color(UI.CREAM, 0.45), 1.0)
 
 
-## Altın para yığınları
+## Ryō: ipe dizili mon sikkeleri (yan yana üç yığın), soluk altın, kare delik, mürekkep kenar
 func _coins(base: Vector2) -> void:
-	var sc := 1.0
-	draw_set_transform(base * (1.0 - sc), 0.0, Vector2(sc, sc))
-	var stacks := [[10.0, 3], [26.0, 5], [42.0, 4], [55.0, 2], [67.0, 3]]
+	var stacks := [[0.0, 3], [17.0, 4], [34.0, 2]]
 	for s in stacks:
 		var x: float = base.x + s[0]
 		for k in int(s[1]):
-			var cy := base.y - 4.0 - float(k) * 3.4
-			draw_colored_polygon(_ell(Vector2(x, cy + 3.0), 10.0, 4.0), Color(0.55, 0.36, 0.06))
-			draw_rect(Rect2(x - 10.0, cy, 20.0, 3.0), Color(0.62, 0.42, 0.08))
-			draw_colored_polygon(_ell(Vector2(x, cy), 10.0, 4.0), Color(1.0, 0.82, 0.3))
-			draw_colored_polygon(_ell(Vector2(x, cy), 6.8, 2.6), Color(0.85, 0.6, 0.15))
-			draw_colored_polygon(_ell(Vector2(x - 1.0, cy - 0.4), 5.0, 1.8), Color(1.0, 0.9, 0.5))
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			var cy := base.y + 4.0 - float(k) * 3.6
+			var rim := _ell(Vector2(x, cy + 2.2), 8.5, 3.6, 20)
+			draw_colored_polygon(rim, Color(0.42, 0.28, 0.08))
+			draw_rect(Rect2(x - 8.5, cy, 17.0, 2.2), Color(0.5, 0.34, 0.1))
+			var top := _ell(Vector2(x, cy), 8.5, 3.6, 20)
+			var cols := PackedColorArray()
+			for q in top:
+				cols.append(Color(1.0, 0.86, 0.48).lerp(Color(0.78, 0.56, 0.2), clampf((q.x - x + 8.5) / 17.0, 0.0, 1.0)))
+			draw_polygon(top, cols)
+			_outline(top, Color(0.12, 0.07, 0.02, 0.85), 1.0)
+			draw_rect(Rect2(x - 2.0, cy - 1.0, 4.0, 2.0), Color(0.1, 0.06, 0.02))
+	# ip: sikkelerin ortasından geçen kırmızı bağ
+	draw_line(base + Vector2(-6, -6), base + Vector2(40, -4), Color(UI.ACCENT, 0.9), 1.5, true)
 
 
-## Kawarimi kütüğü: ahşap silindir; hak yoksa sönük
+## Kawarimi kütüğü: yuvarlak ahşap kesit + gövde, mürekkep kontur ve halkalar; hak yoksa sönük
 func _log(c: Control, p: Vector2, lit: bool) -> void:
-	var a := 1.0 if lit else 0.22
-	var r := Rect2(p - Vector2(10, 6), Vector2(20, 12))
-	_rf(c, r, 4.0, Color(0.7, 0.45, 0.22, a), Color(0.32, 0.18, 0.08, a))
-	_rl(c, r, 4.0, Color(0.1, 0.05, 0.02, 0.8 * a), 1.0)
-	c.draw_colored_polygon(_ell(p + Vector2(-8, 0), 3.2, 5.2), Color(0.88, 0.66, 0.38, a))
-	c.draw_arc(p + Vector2(-8, 0), 1.6, 0.0, TAU, 10, Color(0.4, 0.22, 0.1, a), 1.0)
+	var a := 1.0 if lit else 0.3
+	var ink := Color(0.06, 0.035, 0.02, 0.95 * a)
+	var body := PackedVector2Array([p + Vector2(-7, -6.5), p + Vector2(10, -6.5), p + Vector2(10, 6.5), p + Vector2(-7, 6.5)])
+	c.draw_polygon(body, PackedColorArray([Color(0.72, 0.48, 0.25, a), Color(0.62, 0.4, 0.2, a), Color(0.36, 0.21, 0.09, a), Color(0.42, 0.25, 0.11, a)]))
+	c.draw_line(p + Vector2(-4, -2), p + Vector2(9, -2.5), Color(0.3, 0.16, 0.06, 0.6 * a), 1.0, true)   # kabuk çizgisi
+	c.draw_line(p + Vector2(-3, 2.5), p + Vector2(9, 3), Color(0.3, 0.16, 0.06, 0.6 * a), 1.0, true)
+	c.draw_polyline(PackedVector2Array([p + Vector2(-7, -6.5), p + Vector2(10, -6.5), p + Vector2(10, 6.5), p + Vector2(-7, 6.5)]), ink, 1.4, true)
+	var cap := _ell(p + Vector2(-7, 0), 4.2, 6.5, 18)
+	c.draw_colored_polygon(cap, Color(0.93, 0.76, 0.5, a))
+	_poly_line(c, cap, ink, 1.4)
+	c.draw_arc(p + Vector2(-7, 0), 2.2, 0.0, TAU, 12, Color(0.5, 0.3, 0.12, 0.8 * a), 1.0, true)
+
+
+static func _poly_line(c: Control, pts: PackedVector2Array, col: Color, w: float) -> void:
+	var q := pts.duplicate()
+	q.append(pts[0])
+	c.draw_polyline(q, col, w, true)
 
 
 ## Yaprak simgesi (EXP)
@@ -458,10 +422,16 @@ func _leaf(c: Vector2, s: float) -> void:
 	for p in pts:
 		if clean.is_empty() or clean[clean.size() - 1].distance_to(p) > 0.05:
 			clean.append(p)
-	draw_colored_polygon(clean, Color(0, 0, 0, 0.4))
-	_metal(clean, c, s * 0.6, Color(1.0, 0.8, 0.4), Color(0.78, 0.38, 0.1))
-	_outline(clean, Color(0.3, 0.12, 0.02, 0.9), 1.0)
-	draw_line(c + Vector2(-s * 0.6, 0).rotated(rot), c + Vector2(s * 0.35, 0).rotated(rot), Color(0.4, 0.18, 0.04, 0.8), 1.2, true)
+	var sh := PackedVector2Array()
+	for q in clean:
+		sh.append(q + Vector2(1, 1.5))
+	draw_colored_polygon(sh, Color(0, 0, 0, 0.5))
+	var lc := PackedColorArray()
+	for q in clean:
+		lc.append(Color(1.0, 0.76, 0.4).lerp(Color(0.85, 0.42, 0.14), clampf((q.y - c.y + s * 0.5) / s, 0.0, 1.0)))
+	draw_polygon(clean, lc)
+	_outline(clean, Color(0.12, 0.05, 0.02, 0.95), 1.3)
+	draw_line(c + Vector2(-s * 0.6, 0).rotated(rot), c + Vector2(s * 0.35, 0).rotated(rot), Color(0.25, 0.12, 0.04, 0.8), 1.2, true)
 
 
 ## Elmas simge (klan kaynağı): gümüş çerçeve + renkli taş
@@ -469,7 +439,7 @@ func _gem(c: Vector2, col: Color) -> void:
 	var outer := PackedVector2Array([c + Vector2(0, -11), c + Vector2(9, 0), c + Vector2(0, 11), c + Vector2(-9, 0)])
 	var inner := PackedVector2Array([c + Vector2(0, -7), c + Vector2(5.5, 0), c + Vector2(0, 7), c + Vector2(-5.5, 0)])
 	draw_colored_polygon(PackedVector2Array([outer[0] + Vector2(0, 2), outer[1] + Vector2(0, 2), outer[2] + Vector2(0, 2), outer[3] + Vector2(0, 2)]), Color(0, 0, 0, 0.45))
-	_metal(outer, c, 11.0, Color(0.9, 0.92, 0.97), Color(0.35, 0.38, 0.46))
-	_outline(outer, Color(0.06, 0.07, 0.09, 0.9), 1.0)
-	_metal(inner, c, 7.0, col.lightened(0.45), col.darkened(0.35))
+	draw_colored_polygon(outer, Color(0.05, 0.045, 0.04))
+	_outline(outer, Color(UI.TEXT, 0.45), 1.0)
+	draw_colored_polygon(inner, col)
 	draw_line(c + Vector2(-2, -3), c + Vector2(1, -5), Color(1, 1, 1, 0.7), 1.2, true)

@@ -118,33 +118,14 @@ func _setup_input() -> void:
 
 # ------------------------------------------------------------------ yükleme
 func _show_loading() -> void:
-	loading = ColorRect.new()
-	loading.color = Color(0.04, 0.03, 0.05)
-	loading.set_anchors_preset(Control.PRESET_FULL_RECT)
+	loading = preload("res://scripts/ui/loading_screen.gd").new()   # sumi-e dağ manzarası, dönen ipuçları, fırça ilerleme (scripts/ui/loading_screen.gd)
 	Hud.root.add_child(loading)
-	var t = UI.label("SHINOBI YOLU", 72, UI.ACCENT, HORIZONTAL_ALIGNMENT_CENTER)
-	t.set_anchors_preset(Control.PRESET_CENTER)
-	t.position = Vector2(-400, -120)
-	t.size = Vector2(800, 100)
-	loading.add_child(t)
-	var l = UI.label("Dünya yükleniyor...", 22, Color(1, 1, 1), HORIZONTAL_ALIGNMENT_CENTER)
-	l.name = "L"
-	l.set_anchors_preset(Control.PRESET_CENTER)
-	l.position = Vector2(-400, 0)
-	l.size = Vector2(800, 40)
-	loading.add_child(l)
-	var b = UI.bar(UI.ACCENT, 600, 12)
-	b.name = "B"
-	b.set_anchors_preset(Control.PRESET_CENTER)
-	b.position = Vector2(-300, 50)
-	b.max_value = 1.0
-	loading.add_child(b)
 
 
 func _loading_progress(v: float, label: String) -> void:
 	if loading:
-		(loading.get_node("L") as Label).text = label + "..."
-		(loading.get_node("B") as ProgressBar).value = v
+		(loading.find_child("L", true, false) as Label).text = label + "..."
+		(loading.find_child("B", true, false) as ProgressBar).value = v
 
 
 func _spawn_villagers() -> void:
@@ -238,10 +219,53 @@ func _update_preview() -> void:
 	preview.global_position = base
 	preview.rotation.y = PI + preview_yaw   # kameraya (kapı yönüne) bakar
 	preview.play("idle")
-	_frame_creator_cam(true)
+	_frame_creator_cam(Menus._cfocus == "")   # bir ayar değişince kamera o bölgeye kayarak yaklaşır
 
 
-## Yaratıcı kamerası: karakter sol paneli değil ekranın sağ boş alanını ortalar; Görünüm sekmesinde yüze yaklaşır
+## Yaratıcıda değiştirilen ayar -> kameranın yaklaşacağı bölge
+const CREATOR_FOCUS := {"eye_art": "eye", "face_eye": "eye", "face_iris": "eye", "eye": "eye", "face_brow": "brow", "face_mouth": "mouth",
+	"face_base": "face", "face_head": "face", "face_paint": "face", "face_paint_col_name": "face", "skin": "face",
+	"hair_style": "hair", "hair": "hair", "top": "top", "pants": "pants"}
+
+
+## Odak noktası ve uzaklık: baş / boyun / kalça kemiklerinden (çocuk-yetişkin ölçeği kendiliğinden doğru); [hedef, uzaklık]
+func _creator_focus() -> Array:
+	var base: Vector3 = preview.global_position
+	var region = CREATOR_FOCUS.get(Menus._cfocus, "")
+	if region == "":
+		var close = Menus._ctab == "gorunum"
+		return [base + Vector3(0, 1.12 if close else 0.78, 0), 2.3 if close else 3.7]
+	var sk: Skeleton3D = preview.skel
+	var bone = func(n: String, fb: Vector3) -> Vector3:
+		if sk == null or not is_instance_valid(sk):
+			return fb
+		var i = sk.find_bone(n)
+		return sk.global_transform * sk.get_bone_global_pose(i).origin if i >= 0 else fb   # o anki duruş (bekleme animasyonunda baş eğik)
+	var head: Vector3 = bone.call("Head", base + Vector3(0, 1.2, 0))
+	var neck: Vector3 = bone.call("Neck", head - Vector3(0, 0.08, 0))
+	var hips: Vector3 = bone.call("Hips", base + Vector3(0, 0.7, 0))
+	var u := maxf(head.y - neck.y, 0.04)   # baş ölçeği: boyun -> baş kemiği
+	var c := Vector3(head.x, 0, head.z)
+	match region:
+		"eye":
+			return [c + Vector3(0, head.y + u * 0.35, 0), 0.62]
+		"brow":
+			return [c + Vector3(0, head.y + u * 0.8, 0), 0.62]
+		"mouth":
+			return [c + Vector3(0, head.y - u * 0.5, 0), 0.66]
+		"face":
+			return [c + Vector3(0, head.y + u * 0.2, 0), 0.95]
+		"hair":
+			return [c + Vector3(0, head.y + u * 1.5, 0), 1.3]
+		"top":
+			return [c + Vector3(0, lerpf(hips.y, neck.y, 0.55), 0), 1.75]
+		"pants":
+			return [Vector3(base.x, lerpf(base.y, hips.y, 0.6), base.z), 2.0]
+	return [base + Vector3(0, 1.12, 0), 2.3]
+
+
+## Yaratıcı kamerası: karakter sol paneli değil ekranın sağ boş alanını ortalar; Görünüm sekmesinde yüze yaklaşır,
+## bir ayar değişince o bölgeye (göz, kaş, ağız, saç, gövde, bacak) yaklaşır
 func _frame_creator_cam(snap := false) -> void:
 	if preview == null:
 		return
@@ -250,24 +274,29 @@ func _frame_creator_cam(snap := false) -> void:
 		menu_cam.current = true
 		if world and world.env:
 			world.env.attach_post(menu_cam)
-	var base = preview.global_position
-	var close = Menus._ctab == "gorunum"
-	var dist = 2.3 if close else 3.7
-	var h = 1.12 if close else 0.78
+	if not snap and Menus._cfocus != "":
+		# yeni önizleme modeli ilk karede dinlenme duruşunda: bekleme animasyonu başı yerine oturtunca ölç
+		await get_tree().process_frame
+		await get_tree().process_frame
+		if preview == null or not is_instance_valid(preview):
+			return
+	var f = _creator_focus()
+	var target: Vector3 = f[0]
+	var dist: float = f[1]
 	menu_cam.fov = 38.0
 	var vp = get_viewport().get_visible_rect().size
 	var aspect = vp.x / maxf(vp.y, 1.0)
 	# panelin sağındaki alanın ortası ~ekranın %66'sı: kamerayı yana kaydır (h_offset), karakter sağa geçer
 	var half_w = dist * tan(deg_to_rad(menu_cam.fov * 0.5)) * aspect
-	var to = Transform3D(Basis.IDENTITY, base + Vector3(0, h + 0.08, dist)).looking_at(base + Vector3(0, h, 0), Vector3.UP)
+	var to = Transform3D(Basis.IDENTITY, target + Vector3(0, 0.08 * dist / 3.7, dist)).looking_at(target, Vector3.UP)
 	var hoff = -half_w * 0.36
 	if snap:
 		menu_cam.global_transform = to
 		menu_cam.h_offset = hoff
 		return
 	var tw = create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tw.tween_property(menu_cam, "global_transform", to, 0.35)
-	tw.tween_property(menu_cam, "h_offset", hoff, 0.35)
+	tw.tween_property(menu_cam, "global_transform", to, 0.45)
+	tw.tween_property(menu_cam, "h_offset", hoff, 0.45)
 
 
 func _start_new_game() -> void:
@@ -625,7 +654,7 @@ func fast_travel(vid: String) -> void:
 	var rec: Dictionary = vs.request(vid) if vs and vid != "konoha" else {"done": true}
 	if not rec.get("done", true):
 		_show_loading()
-		(loading.get_node("L") as Label).text = "%s yükleniyor..." % v["name"]
+		(loading.find_child("L", true, false) as Label).text = "%s yükleniyor..." % v["name"]
 		get_tree().paused = false
 		player.set_physics_process(false)
 		BuildSites.budget_ms = 120.0

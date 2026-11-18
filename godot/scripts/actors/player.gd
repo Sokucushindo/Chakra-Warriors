@@ -1328,7 +1328,7 @@ func _footstep(_sp: float, sprint: bool) -> void:
 		return
 	var wl = Game.water_level(global_position.x, global_position.z, Game.terrain_height(global_position.x, global_position.z)) if on_water else 0.0
 	if model.footstep_cross(_step_ph):
-		Sfx.play(Game.step_sound(global_position), global_position, randf_range(0.92, 1.08), 0.32 if sprint else 0.26)
+		Game.play_step(global_position, randf_range(0.92, 1.08), 0.32 if sprint else 0.26)
 		GroundMarks.step(self, on_water, wl)   # suda halka dalga, kumda/karda ayak izi
 	_step_ph = model.anim_progress() if model.current in CharacterModel.FOOT_PHASES else -1.0
 	# suyun üstünde dururken de ayak altından ara ara halka yayılır

@@ -1,18 +1,20 @@
 class_name UI
 extends RefCounted
-## Modern arayüz teması ve widget fabrikaları: cam efektli koyu paneller, yuvarlak köşeler, ince altın vurgular,
-## sade tipografi (sistem fontu: Bahnschrift/Segoe UI), simge tabanlı düğmeler, yumuşak geçişler.
+## Arayüz teması ve widget fabrikaları — sumi-e (mürekkep fırçası) dili. Referans: Ghost of Tsushima ve Sekiro
+## menüleri (interfaceingame.com): kör başlayıp kuru liflerle biten fırça darbesi düğmeler, yırtık kenarlı mürekkep
+## paneller, köşeli çizgiler, tek vurgu rengi (shu kırmızısı), seçili öğe kırmızı fırça üstünde beyaz yazı.
+## Fırça dokuları: tools/make_ui_brush.py -> assets/ui (beyaz + alfa, burada boyanır).
 
-const ACCENT := Color(0.98, 0.62, 0.2)
-const ACCENT_DARK := Color(0.55, 0.3, 0.08)
-const GOLD := Color(0.95, 0.78, 0.42)
-const INK := Color(0.045, 0.05, 0.065)
-const PANEL := Color(0.05, 0.058, 0.078, 0.92)
-const GLASS := Color(0.09, 0.1, 0.13, 0.72)
-const LINE := Color(1, 1, 1, 0.09)
-const TEXT := Color(0.95, 0.95, 0.97)
-const CREAM := Color(1.0, 0.95, 0.85)
-const MUTED := Color(0.62, 0.65, 0.72)
+const ACCENT := Color(0.80, 0.16, 0.11)
+const ACCENT_DARK := Color(0.42, 0.07, 0.05)
+const GOLD := Color(0.93, 0.81, 0.58)
+const INK := Color(0.05, 0.045, 0.04)
+const PANEL := Color(0.055, 0.05, 0.047, 0.92)
+const GLASS := Color(0.09, 0.085, 0.08, 0.72)
+const LINE := Color(1, 0.95, 0.88, 0.1)
+const TEXT := Color(0.95, 0.93, 0.89)
+const CREAM := Color(1.0, 0.95, 0.86)
+const MUTED := Color(0.64, 0.62, 0.58)
 const GOOD := Color(0.45, 0.9, 0.55)
 const BAD := Color(1.0, 0.42, 0.38)
 const ELEMENT_COLORS := {"katon": Color(1.0, 0.42, 0.12), "suiton": Color(0.25, 0.6, 1.0), "fuuton": Color(0.5, 0.92, 0.7),
@@ -25,6 +27,8 @@ const RARITY_NAMES := ["Sıradan", "Nadir", "Ender", "Destansı", "Efsanevi"]
 static var _theme: Theme
 static var _font: Font
 static var _font_bold: Font
+static var _font_title: Font
+static var _tex := {}
 
 
 static func font(bold := false) -> Font:
@@ -41,12 +45,110 @@ static func font(bold := false) -> Font:
 	return _font_bold if bold else _font
 
 
+## Başlık yazısı: ince serifli (referanslardaki menü başlıkları gibi)
+static func title_font() -> Font:
+	if _font_title == null:
+		var f = SystemFont.new()
+		f.font_names = PackedStringArray(["Palatino Linotype", "Constantia", "Georgia", "Bahnschrift"])
+		f.font_weight = 600
+		f.antialiasing = TextServer.FONT_ANTIALIASING_GRAY
+		_font_title = f
+	return _font_title
+
+
+static func _t(n: String) -> Texture2D:
+	if not _tex.has(n):
+		_tex[n] = load("res://assets/ui/%s.png" % n)
+	return _tex[n]
+
+
+## Fırça darbesi stil kutusu: "a"/"b" geniş (uzun kuru kuyruk), "s" kısa öğeler için
+static func brush(col: Color, variant := "s", pad := 10.0) -> StyleBoxTexture:
+	var sb = StyleBoxTexture.new()
+	sb.texture = _t("brush_" + variant)
+	sb.modulate_color = col
+	if variant == "s":
+		sb.texture_margin_left = 10; sb.texture_margin_right = 46
+		sb.texture_margin_top = 10; sb.texture_margin_bottom = 10
+		sb.content_margin_left = 16; sb.content_margin_right = 40   # yazı kuru kuyruğa taşmasın
+	else:
+		sb.texture_margin_left = 22; sb.texture_margin_right = 118
+		sb.texture_margin_top = 14; sb.texture_margin_bottom = 14
+		sb.content_margin_left = 24; sb.content_margin_right = 56
+	sb.content_margin_top = pad; sb.content_margin_bottom = pad
+	return sb
+
+
+## Yırtık kenarlı mürekkep panel
+static func ink_panel(alpha := 0.9, margin := 24.0, col := PANEL) -> StyleBoxTexture:
+	var sb = StyleBoxTexture.new()
+	sb.texture = _t("ink_panel")
+	sb.modulate_color = Color(col, alpha)
+	sb.set_texture_margin_all(36)
+	sb.set_content_margin_all(margin + 8)
+	return sb
+
+
+static var _font_kanji: Font
+
+
+## Hanko mühür: aşınmış kırmızı kare içinde tek kanji (inverted: krem zemin, kırmızı yazı — kırmızı fırça üstünde)
+## Mühür kanjisi yazı tipi (Mincho: fırça tırnaklı)
+static func seal_font() -> Font:
+	if _font_kanji == null:
+		var f = SystemFont.new()
+		f.font_names = PackedStringArray(["Yu Mincho", "MS Mincho", "Yu Gothic", "MS Gothic", "Noto Serif CJK JP"])
+		f.font_weight = 700
+		f.antialiasing = TextServer.FONT_ANTIALIASING_GRAY
+		_font_kanji = f
+	return _font_kanji
+
+
+static func seal(ch: String, size := 34.0, inverted := false) -> Control:
+	seal_font()
+	var p = Panel.new()
+	var sb = StyleBoxTexture.new()
+	sb.texture = _t("seal")
+	sb.modulate_color = CREAM if inverted else ACCENT
+	p.add_theme_stylebox_override("panel", sb)
+	p.custom_minimum_size = Vector2(size, size)
+	p.size = Vector2(size, size)
+	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var l = Label.new()
+	l.text = ch
+	l.add_theme_font_override("font", _font_kanji)
+	l.add_theme_font_size_override("font_size", int(size * 0.62))
+	l.add_theme_color_override("font_color", ACCENT_DARK if inverted else Color(1, 0.96, 0.9))
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	l.set_anchors_preset(Control.PRESET_FULL_RECT)
+	l.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	p.add_child(l)
+	p.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	return p
+
+
+## Başlık altı kısa kırmızı fırça çizgisi
+static func brush_line(w := 120.0, col := ACCENT) -> TextureRect:
+	var r = TextureRect.new()
+	r.texture = _t("brush_line")
+	r.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	r.stretch_mode = TextureRect.STRETCH_SCALE
+	r.custom_minimum_size = Vector2(w, w * 20.0 / 256.0 * 1.6)
+	r.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	r.modulate = col
+	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return r
+
+
 static func _box(bg: Color, border := Color(0, 0, 0, 0), bw := 0, radius := 10, margin := 10.0, skew := 0.0) -> StyleBoxFlat:
 	var sb = StyleBoxFlat.new()
 	sb.bg_color = bg
 	sb.border_color = border
 	sb.set_border_width_all(bw)
-	sb.set_corner_radius_all(radius)
+	# referans dili köşeli: küçük yarıçaplar keskinleşir; büyük yarıçap (daire rozet, mini harita) korunur
+	sb.set_corner_radius_all(radius if radius >= 30 else mini(radius, 2))
 	sb.set_content_margin_all(margin)
 	sb.skew = Vector2(skew, 0)
 	sb.anti_aliasing = true
@@ -56,8 +158,8 @@ static func _box(bg: Color, border := Color(0, 0, 0, 0), bw := 0, radius := 10, 
 
 static func glass(radius := 14, margin := 18.0, alpha := 0.82) -> StyleBoxFlat:
 	var sb = _box(Color(PANEL, alpha), LINE, 1, radius, margin)
-	sb.shadow_color = Color(0, 0, 0, 0.35)
-	sb.shadow_size = 18
+	sb.shadow_color = Color(0, 0, 0, 0.3)
+	sb.shadow_size = 14
 	return sb
 
 
@@ -67,22 +169,14 @@ static func theme() -> Theme:
 	var t = Theme.new()
 	t.default_font = font()
 	t.default_font_size = 17
-	t.set_stylebox("panel", "PanelContainer", glass())
+	t.set_stylebox("panel", "PanelContainer", ink_panel())
 	t.set_stylebox("panel", "Panel", glass())
-	# düğme: sade, yuvarlak, üzerine gelince aydınlanan
-	var bn = _box(Color(0.07, 0.08, 0.1, 0.86), Color(1, 1, 1, 0.1), 1, 10, 10)
-	bn.content_margin_left = 18; bn.content_margin_right = 18
-	var bh = bn.duplicate()
-	bh.bg_color = Color(0.16, 0.17, 0.2, 0.94)
-	bh.border_color = Color(GOLD, 0.6)
-	var bp = bh.duplicate()
-	bp.bg_color = Color(ACCENT, 0.35)
-	var bd = bn.duplicate()
-	bd.bg_color = Color(0.06, 0.065, 0.08, 0.6)
-	bd.border_color = Color(1, 1, 1, 0.04)
-	var bf = bh.duplicate()
-	bf.border_color = GOLD
-	bf.set_border_width_all(2)
+	# düğme: koyu mürekkep fırça darbesi; üzerine gelince / seçiliyken kırmızı fırça
+	var bn = brush(Color(0.03, 0.027, 0.025, 0.86))
+	var bh = brush(ACCENT)
+	var bp = brush(ACCENT_DARK)
+	var bd = brush(Color(0.05, 0.045, 0.04, 0.45))
+	var bf = brush(Color(ACCENT, 0.85))
 	t.set_stylebox("normal", "Button", bn)
 	t.set_stylebox("hover", "Button", bh)
 	t.set_stylebox("pressed", "Button", bp)
@@ -92,25 +186,28 @@ static func theme() -> Theme:
 	t.set_color("font_hover_color", "Button", Color(1, 1, 1))
 	t.set_color("font_pressed_color", "Button", Color(1, 1, 1))
 	t.set_color("font_focus_color", "Button", Color(1, 1, 1))
-	t.set_color("font_disabled_color", "Button", Color(0.5, 0.52, 0.56))
+	t.set_color("font_disabled_color", "Button", Color(0.5, 0.48, 0.45))
 	t.set_constant("outline_size", "Button", 0)
 	t.set_constant("h_separation", "Button", 10)
 	t.set_color("font_color", "Label", TEXT)
 	for k in ["normal", "hover", "pressed", "focus", "disabled"]:
 		t.set_stylebox(k, "OptionButton", t.get_stylebox(k, "Button"))
 	t.set_color("font_color", "OptionButton", TEXT)
-	var le = _box(Color(0, 0, 0, 0.35), Color(1, 1, 1, 0.12), 1, 10, 10)
+	var le = _box(Color(0, 0, 0, 0.4), Color(0, 0, 0, 0), 0, 2, 10)
+	le.border_width_bottom = 1
+	le.border_color = Color(TEXT, 0.35)
 	t.set_stylebox("normal", "LineEdit", le)
 	var lef = le.duplicate()
-	lef.border_color = GOLD
+	lef.border_color = ACCENT
+	lef.border_width_bottom = 2
 	t.set_stylebox("focus", "LineEdit", lef)
 	t.set_color("font_color", "LineEdit", TEXT)
 	t.set_color("font_placeholder_color", "LineEdit", MUTED)
-	t.set_color("caret_color", "LineEdit", GOLD)
+	t.set_color("caret_color", "LineEdit", ACCENT)
 	# kaydırma çubuğu: ince, yuvarlak
 	t.set_stylebox("grabber", "VScrollBar", _box(Color(1, 1, 1, 0.18), Color(0, 0, 0, 0), 0, 6, 0))
-	t.set_stylebox("grabber_highlight", "VScrollBar", _box(Color(GOLD, 0.7), Color(0, 0, 0, 0), 0, 6, 0))
-	t.set_stylebox("grabber_pressed", "VScrollBar", _box(GOLD, Color(0, 0, 0, 0), 0, 6, 0))
+	t.set_stylebox("grabber_highlight", "VScrollBar", _box(Color(ACCENT, 0.85), Color(0, 0, 0, 0), 0, 6, 0))
+	t.set_stylebox("grabber_pressed", "VScrollBar", _box(ACCENT, Color(0, 0, 0, 0), 0, 6, 0))
 	var sbg = _box(Color(1, 1, 1, 0.03), Color(0, 0, 0, 0), 0, 6, 3)
 	t.set_stylebox("scroll", "VScrollBar", sbg)
 	var sep = StyleBoxLine.new()
@@ -120,8 +217,8 @@ static func theme() -> Theme:
 	t.set_constant("separation", "HSeparator", 14)
 	# kaydırıcı
 	t.set_stylebox("slider", "HSlider", _box(Color(1, 1, 1, 0.1), Color(0, 0, 0, 0), 0, 4, 2))
-	t.set_stylebox("grabber_area", "HSlider", _box(Color(GOLD, 0.85), Color(0, 0, 0, 0), 0, 4, 2))
-	t.set_stylebox("grabber_area_highlight", "HSlider", _box(GOLD, Color(0, 0, 0, 0), 0, 4, 2))
+	t.set_stylebox("grabber_area", "HSlider", _box(Color(ACCENT, 0.9), Color(0, 0, 0, 0), 0, 4, 2))
+	t.set_stylebox("grabber_area_highlight", "HSlider", _box(ACCENT, Color(0, 0, 0, 0), 0, 4, 2))
 	var cb_n = StyleBoxEmpty.new()
 	cb_n.content_margin_left = 6; cb_n.content_margin_top = 4; cb_n.content_margin_bottom = 4
 	for k in ["normal", "pressed", "focus", "disabled", "hover_pressed"]:
@@ -130,7 +227,9 @@ static func theme() -> Theme:
 	t.set_color("font_color", "CheckBox", TEXT)
 	t.set_color("font_pressed_color", "CheckBox", Color(1, 1, 1))
 	t.set_color("font_hover_color", "CheckBox", Color(1, 1, 1))
-	var tt = _box(Color(0.05, 0.055, 0.07, 0.97), Color(GOLD, 0.4), 1, 10, 10)
+	var tt = _box(Color(0.05, 0.045, 0.04, 0.97), Color(0, 0, 0, 0), 0, 2, 10)
+	tt.border_width_left = 3
+	tt.border_color = ACCENT
 	t.set_stylebox("panel", "TooltipPanel", tt)
 	t.set_color("font_color", "TooltipLabel", TEXT)
 	t.set_font("font", "TooltipLabel", font())
@@ -141,7 +240,7 @@ static func theme() -> Theme:
 static func label(text: String, size := 17, col := TEXT, align := HORIZONTAL_ALIGNMENT_LEFT, bold := false) -> Label:
 	var l = Label.new()
 	l.text = text
-	l.add_theme_font_override("font", font(bold or size >= 22))
+	l.add_theme_font_override("font", title_font() if size >= 24 else font(bold or size >= 22))
 	l.add_theme_font_size_override("font_size", size)
 	l.add_theme_color_override("font_color", col)
 	l.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.45))
@@ -156,14 +255,11 @@ static func label(text: String, size := 17, col := TEXT, align := HORIZONTAL_ALI
 ## Küçük, sade başlık: üstte ince altın çizgi, büyük harf, geniş harf aralığı hissi
 static func header(text: String, size := 22) -> Control:
 	var v = VBoxContainer.new()
-	v.add_theme_constant_override("separation", 6)
-	var line = ColorRect.new()
-	line.color = GOLD
-	line.custom_minimum_size = Vector2(28, 2)
-	line.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	v.add_child(line)
-	v.add_child(label(text, size, CREAM, HORIZONTAL_ALIGNMENT_LEFT, true))
+	v.add_theme_constant_override("separation", 0)
+	var l = label(text, size, CREAM, HORIZONTAL_ALIGNMENT_LEFT, true)
+	l.add_theme_font_override("font", title_font())
+	v.add_child(l)
+	v.add_child(brush_line(clampf(size * 4.0, 60.0, 150.0)))
 	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return v
 
@@ -188,6 +284,12 @@ static func button(text: String, cb: Callable, minw := 260, icon_kind := "") -> 
 	b.add_theme_font_override("font", font(true))
 	b.add_theme_font_size_override("font_size", 17)
 	b.focus_mode = Control.FOCUS_ALL
+	if minw >= 180:
+		b.add_theme_stylebox_override("normal", brush(Color(0.03, 0.027, 0.025, 0.86), "a"))
+		b.add_theme_stylebox_override("hover", brush(ACCENT, "a"))
+		b.add_theme_stylebox_override("focus", brush(Color(ACCENT, 0.85), "a"))
+		b.add_theme_stylebox_override("pressed", brush(ACCENT_DARK, "a"))
+		b.add_theme_stylebox_override("disabled", brush(Color(0.05, 0.045, 0.04, 0.45), "a"))
 	if icon_kind != "":
 		b.icon = Icons.tex(icon_kind, 40, TEXT)
 		b.expand_icon = false
@@ -203,18 +305,14 @@ static func button(text: String, cb: Callable, minw := 260, icon_kind := "") -> 
 ## Vurgulu ana eylem düğmesi (altın dolgu)
 static func primary(text: String, cb: Callable, minw := 260, icon_kind := "") -> Button:
 	var b = button(text, cb, minw, icon_kind)
-	var n = _box(Color(GOLD, 0.92), Color(1, 1, 1, 0.25), 1, 10, 10)
-	n.content_margin_left = 22; n.content_margin_right = 22
-	var h = n.duplicate()
-	h.bg_color = Color(1.0, 0.86, 0.55)
-	var p = n.duplicate()
-	p.bg_color = ACCENT
+	var v = "b" if minw >= 180 else "s"
+	var n = brush(ACCENT, v)
+	var h = brush(Color(0.9, 0.24, 0.17), v)
+	var p = brush(ACCENT_DARK, v)
 	for k in [["normal", n], ["hover", h], ["pressed", p], ["focus", h]]:
 		b.add_theme_stylebox_override(k[0], k[1])
 	for k in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
-		b.add_theme_color_override(k, INK)
-	if icon_kind != "":
-		b.icon = Icons.tex(icon_kind, 40, INK)
+		b.add_theme_color_override(k, Color(1, 0.97, 0.93))
 	return b
 
 
@@ -243,7 +341,7 @@ static func ink_button(text: String, cb: Callable, minw := 220) -> Button:
 static func icon_button(kind: String, text: String, cb: Callable, size := 72, selected := false) -> Button:
 	var b = Button.new()
 	b.text = text
-	b.icon = Icons.tex(kind, 64, GOLD if selected else TEXT)
+	b.icon = Icons.tex(kind, 64, CREAM if selected else TEXT)
 	b.expand_icon = false
 	b.add_theme_constant_override("icon_max_width", int(size * 0.42))
 	b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -251,13 +349,15 @@ static func icon_button(kind: String, text: String, cb: Callable, size := 72, se
 	b.custom_minimum_size = Vector2(size, size)
 	b.add_theme_font_override("font", font(true))
 	b.add_theme_font_size_override("font_size", 12)
-	b.add_theme_color_override("font_color", GOLD if selected else MUTED)
+	b.add_theme_color_override("font_color", CREAM if selected else MUTED)
 	b.add_theme_color_override("font_hover_color", TEXT)
 	var n = StyleBoxEmpty.new()
 	n.content_margin_top = 10
 	var h = _box(Color(1, 1, 1, 0.07), Color(0, 0, 0, 0), 0, 12, 6)
 	h.content_margin_top = 10
-	var s = _box(Color(GOLD, 0.14), Color(GOLD, 0.55), 1, 12, 6)
+	var s = _box(Color(ACCENT, 0.22), Color(0, 0, 0, 0), 0, 2, 6)
+	s.border_width_left = 3
+	s.border_color = ACCENT
 	s.content_margin_top = 10
 	b.add_theme_stylebox_override("normal", s if selected else n)
 	b.add_theme_stylebox_override("hover", s if selected else h)
@@ -277,18 +377,18 @@ static func chip(text: String, on: bool, cb: Callable, minw := 0) -> Button:
 	b.custom_minimum_size = Vector2(minw, 36)
 	b.add_theme_font_override("font", font(true))
 	b.add_theme_font_size_override("font_size", 14)
-	var n = _box(Color(0.07, 0.08, 0.1, 0.8), Color(1, 1, 1, 0.12), 1, 18, 8)
-	n.content_margin_left = 16; n.content_margin_right = 16
+	var n = _box(Color(0.03, 0.027, 0.025, 0.55), Color(0, 0, 0, 0), 0, 2, 6)
+	n.content_margin_left = 14; n.content_margin_right = 14
 	var h = n.duplicate()
-	h.bg_color = Color(0.16, 0.17, 0.2, 0.92)
-	var s = n.duplicate()
-	s.bg_color = Color(GOLD, 0.9)
-	s.border_color = Color(1, 1, 1, 0.3)
+	h.bg_color = Color(0.03, 0.027, 0.025, 0.85)
+	h.border_width_bottom = 2
+	h.border_color = Color(ACCENT, 0.8)
+	var s = brush(ACCENT, "s", 6)
 	b.add_theme_stylebox_override("normal", s if on else n)
 	b.add_theme_stylebox_override("hover", s if on else h)
 	b.add_theme_stylebox_override("pressed", s)
 	b.add_theme_stylebox_override("focus", s if on else h)
-	var fc = INK if on else TEXT
+	var fc = Color(1, 0.97, 0.93) if on else Color(TEXT, 0.82)
 	for k in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
 		b.add_theme_color_override(k, fc)
 	b.pressed.connect(func():
@@ -302,9 +402,8 @@ static func bar(col: Color, w := 340.0, h := 10.0, _skew := 0.0) -> ProgressBar:
 	var pb = ProgressBar.new()
 	pb.custom_minimum_size = Vector2(w, h)
 	pb.show_percentage = false
-	var r = int(h * 0.5)
-	var bg = _box(Color(0, 0, 0, 0.45), Color(1, 1, 1, 0.08), 1, r, 0)
-	var fg = _box(col, Color(0, 0, 0, 0), 0, r, 0)
+	var bg = _box(Color(0, 0, 0, 0.55), Color(0, 0, 0, 0.6), 1, 1, 0)
+	var fg = _box(col, Color(0, 0, 0, 0), 0, 1, 0)
 	pb.add_theme_stylebox_override("background", bg)
 	pb.add_theme_stylebox_override("fill", fg)
 	pb.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -320,7 +419,9 @@ static func panel() -> PanelContainer:
 ## Kart: cam panel, isteğe bağlı vurgu rengiyle ince kenar
 static func card(accent := Color(0, 0, 0, 0), radius := 12, margin := 14.0) -> PanelContainer:
 	var p = PanelContainer.new()
-	var sb = _box(Color(1, 1, 1, 0.045), Color(1, 1, 1, 0.08) if accent.a == 0.0 else Color(accent, 0.7), 1, radius, margin)
+	var sb = _box(Color(0.03, 0.027, 0.025, 0.5), Color(1, 0.95, 0.88, 0.07) if accent.a == 0.0 else Color(accent, 0.7), 1, radius, margin)
+	if accent.a > 0.0:
+		sb.border_width_left = 3
 	p.add_theme_stylebox_override("panel", sb)
 	return p
 
@@ -328,10 +429,10 @@ static func card(accent := Color(0, 0, 0, 0), radius := 12, margin := 14.0) -> P
 ## Tuş rozeti
 static func key_badge(k: String, size := 14) -> PanelContainer:
 	var p = PanelContainer.new()
-	var sb = _box(Color(1, 1, 1, 0.92), Color(0, 0, 0, 0), 0, 6, 2)
-	sb.content_margin_left = 7; sb.content_margin_right = 7
+	var sb = _box(Color(0.02, 0.018, 0.016, 0.75), Color(TEXT, 0.75), 1, 2, 2)
+	sb.content_margin_left = 6; sb.content_margin_right = 6
 	p.add_theme_stylebox_override("panel", sb)
-	var l = label(k, size, INK, HORIZONTAL_ALIGNMENT_CENTER, true)
+	var l = label(k, size, TEXT, HORIZONTAL_ALIGNMENT_CENTER, true)
 	l.add_theme_constant_override("shadow_outline_size", 0)
 	l.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0))
 	p.add_child(l)

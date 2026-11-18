@@ -48,7 +48,7 @@ func _ready() -> void:
 	main.mode = "game"
 	main._pause()
 	await _w(0.5)
-	Menus._set_tab = "general"
+	Menus._set_tab = "graphics"
 	Menus.settings(func(): Menus.pause(main))
 	await _report("0_pencere_kapla")
 	print("DM secenekler=", Game.resolution_options())

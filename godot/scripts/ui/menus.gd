@@ -46,7 +46,7 @@ static func _center_panel(parent: Control, w := 560.0) -> VBoxContainer:
 	parent.add_child(cc)
 	var p = UI.panel()
 	p.custom_minimum_size = Vector2(w, 0)
-	p.add_theme_stylebox_override("panel", UI.glass(18, 28))
+	p.add_theme_stylebox_override("panel", UI.ink_panel(0.92, 26))
 	cc.add_child(p)
 	var v = UI.vbox(12)
 	p.add_child(v)
@@ -57,11 +57,23 @@ static func _center_panel(parent: Control, w := 560.0) -> VBoxContainer:
 
 ## Ekran üst köşesinde kapatma düğmesi
 static func _close_button(parent: Control, cb: Callable) -> Button:
-	var b = UI.button("", cb, 52, "close")
-	b.custom_minimum_size = Vector2(52, 52)
+	var b = UI.button("", cb, 56, "close")
+	b.custom_minimum_size = Vector2(56, 56)
+	b.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	# kâğıda yayılmış yuvarlak mürekkep lekesi (arayüzün fırça diliyle), üzerine gelince kırmızı leke
+	var n = StyleBoxTexture.new()
+	n.texture = UI._t("ink_disc")
+	n.modulate_color = Color(0.02, 0.018, 0.016, 0.9)
+	n.set_content_margin_all(8)
+	var h = n.duplicate()
+	h.modulate_color = UI.ACCENT
+	for k in [["normal", n], ["hover", h], ["pressed", h], ["focus", h]]:
+		b.add_theme_stylebox_override(k[0], k[1])
+	b.add_theme_color_override("icon_normal_color", UI.CREAM)
+	b.add_theme_color_override("icon_hover_color", Color(1, 0.97, 0.93))
 	b.tooltip_text = "Kapat [Esc]"
 	b.anchor_left = 1.0; b.anchor_right = 1.0
-	b.offset_left = -76; b.offset_right = -24; b.offset_top = 22; b.offset_bottom = 74
+	b.offset_left = -84; b.offset_right = -28; b.offset_top = 24; b.offset_bottom = 80
 	parent.add_child(b)
 	return b
 
@@ -95,8 +107,8 @@ static func _tile(content: Control, text: String, accent: Color, selected: bool,
 	h.bg_color = Color(1, 1, 1, 0.1)
 	h.border_color = Color(accent, 0.9)
 	var s = n.duplicate()
-	s.bg_color = Color(UI.GOLD, 0.16)
-	s.border_color = UI.GOLD
+	s.bg_color = Color(UI.ACCENT, 0.22)
+	s.border_color = UI.ACCENT
 	s.set_border_width_all(2)
 	b.add_theme_stylebox_override("normal", s if selected else n)
 	b.add_theme_stylebox_override("hover", s if selected else h)
@@ -455,8 +467,8 @@ static func main_menu(main: Node) -> void:
 	var grad = TextureRect.new()
 	var gt = GradientTexture2D.new()
 	var g = Gradient.new()
-	g.set_color(0, Color(0.02, 0.025, 0.04, 0.92))
-	g.set_color(1, Color(0.02, 0.025, 0.04, 0.0))
+	g.set_color(0, Color(0.03, 0.026, 0.024, 0.92))
+	g.set_color(1, Color(0.03, 0.026, 0.024, 0.0))
 	gt.gradient = g
 	gt.fill_from = Vector2(0, 0)
 	gt.fill_to = Vector2(1, 0)
@@ -470,13 +482,14 @@ static func main_menu(main: Node) -> void:
 	var col = UI.vbox(0)
 	col.position = Vector2(110, 120)
 	root.add_child(col)
-	var kanji = UI.label("忍 の 道", 22, Color(UI.GOLD, 0.9), HORIZONTAL_ALIGNMENT_LEFT, true)
+	var kanji = UI.label("忍 の 道", 22, UI.ACCENT, HORIZONTAL_ALIGNMENT_LEFT, true)
 	col.add_child(kanji)
 	var logo = UI.label("SHINOBI", 112, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true)
 	logo.add_theme_constant_override("line_spacing", -20)
 	col.add_child(logo)
-	var logo2 = UI.label("Y O L U", 40, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true)
+	var logo2 = UI.label("Y O L U", 40, UI.CREAM, HORIZONTAL_ALIGNMENT_LEFT, true)
 	col.add_child(logo2)
+	col.add_child(UI.brush_line(250))
 	col.add_child(UI.spacer(0, 14, false))
 	col.add_child(UI.label("Beş Büyük Ülke'nin dünyasında kendi efsaneni yaz.", 19, UI.MUTED))
 	col.add_child(UI.spacer(0, 54, false))
@@ -492,7 +505,7 @@ static func main_menu(main: Node) -> void:
 	root.add_child(ver)
 
 
-## Ana menü satırı: sade yazı, üzerine gelince altın çizgi kayar
+## Ana menü satırı: sade yazı; üzerine gelince / seçiliyken arkasında kırmızı fırça darbesi (Tsushima ana menüsü)
 static func _menu_entry(text: String, icon: String, cb: Callable) -> Button:
 	var b = Button.new()
 	b.text = text
@@ -500,22 +513,19 @@ static func _menu_entry(text: String, icon: String, cb: Callable) -> Button:
 	b.add_theme_constant_override("icon_max_width", 26)
 	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	b.custom_minimum_size = Vector2(420, 62)
-	b.add_theme_font_override("font", UI.font(true))
+	b.add_theme_font_override("font", UI.title_font())
 	b.add_theme_font_size_override("font_size", 28)
 	b.add_theme_color_override("font_color", Color(UI.TEXT, 0.82))
-	b.add_theme_color_override("font_hover_color", UI.GOLD)
-	b.add_theme_color_override("font_focus_color", UI.GOLD)
+	for k in ["font_hover_color", "font_focus_color", "font_pressed_color"]:
+		b.add_theme_color_override(k, Color(1, 0.97, 0.93))
 	b.add_theme_color_override("icon_normal_color", Color(UI.TEXT, 0.6))
-	b.add_theme_color_override("icon_hover_color", UI.GOLD)
-	b.add_theme_color_override("icon_focus_color", UI.GOLD)
+	b.add_theme_color_override("icon_hover_color", Color(1, 0.97, 0.93))
+	b.add_theme_color_override("icon_focus_color", Color(1, 0.97, 0.93))
 	b.add_theme_constant_override("h_separation", 18)
 	var n = StyleBoxEmpty.new()
-	n.content_margin_left = 6
-	var h = UI._box(Color(1, 1, 1, 0.0), Color(0, 0, 0, 0), 0, 0, 0)
+	n.content_margin_left = 22
+	var h = UI.brush(UI.ACCENT, "a", 0)
 	h.content_margin_left = 22
-	h.border_width_left = 3
-	h.border_color = UI.GOLD
-	h.bg_color = Color(1, 1, 1, 0.04)
 	for k in [["normal", n], ["hover", h], ["pressed", h], ["focus", h]]:
 		b.add_theme_stylebox_override(k[0], k[1])
 	b.pressed.connect(func():
@@ -574,6 +584,28 @@ static func slot_select(main: Node, new_game: bool) -> void:
 				main.load_slot(s))
 		if not new_game and info == "":
 			card.disabled = true
+		if info != "":
+			# sağ üst köşede sil düğmesi: önce onay sorulur
+			var del = Button.new()
+			del.icon = Icons.tex("close", 40, UI.CREAM)
+			del.expand_icon = true   # simge düğmeye sığar (doğal 40 px boyu düğmeyi genişletiyordu)
+			del.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			del.custom_minimum_size = Vector2(34, 34)
+			del.add_theme_constant_override("h_separation", 0)
+			del.tooltip_text = "Kaydı sil"
+			del.focus_mode = Control.FOCUS_NONE
+			var dn = UI._box(Color(0.03, 0.027, 0.025, 0.7), Color(UI.TEXT, 0.25), 1, 2, 9)
+			var dh = UI._box(UI.ACCENT, Color(UI.TEXT, 0.4), 1, 2, 9)
+			for k in [["normal", dn], ["hover", dh], ["pressed", dh], ["focus", dn]]:
+				del.add_theme_stylebox_override(k[0], k[1])
+			del.position = Vector2(320 - 46, 12)
+			del.size = Vector2(34, 34)
+			var nm_s = String(parts[0]).strip_edges()
+			del.pressed.connect(func():
+				Sfx.play("click")
+				_slot_delete_ask(main, new_game, s, nm_s))
+			card.add_child(del)
+			del.size = Vector2(34, 34)
 		UI.hover_anim(card, 1.025)
 		row.add_child(card)
 	var back = UI.button("Geri", func(): main_menu(main), 200, "arrow")
@@ -581,8 +613,49 @@ static func slot_select(main: Node, new_game: bool) -> void:
 	root.add_child(back)
 
 
+## Kayıt silme onayı (geri alınamaz)
+static func _slot_delete_ask(main: Node, new_game: bool, slot: int, who: String) -> void:
+	var host = Hud.dialog_layer.get_child(Hud.dialog_layer.get_child_count() - 1)
+	var ov = ColorRect.new()
+	ov.color = Color(0, 0, 0, 0.6)
+	ov.set_anchors_preset(Control.PRESET_FULL_RECT)
+	ov.mouse_filter = Control.MOUSE_FILTER_STOP
+	host.add_child(ov)
+	var cc = CenterContainer.new()
+	cc.set_anchors_preset(Control.PRESET_FULL_RECT)
+	ov.add_child(cc)
+	var p = PanelContainer.new()
+	p.add_theme_stylebox_override("panel", UI.ink_panel(0.97, 28))
+	cc.add_child(p)
+	var v = UI.vbox(14)
+	p.add_child(v)
+	var hd = UI.hbox(12)
+	hd.add_child(UI.seal("消", 34.0))
+	var t = UI.label("Yuva %d silinsin mi?" % slot, 26, UI.CREAM)
+	t.add_theme_font_override("font", UI.title_font())
+	hd.add_child(t)
+	v.add_child(hd)
+	var d = UI.label("%s — bu kayıt kalıcı olarak silinir, geri alınamaz." % who, 16, UI.MUTED)
+	d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	d.custom_minimum_size = Vector2(520, 0)
+	v.add_child(d)
+	v.add_child(UI.spacer(0, 6, false))
+	var h = UI.hbox(12)
+	v.add_child(h)
+	var cancel = UI.button("Vazgeç", func(): ov.queue_free(), 200, "arrow")
+	h.add_child(cancel)
+	h.add_child(UI.spacer())
+	h.add_child(UI.primary("Kaydı Sil", func():
+		Game.delete_slot(slot)
+		Hud.msg("Yuva %d silindi." % slot, Color(1, 0.6, 0.5))
+		slot_select(main, new_game), 220, "close"))
+	cancel.call_deferred("grab_focus")
+	UI.pop_in(p, 0.96)
+
+
 # ================================================================== karakter yaratma
 static var _ctab := "kimlik"
+static var _cfocus := ""   # yaratıcıda en son değiştirilen ayar (kamera o bölgeye yaklaşır: göz, kaş, ağız, saç, gövde...)
 
 
 static func creator(main: Node, state: Dictionary, on_change: Callable, on_start: Callable) -> void:
@@ -595,10 +668,11 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 	Hud.dialog_layer.add_child(root)
 	var redraw = func(): creator(main, state, on_change, on_start)
 	# sol panel: başlık, sekmeler, seçenek kartları
+	# panel içeriğe göre boylanır (altta boş alan kalmaz); içerik ekrana sığmazsa kaydırılır
 	var pnl = PanelContainer.new()
 	pnl.add_theme_stylebox_override("panel", UI.glass(18, 22, 0.86))
-	pnl.set_anchors_preset(Control.PRESET_LEFT_WIDE)
-	pnl.offset_left = 28; pnl.offset_top = 28; pnl.offset_bottom = -28; pnl.offset_right = 608
+	pnl.position = Vector2(28, 28)
+	pnl.custom_minimum_size = Vector2(580, 0)
 	root.add_child(pnl)
 	var outer = UI.vbox(14)
 	pnl.add_child(outer)
@@ -610,6 +684,7 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 	for t in [["kimlik", "person", "Kimlik"], ["gorunum", "hair", "Görünüm"], ["kiyafet", "shirt", "Kıyafet"]]:
 		var tb = UI.chip(t[2], _ctab == t[0], func():
 			_ctab = t[0]
+			_cfocus = ""   # sekme değişince sekmenin genel çerçevesi
 			if main.has_method("_frame_creator_cam"):
 				main._frame_creator_cam()
 			redraw.call(), 170)
@@ -617,29 +692,43 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 		tb.expand_icon = false
 		tb.add_theme_constant_override("icon_max_width", 20)
 		tb.custom_minimum_size = Vector2(170, 44)
+		tb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		tabs.add_child(tb)
 	outer.add_child(tabs)
 	var sep = ColorRect.new()
-	sep.color = Color(UI.GOLD, 0.25)
+	sep.color = UI.LINE
 	sep.custom_minimum_size = Vector2(0, 1)
 	outer.add_child(sep)
 	var sc = ScrollContainer.new()
 	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	sc.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	outer.add_child(sc)
-	var v = UI.vbox(12)
+	var v = UI.vbox(8)
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	sc.add_child(v)
+	# kaydırma alanı içerik boyunda; yalnız ekrana sığmayınca sınırlanır
+	var fit = func() -> void:
+		if not is_instance_valid(sc) or not is_instance_valid(pnl):
+			return
+		var pad = pnl.get_theme_stylebox("panel").get_minimum_size().y
+		var other = outer.get_combined_minimum_size().y - sc.custom_minimum_size.y
+		var avail = root.get_viewport_rect().size.y - 56.0 - pad - other
+		sc.custom_minimum_size.y = clampf(v.get_combined_minimum_size().y, 0.0, maxf(120.0, avail))
+		pnl.size = Vector2(pnl.size.x, 0)   # küçülen içerikte panel de küçülsün
+	v.minimum_size_changed.connect(fit)
+	fit.call_deferred()
 	var card = func() -> VBoxContainer:
 		var pc = PanelContainer.new()
-		pc.add_theme_stylebox_override("panel", UI._box(Color(1, 1, 1, 0.04), Color(1, 1, 1, 0.08), 1, 12, 12))
+		var csb = UI._box(Color(0.03, 0.027, 0.025, 0.55), Color(0, 0, 0, 0), 0, 2, 12)
+		csb.content_margin_top = 8; csb.content_margin_bottom = 8
+		pc.add_theme_stylebox_override("panel", csb)
 		v.add_child(pc)
-		var cv = UI.vbox(8)
+		var cv = UI.vbox(6)
 		pc.add_child(cv)
 		return cv
 	# seçim yan etkileri (köy -> önerilen doğa, klan -> klan doğası)
 	var pick = func(key: String, val) -> void:
 		state[key] = val
+		_cfocus = key
 		if key == "village" and Progress.HOME_VILLAGES.has(val):
 			state["element"] = Progress.HOME_VILLAGES[val]["element"]
 		if key == "clan":
@@ -653,14 +742,17 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 		var cv: VBoxContainer = card.call()
 		var n = options.size()
 		var idx = maxi(0, options.find(state.get(key)))
+		# tek hizalı satır: [ad sütunu 130] [◀] [değer, ortalı] [▶] — bütün satırlarda aynı sütunlar, aynı yükseklik
 		var row = UI.hbox(10)
+		row.custom_minimum_size = Vector2(0, 44)
 		var tl = UI.label(Lang.upper(Lang.t(title)), 13, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true)
-		tl.custom_minimum_size = Vector2(120, 0)
+		tl.custom_minimum_size = Vector2(130, 0)
 		tl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		row.add_child(tl)
 		row.add_child(_arrow_btn("◀", func(): pick.call(key, options[posmod(idx - 1, n)])))
-		var mid = UI.vbox(2)
+		var mid = UI.vbox(3)
 		mid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		mid.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		mid.add_child(UI.label(String(labels[idx]), 19, col, HORIZONTAL_ALIGNMENT_CENTER, true))
 		# konum noktaları (az seçenekte) ya da sayaç
 		if n <= 12:
@@ -668,8 +760,8 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 			dots.alignment = BoxContainer.ALIGNMENT_CENTER
 			for i in n:
 				var d = ColorRect.new()
-				d.custom_minimum_size = Vector2(14 if i == idx else 6, 4)
-				d.color = UI.GOLD if i == idx else Color(1, 1, 1, 0.2)
+				d.custom_minimum_size = Vector2(14 if i == idx else 6, 3)
+				d.color = UI.ACCENT if i == idx else Color(1, 1, 1, 0.2)
 				d.mouse_filter = Control.MOUSE_FILTER_IGNORE
 				dots.add_child(d)
 			mid.add_child(dots)
@@ -681,34 +773,48 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 		return cv
 	var swatches = func(title: String, key: String, cols: Array) -> void:
 		var cv: VBoxContainer = card.call()
-		cv.add_child(UI.label(Lang.upper(Lang.t(title)), 13, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
+		var srow = UI.hbox(10)
+		cv.add_child(srow)
+		var stl = UI.label(Lang.upper(Lang.t(title)), 13, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true)
+		stl.custom_minimum_size = Vector2(130, 0)
+		stl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		srow.add_child(stl)
 		var fl = HFlowContainer.new()
+		fl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		fl.add_theme_constant_override("h_separation", 8)
 		fl.add_theme_constant_override("v_separation", 8)
 		for c in cols:
 			fl.add_child(_swatch(c, Color(state.get(key, Color.BLACK)).is_equal_approx(c), func():
 				state[key] = c
+				_cfocus = key
 				on_change.call()
 				redraw.call()))
-		cv.add_child(fl)
+		srow.add_child(fl)
 	var note = func(cv: VBoxContainer, text: String, col := UI.MUTED) -> void:
 		var l = UI.label(text, 13, col)
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		l.custom_minimum_size = Vector2(480, 0)
+		l.custom_minimum_size = Vector2(300, 0)
+		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		cv.add_child(l)
 	var el_names = {"katon": "Ateş", "suiton": "Su", "fuuton": "Rüzgâr", "doton": "Toprak", "raiton": "Yıldırım"}
 	match _ctab:
 		"kimlik":
 			var nc: VBoxContainer = card.call()
-			nc.add_child(UI.label("İSİM", 13, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
+			var nrow = UI.hbox(10)
+			nc.add_child(nrow)
+			var nl = UI.label("İSİM", 13, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true)
+			nl.custom_minimum_size = Vector2(130, 0)
+			nl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			nrow.add_child(nl)
 			var name_edit = LineEdit.new()
+			name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			name_edit.text = state["name"]
 			name_edit.placeholder_text = "Ninja adın (boş kalırsa rastgele)"
 			name_edit.max_length = 18
-			name_edit.custom_minimum_size = Vector2(0, 46)
-			name_edit.add_theme_font_size_override("font_size", 20)
+			name_edit.custom_minimum_size = Vector2(0, 44)
+			name_edit.add_theme_font_size_override("font_size", 18)
 			name_edit.text_changed.connect(func(t): state["name"] = t)
-			nc.add_child(name_edit)
+			nrow.add_child(name_edit)
 			carousel.call("Cinsiyet", "gender", ["m", "f"], ["Erkek", "Kadın"])
 			var vids = Progress.HOME_VILLAGES.keys()
 			var vc: VBoxContainer = carousel.call("Köy", "village", vids, vids.map(func(x): return Game.village(x).get("name", x)))
@@ -1110,22 +1216,23 @@ static func _arrow_row(title: String, labels: Array, idx: int, on_pick: Callable
 	return row
 
 
-## Yuvarlak ok düğmesi (◀ ▶)
+## Ok düğmesi (◀ ▶): köşeli mürekkep kare, üzerine gelince kırmızı
 static func _arrow_btn(text: String, cb: Callable) -> Button:
 	var b = Button.new()
 	b.text = text
-	b.custom_minimum_size = Vector2(46, 46)
+	b.custom_minimum_size = Vector2(44, 44)
+	b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	b.add_theme_font_override("font", UI.font(true))
-	b.add_theme_font_size_override("font_size", 18)
-	var n = UI._box(Color(0.07, 0.08, 0.1, 0.85), Color(UI.GOLD, 0.45), 1, 23, 6)
-	var h = UI._box(Color(UI.GOLD, 0.9), Color(1, 1, 1, 0.4), 1, 23, 6)
+	b.add_theme_font_size_override("font_size", 16)
+	var n = UI._box(Color(0.03, 0.027, 0.025, 0.8), Color(UI.TEXT, 0.22), 1, 2, 6)
+	var h = UI._box(UI.ACCENT, Color(UI.TEXT, 0.4), 1, 2, 6)
 	b.add_theme_stylebox_override("normal", n)
 	b.add_theme_stylebox_override("hover", h)
 	b.add_theme_stylebox_override("pressed", h)
 	b.add_theme_stylebox_override("focus", n)
-	b.add_theme_color_override("font_color", UI.GOLD)
+	b.add_theme_color_override("font_color", UI.CREAM)
 	for k in ["font_hover_color", "font_pressed_color"]:
-		b.add_theme_color_override(k, UI.INK)
+		b.add_theme_color_override(k, Color(1, 0.97, 0.93))
 	b.focus_mode = Control.FOCUS_NONE
 	b.pressed.connect(func():
 		Sfx.play("click")
@@ -1162,7 +1269,7 @@ static func pause(main: Node) -> void:
 	var root = UI.vbox(6)
 	root.position = Vector2(110, 110)
 	bg.add_child(root)
-	root.add_child(UI.label("DURAKLATILDI", 15, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
+	root.add_child(UI.label("DURAKLATILDI", 15, UI.ACCENT, HORIZONTAL_ALIGNMENT_LEFT, true))
 	root.add_child(UI.label(String(Game.profile.get("name", "")), 54, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true))
 	root.add_child(UI.label("%s  •  %d yaşında  •  %s" % [Orgs.rogue_rank_name() if Orgs.is_rogue() else Data.RANKS[int(Game.profile.get("rank", 0))], int(Aging.player_years()), Game.region_name(Game.player.global_position) if Game.player else ""], 17, UI.MUTED))
 	root.add_child(UI.spacer(0, 26, false))
@@ -1457,10 +1564,7 @@ static func _settings_ask() -> void:
 	cc.set_anchors_preset(Control.PRESET_FULL_RECT)
 	ov.add_child(cc)
 	var p = PanelContainer.new()
-	var psb = UI._box(Color(0.03, 0.035, 0.05, 0.97), Color(UI.GOLD, 0.5), 1, 10, 28)
-	psb.border_width_top = 3
-	psb.border_color = UI.ACCENT
-	p.add_theme_stylebox_override("panel", psb)
+	p.add_theme_stylebox_override("panel", UI.ink_panel(0.97, 28))
 	cc.add_child(p)
 	var v = UI.vbox(14)
 	p.add_child(v)
@@ -1531,6 +1635,11 @@ const SET_DESC := {
 	"Tuş atamaları": "Bütün tuşları değiştirebileceğin ekran.",
 }
 const SET_TABS := [["general", "leaf", "Genel"], ["graphics", "monitor", "Görüntü"], ["sound", "sound", "Ses"], ["controls", "controls", "Kontrol"]]
+## Ayar ekranı mühürleri (hanko): sekme / bölüm / tuş grubu adı -> kanji
+const SET_SEALS := {"Ayarlar": "設", "Kontroller": "操", "Genel": "基", "Görüntü": "画", "Ses": "音", "Kontrol": "操",
+	"Oyun": "遊", "Ekran": "映", "Grafik": "彩", "Dünya": "界", "Kamera": "眼", "Kare Hızı": "速", "Ses Düzeyi": "音",
+	"Fare ve Tuşlar": "操", "Hareket": "走", "Dövüş": "闘", "Modlar ve çağrı": "術", "Eşya ve etkileşim": "具",
+	"Menüler": "巻", "Jutsu yuvaları": "印", "Sabit": "固"}
 static var _set_tab := "general"
 static var _set_focus := -1          # klavye / kol ile seçili satır (yeniden çizimde korunur)
 static var _brush: Font = null
@@ -1540,14 +1649,7 @@ static var _chev := {}
 
 ## Fırça başlık yazısı (kalın, eğik)
 static func _brush_font() -> Font:
-	if _brush == null:
-		var f = SystemFont.new()
-		f.font_names = PackedStringArray(["Segoe UI Black", "Segoe UI", "Bahnschrift", "Arial"])
-		f.font_italic = true
-		f.font_weight = 850
-		f.antialiasing = TextServer.FONT_ANTIALIASING_GRAY
-		_brush = f
-	return _brush
+	return UI.title_font()
 
 
 ## Kaydırıcı tutamacı: altın elmas
@@ -1560,10 +1662,10 @@ static func _diamond_tex() -> Texture2D:
 			for x in n:
 				var d = absf(x - c) + absf(y - c)
 				if d <= c - 0.5:
-					var col = UI.CREAM.lerp(UI.GOLD, clampf((y - 2.0) / n, 0.0, 1.0))
-					img.set_pixel(x, y, Color(0.25, 0.16, 0.05) if d > c - 3.0 else col)
+					var col = UI.CREAM.lerp(UI.ACCENT, clampf((y - 2.0) / n, 0.0, 1.0))
+					img.set_pixel(x, y, Color(0.12, 0.03, 0.02) if d > c - 3.0 else col)
 				elif d <= c + 0.5:
-					img.set_pixel(x, y, Color(0.25, 0.16, 0.05, c + 0.5 - d))
+					img.set_pixel(x, y, Color(0.12, 0.03, 0.02, c + 0.5 - d))
 		_diamond = ImageTexture.create_from_image(img)
 	return _diamond
 
@@ -1598,9 +1700,9 @@ static func _set_frame(bg: Control, title: String, active: String, on_tab: Calla
 	var vw = bg.get_viewport_rect().size.x
 	var rw := 300 if vw >= 1150.0 else 210
 	var rail = Panel.new()
-	var rsb = UI._box(Color(0.025, 0.028, 0.04, 0.9), Color(0, 0, 0, 0), 0, 0, 0)
-	rsb.border_width_right = 2
-	rsb.border_color = Color(UI.GOLD, 0.25)
+	var rsb = UI._box(Color(0.035, 0.031, 0.028, 0.92), Color(0, 0, 0, 0), 0, 0, 0)
+	rsb.border_width_right = 1
+	rsb.border_color = UI.LINE
 	rail.add_theme_stylebox_override("panel", rsb)
 	rail.set_anchors_preset(Control.PRESET_LEFT_WIDE)
 	rail.offset_right = rw
@@ -1608,7 +1710,7 @@ static func _set_frame(bg: Control, title: String, active: String, on_tab: Calla
 	var head = UI.hbox(12)
 	head.position = Vector2(24, 26)
 	rail.add_child(head)
-	head.add_child(Icons.view("leaf", 50 if rw > 250 else 38, UI.ACCENT))
+	head.add_child(UI.seal(SET_SEALS.get(title, "設"), 50.0 if rw > 250 else 38.0))
 	var big := 46 if rw > 250 else 30
 	var tl = UI.label(title, big if title.length() <= 8 else big - 10, UI.CREAM)
 	tl.add_theme_font_override("font", _brush_font())
@@ -1623,31 +1725,28 @@ static func _set_frame(bg: Control, title: String, active: String, on_tab: Calla
 			var on: bool = t[0] == active
 			var b = Button.new()
 			b.text = t[2]
-			b.icon = Icons.tex(t[1], 40)
-			b.expand_icon = false
 			b.focus_mode = Control.FOCUS_NONE
-			b.add_theme_constant_override("icon_max_width", 28)
-			b.add_theme_constant_override("h_separation", 18)
 			b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 			b.custom_minimum_size = Vector2(rw - 28, 60)
 			b.add_theme_font_override("font", UI.font(true))
 			b.add_theme_font_size_override("font_size", 20)
-			var n = UI._box(Color(0, 0, 0, 0), Color(0, 0, 0, 0), 0, 4, 10)
-			n.content_margin_left = 22
-			n.border_width_bottom = 1
-			n.border_color = UI.LINE
-			var h = n.duplicate()
-			h.bg_color = Color(1, 1, 1, 0.07)
-			var sel = UI._box(Color(UI.GOLD, 0.95), Color(1.0, 0.92, 0.7), 1, 4, 10, -0.18)
-			sel.content_margin_left = 22
-			sel.shadow_color = Color(UI.ACCENT, 0.45)
-			sel.shadow_size = 10
+			# Sekiro seçenek rayı: her sekme koyu fırça darbesi, seçili olan kırmızı fırça
+			var n = UI.brush(Color(0.0, 0.0, 0.0, 0.55), "a", 10)
+			n.content_margin_left = 70
+			var h = UI.brush(Color(0.0, 0.0, 0.0, 0.85), "a", 10)
+			h.content_margin_left = 70
+			var sel = UI.brush(UI.ACCENT, "a", 10)
+			sel.content_margin_left = 70
+			# sekme mührü: seçili sekmede kırmızı fırça üstünde krem mühür
+			var sl = UI.seal(SET_SEALS.get(t[2], "設"), 34.0, on)
+			sl.position = Vector2(24, 13)
+			b.add_child(sl)
 			b.add_theme_stylebox_override("normal", sel if on else n)
 			b.add_theme_stylebox_override("hover", sel if on else h)
 			b.add_theme_stylebox_override("pressed", sel)
 			b.add_theme_stylebox_override("focus", sel if on else h)
 			for k in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "icon_normal_color", "icon_hover_color", "icon_pressed_color", "icon_focus_color"]:
-				b.add_theme_color_override(k, UI.INK if on else UI.TEXT)
+				b.add_theme_color_override(k, Color(1, 0.97, 0.93) if on else UI.TEXT)
 			var tab_id: String = t[0]
 			b.pressed.connect(func():
 				Sfx.play("click")
@@ -1655,18 +1754,7 @@ static func _set_frame(bg: Control, title: String, active: String, on_tab: Calla
 					on_tab.call(tab_id))
 			b.mouse_entered.connect(func(): Sfx.play("click", null, 1.8, 0.18))
 			tabs.add_child(b)
-	var hv = UI.vbox(6)
-	hv.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
-	hv.position = Vector2(24, -86 if on_tab.is_valid() else -50)
-	rail.add_child(hv)
-	var keys := [["Esc", hint]]
-	if on_tab.is_valid() and title == "Ayarlar":   # Q / E yalnız ayarlar ekranında çalışır
-		keys.push_front(["Q / E", "sekme"])
-	for kk in keys:
-		var hr = UI.hbox(8)
-		hr.add_child(UI.key_badge(kk[0], 12))
-		hr.add_child(UI.label(kk[1], 13, UI.MUTED))
-		hv.add_child(hr)
+	# sol alttaki tuş ipuçları (Q / E, Esc) kaldırıldı: tuşlar çalışmaya devam eder, kapat düğmesinin ipucunda Esc yazar
 	return rw
 
 
@@ -1675,21 +1763,22 @@ static func _set_section(body: Container, icon: String, title: String) -> VBoxCo
 	var wrap = UI.vbox(0)
 	body.add_child(wrap)
 	var ban = PanelContainer.new()
-	var bsb = UI._box(Color(0.015, 0.016, 0.022, 0.95), Color(0, 0, 0, 0), 0, 2, 7, -0.3)
-	bsb.content_margin_left = 20; bsb.content_margin_right = 46
-	bsb.border_width_left = 4
-	bsb.border_color = UI.ACCENT
+	var bsb = UI.brush(Color(0.0, 0.0, 0.0, 0.88), "a", 12)
+	bsb.content_margin_left = 24; bsb.content_margin_right = 110
 	ban.add_theme_stylebox_override("panel", bsb)
 	ban.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	var bh = UI.hbox(12)
-	bh.add_child(Icons.view(icon, 26, UI.ACCENT))
+	if SET_SEALS.has(title):
+		bh.add_child(UI.seal(SET_SEALS[title], 30.0))
+	else:
+		bh.add_child(Icons.view(icon, 26, UI.ACCENT))
 	var bt = UI.label(title, 25, UI.CREAM)
 	bt.add_theme_font_override("font", _brush_font())
 	bh.add_child(bt)
 	ban.add_child(bh)
 	wrap.add_child(ban)
 	var card = PanelContainer.new()
-	var csb = UI._box(Color(0.035, 0.04, 0.055, 0.88), Color(UI.GOLD, 0.22), 1, 6, 0)
+	var csb = UI._box(Color(0.035, 0.031, 0.028, 0.86), Color(0, 0, 0, 0), 0, 2, 0)
 	csb.content_margin_left = 26; csb.content_margin_right = 26; csb.content_margin_top = 8; csb.content_margin_bottom = 12
 	card.add_theme_stylebox_override("panel", csb)
 	wrap.add_child(card)
@@ -1727,25 +1816,10 @@ static func _set_bottom(bg: Control, rw: int, left_text: String, left_icon: Stri
 	bot.offset_left = rw + 36; bot.offset_right = -36; bot.offset_top = -80; bot.offset_bottom = -24
 	bg.add_child(bot)
 	var rb = UI.button(left_text, left_cb, 250, left_icon)
-	var n = UI._box(Color(0.03, 0.035, 0.05, 0.92), Color(UI.GOLD, 0.35), 1, 28, 10)
-	n.content_margin_left = 22; n.content_margin_right = 22
-	var h = n.duplicate()
-	h.bg_color = Color(0.12, 0.12, 0.15, 0.95)
-	h.border_color = UI.GOLD
-	for k in [["normal", n], ["hover", h], ["pressed", h], ["focus", h]]:
-		rb.add_theme_stylebox_override(k[0], k[1])
 	rb.custom_minimum_size.y = 52
 	bot.add_child(rb)
 	bot.add_child(UI.spacer())
 	var save = UI.primary(right_text, right_cb, 300, right_icon)
-	var sn = UI._box(UI.ACCENT, Color(1.0, 0.85, 0.5), 2, 28, 10, -0.12)
-	sn.content_margin_left = 30; sn.content_margin_right = 30
-	sn.shadow_color = Color(UI.ACCENT, 0.5)
-	sn.shadow_size = 12
-	var sh = sn.duplicate()
-	sh.bg_color = Color(1.0, 0.72, 0.32)
-	for k in [["normal", sn], ["hover", sh], ["pressed", sh], ["focus", sh]]:
-		save.add_theme_stylebox_override(k[0], k[1])
 	for k in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "icon_normal_color", "icon_hover_color", "icon_pressed_color", "icon_focus_color"]:
 		save.add_theme_color_override(k, Color(1, 1, 1))
 	save.add_theme_font_size_override("font_size", 20)
@@ -1808,9 +1882,9 @@ static func settings(back: Callable) -> void:
 	bg.add_child(area)
 	# açıklama şeridi: üstüne gelinen / seçilen ayarın ne işe yaradığı
 	var dp = PanelContainer.new()
-	var dsb = UI._box(Color(0.02, 0.022, 0.03, 0.85), Color(0, 0, 0, 0), 0, 6, 10)
+	var dsb = UI._box(Color(0.02, 0.018, 0.016, 0.85), Color(0, 0, 0, 0), 0, 6, 10)
 	dsb.border_width_left = 3
-	dsb.border_color = Color(UI.GOLD, 0.6)
+	dsb.border_color = UI.ACCENT
 	dsb.content_margin_left = 16
 	dp.add_theme_stylebox_override("panel", dsb)
 	dp.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
@@ -1853,7 +1927,7 @@ static func settings(back: Callable) -> void:
 		c.set_meta("set_row", i)
 		c.focus_mode = Control.FOCUS_ALL
 		var lit = [false, false]   # [fare üstünde, odakta]
-		var paint = func() -> void: sb.border_color = Color(UI.GOLD, 0.8 if lit[0] or lit[1] else 0.28)
+		var paint = func() -> void: sb.border_color = Color(UI.ACCENT, 0.95) if lit[0] or lit[1] else Color(UI.TEXT, 0.16)
 		c.mouse_entered.connect(func():
 			lit[0] = true
 			paint.call())
@@ -1919,7 +1993,7 @@ static func settings(back: Callable) -> void:
 		sl.scrollable = false   # fare tekeri sayfayı kaydırsın, üstünden geçtiği sürgüyü değiştirmesin
 		var track = UI._box(Color(0, 0, 0, 0.6), Color(1, 1, 1, 0.1), 1, 5, 0)
 		track.content_margin_top = 3; track.content_margin_bottom = 3
-		var fill = UI._box(UI.GOLD, Color(0, 0, 0, 0), 0, 5, 0)
+		var fill = UI._box(UI.ACCENT, Color(0, 0, 0, 0), 0, 5, 0)
 		fill.content_margin_top = 3; fill.content_margin_bottom = 3
 		sl.add_theme_stylebox_override("slider", track)
 		sl.add_theme_stylebox_override("grabber_area", fill)
@@ -1981,11 +2055,11 @@ static func settings(back: Callable) -> void:
 			b.custom_minimum_size = Vector2(52, 44)
 			b.focus_mode = Control.FOCUS_NONE
 			var n = StyleBoxEmpty.new()
-			var hv = UI._box(Color(UI.GOLD, 0.16), Color(0, 0, 0, 0), 0, 0, 0)
+			var hv = UI._box(Color(UI.ACCENT, 0.3), Color(0, 0, 0, 0), 0, 0, 0)
 			if left:
-				hv.corner_radius_top_left = 22; hv.corner_radius_bottom_left = 22
+				hv.corner_radius_top_left = 2; hv.corner_radius_bottom_left = 2
 			else:
-				hv.corner_radius_top_right = 22; hv.corner_radius_bottom_right = 22
+				hv.corner_radius_top_right = 2; hv.corner_radius_bottom_right = 2
 			for k in [["normal", n], ["focus", n], ["hover", hv], ["pressed", hv]]:
 				b.add_theme_stylebox_override(k[0], k[1])
 			b.add_theme_color_override("icon_normal_color", Color(UI.GOLD, 0.75))
@@ -2013,7 +2087,7 @@ static func settings(back: Callable) -> void:
 		for i in at.y:
 			var dt = Panel.new()
 			var on := i == at.x
-			dt.add_theme_stylebox_override("panel", UI._box(UI.GOLD if on else Color(1, 1, 1, 0.18), Color(0, 0, 0, 0), 0, 2, 0))
+			dt.add_theme_stylebox_override("panel", UI._box(UI.ACCENT if on else Color(1, 1, 1, 0.18), Color(0, 0, 0, 0), 0, 2, 0))
 			dt.custom_minimum_size = Vector2(14 if on else 4, 4)
 			dt.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			dots.add_child(dt)
@@ -2035,16 +2109,16 @@ static func settings(back: Callable) -> void:
 		dirty.call(pick.call(sec, title, names[i], func(d): s[key] = vals[clampi(i + d, 0, vals.size() - 1)], false, Vector2i(i, vals.size())), [key])
 	match _set_tab:
 		"general":
-			var g = _set_section(body, "leaf", "Genel Ayarlar")
+			var g = _set_section(body, "leaf", "Oyun")
 			# dil: hemen uygulanır (ekrandaki yazılar kendiliğinden çevrilir)
 			var lr = pick.call(g, "Dil / Language", Lang.NAMES[Game.lang()], func(d):
 				s["lang"] = Lang.CODES[posmod(Lang.CODES.find(Game.lang()) + d, Lang.CODES.size())]
 				Lang.apply(s["lang"]), true, Vector2i(Lang.CODES.find(Game.lang()), Lang.CODES.size()))
 			dirty.call(lr, ["lang"])
 			choose.call(g, "Otomatik kayıt", "autosave", [0, 5, 10, 15], ["Kapalı", "5 dakikada bir", "10 dakikada bir", "15 dakikada bir"], 10)
-			choose.call(g, "Kamera sarsıntısı", "shake", [0, 1, 2], ["Kapalı", "Az", "Normal"], 2)
 			toggle.call(g, "Kan efekti", "blood", true)
-			var e = _set_section(body, "monitor", "Ekran ve Arayüz")
+		"graphics":
+			var e = _set_section(body, "monitor", "Ekran")
 			# ekran modu: ◀ Çerçevesiz tam ekran / Tam ekran / Pencere ▶ ; çözünürlük: ◀ ekran / 1920 × 1080 ... ▶ (ekrana sığanlar)
 			var wm = Game.WIN_MODES
 			var wi = maxi(0, wm.find(Game.win_mode()))
@@ -2072,8 +2146,7 @@ static func settings(back: Callable) -> void:
 				s["ui_scale"] = scales[posmod(si + d, scales.size())]
 				Game.apply_settings(), false, Vector2i(si, scales.size()))
 			dirty.call(ur, ["ui_scale"])
-		"graphics":
-			var g = _set_section(body, "monitor", "Grafik Ayarları")
+			var g = _set_section(body, "monitor", "Grafik")
 			var q = int(s.get("quality", 2))
 			dirty.call(pick.call(g, "Grafik kalitesi", Game.QUALITY_NAMES[clampi(q, 0, 2)], func(d): Game.set_quality(posmod(q + d, 3)), false, Vector2i(clampi(q, 0, 2), 3)), ["quality"])
 			toggle.call(g, "Gölgeler", "shadows", true)
@@ -2091,6 +2164,7 @@ static func settings(back: Callable) -> void:
 			choose.call(w, "Kalabalık yoğunluğu", "crowd", [0, 1, 2], ["Az", "Orta", "Kalabalık"], 2)
 			var c = _set_section(body, "eye", "Kamera")
 			slider.call(c, "Görüş alanı (FOV)", "fov", 55.0, 100.0, 1.0, false)
+			choose.call(c, "Kamera sarsıntısı", "shake", [0, 1, 2], ["Kapalı", "Az", "Normal"], 2)
 			var f = _set_section(body, "hourglass", "Kare Hızı")
 			toggle.call(f, "Dikey eşitleme (VSync)", "vsync", true)
 			var fl: Array = Game.FPS_LIMITS
@@ -2104,10 +2178,9 @@ static func settings(back: Callable) -> void:
 			slider.call(a, "Müzik", "music", 0.0, 1.0, 0.05, true)
 			slider.call(a, "Efektler", "sfx", 0.0, 1.0, 0.05, true)
 			slider.call(a, "Arayüz sesleri", "ui_vol", 0.0, 1.0, 0.05, true)
-			var o = _set_section(body, "monitor", "Pencere")
-			toggle.call(o, "Oyun arka plandayken sesi kapat", "bg_mute", false)
+			toggle.call(a, "Oyun arka plandayken sesi kapat", "bg_mute", false)
 		"controls":
-			var k = _set_section(body, "controls", "Kontrol Ayarları")
+			var k = _set_section(body, "controls", "Fare ve Tuşlar")
 			slider.call(k, "Fare hassasiyeti", "sens", 0.2, 3.0, 0.05, false)
 			toggle.call(k, "Fareyi ters çevir (Y)", "invert_y", false)
 			var h = _set_row(k, "Tuş atamaları", lw)
@@ -2200,7 +2273,7 @@ static func ninja_menu(main: Node, tab := "inv", picked := "") -> void:
 	var pr = Game.profile
 	# sol ray
 	var rail_bg = Panel.new()
-	var rsb = UI._box(Color(0.03, 0.035, 0.05, 0.7), Color(0, 0, 0, 0), 0, 0, 0)
+	var rsb = UI._box(Color(0.035, 0.031, 0.028, 0.78), Color(0, 0, 0, 0), 0, 0, 0)
 	rsb.border_width_right = 1
 	rsb.border_color = UI.LINE
 	rail_bg.add_theme_stylebox_override("panel", rsb)
@@ -2210,15 +2283,18 @@ static func ninja_menu(main: Node, tab := "inv", picked := "") -> void:
 	var rail = UI.vbox(2)
 	rail.position = Vector2(20, 92)
 	rail_bg.add_child(rail)
-	var emb = Icons.view("leaf", 44, UI.GOLD)
+	var emb = Icons.view("leaf", 44, UI.ACCENT)
 	emb.position = Vector2(34, 30)
 	rail_bg.add_child(emb)
 	for t in TABS:
 		rail.add_child(UI.icon_button(t[1], t[2], func(): ninja_menu(main, t[0]), 66, t[0] == tab))   # 11 sekme 16:9 ve daha basık ekranlara sığsın
 	# üst çubuk: başlık + oyuncu bilgisi
 	var title = UI.label(TAB_TITLES.get(tab, ""), 34, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true)
-	title.position = Vector2(150, 30)
+	title.position = Vector2(150, 24)
 	bg.add_child(title)
+	var tline = UI.brush_line(150)
+	tline.position = Vector2(146, 70)
+	bg.add_child(tline)
 	var info = UI.hbox(18)
 	info.anchor_left = 1.0; info.anchor_right = 1.0
 	info.offset_left = -720; info.offset_right = -110; info.offset_top = 36
