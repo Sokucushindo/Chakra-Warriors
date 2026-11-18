@@ -270,6 +270,13 @@ func crown(cc: Vector3, rad: Vector3, n: int, cr: float, bottom := -0.35) -> Arr
 	return tips
 
 
+## Yaprak öbeğine giden ince dal (çarpışma almaz, üstünde yürünmez)
+func _twig(a: Vector3, b: Vector3, r0: float, r1: float) -> void:
+	_in_root = true
+	limb(a, b, r0, r1, 5)
+	_in_root = false
+
+
 ## Gövde ucundan taçtaki öbeklere uzanan dallar (taçın içinde dallanma görünür)
 func branches_to(from: Vector3, tips: Array, k: int, r0: float) -> void:
 	if far:
@@ -332,10 +339,14 @@ func _forest() -> void:
 		var tip = d * (R + L) + Vector3(0, y + 0.15, 0)
 		limb(Vector3(0, y, 0), tip, 0.48, 0.24, 7)
 		# dal ucu ve üstünde öbek kümesi (dalın üstü yürünebilir kalsın: öbekler dal hizasının üstünde/ucunda)
-		var cc = tip + d * 1.2 + Vector3(0, 2.0, 0)
+		var cc = tip + d * 1.2 + Vector3(0, 1.45, 0)
+		var fork = tip + d * 1.1 + Vector3(0, 0.55, 0)
+		_twig(tip - d * 0.25, fork, 0.2, 0.13)   # dal öbeğin içine kadar devam eder: küt bitip havada yaprak bırakmaz
+		clump(fork + d * 0.3 + Vector3(0, 0.35, 0), 2.3, cc - Vector3(0, 1.2, 0), cc.y - 2.5, cc.y + 3.0)   # dal ucunu saran öbek
 		for k in 4:
 			var o = Vector3(rng.randf_range(-1, 1) * 2.0, rng.randf_range(-0.3, 1.0) * 1.2, rng.randf_range(-1, 1) * 2.0) + d * rng.randf_range(0.0, 1.8)
 			clump(cc + o, 2.7, cc - Vector3(0, 1.2, 0), cc.y - 2.5, cc.y + 3.0)
+			_twig(fork, fork.lerp(cc + o, 0.8), 0.13, 0.035)   # her öbeğe uzanan ince dal
 	var tips = crown(cc_top, Vector3(7.5, 5.0, 7.5), 22, 3.0, -0.3)
 	branches_to(Vector3(0, H - 2.0, 0), tips, 5, 0.5)
 
@@ -353,9 +364,12 @@ func _giant() -> void:
 		var tip = d * 15.0 + Vector3(0, y + 1.0, 0)
 		limb(Vector3(0, y, 0) + d * 2.4, tip, 1.15, 0.55, 8)
 		var cc = tip + Vector3(0, 2.5, 0)
+		var fork = tip + d * 2.2 + Vector3(0, 1.0, 0)
+		_twig(tip - d * 0.5, fork, 0.48, 0.3)
 		for k in 5:
 			var o = Vector3(rng.randf_range(-1, 1) * 3.5, rng.randf_range(-0.4, 1.0) * 2.0, rng.randf_range(-1, 1) * 3.5) + d * rng.randf_range(0.0, 3.0)
 			clump(cc + o, 4.6, cc - Vector3(0, 2.0, 0), cc.y - 4.0, cc.y + 5.0)
+			_twig(fork, fork.lerp(cc + o, 0.8), 0.28, 0.07)
 	var tips = crown(Vector3(0, H + 2.0, 0), Vector3(22.0, 9.0, 22.0), 34, 6.2, -0.4)
 	branches_to(Vector3(0, H - 4.0, 0), tips, 7, 1.0)
 

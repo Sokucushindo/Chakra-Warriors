@@ -169,6 +169,9 @@ static func _shugonin(c: Dictionary) -> void:
 	A._ring(c, h + 0.03, 0.085, 0.009, sash)
 	A._glyph(c, 0.0, h + 0.03, 0.033, G_HI, 0.008, ink, true, 0.014)
 	A._glyph(c, 0.0, h + 0.03, 0.033, G_HI, 0.008, ink, false, 0.014)
+	A._dg(c, "Hips", Vector3(0.11, h - 0.01, 0.125), Vector3(0.05, -1.0, 0.05).normalized(), 0.34, 0.075, sash, 0.25)
+	for s in [-1.0, 1.0]:
+		A._wraps(c, s, float(c["Kn"]) - 0.24, float(c["Kn"]) - 0.06, 5, 0.022, A.K("d8d2c0"))
 
 
 ## Kaguya (ref Kaguya_Men, Kimimaro): açık gri kimono, çapraz yaka, kalın mor burgu ip ve sarkan ucu

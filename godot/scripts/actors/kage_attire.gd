@@ -4,6 +4,7 @@ extends RefCounted
 ## önde köyün kanjisi, arkada beyaz örtü). Kage NPC'leri (ofis, tören) bunu kullanır.
 
 const KANJI := {"konoha": "火", "suna": "風", "kiri": "水", "kumo": "雷", "iwa": "土"}
+const PB = preload("res://scripts/actors/head_v2_b.gd")
 const COLOR := {"konoha": Color(0.8, 0.14, 0.12), "suna": Color(0.16, 0.45, 0.38), "kiri": Color(0.18, 0.38, 0.75),
 	"kumo": Color(0.95, 0.78, 0.16), "iwa": Color(0.5, 0.3, 0.2)}
 ## Kage kişilikleri (kanon dışı): saç, sakal, yaş havası
@@ -92,79 +93,97 @@ const HAT_COLOR := {"konoha": Color(0.55, 0.08, 0.08), "kumo": Color(0.78, 0.6, 
 const STRIKER_HATS := ["konoha", "kumo", "kiri", "iwa", "suna"]   # Striker Kage şapkaları (v2, ref büyütülerek)
 
 
-## Striker Kage şapkası (refs/hair_dlc/*_Hat.jpg büyütülmüş incelendi; anime refs/hats yan/arka):
-##  - alçak oturur: kenar burun üstü hizasında, gözler şapkanın altında; geniş (çap ≈ 2.4 yüz), basık koni (eğim ~28°)
-##  - kenarın tamamında kalın beyaz dudak (üstte dar beyaz şerit + aşağı kalınlık); alt yüz beyaz
-##  - önde üstü düz beyaz yamuk (tabanı kenarda), içinde iri köy rengi kanji
-##  - örtü TEK PARÇA kumaş: başın içinden (kenarın altından) omuza iner, arkada altta dışa açılır; yan ön paneller göğse uzun
+## Striker Kage şapkası + anime (Hiruzen, Hashirama yakın çekim):
+##  - alçak oturur: kenar burun üstü hizasında, gözler şapkanın altında; geniş, basık, hafif şişkin koni
+##  - lake üst yüz, ince ışınsal kaburga ve tepe çevresinde koyu halka; tepede topuz ve iki metal halka
+##  - kenarda dikişli kalın beyaz dudak, alt yüz çubuklu beyaz kafes, baş bandı
+##  - önde ayrı katman beyaz yamuk (çerçeveli), içinde iri köy kanjisi
+##  - örtü tek parça: kenarın altından omuza iner, pilili, etek bandı var; yan önler göğse uzun
 static func _hat_striker(model: Node, vid: String) -> void:
 	var c: Color = HAT_COLOR.get(vid, COLOR["konoha"])
-	var white = Color(0.95, 0.95, 0.94)
+	var white := Color(0.95, 0.95, 0.94)
 	var hc: Vector3 = model._head_center()
 	var ab: AABB = model.head_ab
-	var hw = clampf(ab.size.x, 0.16, 0.26) if ab.size.x > 0.05 else 0.2
-	var hh = clampf(ab.size.y, 0.12, 0.26) if ab.size.y > 0.05 else 0.2
+	var hw: float = clampf(ab.size.x, 0.16, 0.26) if ab.size.x > 0.05 else 0.2
+	var hh: float = clampf(ab.size.y, 0.12, 0.26) if ab.size.y > 0.05 else 0.2
 	var eye_y: float = model.eye_center_model.y if model.get("eye_center_model") != null else hc.y
-	var R = hw * 1.42
-	var brim_y = eye_y + 0.004   # kenar göz üstü/burun kökü
+	var R: float = hw * 1.42
+	var brim_y: float = eye_y + 0.004   # kenar göz üstü/burun kökü
 	# koni kafatasının üstünden geçmeli; kafatası yuvarlak: r yarıçapında kafa yüksekliği top*sqrt(1-(r/rh)^2)
-	var skull_top = hc.y + hh * 0.5
+	var skull_top: float = hc.y + hh * 0.5
 	for q in model._body_vs():   # gerçek kafatası tepesi (yüz kutusu tepeyi içermez)
 		if absf(q.x - hc.x) < 0.05 and q.y > hc.y:
 			skull_top = maxf(skull_top, q.y)
-	var top = skull_top + 0.018 - brim_y
-	var rh = hw * 0.55
-	var H = R * 0.5
+	var top: float = skull_top + 0.018 - brim_y
+	var rh: float = hw * 0.55
+	var H: float = R * 0.5
 	for q in 11:
-		var r = rh * q / 10.0
-		var need = top * sqrt(maxf(0.0, 1.0 - pow(r / rh, 2.0)))
+		var r: float = rh * q / 10.0
+		var need: float = top * sqrt(maxf(0.0, 1.0 - pow(r / rh, 2.0)))
 		H = maxf(H, need / maxf(0.05, 1.0 - r / R))
-	var cen = Vector3(hc.x, brim_y, hc.z - 0.005)
-	var apex_y = brim_y + H
+	var cen := Vector3(hc.x, brim_y, hc.z - 0.005)
+	var apex_y: float = brim_y + H
+	var bulge: float = H * 0.055
 	var pt = func(a: float, t: float, off := 0.0) -> Vector3:
-		var n = Vector3(sin(a) * H, R, cos(a) * H).normalized()   # koni yüzey normali (yaklaşık)
-		return Vector3(cen.x + sin(a) * R * t, apex_y - H * t, cen.z + cos(a) * R * t) + n * off
-	var st = SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var quad = func(q: Array, col: Color) -> void:
-		for idx in [0, 1, 2, 0, 2, 3]:
-			st.set_color(col)
-			st.add_vertex(q[idx])
-	var NA = 96; var NT = 16
-	for i2 in NA:
-		var a0 = TAU * i2 / NA - PI; var a1 = TAU * (i2 + 1) / NA - PI
-		for k in NT:
-			var t0 = float(k) / NT; var t1 = float(k + 1) / NT
-			var cl = white if t0 >= 0.935 else c
-			quad.call([pt.call(a0, t0), pt.call(a1, t0), pt.call(a1, t1), pt.call(a0, t1)], cl)
-			# alt yüz (içeriden bakınca beyaz, 5 mm içeride)
-			quad.call([pt.call(a0, t0, -0.006), pt.call(a0, t1, -0.006), pt.call(a1, t1, -0.006), pt.call(a1, t0, -0.006)], white.darkened(0.08))
-		# kenar kalınlığı (dudak)
-		var e0 = pt.call(a0, 1.0); var e1 = pt.call(a1, 1.0)
-		var dn = Vector3(0, -0.02, 0)
-		quad.call([e0, e1, e1 + dn, e0 + dn], white)
-		quad.call([e0 + dn, e1 + dn, pt.call(a1, 0.96, -0.006) + dn * 0.6, pt.call(a0, 0.96, -0.006) + dn * 0.6], white.darkened(0.1))
-	# ön yamuk: taban kenarda (±21°), üst düz (t=0.46, ±12°), 2.5 mm önde, düz kenarlı ayrı ızgara
-	var NS = 12
-	for u in NS:
-		for v in NS:
-			var g = func(uu: float, vv: float) -> Vector3:
-				var t = lerpf(0.46, 0.935, vv)
-				var half = deg_to_rad(lerpf(12.0, 21.0, vv))
-				return pt.call(lerpf(-half, half, uu), t, 0.0025)
-			var u0 = float(u) / NS; var u1 = float(u + 1) / NS; var v0 = float(v) / NS; var v1 = float(v + 1) / NS
-			quad.call([g.call(u0, v0), g.call(u1, v0), g.call(u1, v1), g.call(u0, v1)], white)
-	st.generate_normals()
-	var mi = model._mesh_on("Head", st.commit(), Transform3D.IDENTITY)
-	var mat = ShaderMaterial.new()
+		var n := Vector3(sin(a) * H, R, cos(a) * H).normalized()   # koni yüzey normali (yaklaşık)
+		return Vector3(cen.x + sin(a) * R * t, apex_y - H * t + bulge * sin(t * PI), cen.z + cos(a) * R * t) + n * off
+	var mb := MB.new()
+	var NA := 88
+	var NT := 15
+	var rib := c.darkened(0.16)
+	var hi := c.lightened(0.07)
+	var g_top = func(u: float, v: float) -> Vector3:
+		return pt.call(u * TAU - PI, maxf(v, 0.012))
+	PB._grid(mb, NA, NT, g_top, func(i: int, j: int, _u: float, _v: float) -> Color:
+		if j >= NT - 1:
+			return white
+		if j == NT - 2:
+			return white.darkened(0.22) if i % 2 == 0 else white.darkened(0.06)   # kenar dikişi
+		if j == 2 or j == 3:
+			return c.darkened(0.3)   # tepe halkası
+		if j < 2:
+			return c.darkened(0.12)
+		if i % 11 == 0:
+			return rib
+		return hi if j == 7 or j == 8 else c, true)
+	# dudak ve alt yüz: çubuklu beyaz kafes
+	var e_prof := [Vector2(R, 0.0), Vector2(R + 0.005, -0.006), Vector2(R + 0.004, -0.017), Vector2(R - 0.004, -0.022), Vector2(R * 0.72, H * 0.2), Vector2(R * 0.44, H * 0.46), Vector2(0.012, H * 0.8)]
+	PB._lathe(mb, cen, e_prof, 48, func(i: int, j: int, _u: float, _v: float) -> Color:
+		if j < 3:
+			return white if j < 2 else white.darkened(0.12)
+		return white.darkened(0.2 if i % 3 == 0 else 0.1))
+	# baş bandı
+	var band_r: float = hw * 0.58
+	PB._lathe(mb, cen, [Vector2(band_r, 0.035), Vector2(band_r + 0.002, 0.0), Vector2(band_r, -0.012)], 28, PB._flat(c.darkened(0.45)))
+	# ön yamuk: taban kenarda (±21°), üst düz (t=0.46, ±12°), ayrı katman ve ince çerçeve
+	var NS := 14
+	var panel = func(uu: float, vv: float) -> Vector3:
+		var t: float = lerpf(0.46, 0.925, vv)
+		var half: float = deg_to_rad(lerpf(12.0, 21.0, vv))
+		return pt.call(lerpf(-half, half, uu), t, 0.0028 + 0.001 * sin(vv * PI))
+	var frame := c.darkened(0.1).lerp(white, 0.35)
+	PB._grid(mb, NS, NS, panel, func(i: int, j: int, _u: float, _v: float) -> Color:
+		return frame if i == 0 or i == NS - 1 or j == 0 else white)
+	# tepe: topuz ve iki metal halka (anime yakın çekim)
+	var metal := Color(0.62, 0.6, 0.56)
+	PB._lathe(mb, Vector3(cen.x, apex_y + 0.001, cen.z), [Vector2(0.001, 0.021), Vector2(0.009, 0.019), Vector2(0.013, 0.01), Vector2(0.01, 0.004), Vector2(0.018, 0.0), Vector2(0.03, -0.012)], 14,
+		func(_i: int, j: int, _u: float, _v: float) -> Color: return metal if j == 3 else c.darkened(0.35))
+	for k in 2:
+		var a: float = 0.62 + k * 0.3
+		var t: float = 0.19 + k * 0.06
+		var q0: Vector3 = pt.call(a - 0.13 / maxf(t * 2.0, 0.3), t)
+		var q1: Vector3 = pt.call(a + 0.13 / maxf(t * 2.0, 0.3), t)
+		var mid: Vector3 = (q0 + q1) * 0.5 + Vector3(0, 0.024, 0)
+		PB._tube(mb, PB._cr([q0 - Vector3(0, 0.004, 0), q0 + Vector3(0, 0.016, 0), mid, q1 + Vector3(0, 0.016, 0), q1 - Vector3(0, 0.004, 0)], 3), 0.0024, 0.0024, PB._flat(metal), 5, 1.0, false)
+	var mi: MeshInstance3D = model._mesh_on("Head", mb.build(Props.toon()), Transform3D.IDENTITY)
+	var mat := ShaderMaterial.new()
 	mat.shader = load("res://shaders/toon.gdshader")
 	mat.set_shader_parameter("rim_amount", 0.12)
-
 	mi.material_override = mat
 	# kanji: yamuğun ortasında, iri
-	var kp = pt.call(0.0, 0.71, 0.005)
-	var slope = rad_to_deg(atan2(H, R))
-	var l = Label3D.new()
+	var kp: Vector3 = pt.call(0.0, 0.71, 0.0065)
+	var slope: float = rad_to_deg(atan2(H, R))
+	var l := Label3D.new()
 	l.text = KANJI.get(vid, "影")
 	l.font = _font()
 	l.font_size = 96
@@ -177,74 +196,37 @@ static func _hat_striker(model: Node, vid: String) -> void:
 	l.rotation = Vector3(deg_to_rad(-(90.0 - slope)), 0, 0)
 	l.position = kp
 	mi.add_child(l)
-	# örtü (ref: tek parça sert beyaz kumaş): kenarın altından, başın etrafında 60°..300° (önü açık) sürekli perde;
-	# yanlarda göğse uzun ön paneller, arkada omza; alt kenarı hafif dışa açılır. 9 Dangle zinciri; köşeler komşu
-	# zincirler arasında ağırlıklı: kumaş gibi bütün halinde salınır, aralık açılmaz.
 	_veil(model, Vector3(cen.x, brim_y - 0.004, cen.z), hw * 0.6, hh, white)
 	model.hair_mask_plane(Vector3.UP, Vector3(0, brim_y + 0.01, 0))
 
 
-## Kage örtüsü: sürekli kumaş perde + zincirli ikincil hareket
+## Kage örtüsü: pilili tek parça kumaş + zincirli ikincil hareket (önü açık, yan önler uzun, arkası omza)
 static func _veil(model: Node, top: Vector3, r_in: float, hh: float, white: Color) -> void:
-	var a0 = deg_to_rad(58.0); var a1 = deg_to_rad(302.0)
-	var NA = 48; var NV = 10
-	var NC = 9
+	var a0 := deg_to_rad(58.0)
+	var a1 := deg_to_rad(302.0)
 	var len_at = func(a: float) -> float:
-		var d = absf(wrapf(rad_to_deg(a), -180.0, 180.0))
-		return hh * lerpf(1.5, 1.08, smoothstep(70.0, 120.0, d))   # yan önler uzun, arka omza
+		var d: float = absf(wrapf(rad_to_deg(a), -180.0, 180.0))
+		return hh * lerpf(1.5, 1.08, smoothstep(70.0, 120.0, d))
 	var flare_at = func(a: float) -> float:
-		var d = absf(wrapf(rad_to_deg(a), -180.0, 180.0))
+		var d: float = absf(wrapf(rad_to_deg(a), -180.0, 180.0))
 		return lerpf(0.06, 0.2, smoothstep(90.0, 180.0, d))
-	var p_at = func(a: float, v: float, off := 0.0) -> Vector3:
-		var out = Vector3(sin(a), 0, cos(a))
+	var p_at = func(a: float, v: float) -> Vector3:
+		var out := Vector3(sin(a), 0, cos(a))
 		var L: float = len_at.call(a)
-		return top + out * (r_in + flare_at.call(a) * L * v * v + off) + Vector3(0, -L * v, 0)
-	var st = SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	for iu in NA:
-		for iv in NV:
-			var ua = lerpf(a0, a1, float(iu) / NA); var ub = lerpf(a0, a1, float(iu + 1) / NA)
-			var va = float(iv) / NV; var vb = float(iv + 1) / NV
-			var q = [p_at.call(ua, va), p_at.call(ub, va), p_at.call(ub, vb), p_at.call(ua, vb)]
-			var qi = [p_at.call(ua, va, -0.004), p_at.call(ub, va, -0.004), p_at.call(ub, vb, -0.004), p_at.call(ua, vb, -0.004)]
-			for idx in [0, 2, 1, 0, 3, 2]:   # dış yüz
-				st.set_color(white)
-				st.add_vertex(q[idx])
-			for idx in [0, 1, 2, 0, 2, 3]:   # iç yüz (4 mm içeride; aynı yerde iki yüz z-çakışıp leke yapıyordu)
-				st.set_color(white.darkened(0.08))
-				st.add_vertex(qi[idx])
-	st.generate_normals()
-	var mesh = st.commit()
-	var defs = []
-	var cang = []
-	for c in NC:
-		var a = lerpf(a0, a1, float(c) / (NC - 1))
-		cang.append(a)
-		var pts = PackedVector3Array()
-		for k in 5:
-			pts.append(p_at.call(a, k / 4.0))
-		var hp = CharacterModel.hair_profile(len_at.call(a))
-		hp["stiff"] = 0.6; hp["stiff_tip"] = 0.3; hp["grav"] = 0.15; hp["col_r"] = 0.05
-		hp["pts"] = pts
-		defs.append(hp)
-	var vtx: PackedVector3Array = mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
-	var assign = func(vi: int, v: Vector3, _si: int) -> Array:
-		var d = v - top
-		var a = atan2(d.x, d.z)
-		if a < 0.0:
-			a += TAU
-		var f = clampf((a - a0) / (a1 - a0), 0.0, 1.0) * (NC - 1)
-		var c0 = mini(int(floor(f)), NC - 2)
-		var w1 = f - c0
-		var vv = clampf(-d.y / float(len_at.call(a)), 0.0, 1.0) * 4.0
-		return [[c0, vv, 1.0 - w1], [c0 + 1, vv, w1]]
-	var pack = Dangle.build(mesh, defs, assign)
-	if pack.is_empty():
-		return
-	var mat = ShaderMaterial.new()
-	mat.shader = load("res://shaders/toon.gdshader")
-	mat.set_shader_parameter("rim_amount", 0.1)
-	model.add_dangle("Head", pack, mat, Transform3D.IDENTITY, "KageVeil")
+		var pleat: float = sin(a * 16.0) * 0.0045 * smoothstep(0.05, 0.45, v)
+		return top + out * (r_in + float(flare_at.call(a)) * L * v * v + pleat) + Vector3(0, -L * v, 0)
+	var mb := MB.new()
+	var NU := 64
+	var NV := 9
+	var pos = func(u: float, v: float) -> Vector3: return p_at.call(lerpf(a0, a1, u), v)
+	PB._plate(mb, NU, NV, pos, func(i: int, j: int, _u: float, _v: float) -> Color:
+		if j == NV - 1:
+			return white.darkened(0.17)   # etek bandı
+		if j == NV - 2:
+			return white.darkened(0.06)
+		var ph: float = fmod(float(i) / NU * (a1 - a0) * 16.0 / TAU, 1.0)
+		return white.darkened(0.1) if ph < 0.3 else white, 0.003, white.darkened(0.15))
+	PB.curtain(model, mb, top, a0, a1, 9, p_at, len_at, 0.55, "KageVeil")
 
 
 static var _f: SystemFont

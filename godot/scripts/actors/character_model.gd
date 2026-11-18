@@ -1,5 +1,8 @@
 class_name CharacterModel
 extends Node3D
+const HeadV2 = preload("res://scripts/actors/head_v2.gd")
+const MaskV2 = preload("res://scripts/actors/mask_v2.gd")
+const SetEl = preload("res://scripts/actors/set_el.gd")
 ## İskeletli, animasyonlu ninja modeli. Görünüm sözlükle tanımlanır (look):
 ## gender, skin, hair, hair_style, eye, top, top2, pants, vest, band (renk), band_style, village, wraps, sandal, cloak, mask
 
@@ -2872,13 +2875,19 @@ var _outer_mat: ShaderMaterial
 var _outer_hem := 99.0
 
 
+## Önü açık uzun giysiler: açıklıktan bacak görünür (silinirse giysinin kırmızı / koyu içi görünüyordu)
+const LEG_OPEN := ["sennin_yelek", "kolsuz_palto", "algi_ceket", "isshiki_palto", "edo_cubbe", "kolsuz_trench", "jigen_cubbe", "kawaki_palto", "kawaki_okul", "kawaki_ruro", "kaguya_cubbe", "savas_cubbe", "hokage_haori", "gezgin_palto"]
+## Yanı / ortası yırtmaçlı giysiler: bacak yırtmaçtan görünür, hiç silinmez (otomatik denetim: _tmp/kiyafet/l2.gd)
+const LEG_SLIT := ["itachi_tunik", "danzo_ortu", "delta_elbise"]
 ## Uzun dış giysi: altında kalan bacak ve pantolon, etek ucuna kadar çizilmez (adımda kumaşın içinden taşıyordu)
 func _apply_outer_hem() -> void:
 	_in_outer = false
-	var hem = _outer_hem if _outer_hem < _bp("Hips").y - 0.14 else -99.0
+	var hem = _outer_hem if _outer_hem < _bp("Hips").y - 0.14 and not look.get("outer_style") in LEG_SLIT else -99.0
+	var lo = 0.125 if look.get("outer_style") in LEG_OPEN else 0.0
 	for mt in [body_mesh.get_surface_override_material(0) if body_mesh else null, cloth_shell_mat]:
 		if mt is ShaderMaterial:
 			mt.set_shader_parameter("leg_cover_hem", hem)
+			mt.set_shader_parameter("leg_open", lo)
 
 
 func _garment(key: String, build: Callable) -> void:
@@ -6662,7 +6671,7 @@ func _garments(g: Dictionary) -> void:
 					fz = v.z
 			dangle_strip("UpperChest", Vector3(-0.07, neck - 0.05, fz + 0.035), Vector3(0.0, -1.0, 0.05), 0.3, 0.06, look["outer"], 0.6, Vector3(1, 0, 0), 0.008)
 	var hs = look.get("head_style")
-	if hs == "kapuson":
+	if hs == "kapuson" or HeadV2.hooded(hs):
 		# kapüşonun omuz etek kısmı (gövdeye derili): boyundan omuz başına açılan kumaş; kafa kısmı hood()
 		var hk = "kapuson_etek_" + String(look.get("hood", ""))
 		_garment(hk, func(): return _loft(g, 1, neck + 0.05, neck - 0.1, 9, func(p): return p.y > neck - 0.17 and absf(p.x) < ua * 1.05,
@@ -7326,6 +7335,8 @@ static var _holster_rings := {}   # cinsiyet|y -> uyluk kesiti (gövde tabanı a
 
 
 func _thigh_holster() -> void:
+	if SetEl.has(look.get("set_id")):
+		return   # elle modellenmiş kıyafet: uyluk kılıfı eteğin içinden çıkmasın
 	if body_mesh == null or body_mesh.mesh == null:
 		return
 	# her kıyafette/çocukta olmasın: kanonda kılıf alnında bandı olan ninjanın teçhizatı (Akademi öğrencisi, çocuk, sivil
@@ -7906,7 +7917,7 @@ func _accessories() -> void:
 		hair_mask_plane(Vector3.UP, Vector3(0, htop - 0.06, 0))
 	if not sf_head and look.get("head_style") == "kage":
 		KageAttire.hat(self, String(look.get("kage_vid") if look.get("kage_vid") != null else look.get("village", "konoha")))
-	match (null if sf_head else look.get("head_style")):
+	match (null if sf_head or HeadV2.has(look.get("head_style")) else look.get("head_style")):
 		"kasa":
 			var m = MB.new()
 			m.add("cone", Vector3(0, 0.0, 0), Vector3(hw * 3.2, 0.17, hw * 3.2), hg, Vector3.ZERO, 18)
@@ -8118,7 +8129,7 @@ func _accessories() -> void:
 			var ybj = cloth_band(hg, 0.004, 0.034, 0.1, 0.026, 0.004)
 			cloth_band(hg.darkened(0.06), 0.02, 0.02, 0.0, 0.0, 0.018, 0.0165)
 	var fg: Color = look.get("facegear", Color.WHITE) if look.get("facegear") != null else Color.WHITE
-	var fs = null if sf_face else look.get("face_style")
+	var fs = null if sf_face or MaskV2.has(look.get("face_style")) else look.get("face_style")
 	if fs != null and String(fs).begins_with("anbu"):
 		var m = MB.new()
 		var red = Color(0.75, 0.1, 0.12)
@@ -9341,9 +9352,9 @@ func _hitai_head(bc: Color) -> void:
 
 ## ------------------------------------------------------------------ alın koruyucu takılış tarzları (anime ref: refs/bands)
 ## Tek eşya (Alın Koruyucu), takılış oyuncunun seçimi: look["band_wear"]
-const BAND_WEARS := ["alin", "kakashi", "zabuza", "sakura", "boyun", "bel", "kol", "kusak", "bandana", "yamato", "tobirama", "jiraiya", "kisame", "hiruzen", "kankuro", "kakuzu", "baki", "neji", "choji"]
+const BAND_WEARS := ["alin", "kakashi", "kakashi_sag", "zabuza", "sakura", "boyun", "bel", "kol", "kusak", "bandana", "yamato", "tobirama", "jiraiya", "kisame", "hiruzen", "kankuro", "kakuzu", "baki", "neji", "choji"]
 var _band_kanji := ""
-const BAND_WEAR_NAMES := {"alin": "Alında", "kakashi": "Göze Eğik", "zabuza": "Yana Yatık", "sakura": "Saç Bandı", "boyun": "Boyunda",
+const BAND_WEAR_NAMES := {"alin": "Alında", "kakashi": "Göze Eğik", "kakashi_sag": "Göze Eğik (Diğer Göz)", "zabuza": "Yana Yatık", "sakura": "Saç Bandı", "boyun": "Boyunda",
 	"bel": "Belde", "kol": "Kolda", "kusak": "Göğüs Kuşağı", "bandana": "Bandana",
 	"yamato": "Yanak Korumalı (Yamato/Hashirama)", "tobirama": "Geniş Plaka (Tobirama)", "jiraiya": "Boynuzlu 油 (Jiraiya)", "kisame": "Yukarı Bakan (Kisame)",
 	"hiruzen": "Savaş Miğferi (Hiruzen)", "kankuro": "Kulaklı Başlık (Kankurō)", "kakuzu": "Başlık + Maske (Kakuzu)", "baki": "Yarım Peçe (Baki)",
@@ -9580,7 +9591,7 @@ func _band_wear(bc: Color, wear: String) -> void:
 			_band_skinned(p0, Basis.IDENTITY, _plane_ring_body(p0, Basis.IDENTITY, 0.12, 0.006), bc, 0.032, 0.75, Vector3(0.25, -1.0, -0.5), "Neck")
 		"bandana":
 			_hitai_bandana(bc)
-		"kakashi", "zabuza", "sakura":
+		"kakashi", "kakashi_sag", "zabuza", "sakura":
 			_band_ring_full()
 			var B: Basis
 			var p0: Vector3
@@ -9589,6 +9600,9 @@ func _band_wear(bc: Color, wear: String) -> void:
 				"kakashi":   # ref kakashi_4/5: sol gözü örten, sola doğru inen eğik bant; plaka gözün üstüne kaymış
 					B = Basis(Vector3.UP, deg_to_rad(-22.0)) * Basis(Vector3(0, 0, 1), deg_to_rad(20.0))
 					p0 = Vector3(skull_c.x, eye_center_model.y + 0.012, skull_c.z)
+				"kakashi_sag":   # aynısının aynası: öbür gözü örter
+					B = Basis(Vector3.UP, deg_to_rad(22.0)) * Basis(Vector3(0, 0, 1), deg_to_rad(-20.0))
+					p0 = Vector3(skull_c.x, eye_center_model.y + 0.012, skull_c.z)
 				"zabuza":   # ref zabuza_3/5: başın yanına yatık takılmış; plaka şakakta, bant karşı tarafta yukarı çıkar
 					B = Basis(Vector3.UP, deg_to_rad(-75.0)) * Basis(Vector3(1, 0, 0), deg_to_rad(-24.0))
 					p0 = Vector3(skull_c.x, band_ring[0] + 0.02, skull_c.z)
@@ -9596,7 +9610,7 @@ func _band_wear(bc: Color, wear: String) -> void:
 					B = Basis(Vector3(1, 0, 0), deg_to_rad(-58.0))
 					p0 = skull_c + Vector3(0, 0.0, -0.005)
 			var ring = _plane_ring_head(p0, B)
-			_hitai("Head", p0, ring, bc, 0.036, ph, 0.6, 0.0, Vector3(0.22, -1.0, -0.62), true, 0.15 if wear != "sakura" else 0.1, 0.03, 0.004, 0.0, B)
+			_hitai("Head", p0, ring, bc, 0.036, ph, 0.6, 0.0, Vector3(-0.22 if wear == "kakashi_sag" else 0.22, -1.0, -0.62), true, 0.15 if wear != "sakura" else 0.1, 0.03, 0.004, 0.0, B)
 		"bel":   # ref Ino / Gai: belde kemer gibi, plaka önde
 			var hp = _bp("Hips")
 			var sp = _bp("Spine")
@@ -10737,7 +10751,7 @@ func _attachments() -> void:
 	# --- çanta + kunai kılıfı
 	# bel çantası: kalça kemiğine yapışık katı kutu kumaşın/eteğin/paltonun içine giriyordu -> gövde kabuğunun arka yüzeyine
 	# derili ince kapaklı çanta (kumaşla eğilir); beli/kalçayı örten giysi, etek ya da hakama varsa hiç takılmaz
-	if not look.get("outer_style") in ["anbu_palto", "palto", "cuppe", "haori", "haori_uzun", "pelerin", "org_pelerin", "panco", "jinbaori", "mino", "yirtik", "kisa", "acik_ceket", "kiri_tunik", "bulut_etek", "kaya_gi", "suna_tunik", "sisme_yelek", "flamingo_elbise", "kapusonlu", "omuz_kazak", "uzun_ceket", "hirka", "onluk", "esofman_ceket", "kisa_haori", "kizil_palto", "hinata_ceket", "kirpik_kapusonlu", "yirtmacli_etek", "sargi_etek_uzun", "yilan_cubbe", "algi_ceket", "sargi_elbise", "onluk_elbise", "iki_ton_kimono", "turuncu_ceket", "kisa_bolero", "panel_etek", "uzun_panel_ust", "bel_ortusu", "kolsuz_palto", "kuyruklu_ceket", "kisa_kimono", "gunes_kimono", "genis_gomlek", "uzun_trench", "rikudo_cubbe", "yirtik_esofman", "kutlama_kimono", "kolsuz_kimono", "takim_yelek", "seytan_kapuson", "danzo_ortu", "delta_elbise", "kabarik_bluz", "kurbaga_kigurumi", "uzun_robe", "buyuk_kapusonlu", "kisa_kollu_kazak", "gelinlik", "sarma_mini", "inojin_ceket", "isshiki_palto", "itachi_tunik", "edo_cubbe", "kolsuz_trench", "jigen_cubbe", "sennin_yelek", "kaguya_kimono", "rokudaime_cubbe", "kawaki_palto", "kawaki_okul", "kawaki_ruro", "kukla_onluk", "kaguya_cubbe", "haku_yukata", "savas_cubbe", "mei_elbise", "hokage_haori", "bel_ceket", "cin_elbise", "sarada_elbise", "gezgin_palto", "yagura_ortu", "capraz_haori", "koji_ceket", "cin_kuyruk"] 			and int(look.get("skirt", 0)) == 0 and not look.get("hakama", false) and not look.get("pleat_skirt", false) and _sk_begin(_shell_cache.get(look["gender"])):
+	if not SetEl.has(look.get("set_id")) and not look.get("outer_style") in ["anbu_palto", "palto", "cuppe", "haori", "haori_uzun", "pelerin", "org_pelerin", "panco", "jinbaori", "mino", "yirtik", "kisa", "acik_ceket", "kiri_tunik", "bulut_etek", "kaya_gi", "suna_tunik", "sisme_yelek", "flamingo_elbise", "kapusonlu", "omuz_kazak", "uzun_ceket", "hirka", "onluk", "esofman_ceket", "kisa_haori", "kizil_palto", "hinata_ceket", "kirpik_kapusonlu", "yirtmacli_etek", "sargi_etek_uzun", "yilan_cubbe", "algi_ceket", "sargi_elbise", "onluk_elbise", "iki_ton_kimono", "turuncu_ceket", "kisa_bolero", "panel_etek", "uzun_panel_ust", "bel_ortusu", "kolsuz_palto", "kuyruklu_ceket", "kisa_kimono", "gunes_kimono", "genis_gomlek", "uzun_trench", "rikudo_cubbe", "yirtik_esofman", "kutlama_kimono", "kolsuz_kimono", "takim_yelek", "seytan_kapuson", "danzo_ortu", "delta_elbise", "kabarik_bluz", "kurbaga_kigurumi", "uzun_robe", "buyuk_kapusonlu", "kisa_kollu_kazak", "gelinlik", "sarma_mini", "inojin_ceket", "isshiki_palto", "itachi_tunik", "edo_cubbe", "kolsuz_trench", "jigen_cubbe", "sennin_yelek", "kaguya_kimono", "rokudaime_cubbe", "kawaki_palto", "kawaki_okul", "kawaki_ruro", "kukla_onluk", "kaguya_cubbe", "haku_yukata", "savas_cubbe", "mei_elbise", "hokage_haori", "bel_ceket", "cin_elbise", "sarada_elbise", "gezgin_palto", "yagura_ortu", "capraz_haori", "koji_ceket", "cin_kuyruk"] 			and int(look.get("skirt", 0)) == 0 and not look.get("hakama", false) and not look.get("pleat_skirt", false) and _sk_begin(_shell_cache.get(look["gender"])):
 		var hy = _bp("Hips").y + 0.035
 		var bc = Color(0.42, 0.33, 0.22)
 		if _sk_plate(0.0, hy, 0.12, 0.075, 0.022, bc, 0.002, false):

@@ -1,5 +1,7 @@
 class_name OutfitParts
 extends RefCounted
+const HeadV2 = preload("res://scripts/actors/head_v2.gd")
+const MaskV2 = preload("res://scripts/actors/mask_v2.gd")
 ## Genişletilmiş kıyafet parçaları (CharacterModel'e kancayla bağlanır):
 ## dış giysiler (örgüt pelerini, panço, yırtık pelerin, jinbaori, keşiş cübbesi, kesa, hasır yağmurluk, uzun haori),
 ## bol paça, gi kuşağı, başlıklar (hachimaki, haydut bandanası, sarık, jingasa, kabuto, tengai), yüz (mempo, göz bandı,
@@ -87,8 +89,8 @@ static func garments(m: CharacterModel, g: Dictionary) -> void:
 			m._cut_sleeve(g, "anbu_kol", [[0.0, 0.066], [1.0, 0.072]], 0.02, 8, 2.6)
 		"kesa":
 			# tek omuzdan kalçaya çapraz inen keşiş örtüsü
-			m._garment("kesa", func(): return m._loft(g, 1, neck - 0.02, hips - 0.08, 30, torso, func(_t, _a): return 0.035, 8,
-				func(t, ang): return absf(cos(ang) - (0.9 - 1.8 * t)) > 0.42, -99.0, 48))
+			m._garment("kesa", func(): return m._loft(g, 1, neck - 0.02, hips - 0.08, 84, torso, func(_t, _a): return 0.035, 8,
+				func(t, ang): return absf(cos(ang) - (0.9 - 1.8 * t)) > 0.42, -99.0, 144))   # sık ızgara: çapraz kenar basamak basamak görünmesin
 	m._outer_pad = 0.0
 	if m.top_style() == "gi":
 		# siyah kuşak (koyu yuva)
@@ -223,12 +225,12 @@ static func accessories(m: CharacterModel) -> void:
 	var hg: Color = L.get("headgear") if L.get("headgear") != null else Color(0.5, 0.4, 0.3)
 	var toon = Props.toon()
 	# başı tamamen saran başlıklar: saç içinden taşmasın
-	if L.get("head_style") in ["kabuto", "tengai", "kapuson"]:
+	if L.get("head_style") in ["kabuto", "kapuson"] or HeadV2.hides_hair(L.get("head_style")):
 		var clumps = CharacterModel._hair_cache.values()
 		for mi in m.skel.find_children("*", "MeshInstance3D", true, false):
 			if mi.name in ["VHair", "HairDangle"] or (mi.mesh != null and mi.mesh in clumps):
 				mi.visible = false
-	match L.get("head_style"):
+	match (null if HeadV2.build(m, L.get("head_style"), hg, L) else L.get("head_style")):
 		"hachimaki":
 			# alına sıkıca bağlı kumaş bant (saçın üstünde), ensede düğüm + uzun uçuşan iki uç
 			m.cloth_band(hg, 0.0, 0.04, 0.26, 0.034)
@@ -272,7 +274,9 @@ static func accessories(m: CharacterModel) -> void:
 		m.hood(hg, String(L.get("hood", "")))
 	var fg: Color = L.get("facegear") if L.get("facegear") != null else Color.WHITE
 	var fs = String(L.get("face_style", "")) if L.get("face_style") != null else ""
-	var handled = fs != "" and m.face_item(fs, fg)   # yüz kabuğuna oturan yeni sürüm
+	var handled = fs != "" and (MaskV2.build(m, fs, fg) or m.face_item(fs, fg))
+	if MaskV2.has(fs):
+		fs = ""   # yeni maske çizildi: eski parçalar eklenmez   # yüz kabuğuna oturan yeni sürüm
 	if handled:
 		pass
 	elif fs in ["cloth", "pece"]:
