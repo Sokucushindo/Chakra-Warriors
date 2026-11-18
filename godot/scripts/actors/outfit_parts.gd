@@ -5,6 +5,7 @@ extends RefCounted
 ## bol paça, gi kuşağı, başlıklar (hachimaki, haydut bandanası, sarık, jingasa, kabuto, tengai), yüz (mempo, göz bandı,
 ## peçe, yeni ANBU hayvanları), omuz/diz zırhı, sırt eşyaları (tespih, sepet, bel parşömenleri, sashimono bayrağı...), çizme.
 
+const BackV2 = preload("res://scripts/actors/back_v2.gd")
 const OUTER_SLEEVES := ["palto", "haori", "org_pelerin", "cuppe", "haori_uzun", "mino", "anbu_palto"]
 const FOOT_KIND := {"sandal": 0, "zori": 0, "tabi": 1, "cizme": 2, "yuksek_sandal": 3, "bilek_bot": 4, "diz_cizme": 5, "sargili_bot": 6, "zirhli_tozluk": 7, "shinobi": 8, "terlik": 9}
 
@@ -343,7 +344,8 @@ static func accessories(m: CharacterModel) -> void:
 			m._mesh_on("UpperChest", mb.build(toon), Transform3D(Basis.IDENTITY, ch + Vector3(0.2 * sx, 0.1, 0.0)))
 	# --- sırt / bel ek eşyaları
 	var bc: Color = L.get("backc") if L.get("backc") != null else Color(0.4, 0.33, 0.22)
-	match L.get("back_item"):
+	var back_v2_ok = BackV2.build(m, L.get("back_item"), bc, ch, hip, toon)
+	match (null if back_v2_ok else L.get("back_item")):
 		"tespih":
 			var mb = MB.new()
 			var n = 22
@@ -388,7 +390,7 @@ static func accessories(m: CharacterModel) -> void:
 				mb.add("torus", Vector3(0, k * 0.012, 0), Vector3(0.2 - k * 0.012, 0.2, 0.2 - k * 0.012), bc.darkened(k * 0.08), Vector3(90, 0, 0), 14)
 			m._mesh_on("Hips", mb.build(toon), Transform3D(Basis.IDENTITY, hip + Vector3(0.21, -0.02, 0.0)))
 		_:
-			if L.get("back_item") != null:
+			if L.get("back_item") != null and not back_v2_ok:
 				BackItemsExt.build(m, String(L.get("back_item")), bc, ch, hip, toon)
 	# --- örgüt pelerini: yakada küçük metal halka tokalar
 	if L.get("outer_style") == "org_pelerin":

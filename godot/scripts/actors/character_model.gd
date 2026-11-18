@@ -2866,6 +2866,20 @@ static func _mesh_buck(m: ArrayMesh, axis: int) -> Dictionary:
 
 
 var _layer_meshes := []   # bu kurulumda eklenen giysi katmanları (kesim kalıbı bunların dışında durur)
+var _in_outer := false
+var _outer_mat: ShaderMaterial
+var _outer_hem := 99.0
+
+
+## Uzun dış giysi: altında kalan bacak ve pantolon, etek ucuna kadar çizilmez (adımda kumaşın içinden taşıyordu)
+func _apply_outer_hem() -> void:
+	_in_outer = false
+	var hem = _outer_hem if _outer_hem < _bp("Hips").y - 0.14 else -99.0
+	for mt in [body_mesh.get_surface_override_material(0) if body_mesh else null, cloth_shell_mat]:
+		if mt is ShaderMaterial:
+			mt.set_shader_parameter("leg_cover_hem", hem)
+
+
 func _garment(key: String, build: Callable) -> void:
 	var k = "%s|%s|%.3f" % [look["gender"], key, _outer_pad]
 	var lsig = 0   # iç katman imzası: kesim kalıbı aynı anahtarla farklı iç katmanların üstüne kurulabilir
@@ -2882,7 +2896,15 @@ func _garment(key: String, build: Callable) -> void:
 	_garment_cache[k] = _garment_cache[kv]
 	if _garment_cache[k] != null:
 		_layer_meshes.append(_garment_cache[k])
-		_dyn_garment(_add_shell(_garment_cache[k], cloth_shell_mat), key)
+		if _in_outer and _outer_mat == null:
+			_outer_mat = cloth_shell_mat.duplicate()   # dış giysinin kendi malzemesi: bacak kesimi ona uygulanmaz
+			materials.append(_outer_mat)
+		var g_shell: MeshInstance3D = _add_shell(_garment_cache[k], _outer_mat if _in_outer else cloth_shell_mat)
+		if _in_outer and g_shell != null:
+			var ab: AABB = (_garment_cache[k] as ArrayMesh).get_aabb()
+			if ab.position.x < -0.08 and ab.end.x > 0.08:   # gövdeyi saran parça (kol değil): etek ucu
+				_outer_hem = minf(_outer_hem, ab.position.y)
+		_dyn_garment(g_shell, key)
 
 
 ## Kendi rengi olan giysi parçası: başlık yuvası (10) bu kabuğa özel paletle boyanır; aynı yuvayı kullanan diğer giysilerle
@@ -6095,6 +6117,8 @@ func _garments(g: Dictionary) -> void:
 			var el = absf(_bp("LeftLowerArm").x)
 			_garment("genis_kol%d" % int(sx), func(): return _loft(g, 0, (absf(ua) + 0.02) * sx, (el + 0.08) * sx, 9, func(p): return signf(p.x) == sx and p.y > neck - 0.35 and absf(p.x) > absf(ua) and absf(p.x) < el + 0.1, func(t, _a): return 0.022 + t * 0.035, 1, null, -99.0, 24))
 	_outer_pad = 0.02 if look.get("vest") != null and look.get("outer_style") != null else 0.0
+	_outer_hem = 99.0
+	_in_outer = true
 	match look.get("outer_style"):
 		"palto":
 			_garment("palto", func(): return _cut_spec(g, neck - 0.01, knee + 0.02, 26, {"w": [[0.0, 0.84], [0.1, 1.0], [1.0, 1.16]], "d": [[0.0, 0.115], [1.0, 0.15]], "o": [[0.0, 0.0], [0.12, 0.0], [0.2, 0.2], [1.0, 0.28]], "n": 3.0}, 8, hips - 0.05, 0.035))   # KESİM: düz uzun palto, önde açık
@@ -6443,6 +6467,7 @@ func _garments(g: Dictionary) -> void:
 		"acik_ceket":
 			# önü açık kısa ceket (Striker Leaf Striker): boyundan belin hemen üstüne, gövdeye yakın; ön açıklık boydan boya (iç giysi görünür)
 			_garment("acik_ceket", func(): return _cut_spec(g, neck - 0.01, hips + 0.035, 15, {"w": [[0.0, 0.84], [0.12, 1.02], [1.0, 0.98]], "d": [[0.0, 0.11], [1.0, 0.13]], "o": [[0.0, 0.36], [1.0, 0.4]], "n": 3.0}, 8, -99.0, 0.03))   # KESİM: leaf_striker — kutu kısa açık ceket
+	_apply_outer_hem()
 	_outer_pad = 0.0
 	if look.get("outer_style") == "acik_ceket":
 		_acik_ceket_kit(g)
@@ -7875,7 +7900,7 @@ func _accessories() -> void:
 	# hayran modelleri (varsa): şapka / maske / sırt eşyası; yoksa aşağıdaki prosedürel modeller
 	var sf_head = _sf_acc(SFProps.HEAD_MAP.get(look.get("head_style"), ""), hc)
 	var sf_face = _sf_acc(SFProps.FACE_MAP.get(look.get("face_style"), ""), hc)
-	var sf_back = _sf_acc(SFProps.BACK_MAP.get(look.get("back_item"), ""), ch)
+	var sf_back = null if BackV2.has(look.get("back_item")) else _sf_acc(SFProps.BACK_MAP.get(look.get("back_item"), ""), ch)
 	if sf_head and look.get("head_style") in ["kasa", "kage"]:
 		hair_mask_plane(Vector3.UP, Vector3(0, htop - 0.06, 0))
 	if not sf_head and look.get("head_style") == "kage":
@@ -8173,7 +8198,7 @@ func _accessories() -> void:
 		_mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, Vector3(hcen.x, gy, hcen.z)))
 	# --- sırt / bel
 	var bc: Color = look.get("backc", Color(0.4, 0.33, 0.22)) if look.get("backc") != null else Color(0.4, 0.33, 0.22)
-	match (null if sf_back else look.get("back_item")):
+	match (null if sf_back or BackV2.has(look.get("back_item")) else look.get("back_item")):
 		"kabak", "sake":
 			# su kabağı (sırtta dev, iki boğumlu) / sake kabağı (belde küçük)
 			var big = look.get("back_item") == "kabak"
@@ -10738,6 +10763,7 @@ const SHEATH_ID := {"chakra_oltasi": "back", "ryujin": "belt", "kuwa": "back", "
 ## Kınlı kılıçlar: [kın başı z, kın ucu z, kalınlık, genişlik] (silah uzayında, kabza 0, namlu +Z)
 const SAYA := {"kurosawa": [0.085, 1.1, 0.044, 0.062], "katana": [0.075, 0.84, 0.042, 0.06], "kokuto": [0.075, 0.84, 0.042, 0.06], "wakizashi": [0.05, 0.6, 0.04, 0.055], "nodachi": [0.1, 1.38, 0.05, 0.11],
 	"tanto": [0.06, 0.4, 0.045, 0.045], "chokuto": [0.13, 0.9, 0.05, 0.05]}
+const BackV2 = preload("res://scripts/actors/back_v2.gd")
 const SHEATH_DUR := 0.42
 const KATANA_TIP_DOWN := -75.0
 const BACK_TIP_UP := ["chakra_oltasi", "kuwa", "hono_ken", "kajiki_mori", "dako", "jidanda", "cift_tirpan", "nunoboko", "katoringu", "natato", "kunai_to", "kama", "savas_cekici", "uc_tirpan", "mizrak", "shakujo", "ono", "sasumata", "konbo", "kanabo", "kabutowari", "kusarigama"]

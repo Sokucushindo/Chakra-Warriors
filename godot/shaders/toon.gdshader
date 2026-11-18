@@ -67,6 +67,7 @@ uniform vec4 face_a = vec4(0.0);   // çene genişliği, çene ucu, elmacık, bu
 uniform vec4 face_b = vec4(0.0);   // kaş çıkıntısı, işaret türü (0 yok, 1 burun yarası, 2 yanak çizgisi, 3 çil, 4 kırışık), -, -
 uniform vec4 face_ref = vec4(0.0, 1.7, 0.08, 0.0);
 uniform float outer_gap = 0.075;  // önü açık dış giysinin açıklığının yarı genişliği (m): yelek yalnız bu kadar görünür
+uniform float leg_cover_hem = -99.0;   // uzun dış giysinin etek ucu (dinlenme y): altındaki bacak / pantolon çizilmez
 uniform int outer_cover = 0;  // yelek katmanı: 1 önü açık dış giysi altında (yalnız ön şerit görünür), 2 kapalı pelerin altında (gizli)
 uniform vec4 scalp_cut = vec4(99.0, -99.0, 99.0, 0.0);  // x: bu yüksekliğin üstü, y/z: bu derinliğin arkasında z yüksekliğinin üstü  // saçlıyken gövdenin kafa derisi bu yüksekliğin üstünde çizilmez (saç arasından "kel" görünmesin)  // -, göz y, göz z
 varying float v_nospec;   // kafa derisi (saç arası) parlamasın: gri leke
@@ -164,14 +165,14 @@ float fold_h(vec3 p, int slot) {
 	bool arm = ax > rig_a.x * 0.9 && p.y > rig_a.w - 0.32;
 	if (arm) {
 		float e = exp(-pw2((ax - rig_a.y) / 0.06));
-		return sin(ax * 150.0 + n * 4.0 + p.z * 30.0) * (0.25 + e);
+		return sin(ax * 70.0 + n * 2.5 + p.z * 14.0) * e;   // kıvrım yalnız dirsekte (sürekli ince dalga bozulma gibi görünüyordu)
 	}
 	if (p.y < rig_b.x + 0.035) {
 		float k = exp(-pw2((p.y - rig_b.y) / 0.08)) + 0.8 * exp(-pw2((p.y - (rig_b.y - 0.15)) / 0.07));
-		return sin(p.y * 130.0 + n * 5.0 + p.x * 25.0) * (0.25 + k) + sin(p.x * 70.0 + p.z * 50.0) * 0.2;
+		return sin(p.y * 60.0 + n * 3.0 + p.x * 12.0) * k;   // diz ve ayak bileğinde
 	}
 	float below = clamp((rig_b.w - p.y) / 0.25, 0.0, 1.0);
-	return sin(p.x * 65.0 + n * 3.0) * 0.7 * below + sin(p.y * 90.0 + n * 4.0) * 0.12;
+	return sin(p.x * 32.0 + n * 2.0) * 0.5 * below;   // bel altında dikey dökülme
 }
 
 // dinlenme pozundaki konuma göre renk yuvası: 0 ten, 1 üst, 2 vurgu, 3 alt, 4 sargı, 5 yelek
@@ -312,6 +313,7 @@ void fragment() {
 	if (hide_masked && COLOR.a > 0.5) discard;
 	if (layer == 2 && outer_cover == 2) discard;
 	if (layer == 2 && outer_cover == 1 && !(rest.z > 0.0 && abs(rest.x) < outer_gap)) discard;   // dış giysinin altından taşmasın
+	if (leg_cover_hem > -50.0 && layer < 2 && rest.y < rig_b.x - 0.02 && rest.y > leg_cover_hem + 0.07 && !(outer_cover == 1 && rest.z > 0.0 && abs(rest.x) < max(outer_gap, 0.04) + 0.075)) discard;
 	bool scalp = layer == 0 && (rest.y > scalp_cut.x || (rest.z < scalp_cut.y && rest.y > scalp_cut.z));
 	if (scalp && scalp_col.a < 0.5) discard;
 	if (palette_mode) {
