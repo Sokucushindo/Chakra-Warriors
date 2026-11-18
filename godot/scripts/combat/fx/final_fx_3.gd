@@ -2137,7 +2137,7 @@ static func shindenshin_no_jutsu(pj: PathJutsu, c: Node3D, _t: Node3D, with_seal
 		var mk = _mind_marker()
 		pj.attach(e, mk, 15.0, Vector3.UP * (e.height + 0.9), 2)
 		if is_instance_valid(mk) and mk.is_inside_tree():
-			var tw = mk.create_tween().set_loops()
+			var tw = Game.safe_loops(mk.create_tween())
 			tw.tween_property(mk, "rotation:y", TAU, 2.4).from(0.0)
 		if n < 8:
 			_mind_thread(pj, c, e, 0.9, MIND, n * 0.04)
@@ -2198,7 +2198,7 @@ static func _palm_glow(pj: PathJutsu, c: Node3D, dur: float) -> void:
 	orb.set_instance_shader_parameter("tint", Color(0.7, 1.0, 0.72, 0.7))
 	orb.set_instance_shader_parameter("rim", Color(0.15, 0.6, 0.25, 0.9))
 	orb.scale = Vector3.ONE * 0.16
-	var tw = orb.create_tween().set_loops()
+	var tw = Game.safe_loops(orb.create_tween())
 	tw.tween_property(orb, "scale", Vector3.ONE * 0.22, 0.35).set_trans(Tween.TRANS_SINE)
 	tw.tween_property(orb, "scale", Vector3.ONE * 0.15, 0.35).set_trans(Tween.TRANS_SINE)
 	var l = OmniLight3D.new()

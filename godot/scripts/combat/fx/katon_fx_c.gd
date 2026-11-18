@@ -859,7 +859,7 @@ static func uchiha_kaenjin(pj: PathJutsu, c: Node3D, _t: Node3D) -> void:
 					if not is_instance_valid(tg):
 						return
 					var per = randf_range(0.22, 0.42)
-					var fl = tg.create_tween().set_loops()
+					var fl = Game.safe_loops(tg.create_tween())
 					fl.tween_property(tg, "scale", Vector3(w * 0.9, h * 1.1, w * 0.9), per).set_trans(Tween.TRANS_SINE)
 					fl.tween_property(tg, "scale", Vector3(w * 1.05, h * 0.85, w * 1.05), per).set_trans(Tween.TRANS_SINE))
 		var light = OmniLight3D.new()

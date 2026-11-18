@@ -501,7 +501,7 @@ static func _life(root: Node3D, t_in: float, hold: float, t_out: float, tail := 
 
 
 static func _spin(n: Node3D, period: float, s := 1.0, axis := "y") -> void:
-	var tw = n.create_tween().set_loops()
+	var tw = Game.safe_loops(n.create_tween())
 	tw.tween_property(n, "rotation:" + axis, TAU * s, maxf(0.05, period)).as_relative()
 
 

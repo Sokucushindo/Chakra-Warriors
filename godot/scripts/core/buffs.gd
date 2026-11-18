@@ -51,7 +51,7 @@ func has(name: String) -> bool:
 
 
 ## Buff anahtarı -> ekranda görünen ad (yoksa anahtar)
-const NAMES := {"summon_tank": "Çağrının Koruması", "beast": "Kuyruklu Canavar Pelerini", "bijuu_asit": "Asit (zayıf düştün)", "suna_tate": "Kum Kalkanı",
+const NAMES := {"inochi_kare": "Hayat Körisi", "bijugan": "Bijūgan Pelerini", "mushu_dokugiri": "Mushū no Dokugiri", "okarina": "Okarina Ezgisi", "eiyu_mizu": "Kahraman Suyu", "summon_tank": "Çağrının Koruması", "beast": "Kuyruklu Canavar Pelerini", "bijuu_asit": "Asit (zayıf düştün)", "suna_tate": "Kum Kalkanı",
 	"yoton_yoroi": "Lav Zırhı", "hane": "Kanat Hızı", "shindenshin_no_jin": "Zihin Ağı", "bubun_baika": "Kısmi Genişleme", "cho_baika": "Süper Genişleme",
 	"karori": "Kalori Kontrolü", "cho_modo": "Kelebek Modu", "shikyaku": "Dört Ayak", "karamatsu": "Kemik Kalkanı", "gosuiwan": "Güçlü Kol",
 	"henge_ash": "Kül Örtüsü", "hien": "Uçan Kırlangıç", "sameodori": "Köpekbalığı Dansı", "suna_no_yoroi": "Kum Zırhı", "sabaku_arashi": "Kum Fırtınası",

@@ -244,6 +244,11 @@ static func clan_look(c: String, arch: String, vid: String, female := false, age
 	if e is Array and e.size() >= 3:
 		lk["eye"] = Color(e[0], e[1], e[2])
 	lk["village"] = vid
+	var rk = {"genin": 0, "chunin": 1, "jonin": 2}.get(arch, -1)
+	if age == "adult" and rk >= 0:   # klanın kanon kıyafeti (Aburame paltosu, Kaguya kimonosu, Uchiha polisi)
+		var uni = Outfits.type_set(c, vid, rk, str(randi()), female)
+		if uni != "":
+			lk = Outfits.wear_set(lk, uni)
 	return lk
 
 

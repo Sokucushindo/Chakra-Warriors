@@ -46,7 +46,7 @@ const STYLES := {
 	"jashin": {"name": "Jashin Ayini", "key": "style_jashin", "src": "path:jashin", "need_item": "uc_tirpan", "range": "yakın-orta", "stop": 3.0,
 		"desc": "Hidan'ın yolu: kabloyla fırlayıp geri dönen üç bıçaklı tırpan ve kara mızrak rakibin kanını alır, tırpan savuruşu çevreyi biçer; kan aldıysan ayağınla Jashin çemberini çizersin — çemberdeyken kendi bacağına ve kalbine sapladığın mızrağın yarasını lanetli rakip alır (kendi canından bedel)."},
 	"hachibi": {"name": "Hachibi — Ritim ve Mürekkep", "key": "style_hachibi", "src": "path:hachibi", "range": "yakın-orta", "stop": 2.6,
-		"desc": "Killer B'nin yolu: Gyūki'nin ahtapot dokunacıyla kırbaç, kollar ve ağızdaki yedi kılıçla dönüş, kör eden mürekkep tükürüğü, şimşekli Lariat atılışı, iki dokunaçla kavrayıp yere çarpma; bitiriş küçük Sekiz Kuyruk topu."},
+		"desc": "Killer B'nin yolu: Gyūki'nin ahtapot dokunacıyla kırbaç, ritimle dönen düzensiz tekmeler (Ran Taijutsu), kör eden mürekkep tükürüğü, şimşekli Lariat atılışı, iki dokunaçla kavrayıp yere çarpma; bitiriş küçük Sekiz Kuyruk topu."},
 	"silah": {"name": "Buki Kuchiyose — Silah Ustası", "key": "style_silah", "src": "path:silah", "range": "orta-uzak", "stop": 6.0,
 		"desc": "Tenten'in yolu: iki el arasında açılan parşömenden kunai ve shuriken salvoları, zincirli orakla hedefi çekme, gökten karışık silah yağmuru, parşömenden çekilen dev balta; bitiriş gökten inen dev demir topuz."},
 	"jin_shukaku": {"name": "Shukaku — Kum Canavarı", "key": "style_jin_shukaku", "src": "jin:shukaku", "range": "yakın-orta", "stop": 2.8,

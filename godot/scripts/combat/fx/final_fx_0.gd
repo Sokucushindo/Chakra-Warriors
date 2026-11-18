@@ -1675,7 +1675,7 @@ static func _chakra_palms(pj: PathJutsu, c: Node3D, dur: float) -> void:
 		spin.add_child(core)
 		core.scale = Vector3.ONE * 0.13
 		_ip(core, {"tint": Color(JUKEN.r * 0.5, JUKEN.g * 0.55, JUKEN.b * 0.7, 1.0), "near_a": 0.3, "near_b": 1.0})
-		var tw = spin.create_tween().set_loops(int(ceil(dur / 0.3)) + 1)
+		var tw = Game.safe_loops(spin.create_tween(), int(ceil(dur / 0.3)) + 1)
 		tw.tween_property(spin, "rotation:y", TAU, 0.3).from(0.0)
 		pj.free_after(dur, ba)
 

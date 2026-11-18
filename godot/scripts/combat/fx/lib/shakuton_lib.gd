@@ -723,7 +723,7 @@ static func tail(host: Node, node: Node3D, w: float, n := 10, pal := 0.0, curl :
 	put(host, mi, Vector3.ZERO)
 	var hist: Array = []
 	var st = {"t": 0.0}
-	var tw = mi.create_tween().set_loops()
+	var tw = Game.safe_loops(mi.create_tween())
 	tw.tween_interval(1.0 / 60.0)
 	tw.tween_callback(func():
 		if not is_instance_valid(mi):

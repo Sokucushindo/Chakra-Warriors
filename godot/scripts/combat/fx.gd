@@ -636,7 +636,7 @@ func chakra_aura(parent: Node3D, col := Color(0.3, 0.62, 1.0), s := 1.0, light :
 	node.set_meta("meshes", meshes)
 	var tw = node.create_tween()
 	tw.tween_method(func(v: float): mat.set_shader_parameter("k", v), 0.0, 0.55, 0.5)   # yumuşak: %55 yoğunluk (tam güç "mod gibi" aşırı duruyordu)
-	var tt = node.create_tween().set_loops()
+	var tt = Game.safe_loops(node.create_tween())
 	tt.tween_method(func(v: float):
 		mat.set_shader_parameter("t", v)
 		if is_instance_valid(parent):

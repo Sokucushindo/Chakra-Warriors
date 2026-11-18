@@ -12,7 +12,7 @@ const GROUPS := [
 	["Dövüş", [["attack", "Saldırı", [-1]], ["guard", "Blok", [-2]], ["lock", "Hedefe kilitlen", [KEY_E, -3]],
 		["substitute", "Kawarimi (genjutsu'dayken: Kai)", [KEY_Q]], ["charge", "Chakra şarjı (basılı)", [KEY_C]],
 		["throw", "Alet fırlat", [KEY_R]], ["tool_next", "Fırlatılacak aleti değiştir", [KEY_T]],
-		["weapon_draw", "Silahı çek / kınına sok", [KEY_N]], ["seal_mode", "Mühür modu", [KEY_G]]]],
+		["weapon_draw", "Silahı çek / kınına sok", [KEY_N]], ["omori", "Ağırlıkları çıkar / tak (Omori)", [KEY_P]], ["seal_mode", "Mühür modu", [KEY_G]]]],
 	["Modlar ve çağrı", [["dojutsu", "Dōjutsu: gözleri aç / kapat (basılı: Susanoo)", [KEY_V]],
 		["sage", "Sennin modu (gözler açıkken: sağ göz tekniği)", [KEY_Z]], ["beast", "Canavar modu (gözler açıkken: sol göz tekniği)", [KEY_X]],
 		["gates", "Sekiz Kapı", [KEY_B]], ["summon_cmd", "Çağrı komutu", [KEY_J]], ["summon_special", "Çağrı özel tekniği", [KEY_U]]]],

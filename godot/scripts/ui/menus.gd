@@ -1401,7 +1401,7 @@ static func controls(back: Callable, keep := false) -> void:
 				h.add_child(kb)
 	# değişmeyen tuşlar ve tuş birleşimleri (atanan tuşla yazılır)
 	var fixed = [["Fare", "Kamera"], ["Esc", "Menü / geri"], ["%s + 1-9, 0, -, =" % Keys.name("seal_mode"), "Mühür ör"],
-		["Duvarda %s" % Keys.name("leap"), "Duvar atılımı (chakra)"], ["Havada %s" % Keys.name("substitute"), "İpli kunai: nişangâha tutun"],
+		["Duvarda %s" % Keys.name("leap"), "Duvar atılımı (chakra)"],
 		["Havada %s" % Keys.name("attack"), "Dalış tekmesi"]]
 	var fs = _set_section(colv[ncol - 1], "lock", "Sabit")
 	for f in fixed:
@@ -2856,7 +2856,7 @@ static func _susanoo_preview(pr: Dictionary) -> Control:
 	sv.add_child(cam)
 	var cp = Vector3(0, 1.25, -5.2)
 	cam.transform = Transform3D(Basis.looking_at(Vector3(0, 1.1, 0) - cp), cp)
-	var tw = sn.create_tween().set_loops()
+	var tw = Game.safe_loops(sn.create_tween())
 	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tw.tween_property(sn, "rotation:y", TAU, 10.0).from(0.0)
 	return svc
@@ -3011,7 +3011,7 @@ static func _model_preview(look: Dictionary, cam_pos := Vector3(0, 1.0, -4.4), t
 	sv.add_child(cam)
 	cam.transform = Transform3D(Basis.looking_at(target - cam_pos), cam_pos)
 	if spin:
-		var tw = m.create_tween().set_loops()
+		var tw = Game.safe_loops(m.create_tween())
 		tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 		tw.tween_property(m, "rotation:y", TAU, 12.0).from(0.0)
 	svc.set_meta("model", m)
@@ -4161,9 +4161,14 @@ static func shop_screen(title: String, entries: Array, buy: Callable) -> void:
 	if sel.is_empty():
 		rv.add_child(UI.label("Satılık bir şey yok.", 16, UI.MUTED))
 		return
+	if sel.has("try_on"):   # üstünde nasıl durduğunu dönerek gösterir
+		var ph = clampf(bg.get_viewport_rect().size.y - 520.0, 210.0, 430.0)
+		var pv = _model_preview(sel["try_on"].call(), Vector3(0, 1.02, -3.9), Vector3(0, 0.92, 0), 28.0, true, Vector2(400, ph))
+		pv.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		rv.add_child(pv)
 	var top = UI.hbox(16)
 	var big = sel["view"].call()
-	big.custom_minimum_size = Vector2(110, 110)
+	big.custom_minimum_size = Vector2(110, 110) if not sel.has("try_on") else Vector2(64, 64)
 	top.add_child(big)
 	var tv = UI.vbox(4)
 	var nm = UI.label(sel["name"], 22, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true)

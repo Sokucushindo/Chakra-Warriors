@@ -1279,7 +1279,7 @@ static func magnetize(pj: PathJutsu, c: Node3D, tt: Node3D, dur: float, text: St
 				rb.set_instance_shader_parameter("reps", 9.0)
 				rb.rotation = Vector3(0.3 + k * 0.9, k * 1.2, 0)
 				spin.add_child(rb)
-			var tw = spin.create_tween().set_loops(int(dur / 1.2) + 1)
+			var tw = Game.safe_loops(spin.create_tween(), int(dur / 1.2) + 1)
 			tw.tween_property(spin, "rotation:y", TAU, 1.2).as_relative()
 	var wt = weakref(tt)
 	var wc = weakref(c)

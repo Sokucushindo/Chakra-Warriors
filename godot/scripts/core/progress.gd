@@ -514,6 +514,11 @@ func clan_starter_kit(pr: Dictionary) -> void:
 			Gear.grant(pr, "hakko_chakura_to", "sag" if Gear.equipped(pr, "sag").is_empty() else "")
 			Gear.apply_look(pr)
 			Hud.msg("Aile yadigârı: Hakkō Chakura Tō (babandan kalan tantō)  [Tab > Ekipman]", Color(0.85, 0.9, 1.0), 6.0)
+	if not pr["flags"].get("senju_kolye", false):   # Senju yadigârı (kanon: Hashirama'dan torunlarına); parayla satılmaz
+		pr["flags"]["senju_kolye"] = true
+		if str(pr.get("clan", "")) == "senju" and not "shodai_kubikazari" in Gear.owned_ids(pr):
+			Gear.grant(pr, "shodai_kubikazari")
+			Hud.msg("Aile yadigârı: İlk Hokage'nin kolyesi  [Tab > Ekipman]", Color(0.7, 0.95, 0.9), 6.0)
 	if pr.get("flags", {}).get("clan_kit", false):
 		return
 	if not pr.has("flags"):
@@ -730,23 +735,41 @@ func on_player_died() -> void:
 	get_tree().create_timer(2.5).timeout.connect(func():
 		# kaçak köy hastanesinde doğamaz: sığınağında uyanır
 		var pos = Missions.open_ground(Orgs.hideout_spawn(), 6.0) if Orgs.is_rogue() else _hospital_pos()
-		Game.player.respawn(pos)
-		_calm_after_death(pos))
+		_calm_after_death(pos)   # sen baygınken olur: uyandığında kimse başında değildir
+		Game.player.respawn(pos))
 
 
-## Doğduğun yerin çevresinde seni hedefleyen düşmanlar (kalıcı olanlar) peşini bırakıp evine döner; geçici olanlar çekilip gider
+## Baygınken saatler geçer: seni kovalayanlar peşini bırakır, uyanacağın yerin başındaki düşmanlar çekip gider.
+## Geçici gelenler dağılır, kalıcı olanlar evine (evi buradaysa uzağa) döner; aynı düşmanın içinde tekrar tekrar doğulmaz.
 func _calm_after_death(pos: Vector3) -> void:
+	if Game.world:
+		Game.world.env.time_of_day = fposmod(Game.world.env.time_of_day + 0.25, 1.0)
 	for f in get_tree().get_nodes_in_group("fighters"):
-		if not f is Enemy or not is_instance_valid(f) or f.is_dead() or String(f.team) in ["player", "neutral"]:
+		if not f is Enemy or not is_instance_valid(f) or f.is_dead() or not Combat.hostile(Game.player, f):
 			continue
-		if f.global_position.distance_to(pos) > 120.0 and f.target != Game.player:
+		var d0: float = f.global_position.distance_to(pos)
+		var hunting: bool = f.target == Game.player
+		if not hunting and d0 >= 170.0:
 			continue
-		if f.target == Game.player or f.global_position.distance_to(pos) < 60.0:
-			f.lose_target(30.0)
-			f.state = "idle"
-			if f.get("home") != null and f.home.distance_to(pos) < 60.0 and not bool(f.arch.get("respawn", true)):
-				FX.smoke_puff(f.global_position + Vector3.UP, 0.7, 8)   # yalnız bu dövüş için gelmiş: çekilir
-				f.queue_free()
+		f.lose_target(240.0)
+		f.state = "idle"
+		if d0 >= 170.0:
+			continue   # uzakta kaldı: yalnız peşini bırakır
+		var h: Vector3 = f.home
+		if not bool(f.arch.get("respawn", true)):
+			f.queue_free()   # kalıcı değil: sen baygınken dağılıp gitti
+			continue
+		if h.distance_to(pos) < 170.0:
+			var a = randf() * TAU
+			h = Missions.open_ground(pos + Vector3(cos(a), 0.0, sin(a)) * randf_range(210.0, 260.0), 40.0)
+			f.home = h
+		f.velocity = Vector3.ZERO
+		f.global_position = h + Vector3.UP * 0.2
+	# yoldan geçen köy takımları da gider, bir süre yenisi gelmez
+	var at = get_tree().current_scene.find_child("AmbientTeams", true, false)
+	if at != null:
+		at.clear_near(pos, 220.0)
+	WorldDay.clear_near(pos, 220.0)
 
 
 func _process(_dt: float) -> void:
@@ -894,14 +917,14 @@ Tıbbi ninja kavanozuna bakıp başını salladı: \"Başkasının gözünü bur
 				Hud.dialog("Kapı Nöbetçisi", Talk.keeper("gate"), gopts)
 		"shop_weapons":
 			Hud.dialog("Silah Dükkânı", Talk.keeper("weapon"), [
-				{"label": "Ninja aletleri", "cb": func(): Hud.shop("Silah Dükkânı", ["kunai", "shuriken", "senbon", "tag", "makibishi", "smoke"])},
+				{"label": "Ninja aletleri", "cb": func(): Hud.shop("Silah Dükkânı", ["kunai", "shuriken", "mushu_dokugiri", "kosho_mimikazari", "hiko_tsubasa", "yuki_ita", "toge_dama", "kemuri_fuda", "chusha_bari", "senbon", "tag", "makibishi", "smoke", "kemuri_senkodan", "okarina", "agiz_kozu", "aobiko", "inochi_kare", "hikaridama", "togarashi_dama", "doku", "gedokuyaku", "kibaku_dama", "hyodama", "raizutsu", "suzu", "boenkyo", "bakusaidama", "kibaku_fuda", "kosen", "sode_kunai", "nuno_maki", "fuin_fuda", "kekkai_fuda"])},
 				{"label": "Silahlar (sağ el / sol el) — stok yarım saatte bir değişir", "cb": func(): Hud.gear_shop("Silahçı", Gear.shop_stock("w", String(it.get("village", home()))))},
 				{"label": "Kıyafetler ve zırhlar", "cb": func(): Hud.gear_shop("Terzi", Gear.shop_stock("c", String(it.get("village", home()))))},
 			])
 		"shop_weapons_old":
 			Hud.shop("Silah Dükkânı", ["kunai", "shuriken", "tag", "smoke", "scroll_katon_housenka", "scroll_suiton_suijinheki", "scroll_fuuton_daitoppa", "scroll_doton_doryuheki"])
 		"shop_items":
-			Hud.shop("Eczane", ["salve", "pill", "smoke"])
+			Hud.shop("Eczane", ["salve", "pill", "zoketsugan", "smoke"])
 		"shop_scrolls":
 			var sc = scroll_shop_items(14)
 			if sc.is_empty():
@@ -1119,6 +1142,10 @@ func _weights_tick() -> void:
 		_wt_last = Vector3.INF
 		return
 	var pl = Game.player
+	if bool(p().get("omori_off", false)):   # Omori çıkarıldı: yavaşlatma ve antrenman yok, beden hafif
+		_wt_last = Vector3.INF
+		Buffs.add("omori_serbest", 0.5, {"speed": preload("res://scripts/combat/omori.gd").FREE_SPEED, "_name": "Omori Çıktı", "_desc": "ağırlıklar yerde: çok hızlısın"})
+		return
 	Buffs.add("agirlik", 0.5, {"speed": 0.75, "_name": "Bacak Ağırlıkları", "_desc": "yavaşsın; koştukça dayanıklılık artar"})
 	var pos = pl.global_position
 	if _wt_last != Vector3.INF and pl.grounded and pl.input_locked <= 0.0:

@@ -229,12 +229,19 @@ static func play(fighter: Node3D, id: String, fit := -1.0) -> CastAnim:
 	return a
 
 
+func fighter_skill() -> float:
+	var s = f.get("skill")
+	return clampf(float(s), 0.0, 1.0) if s != null else -1.0
+
+
 func _plan(fit: float) -> void:
 	# mühür hızı: Hızlı Mühür (nin3) yetisi + seviye ile hızlanır
 	per = 0.2   # okunur mühür süresi (acemi ~0.27 sn/mühür, usta ~0.09)
 	if is_player:
 		per /= 1.0 + Stats.skill(Game.profile, "seal_speed")  # Hızlı Mühür, Tek El Mühürü
 		per *= Mastery.seal_speed(Game.profile)   # acemi yavaş ve okunur mühür yapar, usta hızlanır
+	elif fighter_skill() >= 0.0:
+		per *= lerpf(1.15, 0.5, fighter_skill())   # düşman da aynı: acemi yavaş, usta hızlı mühür dizer
 	var pre: float = st.get("pre", 0.2)
 	var post: float = st.get("post", 0.35)
 	if fit > 0.0:

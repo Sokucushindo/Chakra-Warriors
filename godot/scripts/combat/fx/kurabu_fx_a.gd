@@ -873,7 +873,7 @@ static func _mark(pj: PathJutsu, x: Node3D, col: Color, dur: float) -> void:
 		var w = PackedFloat32Array([0.05, 0.11, 0.13, 0.12, 0.09, 0.03])
 		root.add_child(_mi(_ribbon(pts, w, Vector3.ZERO, PackedColorArray([col if k % 2 == 0 else col.darkened(0.45)])), _paint_mat(0.9)))
 	pj.attach(x, root, dur, Vector3.UP * 2.3)
-	var tw = root.create_tween().set_loops(int(dur / 0.9) + 1)
+	var tw = Game.safe_loops(root.create_tween(), int(dur / 0.9) + 1)
 	tw.tween_property(root, "rotation:y", TAU, 0.9).as_relative()
 	_fade(root, 1.0, 0.0, 0.3, maxf(0.0, dur - 0.35))
 
@@ -1092,7 +1092,7 @@ static func _burning_house(pj: PathJutsu, at: Vector3, hold: float, face: Vector
 		var ft = fr.create_tween()
 		ft.tween_interval(k * 0.04)
 		ft.tween_method(func(v: float): m.set_shader_parameter("u_reveal", v), 0.0, 1.05, 0.35)
-		var fl = fr.create_tween().set_loops(int(hold / 0.5) + 2)
+		var fl = Game.safe_loops(fr.create_tween(), int(hold / 0.5) + 2)
 		fl.tween_property(fr, "scale", Vector3(1.0, 1.15, 1.0), 0.22 + randf() * 0.1)
 		fl.tween_property(fr, "scale", Vector3(1.0, 0.85, 1.0), 0.22 + randf() * 0.1)
 	# yerde kömürleşen halka
@@ -1106,7 +1106,7 @@ static func _burning_house(pj: PathJutsu, at: Vector3, hold: float, face: Vector
 	l.omni_range = 7.0
 	root.add_child(l)
 	l.position = Vector3.UP * 1.5
-	var lt = l.create_tween().set_loops(int(hold / 0.3) + 2)
+	var lt = Game.safe_loops(l.create_tween(), int(hold / 0.3) + 2)
 	lt.tween_property(l, "light_energy", 3.2, 0.15)
 	lt.tween_property(l, "light_energy", 2.0, 0.15)
 	_emitter(root, Vector3.UP * 1.2, [Color(1.0, 0.75, 0.3), Color(1.0, 0.45, 0.1), Color(0.2, 0.15, 0.12)], 26, 1.1, Vector2(0.09, 0.09), -1.5, Vector3.UP, 2.5, Vector3(1.2, 1.0, 1.2), hold)
@@ -1333,7 +1333,7 @@ static func _ido_beast(pj: PathJutsu, c: Node3D, life: float) -> Node3D:
 		var claws = _mi(ab.build(), am)
 		pv.add_child(claws)
 		mats.append([am, -4.3])
-		var sw = pv.create_tween().set_loops(int(life / 1.4) + 1)
+		var sw = Game.safe_loops(pv.create_tween(), int(life / 1.4) + 1)
 		sw.tween_property(pv, "rotation", Vector3(0.18, 0, sx * 0.08), 0.7).set_trans(Tween.TRANS_SINE)
 		sw.tween_property(pv, "rotation", Vector3(-0.1, 0, -sx * 0.05), 0.7).set_trans(Tween.TRANS_SINE)
 	var set_clip = func(v: float):
@@ -2424,7 +2424,7 @@ static func kodoku_no_jutsu(pj: PathJutsu, c: Node3D, _t: Node3D) -> void:
 		rm.set_shader_parameter("u_write", v), 0.0, 1.02, 0.7)
 	root.scale = Vector3.ONE * 0.05
 	root.create_tween().tween_property(root, "scale", Vector3.ONE, 0.5).set_trans(Tween.TRANS_BACK)
-	root.create_tween().set_loops().tween_property(root, "rotation:y", TAU, 6.0).as_relative()
+	Game.safe_loops(root.create_tween()).tween_property(root, "rotation:y", TAU, 6.0).as_relative()
 	var lt = OmniLight3D.new()
 	lt.light_color = Color(0.95, 0.45, 0.85)
 	lt.light_energy = 2.0

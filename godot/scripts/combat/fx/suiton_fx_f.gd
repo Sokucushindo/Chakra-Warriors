@@ -740,7 +740,7 @@ static func _shark(ln: float, o := {}) -> Node3D:
 			tail.rotation.y = sin(v) * 0.4
 			body0.rotation.y = sin(v - 1.2) * 0.06
 	root.tree_entered.connect(func():
-		var tw = root.create_tween().set_loops()
+		var tw = Game.safe_loops(root.create_tween())
 		tw.tween_method(wagf, 0.0, TAU, TAU / wag), CONNECT_ONE_SHOT)
 	return root
 
@@ -1004,7 +1004,7 @@ static func suiton_tate_eboshi(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	root.scale = Vector3(0.6, 0.05, 0.6)
 	var tw = root.create_tween()
 	tw.tween_property(root, "scale", Vector3.ONE, 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	var bt = body.create_tween().set_loops()
+	var bt = Game.safe_loops(body.create_tween())
 	bt.tween_property(body, "scale", Vector3(1.02, 0.98, 1.03), 0.5).set_trans(Tween.TRANS_SINE)
 	bt.tween_property(body, "scale", Vector3.ONE, 0.5).set_trans(Tween.TRANS_SINE)
 	for k in 6:
@@ -1246,7 +1246,7 @@ static func suiton_kaisui_hodan(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	ball.scale = Vector3.ONE * 0.1
 	var bt = ball.create_tween()
 	bt.tween_property(ball, "scale", Vector3.ONE, 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	var spin = mass.create_tween().set_loops()
+	var spin = Game.safe_loops(mass.create_tween())
 	spin.tween_property(mass, "rotation:y", TAU, 3.0).from(0.0)
 	for k in 10:   # su dört bir yandan toplanır
 		var a = TAU * k / 10.0
@@ -1756,7 +1756,7 @@ static func suiton_mizukagami_no_jutsu(pj: PathJutsu, c: Node3D, t: Node3D) -> v
 	mirror.add_child(disc)
 	var rim = L.wmi(_loop_mesh(1.5, 0.11), {"alpha": 0.92, "line": 0.14, "flow": 4.0, "streak": 3.0, "foam": 0.25})
 	mirror.add_child(rim)
-	var rim_spin = rim.create_tween().set_loops()
+	var rim_spin = Game.safe_loops(rim.create_tween())
 	rim_spin.tween_property(rim, "rotation:z", TAU, 1.6).from(0.0)
 	mirror.rotation.x = -PI * 0.5   # önce yerde yatan su
 	mirror.scale = Vector3(0.05, 0.05, 1.0)
@@ -1884,7 +1884,7 @@ static func hoshigaki_gyojin(pj: PathJutsu, c: Node3D, _t: Node3D) -> void:
 	var tp2 = pj._bone_world_attach(c, "Hips", tail, Transform3D(fwd_basis, hips_pos - fd * 0.12))
 	if tp2:
 		parts.append(tp2)
-		var tw = tail.create_tween().set_loops()
+		var tw = Game.safe_loops(tail.create_tween())
 		var base_rot = tail.rotation
 		tw.tween_property(tail, "rotation", base_rot + Vector3(0, 0.35, 0), 0.4).set_trans(Tween.TRANS_SINE)
 		tw.tween_property(tail, "rotation", base_rot - Vector3(0, 0.35, 0), 0.4).set_trans(Tween.TRANS_SINE)

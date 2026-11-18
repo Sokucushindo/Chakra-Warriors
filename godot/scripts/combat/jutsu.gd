@@ -135,6 +135,8 @@ signal jutsu_prep(caster: Node, id: String, release_in: float)   # mühür dizil
 func execute(caster: Node3D, id: String, target: Node3D) -> void:
 	jutsu_cast.emit(caster, id)
 	Combat.note_caster(caster)   # bağ / yavaşlatma süresi güç farkına göre (Combat.cc_dur)
+	if KinginFX.on_cast(caster, id):
+		return   # Benihisago: kaydedilen lanetli kişi lanet sözünü söyledi (o tekniği kullandı) -> teknik yerine su kabağına çekilir
 	caster.set_meta("jid", id)   # hasar dengesi: bu jutsunun isabetleri ölçülmüş çarpanla
 	if String(Data.jutsu.get(id, {}).get("element", "")) == "katon":
 		caster.set_meta("katon_t", Game.now())   # Kirin: Katon ile ısınan gök fırtına bulutu toplar
@@ -433,7 +435,7 @@ func rasenshuriken_body(size := 2.8, tint := Color(0.78, 0.9, 1.0)) -> Node3D:
 		discs.append(mt)
 	root.set_meta("discs", discs)
 	# anime fırıldağı hızlı döner (ikinci katman biraz yavaş = derinlik)
-	var tw = root.create_tween().set_loops()
+	var tw = Game.safe_loops(root.create_tween())
 	tw.tween_method(func(v: float):
 		for q in discs.size():
 			(discs[q] as ShaderMaterial).set_shader_parameter("spin", v * (1.0 if q == 0 else 0.8)), 0.0, TAU * 4.0, 1.0)
@@ -611,7 +613,8 @@ func _palm_release(c: Node3D) -> void:
 
 
 func _hand_dash(c: Node3D, t: Node3D, hand: Node3D, charge: float, speed: float, info: Dictionary, col: Color, grind := false, run := false, chidori_pose := true) -> void:
-	var tw = create_tween()
+	var tid: int = t.get_instance_id() if is_instance_valid(t) else 0   # silinen hedefi yakalamasın
+	var tw = c.create_tween()
 	tw.tween_interval(charge)
 	var state = {"t": 0.0, "done": false}
 	tw.tween_callback(func():
@@ -621,16 +624,17 @@ func _hand_dash(c: Node3D, t: Node3D, hand: Node3D, charge: float, speed: float,
 		timer.wait_time = 1.0 / 60.0
 		c.add_child(timer)
 		timer.timeout.connect(func():
+			var tt = instance_from_id(tid) if tid != 0 and is_instance_id_valid(tid) else null
 			state["t"] += 1.0 / 60.0
 			if state["done"] or not is_instance_valid(c):
 				timer.queue_free()
 				return
 			var d: Vector3
 			if c is Player:
-				d = _aim_flat(c, t)
+				d = _aim_flat(c, tt)
 				c.facing = atan2(-d.x, -d.z)
-			elif t and is_instance_valid(t) and not t.is_dead():
-				d = (t.global_position - c.global_position)
+			elif tt and is_instance_valid(tt) and not tt.is_dead():
+				d = (tt.global_position - c.global_position)
 				d.y = 0
 				d = d.normalized()
 				c.facing = atan2(-d.x, -d.z) if c is Player else c.facing
@@ -873,20 +877,22 @@ func _ticks(n: int, interval: float, fn: Callable, done := Callable()) -> void:
 
 ## Genel hücum: dur saniye boyunca hedefe/ileri koş, her karede on_tick(nokta) çağır
 func _dash(c: Node3D, t: Node3D, dur: float, speed: float, on_tick: Callable, on_end := Callable()) -> void:
+	var tid: int = t.get_instance_id() if is_instance_valid(t) else 0   # silinen hedefi yakalamasın
 	var st = {"t": 0.0}
 	var timer = Timer.new()
 	timer.wait_time = 1.0 / 60.0
 	c.add_child(timer)
 	timer.timeout.connect(func():
+		var tt = instance_from_id(tid) if tid != 0 and is_instance_id_valid(tid) else null
 		st["t"] += 1.0 / 60.0
 		if not is_instance_valid(c):
 			timer.queue_free()
 			return
 		var d: Vector3 = c.face_dir()
 		if c is Player:
-			d = _aim_flat(c, t)
-		elif t and is_instance_valid(t) and not t.is_dead():
-			d = t.global_position - c.global_position
+			d = _aim_flat(c, tt)
+		elif tt and is_instance_valid(tt) and not tt.is_dead():
+			d = tt.global_position - c.global_position
 			d.y = 0
 			d = d.normalized()
 			if c is Player:
@@ -1290,7 +1296,12 @@ func kurama_ido_check(c: Node3D) -> void:
 
 
 ## Nara gölgesi ışığa bağlı (anime: gün batımında gölge uzar, öğlen kısalır, karanlıkta gölge zayıf)
+## Hikaridama patlayınca gölgeler kısa süre uzar (kanon: Nara klanı bu yüzden sever)
 func shadow_k() -> float:
+	return _shadow_tod_k() * (1.6 if Game.now() < float(Game.get_meta("hikari_kage_until", 0.0)) else 1.0)
+
+
+func _shadow_tod_k() -> float:
 	var tod = float(Game.world.env.time_of_day) if Game.world and Game.world.get("env") else 0.5
 	if (tod > 0.22 and tod < 0.32) or (tod > 0.68 and tod < 0.8):
 		return 1.5   # şafak / gün batımı: uzun gölgeler
@@ -1388,7 +1399,7 @@ func j_mushi_swarm(c: Node3D, t: Node3D) -> void:
 	haze.material_override = hm
 	haze.scale = Vector3.ONE * 3.2
 	cloud.add_child(haze)
-	var hw = haze.create_tween().set_loops()
+	var hw = Game.safe_loops(haze.create_tween())
 	hw.tween_property(haze, "scale", Vector3(3.6, 2.8, 3.4), 0.3)
 	hw.tween_property(haze, "scale", Vector3(3.0, 3.4, 3.1), 0.3)
 	Sfx.play("wind", c.global_position, 2.0, 0.5)
@@ -1579,7 +1590,7 @@ func gatsuga_drill(size: float) -> Node3D:
 				rs.add_vertex(v)
 		rmi.mesh = rs.commit()
 	rebuild.call()
-	var tw = ring.create_tween().set_loops()
+	var tw = Game.safe_loops(ring.create_tween())
 	tw.tween_callback(rebuild)
 	tw.tween_interval(0.06)
 	root.scale = Vector3.ONE * size * 1.1

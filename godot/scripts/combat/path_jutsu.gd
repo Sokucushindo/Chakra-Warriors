@@ -7,7 +7,7 @@ extends ClanJutsu
 ##   Silah Ustası Yolu: parşömenden gerçek silah yağmuru, zincirle çekme/kancalanma, telli silah fırtınası, demir yelpaze kalkanı,
 ##               gökten dev topuz, efsanevi Bashōsen'in dört sargısı.
 
-const PSTYLE := {
+const PSTYLE := {"chibitama_rasengan": "power", "sunagoromo": "sense", "gyoraishin": "throw", "kaze_gaeshi": "power", "sumi_nagashi": "sense", "kugutsu_modoki": "sense", "rensha": "throw", "jikki_uematsu": "two_palm", "ribashiburu": "summon", "kawara_shuriken": "power", "samidare_kekka": "spin", "ayametori": "two_palm", "nadeshiko_shinku_enbu": "throw", "hari_jigoku": "power", "shisho_tenketsu": "power", 
 	"sen_ei_jashu": "two_palm", "jagei_jubaku": "sense", "hebi_bunshin_no_jutsu": "clone", "sen_ei_tajashu": "two_palm",
 	"kuchiyose_rashomon": "summon", "kusanagi_kuchi": "breath", "gogyo_fuin": "palm", "sen_ei_ranjashu": "ground",
 	"ten_no_juin": "power", "juin_ni_no_dankai": "power", "mandara_no_jin": "breath", "orochimaru_ryu_no_kawarimi_no_jutsu": "power",
@@ -3978,7 +3978,7 @@ func _paper_butterfly(k: int) -> Node3D:
 			w.rotation = Vector3(-PI * 0.5, (0.35 if j == 0 else -0.5) * sx, 0)
 			w.position = Vector3(sx * (0.12 if j == 0 else 0.08), 0, -0.07 if j == 0 else 0.08)
 			hinge.add_child(w)
-		var fl = hinge.create_tween().set_loops()
+		var fl = Game.safe_loops(hinge.create_tween())
 		var sp = randf_range(0.07, 0.1)
 		fl.tween_property(hinge, "rotation:z", sx * 1.0, sp)
 		fl.tween_property(hinge, "rotation:z", -sx * 0.25, sp)
@@ -4416,7 +4416,7 @@ func _wind_hand(c: Node3D, dur: float, s := 0.5, col := Color(0.6, 0.85, 1.0)) -
 		return
 	var orb = VFX.wind_ball(s)
 	ba.add_child(orb)
-	var sp = orb.create_tween().set_loops()
+	var sp = Game.safe_loops(orb.create_tween())
 	sp.tween_property(orb, "rotation:z", TAU, 0.25).from(0.0)
 	free_after(dur, ba)
 
@@ -5112,7 +5112,7 @@ func _lion_shroud(c: Node3D, bone: String, dur: float) -> Node3D:
 		var w = randf_range(0.55, 0.7)
 		tg2.scale = Vector3(w, h, w)
 		var per = randf_range(0.18, 0.32)
-		var fl = tg2.create_tween().set_loops()
+		var fl = Game.safe_loops(tg2.create_tween())
 		fl.tween_property(tg2, "scale", Vector3(w * 0.9, h * 1.15, w * 0.9), per).set_trans(Tween.TRANS_SINE)
 		fl.tween_property(tg2, "scale", Vector3(w * 1.05, h * 0.85, w * 1.05), per).set_trans(Tween.TRANS_SINE)
 	# yüz: kılıfın ön yüzüne oturan desen
@@ -5332,21 +5332,24 @@ func p_zesshi_nensan(c: Node3D, t: Node3D) -> void:
 	NinjutsuFXE.zesshi_nensan(self, c, t)
 
 
-## Akrobat: ağızda, ellerde, koltuk altlarında yedi kılıçla kendi etrafında dönerek kesme
+## Akurobatto (kanon, Killer B): Nanatō şart — yedi kılıç ağızda, boyunda, koltuk altında, dirseklerde, dizde ve karında
+## (oyundaki gerçek kılıçlar gövdeye geçer); breakdance dönüşüyle ileri akar, her dönüş çelik yayı keser, kanatır
 func p_akurobatto(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.2)
 	var tt = tg(c, t, 6.0)
 	var d = _face(c, tt)
-	for side in ["RightHand", "LeftHand", "RightUpperArm", "LeftUpperArm", "Head"]:
-		_hand_blade(c, 1.2, Color(0.82, 0.85, 0.9), 1.0, side)
+	NanatoFX.draw_real(c)
+	NanatoFX.play_step(c, 3, 1.15)
 	every(1.0, 0.1, func(_i, k):
 		if not live(c):
 			return
 		if c is CharacterBody3D:
 			c.velocity = d * 5.0 + Vector3.UP * (2.0 if k < 0.2 else 0.0)
 		var at = c.global_position + Vector3.UP * 1.1
-		_arc_cut(at, d.rotated(Vector3.UP, k * TAU * 3.0), -40.0, 40.0, Color(0.95, 0.97, 1.0), 2.0)
-		mhit(c, at, 2.4, inf(c, "akurobatto", 0.3, {"knock": 3.0, "kind": "light", "bleed": 2.0})), Callable())
+		var a0 = k * TAU * 3.0
+		NanatoFX.arc(at + Vector3.UP * (0.4 * sin(a0)), d, d.cross(Vector3.UP).normalized(), 1.5, a0, a0 + 2.2, 0.14, 0.2)
+		hit(c, at, 2.4, inf(c, "akurobatto", 0.3, {"knock": 3.0, "kind": "light", "bleed": 2.0}), [])
+	)
 	Sfx.play("clink", c.global_position, 1.0)
 
 
@@ -8301,7 +8304,7 @@ func _blue_wings(c: Node3D, dur: float) -> Node3D:
 		for outline in [UP_W, LO_W]:
 			wing.add_child(_wing_sheet(outline, sx, m))
 		wing.rotation.y = -0.38 * sx   # uçlar geriye açılır
-		var tw = wing.create_tween().set_loops()
+		var tw = Game.safe_loops(wing.create_tween())
 		tw.tween_property(wing, "rotation:y", -0.62 * sx, 0.7).set_trans(Tween.TRANS_SINE)
 		tw.tween_property(wing, "rotation:y", -0.3 * sx, 0.7).set_trans(Tween.TRANS_SINE)
 	root.scale = Vector3.ONE * 0.05
@@ -11327,14 +11330,7 @@ func p_jashin_kazik(c: Node3D, t: Node3D) -> void:
 	busy(c, 0.6)
 	var tt = tg(c, t, 18.0)
 	var from = hand_pos(c, true)
-	var spike = MeshInstance3D.new()
-	var cm = CylinderMesh.new()
-	cm.top_radius = 0.0; cm.bottom_radius = 0.04; cm.height = 1.4
-	spike.mesh = cm
-	spike.material_override = _flat_glow(Color(0.08, 0.08, 0.1))
-	var holder = Node3D.new()
-	holder.add_child(spike)
-	spike.rotation.x = PI * 0.5
+	var holder = load("res://scripts/combat/fx/kaeri_yari_fx.gd").flying()   # kuşanılan mızrağın kendisi
 	var pr = shot(c, from, aim_at(c, tt, from), 40.0, holder, inf(c, "jashin_kazik", 1.0, {"knock": 2.0, "kind": "heavy", "bleed": 3.0}), tt, false, 0.6, func(p, h):
 		VFX.debris(p, Color(0.6, 0.05, 0.05), 8, 4.0, 0.2)
 		if h and live(h):
@@ -11479,24 +11475,17 @@ func p_hachibi_ahtapot_kollari(c: Node3D, t: Node3D) -> void:
 ## Yedi Kılıç Dansı: kollar, koltuk altları ve ağızda kılıçlarla dönen kesik kasırgası
 func p_hachibi_yedi_kilic(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.3)
-	var root = Node3D.new()
-	c.add_child(root)
-	root.position = Vector3.UP * 1.2
-	for k in 7:
-		var a = k * TAU / 7.0
-		var b = MB.new()
-		b.add("box", Vector3(0, 0, 0.6), Vector3(0.04, 0.12, 1.2), Color(0.8, 0.82, 0.86))
-		b.add("cyl", Vector3(0, 0, -0.05), Vector3(0.04, 0.15, 0.04), PDARK, Vector3(90, 0, 0), 6)
-		var sw = mesh_of(b)
-		root.add_child(sw)
-		sw.rotation.y = a
-		sw.position = Vector3(cos(a), (k % 3 - 1) * 0.3, sin(a)) * 0.4
-	var tw = root.create_tween()
-	tw.tween_property(root, "rotation:y", TAU * 5.0, 1.2)
-	tw.tween_callback(root.queue_free)
-	every(1.2, 0.15, func(_i, _k):
+	# Nanatō şart (need weapon:nanato): gerçek yedi kılıç gövdede, beden iki tur breakdance dönüşü; her tur üç seviyede çelik yay
+	NanatoFX.draw_real(c)
+	NanatoFX.play_step(c, 3, 0.85)
+	every(1.2, 0.15, func(_i, k):
 		if live(c):
-			VFX.shockwave(c.global_position + Vector3.UP * 1.2, Color(0.85, 0.88, 0.95), 4.0, 0.15, true)
+			var at = c.global_position
+			var f = c.face_dir() if c.has_method("face_dir") else Vector3.FORWARD
+			f.y = 0.0
+			f = f.normalized()
+			var a0 = k * TAU * 5.0
+			NanatoFX.arc(at + Vector3.UP * [0.45, 1.0, 1.55][_i % 3], f, f.cross(Vector3.UP).normalized(), 2.6, a0, a0 + 2.6, 0.16, 0.22)
 			hit(c, c.global_position + Vector3.UP, 3.2, inf(c, "hachibi_yedi_kilic", 0.35, {"knock": 4.0, "kind": "light", "bleed": 1.5})), Callable())
 	Sfx.play("blade", c.global_position, 0.6)
 
@@ -12450,7 +12439,7 @@ func _yh_daze(e: Node3D, dur: float) -> void:
 	e.add_child(r)
 	fit_body(e, r)   # hedef boyunda (kuyruklu/dev hedefte küçük kalmasın)
 	r.position = Vector3.UP * 2.3
-	var tw = r.create_tween().set_loops(int(dur / 0.6) + 1)
+	var tw = Game.safe_loops(r.create_tween(), int(dur / 0.6) + 1)
 	tw.tween_property(r, "rotation:y", TAU, 0.6).as_relative()
 	get_tree().create_timer(dur).timeout.connect(func():
 		if is_instance_valid(r):
@@ -13165,11 +13154,7 @@ func jutsu_weapon(c: Node3D, kind: String, dur: float) -> Node3D:
 					b.add("cyl", Vector3(sin(a3), cos(a3), -0.02) * 1.25, Vector3(0.3, 0.03, 0.3), Color(0.5, 0.25, 0.6), Vector3(90, 0, 0), 14)
 				b.add("cyl", Vector3(0, -0.1, 0), Vector3(0.14, 0.3, 0.14), Color(0.2, 0.16, 0.14), Vector3.ZERO, 8)
 			"shakujo":
-				b.add("cyl", Vector3(0, 0.6, 0), Vector3(0.06, 2.0, 0.06), Color(0.35, 0.22, 0.12), Vector3.ZERO, 8)
-				b.add("torus", Vector3(0, 1.75, 0), Vector3(0.45, 0.45, 0.45), Color(0.75, 0.65, 0.3), Vector3(90, 0, 0), 14)
-				for k in 4:
-					b.add("torus", Vector3((k - 1.5) * 0.12, 1.5, 0), Vector3(0.14, 0.14, 0.14), Color(0.8, 0.7, 0.35), Vector3(90, 0, 0), 8)
-				b.add("cone", Vector3(0, 2.05, 0), Vector3(0.1, 0.25, 0.1), Color(0.75, 0.65, 0.3), Vector3.ZERO, 6)
+				b.add_mesh(CharacterModel._shk_mb(true), Transform3D(Basis(Vector3.RIGHT, -PI * 0.5), Vector3(0, 0.38, 0)))   # silahla aynı asa (refs/shakujo)
 			"katana":
 				b.add("box", Vector3(0, 0.65, 0), Vector3(0.05, 1.0, 0.012), Color(0.85, 0.88, 0.92))
 				b.add("box", Vector3(0, 0.12, 0), Vector3(0.16, 0.03, 0.1), Color(0.25, 0.2, 0.12))
@@ -17090,7 +17075,7 @@ func _hakko_blade(c: Node3D, dur: float) -> void:
 	shell.mesh = gb.build(null)
 	shell.material_override = glow_m
 	tanto.add_child(shell)
-	var tw = shell.create_tween().set_loops()
+	var tw = Game.safe_loops(shell.create_tween())
 	tw.tween_property(shell, "scale", Vector3(1.4, 1.3, 1.06), 0.08)
 	tw.tween_property(shell, "scale", Vector3.ONE, 0.08)
 	free_after(dur, ba)
@@ -19065,6 +19050,18 @@ func p_kioku_yomi(c: Node3D, t: Node3D) -> void:
 func p_chakura_no_ito(c: Node3D, t: Node3D) -> void:
 	KetsuryuFX.chakura_no_ito(self, c, t)
 
+## Altı Yol hazineleri (Kumo, Kinkaku–Ginkaku): Kōkinjō bağlar ve söz ruhunu çeker; Benihisago kaydeder; Kohaku çağırıp mühürler
+func p_kokinjo_shibari(c: Node3D, t: Node3D) -> void:
+	KinginFX.kokinjo_shibari(self, c, t)
+
+
+func p_benihisago_kiroku(c: Node3D, t: Node3D) -> void:
+	KinginFX.benihisago_kiroku(self, c, t)
+
+
+func p_kohaku_yobikake(c: Node3D, t: Node3D) -> void:
+	KinginFX.kohaku_yobikake(self, c, t)
+
 
 ## Mitarashi: Senei Dokuga* — gölgeden fırlayan iki yılan rakibin bacaklarını ısırır: zehir damarlara yürür (sürekli hasar,
 ## yavaşlama). Zehir sürerken ikinci ısırık daha derin işler
@@ -19947,3 +19944,155 @@ func p_hagoromo_soki_giri(c: Node3D, t: Node3D) -> void:
 ## çevreyi sarsarsın
 func p_hagoromo_ukyu_rakuha(c: Node3D, t: Node3D) -> void:
 	Clan4FXA.hagoromo_ukyu_rakuha(self, c, t)
+
+
+## Parti 1: görünüm ve işleyiş combat/fx/jutsu_p1_fx.gd içinde
+func p_chikatsu_saisei(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p1_fx.gd").chikatsu_saisei(self, c, t)
+
+
+func p_saisei_kekkai(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p1_fx.gd").saisei_kekkai(self, c, t)
+
+
+func p_biju_soshingeki(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p1_fx.gd").biju_soshingeki(self, c, t)
+
+
+func p_tenpenchii(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p1_fx.gd").tenpenchii(self, c, t)
+
+
+func p_yosakugiri(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p1_fx.gd").yosakugiri(self, c, t)
+
+
+## Kagerō Ninpō: Utakata — dört ateşböceği kanadı, anlık geçiş, enerji boşalması; kullanan ölümün eşiğinde
+func p_kagero_utakata(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p2_fx.gd").kagero_utakata(self, c, t)
+
+
+## Kōmori Seichū — yarasa sürüsü çevreyi tarar, ses dalgalarıyla saldırır
+func p_komori_seichu(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p2_fx.gd").komori_seichu(self, c, t)
+
+
+## Enmaku Rō — dağılan duman klonlarının dumanı hedefi sarıp bağlar
+func p_enmaku_ro(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p2_fx.gd").enmaku_ro(self, c, t)
+
+
+## Saibō no Kasseijutsu — ağır yaralı dostun hücrelerini uyandıran ameliyat tekniği
+func p_saibo_kasseijutsu(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p2_fx.gd").saibo_kasseijutsu(self, c, t)
+
+
+## Chakura no Hari — hedefi kovalayan, niteliği değişen chakra iğneleri
+func p_chakura_no_hari(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p2_fx.gd").chakura_no_hari(self, c, t)
+
+
+func p_samidare_kekka(c: Node3D, t: Node3D) -> void:
+	preload("res://scripts/combat/fx/jutsu_p3_fx.gd").samidare_kekka(self, c, t)
+
+
+func p_ayametori(c: Node3D, t: Node3D) -> void:
+	preload("res://scripts/combat/fx/jutsu_p3_fx.gd").ayametori(self, c, t)
+
+
+func p_nadeshiko_shinku_enbu(c: Node3D, t: Node3D) -> void:
+	preload("res://scripts/combat/fx/jutsu_p3_fx.gd").nadeshiko_shinku_enbu(self, c, t)
+
+
+func p_hari_jigoku(c: Node3D, t: Node3D) -> void:
+	preload("res://scripts/combat/fx/jutsu_p3_fx.gd").hari_jigoku(self, c, t)
+
+
+func p_shisho_tenketsu(c: Node3D, t: Node3D) -> void:
+	preload("res://scripts/combat/fx/jutsu_p3_fx.gd").shisho_tenketsu(self, c, t)
+
+
+## Jibakujutsu — havaya yazılan kanji bedene geçer: 操 denetim, 滅 yıkım
+func p_jibakujutsu(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p4_fx.gd").jibakujutsu(self, c, t)
+
+
+## Bunshin Kaiten Kakato Otoshi — klonlarla dönerek topuk indirme
+func p_bunshin_kakato(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p4_fx.gd").bunshin_kakato(self, c, t)
+
+
+## Kokūn — Chōmei'nin gücüyle koruyucu koza
+func p_kokun(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p4_fx.gd").kokun(self, c, t)
+
+
+## Tsuchi Kurenai — ateşlenen matkap araziyi yarar
+func p_tsuchi_kurenai(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p4_fx.gd").tsuchi_kurenai(self, c, t)
+
+
+## Maengan — bilek fırlatıcısından duman bombası yağmuru
+func p_maengan(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p4_fx.gd").maengan(self, c, t)
+
+
+## Parti 5: görünüm ve işleyiş combat/fx/jutsu_p5_fx.gd içinde
+func p_eikeso_i(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p5_fx.gd").eikeso_i(self, c, t)
+
+
+func p_sumerudama(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p5_fx.gd").sumerudama(self, c, t)
+
+
+func p_enryu(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p5_fx.gd").enryu(self, c, t)
+
+
+func p_konshin_betsuri(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p5_fx.gd").konshin_betsuri(self, c, t)
+
+
+func p_aian_meiden(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p5_fx.gd").aian_meiden(self, c, t)
+
+
+func p_kugutsu_modoki(c: Node3D, t: Node3D) -> void:
+	preload("res://scripts/combat/fx/jutsu_p6_fx.gd").kugutsu_modoki(self, c, t)
+
+
+func p_rensha(c: Node3D, t: Node3D) -> void:
+	preload("res://scripts/combat/fx/jutsu_p6_fx.gd").rensha(self, c, t)
+
+
+func p_jikki_uematsu(c: Node3D, t: Node3D) -> void:
+	preload("res://scripts/combat/fx/jutsu_p6_fx.gd").jikki_uematsu(self, c, t)
+
+
+func p_ribashiburu(c: Node3D, t: Node3D) -> void:
+	preload("res://scripts/combat/fx/jutsu_p6_fx.gd").ribashiburu(self, c, t)
+
+
+func p_kawara_shuriken(c: Node3D, t: Node3D) -> void:
+	preload("res://scripts/combat/fx/jutsu_p6_fx.gd").kawara_shuriken(self, c, t)
+
+
+func p_chibitama_rasengan(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p7_fx.gd").chibitama_rasengan(self, c, t)
+
+
+func p_sunagoromo(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p7_fx.gd").sunagoromo(self, c, t)
+
+
+func p_gyoraishin(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p7_fx.gd").gyoraishin(self, c, t)
+
+
+func p_kaze_gaeshi(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p7_fx.gd").kaze_gaeshi(self, c, t)
+
+
+func p_sumi_nagashi(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p7_fx.gd").sumi_nagashi(self, c, t)

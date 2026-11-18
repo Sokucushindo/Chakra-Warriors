@@ -2,19 +2,21 @@ class_name VitalsUI
 extends Control
 ## Sol üst oyuncu çerçevesi, arayüzün sumi-e dilinde (dokular: tools/make_ui_brush.py): kâğıda yayılmış mürekkep lekesi
 ## üstünde kırmızı ensō içinde portre, yırtık kenarlı washi plakada mürekkep isim + hanko, fırça oluklarında akan
-## mürekkep can / chakra çubukları, mon sikkesi yığını, kütükler, EXP, klan kaynağı. Hud her karede set_state çağırır;
+## mürekkep can / chakra / stamina çubukları, mon sikkesi yığını, kütükler, EXP, klan kaynağı. Hud her karede set_state çağırır;
 ## yalnız görünür değer değişince yeniden çizilir.
 
 const W := 720.0
-const H := 222.0
+const H := 239.0
 const C := Vector2(72, 80)      # portre merkezi
 const BX := 134.0               # çubukların sol kenarı
 const HP_W := 380.0
 const COL_X := BX + HP_W + 14.0  # değer / simge sütunu (tüm çubuklarda aynı hizada)
 const HP_R := Rect2(BX, 83, HP_W, 22)
 const CK_R := Rect2(BX, 115, HP_W, 18)
-const XP_R := Rect2(BX, 148, HP_W, 6)
-const KR_R := Rect2(BX, 203, HP_W, 8)
+const ST_R := Rect2(BX, 141, HP_W, 12)
+const XP_R := Rect2(BX, 165, HP_W, 6)
+const KR_R := Rect2(BX, 220, HP_W, 8)
+const ST_COL := Color(1.0, 0.62, 0.18)
 const FILL_SHADER := """shader_type canvas_item;
 uniform vec4 col : source_color = vec4(0.3, 0.9, 0.4, 1.0);
 uniform vec4 trail_col : source_color = vec4(1.0, 0.85, 0.5, 1.0);
@@ -95,7 +97,7 @@ func _init() -> void:
 	if _fill_shader == null:
 		_fill_shader = Shader.new()
 		_fill_shader.code = FILL_SHADER
-	for kv in [["hp", HP_R], ["ck", CK_R], ["xp", XP_R], ["kr", KR_R]]:
+	for kv in [["hp", HP_R], ["ck", CK_R], ["st", ST_R], ["xp", XP_R], ["kr", KR_R]]:
 		var cr := ColorRect.new()
 		var rr: Rect2 = kv[1]
 		cr.position = rr.position
@@ -121,7 +123,7 @@ func set_state(d: Dictionary) -> void:
 		"hp": int(d["hp"]), "hp_max": int(d["hp_max"]), "hpf": int(clampf(d["hp"] / maxf(1.0, d["hp_max"]), 0.0, 1.0) * 400.0),
 		"hp_col": d["hp_col"], "trail": int(clampf(d["trail"] / maxf(1.0, d["hp_max"]), 0.0, 1.0) * 400.0),
 		"ck": int(d["ck"]), "ck_max": int(d["ck_max"]), "ckf": int(clampf(d["ck"] / maxf(1.0, d["ck_max"]), 0.0, 1.0) * 400.0),
-		"staf": int(clampf(d["sta"] / maxf(1.0, d["sta_max"]), 0.0, 1.0) * 200.0),
+		"sta": int(d["sta"]), "sta_max": int(d["sta_max"]), "staf": int(clampf(d["sta"] / maxf(1.0, d["sta_max"]), 0.0, 1.0) * 400.0),
 		"xp": int(clampf(d["xp"], 0.0, 1.0) * 300.0), "ryo": int(d["ryo"]), "subs": int(d["subs"]), "rk": int(d["rk"]),
 		"clan": {} if d["clan"].is_empty() else {"l": d["clan"]["label"], "v": int(d["clan"]["v"]), "m": int(d["clan"]["max"]),
 			"f": int(clampf(d["clan"]["v"] / maxf(0.001, d["clan"]["max"]), 0.0, 1.0) * 300.0), "c": d["clan"]["col"]},
@@ -140,6 +142,7 @@ func set_state(d: Dictionary) -> void:
 		dyn.queue_redraw()
 		_fill("hp", q["hpf"] / 400.0, q["hp_col"], q["trail"] / 400.0)
 		_fill("ck", q["ckf"] / 400.0, Color(0.28, 0.6, 1.0))
+		_fill("st", q["staf"] / 400.0, ST_COL)
 		_fill("xp", q["xp"] / 300.0, Color(1.0, 0.7, 0.25))
 		var cl2: Dictionary = q["clan"]
 		_fills["kr"].visible = not cl2.is_empty()
@@ -223,14 +226,15 @@ func _draw() -> void:
 	_t(self, UI.font(true), Vector2(140, 78), String(st["rank_txt"]), 18, Color(1.0, 0.86, 0.5), 2, Color(0.05, 0.03, 0.02, 0.92))
 	_bar_frame(HP_R)
 	_bar_frame(CK_R)
+	_bar_frame(ST_R)
 	_bar_frame(XP_R)
 	_ticks(XP_R)
 	_leaf(Vector2(COL_X + 11, XP_R.get_center().y), 22.0)
 	_t(self, cf, Vector2(COL_X + 28, XP_R.get_center().y + 6), "EXP", 17, Color(0.98, 0.7, 0.38), 4)
 	# Ryō + kütük satırı: kısa mürekkep oluk üstünde
-	draw_style_box(UI.brush(Color(0.02, 0.018, 0.016, 0.72), "a", 0), Rect2(BX - 10, 162, 250, 32))
-	draw_style_box(UI.brush(Color(0.02, 0.018, 0.016, 0.72), "s", 0), Rect2(408, 162, 130, 32))
-	_coins(Vector2(BX + 6, 178))
+	draw_style_box(UI.brush(Color(0.02, 0.018, 0.016, 0.72), "a", 0), Rect2(BX - 10, 182, 250, 32))
+	draw_style_box(UI.brush(Color(0.02, 0.018, 0.016, 0.72), "s", 0), Rect2(408, 182, 130, 32))
+	_coins(Vector2(BX + 6, 198))
 	var cl: Dictionary = st["clan"]
 	if not cl.is_empty():
 		_bar_frame(KR_R)
@@ -245,18 +249,14 @@ func _draw_dyn() -> void:
 	var f = UI.font(true)
 	var cf = cond_font()
 	# çubukların üst kenarında ince parlak çizgi (dolgunun üstünde: ıslak yüzey)
-	for r in [HP_R, CK_R]:
+	for r in [HP_R, CK_R, ST_R]:
 		dyn.draw_line(r.position + Vector2(1, 1), Vector2(r.end.x - 1, r.position.y + 1), Color(1, 1, 1, 0.12), 1.0)
 	_t(dyn, f, Vector2(COL_X, HP_R.position.y + 17), "%d / %d" % [st["hp"], st["hp_max"]], 18, st["hp_col"].lerp(Color.WHITE, 0.55), 4)
 	_t(dyn, f, Vector2(COL_X, CK_R.position.y + 15), "%d / %d" % [st["ck"], st["ck_max"]], 16, Color(0.72, 0.86, 1.0), 4)
-	# stamina: yalnız dolu değilken (taijutsu harcar)
-	if st["staf"] < 199:
-		var sr := Rect2(BX + 6, 139, 190, 3)
-		dyn.draw_rect(sr.grow(1.5), Color(0, 0, 0, 0.55))
-		dyn.draw_rect(Rect2(sr.position, Vector2(sr.size.x * st["staf"] / 200.0, sr.size.y)), Color(0.93, 0.72, 0.4))
-	_t(dyn, f, Vector2(BX + 66, 185), "%s Ryō" % _num(st["ryo"]), 18, Color(1.0, 0.86, 0.5), 4, Color(0.12, 0.06, 0.0, 0.9))
+	_t(dyn, f, Vector2(COL_X, ST_R.position.y + 12), "%d / %d" % [st["sta"], st["sta_max"]], 14, ST_COL.lerp(Color.WHITE, 0.45), 4)
+	_t(dyn, f, Vector2(BX + 66, 205), "%s Ryō" % _num(st["ryo"]), 18, Color(1.0, 0.86, 0.5), 4, Color(0.12, 0.06, 0.0, 0.9))
 	for i in 4:
-		_log(dyn, Vector2(432 + i * 24, 178), i < st["subs"])
+		_log(dyn, Vector2(432 + i * 24, 198), i < st["subs"])
 	var cl: Dictionary = st["clan"]
 	if not cl.is_empty():
 		var lt := String(cl["l"])

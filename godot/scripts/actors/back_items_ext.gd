@@ -10,7 +10,7 @@ const PAPER := Color(0.93, 0.9, 0.8)
 const LEATHER := Color(0.36, 0.24, 0.15)
 const ROPE := Color(0.7, 0.6, 0.42)
 
-const NAMES := {
+const NAMES := {"mugen_kogai": "Mugen Kōgai", 
 	"dev_yelpaze": "Dev Savaş Yelpazesi", "kunai_kilif_seti": "Sırt Kunai Kılıf Seti", "ikiz_katana": "Çapraz İkiz Katana", "nodachi": "Nodachi",
 	"genis_kesici": "Geniş Kesici Kılıç", "sargili_kilic": "Sargılı Dev Kılıç", "kusarigama_bel": "Belde Kusarigama", "bo_asa": "Bō Asası",
 	"naginata": "Naginata", "yay_sadak": "Yay ve Sadak", "kukla_bohca": "Kukla Bohçası", "uc_parsomen": "Üçlü Parşömen Rafı",
@@ -19,7 +19,7 @@ const NAMES := {
 	"ninjato": "Dik Ninjatō", "tetsubo": "Tetsubō", "shuriken_kesesi": "Shuriken Keseleri", "etiket_kemeri": "Patlayıcı Etiket Kemeri",
 	"fener": "Bel Feneri", "ahsap_kalkan": "Ahşap Kalkan", "ikiz_fuma": "İkiz Fūma Shuriken", "shakujo": "Keşiş Asası (Shakujō)",
 	"nobori": "Nobori Sancağı", "kristal_kure": "Kristal Küre Kutusu", "ikiz_tonfa": "İkiz Tonfa", "tessen_bel": "Belde Demir Yelpaze",
-	"manriki": "Manriki Zinciri", "ikiz_kabak": "İkiz Kabak Matara", "furoshiki": "Furoshiki Bohçası", "harita_tupu": "Harita Tüpü",
+	"manriki": "Manriki Zinciri", "chakura_yoroi": "Chakura no Yoroi", "shodai_kubikazari": "Shodai Kubikazari", "nuno_maki": "Nuno Maki", "ikiz_kabak": "İkiz Kabak Matara", "furoshiki": "Furoshiki Bohçası", "harita_tupu": "Harita Tüpü",
 	"kus_kafesi": "Haberci Kuş Kafesi", "puskullu_kilic": "Püsküllü Kılıç", "kunai_yelpaze": "Yelpaze Dizili Kunailer", "sirt_plakasi": "Zırhlı Sırt Plakası",
 	"dis_kolye": "Hayvan Dişi Kolyesi", "can_kemeri": "Çan Kemeri", "ikiz_kama": "İkiz Kama", "sadak": "Ok Sadağı",
 	"savas_cekici": "Savaş Çekici", "tilki_maske_bel": "Belde Tilki Maskesi", "murekkep_kutusu": "Mürekkep ve Fırça Kutusu", "chakra_bicaklari": "Belde Chakra Bıçakları",
@@ -51,6 +51,8 @@ static func _pouch(mb: MB, pos: Vector3, size: Vector3, col: Color) -> void:
 
 
 static func build(m: CharacterModel, kind: String, bc: Color, ch: Vector3, hip: Vector3, toon: Material) -> bool:
+	if kind == "ahsap_kalkan" and str(m.look.get("weapon_r", "")) in ["tate", "tsurukame"]:
+		return true   # sırtta gerçek kalkan zaten taşınıyor: iki kalkan üst üste binmesin
 	var mb = MB.new()
 	var bone = "UpperChest"
 	var at = ch + Vector3(0, -0.1, -0.2)
@@ -69,6 +71,18 @@ static func build(m: CharacterModel, kind: String, bc: Color, ch: Vector3, hip: 
 				mb.add("torus", Vector3(-0.12 + k * 0.06, 0.12, 0.012), Vector3(0.03, 0.03, 0.03), DARK, Vector3(90, 0, 0), 8)
 			for k in 2:
 				mb.add("box", Vector3(0, -0.06 + k * 0.12, 0.018), Vector3(0.32, 0.025, 0.01), bc)
+		"joki_ocak":   # Han'ın zırhının sırt ocağı
+			load("res://scripts/combat/fx/joki_no_yoroi_fx.gd").back_model(mb)
+			at = ch + Vector3(0, -0.12, -0.24)
+		"kokinjo":   # Altı Yol hazinesi: sırtta / omuzda dolu altın ip (ref Kokinjo.png)
+			KinginFX.build_rope_coil(mb, Vector3.ZERO, 1.1, Vector3(0, 0, 0))
+			at = ch + Vector3(0, -0.05, -0.2)
+		"benihisago":   # kırmızı bezli su kabağı, sırtta yatık (ref The_Benihisago.png)
+			KinginFX.build_gourd(mb, Vector3.ZERO, 0.75, Vector3(0, 0, 20))
+			at = ch + Vector3(0.05, -0.32, -0.3)
+		"kohaku":   # «雷» amblemli toprak küp, sırtta ipiyle (ref Kohaku_no_Johei.png)
+			KinginFX.build_pot(mb, Vector3.ZERO, 0.65)
+			at = ch + Vector3(0, -0.28, -0.32)
 		"ikiz_katana":
 			for s in [-1.0, 1.0]:
 				mb.add("box", Vector3(0, 0.1, 0), Vector3(0.05, 0.85, 0.035), bc, Vector3(0, 0, 32 * s))
@@ -232,6 +246,16 @@ static func build(m: CharacterModel, kind: String, bc: Color, ch: Vector3, hip: 
 			mb.add("box", Vector3.ZERO, Vector3(0.05, 0.32, 0.03), DARK, Vector3(0, 0, 8))
 			for k in 4:
 				mb.add("box", Vector3(0.0, -0.1 + k * 0.07, 0.016), Vector3(0.052, 0.008, 0.004), Color(0.75, 0.6, 0.25), Vector3(0, 0, 8))
+		"nuno_maki":
+			load("res://scripts/combat/fx/nuno_maki_fx.gd").roll_mesh(mb)   # refs/nuno
+			at = ch + Vector3(0, -0.2, -0.27)
+			m.dangle_strip("UpperChest", at + Vector3(0.26, -0.1, -0.1), Vector3(0.08, -1.0, -0.12), 0.55, 0.13, Color(0.95, 0.92, 0.8), 0.2)   # rulodan sarkan serbest uç
+		"chakura_yoroi":
+			load("res://scripts/combat/fx/chakura_yoroi_fx.gd").chest_model(mb)   # refs/chakura_yoroi
+			at = ch + Vector3(0, 0.0, 0.17)
+		"shodai_kubikazari":
+			load("res://scripts/combat/fx/shodai_kubikazari_fx.gd").model(mb)   # refs/shodai_kubikazari
+			at = ch + Vector3(0, 0.08, 0.0)
 		"manriki":
 			bone = "Hips"
 			at = hip + Vector3(-0.2, -0.02, 0)
@@ -338,6 +362,9 @@ static func build(m: CharacterModel, kind: String, bc: Color, ch: Vector3, hip: 
 			for k in 18:
 				var a = k * TAU / 18.0
 				mb.add("torus", Vector3(cos(a) * 0.18, sin(k * 1.3) * 0.02, sin(a) * 0.14), Vector3(0.05, 0.05, 0.035), Color(0.45, 0.45, 0.5), Vector3((k % 2) * 90.0, -rad_to_deg(a), 0), 8)
+		"mugen_kogai":   # kaplan yüzlü göğüslük: yuvası sırt, yeri göğüs
+			load("res://scripts/combat/fx/mugen_kogai_fx.gd").build_chest(mb)
+			at = ch + Vector3(0, -0.14, 0.15)
 		"bambu_matara":
 			bone = "Hips"
 			at = hip + Vector3(0.2, 0.0, -0.06)

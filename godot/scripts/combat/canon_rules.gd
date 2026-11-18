@@ -87,10 +87,28 @@ static func block(c: Node3D, jid: String) -> String:
 		var need: Array = WEAPON_ONLY.get(jid, FAN_IDS)
 		if not ws.any(func(w): return w in need):
 			return "Elinde %s yok — bu teknik onunla savrulur." % ("Temari no Ōōgi" if need == ["temari_ogi"] else ("Bashōsen" if need == ["bashosen"] else "savaş yelpazesi"))
+	if jid == "samidare_kekka" and not weapon_ids(c).any(func(w): return Gear.base_id(String(w)) == "amagasa"):
+		return "Elinde Amagasa yok — iğneler şemsiyenin altından yağar."
+	if jid == "shisho_tenketsu" and c != null and float(c.get("hp")) < float(c.get("max_hp")) * 0.25:
+		return "Yaşam gücün yetmiyor — bu tenketsuları açarsan ölürsün."
+	if jid == "rensha" and not weapon_ids(c).any(func(w): return Gear.base_id(String(w)) == "tsurukame"):
+		return "Elinde Tsurukame yok — iğneler kabuğun ağızlarından çıkar."
 	if jid in HIRA_TP and not hira_mark_ok(c):
 		return "Işınlanacak işaret yok — önce Hiraishin kunaisi at ya da hedefe vurup işaretle."
+	if jid == "chibitama_rasengan":
+		var p7_msg: String = load("res://scripts/combat/fx/jutsu_p7_fx.gd").block(c, jid)
+		if p7_msg != "":
+			return p7_msg
+	if jid in ["kagero_utakata", "saibo_kasseijutsu"]:
+		var p2_msg: String = load("res://scripts/combat/fx/jutsu_p2_fx.gd").block(c, jid)
+		if p2_msg != "":
+			return p2_msg
 	if jid == "iwa_nadare" and uphill(c) < 4.0:   # kanon: yalnız bir yamacın altında işe yarar (yamaçtan kaya çığı indirir)
 		return "Yakında yukarı yamaç yok — Iwa Nadare bir dağın eteğinde yapılır."
+	if jid in ["chikatsu_saisei", "saisei_kekkai", "biju_soshingeki", "tenpenchii"]:
+		var p1_msg = load("res://scripts/combat/fx/jutsu_p1_fx.gd").gate(c, jid)
+		if p1_msg != "":
+			return p1_msg
 	if jid in STORM and not storm_ok(c):
 		return "Gökte fırtına bulutu yok — önce Katon ile göğü ısıt ya da fırtınayı bekle."
 	return ""

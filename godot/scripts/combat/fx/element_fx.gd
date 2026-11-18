@@ -1998,7 +1998,7 @@ static func shoton_shuriken_ranbu(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			pj.shot(c, from, dir, 30.0, pm, pj.inf(c, "shoton_shuriken_ranbu", 0.3, {"knock": 3.0, "kind": "light", "bleed": 1.5}), null, false, 0.9, func(p, _h):
 				shards(pj, p, 4, 3.5, 0.18, PINK, 0.0, 0.5, 0.8))
 			var spn: Node3D = pm.get_child(0)
-			var tws = spn.create_tween().set_loops()
+			var tws = Game.safe_loops(spn.create_tween())
 			tws.tween_property(spn, "rotation:y", TAU, 0.16).from(0.0)
 		if pj.live(c):
 			star(pj, c.global_position + Vector3.UP * 1.2, 2.5, Color(1.0, 0.85, 0.97), 0.25, 8.0))

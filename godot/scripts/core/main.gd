@@ -524,7 +524,7 @@ func _route(e: InputEvent) -> void:
 				if tk:
 					tk.talk()
 	elif e.is_action_pressed("tool_next"):
-		var tools = ["kunai", "shuriken", "senbon", "tag", "makibishi", "smoke"]
+		var tools = ["kunai", "shuriken", "mushu_dokugiri", "kosho_mimikazari", "hiko_tsubasa", "yuki_ita", "toge_dama", "kemuri_fuda", "chusha_bari", "senbon", "tag", "makibishi", "smoke", "kemuri_senkodan", "okarina", "eiyu_mizu", "agiz_kozu", "aobiko", "inochi_kare", "genjutsu_kosui", "genjutsu_yaku", "bijugan", "hikaridama", "togarashi_dama", "doku", "gedokuyaku", "kibaku_dama", "hyodama", "raizutsu", "suzu", "boenkyo", "bakusaidama", "kibaku_fuda", "kosen", "sode_kunai", "nuno_maki", "fuin_fuda", "kekkai_fuda"]
 		var i = tools.find(Game.profile.get("throw_sel", "kunai"))
 		for k in tools.size():
 			i = (i + 1) % tools.size()
@@ -595,6 +595,9 @@ func use_item(id: String) -> void:
 		player.hp = minf(player.max_hp, player.hp + maxf(50.0, player.max_hp * 0.35) * (1.0 + Stats.skill(Game.profile, "heal")))
 		FX.aura(player, Color(0.5, 1, 0.6), 0.8)
 		Sfx.play("heal", player.global_position)
+		return
+	if id == "zoketsugan":
+		ClanMech.use_extra_pill(id)
 		return
 	if id == "pill" and ClanMech.use_aki_pill():   # Akimichi: sıradaki renkli hap
 		return

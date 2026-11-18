@@ -36,7 +36,65 @@ const TABLE := {
 	"hiramekarei": [preload("res://scripts/combat/hirame_anim.gd"), 1.0],
 	"bo": [preload("res://scripts/combat/bo_anim.gd"), 1.05],
 	"kiba": [preload("res://scripts/combat/kiba_anim.gd"), 1.0],
-	"nanato": [preload("res://scripts/combat/nanato_anim.gd"), 1.08],   # Killer B Akurobatto: dans ritmi, hızlı
+	"nanato": [preload("res://scripts/combat/nanato_anim.gd"), 1.08],
+	"kokuto": [preload("res://scripts/combat/kokuto_anim.gd"), 1.1],
+	"shichiseiken": [preload("res://scripts/combat/shichiseiken_anim.gd"), 0.95],
+	"johyo": [preload("res://scripts/combat/johyo_anim.gd"), 1.05],
+	"nunchaku": [preload("res://scripts/combat/nunchaku_anim.gd"), 1.15],
+	"mizrak": [preload("res://scripts/combat/yari_anim.gd"), 1.0],
+	"shakujo": [preload("res://scripts/combat/shakujo_anim.gd"), 1.0],
+	"chakra_oltasi": [preload("res://scripts/combat/chakra_oltasi_anim.gd"), 1.05],
+	"jo": [preload("res://scripts/combat/jo_anim.gd"), 1.2],
+	"ryujin": [preload("res://scripts/combat/ryujin_anim.gd"), 1.1],
+	"tenro_doriru": [preload("res://scripts/combat/tenro_doriru_anim.gd"), 0.98],
+	"sekka_kote": [preload("res://scripts/combat/sekka_kote_anim.gd"), 1.05],
+	"nobi_ude": [preload("res://scripts/combat/nobi_ude_anim.gd"), 0.98],
+	"hiraki_tate": [preload("res://scripts/combat/hiraki_tate_anim.gd"), 1.05],
+	"naitosodo": [preload("res://scripts/combat/naitosodo_anim.gd"), 1.08],
+	"kuwa": [preload("res://scripts/combat/kuwa_anim.gd"), 1.0],
+	"fujaku": [preload("res://scripts/combat/fujaku_anim.gd"), 1.15],
+	"gariando": [preload("res://scripts/combat/gariando_anim.gd"), 1.0],
+	"hono_ken": [preload("res://scripts/combat/hono_ken_anim.gd"), 0.95],
+	"ei_yumi": [preload("res://scripts/combat/ei_yumi_anim.gd"), 1.0],
+	"kajiki_mori": [preload("res://scripts/combat/kajiki_mori_anim.gd"), 1.0],
+	"doriru_ude": [preload("res://scripts/combat/doriru_ude_anim.gd"), 0.92],
+	"soha_kote": [preload("res://scripts/combat/soha_kote_anim.gd"), 1.15],
+	"hasami_kote": [preload("res://scripts/combat/hasami_kote_anim.gd"), 0.98],
+	"jidanda": [preload("res://scripts/combat/jidanda_anim.gd"), 0.92],
+	"tsurukame": [preload("res://scripts/combat/tsurukame_anim.gd"), 0.95],
+	"dako": [preload("res://scripts/combat/dako_anim.gd"), 1.08],
+	"igne_tufegi": [preload("res://scripts/combat/igne_tufegi_anim.gd"), 1.0],
+	"enmaku_kote": [preload("res://scripts/combat/enmaku_kote_anim.gd"), 1.0],
+	"kunai_hasshaki": [preload("res://scripts/combat/kunai_hasshaki_anim.gd"), 1.0],
+	"nester": [preload("res://scripts/combat/nester_anim.gd"), 1.2],
+	"cift_tirpan": [preload("res://scripts/combat/cift_tirpan_anim.gd"), 1.1],
+	"kusari_fubo": [preload("res://scripts/combat/kusari_fubo_anim.gd"), 1.05],
+	"flail": [preload("res://scripts/combat/flail_anim.gd"), 0.95],
+	"nunoboko": [preload("res://scripts/combat/nunoboko_anim.gd"), 0.95],
+	"katoringu": [preload("res://scripts/combat/katoringu_anim.gd"), 0.95],
+	"shinobigote": [preload("res://scripts/combat/shinobigote_anim.gd"), 1.05],
+	"tekko": [preload("res://scripts/combat/tekko_anim.gd"), 1.1],
+	"kurosawa": [preload("res://scripts/combat/kurosawa_anim.gd"), 1.0],
+	"kusari_fundo": [preload("res://scripts/combat/kusari_fundo_anim.gd"), 1.05],
+	"kaeri_yari": [preload("res://scripts/combat/kaeri_yari_anim.gd"), 1.15],
+	"kunai_to": [preload("res://scripts/combat/kunai_to_anim.gd"), 1.1],
+	"oni_kote": [preload("res://scripts/combat/oni_kote_anim.gd"), 1.05],
+	"natato": [preload("res://scripts/combat/natato_anim.gd"), 0.98],
+	"ono": [preload("res://scripts/combat/ono_anim.gd"), 0.95],   # oduncu ritmi
+	"tate": [preload("res://scripts/combat/tate_anim.gd"), 1.0],
+	"katar": [preload("res://scripts/combat/katar_anim.gd"), 1.12],   # hızlı düz delişler
+	"amagasa": [preload("res://scripts/combat/amagasa_anim.gd"), 1.05],   # Ame savaş şemsiyesi: hafif, açılıp kapanır
+	"sasumata": [preload("res://scripts/combat/sasumata_anim.gd"), 1.0],
+	"konbo": [preload("res://scripts/combat/konbo_anim.gd"), 0.95],   # ağır baş: sarkaç ritmi
+	"kanabo": [preload("res://scripts/combat/kanabo_anim.gd"), 0.92],   # en ağır: uzun kurulum
+	"yumi": [preload("res://scripts/combat/yumi_anim.gd"), 1.0],
+	"arbalet": [preload("res://scripts/combat/arbalet_anim.gd"), 1.0],
+	"fukiya": [preload("res://scripts/combat/fukiya_anim.gd"), 1.0],
+	"sapan": [preload("res://scripts/combat/sapan_anim.gd"), 1.05],
+	"bilek_senbon": [preload("res://scripts/combat/bilek_senbon_anim.gd"), 1.0],
+	"kyomei_supika": [preload("res://scripts/combat/kyomei_supika_anim.gd"), 1.0],
+	"kamci": [preload("res://scripts/combat/kamci_anim.gd"), 1.05],
+	"sansetsukon": [preload("res://scripts/combat/sansetsukon_anim.gd"), 1.0],   # hızlı bilek darbeleri   # ipli dart: uzak tut, bağla, çek   # Kinkaku: ağır tek el   # Raidō: sessiz suikastçı, hızlı   # Killer B Akurobatto: dans ritmi, hızlı
 	"tanto": [preload("res://scripts/combat/tanto_anim.gd"), 1.05],
 	"mateki": [preload("res://scripts/combat/mateki_anim.gd"), 1.0],   # Tayuya flütü
 	"hakko_chakura_to": [preload("res://scripts/combat/hakko_anim.gd"), 1.15],   # Hatake beyaz ışık tantōsu: kendi kombosu
@@ -105,10 +163,10 @@ const TABLE := {
 	"style_deiton": [preload("res://scripts/combat/style_deiton_anim.gd"), 0.95],
 }
 ## uzun menzil silahları: yapay zekâ uzakta durup atar (Enemy._chase)
-const RANGED := ["fuma_shuriken", "kyodai_shuriken", "fuma_makimono", "senbon", "mateki"]   # mateki: genjutsu flütü, uzakta durup çalar
+const RANGED := ["ei_yumi", "igne_tufegi", "kunai_hasshaki", "enmaku_kote", "shinobigote", "katoringu", "fuma_shuriken", "kyodai_shuriken", "fuma_makimono", "senbon", "mateki", "yumi", "arbalet", "fukiya", "sapan", "bilek_senbon"]   # mateki: genjutsu flütü, uzakta durup çalar
 ## silah ağırlığı (0 hafif .. 1 ağır): kol/silah yaylanması (PoseOverlay.key_mass) — ağır silah gecikip taşar
 const MASS := {"temari_ogi": 0.65, "uc_tirpan": 1.0, "samehada": 0.9, "kabutowari": 0.9, "shibuki": 0.85, "gunbai": 0.8, "raijin": 0.35, "kunai": 0.1,
-	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35, "kusarigama": 0.55, "fuma_shuriken": 0.4, "kyodai_shuriken": 1.0, "fuma_makimono": 0.15, "nuibari": 0.25, "savas_cekici": 1.0, "zincirli_kunai": 0.3, "tonfa": 0.3, "bashosen": 0.35, "kubikiribocho": 0.95, "yagura_sopa": 0.4, "yelpaze": 0.6, "kongo_asa": 0.45, "kama": 0.75, "pence": 0.15, "senbon": 0.05, "hiramekarei": 0.7, "bo": 0.35, "kiba": 0.25, "nanato": 0.3, "tanto": 0.1, "hakko_chakura_to": 0.08, "mateki": 0.06, "wakizashi": 0.25, "nodachi": 0.7, "musta": 0.15, "raikage_kote": 0.15,
+	"yumi": 0.12, "arbalet": 0.5, "fukiya": 0.06, "sapan": 0.05, "bilek_senbon": 0.08, "kyomei_supika": 0.3, "amagasa": 0.18, "sasumata": 0.45, "konbo": 0.92, "kanabo": 1.0, "ono": 0.88, "tate": 0.3, "katar": 0.12, "natato": 0.9, "oni_kote": 0.6, "kunai_to": 0.3, "kaeri_yari": 0.12, "kusari_fundo": 0.22, "kurosawa": 0.32, "tekko": 0.18, "shinobigote": 0.1, "katoringu": 0.8, "nunoboko": 0.5, "flail": 0.7, "kusari_fubo": 0.25, "cift_tirpan": 0.55, "nester": 0.04, "kunai_hasshaki": 0.42, "enmaku_kote": 0.15, "igne_tufegi": 0.12, "dako": 0.25, "tsurukame": 0.5, "jidanda": 0.95, "hasami_kote": 0.72, "soha_kote": 0.16, "doriru_ude": 0.95, "kajiki_mori": 0.5, "ei_yumi": 0.15, "hono_ken": 0.62, "gariando": 0.34, "fujaku": 0.14, "kuwa": 0.6, "naitosodo": 0.25, "hiraki_tate": 0.2, "nobi_ude": 0.55, "sekka_kote": 0.25, "tenro_doriru": 0.7, "ryujin": 0.25, "jo": 0.25, "chakra_oltasi": 0.1, "shakujo": 0.55, "sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35, "kusarigama": 0.55, "fuma_shuriken": 0.4, "kyodai_shuriken": 1.0, "fuma_makimono": 0.15, "nuibari": 0.25, "savas_cekici": 1.0, "zincirli_kunai": 0.3, "tonfa": 0.3, "bashosen": 0.35, "kubikiribocho": 0.95, "yagura_sopa": 0.4, "yelpaze": 0.6, "kongo_asa": 0.45, "kama": 0.75, "pence": 0.15, "senbon": 0.05, "hiramekarei": 0.7, "bo": 0.35, "kiba": 0.25, "nanato": 0.3, "kokuto": 0.3, "shichiseiken": 0.75, "johyo": 0.2, "nunchaku": 0.15, "mizrak": 0.4, "kamci": 0.12, "sansetsukon": 0.35, "tanto": 0.1, "hakko_chakura_to": 0.08, "mateki": 0.06, "wakizashi": 0.25, "nodachi": 0.7, "musta": 0.15, "raikage_kote": 0.15,
 	"style_juken": 0.08, "style_akimichi": 0.65, "style_inuzuka": 0.12, "style_kaguya": 0.2,
 	"style_uchiha": 0.1, "style_hozuki": 0.3, "style_aburame": 0.05, "style_jugo": 0.7,
 	"style_yuki": 0.05, "style_sabaku": 0.05, "style_uzumaki": 0.1, "style_yotsuki": 0.3, "style_kamizuru": 0.05, "style_iburi": 0.05, "style_kurosuki": 0.15, "style_senju": 0.45, "style_sarutobi": 0.12, "style_hatake": 0.1, "style_nara": 0.05, "style_kapi": 0.15, "style_kil": 0.05, "style_akasuna": 0.05, "style_kagit": 0.05, "style_sumi": 0.05, "style_yilan": 0.1, "style_gama": 0.2, "style_chidori": 0.1, "style_hiraishin": 0.05, "style_rinnegan": 0.1, "style_tip": 0.12, "style_kakuzu": 0.3, "style_jashin": 0.5, "style_hachibi": 0.35, "style_silah": 0.1, "style_jin_shukaku": 0.5, "style_jin_matatabi": 0.15, "style_jin_isobu": 0.3, "style_jin_son_goku": 0.45, "style_jin_kokuo": 0.3, "style_jin_saiken": 0.1, "style_jin_chomei": 0.1, "style_jin_gyuki": 0.4, "style_jin_kurama": 0.3,
@@ -121,7 +179,60 @@ static func mass(id: String) -> float:
 
 
 ## iki elli adımlarda sol elin sağ yumruktan sap boyunca uzaklığı
-const TWO_OFF := {"kama": 0.55, "bo": 0.45, "kongo_asa": 0.5, "savas_cekici": 0.45, "uc_tirpan": 0.42, "shibuki": 0.2, "samehada": 0.3, "homatsu_kiseru": 0.3}   # shibuki: sağ el sapın arka ucunda, sol el önde (ruloya yakın)
+const TWO_OFF := {"kama": 0.55, "bo": 0.45, "mizrak": 0.45, "shakujo": 0.45, "jo": 0.34, "kuwa": 0.46, "kajiki_mori": 0.5, "jidanda": 0.3, "kunai_hasshaki": 0.3, "cift_tirpan": 0.4, "nunoboko": 0.42, "katoringu": 0.34, "natato": 0.3, "ono": 0.46, "sasumata": 0.5, "konbo": 0.36, "kanabo": 0.42, "arbalet": 0.3, "fukiya": 0.3, "kongo_asa": 0.5, "savas_cekici": 0.45, "uc_tirpan": 0.42, "shibuki": 0.2, "samehada": 0.3, "homatsu_kiseru": 0.3}   # shibuki: sağ el sapın arka ucunda, sol el önde (ruloya yakın)
+
+
+const ShakujoFX = preload("res://scripts/combat/fx/shakujo_fx.gd")
+const ChakraOltasiFX = preload("res://scripts/combat/fx/chakra_oltasi_fx.gd")
+const RyujinFX = preload("res://scripts/combat/fx/ryujin_fx.gd")
+const TenroDoriruFX = preload("res://scripts/combat/fx/tenro_doriru_fx.gd")
+const SekkaKoteFX = preload("res://scripts/combat/fx/sekka_kote_fx.gd")
+const NobiUdeFX = preload("res://scripts/combat/fx/nobi_ude_fx.gd")
+const HirakiTateFX = preload("res://scripts/combat/fx/hiraki_tate_fx.gd")
+const NaitosodoFX = preload("res://scripts/combat/fx/naitosodo_fx.gd")
+const KuwaFX = preload("res://scripts/combat/fx/kuwa_fx.gd")
+const FujakuFX = preload("res://scripts/combat/fx/fujaku_fx.gd")
+const GariandoFX = preload("res://scripts/combat/fx/gariando_fx.gd")
+const HonoKenFX = preload("res://scripts/combat/fx/hono_ken_fx.gd")
+const EiYumiFX = preload("res://scripts/combat/fx/ei_yumi_fx.gd")
+const KajikiMoriFX = preload("res://scripts/combat/fx/kajiki_mori_fx.gd")
+const DoriruUdeFX = preload("res://scripts/combat/fx/doriru_ude_fx.gd")
+const SohaKoteFX = preload("res://scripts/combat/fx/soha_kote_fx.gd")
+const HasamiKoteFX = preload("res://scripts/combat/fx/hasami_kote_fx.gd")
+const JidandaFX = preload("res://scripts/combat/fx/jidanda_fx.gd")
+const TsurukameFX = preload("res://scripts/combat/fx/tsurukame_fx.gd")
+const DakoFX = preload("res://scripts/combat/fx/dako_fx.gd")
+const IgneTufegiFX = preload("res://scripts/combat/fx/igne_tufegi_fx.gd")
+const EnmakuKoteFX = preload("res://scripts/combat/fx/enmaku_kote_fx.gd")
+const KunaiHasshakiFX = preload("res://scripts/combat/fx/kunai_hasshaki_fx.gd")
+const NesterFX = preload("res://scripts/combat/fx/nester_fx.gd")
+const CiftTirpanFX = preload("res://scripts/combat/fx/cift_tirpan_fx.gd")
+const KusariFuboFX = preload("res://scripts/combat/fx/kusari_fubo_fx.gd")
+const FlailFX = preload("res://scripts/combat/fx/flail_fx.gd")
+const NunobokoFX = preload("res://scripts/combat/fx/nunoboko_fx.gd")
+const KatoringuFX = preload("res://scripts/combat/fx/katoringu_fx.gd")
+const ShinobigoteFX = preload("res://scripts/combat/fx/shinobigote_fx.gd")
+const JokiFX = preload("res://scripts/combat/fx/joki_no_yoroi_fx.gd")
+const TekkoFX = preload("res://scripts/combat/fx/tekko_fx.gd")
+const KurosawaFX = preload("res://scripts/combat/fx/kurosawa_fx.gd")
+const KusariFundoFX = preload("res://scripts/combat/fx/kusari_fundo_fx.gd")
+const KaeriYariFX = preload("res://scripts/combat/fx/kaeri_yari_fx.gd")
+const KunaiToFX = preload("res://scripts/combat/fx/kunai_to_fx.gd")
+const OniKoteFX = preload("res://scripts/combat/fx/oni_kote_fx.gd")
+const NatatoFX = preload("res://scripts/combat/fx/natato_fx.gd")
+const OnoFX = preload("res://scripts/combat/fx/ono_fx.gd")
+const TateFX = preload("res://scripts/combat/fx/tate_fx.gd")
+const KatarFX = preload("res://scripts/combat/fx/katar_fx.gd")
+const AmagasaFX = preload("res://scripts/combat/fx/amagasa_fx.gd")
+const SasumataFX = preload("res://scripts/combat/fx/sasumata_fx.gd")
+const KonboFX = preload("res://scripts/combat/fx/konbo_fx.gd")
+const KanaboFX = preload("res://scripts/combat/fx/kanabo_fx.gd")
+const YumiFX = preload("res://scripts/combat/fx/yumi_fx.gd")
+const ArbaletFX = preload("res://scripts/combat/fx/arbalet_fx.gd")
+const FukiyaFX = preload("res://scripts/combat/fx/fukiya_fx.gd")
+const SapanFX = preload("res://scripts/combat/fx/sapan_fx.gd")
+const BilekSenbonFX = preload("res://scripts/combat/fx/bilek_senbon_fx.gd")
+const KyomeiFX = preload("res://scripts/combat/fx/kyomei_supika_fx.gd")
 
 
 static func has(id: String) -> bool:
@@ -471,6 +582,390 @@ static func mods(id: String, i: int) -> Dictionary:
 				4: m.merge({"knock": 0.6, "lunge_mul": 0.3})
 				5: m.merge({"heavy": true, "knock": 16.0, "bleed": 5.0})
 			return m
+		"bilek_senbon":   # hasar yalnız iğnelerden
+			return {"lunge_mul": 0.0, "special": "", "shot": true}
+		"kyomei_supika":   # 0, 1, 3 kol da vurur; sesin kendisi KyomeiFX.strike'ta
+			var m = {"lunge_mul": 0.7, "knock": 2.0, "special": "", "snd": "punch"}
+			match i:
+				1: m.merge({"knock": 3.0})
+				3: m.merge({"lunge_mul": 1.2, "knock": 6.0})
+				2, 4, 5: m.merge({"lunge_mul": 0.0, "shot": true})
+			return m
+		"yumi", "fukiya", "sapan":   # hasar yalnız mermiden (FX.strike); yakın küre yok, atılış yok
+			return {"lunge_mul": 0.0, "special": "", "shot": true}
+		"arbalet":
+			var m = {"lunge_mul": 0.0, "special": ""}
+			match i:
+				1: m.merge({"knock": 7.0, "lunge_mul": 0.2})                                   # üzengi basışı
+				3: m.merge({"knock": 9.0, "lunge_mul": 0.6, "reach_add": 0.2, "heavy": true})  # dipçik
+				_: m["shot"] = true
+			return m
+		"amagasa":
+			# 4 ve 6 elle değmez: iğneler AmagasaFX'te vurur
+			var m = {"lunge_mul": 0.8, "knock": 3.0, "reach_add": 0.35}
+			match i:
+				0: m.merge({"reach_add": 0.6})
+				1: m.merge({"knock": 7.0, "lunge_mul": 0.4, "reach_add": 0.2})
+				2: m.merge({"knock": 4.0})
+				3: m.merge({"lunge_mul": 0.0, "reach_add": -9.0})
+				4: m.merge({"knock": 5.0, "reach_add": 0.5, "lunge_mul": 1.2, "stun": 0.25})
+				5: m.merge({"lunge_mul": 0.0, "reach_add": -9.0})
+			return m
+		"sasumata":
+			# tutma silahı: savurmaz, çatalda tutar (kıskaç SasumataFX.on_hit)
+			var m = {"lunge_mul": 0.7, "knock": 0.6, "reach_add": 1.0}
+			match i:
+				0: m.merge({"knock": 0.0})
+				1: m.merge({"knock": 0.0, "lunge_mul": 0.0})
+				2: m.merge({"heavy": true, "knock": 1.5, "reach_add": 0.8})
+				3: m.merge({"launch": 5.5, "knock": 0.5})
+				4: m.merge({"knock": 0.0, "stun": 0.5})
+				5: m.merge({"heavy": true, "knock": 6.0, "lunge_mul": 0.3})
+			return m
+		"konbo":
+			# 4-6: baş saptan ayrılır, hasar KonboFX'te
+			var m = {"lunge_mul": 0.5, "knock": 7.0}
+			match i:
+				0: m.merge({"launch": 3.5, "knock": 3.0, "reach_add": 0.5})
+				1: m.merge({"heavy": true, "knock": 4.0, "stun": 0.45, "shatter": true, "reach_add": 0.45})
+				2: m.merge({"knock": 9.0, "reach_add": 0.5})
+				3, 4, 5: m.merge({"lunge_mul": 0.0, "reach_add": -9.0})
+			return m
+		"kanabo":
+			var m = {"lunge_mul": 0.45, "knock": 8.0, "reach_add": 0.7}
+			match i:
+				0: m.merge({"heavy": true, "knock": 5.0, "reach_add": 0.9})
+				1: m.merge({"launch": 4.0, "knock": 3.0})
+				2: m.merge({"shatter": true, "knock": 11.0, "lunge_mul": 0.8, "reach_add": 0.2})
+				3: m.merge({"knock": 13.0, "reach_add": 1.1})
+				4: m.merge({"heavy": true, "knock": 2.0, "stun": 0.35, "lunge_mul": 0.2})
+				5: m.merge({"heavy": true, "knock": 6.0, "lunge_mul": 0.3, "reach_add": 0.9})
+			return m
+		"ono":
+			var m = {"lunge_mul": 0.5, "knock": 5.0, "reach_add": 0.85}
+			match i:
+				1: m.merge({"knock": 3.0})
+				2: m.merge({"heavy": true, "knock": 2.0, "reach_add": 1.0})   # Yosaku Giri: alçak yatay
+				3: m.merge({"pull": true, "shatter": true, "knock": 0.8})     # sakalla savunmayı çeker
+				4: m.merge({"stun": 0.6, "knock": 3.0})                       # kıvrık sırt: kesmez, sersemletir
+				5: m.merge({"lunge_mul": 0.0, "reach_add": -9.0})             # hasar dönen baltada
+			return m
+		"tate":
+			var m = {"lunge_mul": 0.8, "knock": 4.0, "reach_add": 0.2, "snd": "hit_staff"}
+			match i:
+				0: m.merge({"knock": 5.0, "stun": 0.2})
+				1: m.merge({"knock": 6.0, "reach_add": 0.4})
+				2: m.merge({"heavy": true, "knock": 9.0, "lunge_mul": 0.0, "reach_add": 0.4})
+				3: m.merge({"knock": 7.0, "lunge_mul": 0.3})
+				4: m.merge({"heavy": true, "stun": 0.5, "shatter": true, "knock": 1.0})
+				5: m.merge({"lunge_mul": 0.0, "reach_add": -9.0})
+			return m
+		"katar":
+			var m = {"lunge_mul": 1.05, "knock": 1.6, "reach_add": 0.25}
+			match i:
+				2: m.merge({"shatter": true, "knock": 3.5})   # "kalkan yaran": zırh ve savunma
+				3: m.merge({"knock": 4.0, "reach_add": 0.5})
+				4: m.merge({"launch": 6.0, "knock": 0.5})
+				5: m.merge({"lunge_mul": 0.0, "reach_add": -9.0})   # hasar gövdeden geçişte
+			return m
+		"natato":
+			var m = {"lunge_mul": 0.55, "knock": 7.0, "reach_add": 0.7}
+			match i:
+				0: m.merge({"heavy": true, "knock": 6.0})
+				1: m.merge({"knock": 9.0})
+				2: m.merge({"shatter": true, "knock": 9.0, "lunge_mul": 0.8, "reach_add": 0.2})
+				3: m.merge({"launch": 6.0, "knock": 2.0})
+				4: m.merge({"knock": 6.0})
+				5: m.merge({"lunge_mul": 0.0, "knock": 3.0, "reach_add": -0.2})
+			return m
+		"oni_kote":
+			var m = {"lunge_mul": 0.95, "knock": 3.0, "snd": "hit_claw"}
+			match i:
+				2: m.merge({"lunge_mul": 0.0, "knock": 1.0})
+				3: m.merge({"lunge_mul": 0.0, "knock": 0.3})
+				4: m.merge({"lunge_mul": 0.0, "knock": 0.5})
+				5: m.merge({"heavy": true, "knock": 12.0, "lunge_mul": 1.7})
+			return m
+		"kunai_to":
+			var m = {"lunge_mul": 0.95, "knock": 3.0, "bleed": 1.5}
+			match i:
+				2: m.merge({"lunge_mul": 0.0, "knock": 1.0})
+				3: m.merge({"lunge_mul": 0.0, "knock": 0.3})
+				4: m.merge({"lunge_mul": 1.2, "knock": 4.0, "reach_add": 0.3})
+				5: m.merge({"heavy": true, "knock": 10.0, "lunge_mul": 1.6, "reach_add": 0.5, "bleed": 3.0})
+			return m
+		"kaeri_yari":
+			var m = {"lunge_mul": 1.15, "knock": 2.0, "bleed": 2.0, "reach_add": 0.7}
+			match i:
+				2: m.merge({"pull": true, "knock": 0.5})
+				3, 4, 5: m = {"lunge_mul": 0.0, "knock": 1.0, "reach_add": -9.0}   # ayin adımları: vuruş kendi işlevinde (Jashin tarzıyla aynı)
+			return m
+		"kusari_fundo":
+			var m = {"lunge_mul": 0.6, "knock": 2.0, "reach_add": 1.2, "snd": "hit_chain"}
+			match i:
+				2: m.merge({"knock": 4.0, "reach_add": 0.4, "lunge_mul": 0.2})
+				3: m.merge({"knock": 4.0, "reach_add": 1.5})
+				4, 5: m.merge({"lunge_mul": 0.0, "reach_add": -9.0})   # hasar ağırlıkta / atışta
+			return m
+		"kurosawa":
+			var m = {"lunge_mul": 1.1, "knock": 3.0, "special": "", "snd": "hit_sword"}
+			match i:
+				1: m.merge({"knock": 4.0})
+				2: m.merge({"lunge_mul": 2.0, "knock": 6.0, "heavy": true})
+				3: m.merge({"lunge_mul": 0.0, "knock": 5.0})
+				4: m.merge({"lunge_mul": 1.2, "knock": 2.0})
+				5: m.merge({"lunge_mul": 0.0, "shot": true})
+			return m
+		"tekko":
+			var m = {"lunge_mul": 0.9, "knock": 2.0, "special": "", "snd": "punch"}
+			match i:
+				2: m.merge({"knock": 5.0})
+				3: m.merge({"launch": 8.0, "knock": 1.5})
+				4: m.merge({"heavy": true, "knock": 3.0})
+				5: m.merge({"heavy": true, "knock": 13.0, "lunge_mul": 1.4})
+			return m
+		"shinobigote":   # hasar yalnız kartuşlardan
+			return {"lunge_mul": 0.0, "special": "", "shot": true}
+		"katoringu":
+			if i == 2:
+				return {"lunge_mul": 0.7, "knock": 9.0, "special": "", "reach_add": 0.1, "snd": "hit_staff"}   # dipçik
+			return {"lunge_mul": 0.0, "special": "", "shot": true}
+		"nunoboko":
+			var m = {"lunge_mul": 0.45, "knock": 7.0, "reach_add": 1.6, "special": ""}
+			match i:
+				2: m.merge({"lunge_mul": 0.9, "knock": 9.0, "reach_add": 2.6})
+				3: m.merge({"heavy": true, "shatter": true, "knock": 5.0, "reach_add": 2.0})
+				4: m.merge({"knock": 10.0, "reach_add": 2.4})
+				5: m.merge({"lunge_mul": 0.0, "heavy": true, "knock": 4.0, "reach_add": 1.0})
+			return m
+		"flail":
+			var m = {"lunge_mul": 0.5, "knock": 5.0, "reach_add": 1.0, "special": "", "snd": "hit_chain"}
+			match i:
+				2: m.merge({"heavy": true, "knock": 3.0, "stun": 0.5, "reach_add": 0.8})
+				3: m.merge({"pull": true, "knock": 0.5, "reach_add": 1.6, "lunge_mul": 0.0})
+				4: m.merge({"lunge_mul": 0.0, "knock": 4.0, "reach_add": 1.0})
+				5: m.merge({"heavy": true, "knock": 14.0, "reach_add": 1.6, "lunge_mul": 0.2})
+			return m
+		"kusari_fubo":
+			var m = {"lunge_mul": 0.7, "knock": 2.0, "reach_add": 0.9, "special": "", "snd": "hit_chain"}
+			match i:
+				2: m.merge({"knock": 5.0, "reach_add": 1.1})
+				3: m.merge({"lunge_mul": 0.0, "knock": 1.0, "reach_add": 0.4})
+				4, 5: m.merge({"lunge_mul": 0.0, "shot": true})
+			return m
+		"cift_tirpan":
+			var m = {"lunge_mul": 1.0, "knock": 3.0, "reach_add": 0.5, "special": "", "snd": "hit_blade"}
+			match i:
+				2: m.merge({"pull": true, "knock": 0.5, "reach_add": 0.7, "lunge_mul": 0.5})
+				3: m.merge({"launch": 8.0, "knock": 1.5})
+				4: m.merge({"knock": 6.0, "lunge_mul": 1.3})
+				5: m.merge({"heavy": true, "knock": 12.0, "reach_add": 0.8})
+			return m
+		"nester":
+			var m = {"lunge_mul": 1.1, "knock": 0.8, "special": "", "snd": "hit_blade"}
+			match i:
+				2: m.merge({"lunge_mul": 1.8})
+				3, 5: m.merge({"lunge_mul": 0.0, "shot": true})
+			return m
+		"kunai_hasshaki", "enmaku_kote":   # hasar yalnız mermi ve dumandan
+			return {"lunge_mul": 0.0, "special": "", "shot": true}
+		"igne_tufegi", "dako", "jidanda":   # hasar yalnız şırınga / uç / gülleden (kendi FX dosyaları)
+			return {"lunge_mul": 0.0, "special": "", "shot": true}
+		"tsurukame":
+			if i == 0:
+				return {"lunge_mul": 0.7, "knock": 6.0, "stun": 0.2, "special": "", "snd": "hit_staff", "reach_add": 0.3}
+			return {"lunge_mul": 0.0, "special": "", "shot": true}
+		"hasami_kote":
+			var m = {"lunge_mul": 0.7, "knock": 5.0, "reach_add": 0.9, "snd": "hit_blade"}
+			match i:
+				0: m.merge({"knock": 6.0})
+				1: m.merge({"heavy": true, "knock": 3.0})
+				2: m.merge({"lunge_mul": 1.0, "reach_add": 1.1, "knock": 4.0})
+				3: m.merge({"lunge_mul": 1.1, "knock": 0.0, "reach_add": -9.0})
+				4: m.merge({"lunge_mul": 0.0, "knock": 0.2, "reach_add": -9.0})
+				5: m.merge({"heavy": true, "shatter": true, "knock": 6.0, "lunge_mul": 0.2})
+			return m
+		"soha_kote":
+			var m = {"lunge_mul": 0.95, "knock": 2.5, "bleed": 1.5, "snd": "hit_blade"}
+			match i:
+				2: m.merge({"lunge_mul": 0.0, "knock": 1.0, "reach_add": -9.0})
+				4: m.merge({"launch": 6.0, "knock": 1.0})
+				5: m.merge({"heavy": true, "knock": 9.0, "lunge_mul": 1.2})
+			return m
+		"doriru_ude":
+			var m = {"lunge_mul": 0.6, "knock": 4.0, "reach_add": 0.8}
+			match i:
+				0: m.merge({"heavy": true})
+				1: m.merge({"knock": 1.0, "lunge_mul": 0.3})
+				2, 3, 4: m = {"lunge_mul": 0.0, "special": "", "shot": true}
+				5: m.merge({"heavy": true, "shatter": true, "knock": 14.0, "lunge_mul": 1.4, "reach_add": 0.9})
+			return m
+		"kajiki_mori":
+			var m = {"lunge_mul": 0.9, "knock": 4.0, "reach_add": 0.9, "snd": "hit_blade"}
+			match i:
+				1: m.merge({"pull": true, "knock": 0.5})
+				2: m.merge({"knock": 7.0})
+				3, 5: m = {"lunge_mul": 0.0, "special": "", "shot": true}
+				4: m.merge({"knock": 1.0, "lunge_mul": 0.4})
+			return m
+		"ei_yumi":   # hasar yalnız oktan
+			return {"lunge_mul": 0.0, "special": "", "shot": true}
+		"hono_ken":   # alev çizgileri hasarı HonoKenFX'te verir; kılıç yine keser
+			var m = {"lunge_mul": 0.7, "knock": 3.0, "reach_add": 0.3, "special": "", "snd": "hit_sword", "element": "katon"}
+			match i:
+				2: m.merge({"lunge_mul": 0.2, "heavy": true, "knock": 4.0})
+				3: m.merge({"lunge_mul": 0.0, "shot": true})
+				4: m.merge({"lunge_mul": 0.0, "shot": true})
+				5: m.merge({"lunge_mul": 0.9, "heavy": true, "knock": 10.0})
+			return m
+		"gariando":
+			var m = {"lunge_mul": 0.0, "knock": 2.0, "special": "", "snd": "hit_blade"}
+			match i:
+				0: m.merge({"reach_add": 3.0, "knock": 3.0})
+				1: m.merge({"reach_add": 2.2, "knock": 5.0})
+				2: m.merge({"reach_add": 3.0, "pull": true, "knock": 0.5})
+				3: m.merge({"lunge_mul": 1.2, "reach_add": 0.3, "knock": 7.0, "heavy": true})
+				4: m.merge({"reach_add": 1.6, "knock": 3.0})
+				5: m.merge({"shot": true})
+			return m
+		"fujaku":
+			var m = {"lunge_mul": 1.1, "knock": 1.5, "special": "", "snd": "hit_blade", "element": "fuuton"}
+			match i:
+				2: m.merge({"lunge_mul": 0.3, "knock": 2.0})
+				3: m.merge({"lunge_mul": 0.0, "launch": 7.0, "knock": 1.0})
+				4: m.merge({"lunge_mul": 0.0, "shot": true})
+				5: m.merge({"lunge_mul": 0.8, "heavy": true, "knock": 11.0, "reach_add": 0.6})
+			return m
+		"kuwa":
+			var m = {"lunge_mul": 0.5, "knock": 4.0, "reach_add": 0.3, "special": ""}
+			match i:
+				2: m.merge({"heavy": true, "pull": true, "knock": 1.0}, true)   # ağız bileğe takılır: çeker, yere serer
+				3, 4: m.merge({"lunge_mul": 0.0, "shot": true}, true)   # toprak ve karık kendi vuruşuyla
+				5: m.merge({"heavy": true, "knock": 6.0, "reach_add": 0.5}, true)
+			return m
+		"naitosodo":
+			var m = {"lunge_mul": 0.8, "knock": 3.0, "reach_add": 0.0, "special": ""}
+			match i:
+				2: m.merge({"lunge_mul": 1.1, "reach_add": 1.0, "knock": 4.0}, true)   # uzayan ağız
+				3: m.merge({"reach_add": 0.9, "knock": 6.0}, true)
+				4: m.merge({"stun": 0.5, "knock": 2.0, "snd": "punch"}, true)   # kabza topuzu
+				5: m.merge({"lunge_mul": 0.0, "shot": true}, true)
+			return m
+		"hiraki_tate":
+			var m = {"lunge_mul": 0.8, "knock": 3.0, "reach_add": 0.1, "snd": "punch", "special": ""}
+			match i:
+				1: m.merge({"knock": 6.0, "reach_add": 0.3}, true)
+				2: m.merge({"knock": 4.0, "reach_add": 0.5}, true)
+				3: m.merge({"lunge_mul": 0.3, "knock": 7.0}, true)
+				4: m.merge({"knock": 2.0, "stun": 0.35}, true)
+				5: m.merge({"heavy": true, "knock": 9.0, "reach_add": 0.6}, true)
+			return m
+		"nobi_ude":
+			var m = {"lunge_mul": 0.9, "knock": 4.5, "reach_add": 0.3, "snd": "punch", "special": ""}
+			match i:
+				2, 3, 4: m = {"lunge_mul": 0.0, "special": "", "shot": true}   # tel, uçan el, çakma kendi vuruşuyla
+				5: m.merge({"heavy": true, "knock": 14.0, "lunge_mul": 1.7, "reach_add": 0.5}, true)
+			return m
+		"sekka_kote":
+			var m = {"lunge_mul": 0.95, "knock": 1.5, "snd": "punch"}
+			match i:
+				2: m.merge({"knock": 0.2, "stun": 0.5})
+				3, 4: m = {"lunge_mul": 0.0, "special": "", "shot": true}
+				5: m.merge({"heavy": true, "knock": 8.0, "lunge_mul": 1.3})
+			return m
+		"tenro_doriru":
+			var m = {"lunge_mul": 0.85, "knock": 3.0, "reach_add": 0.5}
+			match i:
+				2: m.merge({"knock": 1.0, "lunge_mul": 0.4})
+				3: m = {"lunge_mul": 0.0, "special": "", "shot": true}
+				4: m.merge({"launch": 6.0, "knock": 1.0})
+				5: m.merge({"heavy": true, "shatter": true, "knock": 12.0, "lunge_mul": 1.5})
+			return m
+		"ryujin":
+			var m = {"lunge_mul": 0.95, "knock": 3.0, "reach_add": 0.3}
+			if i == 5:
+				m = {"lunge_mul": 0.0, "special": "", "shot": true}
+			return m
+		"chakra_oltasi":
+			var m = {"lunge_mul": 0.0, "knock": 2.0, "special": "", "snd": "hit_blade"}
+			match i:
+				0: m.merge({"reach_add": 3.0})
+				1: m.merge({"reach_add": 2.4, "knock": 4.0})
+				2: m.merge({"reach_add": 0.2, "knock": 5.0})
+				3: m.merge({"reach_add": 3.6, "pull": true, "knock": 0.5})
+				4, 5: m.merge({"shot": true})
+			return m
+		"shakujo":
+			# ağır başlı asa: dürtme, dipçikle kaldırma, süpürme, tepeden sersemletme; rüzgâr kısmı ShakujoFX
+			var m = {"lunge_mul": 0.75, "knock": 4.5, "reach_add": 0.5}
+			match i:
+				0: m.merge({"reach_add": 0.7})
+				1: m.merge({"knock": 2.5, "launch": 4.5})
+				2: m.merge({"knock": 8.0})
+				3: m.merge({"heavy": true, "stun": 0.5, "knock": 3.0})
+				4: m.merge({"knock": 1.5, "lunge_mul": 0.15})
+				5: m.merge({"heavy": true, "knock": 11.0, "lunge_mul": 0.3})
+			return m
+		"mizrak":
+			var m = {"lunge_mul": 1.0, "knock": 4.0, "reach_add": 0.4}
+			match i:
+				1: m.merge({"bleed": 2.0})
+				3: m.merge({"heavy": true, "knock": 2.0})
+				5: m.merge({"heavy": true, "knock": 12.0, "lunge_mul": 1.8, "reach_add": 0.8, "bleed": 3.0})
+			return m
+		"kamci":
+			var m = {"lunge_mul": 0.0, "knock": 2.0}
+			match i:
+				1: m.merge({"knock": 6.0})
+				3: m.merge({"knock": 0.5})
+				4: m.merge({"heavy": true, "knock": 2.0})
+				5: m.merge({"pull": true, "heavy": true, "knock": 3.0})
+			return m
+		"sansetsukon":
+			var m = {"lunge_mul": 0.8, "knock": 4.0}
+			match i:
+				2: m.merge({"heavy": true, "stun": 0.7, "knock": 3.0})
+				3: m.merge({"knock": 8.0})
+				4: m.merge({"heavy": true, "knock": 2.0})
+				5: m.merge({"heavy": true, "stun": 1.0, "knock": 11.0})
+			return m
+		"nunchaku":
+			# sert ağaç: kanatmaz, sarsar; inişler sersemletir
+			var m = {"lunge_mul": 0.9, "knock": 2.5}
+			match i:
+				2: m.merge({"heavy": true, "stun": 0.5, "knock": 3.0})
+				3: m.merge({"knock": 4.0})
+				4: m.merge({"knock": 6.0, "reach_add": 0.2})
+				5: m.merge({"heavy": true, "stun": 0.8, "knock": 9.0})
+			return m
+		"johyo":
+			# bütün vuruşlar ipin ucundaki darttan (on_strike): kurulurken öne kaymaz
+			var m = {"lunge_mul": 0.0, "knock": 1.0}
+			match i:
+				1: m.merge({"knock": 7.0})
+				3: m.merge({"pull": true, "knock": 2.0})
+				4: m.merge({"heavy": true, "knock": 2.0})
+				5: m.merge({"launch": 9.0, "knock": 1.0})
+			return m
+		"shichiseiken":
+			# geniş yassı ağız: ağır, iter; ezme yere serer, süpürme geniş; söz ruhu çekilmişi lanetler (on_strike)
+			var m = {"lunge_mul": 0.6, "knock": 6.0}
+			match i:
+				2: m.merge({"heavy": true, "knock": 3.0, "reach_add": 0.4})
+				3: m.merge({"knock": 12.0, "reach_add": 0.9})
+				4: m.merge({"knock": 9.0, "reach_add": 0.7})
+				5: m.merge({"heavy": true, "knock": 14.0, "lunge_mul": 0.8})
+			return m
+		"kokuto":
+			# zehirli kara ağız: her kesik zehir (burn) bırakır, birikir; ilk baş kesiği kaçınılamaz (görünmeyen ağız)
+			var m = {"lunge_mul": 0.9, "knock": 2.5, "burn": 2.0}
+			match i:
+				0: m.merge({"sure": true, "knock": 3.0})
+				2: m.merge({"burn": 5.0, "knock": 4.0, "reach_add": 0.4})
+				3: m.merge({"heavy": true, "knock": 2.0, "reach_add": 0.5})
+				4: m.merge({"lunge_mul": 0.2, "knock": 6.0})
+				5: m.merge({"heavy": true, "knock": 10.0, "burn": 7.0, "lunge_mul": 1.1})
+			return m
 		"nanato":
 			# Akurobatto: ince ağızlar kanatır; süpürme yere serer, dönüş havaya savurur, fırlatma orta menzil, bitiriş birden saplama
 			var m = {"lunge_mul": 0.8, "knock": 3.0, "bleed": 1.5}
@@ -508,7 +1003,7 @@ static func mods(id: String, i: int) -> Dictionary:
 				3: m.merge({"knock": 9.0})
 				5: m.merge({"heavy": true, "knock": 16.0, "lunge_mul": 0.9, "reach_add": 1.2})
 			return m
-		"bo":
+		"bo", "jo":
 			var m = {"lunge_mul": 0.6, "knock": 5.0, "reach_add": 0.6}
 			match i:
 				2: m.merge({"knock": 9.0, "reach_add": 1.0})
@@ -673,6 +1168,32 @@ static func mods(id: String, i: int) -> Dictionary:
 ## İsabet eden hedefe adım etkisi (kanca çekişi)
 static func on_target(id: String, i: int, who: Node3D, h: Node3D) -> void:
 	var m = mods(id, i)
+	if id == "sekka_kote":
+		SekkaKoteFX.on_hit(who, i, h)
+	if id == "ryujin":
+		RyujinFX.on_hit(who, i, h)
+	if id == "kajiki_mori":
+		KajikiMoriFX.on_hit(who, i, h)
+	if id == "cift_tirpan":
+		CiftTirpanFX.on_hit(who, i, h)
+	if id == "nester":
+		NesterFX.on_hit(who, i, h)
+	if id == "nunoboko":
+		NunobokoFX.on_hit(who, i, h)
+	if id == "tekko":
+		TekkoFX.on_hit(who, i, h)
+	if id == "kokuto":
+		load("res://scripts/combat/fx/doku_fx.gd").add(h, float(m.get("burn", 0.0)))
+	if id == "natato":
+		NatatoFX.on_hit(who, i, h)
+	if id == "oni_kote":
+		OniKoteFX.on_hit(who, i, h)
+	if id == "kaeri_yari":
+		KaeriYariFX.on_hit(who, i, h)
+	if id == "ono":
+		OnoFX.on_hit(who, i, h)
+	if id == "sasumata":
+		SasumataFX.on_hit(who, i, h)
 	if bool(m.get("pull", false)) and h is CharacterBody3D:
 		h.velocity = (who.global_position - h.global_position).normalized() * 9.0 + Vector3.UP * 2.0
 	if bool(m.get("mark", false)) and h.has_method("apply_status"):
@@ -704,11 +1225,162 @@ static func on_target(id: String, i: int, who: Node3D, h: Node3D) -> void:
 static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 	if who == null or not is_instance_valid(who):
 		return
+	JokiFX.on_melee(who, i, dmg)   # sırt ocağı takılıysa buhar basıncı vuruşa eklenir
 	if id == "raikage_kote":
 		_kote_fx(who, i, dmg)
 		return
 	if id == "nanato":
 		NanatoFX.strike(who, i, dmg)
+		return
+	if id == "kokuto":
+		KokutoFX.strike(who, i, dmg)
+		return
+	if id == "amagasa":
+		AmagasaFX.strike(who, i, dmg)
+		return
+	if id == "sasumata":
+		SasumataFX.strike(who, i, dmg)
+		return
+	if id == "konbo":
+		KonboFX.strike(who, i, dmg)
+		return
+	if id == "kanabo":
+		KanaboFX.strike(who, i, dmg)
+		return
+	if id == "ono":
+		OnoFX.strike(who, i, dmg)
+		return
+	if id == "tate":
+		TateFX.strike(who, i, dmg)
+		return
+	if id == "katar":
+		KatarFX.strike(who, i, dmg)
+		return
+	if id == "natato":
+		NatatoFX.strike(who, i, dmg)
+		return
+	if id == "oni_kote":
+		OniKoteFX.strike(who, i, dmg)
+		return
+	if id == "kunai_to":
+		KunaiToFX.strike(who, i, dmg)
+		return
+	if id == "kaeri_yari":
+		KaeriYariFX.strike(who, i, dmg)
+		return
+	if id == "kusari_fundo":
+		KusariFundoFX.strike(who, i, dmg)
+		return
+	if id == "kurosawa":
+		KurosawaFX.strike(who, i, dmg)
+		return
+	if id == "shinobigote":
+		ShinobigoteFX.strike(who, i, dmg)
+		return
+	if id == "katoringu":
+		KatoringuFX.strike(who, i, dmg)
+		return
+	if id == "nunoboko":
+		NunobokoFX.strike(who, i, dmg)
+		return
+	if id == "flail":
+		FlailFX.strike(who, i, dmg)
+		return
+	if id == "kusari_fubo":
+		KusariFuboFX.strike(who, i, dmg)
+		return
+	if id == "cift_tirpan":
+		CiftTirpanFX.strike(who, i, dmg)
+		return
+	if id == "nester":
+		NesterFX.strike(who, i, dmg)
+		return
+	if id == "kunai_hasshaki":
+		KunaiHasshakiFX.strike(who, i, dmg)
+		return
+	if id == "enmaku_kote":
+		EnmakuKoteFX.strike(who, i, dmg)
+		return
+	if id == "igne_tufegi":
+		IgneTufegiFX.strike(who, i, dmg)
+		return
+	if id == "dako":
+		DakoFX.strike(who, i, dmg)
+		return
+	if id == "tsurukame":
+		TsurukameFX.strike(who, i, dmg)
+		return
+	if id == "jidanda":
+		JidandaFX.strike(who, i, dmg)
+		return
+	if id == "hasami_kote":
+		HasamiKoteFX.strike(who, i, dmg)
+		return
+	if id == "soha_kote":
+		SohaKoteFX.strike(who, i, dmg)
+		return
+	if id == "doriru_ude":
+		DoriruUdeFX.strike(who, i, dmg)
+		return
+	if id == "kajiki_mori":
+		KajikiMoriFX.strike(who, i, dmg)
+		return
+	if id == "ei_yumi":
+		EiYumiFX.strike(who, i, dmg)
+		return
+	if id == "hono_ken":
+		HonoKenFX.strike(who, i, dmg)
+		return
+	if id == "gariando":
+		GariandoFX.strike(who, i, dmg)
+		return
+	if id == "fujaku":
+		FujakuFX.strike(who, i, dmg)
+		return
+	if id == "kuwa":
+		KuwaFX.strike(who, i, dmg)
+		return
+	if id == "naitosodo":
+		NaitosodoFX.strike(who, i, dmg)
+		return
+	if id == "nobi_ude":
+		NobiUdeFX.strike(who, i, dmg)
+		return
+	if id == "sekka_kote":
+		SekkaKoteFX.strike(who, i, dmg)
+		return
+	if id == "tenro_doriru":
+		TenroDoriruFX.strike(who, i, dmg)
+		return
+	if id == "ryujin":
+		RyujinFX.strike(who, i, dmg)
+		return
+	if id == "chakra_oltasi":
+		ChakraOltasiFX.strike(who, i, dmg)
+		return
+	if id == "shakujo":
+		ShakujoFX.strike(who, i, dmg)
+		return
+	if id == "yumi":
+		YumiFX.strike(who, i, dmg)
+		return
+	if id == "arbalet":
+		ArbaletFX.strike(who, i, dmg)
+		return
+	if id == "fukiya":
+		FukiyaFX.strike(who, i, dmg)
+		return
+	if id == "bilek_senbon":
+		BilekSenbonFX.strike(who, i, dmg)
+		return
+	if id == "kyomei_supika":
+		KyomeiFX.strike(who, i, dmg)
+		return
+	if id == "sapan":
+		SapanFX.strike(who, i, dmg)
+		return
+	if id == "shichiseiken":
+		KinginFX.curse_hit(who)   # Kōkinjō ile söz ruhu çekilmiş hedef: lanet
 		return
 	var f: Vector3 = who.face_dir() if who.has_method("face_dir") else -who.global_transform.basis.z
 	f.y = 0
@@ -887,7 +1559,7 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 						var hp2 = who.global_position + Vector3.UP * 1.1 + (f * cos(a2) - side * sin(a2)) * 2.6
 						Combat.hit_sphere(who, hp2, 1.8, {"dmg": dmg * 0.4, "knock": 16.0, "launch": 4.0, "kind": "heavy", "hitstop": 0.05, "melee": false})
 					_shake(who, 0.7)
-		"bo":
+		"bo", "jo":
 			if i == 5:
 				var q = gp.call(1.8)
 				VFX.cracks(q, 1.8)
@@ -1078,6 +1750,10 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 						Combat.hit_sphere(who, from + f * (2.5 + k * 3.2), 2.8, {"dmg": dmg * 0.5, "knock": 16.0, "kind": "heavy", "hitstop": 0.04, "melee": false, "element": "wind"})
 					Dangle.gust(from + f * 6.0, f * 40.0, 12.0, 1.0)
 					_shake(who, 0.5)
+		"johyo":
+			_kg_weight(who, dmg, ["straight", "whirl", "wrap", "wrap", "whirl", "wrap"][clampi(i, 0, 5)])
+		"kamci":
+			_kg_weight(who, dmg, ["straight", "whirl", "straight", "wrap", "whirl", "wrap"][clampi(i, 0, 5)])
 		"zincirli_kunai":
 			match i:
 				1:
@@ -1334,6 +2010,132 @@ static func _fly_tag(who: Node3D, from: Vector3, to: Vector3, dur: float, dmg: f
 
 ## Adım başlarken (oyuncu _start_step / düşman _swing_keyed): sıçrama, Samehada'nın sargısını açıp büyümesi vb.
 static func on_start(id: String, i: int, who: Node3D) -> void:
+	if id == "amagasa":
+		AmagasaFX.start(who, i)
+		return
+	if id == "sasumata":
+		SasumataFX.start(who, i)
+		return
+	if id == "kanabo":
+		KanaboFX.start(who, i)
+		return
+	if id == "tate":
+		TateFX.start(who, i)
+		return
+	if id == "natato":
+		NatatoFX.start(who, i)
+		return
+	if id == "kaeri_yari":
+		KaeriYariFX.start(who, i)
+		return
+	if id == "kusari_fundo":
+		KusariFundoFX.start(who, i)
+		return
+	if id == "kurosawa":
+		KurosawaFX.start(who, i)
+		return
+	if id == "shinobigote":
+		ShinobigoteFX.start(who, i)
+		return
+	if id == "katoringu":
+		KatoringuFX.start(who, i)
+		return
+	if id == "nunoboko":
+		NunobokoFX.start(who, i)
+		return
+	if id == "flail":
+		FlailFX.start(who, i)
+		return
+	if id == "kusari_fubo":
+		KusariFuboFX.start(who, i)
+		return
+	if id == "cift_tirpan":
+		CiftTirpanFX.start(who, i)
+		return
+	if id == "nester":
+		NesterFX.start(who, i)
+		return
+	if id == "kunai_hasshaki":
+		KunaiHasshakiFX.start(who, i)
+		return
+	if id == "enmaku_kote":
+		EnmakuKoteFX.start(who, i)
+		return
+	if id == "igne_tufegi":
+		IgneTufegiFX.start(who, i)
+		return
+	if id == "dako":
+		DakoFX.start(who, i)
+		return
+	if id == "tsurukame":
+		TsurukameFX.start(who, i)
+		return
+	if id == "jidanda":
+		JidandaFX.start(who, i)
+		return
+	if id == "hasami_kote":
+		HasamiKoteFX.start(who, i)
+		return
+	if id == "soha_kote":
+		SohaKoteFX.start(who, i)
+		return
+	if id == "doriru_ude":
+		DoriruUdeFX.start(who, i)
+		return
+	if id == "ei_yumi":
+		EiYumiFX.start(who, i)
+		return
+	if id == "hono_ken":
+		HonoKenFX.start(who, i)
+		return
+	if id == "gariando":
+		GariandoFX.start(who, i)
+		return
+	if id == "fujaku":
+		FujakuFX.start(who, i)
+		return
+	if id == "naitosodo":
+		NaitosodoFX.start(who, i)
+		return
+	if id == "hiraki_tate":
+		HirakiTateFX.start(who, i)
+		return
+	if id == "nobi_ude":
+		NobiUdeFX.start(who, i)
+		return
+	if id == "tenro_doriru":
+		TenroDoriruFX.start(who, i)
+		return
+	if id == "ryujin":
+		RyujinFX.start(who, i)
+		return
+	if id == "chakra_oltasi":
+		ChakraOltasiFX.start(who, i)
+		return
+	if id == "shakujo":
+		ShakujoFX.start(who, i)
+		return
+	if id == "yumi":
+		YumiFX.start(who, i)
+		return
+	if id == "arbalet":
+		ArbaletFX.start(who, i)
+		return
+	if id == "fukiya":
+		FukiyaFX.start(who, i)
+		return
+	if id == "bilek_senbon":
+		BilekSenbonFX.start(who, i)
+		return
+	if id == "kyomei_supika":
+		KyomeiFX.start(who, i)
+		return
+	if id == "sapan":
+		SapanFX.start(who, i)
+		return
+	if id == "kokuto" and i == 4:
+		KokutoFX.slip_behind(who)   # Kage Mawari: rakibin arkasına süzül
+		return
 	if who == null or not is_instance_valid(who):
 		return
 	if id.begins_with("style_"):
@@ -1361,7 +2163,7 @@ static func on_start(id: String, i: int, who: Node3D) -> void:
 				_hk_split(who, 2.9)
 			elif i == 4:
 				_hk_join(who)
-		"bo":
+		"bo", "jo":
 			if i == 5 and who is CharacterBody3D:
 				who.velocity.y = 7.5
 		"savas_cekici":
@@ -3718,30 +4520,7 @@ static func _scythe_node() -> Node3D:
 
 ## Jashin kara mızrağı: elde geri çekilebilir siyah sivri mızrak (p_jashin_kazik ile aynı biçim), dur sn
 static func _jashin_spike(who: Node3D, dur: float) -> void:
-	var pj = PathJutsu.get_pinst()
-	if pj == null:
-		return
-	var ba = pj.bone_attach(who, "RightHand")
-	if ba == null:
-		return
-	var spike = MeshInstance3D.new()
-	var cm = CylinderMesh.new()
-	cm.top_radius = 0.0
-	cm.bottom_radius = 0.035
-	cm.height = 1.2
-	spike.mesh = cm
-	var m = StandardMaterial3D.new()
-	m.albedo_color = Color(0.08, 0.08, 0.1)
-	m.metallic = 0.6
-	m.roughness = 0.3
-	spike.material_override = m
-	spike.position = Vector3(0, 0.45, 0.02)
-	ba.add_child(spike)
-	spike.scale = Vector3(1, 0.05, 1)
-	spike.create_tween().tween_property(spike, "scale", Vector3.ONE, 0.12)   # geri çekilmiş halden uzar
-	who.get_tree().create_timer(dur).timeout.connect(func():
-		if is_instance_valid(ba):
-			ba.queue_free())
+	KaeriYariFX.hand_spike(who, dur)   # silahın kendi teleskopik modeli
 
 
 ## Jashin çemberi: kan rengi daire + içinde üçgen (p_jashin_kurban'ın küçüğü), dur sn yerde kalır
@@ -3771,6 +4550,22 @@ static func _jashin_circle(who: Node3D, at: Vector3, dur: float) -> void:
 	tw.tween_callback(mi.queue_free)
 
 
+## Jashin çemberi + lanet bağı (tarz ve Kaeri Yari aynı işlev). Son 20 sn'de kanı alınmış rakip gerekir.
+static func _jashin_draw(who: Node3D) -> bool:
+	var atj = Vector3(who.global_position.x, Game.ground_height(who.global_position.x, who.global_position.z), who.global_position.z)
+	_jashin_circle(who, atj, 6.0)
+	var cursed: Node3D = null
+	for e in who.get_tree().get_nodes_in_group("fighters"):
+		if e != who and Combat.hostile(who, e) and not e.is_dead() and e.has_meta("jashin_kan") and Time.get_ticks_msec() - int(e.get_meta("jashin_kan")) < 20000 and e.global_position.distance_to(who.global_position) < 30.0:
+			cursed = e
+			break
+	if cursed:
+		who.set_meta("jashin_link", [cursed.get_instance_id(), Time.get_ticks_msec() / 1000.0 + 6.0, atj])
+		Combat.popup_text(cursed.global_position + Vector3.UP * 2.4, "Lanet bağı!", Color(0.75, 0.1, 0.12))
+		FX.aura(who, Color(0.08, 0.08, 0.1), 1.2, Vector3(0, 0.9, 0), 6.0)   # beden kara-ak ölüm desenine bürünür (aura)
+		return true
+	Combat.popup_text(who.global_position + Vector3.UP * 2.4, "Kan yok...", Color(0.7, 0.6, 0.6))
+	return false
 ## Jashin lanet bağı: kendine saplarsın — bağlıysa (çemberdeyken) rakip aynı yarayı alır. Bedel: kendi canının bir kısmı.
 static func _jashin_self(who: Node3D, dmg: float, mul: float, cost: float, txt: String) -> bool:
 	var ln = who.get_meta("jashin_link", [])
@@ -4664,19 +5459,7 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 					for h in Combat.hit_sphere(who, who.global_position + Vector3.UP, 2.8, _kinfo(dmg, 1.0, {"element": "", "knock": 6.0, "kind": "heavy", "bleed": 2.0})):
 						h.set_meta("jashin_kan", Time.get_ticks_msec())
 				3:   # Jashin çemberi: ayakla çizilir; yakında kanını aldığın biri varsa lanet bağı kurulur
-					var atj = Vector3(who.global_position.x, Game.ground_height(who.global_position.x, who.global_position.z), who.global_position.z)
-					_jashin_circle(who, atj, 6.0)
-					var cursed: Node3D = null
-					for e in who.get_tree().get_nodes_in_group("fighters"):
-						if e != who and Combat.hostile(who, e) and not e.is_dead() and e.has_meta("jashin_kan") and Time.get_ticks_msec() - int(e.get_meta("jashin_kan")) < 20000 and e.global_position.distance_to(who.global_position) < 30.0:
-							cursed = e
-							break
-					if cursed:
-						who.set_meta("jashin_link", [cursed.get_instance_id(), Time.get_ticks_msec() / 1000.0 + 6.0, atj])
-						Combat.popup_text(cursed.global_position + Vector3.UP * 2.4, "Lanet bağı!", red)
-						FX.aura(who, Color(0.08, 0.08, 0.1), 1.2, Vector3(0, 0.9, 0), 6.0)   # beden kara-ak ölüm desenine bürünür (aura)
-					else:
-						Combat.popup_text(who.global_position + Vector3.UP * 2.4, "Kan yok...", Color(0.7, 0.6, 0.6))
+					_jashin_draw(who)
 				4:   # bacağına sapla: bağlı rakip aynı yarayı alır (kendi canından küçük bedel)
 					_jashin_self(who, dmg, 1.4, 0.03, "Bacağa!")
 				5:   # kalbe sapla: bağlı rakibe ağır yara; bağ yoksa tırpanı yere çakar
@@ -4697,23 +5480,10 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 			match i:
 				0:   # dokunaç kırbacı (Gyūki'nin gerçek Takoashi Ude dokunacı, insan ölçeği)
 					BijuuArts._tako_ude(who, {"s": 0.45, "dmg": dmg * 1.1, "aim": aimb, "tgt": tg, "base_h": 1.6})
-				1:   # yedi kılıç dönüşü (kollar/koltuk altı/ağız)
-					var root = Node3D.new()
-					who.add_child(root)
-					root.position = Vector3.UP * 1.2
-					for k in 7:
-						var a = k * TAU / 7.0
-						var b = MB.new()
-						b.add("box", Vector3(0, 0, 0.6), Vector3(0.04, 0.12, 1.2), Color(0.8, 0.82, 0.86))
-						b.add("cyl", Vector3(0, 0, -0.05), Vector3(0.04, 0.15, 0.04), Color(0.15, 0.12, 0.1), Vector3(90, 0, 0), 6)
-						var sw = MeshInstance3D.new()
-						sw.mesh = b.build(Props.toon())
-						root.add_child(sw)
-						sw.rotation.y = a
-						sw.position = Vector3(cos(a), (k % 3 - 1) * 0.3, sin(a)) * 0.4
-					var tw = root.create_tween()
-					tw.tween_property(root, "rotation:y", TAU * 2.0, 0.4)
-					tw.tween_callback(root.queue_free)
+				1:   # Ran Taijutsu (kanon: B'nin "Disturbance Taijutsu"su): ritimle dönen düzensiz tekme — kılıç yok (kılıçlar yalnız Nanatō
+					# kuşanınca, Akurobatto). Ayaktan Sekiz Kuyruk mürekkebi savrulur, yerde mürekkep izi kalır
+					var fp = who.global_position + f * 1.1
+					pjb._ink_splash(Vector3(fp.x, Game.ground_height(fp.x, fp.z) + 0.05, fp.z), 6)
 					Combat.hit_sphere(who, who.global_position + Vector3.UP, 2.6, _kinfo(dmg, 1.2, {"element": "", "knock": 5.0, "kind": "heavy", "bleed": 1.5}))
 				2:   # mürekkep tükürüğü: kara mürekkep seli — kör eder, yavaşlatır
 					var mouth = who.global_position + Vector3.UP * 1.55 + f * 0.35
@@ -5678,7 +6448,7 @@ static func _swarm(who: Node3D, tg: Node3D, dmg: float, r: float, off: Vector3, 
 			if cj:
 				cj.swarm_body(h, 1.6, 0.45, 0.02))   # Kikaichū no Jutsu'nun yapışma görünüşü: bedende sürünen benekler
 	if pr:
-		mi.create_tween().set_loops().tween_property(mi, "rotation", Vector3(TAU, TAU * 0.7, TAU * 0.4), 0.6).as_relative()
+		Game.safe_loops(mi.create_tween()).tween_property(mi, "rotation", Vector3(TAU, TAU * 0.7, TAU * 0.4), 0.6).as_relative()
 		Projectile.trail(pr, [Color(0.0, 0.0, 0.0), Color(0.03, 0.03, 0.02), Color(0.0, 0.0, 0.0, 0)], 0.09 + r * 0.06, int(90 + r * 120), 0.45, null, false)
 	Sfx.play("whoosh", from, 0.6, 0.4)
 

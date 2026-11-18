@@ -850,7 +850,8 @@ static func jouro_senbon(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	sh.create_tween().tween_property(sh, "scale", Vector3(3.0, 1, 3.0), 0.6).set_ease(Tween.EASE_OUT)
 	fade_free(sh, shm, 2.0, 0.6)
 	pj.after(0.5, func():
-		for k in 40:
+		var needles := 56 if CanonRules.weapon_ids(c).any(func(w): return Gear.base_id(String(w)) == "amagasa") else 40   # elde gerçek Amagasa: daha çok iğne
+		for k in needles:
 			pj.after(randf() * 0.9, func():
 				var q: Vector3 = at + Vector3(randf_range(-1.2, 1.2), 8.6, randf_range(-1.2, 1.2))
 				pj.shot(c, q, (at + Vector3(randf_range(-3, 3), 0, randf_range(-3, 3)) - q).normalized(), 40.0, _needle(k % 3 == 0), pj.inf(c, "jouro_senbon", 0.07, {"knock": 0.3, "kind": "light", "bleed": 1.0}), null, false, 0.5, func(p, h):
@@ -1417,7 +1418,7 @@ static func rasengan(s: float, near := 1.2) -> Node3D:
 	var shell := mi(_sphere(16), wm)
 	shell.scale = Vector3.ONE * s * 1.28
 	root.add_child(shell)
-	shell.create_tween().set_loops().tween_property(shell, "rotation", Vector3(0.6, TAU, 0.3), 0.35).as_relative()
+	Game.safe_loops(shell.create_tween()).tween_property(shell, "rotation", Vector3(0.6, TAU, 0.3), 0.35).as_relative()
 	return root
 
 
@@ -1459,7 +1460,7 @@ static func rasenkyugan(pj: PathJutsu, c: Node3D, _t: Node3D) -> void:
 			var rg := mi(_annulus(0.38, 0.7, 28), sm)
 			rg.rotation = Vector3(0.5 if k == 0 else -0.6, 0, 0.3)
 			r.add_child(rg)
-			rg.create_tween().set_loops().tween_property(rg, "rotation:y", TAU * (1.0 if k == 0 else -1.0), 0.6).as_relative()
+			Game.safe_loops(rg.create_tween()).tween_property(rg, "rotation:y", TAU * (1.0 if k == 0 else -1.0), 0.6).as_relative()
 		pj.free_after(8.0, ba)
 	pj.every(8.0, 0.1, func(_i, _k):
 		if not pj.live(c):

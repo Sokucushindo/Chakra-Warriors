@@ -269,7 +269,7 @@ static func _flat_mat(key: String, alpha: bool) -> StandardMaterial3D:
 
 
 static func _spin(n: Node3D, prop: String, period: float, loops: int, sgn := 1.0) -> void:
-	var tw = n.create_tween().set_loops(maxi(1, loops))
+	var tw = Game.safe_loops(n.create_tween(), maxi(1, loops))
 	tw.tween_property(n, prop, TAU * sgn, period).as_relative()
 
 

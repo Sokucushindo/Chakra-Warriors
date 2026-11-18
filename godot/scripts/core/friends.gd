@@ -1424,12 +1424,44 @@ func _lair_props(n: Node3D) -> void:
 	root.add_child(l)
 
 
+## Tanıdığın klanı kayda yazılır: dünyadaki gerçek kişiden, yoksa soyadından (eskiden yol / takım tanışmalarında boş kalıyor,
+## oyun yeniden açılınca kişi klansız görünüyordu). Eski kayıtlardaki tanıdıklar da böyle düzelir.
+static func fill_clan(f: Dictionary) -> void:
+	f["clan_ck"] = true
+	if not String(f.get("clan", "")) in ["", "none"]:
+		return
+	var nm = String(f.get("name", ""))
+	var c = ""
+	for q in WorldPeople.all().values():
+		if String(q.get("name", "")) == nm:
+			c = String(q.get("clan", ""))
+			f["wid"] = String(q["id"])
+			if c != "":
+				f["eye"] = (q.get("eye", [0, 0]) as Array).duplicate()
+				f["element"] = String((q["els"] as Array)[0])
+			break
+	if c == "":
+		var sur = nm.split(" ")[0]
+		for k in Data.clans:
+			if k != "none" and ClanWorld.clan_name(String(k)) == sur:
+				c = String(k)
+				break
+	if c == "":
+		return
+	f["clan"] = c
+	if String(f.get("title", "")).ends_with("ninjası"):
+		f["title"] = "%s klanı" % ClanWorld.clan_name(c)
+
+
 func _world_tick(dt: float) -> void:
 	_wt -= dt
 	if _wt > 0.0:
 		_fights_tick(dt)
 		return
 	_wt = 1.0
+	for cf in all().values():
+		if not cf.has("clan_ck"):
+			fill_clan(cf)
 	_funeral_tick()
 	RogueBonds.tick()
 	var now = Time.get_unix_time_from_system()
@@ -1458,8 +1490,14 @@ func _world_tick(dt: float) -> void:
 				n.queue_free()
 			present.erase(id)
 	var spawned = 0
+	var busy_id = String(act.get("id", ""))   # birlikte bir şey yapılan dost ikinci kez yerinde belirmez
+	if busy_id != "" and present.has(busy_id):
+		var pn = present[busy_id]
+		if is_instance_valid(pn) and pn != act.get("node") and pn != act.get("orig"):
+			pn.queue_free()
+			present.erase(busy_id)
 	for id in all():
-		if present.has(id) or spawned >= 1:
+		if present.has(id) or spawned >= 1 or id == busy_id:
 			continue
 		var f: Dictionary = all()[id]
 		if not available(f) or f.get("party", false):

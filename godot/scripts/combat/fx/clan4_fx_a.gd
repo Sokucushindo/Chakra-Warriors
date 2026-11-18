@@ -701,7 +701,7 @@ static func _daze(pj: PathJutsu, e: Node3D, dur: float, col: Color) -> void:
 		root.add_child(p)
 		p.position = Vector3(cos(a), 0.05 * sin(k * 2.0), sin(a)) * 0.32
 		p.basis = _yb(Vector3(-sin(a), 0.3, cos(a))).scaled(Vector3.ONE * 0.16)
-	var tw = root.create_tween().set_loops(int(dur / 0.9) + 1)
+	var tw = Game.safe_loops(root.create_tween(), int(dur / 0.9) + 1)
 	tw.tween_property(root, "rotation:y", TAU, 0.9).as_relative()
 	pj.free_after(dur, root)
 
@@ -2321,7 +2321,7 @@ static func _drill(size: float) -> Node3D:
 				rs.add_vertex(q2[tt])
 		ring.mesh = rs.commit()
 	rebuild.call()
-	var tw = ring.create_tween().set_loops()
+	var tw = Game.safe_loops(ring.create_tween())
 	tw.tween_callback(rebuild)
 	tw.tween_interval(0.06)
 	root.scale = Vector3.ONE * size * 1.1
@@ -2494,7 +2494,7 @@ static func _feral_tongues(pj: PathJutsu, c: Node3D, bones: Array, dur: float, s
 			hold.add_child(f)
 			f.rotation = Vector3((k - 1) * 0.5, k * 2.1, (k - 1) * 0.3)
 			hold.scale = Vector3.ONE * s
-			var ft = f.create_tween().set_loops(int(dur / 0.16) + 1)
+			var ft = Game.safe_loops(f.create_tween(), int(dur / 0.16) + 1)
 			ft.tween_property(f, "scale", Vector3(1.2, 1.3 + 0.2 * k, 1.2), 0.08)
 			ft.tween_property(f, "scale", Vector3(0.8, 0.7, 0.8), 0.08)
 		pj.free_after(dur, ba)
@@ -2576,7 +2576,7 @@ static func _stink_line(pj: PathJutsu, parent: Node3D, p: Vector3, life: float, 
 		_scene(pj).add_child(mi)
 		mi.global_position = p
 	if rise <= 0.0:
-		var bt = mi.create_tween().set_loops()
+		var bt = Game.safe_loops(mi.create_tween())
 		bt.tween_property(mi, "position:y", p.y + 0.12, 0.5).set_trans(Tween.TRANS_SINE)
 		bt.tween_property(mi, "position:y", p.y, 0.5).set_trans(Tween.TRANS_SINE)
 		return

@@ -134,7 +134,7 @@ func _build_vitals() -> void:
 	# --- oyuncu çerçevesi (sol üst): shuriken portre + parşömen isim + metal çubuklar (VitalsUI, tamamı kod çizimi)
 	vit = VitalsUI.new()
 	vit.position = Vector2(22, 18)
-	vit.scale = Vector2(0.72, 0.72)   # 720x222 → ~518x160
+	vit.scale = Vector2(0.72, 0.72)   # 720x239 → ~518x172
 	game_hud.add_child(vit)
 	buff_lbl = RichTextLabel.new()
 	buff_lbl.bbcode_enabled = true
@@ -481,7 +481,7 @@ func _draw_slot(i: int) -> void:
 	d["icon"] = UI.ELEMENT_ICONS.get(st["el"], "chakra")
 	var cost := int(roundf(float(st.get("cost", 0.0))))
 	d["badge"] = str(cost) if cost > 0 else ""
-	d["badge_col"] = (Color(0.55, 0.95, 0.55) if st.get("tai", false) else Color(0.55, 0.78, 1.0)) if st["ok"] else Color(1.0, 0.45, 0.4)
+	d["badge_col"] = (Color(1.0, 0.72, 0.35) if st.get("tai", false) else Color(0.55, 0.78, 1.0)) if st["ok"] else Color(1.0, 0.45, 0.4)
 	_paint_slot(slot_nodes[i][0], d, Keys.name("slot%d" % (i + 1)))
 
 
@@ -491,8 +491,8 @@ func _draw_side(i: int) -> void:
 
 
 
-const TOOL_ICONS := {"kunai": "kunai", "shuriken": "shuriken", "tag": "seal", "smoke": "bomb", "senbon": "arrow", "makibishi": "star"}
-const PILL_COLS := {"pill": Color(1.0, 0.75, 0.4), "hap_horenzai": Color(0.5, 0.9, 0.5), "hap_kare": Color(1.0, 0.9, 0.4), "hap_togarashi": Color(1.0, 0.45, 0.4)}
+const TOOL_ICONS := {"agiz_kozu": "flame", "aobiko": "bomb", "inochi_kare": "potion", "genjutsu_kosui": "leaf", "genjutsu_yaku": "pill", "bijugan": "pill", "mushu_dokugiri": "bomb", "kosho_mimikazari": "flame", "hiko_tsubasa": "star", "yuki_ita": "arrow", "okarina": "leaf", "eiyu_mizu": "potion", "toge_dama": "bomb", "kemuri_fuda": "seal", "chusha_bari": "arrow", "kemuri_senkodan": "eye", "kunai": "kunai", "shuriken": "shuriken", "tag": "seal", "smoke": "bomb", "senbon": "arrow", "makibishi": "star", "hikaridama": "eye", "togarashi_dama": "flame", "kibaku_dama": "bomb", "hyodama": "bomb", "raizutsu": "bomb", "suzu": "star", "boenkyo": "eye", "bakusaidama": "bomb", "kibaku_fuda": "seal", "doku": "flame", "gedokuyaku": "pill", "kosen": "arrow", "sode_kunai": "kunai", "nuno_maki": "seal", "fuin_fuda": "seal", "kekkai_fuda": "seal"}
+const PILL_COLS := {"zoketsugan": Color(0.85, 0.2, 0.22), "seishingan": Color(0.7, 0.4, 0.95), "pill": Color(1.0, 0.75, 0.4), "hap_horenzai": Color(0.5, 0.9, 0.5), "hap_kare": Color(1.0, 0.9, 0.4), "hap_togarashi": Color(1.0, 0.45, 0.4)}
 
 
 ## Yan yuvalar: [R] seçili alet, [T] alet değiştir, [H] merhem, [Y] hap; bekleme ve stok yuvanın üstünde
@@ -1113,10 +1113,11 @@ func gear_shop(title: String, ids: Array) -> void:
 		for g in pr["gear"]:
 			if g["id"] == id:
 				have += 1
-		var locked = int(it.get("rank", 0)) > Gear.eff_rank(pr)
+		var why: String = Gear.req_text(id, pr)   # rütbe, köy, klan: giyemeyeceğin şey satın alınamaz
+		var locked = why != ""
 		var gid = id
 		entries.append({"id": id, "name": it["name"], "price": Stats.price(int(it.get("price", 0))), "desc": it.get("desc", ""), "stats": Gear.stats_text(id),
-			"locked": locked, "lock_text": "%s rütbesi gerekir" % Data.RANKS[int(it.get("rank", 0))], "owned": have, "rarity": UI.rarity_of_gear(id),
+			"locked": locked, "lock_text": why, "try_on": func(): return Gear.try_on_look(gid), "owned": have, "rarity": UI.rarity_of_gear(id),
 			"view": func(): return Thumbs.gear_view(gid, 96)})
 	Menus.shop_screen(title, entries, func(id):
 		var it = Gear.item(id)

@@ -165,7 +165,7 @@ static func written(cfg: Dictionary, done: Callable) -> void:
 					hint.text = "Kâğıtta işaretli cevap: %s) %s" % [letters[int(q[2])], q[1][int(q[2])]], 720))
 	st["show"].call()
 	# geri sayım
-	var tick = bg.create_tween().set_loops(int(st["t"]) + 1)
+	var tick = Game.safe_loops(bg.create_tween(), int(st["t"]) + 1)
 	tick.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tick.tween_callback(func():
 		if st["over"]:

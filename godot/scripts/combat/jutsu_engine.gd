@@ -235,7 +235,7 @@ static func shape_mesh(v: String, col: Color, size: float, el := "") -> Node3D:
 				w.add("box", Vector3(0.55 * sx, 0, 0.1), Vector3(1.1, 0.05, 0.5), Color.WHITE, Vector3(0, 15 * sx, 0))
 				var wi = VFX._mi(w.build(null), mat)
 				root.add_child(wi)
-				var tw = wi.create_tween().set_loops()
+				var tw = Game.safe_loops(wi.create_tween())
 				tw.tween_property(wi, "rotation:z", 0.6 * sx, 0.12)
 				tw.tween_property(wi, "rotation:z", -0.4 * sx, 0.12)
 		"beast":
@@ -852,7 +852,7 @@ static func _tornado(c: Node3D, d: Dictionary, t: Node3D) -> void:
 		mi.scale = Vector3(wsz * 2.0, hgt * (1.0 - k * 0.1), wsz * 2.0)
 		mi.position = Vector3(0, hgt * 0.5, 0)
 		root.add_child(mi)
-		var twr = mi.create_tween().set_loops()
+		var twr = Game.safe_loops(mi.create_tween())
 		twr.tween_property(mi, "rotation:y", TAU * (1 if k % 2 == 0 else -1), 0.6 + k * 0.25).from(0.0)
 	FX.burst(pos + Vector3.UP * hgt * 0.4, {"amount": 50, "life": 0.6, "tex": FX.tex_spark, "size": 1.8, "radius": 2.5, "vmin": 2, "vmax": 6, "tangent": 30.0,
 		"dir": Vector3.UP, "colors": [Color(1, 1, 1, 0.9), col.lightened(0.3), Color(col.r, col.g, col.b, 0)]})
@@ -1095,6 +1095,8 @@ static func _genjutsu(c: Node3D, d: Dictionary, t: Node3D) -> void:
 	Sfx.play("genjutsu", c.global_position)
 	var gm = (1.0 + Stats.skill(Game.profile, "gen_power")) if c is Player else 1.0
 	for tg in targets:
+		if Game.now() < float(tg.get_meta("togarashi_until", 0.0)):
+			continue
 		tg.apply_status("stun", (1.6 + tier * 0.4) * gm)
 		tg.apply_status("fear", (1.6 + tier * 0.4) * gm)
 		if tier >= 3:
@@ -1681,7 +1683,7 @@ static func organic_mass(kind: String, size: Vector3, seed := 0, crest := true) 
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	root.add_child(mi)
 	# 4) canlılık: hafif kabarma + kenarlardan dökülen madde
-	var br = mi.create_tween().set_loops()
+	var br = Game.safe_loops(mi.create_tween())
 	br.tween_property(mi, "scale", Vector3(1.03, 0.97, 1.03), 0.22)
 	br.tween_property(mi, "scale", Vector3(0.98, 1.03, 0.98), 0.22)
 	var pm = ParticleProcessMaterial.new()

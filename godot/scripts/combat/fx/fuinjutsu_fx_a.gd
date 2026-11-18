@@ -1566,7 +1566,7 @@ static func kinkoju_no_fuda(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			"paper": Color(0.97, 0.96, 0.98, 1.0), "reveal": 1.0, "flap": 0.05, "seed": 9.0, "nf": 0.8})
 		q.rotation.x = -PI * 0.5
 		spinner.add_child(q)
-		var sp = spinner.create_tween().set_loops()
+		var sp = Game.safe_loops(spinner.create_tween())
 		sp.tween_property(spinner, "rotation:z", TAU, 0.35).as_relative()
 		var pr = pj.shot(c, from, pj.aim_at(c, tt, from), 36.0, tag, pj.inf(c, "kinkoju_no_fuda", 0.6, {"knock": 0.0, "kind": "light"}), tt, false, 1.2, func(p, h):
 			var fl = _emblem(6.0, 1.2, {"fill": Color(1.0, 0.92, 0.88), "accent": Color(0.85, 0.15, 0.15), "reveal": 0.0, "nf": 1.0})
@@ -1925,10 +1925,10 @@ static func _ink_tiger() -> Node3D:
 		bob.add_child(leg)
 		var ph = 1.0 if (i == 0 or i == 3) else -1.0
 		leg.rotation.x = 0.6 * ph
-		var lt = leg.create_tween().set_loops()
+		var lt = Game.safe_loops(leg.create_tween())
 		lt.tween_property(leg, "rotation:x", -0.6 * ph, 0.13).set_trans(Tween.TRANS_SINE)
 		lt.tween_property(leg, "rotation:x", 0.6 * ph, 0.13).set_trans(Tween.TRANS_SINE)
-	var bt = bob.create_tween().set_loops()
+	var bt = Game.safe_loops(bob.create_tween())
 	bt.tween_property(bob, "position:y", 0.12, 0.13).set_trans(Tween.TRANS_SINE)
 	bt.parallel().tween_property(bob, "rotation:x", 0.07, 0.13).set_trans(Tween.TRANS_SINE)
 	bt.tween_property(bob, "position:y", 0.0, 0.13).set_trans(Tween.TRANS_SINE)

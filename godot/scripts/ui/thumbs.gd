@@ -6,7 +6,7 @@ extends RefCounted
 const SLOT_ICONS := {"kafa": "headband", "sag_goz": "eye", "sol_goz": "eye", "yuz": "mask", "set": "shirt", "govde": "shirt", "bacak": "pants", "ayak": "sandal",
 	"zirh": "vest", "dis": "cloak", "kol": "glove", "sirt": "back", "sag": "sword", "sol": "kunai", "sac": "hair", "susanoo": "susanoo",
 	"goz": "eye", "el": "kunai"}
-const ITEM_ICONS := {"kunai": "kunai", "shuriken": "shuriken", "tag": "seal", "smoke": "bomb", "salve": "potion", "pill": "pill"}
+const ITEM_ICONS := {"agiz_kozu": "flame", "aobiko": "bomb", "inochi_kare": "potion", "genjutsu_kosui": "leaf", "genjutsu_yaku": "pill", "bijugan": "pill", "mushu_dokugiri": "bomb", "kosho_mimikazari": "flame", "hiko_tsubasa": "star", "yuki_ita": "arrow", "okarina": "leaf", "eiyu_mizu": "potion", "toge_dama": "bomb", "kemuri_fuda": "seal", "chusha_bari": "arrow", "kemuri_senkodan": "eye", "kunai": "kunai", "shuriken": "shuriken", "tag": "seal", "smoke": "bomb", "makibishi": "star", "senbon": "arrow", "hikaridama": "eye", "togarashi_dama": "flame", "kibaku_dama": "bomb", "hyodama": "bomb", "raizutsu": "bomb", "suzu": "star", "boenkyo": "eye", "bakusaidama": "bomb", "kibaku_fuda": "seal", "doku": "flame", "gedokuyaku": "pill", "kosen": "arrow", "sode_kunai": "kunai", "nuno_maki": "seal", "fuin_fuda": "seal", "kekkai_fuda": "seal", "zoketsugan": "pill", "salve": "potion", "pill": "pill"}
 
 static var _holder: Node
 static var _cache := {}

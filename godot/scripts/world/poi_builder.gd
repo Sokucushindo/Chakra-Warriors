@@ -204,9 +204,7 @@ static func _hamlet(b: Builder, node: Node3D, p: Dictionary, rng: RandomNumberGe
 
 static func _hamlet_field(b: Builder, fx: float, rng: RandomNumberGenerator) -> void:
 	_fence(b, fx, 0, 26, 20, rng)
-	for k in 6:
-		var rowx = fx - 10 + k * 4
-		b.box(Vector3(rowx, _ground(b, rowx, 0) + 0.35, 0), Vector3(1.0, 0.7, 17), Color(0.4, 0.62, 0.25), 0, false)
+	load("res://scripts/world/farm_kit.gd").veg(b, fx, 0.0, 0.0, 22.0, 16.0, rng)
 
 
 # ------------------------------------------------------------------ han: büyük iki katlı yapı, tabela, banklar, ahır

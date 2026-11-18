@@ -1345,6 +1345,9 @@ static func genjutsu_resist(t: Node) -> float:
 static func genjutsu_land(caster: Node3D, t: Node3D, need_eye := true) -> float:
 	if t == null or not is_instance_valid(t) or t.is_dead():
 		return 0.0
+	if Game.now() < float(t.get_meta("togarashi_until", 0.0)):
+		Combat.popup_text(t.global_position + Vector3.UP * 2.4, "Genjutsu tutmadı", Color(1.0, 0.55, 0.3))
+		return 0.0
 	if need_eye and t.has_method("face_dir") and not (t.has_method("has_status") and (t.has_status("stun") or t.has_status("bind"))):
 		var v = caster.global_position - t.global_position
 		v.y = 0.0

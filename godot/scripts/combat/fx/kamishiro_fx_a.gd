@@ -2071,7 +2071,7 @@ static func _tag_bee(sc: float) -> Node3D:
 	var tag = _mi(_tag_mesh(), _toon(), {"ow": 0.004, "near_d": 1.0})
 	tag.scale = Vector3.ONE * sc * 2.1
 	piv.add_child(tag)
-	var sw = piv.create_tween().set_loops()
+	var sw = Game.safe_loops(piv.create_tween())
 	sw.tween_property(piv, "rotation:x", 0.5, 0.16).set_trans(Tween.TRANS_SINE)
 	sw.tween_property(piv, "rotation:x", -0.15, 0.16).set_trans(Tween.TRANS_SINE)
 	_tp(tag, "pulse", 0.0, 0.55, 0.6)

@@ -57,6 +57,17 @@ func _process(dt: float) -> void:
 	_spawn(pp)
 
 
+## Oyuncu baygınken: uyanacağı yerin çevresindeki takımlar yoluna gider, birkaç dakika yenisi çıkmaz
+func clear_near(pos: Vector3, r: float) -> void:
+	for tm in teams.duplicate():
+		var ns: Array = tm["nodes"].filter(func(n): return is_instance_valid(n))
+		if ns.any(func(n): return n.global_position.distance_to(pos) < r):
+			for n in ns:
+				n.queue_free()
+			teams.erase(tm)
+	t = maxf(t, 240.0)
+
+
 func _outdoors(p: Vector3) -> bool:
 	if Interiors.inst and Interiors.inst.inside != "":
 		return false

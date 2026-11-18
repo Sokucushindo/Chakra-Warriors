@@ -720,7 +720,7 @@ static func _hand_aura(pj: PathJutsu, c: Node3D, bone: String, col: Color, dur: 
 		sp.material_override = _flat(Color(1, 1, 1, 0.75) if layer == 0 else Color(col.r, col.g, col.b, 0.35), true)
 		sp.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		ba.add_child(sp)
-		var tw = sp.create_tween().set_loops()
+		var tw = Game.safe_loops(sp.create_tween())
 		tw.tween_property(sp, "scale", Vector3.ONE * (1.25 if layer == 0 else 1.1), 0.05 + layer * 0.03)
 		tw.tween_property(sp, "scale", Vector3.ONE * 0.85, 0.05 + layer * 0.03)
 	_puffs(Vector3.ZERO, {"parent": ba, "loop": true, "n": rate, "life": 0.45, "expl": 0.0, "r": r, "vmin": 0.5, "vmax": 1.6,
@@ -889,7 +889,7 @@ static func _moon_blade(pj: PathJutsu, c: Node3D, dur: float, len_: float) -> vo
 	gl.position = Vector3(0, 0, len_ * 0.58)
 	gl.scale = Vector3(0.07, 0.16, len_ * 1.05)
 	blade.add_child(gl)
-	var tw = gl.create_tween().set_loops()
+	var tw = Game.safe_loops(gl.create_tween())
 	tw.tween_property(gl, "scale", Vector3(0.09, 0.2, len_ * 1.08), 0.12)
 	tw.tween_property(gl, "scale", Vector3(0.06, 0.14, len_ * 1.02), 0.12)
 	pj.free_after(dur, ba)
@@ -917,7 +917,7 @@ static func _white_tanto(pj: PathJutsu, c: Node3D, dur: float) -> void:
 		gl.position = Vector3(0, 0, 0.22)
 		gl.scale = sc
 		tanto.add_child(gl)
-		var tw = gl.create_tween().set_loops()
+		var tw = Game.safe_loops(gl.create_tween())
 		tw.tween_property(gl, "scale", sc * Vector3(1.4, 1.3, 1.05), 0.07 + layer * 0.03)
 		tw.tween_property(gl, "scale", sc, 0.07 + layer * 0.03)
 	_puffs(Vector3.ZERO, {"parent": ba, "local": Vector3(0, 0, 0.25), "loop": true, "n": 36, "life": 0.6, "expl": 0.0, "r": 0.18, "vmin": 0.1, "vmax": 0.5,

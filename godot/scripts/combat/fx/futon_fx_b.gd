@@ -826,7 +826,7 @@ static func _net_wrap(pj: PathJutsu, e: Node3D, hold: float) -> void:
 			var a = u * TAU
 			return Vector3(cos(a) * rr, hh + sin(a * 3.0) * 0.06, sin(a) * rr), 26)
 		_far(FutonLib.fixed(pj, pts, 0.025, "line", Color(0.84, 1.0, 0.94, 0.6), {"parent": holder, "flow": 10.0}), 4.0)
-	var tw = holder.create_tween().set_loops(int(ceil(hold / 0.5)))
+	var tw = Game.safe_loops(holder.create_tween(), int(ceil(hold / 0.5)))
 	tw.tween_property(holder, "rotation:y", TAU, 0.5).as_relative()
 	FutonLib.kill(pj, hold, holder)
 

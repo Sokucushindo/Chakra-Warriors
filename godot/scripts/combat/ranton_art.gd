@@ -83,7 +83,7 @@ static func hound(s := 1.0) -> Node3D:
 		hip.add_child(knee)
 		body.add_child(hip)
 		legs.append([hip, knee, leg[2], leg[3]])
-	var tw = root.create_tween().set_loops()
+	var tw = Game.safe_loops(root.create_tween())
 	tw.tween_method(func(ph: float):
 		for L in legs:
 			if not is_instance_valid(L[0]):

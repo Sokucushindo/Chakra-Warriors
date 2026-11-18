@@ -1523,7 +1523,7 @@ static func kumo_shibari(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			pj.st(h, "bind", 3.0)
 			Combat.popup_text(h.global_position + Vector3.UP * 2.3, "Ağa takıldı!", PathJutsu.WEB)
 			_wrap(pj, h, 3.0))
-	ball.create_tween().set_loops().tween_property(ball, "rotation:z", TAU, 0.4).from(0.0)
+	Game.safe_loops(ball.create_tween()).tween_property(ball, "rotation:z", TAU, 0.4).from(0.0)
 	_rope(pj, _hand_fn(pj, c, true), _follow(pr, Vector3.ZERO), 0.018, 1.0, {"sag": 0.15})
 	Sfx.play("whoosh", from, 1.6, 0.5)
 
@@ -1639,7 +1639,7 @@ static func kumo_senkyu_suzaku(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		var arrow = Node3D.new()
 		var am = _mi(_drill_arrow_mesh(), "gold", {"ow": 0.015})
 		arrow.add_child(am)
-		am.create_tween().set_loops().tween_property(am, "rotation:z", TAU, 0.25).from(0.0)
+		Game.safe_loops(am.create_tween()).tween_property(am, "rotation:z", TAU, 0.25).from(0.0)
 		var pr = pj.shot(c, from, ad, 70.0, arrow, pj.inf(c, "kumo_senkyu_suzaku", 2.6, {"knock": 20.0, "kind": "heavy", "bleed": 5.0, "hitstop": 0.12}), null, true, 1.0, func(p, _h):
 			_gold_split(pj, p, ad))
 		pr.radius = 0.6
@@ -1763,7 +1763,7 @@ static func kumo_soka(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			var w = Node3D.new()
 			var cup = _mi(_cup_mesh(0.5, 0.35, 3, 8, 0.02, 0, k), "silk", {"ow": 0.01})
 			w.add_child(cup)
-			cup.create_tween().set_loops().tween_property(cup, "rotation:z", TAU, 0.5).from(0.0)
+			Game.safe_loops(cup.create_tween()).tween_property(cup, "rotation:z", TAU, 0.5).from(0.0)
 			var pr = pj.shot(c, from, pj.aim_at(c, tt, from).rotated(Vector3.UP, (k - 1) * 0.15), 26.0, w, pj.inf(c, "kumo_soka", 0.3, {"knock": 0.0, "kind": "light"}), null, false, 1.1, func(p, _h):
 				var big = _mi(_cup_mesh(2.4, -0.12, 5, 10, 0.035, 5, 10 + k), "silk", {"wet": 1.0, "ow": 0.012})
 				pj.get_tree().current_scene.add_child(big)
@@ -1836,7 +1836,7 @@ static func hijutsu_ishibari(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			nd.add_child(_mi(_needle_mesh(k % 3), "toon", {"ow": 0.012}))
 			var coil = _mi(_needle_coil_mesh(), "toon", {"tint": Color(0.55, 0.78, 1.0), "pulse": 0.35, "ow": 0.0})
 			nd.add_child(coil)
-			coil.create_tween().set_loops().tween_property(coil, "rotation:z", TAU, 0.15).from(0.0)
+			Game.safe_loops(coil.create_tween()).tween_property(coil, "rotation:z", TAU, 0.15).from(0.0)
 			var d = pj.aim_at(c, tt, from).rotated(Vector3.UP, randf_range(-0.06, 0.06))
 			var pr = pj.shot(c, from, d, 50.0, nd, pj.inf(c, "hijutsu_ishibari", 0.12, {"knock": 0.6, "kind": "light", "bleed": 1.0}), null, false, 0.8, func(p, h):
 				_needle_hit(pj, p, d, h))
@@ -2015,7 +2015,7 @@ static func kumosokai(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	var ball = Node3D.new()
 	var rl = _mi(_roll_mesh(), "silk", {"ow": 0.01})
 	ball.add_child(rl)
-	rl.create_tween().set_loops().tween_property(rl, "rotation:x", TAU, 0.3).from(0.0)
+	Game.safe_loops(rl.create_tween()).tween_property(rl, "rotation:x", TAU, 0.3).from(0.0)
 	pj.shot(c, from, pj.aim_at(c, tt, from), 28.0, ball, pj.inf(c, "kumosokai", 0.2, {"knock": 0.0, "kind": "light"}), tt, false, 1.0, func(p, h):
 		var away = (p - c.global_position).normalized() if is_instance_valid(c) else Vector3.FORWARD
 		if away.length() < 0.1:

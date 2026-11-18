@@ -366,9 +366,9 @@ static func _foam_mine(b: Node3D) -> Node3D:
 		var sat = _skin(randf_range(0.18, 0.28))
 		sat.position = Vector3(cos(a) * 0.62, sin(a * 2.0) * 0.18, sin(a) * 0.62)
 		orbit.add_child(sat)
-	var tw = orbit.create_tween().set_loops()
+	var tw = Game.safe_loops(orbit.create_tween())
 	tw.tween_property(orbit, "rotation:y", TAU, 2.2 + randf() * 0.8).from(0.0)
-	var tw2 = core.create_tween().set_loops()
+	var tw2 = Game.safe_loops(core.create_tween())
 	tw2.tween_property(core, "scale", Vector3.ONE * 0.44, 0.5).set_trans(Tween.TRANS_SINE)
 	tw2.tween_property(core, "scale", Vector3.ONE * 0.34, 0.5).set_trans(Tween.TRANS_SINE)
 	# ince köpük tozu bırakır
@@ -1098,7 +1098,7 @@ static func _jelly_sway(pivots: Array) -> void:
 		var r0: Vector3 = pv.rotation
 		var amp = randf_range(0.18, 0.32)
 		var per = randf_range(0.35, 0.5)
-		var tw = pv.create_tween().set_loops()
+		var tw = Game.safe_loops(pv.create_tween())
 		tw.tween_property(pv, "rotation", r0 + Vector3(amp, -amp * 0.6, 0.0), per).set_trans(Tween.TRANS_SINE)
 		tw.tween_property(pv, "rotation", r0 + Vector3(-amp * 0.6, amp, 0.0), per).set_trans(Tween.TRANS_SINE)
 

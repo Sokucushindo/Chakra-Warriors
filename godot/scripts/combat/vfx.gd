@@ -125,7 +125,7 @@ static func lava_ball(size := 1.0) -> Node3D:
 	b.add("boulder", Vector3.ZERO, Vector3.ONE * size, Color.WHITE, Vector3.ZERO, randi() % 6)
 	var mi = _mi(b.build(null), lava_mat("rock"))
 	root.add_child(mi)
-	var tw = root.create_tween().set_loops()
+	var tw = Game.safe_loops(root.create_tween())
 	tw.tween_property(mi, "rotation", Vector3(TAU, TAU * 0.5, 0), 1.6).from(Vector3.ZERO)
 	return root
 
@@ -463,9 +463,9 @@ static func fireball(size := 1.0, preset := "fire") -> Node3D:
 	var core = _mi(_sphere(0.5, 16, 8), mat_fire(preset, 3.5, 1.4, 0.05, 1.7, 0.04))
 	core.scale = Vector3.ONE * size * 0.55
 	root.add_child(core)
-	var tw = root.create_tween().set_loops()
+	var tw = Game.safe_loops(root.create_tween())
 	tw.tween_property(outer, "rotation:z", TAU, 1.6).from(0.0)
-	var tw2 = root.create_tween().set_loops()
+	var tw2 = Game.safe_loops(root.create_tween())
 	tw2.tween_property(mid, "rotation:x", -TAU, 1.1).from(0.0)
 	return root
 
@@ -510,7 +510,7 @@ static func rasengan(size := 1.0, body := Color(0.15, 0.45, 1.0), line := Color(
 		ring.scale = Vector3.ONE * size * (1.15 + k * 0.08)
 		ring.rotation = Vector3(randf() * TAU, randf() * TAU, 0)
 		root.add_child(ring)
-		var tw = root.create_tween().set_loops()
+		var tw = Game.safe_loops(root.create_tween())
 		tw.tween_property(ring, "rotation:y", ring.rotation.y + TAU * (1 if k % 2 == 0 else -1), 0.35 + k * 0.1)
 	# Blender girdabı: kürenin çevresinde hızla dönen üç kollu chakra sarmalı (anime Rasengan'ın dış rüzgârı)
 	var vm = asset("vortex")
@@ -521,7 +521,7 @@ static func rasengan(size := 1.0, body := Color(0.15, 0.45, 1.0), line := Color(
 			vx.position = Vector3(0, -size * 0.38, 0)
 			vx.rotation = Vector3(k * 1.2, 0, k * 0.6)
 			root.add_child(vx)
-			var vt = root.create_tween().set_loops()
+			var vt = Game.safe_loops(root.create_tween())
 			vt.tween_property(vx, "rotation:y", TAU * (1 if k == 0 else -1), 0.22 + k * 0.08).as_relative()
 	return root
 
@@ -546,7 +546,7 @@ static func lightning_ball(size := 1.0, col := Color(0.45, 0.7, 1.0)) -> Node3D:
 		g.mesh = q
 		g.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		root.add_child(g)
-		var fl = g.create_tween().set_loops()
+		var fl = Game.safe_loops(g.create_tween())
 		fl.tween_property(g, "scale", Vector3.ONE * (1.25 if k == 0 else 1.12), 0.05)
 		fl.tween_property(g, "scale", Vector3.ONE * (0.8 if k == 0 else 0.92), 0.04)
 	var sp = FX.burst(Vector3.ZERO, {"parent": root, "local": true, "amount": int(10 + size * 8), "life": 0.22, "tex": FX.tex_spark, "size": 0.5 + size * 0.25,
@@ -1036,7 +1036,7 @@ static func black_flames(size := 1.0) -> Node3D:
 		root.add_child(tongue)
 		# titreme: boy uzayıp kısalır, uç yana savrulur (her dil kendi ritminde)
 		var per = randf_range(0.22, 0.4)
-		var tw = tongue.create_tween().set_loops()
+		var tw = Game.safe_loops(tongue.create_tween())
 		tw.tween_property(tongue, "scale", Vector3(w * 0.9, h * 1.12, w * 0.9), per).set_trans(Tween.TRANS_SINE)
 		tw.tween_property(tongue, "scale", Vector3(w * 1.05, h * 0.86, w * 1.05), per).set_trans(Tween.TRANS_SINE)
 	# kopup yükselen kara alev topakları (mor konturlu cel) + az kara duman
@@ -1292,7 +1292,7 @@ static func linger(pos: Vector3, el: String, col: Color, g: float, dur := 3.0) -
 				bub.position = Vector3(cos(a), 0.05, sin(a)) * randf_range(0.2, 1.0) * g
 				bub.scale = Vector3.ONE * 0.05
 				root.add_child(bub)
-				var tb = bub.create_tween().set_loops(int(dur / 0.9) + 1)
+				var tb = Game.safe_loops(bub.create_tween(), int(dur / 0.9) + 1)
 				tb.tween_interval(randf() * 0.6)
 				tb.tween_property(bub, "scale", Vector3.ONE * randf_range(0.25, 0.45) * g, 0.4)
 				tb.tween_property(bub, "scale", Vector3.ONE * 0.05, 0.15)
@@ -1424,7 +1424,7 @@ static func scorch_orb(size := 1.0) -> Node3D:
 	e.sorting_offset = -2.0
 	e.position = Vector3(0, 0, -r * 0.5)   # kuyruk kürenin arkasından çıkar (-Z: kürenin baktığı dış-geri yön)
 	root.add_child(e)
-	var tw = root.create_tween().set_loops()
+	var tw = Game.safe_loops(root.create_tween())
 	tw.tween_property(glow, "scale", Vector3.ONE * 1.08, 0.2)
 	tw.tween_property(glow, "scale", Vector3.ONE * 0.95, 0.2)
 	return root
@@ -1562,7 +1562,7 @@ static func dust_cube(size := 1.0) -> Node3D:
 	im.albedo_color = Color(1, 1, 1)
 	inner.material_override = im
 	root.add_child(inner)
-	var tw = root.create_tween().set_loops()
+	var tw = Game.safe_loops(root.create_tween())
 	tw.tween_property(root, "rotation", Vector3(TAU, TAU, 0), 2.0).from(Vector3.ZERO)
 	return root
 

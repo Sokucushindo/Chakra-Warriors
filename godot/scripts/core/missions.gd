@@ -1985,7 +1985,10 @@ func _lair_mouth(c: Vector3, lab: bool, room := "", label := "") -> Node3D:
 	for i in 9:
 		var a = rng.randf_range(-2.4, 2.4)
 		var p = Vector3(sin(a) * rng.randf_range(6, 10), rng.randf_range(0.5, 3.5), -7.0 + cos(a) * rng.randf_range(4, 7))
-		b.add("sphere", p, Vector3.ONE * rng.randf_range(3.0, 6.5), rock.darkened(rng.randf() * 0.25), Vector3.ZERO, 8)
+		var bs = rng.randf_range(3.0, 6.5)
+		if p.z + bs * 0.5 > -3.0 and absf(p.x) - bs * 0.5 < 3.4:   # kaya ağzın önüne düşmesin: yana itilir
+			p.x = (1.0 if p.x >= 0.0 else -1.0) * (3.6 + bs * 0.5)
+		b.add("sphere", p, Vector3.ONE * bs, rock.darkened(rng.randf() * 0.25), Vector3.ZERO, 8)
 	b.add("sphere", Vector3(0, 1.5, 0.15), Vector3(4.2, 3.6, 1.2), Color(0.04, 0.03, 0.03), Vector3.ZERO, 12)   # karanlık ağız (kaya yüzeyinin önünde)
 	b.add("box", Vector3(0, 3.5, 0.4), Vector3(5.0, 0.6, 1.0), rock.darkened(0.15))   # ağız üstü kaya lento
 	for sx in [-1.0, 1.0]:
@@ -2389,6 +2392,12 @@ func complete() -> void:
 		if gid != "" and not Gear.item(gid).is_empty():
 			Gear.grant(Game.profile, gid)
 			Hud.msg("Ödül ekipmanı: %s  [Tab > Ekipman]" % Gear.item(gid)["name"], Color(0.7, 0.9, 1.0))
+	if str(m.get("title", "")) == "Kahraman Suyu":   # muhafızlar bir şişe bırakır (tek kaynak)
+		Game.profile["inventory"]["eiyu_mizu"] = int(Game.profile["inventory"].get("eiyu_mizu", 0)) + 1
+		Hud.msg("Muhafızlar sana bir şişe Kahraman Suyu verdi. Bedelini bil.", Color(0.7, 0.9, 1.0))
+	if str(m["rank"]) == "S" and randf() < 0.18:   # Bijūgan satılmaz: yalnız en zor görevlerden
+		Game.profile["inventory"]["bijugan"] = int(Game.profile["inventory"].get("bijugan", 0)) + 1
+		Hud.msg("Ele geçirilen eşyalar arasında bir Bijūgan kapsülü var.", Color(1.0, 0.7, 0.4))
 	Journal.add("[%s] %s görevini tamamladın." % [m["rank"], m["title"]], "mission")
 	_call_hook(String(m.get("hook", "")), m, true)
 	Hud.objective_changed()
@@ -3705,6 +3714,14 @@ func _bb_spawn(e: Dictionary, at: Vector3) -> void:
 		else:
 			a["no_clan"] = true   # rastgele klan (Hoshigaki vb.) eklenmesin
 		a["look"]["weapon_r"] = wid
+		var wset: Array = WH.INFO[wid].get("set", [])
+		if not wset.is_empty():   # hazine takımı: teknikleri sahip olduğu araçlarla (oyuncuyla aynı "own:" şartı)
+			a["owns"] = wset.duplicate()
+			var js: Array = a.get("jutsu", [])
+			for x in ["kokinjo_shibari", "benihisago_kiroku", "kohaku_yobikake"]:
+				if not x in js:
+					js.append(x)
+			a["jutsu"] = js
 		if not wid in CharacterModel.ARM_WEAR:   # kolluk: eller boş, yumruk dövüşü (kılıç duruşu yok)
 			a["kind_anim"] = "sword"
 		a["guard"] = 0.45

@@ -464,7 +464,7 @@ static func suiton_mizuame_nabara(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			var rr = 4.5 * (0.45 + k * 0.26)
 			rg.scale = Vector3(rr, 4.0, rr)
 			pool.add_child(rg)
-			var pulse = rg.create_tween().set_loops()
+			var pulse = Game.safe_loops(rg.create_tween())
 			pulse.tween_property(rg, "scale", Vector3(rr * 1.05, 5.0, rr * 1.05), 1.1 + k * 0.3).set_trans(Tween.TRANS_SINE)
 			pulse.tween_property(rg, "scale", Vector3(rr, 4.0, rr), 1.1 + k * 0.3).set_trans(Tween.TRANS_SINE)
 		pool.scale = Vector3(0.1, 1, 0.1)
@@ -647,7 +647,7 @@ static func suiton_mizu_shibari(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	for k in 2:
 		var mi = L.wmi(L.helix_mesh((0.62 - k * 0.1) * bs, tt.height * 0.95, 2.2 - k * 0.4, 0.17 * bs, k * 1.7), {"flow": 3.0, "alpha": 0.88, "foam": 0.15, "line": 0.12, "wob": 0.5})
 		root.add_child(mi)
-		var spin = mi.create_tween().set_loops()
+		var spin = Game.safe_loops(mi.create_tween())
 		spin.tween_property(mi, "rotation:y", TAU * (1 if k == 0 else -1), 0.9).from(0.0)
 	var glint = L.particles({"n": 12, "life": 0.6, "dir": Vector3.UP, "spread": 180.0, "vmin": 0.3, "vmax": 0.8, "g": Vector3.ZERO, "smin": 0.08, "smax": 0.14,
 		"r": 0.6 * bs, "align": false, "mesh": L.sphere_mesh(), "one_shot": false, "burst": 0.0, "foam": 1.0, "alpha": 0.9})

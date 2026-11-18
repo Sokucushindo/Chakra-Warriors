@@ -196,6 +196,17 @@ static func _ser(lk: Dictionary) -> Dictionary:
 static func look_of(p: Dictionary) -> Dictionary:
 	var lk = Missions._bb_look({"look": p.get("look", {})})
 	lk["keep_hair"] = true
+	if not is_rogue(p) and lk.get("set_id") in [null, ""]:
+		var uni = Outfits.type_set(String(p.get("clan", "")), String(p.get("village", "")), int(p.get("rank", 0)), String(p.get("id", "")), bool(p.get("female", false)))
+		if uni != "":
+			lk = Outfits.wear_set(lk, uni)
+			lk["keep_hair"] = true
+		elif int(p.get("rank", 0)) >= 1 and Outfits.has_uniform(String(p.get("village", ""))):
+			# chūnin ve üstü köyünün üniformasını giyer (azı kendi kıyafetiyle: kanonda da öyle)
+			var rng = RandomNumberGenerator.new()
+			rng.seed = hash(String(p.get("id", "")) + "|uniforma")
+			if rng.randf() < 0.85:
+				Outfits.village_set(lk, String(p["village"]), int(p["rank"]) >= 2)
 	Aging.dress_person(lk, p)
 	return lk
 
@@ -670,7 +681,20 @@ static func arch_of(p: Dictionary, outfit := "") -> Dictionary:
 		a.erase("auto_jutsu")
 	a["name"] = String(p["name"])
 	a["respawn"] = false
-	Stats.npc_ninja(a, lv)
+	if is_rogue(p):
+		# av ninjalarından sağ kurtulmuş kaçak: en az C-rank gücünde ve Bingo kaçakları gibi elit dövüşür
+		lv = maxi(lv, 35)
+		Stats.npc_ninja(a, lv, 1.3)
+		a["guard"] = 0.55
+		a["sub"] = 0.4
+		a["skill"] = clampf(0.18 + lv * 0.0045, 0.3, 0.85)
+		for jid in Enemy.auto_jutsu("rogue", String(a["element"]), lv):
+			if (a.get("jutsu", []) as Array).size() >= 6:
+				break
+			if not jid in a.get("jutsu", []):
+				a["jutsu"] = (a.get("jutsu", []) as Array) + [jid]
+	else:
+		Stats.npc_ninja(a, lv)
 	a["look"] = look_of(p)
 	a["world_person"] = String(p["id"])
 	WorldAmbition.arch(a, p)   # bedenine canavar mühürlüyse jinchūriki olarak dövüşür

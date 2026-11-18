@@ -46,6 +46,11 @@ static func active() -> bool:
 
 func _process(dt: float) -> void:
 	_apply_poses(dt)
+	if rider_kind in ["load", "sack", "chest", "cat"] and is_instance_valid(rider) and Missions.active().is_empty():   # görev bitti: taşınan eşya üstünde kalmaz (uzaklaşınca silinme kuralı sırttakine işlemez)
+		rider.queue_free()
+		rider = null
+		rider_kind = ""
+		load_n = 0
 	if is_instance_valid(rider) and Game.player != null:
 		var pl = Game.player
 		var fd = _fd(pl)
@@ -4064,14 +4069,14 @@ func job_begin(work: String, n: int, label: String) -> int:
 				ring.material_override = rm
 				ring.scale = Vector3(1, 0.1, 1)
 				sp.add_child(ring)
-				var tw = ring.create_tween().set_loops()
+				var tw = Game.safe_loops(ring.create_tween())
 				tw.tween_property(ring, "scale", Vector3(2.0, 0.1, 2.0), 1.6).from(Vector3(0.5, 0.1, 0.5))
 				var orb = Node3D.new()
 				sp.add_child(orb)
 				var fm = _fish_mesh(0.42, Color(0.08, 0.12, 0.16))
 				orb.add_child(fm)
 				fm.position = Vector3(0.55, -0.14, 0)
-				var tw2 = orb.create_tween().set_loops()
+				var tw2 = Game.safe_loops(orb.create_tween())
 				tw2.tween_property(orb, "rotation:y", -TAU, 3.4 + i * 0.5).from(0.0)
 				add.call(i, job_d["mid"], sp, {}, 5.0)
 		"plank":
@@ -5120,6 +5125,8 @@ func _act_pack(it: Dictionary) -> void:
 			_jitem("pack", "[F] Örtmeden yola çık", (d["root"] as Node3D).global_position + Vector3(-1.8, 0, 0.6), d["root"], {"mode": "go"}, 1.6)
 			Hud.msg("Karakolda küfeni açtıracaklar. Üstünü pirinçle örtebilirsin.", Color(1, 0.9, 0.6), 5.0)
 		"cover":
+			if rider_kind != "load" or not is_instance_valid(rider):   # küfe teslim edildi: pirinç çuvalı yeni küfe açmasın
+				return
 			await _act_back(it)
 			Missions.active()["flags"]["covered"] = true
 			Hud.float_text("Mal pirinç çuvalının altında", Color(0.8, 1, 0.8))

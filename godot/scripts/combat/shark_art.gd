@@ -66,7 +66,7 @@ static func shark(s := 1.0) -> Node3D:
 	Loft.tube(tb, ClayArt._sc([Vector3(0, 0, 0), Vector3(0, -0.18, -0.16), Vector3(0, -0.32, -0.28)], s), ClayArt._sc([Vector2(0.03, 0.08), Vector2(0.025, 0.06), Vector2(0.008, 0.015)], s), TOP, 8, 3)
 	tail.add_child(_mi(tb))
 	root.add_child(tail)
-	var tw = tail.create_tween().set_loops()
+	var tw = Game.safe_loops(tail.create_tween())
 	tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tail.rotation.y = -0.45
 	tw.tween_property(tail, "rotation:y", 0.45, 0.22)

@@ -583,7 +583,8 @@ static func _raikiri_cut(pj: PathJutsu, pt: Vector3, d: Vector3, col: Color) -> 
 
 ## Elde hücum (Jutsu._hand_dash'in oynanışı birebir: hazırlık, koşu pozu, her kare hedefe yön, 1 m küre isabeti, 0.6 sn sınır)
 static func _raikiri_dash(pj: PathJutsu, c: Node3D, t: Node3D, hand: Node3D, charge: float, speed: float, info: Dictionary, col: Color) -> void:
-	var tw = pj.create_tween()
+	var tid: int = t.get_instance_id() if is_instance_valid(t) else 0   # silinen hedefi yakalamasın
+	var tw = c.create_tween()
 	tw.tween_interval(charge)
 	var state = {"t": 0.0, "done": false}
 	tw.tween_callback(func():
@@ -593,6 +594,7 @@ static func _raikiri_dash(pj: PathJutsu, c: Node3D, t: Node3D, hand: Node3D, cha
 		timer.wait_time = 1.0 / 60.0
 		c.add_child(timer)
 		timer.timeout.connect(func():
+			var tt = instance_from_id(tid) if tid != 0 and is_instance_id_valid(tid) else null
 			state["t"] += 1.0 / 60.0
 			if state["done"] or not is_instance_valid(c):
 				state["done"] = true
@@ -600,10 +602,10 @@ static func _raikiri_dash(pj: PathJutsu, c: Node3D, t: Node3D, hand: Node3D, cha
 				return
 			var d: Vector3
 			if c is Player:
-				d = Jutsu._aim_flat(c, t)
+				d = Jutsu._aim_flat(c, tt)
 				c.facing = atan2(-d.x, -d.z)
-			elif t and is_instance_valid(t) and not t.is_dead():
-				d = (t.global_position - c.global_position)
+			elif tt and is_instance_valid(tt) and not tt.is_dead():
+				d = (tt.global_position - c.global_position)
 				d.y = 0
 				d = d.normalized()
 				c.facing = atan2(-d.x, -d.z) if c is Player else c.facing

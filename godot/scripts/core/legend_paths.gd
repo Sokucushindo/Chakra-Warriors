@@ -96,7 +96,7 @@ const PATHS := {
 		"passive_desc": "Zehir direnci +%30, hız +%4",
 		"order": ["sen_ei_jashu", "jagei_jubaku", "hebi_bunshin_no_jutsu", "sen_ei_tajashu", "kuchiyose_rashomon", "kusanagi_kuchi", "gogyo_fuin",
 			"sen_ei_ranjashu", "ten_no_juin", "mandara_no_jin", "orochimaru_ryu_no_kawarimi_no_jutsu", "hakuja_sennin_modo", "juin_ni_no_dankai",
-			"kuchiyose_sanju_rashomon", "yamata_no_jutsu", "kuchiyose_edo_tensei", "sojasosai_no_jutsu", "sennyu_no_jutsu", "satsui_no_shisen", "hebi_nyoro", "chakura_kyuin_jutsu", "jaguchi_shibari", "shikokujaijin", "hebi_saisetsugo", "hakuja_shintai", "soma_no_ko"],
+			"kuchiyose_sanju_rashomon", "yamata_no_jutsu", "kuchiyose_edo_tensei", "sojasosai_no_jutsu", "ribashiburu", "sennyu_no_jutsu", "satsui_no_shisen", "hebi_nyoro", "chakura_kyuin_jutsu", "jaguchi_shibari", "shikokujaijin", "hebi_saisetsugo", "hakuja_shintai", "soma_no_ko"],
 		"quest": {"kusanagi_kuchi": "sword", "ten_no_juin": "curse"},
 		"dark": {"ten_no_juin": 15, "juin_ni_no_dankai": 20, "kuchiyose_edo_tensei": 40, "sojasosai_no_jutsu": 30},
 	},
@@ -290,7 +290,7 @@ const PATHS := {
 		"intro": "Solgun adam fırçasını kaldırmadan konuşuyor: \"Kök duyguları siler, yalnız görev kalır. Ben resmimle bir şeyler geri kazandım. Önce elinin titremediğini göster.\"",
 		"passive": {"chakra": 0.1, "jutsu": 0.05},
 		"passive_desc": "Chakra +%10, jutsu gücü +%5",
-		"order": ["sumi_bunshin_no_jutsu", "sumigasumi_no_jutsu", "choju_giga", "hoki_sumi_ryu", "fuinjutsu_okutopasu_horudo", "choshin_giga", "hoki_sumi_tora", "hoki_sumi_tori"],
+		"order": ["sumi_bunshin_no_jutsu", "sumigasumi_no_jutsu", "choju_giga", "sumi_nagashi", "hoki_sumi_ryu", "fuinjutsu_okutopasu_horudo", "choshin_giga", "hoki_sumi_tora", "hoki_sumi_tori"],
 		"quest": {"choshin_giga": "god"},
 		"dark": {},
 	},
@@ -306,7 +306,7 @@ const PATHS := {
 		"intro": "Genç görünen adamın gözleri cansız: \"Gerçek sanat sonsuza kadar kalır. Kuklalar çürümez, ihanet etmez. Parmaklarına ip bağlamayı öğrenmek istiyorsan önce elinin hızını göster.\"",
 		"passive": {"jutsu": 0.08, "poison_resist": 0.3},
 		"passive_desc": "Jutsu gücü +%8, zehir direnci +%30",
-		"order": ["gishu_senbon", "shikomi_shinshin_happa", "kugutsu_hiruko", "sasori_doku_kemuri", "kaen_hosha", "suiryu_hosha", "kugutsu_sandaime", "senju_sobu", "hitokugutsu", "akahigi_hyakki_no_soen"],
+		"order": ["gishu_senbon", "shikomi_shinshin_happa", "kugutsu_hiruko", "sasori_doku_kemuri", "kaen_hosha", "suiryu_hosha", "kugutsu_sandaime", "jikki_uematsu", "senju_sobu", "hitokugutsu", "akahigi_hyakki_no_soen"],
 		"quest": {"kugutsu_sandaime": "kazekage", "hitokugutsu": "body"},
 		"dark": {"hitokugutsu": 25},
 	},
@@ -369,7 +369,7 @@ const EXTRA_JUTSU := {
 		"seals": [], "desc": "Şimşekli kol ve ahtapot koluyla çift lariat; yolundakiler savrulur."},
 	"hachibi_ahtapot_kollari": {"need": "jin:gyuki", "name": "Takoashi Ude (Ahtapot Kolları)", "cost": 40, "cd": 14, "element": "", "level": 22, "rank": 3, "tier": 4, "shape": "aoe", "learn": "path:hachibi", "category": "ninjutsu",
 		"seals": [], "desc": "Sırttan çıkan dev ahtapot kolları yeri döver, yakalayıp sıkar."},
-	"hachibi_yedi_kilic": { "dmg_k": 0.26,"name": "Nanatō Ranbu (Yedi Kılıç Dansı)", "cost": 45, "cd": 16, "element": "", "level": 24, "rank": 3, "tier": 4, "shape": "melee", "learn": "path:hachibi", "category": "kenjutsu",
+	"hachibi_yedi_kilic": { "need": "weapon:nanato", "dmg_k": 0.26,"name": "Nanatō Ranbu (Yedi Kılıç Dansı)", "cost": 45, "cd": 16, "element": "", "level": 24, "rank": 3, "tier": 4, "shape": "melee", "learn": "path:hachibi", "category": "kenjutsu",
 		"seals": [], "desc": "Kollar, koltuk altı, ağız: yedi kılıçla dönen kasırga kesik dansı."},
 	"hachibi_kuyruk_zirhi": {"need": "jin:gyuki", "name": "Bijū Koromo (Kuyruk Örtüsü)", "cost": 40, "cd": 40, "element": "", "level": 26, "rank": 4, "tier": 5, "shape": "mode", "learn": "path:hachibi", "category": "ninjutsu",
 		"seals": [], "desc": "Mor çakra örtüsü ve sekiz kuyruk: 20 sn güç, dayanıklılık, kollar otomatik saldırır."},
@@ -719,14 +719,14 @@ func start_drill(pid: String, jid: String) -> void:
 				hinge.add_child(wing)
 				wing.position = Vector3(sd * 0.16, 0, 0)
 				bf.add_child(hinge)
-				var ft = hinge.create_tween().set_loops()
+				var ft = Game.safe_loops(hinge.create_tween())
 				ft.tween_property(hinge, "rotation_degrees:z", sd * 55.0, 0.12)
 				ft.tween_property(hinge, "rotation_degrees:z", -sd * 15.0, 0.12)
 			get_tree().current_scene.add_child(bf)
 			bf.global_position = q
 			var ph = randf() * TAU
 			var rr = randf_range(1.5, 3.0)
-			var mt = bf.create_tween().set_loops()
+			var mt = Game.safe_loops(bf.create_tween())
 			mt.tween_method(func(v: float):
 				if is_instance_valid(bf):
 					bf.global_position = q + Vector3(cos(v + ph) * rr, sin(v * 2.0) * 0.4, sin(v + ph) * rr)
@@ -751,7 +751,7 @@ func start_drill(pid: String, jid: String) -> void:
 			bag.material_override = bm
 			get_tree().current_scene.add_child(bag)
 			bag.global_position = q
-			var bt = bag.create_tween().set_loops()
+			var bt = Game.safe_loops(bag.create_tween())
 			bt.tween_property(bag, "position:y", q.y + 0.25, 0.8).set_trans(Tween.TRANS_SINE)
 			bt.tween_property(bag, "position:y", q.y, 0.8).set_trans(Tween.TRANS_SINE)
 			drill["dummies"].append(bag)

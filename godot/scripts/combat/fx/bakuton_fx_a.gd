@@ -677,7 +677,7 @@ static func _mine_seed() -> Node3D:
 	L.sp(root, "glow", 0.5)
 	var orb = L.orb_mi(0.16, 0.6, 5.0)
 	root.add_child(orb)
-	var tw = orb.create_tween().set_loops()
+	var tw = Game.safe_loops(orb.create_tween())
 	tw.tween_property(orb, "scale", Vector3.ONE * 0.3, 0.12).set_trans(Tween.TRANS_SINE)
 	tw.tween_property(orb, "scale", Vector3.ONE * 0.14, 0.14).set_trans(Tween.TRANS_SINE)
 	return root

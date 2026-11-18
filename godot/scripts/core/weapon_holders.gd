@@ -8,7 +8,7 @@ extends RefCounted
 const INFO := {
 	"uc_tirpan": {"alias": ["Kan Rahibi", "Ölümsüz Tırpan", "Ritüel Avcısı"], "el": "", "rank": "S",
 		"tech": "Üç bıçaklı kızıl tırpanı arkadan savurur; kancalayıp çeker, yere saplar.",
-		"villages": ["yu"], "look": {"outer_style": "pelerin", "outer": "1c1a22", "hair": "b9bcc4"}},
+		"villages": ["yu"], "set": ["kaeri_yari"], "look": {"outer_style": "pelerin", "outer": "1c1a22", "hair": "b9bcc4"}},
 	"gunbai": {"alias": ["Yelpaze Lordu", "Kalkan Savaşçısı", "Alev Geri Çeviren"], "el": "katon", "rank": "S",
 		"tech": "Dev gunbai ile darbeleri emer, Uchiha Gaeshi ile geri çevirir.",
 		"villages": ["konoha"], "clan": "uchiha", "family": "Uchiha", "look": {"top_style": "yakali", "top": "1f2433", "top2": "1f2433", "hair": "121214"}},
@@ -27,6 +27,39 @@ const INFO := {
 	"kusanagi": {"alias": ["Yılan Kılıcı", "Uzayan Diş", "Beyaz Yılan"], "el": "doton", "rank": "S",
 		"tech": "Yılan muhafızlı kılıcının ağzı bir anda uzar; kılıcı uzaktan uçurur.",
 		"villages": ["oto"], "look": {"skin": "f2ece6", "hair": "15151a", "top": "e8e6e2", "rope_belt": true}},
+	"shichiseiken": {"alias": ["Altın Boynuz", "Gümüş Boynuz", "Hazine Kardeşi", "Söz Avcısı"], "el": "raiton", "rank": "S",
+		"tech": "Altı Yolun Bilgesi'nin dört hazinesini taşır: altın iple söz ruhunu çeker, yassı kılıçla lanetler, su kabağına çeker, küpe mühürler.",
+		"villages": ["kumo"], "set": ["kokinjo", "benihisago", "kohaku"], "look": {"skin": "c9925f", "hair": "d8b45a", "top": "4a2f5a"}},
+	"natato": {"alias": ["Katlanan Satır", "Tembel Şimşek", "Kara Bulut Kılıcı"], "el": "raiton", "rank": "A",
+		"tech": "Katlı satırını açar, yassı yüzüyle ezer; yıldırım yüklü ağzı fırlatıp yere saplar.",
+		"villages": ["kumo"], "look": {"skin": "8a5a3c", "hair": "e6d6a8"}},
+	"oni_kote": {"alias": ["Demir Pençe", "Zincirli İblis", "Sis Kardeşi"], "el": "", "rank": "A",
+		"tech": "Eldiveninden dikenli zincir fırlatır, sarıp yırtar; zincir gidince zehirli pençeye geçer.",
+		"villages": ["kiri"], "look": {"top": "4a4038", "hair": "1a1714"}},
+	"kurosawa": {"alias": ["Tek Kesik", "Demirin Kılıcı", "Sessiz Çekiş"], "el": "", "rank": "S",
+		"tech": "Kılıcı kınında bekletir; bir anda çekip keser, geri sokar. Gelen darbeyi karşılar, uzaktan yarar.",
+		"look": {"top": "3a4438", "hair": "9a9aa0"}},
+	"kajiki_mori": {"alias": ["Marlin Korsanı", "Chakra Yiyen Zıpkın", "Kızıl Saplı"], "el": "suiton", "rank": "A",
+		"tech": "Canlı zıpkınıyla chakra içer; doyunca metal marlin elinden çıkıp kendi yüzer.",
+		"villages": ["kiri"], "look": {"top": "d8d4cc", "hair": "c98a3a"}},
+	"ei_yumi": {"alias": ["Vatoz Okçusu", "Kiriş Yankısı", "Deniz Avcısı"], "el": "suiton", "rank": "A",
+		"tech": "Chakra okları sıyırsa bile felç eder; kirişle okun yönünü değiştirir.",
+		"villages": ["kiri"], "look": {"top": "e4e0d8", "hair": "b9782f"}},
+	"hono_ken": {"alias": ["Takumi Ustası", "Ateşin Efendisi", "Yeşil Küre"], "el": "katon", "rank": "S", "set": ["gariando", "fujaku", "mugen_kogai"],
+		"tech": "Ateş kılıcıyla alev dalgaları salar, küreden ışın atar; kaplan yüzlü göğüslüğü jutsuları yutar.",
+		"look": {"back_item": "mugen_kogai", "top": "4a3a63", "hair": "3a2a22"}},
+	"sekka_kote": {"alias": ["Taş Gözlü", "Gezgin Ninja", "Taşlaştıran El"], "el": "doton", "rank": "A",
+		"tech": "Eldiveninin gözüyle dokunduğunu taşlaştırır, kayaları uzaktan yağdırır.",
+		"villages": ["taki", "kusa"], "look": {"top": "4a3f5c", "hair": "a86a58"}},
+	"ryujin": {"alias": ["Ejder Bıçağı", "Beş Küreli", "Doğa Kesen"], "el": "", "rank": "S",
+		"tech": "Beş küreli bıçakla her darbede başka doğa kullanır, chakra emer.",
+		"villages": ["konoha", "kumo", "iwa"], "look": {"hair": "c9a44a"}},
+	"chakra_oltasi": {"alias": ["Kızıl Oltacı", "Chakra Avcısı", "Sessiz Balıkçı"], "el": "", "rank": "S",
+		"tech": "Kızıl chakra oltasını uzaktan atar; kanca savunmayı delip chakranı çeker.",
+		"look": {"top": "e4e4df", "hair": "a9b4c2"}},
+	"kokuto": {"alias": ["Kara Kılıç", "Zehirli Gölge", "Sessiz Muhafız"], "el": "", "rank": "A",
+		"tech": "Işık yansıtmayan zehirli kara kılıcıyla görünmeden yaklaşır, başı hedef alır, arkana süzülür.",
+		"villages": ["konoha"], "look": {"top": "2c2f2a", "hair": "4a3020"}},
 	"raikage_kote": {"alias": ["Kara Şimşek", "Altın Kolluk", "Yıldırım Yumruğu"], "el": "raiton", "rank": "S",
 		"tech": "İki kolundaki altın kollukla şimşek yüklü yumruklar; darbeyi kollukla karşılayıp çarpar.",
 		"villages": ["kumo"], "clan": "yotsuki", "family": "Yotsuki", "look": {"skin": "8a5a3c", "hair": "e6d6a8"}},
@@ -92,5 +125,8 @@ static func claim(id: String) -> void:
 	s[id] = {"state": "player"}
 	if not player_has(id):
 		Gear.grant(_p(), id)
+	for x in INFO[id].get("set", []):   # hazine takımı: sahibin taşıdığı diğer hazineler de düşer
+		if not player_has(String(x)):
+			Gear.grant(_p(), String(x))
 	Hud.banner("SİLAH DÜŞTÜ", "%s artık senin! [Tab > Ekipman]" % weapon_name(id), Color(1.0, 0.8, 0.35))
 	Sfx.play("levelup", null, 0.8)

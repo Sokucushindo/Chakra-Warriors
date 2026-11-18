@@ -98,7 +98,8 @@ func take_hit(inf: Dictionary) -> void:
 		_start_fight()
 	Combat.damage_number(global_position + Vector3.UP * height * 0.6, dmg, Color(1, 0.7, 0.3))
 	Hud.boss_bar(self)
-	if hp <= max_hp * SUBDUE + 0.01 and not subdued:
+	var sub_at: float = SUBDUE if jin_host != null else load("res://scripts/combat/fx/shodai_kubikazari_fx.gd").subdue_at(SUBDUE)   # İlk Hokage kolyesi
+	if hp <= max_hp * sub_at + 0.01 and not subdued:
 		if jin_host != null:
 			EnemyJin.form_broken(self)   # jinchūriki dönüşümü: mühürleme yok, form dağılır
 			return
@@ -643,7 +644,7 @@ func _minions() -> void:
 # ------------------------------------------------------------------ boyun eğme / mühürleme
 func _subdue() -> void:
 	subdued = true
-	subdued_t = 30.0 * (1.0 + Stats.skill(Game.profile, "fuin"))
+	subdued_t = 30.0 * (1.0 + Stats.skill(Game.profile, "fuin")) * load("res://scripts/combat/fx/shodai_kubikazari_fx.gd").hold_mult()
 	atk = ""
 	if ball and is_instance_valid(ball):
 		ball.queue_free()

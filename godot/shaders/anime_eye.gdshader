@@ -184,9 +184,7 @@ void fragment() {
 						for (int k = 0; k < 3; k++) {
 							if (k >= tm) break;
 							float a = spin + float(k) * 6.2831 / 3.0;
-							vec2 cpos = vec2(cos(a), sin(a)) * 0.55;
-							vec2 tail = vec2(cos(a - 0.45), sin(a - 0.45)) * 0.6;
-							if (length(q - cpos) < 0.15 || (length(q - tail) < 0.08 && length(q - cpos) < 0.32)) col = vec3(0.02);
+							if (tomoe_ink(q, a)) col = vec3(0.02);
 						}
 					} else if (dk == 5 || dk == 4) {
 						// özelleştirilebilir Mangekyō / Ebedi Mangekyō

@@ -1811,7 +1811,7 @@ static func _rasen_live(r: Node3D) -> void:
 		var ring = r.get_node_or_null("orbit%d" % i) as Node3D
 		if ring == null or not ring.is_inside_tree():
 			continue
-		var tw = ring.create_tween().set_loops()
+		var tw = Game.safe_loops(ring.create_tween())
 		tw.tween_property(ring, "rotation:y", TAU * (1.0 if i == 0 else -1.0), 0.22).as_relative()
 
 

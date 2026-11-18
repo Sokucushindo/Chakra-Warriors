@@ -8,6 +8,12 @@ signal died
 
 const RUN := 11.0
 const WALK := 2.4   # Caps Lock: sakin köylü yürüyüşü
+const AmagasaFX = preload("res://scripts/combat/fx/amagasa_fx.gd")
+const TateFX = preload("res://scripts/combat/fx/tate_fx.gd")
+const ChakuraYoroiFX = preload("res://scripts/combat/fx/chakura_yoroi_fx.gd")
+const HirakiTateFX = preload("res://scripts/combat/fx/hiraki_tate_fx.gd")
+const NunoFX = preload("res://scripts/combat/fx/nuno_maki_fx.gd")
+const KusariFundoFX = preload("res://scripts/combat/fx/kusari_fundo_fx.gd")
 var walking := false
 const DASH := 17.0   # anime: ninja koşusu hızlı ama araç hızında değil
 const GRAV := 36.0
@@ -30,13 +36,8 @@ var height = 1.8
 var grounded = true
 var jumps = 0
 var leaping = false
-# Striker: ipli kunai (havada Q, düşüş başına bir kez) ve duvar koşusu atılımı (duvarda Ctrl)
-var rope_ok = true
-var rope_t = -1.0
-var rope_pt := Vector3.ZERO
-var rope_line: MeshInstance3D
+# Striker: duvar koşusu atılımı (duvarda Ctrl)
 var wall_boost_t = -1.0
-const ROPE_RANGE := 45.0
 var sprint_t = 0.0
 var was_turbo = false
 var last_air_vy = 0.0
@@ -609,8 +610,6 @@ func _physics_process(dt: float) -> void:
 		_fly_move(dt)
 	elif mantle_t >= 0.0:
 		_mantle_move(dt)
-	elif rope_t >= 0.0:
-		_rope_move(dt)
 	elif wall_n != Vector3.ZERO:
 		_wall_move(dt)
 	else:
@@ -733,7 +732,6 @@ func _ground_air_move(dt: float) -> void:
 		jumps = 0
 		air_dash_ok = true
 		air_dash_used = 0
-		rope_ok = true
 		if leaping:
 			model.overlay.set_pose("leap", 0.0)
 			flip_t = -1.0
@@ -809,11 +807,9 @@ func start_flight(src: String, cfg := {}) -> void:
 	_show_leap_ui(false)
 	if wall_n != Vector3.ZERO:
 		_leave_wall()
-	if rope_t >= 0.0:
-		_end_rope()
 	grounded = false
 	velocity.y = maxf(velocity.y, 6.0)
-	if String(src) != "kami":   # kâğıt kanat havalanışı dumansız (kâğıt savrulur)
+	if not String(src) in ["kami", "hiko_tsubasa", "yuki_ita"]:   # kâğıt kanat havalanışı dumansız (kâğıt savrulur)
 		FX.smoke_puff(global_position + Vector3.UP * 0.3, 0.8, 10)
 	Hud.msg("%s: Space yüksel, Ctrl alçal, Shift hızlan" % String(cfg.get("name", "Uçuş")), Color(0.8, 0.9, 1.0), 2.5)
 
@@ -821,6 +817,7 @@ func start_flight(src: String, cfg := {}) -> void:
 func stop_flight() -> void:
 	if fly_src == "":
 		return
+	var was_src = fly_src
 	fly_src = ""
 	if is_instance_valid(fly_vis):
 		var v = fly_vis
@@ -829,7 +826,8 @@ func stop_flight() -> void:
 		tw.tween_callback(v.queue_free)
 	fly_vis = null
 	model.overlay.set_pose("leap", 0.0)
-	FX.smoke_puff(global_position + Vector3.UP * 0.3, 0.6, 8)
+	if not was_src in ["hiko_tsubasa", "yuki_ita"]:
+		FX.smoke_puff(global_position + Vector3.UP * 0.3, 0.6, 8)
 
 
 func flight_source() -> String:
@@ -866,6 +864,8 @@ func _fly_move(dt: float) -> void:
 		pass
 	move_and_slide()
 	var g = Game.ground_height(global_position.x, global_position.z)
+	if fly_cfg.get("hug", false):   # kar kayağı: zemine yapışır
+		global_position.y = g + 0.25
 	if global_position.y < g + 0.25:
 		global_position.y = g + 0.25
 		velocity.y = maxf(velocity.y, 0.0)
@@ -886,7 +886,7 @@ func _fly_move(dt: float) -> void:
 		model.overlay.set_pose("leap", clampf(hv.length() / maxf(spd, 1.0), 0.25, 1.0))
 	if is_instance_valid(fly_vis):
 		fly_vis.rotation.y = facing
-		fly_vis.position.y = sin(fly_cfg["t"] * 2.5) * 0.06
+		fly_vis.position.y = 0.0 if fly_cfg.get("hug", false) else sin(fly_cfg["t"] * 2.5) * 0.06
 
 
 ## Süper zıplamanın tepesinde öne takla (kalça etrafında)
@@ -1167,70 +1167,6 @@ func _wall_boost() -> void:
 	Sfx.play("whoosh", global_position, 1.2)
 
 
-## Havada Q: ipli kunai — nişangâhtaki yüzeye/dala tutunup oraya çekil (düşüş başına bir kez)
-func rope_kunai() -> bool:
-	if grounded or wall_n != Vector3.ZERO or not rope_ok or input_locked > 0.0:
-		return false
-	var pt = aim_point(ROPE_RANGE)
-	var from = global_position + Vector3.UP * 1.2
-	if from.distance_to(pt) > ROPE_RANGE - 0.5 or from.distance_to(pt) < 3.0:
-		Hud.msg("İpli kunai: tutunacak yer yok", Color(0.85, 0.85, 0.85), 1.0)
-		return false
-	rope_ok = false
-	rope_pt = pt
-	rope_t = 0.0
-	velocity *= 0.3
-	if rope_line == null:
-		rope_line = MeshInstance3D.new()
-		rope_line.mesh = ImmediateMesh.new()
-		var m = StandardMaterial3D.new()
-		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		m.albedo_color = Color(0.85, 0.85, 0.9)
-		rope_line.material_override = m
-		rope_line.top_level = true
-		rope_line.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		add_child(rope_line)
-	rope_line.visible = true
-	model.play("throw", 0.05, 1.6, true)
-	Sfx.play("kunai", global_position)
-	FX.hit_spark(pt, Color(0.9, 0.9, 1.0), 0.5)
-	return true
-
-
-func _rope_move(dt: float) -> void:
-	rope_t += dt
-	var to = rope_pt - (global_position + Vector3.UP * 1.0)
-	var d = to.length()
-	var pull = to.normalized() * minf(34.0, 10.0 + rope_t * 60.0)
-	velocity = velocity.lerp(pull, minf(1.0, dt * 8.0))
-	move_and_slide()
-	var g = Game.ground_height(global_position.x, global_position.z)
-	if global_position.y < g:
-		global_position.y = g
-	facing = lerp_angle(facing, atan2(-to.x, -to.z), minf(1.0, dt * 10.0))
-	model.rotation = Vector3(0, facing, 0)
-	model.play("air", 0.15)
-	model.overlay.set_pose("leap", 0.8)
-	# ip çizgisi
-	var im: ImmediateMesh = rope_line.mesh
-	im.clear_surfaces()
-	im.surface_begin(Mesh.PRIMITIVE_LINES)
-	im.surface_add_vertex(global_position + Vector3.UP * 1.3 + face_dir() * 0.3)
-	im.surface_add_vertex(rope_pt)
-	im.surface_end()
-	if d < 2.2 or rope_t > 1.6 or is_on_wall() or Input.is_action_just_pressed("jump"):
-		_end_rope()
-
-
-func _end_rope() -> void:
-	rope_t = -1.0
-	if rope_line:
-		rope_line.visible = false
-	velocity += Vector3.UP * 7.0  # tutunma noktasında hafif sıçrama: dala/çatıya çık
-	model.overlay.set_pose("leap", 0.0)
-	jumps = maxi(jumps, 1)
-
-
 ## Duvara yapış: süzülme/takla pozları hemen bırakılır, yoksa bacaklar süzülme pozunda donuk kalıyordu
 func _enter_wall(n: Vector3, terrain: bool) -> void:
 	wall_n = n
@@ -1358,7 +1294,7 @@ func _animate(sp: float, sprint: bool) -> void:
 		if not leaping and flip_t < 0.0:
 			ov.set_pose("leap", 0.0)
 			ov.glide_land = move_toward(ov.glide_land, 0.0, get_physics_process_delta_time() * 4.0)
-		if leaping and rope_t < 0.0:
+		if leaping:
 			# süzülme; yere yaklaşırken inişe hazırlan (dizler öne)
 			var h = global_position.y - Game.terrain_height(global_position.x, global_position.z)
 			var want = clampf(1.0 - (h - 1.5) / 6.0, 0.0, 1.0) if velocity.y < 0.0 else 0.0
@@ -1444,6 +1380,20 @@ func take_hit(info: Dictionary) -> void:
 		return
 	if Combat.speed_dodge(self, info):   # Jinton: Mikiri — bulanık yan adım
 		return
+	if NunoFX.block(self, info):   # dönen kumaş darbeyi tam durdurur (düşmanla aynı)
+		return
+	if KusariFundoFX.parry(self, info):   # gergin zincir yakın darbeyi yakalar (düşmanla aynı)
+		return
+	if has_meta("soha_uke") or (combat and combat.action == "guard"):
+		load("res://scripts/combat/fx/soha_kote_fx.gd").on_guarded(self, info)
+	if ChakuraYoroiFX.block(self, info):   # bariyer: jutsu ve atılan alet tam durur
+		return
+	if HirakiTateFX.parry(self, info):   # açık kalkan: silah tam durur
+		return
+	if TateFX.block(self, info):   # kalkan: önden gelen darbe tam durur (düşmanla aynı)
+		return
+	if AmagasaFX.parry(self, info):   # açık şemsiye önden gelen darbeyi karşılar (düşmanla aynı)
+		return
 	info = Combat.cap_one_shot(self, info)   # tek atan darbe: hedef güçlüyse kırpılır (AI eşitliği)
 	if float(info.get("chakra_drain", 0.0)) > 0.0:   # chakra emen teknikler — düşmanla aynı
 		chakra = maxf(0.0, chakra - float(info["chakra_drain"]))
@@ -1457,8 +1407,12 @@ func take_hit(info: Dictionary) -> void:
 	var armor = maxf(1.0, Buffs.mod("armor"))
 	info = info.duplicate()
 	info["dmg"] = Combat.absorb(self, info.get("dmg", 5.0) * armor)   # kanon savunma = kalkan (Susanoo, zırh, kubbe...)
+	if atk0 != null and is_instance_valid(atk0) and (atk0.has_meta("duel_rival") or atk0.has_meta("spar")):
+		info["dmg"] = minf(float(info["dmg"]), maxf(hp - 1.0, 0.0))   # dostça dövüşte tek vuruş öldürmez: %25 kuralı bitirir
 	if float(info["dmg"]) <= 0.0:
 		return
+	if float(info.get("poison", 0.0)) > 0.0:
+		load("res://scripts/combat/fx/doku_fx.gd").add(self, float(info["poison"]))
 	if combat:
 		combat.take_hit(info)
 
@@ -1467,6 +1421,8 @@ var statuses = {}  # element durumları: burn, wet, frozen, chilled, shocked, mu
 
 
 func apply_status(n: String, d: float) -> void:
+	if n in ["fear", "kokuangyo"] and Game.now() < float(get_meta("togarashi_until", 0.0)):
+		return   # biber tozu içinde genjutsu tutmaz
 	if n in ["stun", "bind", "fear", "kokuangyo"]:
 		d /= 1.0 + Stats.skill(Game.profile, "gen_resist")  # genjutsu direnci
 		if n != "bind" and Stats.has_unlock(Game.profile, "kai") and not statuses.has("_kai_tip"):
@@ -1491,6 +1447,8 @@ func _tick_status(dt: float) -> void:
 		statuses[k] -= dt
 		if statuses[k] <= 0.0:
 			statuses.erase(k)
+	if has_status("poison"):
+		load("res://scripts/combat/fx/doku_fx.gd").tick(self, dt)
 	if has_status("burn"):
 		hp -= 4.0 * clampf(1.0 - Stats.skill(Game.profile, "poison_resist"), 0.2, 1.0) * dt
 		if randf() < dt * 8.0:

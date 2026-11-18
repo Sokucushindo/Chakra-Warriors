@@ -1514,7 +1514,7 @@ static func gamadaira_kageayatsuri(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	var stw = shadow.create_tween()
 	stw.tween_interval(0.25)
 	stw.tween_property(shadow, "scale", Vector3.ONE, 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	var pulse = shadow.create_tween().set_loops()
+	var pulse = Game.safe_loops(shadow.create_tween())
 	pulse.tween_method(func(x: float): sh_m.set_shader_parameter("amount", x), 1.0, 0.72, 0.9).set_trans(Tween.TRANS_SINE)
 	pulse.tween_method(func(x: float): sh_m.set_shader_parameter("amount", x), 0.72, 1.0, 0.9).set_trans(Tween.TRANS_SINE)
 	pj.after(0.3, func():

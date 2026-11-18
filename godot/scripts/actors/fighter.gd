@@ -83,6 +83,8 @@ func face_dir() -> Vector3:
 
 
 func apply_status(name: String, dur: float) -> void:
+	if name in ["fear", "kokuangyo"] and Game.now() < float(get_meta("togarashi_until", 0.0)):
+		return
 	dur = Combat.cc_dur(self, name, dur)
 	if dur <= 0.0:
 		return
@@ -169,6 +171,8 @@ func take_hit(info: Dictionary) -> void:
 			col = Color(0.65, 0.68, 0.75)
 			Combat.popup_text(global_position + Vector3.UP * (height + 0.9), "Zayıf...", Color(0.7, 0.72, 0.8))
 	Combat.damage_number(global_position + Vector3.UP * (height + 0.3), dmg, col, info.get("kind", "") == "heavy" or eff >= 1.25)
+	if float(info.get("poison", 0.0)) > 0.0:
+		load("res://scripts/combat/fx/doku_fx.gd").add(self, float(info["poison"]))
 	if info.get("burn", 0.0) > 0.0:
 		apply_status("burn", info["burn"])
 	if info.get("stun", 0.0) > 0.0:
@@ -216,7 +220,8 @@ func take_hit(info: Dictionary) -> void:
 	# güç farkı (kanon): kendinden çok zayıfın darbesi güçlü ninjayı sersemletmez / yere sermez — hasarı alır ama akışı bozulmaz.
 	# Güç oranı 0.6'nın altında hafif darbe hiç sersemletmez, ağır darbe yalnız sendeletir; 0.45'in altında ağır darbe de sersemletmez.
 	var atkp = info.get("attacker")
-	if atkp != null and is_instance_valid(atkp) and atkp != self and not info.get("execute", false):
+	# düz vuruş bu kuralın dışında: oyuncu her düz vuruşta kesiliyor, rakip de aynı şekilde kesilir
+	if atkp != null and is_instance_valid(atkp) and atkp != self and not info.get("execute", false) and not info.get("melee", false):
 		var pgap = Combat.power_of(atkp) / maxf(Combat.power_of(self), 1.0)
 		if pgap < 0.6:
 			if not heavy or pgap < 0.45:
@@ -381,6 +386,10 @@ func tick_status(dt: float) -> void:
 		buffs[k]["t"] -= dt
 		if buffs[k]["t"] <= 0.0:
 			buffs.erase(k)
+	if has_status("poison"):
+		load("res://scripts/combat/fx/doku_fx.gd").tick(self, dt)
+		if hp <= 0.0 and not dead:
+			die({})
 	if has_status("burn"):
 		hp -= 4.0 * dt
 		if randf() < dt * 8.0:

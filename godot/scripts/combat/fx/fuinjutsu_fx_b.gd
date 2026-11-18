@@ -1575,6 +1575,7 @@ static func shikokumujin(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		if c is Player:
 			Hud.msg("Hedef yok.", Color(0.8, 0.8, 0.8))
 		return
+	load("res://scripts/combat/fx/seishingan_fx.gd").fog_seal(tt)   # kanon: Seishingan bulaşması bu mühürde sahte ölüme döner
 	var fit = pj._tgt_fit(tt)
 	var hw = 1.7 * fit
 	var hh = 3.6 * fit

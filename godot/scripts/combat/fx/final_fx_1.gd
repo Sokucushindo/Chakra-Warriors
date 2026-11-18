@@ -1837,7 +1837,7 @@ static func _shadow_strip(pj: Node, a_fn: Callable, b_fn: Callable, dur: float, 
 			im.surface_add_vertex(p - side * w)
 		im.surface_end()
 	upd.call()
-	var tw = mi.create_tween().set_loops(maxi(1, int(dur / 0.05)))
+	var tw = Game.safe_loops(mi.create_tween(), maxi(1, int(dur / 0.05)))
 	tw.tween_interval(0.05)
 	tw.tween_callback(upd)
 	_kill_after(pj, mi, dur)
@@ -1971,7 +1971,7 @@ static func _onishi_grip(pj: Node, x: Node3D, dur: float) -> Node3D:
 		tw2.tween_callback(func(): bm.visible = true)
 		tw2.tween_property(bm, "scale", Vector3.ONE, 0.2).set_ease(Tween.EASE_OUT)
 	var xw = weakref(x)
-	var ft = root.create_tween().set_loops(maxi(1, int(dur / 0.05)))
+	var ft = Game.safe_loops(root.create_tween(), maxi(1, int(dur / 0.05)))
 	ft.tween_interval(0.05)
 	ft.tween_callback(func():
 		var xx = xw.get_ref()
