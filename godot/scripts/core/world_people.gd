@@ -681,7 +681,20 @@ static func arch_of(p: Dictionary, outfit := "") -> Dictionary:
 		a.erase("auto_jutsu")
 	a["name"] = String(p["name"])
 	a["respawn"] = false
-	Stats.npc_ninja(a, lv)
+	if is_rogue(p):
+		# av ninjalarından sağ kurtulmuş kaçak: en az C-rank gücünde ve Bingo kaçakları gibi elit dövüşür
+		lv = maxi(lv, 35)
+		Stats.npc_ninja(a, lv, 1.3)
+		a["guard"] = 0.55
+		a["sub"] = 0.4
+		a["skill"] = clampf(0.18 + lv * 0.0045, 0.3, 0.85)
+		for jid in Enemy.auto_jutsu("rogue", String(a["element"]), lv):
+			if (a.get("jutsu", []) as Array).size() >= 6:
+				break
+			if not jid in a.get("jutsu", []):
+				a["jutsu"] = (a.get("jutsu", []) as Array) + [jid]
+	else:
+		Stats.npc_ninja(a, lv)
 	a["look"] = look_of(p)
 	a["world_person"] = String(p["id"])
 	WorldAmbition.arch(a, p)   # bedenine canavar mühürlüyse jinchūriki olarak dövüşür

@@ -301,6 +301,9 @@ static func _bond_death(p: Dictionary) -> void:
 
 
 static func tag_text(p: Dictionary) -> String:
+	if WorldPeople.is_rogue(p) or str((p.get("look", {}) as Dictionary).get("band_style", "")) == "slashed":
+		return "%s
+Nukenin (%s-rank)" % [String(p["name"]), WorldPeople.rank_letter(int(p["level"]))]   # kaçağın köy rütbesi yoktur
 	return "%s\n%s" % [String(p["name"]), WorldPeople.RANK_NAMES[clampi(int(p["rank"]), 0, 3)]]
 
 
@@ -1083,6 +1086,20 @@ static func _stage_async(people: Array, from: Vector3, to: Vector3, slow: bool, 
 
 ## Kaçak oyuncu: yoldaki köy takımı çizik alın bandını görünce sözü bırakıp saldırır (gerçek kişiler, kendi güçleriyle).
 ## Dostların saldırmaz; görev / sınav sırasında araya girilmez.
+static func clear_near(pos: Vector3, r: float) -> void:
+	for g in _groups:
+		var near = false
+		for n in g["nodes"]:
+			if is_instance_valid(n) and n.global_position.distance_to(pos) < r:
+				near = true
+		if near:
+			g["alarm"] = true   # sen baygınken geçip gittiler
+			for n in g["nodes"]:
+				if is_instance_valid(n):
+					n.queue_free()
+	_road_t = maxf(_road_t, 240.0)
+
+
 static func _rogue_alarm(g: Dictionary) -> void:
 	if g.get("alarm", false) or not Orgs.is_rogue() or Missions.quiet() or Game.player.hp <= 0.0:
 		return

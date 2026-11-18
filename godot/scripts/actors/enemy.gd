@@ -261,6 +261,20 @@ static func auto_jutsu(kind: String, el: String, lv: int) -> Array:
 	return out.slice(0, 3)
 
 
+var cast_release := 0.55   # bu jutsunun mühür + hazırlık süresi
+
+
+## Mühür yarıda kesildi: el pozu ve koreografi biter, teknik çıkmaz (chakra gitmiştir; oyuncuyla aynı)
+func _break_cast() -> void:
+	model.overlay.set_pose("seal", 0.0)
+	var ca = get_node_or_null("CastAnim")
+	if ca:
+		ca.finish()
+	if has_meta("cast_id"):
+		jcd[get_meta("cast_id")] = Game.now() + 2.0
+	Combat.popup_text(global_position + Vector3.UP * (height + 0.5), "Mühür bozuldu!", Color(1, 0.6, 0.4))
+
+
 ## Oyuncunun PlayerCombat.jutsu_cost formülü, düşmanın kendi seviyesiyle
 func jutsu_cost(id: String) -> float:
 	if Game.has_meta("sandbox"):   # deneme alanında oyuncuya bedava: düşmana da (AI eşitliği)
@@ -653,7 +667,7 @@ func _physics_process(dt: float) -> void:
 			_attack(dt)
 		"cast":
 			step_move(Vector3.ZERO, dt, false)
-			if state_t > 0.55:
+			if state_t > cast_release:
 				model.overlay.set_pose("seal", 0.0)
 				# oyuncuyla aynı kural: tekniğin rütbe şartının altındaki ninja mühürü bozabilir
 				var jd: Dictionary = Data.jutsu.get(get_meta("cast_id"), {})
@@ -874,11 +888,12 @@ func _chase(dt: float) -> void:
 			_jdmg[pick] = 0.0
 			_jcast_t[pick] = nowj
 			_jhold = 0.0
-			jgap = nowj + randf_range(2.5, 4.0) / (1.0 + skill * 1.5)   # usta ninja mühürü hızlı dizer: Güç 30 1.7-2.8 sn, Güç 80 1.3-2.1 sn
+			var ca = CastAnim.play(self, pick, -1.0)   # mühür + atma koreografisi: oyuncuyla aynı süre (mühür sayısı ve ustalık)
+			cast_release = clampf(ca.release_t, 0.45, 2.6)
+			jgap = nowj + cast_release + randf_range(2.5, 4.0) / (1.0 + skill * 1.5)   # usta ninja mühürü hızlı dizer: Güç 30 1.7-2.8 sn, Güç 80 1.3-2.1 sn
 			set_meta("cast_id", pick)
 			state = "cast"
-			Jutsu.jutsu_prep.emit(self, pick, 0.55)
-			CastAnim.play(self, get_meta("cast_id"), 0.55)  # mühür + atma koreografisi
+			Jutsu.jutsu_prep.emit(self, pick, cast_release)
 			state_t = 0.0
 			model.play("idle", 0.05)
 			model.overlay.set_pose("seal", 1.0)
@@ -1672,6 +1687,13 @@ func take_hit(info: Dictionary) -> void:
 	var was_cast = state == "cast"
 	var st0 = state_t
 	super.take_hit(info)
+	if was_cast and not dead:
+		# düz vuruş da mührü bozar (oyuncuda olduğu gibi); yalnız süper zırhlı boss ve Kage dayanır
+		if state == "cast" and float(info.get("dmg", 0.0)) > 0.0 and poise <= 0.0 and not has_meta("kage_of") and String(get_meta("elite_boss", "")) != "S":
+			state = "recover"
+			state_t = 0.0
+		if state != "cast":
+			_break_cast()
 	if state == "knockdown" and (not _was_down or state_t < st0):   # yeni düşüş (ya da havada yeniden savruldu)
 		if not _was_down:
 			down_otg = 0
@@ -1684,8 +1706,6 @@ func take_hit(info: Dictionary) -> void:
 			_flip_model(1.0)
 			model.overlay.tuck = 0.0
 	if state in ["hitstun", "knockdown"]:
-		if was_cast and has_meta("cast_id") and Combat.storm:   # mühür yarıda kesildi: teknik uzun beklemeye girmez (oyuncuyla aynı)
-			jcd[get_meta("cast_id")] = Game.now() + 2.0
 		e_branch = ""
 		if not key_step.is_empty():   # yarıda kesilen silah kombosu
 			key_step = {}

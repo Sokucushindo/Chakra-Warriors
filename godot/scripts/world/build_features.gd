@@ -101,11 +101,7 @@ static func _build(b: Builder, f: Dictionary, rng: RandomNumberGenerator) -> voi
 				b.box(Vector3(x + po.x, water_y - 2.0, n + po.y), Vector3(4.0, 7.0, 1.0), wood.darkened(0.2), yaw, false)
 		"paddy":  # su dolu pirinç tarlası (basamak)
 			var r: float = f["r"]
-			b.box(Vector3(x, g + 0.3, n), Vector3(r, 0.6, r * 0.8), Color(0.45, 0.38, 0.26), yaw)
-			b.box(Vector3(x, g + 0.62, n), Vector3(r - 1.6, 0.05, r * 0.8 - 1.6), Color(0.45, 0.62, 0.62), yaw, false)
-			for k in int(r / 2.5):
-				var o = Builder.rot(-r * 0.5 + 1.6 + k * 2.5, 0, yaw)
-				b.box(Vector3(x + o.x, g + 0.9, n + o.y), Vector3(0.5, 0.6, r * 0.8 - 2.5), Color(0.5, 0.78, 0.32), yaw, false)
+			load("res://scripts/world/farm_kit.gd").paddy(b, x, n, yaw, r, r * 0.8, rng)
 
 
 static func _pillar(b: Builder, x: float, n: float, g: float, h: float, r: float, rng: RandomNumberGenerator, c: Color, spire := false) -> void:

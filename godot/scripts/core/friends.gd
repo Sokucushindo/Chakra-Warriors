@@ -1458,8 +1458,14 @@ func _world_tick(dt: float) -> void:
 				n.queue_free()
 			present.erase(id)
 	var spawned = 0
+	var busy_id = String(act.get("id", ""))   # birlikte bir şey yapılan dost ikinci kez yerinde belirmez
+	if busy_id != "" and present.has(busy_id):
+		var pn = present[busy_id]
+		if is_instance_valid(pn) and pn != act.get("node") and pn != act.get("orig"):
+			pn.queue_free()
+			present.erase(busy_id)
 	for id in all():
-		if present.has(id) or spawned >= 1:
+		if present.has(id) or spawned >= 1 or id == busy_id:
 			continue
 		var f: Dictionary = all()[id]
 		if not available(f) or f.get("party", false):

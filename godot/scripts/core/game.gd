@@ -392,6 +392,9 @@ func step_sound(p: Vector3) -> String:
 	var it = Interiors.inst
 	if it and it.inside != "":
 		return "step_stone%d" % v if it.inside.begins_with("lair_") else "step_wood%d" % v
+	var th = terrain_height(p.x, p.z)
+	if p.y > th + 1.3 and p.y > water_level(p.x, p.z, th) + 0.8:   # çatı, köprü, balkon, dal: altındaki toprağın sesi değil
+		return ("step_stone%d" % v) if biome_at(p.x, p.z) in [5, 9, 13, 14, 15] else ("step_wood%d" % v)
 	if biome_at(p.x, p.z) in [1, 3, 13]:
 		return "step_sand"   # kumsal, çöl, Suna (sokakları da sıkışmış kum; eskiden taş/toprak adımı tahta gibi çalıyordu)
 	if road_at(p.x, p.z, "street") > 0.3:

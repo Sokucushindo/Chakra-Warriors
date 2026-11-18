@@ -33,9 +33,15 @@ func _physics_process(dt: float) -> void:
 	if clan == "hozuki":
 		f.set_meta("su", minf(ClanMech.SU_MAX, float(f.get_meta("su", ClanMech.SU_MAX)) + maxf(1.5, ClanMech.su_refill(f.global_position, false, false)) * get_process_delta_time()))
 	last_hp = f.hp
-	if duel and f.hp < f.max_hp * 0.25:
-		_yield()
-		return
+	if duel:
+		f.set_meta("duel_rival", true)   # dostça dövüş: bu rakip oyuncuyu öldüremez (Player.take_hit)
+		if f.hp < f.max_hp * 0.25:
+			_yield()
+			return
+		var pl = Game.player
+		if pl != null and is_instance_valid(pl) and f.target == pl and pl.hp < pl.max_hp * 0.25:
+			_player_lost(pl)
+			return
 	cd -= dt
 	var t: Node3D = f.target
 	if cd > 0.0 or t == null or not is_instance_valid(t) or t.is_dead() or f.state in ["hitstun", "knockdown", "cast"]:
@@ -278,6 +284,25 @@ func _swarm(t: Node3D) -> void:
 
 
 # ------------------------------------------------------------------ düello
+## Kural iki taraf için aynı: %25 cana inen kaybeder. Oyuncu ölmez, parası gitmez; rakip elini indirir.
+func _player_lost(pl: Node3D) -> void:
+	_yielded = true
+	f.dead = true
+	f.team = "neutral"
+	f.target = null
+	f.remove_from_group("fighters")
+	f.model.play("idle", 0.2)
+	pl.hp = maxf(pl.hp, pl.max_hp * 0.3)
+	Combat.popup_text(f.global_position + Vector3.UP * (f.height + 1.0), "Yeter, bu kadar! İyi dövüştün.", Color(0.8, 0.95, 1.0))
+	Hud.msg("Düelloyu kaybettin. Dostça dövüştü, kimse ölmedi.", Color(1, 0.85, 0.55), 4.0)
+	var tw := create_tween()
+	tw.tween_interval(1.6)
+	tw.tween_callback(func():
+		if on_yield.is_valid():
+			on_yield.call(false)
+		f.queue_free())
+
+
 func _yield() -> void:
 	_yielded = true
 	f.dead = true

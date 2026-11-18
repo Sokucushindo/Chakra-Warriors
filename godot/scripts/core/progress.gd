@@ -747,24 +747,29 @@ func _calm_after_death(pos: Vector3) -> void:
 	for f in get_tree().get_nodes_in_group("fighters"):
 		if not f is Enemy or not is_instance_valid(f) or f.is_dead() or not Combat.hostile(Game.player, f):
 			continue
+		var d0: float = f.global_position.distance_to(pos)
 		var hunting: bool = f.target == Game.player
-		var close: bool = f.global_position.distance_to(pos) < 70.0
-		if not hunting and not close:
+		if not hunting and d0 >= 170.0:
 			continue
-		f.lose_target(180.0)
+		f.lose_target(240.0)
 		f.state = "idle"
-		if f.global_position.distance_to(pos) >= 150.0:
+		if d0 >= 170.0:
 			continue   # uzakta kaldı: yalnız peşini bırakır
 		var h: Vector3 = f.home
-		if h.distance_to(pos) < 60.0 and not bool(f.arch.get("respawn", true)):
-			f.queue_free()   # yalnız bu dövüş için gelmişti
+		if not bool(f.arch.get("respawn", true)):
+			f.queue_free()   # kalıcı değil: sen baygınken dağılıp gitti
 			continue
-		if h.distance_to(pos) < 150.0:
+		if h.distance_to(pos) < 170.0:
 			var a = randf() * TAU
-			h = Missions.open_ground(pos + Vector3(cos(a), 0.0, sin(a)) * randf_range(190.0, 240.0), 40.0)
+			h = Missions.open_ground(pos + Vector3(cos(a), 0.0, sin(a)) * randf_range(210.0, 260.0), 40.0)
 			f.home = h
 		f.velocity = Vector3.ZERO
 		f.global_position = h + Vector3.UP * 0.2
+	# yoldan geçen köy takımları da gider, bir süre yenisi gelmez
+	var at = get_tree().current_scene.find_child("AmbientTeams", true, false)
+	if at != null:
+		at.clear_near(pos, 220.0)
+	WorldDay.clear_near(pos, 220.0)
 
 
 func _process(_dt: float) -> void:

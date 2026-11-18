@@ -1399,6 +1399,25 @@ static func sex_ok(id: String, gender: String) -> bool:
 ## Karakter yaratmada seçilebilen setler: temel setler + Striker'ın temel (C sırası) setleri, cinsiyete göre
 static func start_sets(gender: String, clan := "") -> Array:
 	return (START_SETS + STRIKER.START.filter(func(i): return sex_ok(i, gender))).filter(func(i): return clan_req(i) == "" or clan_req(i) == clan)
+## Dükkân önizlemesi: oyuncunun kopyası bu eşyayı giymiş hâlde (asıl kayda dokunmaz)
+static func try_on_look(id: String) -> Dictionary:
+	var pr: Dictionary = Game.profile
+	var p: Dictionary = pr.duplicate()
+	p["look"] = (pr["look"] as Dictionary).duplicate(true)
+	p["gear"] = (pr.get("gear", []) as Array).duplicate(true)
+	p["equip"] = (pr.get("equip", {}) as Dictionary).duplicate(true)
+	var sl = String(item(id).get("slot", ""))
+	if sl != "":
+		grant(p, id, sl)
+		apply_look(p)
+	var L: Dictionary = p["look"]
+	if Game.player:
+		L["age"] = Game.player.age_for_rank(int(pr.get("rank", 0)))
+	Aging.dress_player(L)
+	L["own_hair"] = true
+	return L
+
+
 static func preview_set_look(L: Dictionary, sid: String) -> void:
 	L["set_id"] = sid
 	for pt in item(sid).get("parts", []):

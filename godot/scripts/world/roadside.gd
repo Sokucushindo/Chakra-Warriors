@@ -592,6 +592,13 @@ static func _farm(b: Builder, node: Node3D, s: Dictionary, rng: RandomNumberGene
 
 ## Sebze bahçesi (çitli) veya pirinç tarlası + çiftçiler
 static func _garden(b: Builder, node: Node3D, rng: RandomNumberGenerator, x: float, n: float, gx: float, gn: float, yaw: float, paddy: bool) -> void:
+	# tarlanın başında çiftçi evi ve kulübe: ekili yer sahipsiz durmaz
+	var bio := Game.biome_at(gx, -gn)
+	var st := "suna" if bio in [3, 13] else ("snow" if bio in [8, 15] else ("iwa" if bio in [5, 9, 14] else "wood"))
+	var ho := Builder.rot(4.0 if paddy else -5.0, 16.5, yaw)
+	b.house(gx + ho.x, gn + ho.y, 8.5, 7.0, 1, yaw + 180.0, st, rng)
+	var hs := Builder.rot(19.0 if paddy else 6.5, 16.0, yaw)
+	b.house(gx + hs.x, gn + hs.y, 6.0, 5.0, 1, yaw + 180.0, "wood" if st == "wood" else st, rng)
 	if paddy:
 		var f := {"t": "paddy", "x": gx, "y": gn, "g": _g(gx, gn), "yaw": yaw, "r": 22.0}
 		BuildFeatures._build(b, f, rng)
@@ -602,24 +609,7 @@ static func _garden(b: Builder, node: Node3D, rng: RandomNumberGenerator, x: flo
 		f2["g"] = _g(f2["x"], f2["y"])
 		BuildFeatures._build(b, f2, rng)
 	else:
-		var cols := [Color(0.35, 0.62, 0.25), Color(0.55, 0.72, 0.3), Color(0.7, 0.45, 0.25), Color(0.4, 0.55, 0.35), Color(0.85, 0.5, 0.2)]
-		for row in 7:
-			var ro := Builder.rot(-8.0 + row * 2.6, 0, yaw)
-			var rx := gx + ro.x
-			var rn := gn + ro.y
-			b.box(Vector3(rx, _g(rx, rn) + 0.12, rn), Vector3(1.3, 0.24, 14.5), Color(0.42, 0.3, 0.2), yaw, false)  # toprak sırt
-			var c: Color = cols[row % cols.size()]
-			for j in 15:
-				var po := Builder.rot(-8.0 + row * 2.6, -6.6 + j * 0.95, yaw)
-				var px := gx + po.x
-				var pn := gn + po.y
-				var gy := _g(px, pn)
-				if row % 3 == 2:  # sırıklı fasulye / domates
-					b.box(Vector3(px, gy + 0.8, pn), Vector3(0.05, 1.4, 0.05), Color(0.55, 0.42, 0.28), 0, false)
-					b.sphere(Vector3(px, gy + 0.9, pn), Vector3(0.45, 0.8, 0.45), Color(0.3, 0.55, 0.22), 5)
-					b.sphere(Vector3(px + 0.15, gy + 0.85, pn), Vector3(0.14, 0.14, 0.14), Color(0.85, 0.2, 0.15), 4)
-				else:
-					b.sphere(Vector3(px, gy + 0.32, pn), Vector3(0.6, 0.4, 0.6), c, 6)
+		load("res://scripts/world/farm_kit.gd").veg(b, gx, gn, yaw, 18.0, 14.5, rng)
 		PoiBuilder._fence(b, gx, gn, 22.0, 18.0, rng)
 	_villager(node, b, "walker", Vector3(gx, 0, gn))
 	_villager(node, b, "sitter", Vector3(x + 2.0, 0, n - 5.0))

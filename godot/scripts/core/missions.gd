@@ -1985,7 +1985,10 @@ func _lair_mouth(c: Vector3, lab: bool, room := "", label := "") -> Node3D:
 	for i in 9:
 		var a = rng.randf_range(-2.4, 2.4)
 		var p = Vector3(sin(a) * rng.randf_range(6, 10), rng.randf_range(0.5, 3.5), -7.0 + cos(a) * rng.randf_range(4, 7))
-		b.add("sphere", p, Vector3.ONE * rng.randf_range(3.0, 6.5), rock.darkened(rng.randf() * 0.25), Vector3.ZERO, 8)
+		var bs = rng.randf_range(3.0, 6.5)
+		if p.z + bs * 0.5 > -3.0 and absf(p.x) - bs * 0.5 < 3.4:   # kaya ağzın önüne düşmesin: yana itilir
+			p.x = (1.0 if p.x >= 0.0 else -1.0) * (3.6 + bs * 0.5)
+		b.add("sphere", p, Vector3.ONE * bs, rock.darkened(rng.randf() * 0.25), Vector3.ZERO, 8)
 	b.add("sphere", Vector3(0, 1.5, 0.15), Vector3(4.2, 3.6, 1.2), Color(0.04, 0.03, 0.03), Vector3.ZERO, 12)   # karanlık ağız (kaya yüzeyinin önünde)
 	b.add("box", Vector3(0, 3.5, 0.4), Vector3(5.0, 0.6, 1.0), rock.darkened(0.15))   # ağız üstü kaya lento
 	for sx in [-1.0, 1.0]:

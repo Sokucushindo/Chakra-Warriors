@@ -118,24 +118,34 @@ func attack(v: Node, alarm := false) -> void:
 		if int(v.eye_kind) > 0:
 			Eyes.give_enemy_eyes(e, int(v.eye_kind), maxi(1, int(v.eye_lvl)))
 	else:
-		var a = Enemy.archetype("bandit" if civ else "genin_rival", 0)
-		a["no_clan"] = true
+		# dünyada gerçek biri ya da dostun: kendi gücüyle dövüşür (sokak kalıbına düşüp köylü gücünde kalmaz)
+		var wp = WorldPeople.get_p(String(v.get_meta("world_person", "")))
+		var real: Dictionary = {}
+		if not wp.is_empty():
+			real = WorldPeople.arch_of(wp)
+		elif fid != "" and Friends.all().has(fid):
+			real = Friends.arch(Friends.all()[fid])
+		if not real.is_empty():
+			civ = false
+		var a = real if not real.is_empty() else Enemy.archetype("bandit" if civ else "genin_rival", 0)
 		a["name"] = String(v.display)
 		a["respawn"] = false
-		a["level"] = randi_range(2, 5) if civ else randi_range(12, 22)
-		a["hp"] = 90.0 + a["level"] * (4.0 if civ else 14.0)
-		if not civ:
-			# köy ninjası (devriye/nöbetçi/çatı/hoca): rütbesinin gücüyle (eskiden "genin rakibi" Güç 12-22 — aşırı ezik)
-			var lv_n = {"teacher": randi_range(60, 75), "spar": randi_range(30, 45)}.get(String(v.role), randi_range(35, 55) if randf() < 0.75 else randi_range(65, 85))
-			Stats.npc_ninja(a, lv_n, 1.1)
-			a["element"] = ["katon", "suiton", "fuuton", "doton", "raiton"].pick_random()
-			a["jutsu"] = Enemy.auto_jutsu("rogue", String(a["element"]), lv_n)
-			a["skill"] = clampf(0.25 + lv_n * 0.005, 0.3, 0.7)
-		a["xp"] = 0 if civ else 20
-		a["ryo"] = 10
-		if civ:
-			a["jutsu"] = []
-			a["power"] = 0.5
+		if real.is_empty():
+			a["no_clan"] = true
+			a["level"] = randi_range(2, 5) if civ else randi_range(12, 22)
+			a["hp"] = 90.0 + a["level"] * (4.0 if civ else 14.0)
+			if not civ:
+				# köy ninjası (devriye/nöbetçi/çatı/hoca): rütbesinin gücüyle (eskiden "genin rakibi" Güç 12-22 — aşırı ezik)
+				var lv_n = {"teacher": randi_range(60, 75), "spar": randi_range(30, 45)}.get(String(v.role), randi_range(35, 55) if randf() < 0.75 else randi_range(65, 85))
+				Stats.npc_ninja(a, lv_n, 1.1)
+				a["element"] = ["katon", "suiton", "fuuton", "doton", "raiton"].pick_random()
+				a["jutsu"] = Enemy.auto_jutsu("rogue", String(a["element"]), lv_n)
+				a["skill"] = clampf(0.25 + lv_n * 0.005, 0.3, 0.7)
+			a["xp"] = 0 if civ else 20
+			a["ryo"] = 10
+			if civ:
+				a["jutsu"] = []
+				a["power"] = 0.5
 		a["look"] = v.look.duplicate()
 		e = Enemy.new()
 		e.setup(a)
@@ -144,6 +154,8 @@ func attack(v: Node, alarm := false) -> void:
 		at.y = Game.ground_height(at.x, at.z)
 		e.global_position = at
 		e.home = at
+		if not wp.is_empty():
+			WorldPeople.after_spawn(e, wp)
 	e.team = "enemy"
 	e.target = Game.player
 	victims.append({"node": e, "vid": _village_at(at), "fid": fid, "civ": civ, "dead": false})

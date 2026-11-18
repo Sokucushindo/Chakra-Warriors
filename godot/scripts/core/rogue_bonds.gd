@@ -214,10 +214,10 @@ static func campfire(id: String) -> void:
 			{"label": "Herkes ikinci bir şansı hak eder.", "cb": func():
 				Friends.add_bond(id, 3)
 				Hud.dialog(String(f["name"]), "İkinci şans... Kimse bana bunu söylememişti.", [])},
-			{"label": "Seni anlıyorum. Ben de bazen kaçmak istiyorum.", "cb": func():
+			{"label": "Ben de kaçağım. Bu yolda yalnız yürünmez." if Orgs.is_rogue() else "Seni anlıyorum. Ben de bazen kaçmak istiyorum.", "cb": func():
 				Friends.add_bond(id, 2)
-				Hud.dialog(String(f["name"]), "Kaçmak kolay. Kaçtıktan sonra yaşamak zor. Bunu unutma.", [])},
-			{"label": "Yaptığın yanlıştı ama hâlâ düzeltebilirsin.", "cb": func():
+				Hud.dialog(String(f["name"]), "Alnımızdaki çizik aynı. Sırtını bana dönebilirsin." if Orgs.is_rogue() else "Kaçmak kolay. Kaçtıktan sonra yaşamak zor. Bunu unutma.", [])},
+			{"label": "İkimiz de hata yaptık, ama hâlâ yön seçebiliriz." if Orgs.is_rogue() else "Yaptığın yanlıştı ama hâlâ düzeltebilirsin.", "cb": func():
 				var tough = int(f.get("loyalty", 50)) >= 50
 				Friends.add_bond(id, 3 if tough else -2)
 				Hud.dialog(String(f["name"]), "...Belki haklısın. Dürüstlüğün için sağ ol." if tough else "Sen de onlardan birisin demek. Vaaz verme bana.", [])},

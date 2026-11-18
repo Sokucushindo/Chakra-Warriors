@@ -1648,52 +1648,210 @@ static func juho_soshiken(pj: PathJutsu, c: Node3D, _t: Node3D) -> void:
 	Sfx.play("fire", c.global_position, 1.2)
 
 
-## Bir elin aslan başı: eli izler, yüzü bakış yönüne dönük; ileri savrulan yumrukla öne atılır
+## İkiz aslan: yumruğu ve bileği saran, eldiven boyunda iki enerji başı (ref: kullanıcının Hinata heykeli). Kol nereye giderse
+## baş oraya gider; çene açılıp kapanır, yele dalgalanır, yumruk savrulunca ısırır.
+const LION2_SH := """shader_type spatial;
+render_mode unshaded, cull_back, depth_prepass_alpha, shadows_disabled;
+instance uniform float seed_v = 0.0;
+varying vec3 lp;
+void vertex() {
+	lp = VERTEX;
+	float back = smoothstep(0.0, 0.2, VERTEX.z + COLOR.r * 0.1);
+	float t = TIME * 4.2 + seed_v;
+	VERTEX.xy += COLOR.r * vec2(sin(t + VERTEX.z * 22.0 + VERTEX.y * 9.0), cos(t * 1.2 + VERTEX.z * 18.0 + VERTEX.x * 11.0)) * (0.012 + 0.03 * back);
+}
+void fragment() {
+	float f = 1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0);
+	float flow = sin(lp.z * 46.0 + TIME * 7.0 + seed_v + sin(lp.x * 30.0) * 1.4) * sin(lp.y * 38.0 - TIME * 3.0 + lp.z * 11.0);
+	vec3 c = mix(vec3(0.03, 0.27, 0.86), vec3(0.1, 0.56, 1.0), smoothstep(-0.6, 0.7, flow));
+	c = mix(c, vec3(0.5, 0.86, 1.0), smoothstep(0.66, 1.0, f));
+	c = mix(c, vec3(0.8, 0.96, 1.0), COLOR.g);
+	ALBEDO = c * 1.25;
+	ALPHA = mix(0.9, 0.98, f);
+}
+"""
+
+
+static func _l_tri(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, ca: Color, cb: Color, cc: Color) -> void:
+	st.set_color(ca); st.add_vertex(a)
+	st.set_color(cb); st.add_vertex(b)
+	st.set_color(cc); st.add_vertex(c)
+
+
+## Sivri parça: taban halkası + uç (yele dili, diş, kulak). w: dalgalanma payı, tip: uç rengi açık
+static func _l_spike(st: SurfaceTool, at: Vector3, dir: Vector3, ln: float, r: float, w: float, lit := 0.0, flat := 1.0) -> void:
+	var d = dir.normalized()
+	var s = d.cross(Vector3.UP if absf(d.y) < 0.9 else Vector3.RIGHT).normalized()
+	var u = s.cross(d).normalized()
+	var tip = at + d * ln
+	var c0 = Color(w * 0.3, lit, 0.0)
+	var c1 = Color(w, lit, 0.0)
+	for k in 5:
+		var a0 = TAU * k / 5.0
+		var a1 = TAU * (k + 1) / 5.0
+		var p0 = at + s * cos(a0) * r + u * sin(a0) * r * flat
+		var p1 = at + s * cos(a1) * r + u * sin(a1) * r * flat
+		_l_tri(st, p0, tip, p1, c0, c1, c0)
+
+
+## Kesitlerden gövde: [z, yarı genişlik, üst, alt]
+static func _l_loft(st: SurfaceTool, rows: Array, wob: float) -> void:
+	const N := 14
+	var pt = func(r: Array, i: int) -> Vector3:
+		var a = TAU * i / float(N)
+		var sa = sin(a)
+		var x = float(r[1]) * cos(a) * (1.0 + wob * sin(a * 5.0 + float(r[0]) * 30.0))
+		return Vector3(x, (float(r[2]) if sa > 0.0 else float(r[3])) * sa, float(r[0]))
+	var col = Color(0.12, 0.0, 0.0)
+	for j in rows.size() - 1:
+		for i in N:
+			var a: Vector3 = pt.call(rows[j], i)
+			var b: Vector3 = pt.call(rows[j], i + 1)
+			var c: Vector3 = pt.call(rows[j + 1], i)
+			var d: Vector3 = pt.call(rows[j + 1], i + 1)
+			_l_tri(st, a, c, b, col, col, col)
+			_l_tri(st, b, c, d, col, col, col)
+
+
+static func _l_finish(st: SurfaceTool) -> ArrayMesh:
+	st.generate_normals()
+	return st.commit()
+
+
+## Üst baş: kafatası, burun, üst dişler, kaş, kulak ve geriye savrulan yele (bileği sarar)
+static func _lion2_skull() -> ArrayMesh:
+	var key = "mesh:lion2_skull"
+	if _cache.has(key):
+		return _cache[key]
+	var st = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_l_loft(st, [[0.11, 0.075, 0.075, 0.05], [0.04, 0.122, 0.118, 0.03], [-0.05, 0.124, 0.128, 0.018], [-0.12, 0.094, 0.098, 0.018], [-0.18, 0.074, 0.07, 0.016], [-0.245, 0.06, 0.056, 0.014], [-0.285, 0.04, 0.04, 0.012], [-0.305, 0.008, 0.01, 0.004]], 0.05)
+	var rng = RandomNumberGenerator.new()
+	rng.seed = 77
+	for i in 13:   # yele: başın arkasında kalın, kısa diller; bileği sarar, yüzü kapatmaz
+		var a = TAU * i / 13.0 + rng.randf_range(-0.1, 0.1)
+		var o = Vector3(cos(a), sin(a) * 0.95, 0.0)
+		var z = rng.randf_range(0.05, 0.1)
+		_l_spike(st, o * 0.075 + Vector3(0, 0.01, z), o * rng.randf_range(0.25, 0.5) + Vector3(0, 0, 1.0), rng.randf_range(0.1, 0.17), rng.randf_range(0.04, 0.056), 1.0)
+	for s in [-1.0, 1.0]:
+		_l_spike(st, Vector3(s * 0.082, 0.1, 0.0), Vector3(s * 0.45, 1.0, 0.35), 0.075, 0.03, 0.4)   # kulak
+		_l_spike(st, Vector3(s * 0.06, 0.098, -0.095), Vector3(s * 0.5, 0.42, 1.0), 0.09, 0.024, 0.2, 0.25, 0.5)   # kaş sırtı
+		_l_spike(st, Vector3(s * 0.04, 0.05, -0.235), Vector3(s * 0.35, 0.4, 1.0), 0.09, 0.016, 0.1, 0.3, 0.5)   # burun kırışığı
+		_l_spike(st, Vector3(s * 0.047, -0.01, -0.262), Vector3(s * 0.06, -1.0, -0.08), 0.082, 0.015, 0.0, 1.0)   # büyük köpek dişi
+		for k in 4:
+			_l_spike(st, Vector3(s * (0.058 + k * 0.007), -0.012, -0.215 + k * 0.038), Vector3(0, -1.0, 0), 0.036, 0.0105, 0.0, 1.0)
+	_cache[key] = _l_finish(st)
+	return _cache[key]
+
+
+## Alt çene (menteşesi kök noktasında, açılıp kapanır)
+static func _lion2_jaw() -> ArrayMesh:
+	var key = "mesh:lion2_jaw"
+	if _cache.has(key):
+		return _cache[key]
+	var st = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_l_loft(st, [[0.03, 0.085, 0.02, 0.055], [-0.05, 0.088, 0.016, 0.052], [-0.13, 0.066, 0.014, 0.04], [-0.2, 0.05, 0.012, 0.03], [-0.235, 0.024, 0.008, 0.016], [-0.25, 0.005, 0.003, 0.004]], 0.04)
+	for s in [-1.0, 1.0]:
+		_l_spike(st, Vector3(s * 0.034, 0.006, -0.205), Vector3(0, 1.0, 0.05), 0.058, 0.012, 0.0, 1.0)
+		for k in 3:
+			_l_spike(st, Vector3(s * (0.046 + k * 0.009), 0.008, -0.165 + k * 0.042), Vector3(0, 1.0, 0), 0.03, 0.0095, 0.0, 1.0)
+		_l_spike(st, Vector3(s * 0.05, -0.04, -0.09), Vector3(s * 0.4, -0.75, 0.6), 0.08, 0.022, 0.6)   # çene yelesi
+	_cache[key] = _l_finish(st)
+	return _cache[key]
+
+
 static func _lion(pj: PathJutsu, c: Node3D, bone: String, dur: float) -> void:
 	var m = c.get("model")
 	if m == null or not is_instance_valid(m) or m.get("skel") == null:
 		return
-	var bi: int = m.skel.find_bone(bone)
-	if bi < 0:
+	if m.skel.find_bone(bone) < 0 or m.skel.find_bone(bone.replace("Hand", "LowerArm")) < 0:
 		return
+	# kemik eki: animasyon + vuruş pozu uygulandıktan sonraki gerçek el yeri (get_bone_global_pose kol pozunu görmüyordu)
+	var ba_h = BoneAttachment3D.new()
+	ba_h.bone_name = bone
+	m.skel.add_child(ba_h)
+	var ba_e = BoneAttachment3D.new()
+	ba_e.bone_name = bone.replace("Hand", "LowerArm")
+	m.skel.add_child(ba_e)
 	var root = Node3D.new()
 	_put(pj, root, c.global_position)
-	var head = _gi(_lion_mesh(), _lion_mat())
-	root.add_child(head)
-	head.scale = Vector3(0.86, 1.3, 0.72)
-	head.position = Vector3(0, 0.14, -0.05)
-	_ipar(head, {"k_seed": randf() * 10.0, "k_a": 1.0})
-	var st = {"g": 0.02, "prev": Vector3.INF, "lunge": 0.0}
+	root.tree_exiting.connect(func():
+		if is_instance_valid(ba_h):
+			ba_h.queue_free()
+		if is_instance_valid(ba_e):
+			ba_e.queue_free())
+	var mat = _cache.get("mat:lion2")
+	if mat == null:
+		mat = ShaderMaterial.new()
+		mat.shader = _shader("lion2", LION2_SH)
+		_cache["mat:lion2"] = mat
+	var sd = randf() * 10.0
+	var skull = _gi(_lion2_skull(), mat)
+	root.add_child(skull)
+	skull.set_instance_shader_parameter("seed_v", sd)
+	var jaw = _gi(_lion2_jaw(), mat)
+	root.add_child(jaw)
+	jaw.position = Vector3(0, -0.028, 0.03)
+	jaw.set_instance_shader_parameter("seed_v", sd + 1.0)
+	var eye_m = _cache.get("mat:lion2_eye")
+	if eye_m == null:
+		eye_m = StandardMaterial3D.new()
+		eye_m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		eye_m.albedo_color = Color(0.96, 1.0, 1.0)
+		_cache["mat:lion2_eye"] = eye_m
+	var eye_s = SphereMesh.new()
+	eye_s.radius = 0.5
+	eye_s.height = 1.0
+	eye_s.radial_segments = 8
+	eye_s.rings = 5
+	for s in [-1.0, 1.0]:
+		var e = _gi(eye_s, eye_m)
+		skull.add_child(e)
+		e.position = Vector3(s * 0.083, 0.078, -0.115)
+		e.rotation = Vector3(0.25, s * 0.55, s * -0.45)
+		e.scale = Vector3(0.05, 0.02, 0.022)
+	var body = clampf((m.skel.global_transform * m.skel.get_bone_global_pose(m.skel.find_bone("Head")).origin).y - c.global_position.y, 0.9, 12.0) / 1.85
+	var st = {"g": 0.02, "prev": Vector3.INF, "lunge": 0.0, "t": sd}
 	var gt = root.create_tween()
 	gt.tween_interval(0.15)
-	gt.tween_method(func(x: float): st["g"] = x, 0.02, 1.0, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	gt.tween_method(func(x: float): st["g"] = x, 0.02, 1.0, 0.32).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	gt.tween_interval(maxf(0.0, dur - 0.5))
-	gt.tween_method(func(x: float): st["g"] = x, 1.0, 0.02, 0.3)
+	gt.tween_method(func(x: float): st["g"] = x, 1.0, 0.02, 0.28)
 	var follow = func(_x: float) -> void:
 		if not is_instance_valid(root):
 			return
 		if not is_instance_valid(c) or not is_instance_valid(m) or (c.has_method("is_dead") and c.is_dead()):
 			root.queue_free()
 			return
-		var hp: Vector3 = m.skel.global_transform * m.skel.get_bone_global_pose(bi).origin
-		var fd: Vector3 = c.face_dir() if c.has_method("face_dir") else Vector3.FORWARD
-		fd.y = 0.0
-		if fd.length() < 0.01:
-			fd = Vector3.FORWARD
-		fd = fd.normalized()
+		if not is_instance_valid(ba_h) or not is_instance_valid(ba_e):
+			root.queue_free()
+			return
+		var hp: Vector3 = ba_h.global_position
+		var arm: Vector3 = hp - ba_e.global_position
+		if arm.length() < 0.01:
+			return   # kemik eki henüz yerleşmedi
+		arm = arm.normalized()
+		var fd: Vector3 = c.face_dir() if c.has_method("face_dir") else arm
+		var d: Vector3 = (arm + fd * 0.45).normalized()   # kolun baktığı yön; kol sarkıkken de baş biraz öne dönük
 		var dt = maxf(pj.get_process_delta_time(), 0.001)
+		st["t"] += dt
 		var pv: Vector3 = st["prev"]
 		if pv != Vector3.INF:
 			var cv: Vector3 = c.velocity if c.get("velocity") != null else Vector3.ZERO
-			var vf = (hp - pv).dot(fd) / dt - cv.dot(fd)
-			if vf > 3.0:
-				st["lunge"] = minf(1.0, float(st["lunge"]) + dt * 9.0)
+			if ((hp - pv) / dt - cv).dot(d) > 2.6:
+				st["lunge"] = minf(1.0, float(st["lunge"]) + dt * 11.0)
 			else:
-				st["lunge"] = maxf(0.0, float(st["lunge"]) - dt * 3.5)
+				st["lunge"] = maxf(0.0, float(st["lunge"]) - dt * 3.2)
 		st["prev"] = hp
-		var bite = sin(float(st["lunge"]) * PI * 0.5)
-		var sc = float(st["g"]) * (1.0 + 0.18 * bite)
-		root.global_transform = Transform3D(Basis.looking_at(fd, UP) * Basis.from_scale(Vector3(sc, sc, sc * (1.0 + 0.35 * bite))), hp + UP * 0.05 + fd * (0.1 + 0.7 * bite))
+		var bite: float = st["lunge"]
+		var t: float = st["t"]
+		var sc = float(st["g"]) * body * (1.0 + 0.16 * bite)
+		var up = Vector3.UP if absf(d.y) < 0.95 else fd
+		var bs = Basis.looking_at(d, up).rotated(d, sin(t * 1.7) * 0.07)
+		root.global_transform = Transform3D(bs.scaled(Vector3.ONE * sc), hp + d * (0.035 + 0.05 * bite) * body)
+		skull.rotation.x = 0.1 + 0.045 * sin(t * 2.6) + 0.2 * bite
+		jaw.rotation.x = -0.2 - 0.09 * sin(t * 2.6) - 0.5 * bite
 	follow.call(0.0)
 	var ft = root.create_tween()
 	ft.tween_method(follow, 0.0, dur + 0.2, dur + 0.2)

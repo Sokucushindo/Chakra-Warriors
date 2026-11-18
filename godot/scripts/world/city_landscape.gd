@@ -37,8 +37,8 @@ const KITS := {
 		"bamboo": false, "sakura": false, "pond": false, "street_tree": [], "ring": Color(0.55, 0.47, 0.38), "rocks": true},   # Iwa/Kumo: kanonda köy içinde ağaç yok (kayalık)
 	"desert": {"tree": [], "bush": 17, "planter": false, "hedge": Color(0.45, 0.55, 0.3), "pots": false, "well": true, "laundry": true,
 		"bamboo": false, "sakura": false, "pond": false, "street_tree": [], "ring": Color(0.78, 0.66, 0.48), "jars": true},   # Suna: kanonda ağaç yok (çöl)
-	"rain": {"tree": [1, 0], "bush": 18, "planter": true, "hedge": Color(0.26, 0.46, 0.3), "pots": true, "well": false, "laundry": false,
-		"bamboo": true, "sakura": false, "pond": false, "street_tree": [1], "ring": Color(0.42, 0.44, 0.47)},
+	"rain": {"tree": [], "bush": 18, "planter": false, "hedge": Color(0.3, 0.32, 0.35), "pots": false, "well": false, "laundry": false,
+		"bamboo": false, "sakura": false, "pond": false, "street_tree": [], "ring": Color(0.42, 0.44, 0.47)},   # Ame: kanonda metal ve beton, yeşillik yok
 	"snow": {"tree": [1, 1], "bush": 18, "planter": false, "hedge": Color(0.3, 0.45, 0.32), "pots": false, "well": true, "laundry": false,
 		"bamboo": false, "sakura": false, "pond": false, "street_tree": [1], "ring": Color(0.6, 0.62, 0.66)},
 }
@@ -899,14 +899,14 @@ static func _yard(c: Ctx, h: Array) -> void:
 		if c.open(q.x, q.y, 2.0, 10.5):
 			c.put(mesh("rock_garden"), q.x, q.y, yaw + 90.0, Vector3.ONE, 200.0)
 	# çalılar: arka köşeler
-	if rng.randf() < 0.55:
+	if rng.randf() < 0.55 and c.climate != "rain":
 		for sx in [-1.0, 1.0]:
 			if rng.randf() < 0.6:
 				var q = at.call(sx * (hw + 0.9), hd + 0.9)
 				if c.open(q.x, q.y, 0.8, 10.0):
 					c.put(veg(kit["bush"]), q.x, q.y, rng.randf() * 360.0, Vector3.ONE * rng.randf_range(0.55, 0.8), 260.0)
 	# arka çit (budanmış çalı) ya da ahşap çit
-	if rng.randf() < 0.3 and c.climate != "desert":
+	if rng.randf() < 0.3 and not c.climate in ["desert", "rain"]:
 		var use_hedge = rng.randf() < 0.6
 		var segs = int((hw * 2.0) / 1.6)
 		for i in segs:
@@ -1104,7 +1104,7 @@ static func _park(c: Ctx, px: float, pn: float, r: float) -> void:
 		c.put(mesh("bench"), bx, bn, yaw, Vector3.ONE, 200.0)
 		benches.append([bx, bn, fd])
 	# çiçek tarhları (yalnız yeşil iklimlerde)
-	if c.climate in ["green", "mist", "rain"]:
+	if c.climate in ["green", "mist"]:
 		for i in 2:
 			var a = TAU * i / 2.0 + 0.2
 			var fx = px + cos(a) * (path_r + 4.5)

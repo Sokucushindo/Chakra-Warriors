@@ -96,9 +96,7 @@ func _unhandled_input(e: InputEvent) -> void:
 	if e.is_action_pressed("attack"):
 		attack()
 	elif e.is_action_pressed("substitute"):
-		# havada Q: ipli kunai (tutunacak yer yoksa normal kawarimi)
-		if not p.rope_kunai():
-			substitute()
+		substitute()
 	elif e.is_action_pressed("throw"):
 		throw_tool()
 	elif e.is_action_pressed("weapon_draw"):

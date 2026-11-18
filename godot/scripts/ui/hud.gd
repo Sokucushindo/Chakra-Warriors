@@ -1113,10 +1113,11 @@ func gear_shop(title: String, ids: Array) -> void:
 		for g in pr["gear"]:
 			if g["id"] == id:
 				have += 1
-		var locked = int(it.get("rank", 0)) > Gear.eff_rank(pr)
+		var why: String = Gear.req_text(id, pr)   # rütbe, köy, klan: giyemeyeceğin şey satın alınamaz
+		var locked = why != ""
 		var gid = id
 		entries.append({"id": id, "name": it["name"], "price": Stats.price(int(it.get("price", 0))), "desc": it.get("desc", ""), "stats": Gear.stats_text(id),
-			"locked": locked, "lock_text": "%s rütbesi gerekir" % Data.RANKS[int(it.get("rank", 0))], "owned": have, "rarity": UI.rarity_of_gear(id),
+			"locked": locked, "lock_text": why, "try_on": func(): return Gear.try_on_look(gid), "owned": have, "rarity": UI.rarity_of_gear(id),
 			"view": func(): return Thumbs.gear_view(gid, 96)})
 	Menus.shop_screen(title, entries, func(id):
 		var it = Gear.item(id)
