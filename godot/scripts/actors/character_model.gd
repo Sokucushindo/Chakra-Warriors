@@ -2082,6 +2082,7 @@ func _paint_body() -> void:
 		await build_turn(self)
 		_stg_begin()
 	_garments(g)
+	SetV2.build(self, g)
 	if PROF: print("PROFA paint vest+shell %.0f rings %.0f garments %.0f set=%s" % [(_pb1 - _pb0) / 1000.0, (_pb2 - _pb1) / 1000.0, (Time.get_ticks_usec() - _pb2) / 1000.0, str(look.get("set", look.get("outfit", "")))])
 
 
@@ -10764,6 +10765,7 @@ const SHEATH_ID := {"chakra_oltasi": "back", "ryujin": "belt", "kuwa": "back", "
 const SAYA := {"kurosawa": [0.085, 1.1, 0.044, 0.062], "katana": [0.075, 0.84, 0.042, 0.06], "kokuto": [0.075, 0.84, 0.042, 0.06], "wakizashi": [0.05, 0.6, 0.04, 0.055], "nodachi": [0.1, 1.38, 0.05, 0.11],
 	"tanto": [0.06, 0.4, 0.045, 0.045], "chokuto": [0.13, 0.9, 0.05, 0.05]}
 const BackV2 = preload("res://scripts/actors/back_v2.gd")
+const SetV2 = preload("res://scripts/actors/set_v2.gd")
 const SHEATH_DUR := 0.42
 const KATANA_TIP_DOWN := -75.0
 const BACK_TIP_UP := ["chakra_oltasi", "kuwa", "hono_ken", "kajiki_mori", "dako", "jidanda", "cift_tirpan", "nunoboko", "katoringu", "natato", "kunai_to", "kama", "savas_cekici", "uc_tirpan", "mizrak", "shakujo", "ono", "sasumata", "konbo", "kanabo", "kabutowari", "kusarigama"]

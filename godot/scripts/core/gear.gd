@@ -782,6 +782,7 @@ const ITEMS := {
 	"kiri_tunik": {"name": "Sis Tuniği", "slot": "dis", "price": 480, "rank": 0, "desc": "Kalçayı geçen dikey dikişli mor tunik; iki çıtçıtlı atkı yaka, çapraz yeşil kayış, tokalı kemer, sol kalçada çanta.", "stats": {"speed": 0.04, "def": 3}, "look": {"outer_style": "kiri_tunik", "outer_pattern": 9, "kt": {"strap": Color(0.48, 0.66, 0.2), "belt": Color(0.48, 0.66, 0.2), "pouch": Color(0.24, 0.19, 0.36)}}, "c1": Color(0.66, 0.6, 0.82), "c2": Color(0.16, 0.13, 0.26)},
 	"kiri_tunik_beyaz": {"name": "Sis Tuniği: Beyaz", "slot": "dis", "price": 560, "rank": 1, "desc": "Beyaz-gri iki renkli tunik; sarı biyeli ön panel, etekte satranç taşı kesikleri, beyaz atkı yaka, siyah kayış, sarı tokalar, damalı çanta.", "stats": {"def": 5}, "look": {"outer_style": "kiri_tunik", "outer_pattern": 10, "kt": {"collar": Color(0.9, 0.9, 0.9), "snap": Color(0.3, 0.3, 0.32), "strap": Color(0.12, 0.12, 0.14), "buckle": Color(0.92, 0.78, 0.15), "belt": Color(0.92, 0.92, 0.9), "pouch": Color(0.9, 0.9, 0.9), "checker": Color(0.1, 0.1, 0.12)}}, "c1": Color(0.92, 0.92, 0.9), "c2": Color(0.6, 0.6, 0.62)},
 	"kiri_tunik_siyah": {"name": "Sis Tuniği: Siyah", "slot": "dis", "price": 560, "rank": 1, "desc": "Siyah-gri iki renkli tunik; sarı biyeli ön panel, etekte satranç taşı kesikleri, siyah atkı yaka, siyah kayış, sarı tokalar, damalı çanta.", "stats": {"melee": 0.04, "def": 3}, "look": {"outer_style": "kiri_tunik", "outer_pattern": 10, "kt": {"collar": Color(0.1, 0.1, 0.12), "strap": Color(0.1, 0.1, 0.12), "buckle": Color(0.92, 0.78, 0.15), "belt": Color(0.92, 0.92, 0.9), "pouch": Color(0.9, 0.9, 0.9), "checker": Color(0.1, 0.1, 0.12)}}, "c1": Color(0.12, 0.12, 0.14), "c2": Color(0.6, 0.6, 0.62)},
+	"acik_ceket_duz": {"name": "Düz Açık Gömlek", "slot": "dis", "price": 300, "rank": 0, "desc": "Önü açık, baskısız kısa kollu gömlek.", "stats": {"speed": 0.03}, "look": {"outer_style": "acik_ceket", "outer_pattern": 0, "jk": {"patch": Color(0.25, 0.2, 0.37), "shirt": Color(0.11, 0.11, 0.13), "belt": Color(0.11, 0.11, 0.13), "plate": Color(0.68, 0.7, 0.74), "bag": Color(0.11, 0.11, 0.13)}}, "c1": Color(0.25, 0.2, 0.37), "c2": Color(0.18, 0.14, 0.27)},
 	"acik_ceket": {"name": "Yaprak Desenli Kısa Ceket", "slot": "dis", "price": 450, "rank": 0, "desc": "Önü açık, bele kadar kısa ceket; dik yaka, kıvrık manşet, yaprak dalı baskısı, sol kolda kırmızı arma; gri gömlek, beyaz kemer, yeşil bel çantası.", "stats": {"speed": 0.03, "def": 3}, "look": {"outer_style": "acik_ceket", "outer_pattern": 7, "jk": {"patch": Color(0.72, 0.12, 0.12), "shirt": Color(0.62, 0.63, 0.66), "belt": Color(0.94, 0.94, 0.92), "plate": Color(0.92, 0.92, 0.9), "bag": Color(0.18, 0.3, 0.2)}}, "c1": Color(0.72, 0.84, 0.78), "c2": Color(0.24, 0.42, 0.3)},
 	"acik_ceket_matador": {"name": "Matador Kısa Ceketi", "slot": "dis", "price": 520, "rank": 1, "desc": "Siyah kısa ceket; manşetlerde üç altın şerit, omuzda altın arma; siyah gömlek, plakalı altın kemer, altın bantlı bot.", "stats": {"melee": 0.04, "def": 3}, "look": {"outer_style": "acik_ceket", "outer_pattern": 0, "jk": {"patch": Color(0.88, 0.7, 0.2), "cuff_stripes": Color(0.88, 0.7, 0.2), "shirt": Color(0.1, 0.1, 0.12), "belt": Color(0.88, 0.7, 0.2), "belt_plates": Color(0.7, 0.52, 0.12), "buckle": Color(0.7, 0.52, 0.12), "plate": Color(0.72, 0.12, 0.12), "bag": Color(0.12, 0.12, 0.14), "boot_band": Color(0.88, 0.7, 0.2)}}, "c1": Color(0.1, 0.1, 0.12), "c2": Color(0.1, 0.1, 0.12)},
 	"acik_ceket_kot": {"name": "Kovboy Kot Ceketi", "slot": "dis", "price": 520, "rank": 1, "desc": "Kapaklı göğüs cepli, dikişli kısa kot ceket; sarı gömlek, kahve kemer, yıldızlı çanta, perçinli bot.", "stats": {"hp": 20, "def": 3}, "look": {"outer_style": "acik_ceket", "outer_pattern": 0, "jk": {"patch": Color(0.72, 0.12, 0.12), "pockets": true, "shirt": Color(0.9, 0.78, 0.2), "belt": Color(0.4, 0.24, 0.14), "buckle": Color(0.62, 0.58, 0.5), "plate": Color(0.4, 0.24, 0.14), "bag": Color(0.45, 0.3, 0.16), "bag_star": Color(0.95, 0.95, 0.92), "boot_studs": Color(0.78, 0.72, 0.55)}}, "c1": Color(0.18, 0.35, 0.72), "c2": Color(0.18, 0.35, 0.72)},
@@ -1380,6 +1381,7 @@ static func sex_ok(id: String, gender: String) -> bool:
 static func start_sets(gender: String, clan := "") -> Array:
 	return (START_SETS + STRIKER.START.filter(func(i): return sex_ok(i, gender))).filter(func(i): return clan_req(i) == "" or clan_req(i) == clan)
 static func preview_set_look(L: Dictionary, sid: String) -> void:
+	L["set_id"] = sid
 	for pt in item(sid).get("parts", []):
 		var pit = item(String(pt[0]))
 		if pit.is_empty():
@@ -1393,12 +1395,14 @@ static func preview_set_look(L: Dictionary, sid: String) -> void:
 				L["top"] = c1; L["top2"] = c2
 			"bacak":
 				L["pants"] = c1
+				L["pants2"] = c2
 			"ayak":
 				L["sandal"] = c1; L["wraps"] = c2
 			"zirh":
 				L["vest"] = c1
 			"dis":
 				L["outer"] = c1
+				L["outer_accent"] = c2
 				if not c2.is_equal_approx(c1):
 					L["outer2"] = c2
 			"kol":
@@ -1522,6 +1526,7 @@ static func apply_look(p: Dictionary) -> void:
 	L["fe"] = null
 	L["yh"] = null
 	L["sw"] = null
+	L["set_id"] = null
 	L["uc"] = null
 	L["hk"] = null
 	L["nd"] = null
@@ -1639,6 +1644,7 @@ static func apply_look(p: Dictionary) -> void:
 		if it0.is_empty():
 			continue
 		if String(it0.get("slot", "")) == "set":
+			L["set_id"] = String(it0.get("base", g0["id"]))
 			# set renkleri: c1 = ÜST (üst giysi), c2 = ALT (pantolon); diğer parçalar setin kendi renkleriyle
 			for pt in it0.get("parts", []):
 				var pit = item(String(pt[0]))
