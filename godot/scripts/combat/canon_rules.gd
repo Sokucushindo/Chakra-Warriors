@@ -95,6 +95,10 @@ static func block(c: Node3D, jid: String) -> String:
 		return "Elinde Tsurukame yok — iğneler kabuğun ağızlarından çıkar."
 	if jid in HIRA_TP and not hira_mark_ok(c):
 		return "Işınlanacak işaret yok — önce Hiraishin kunaisi at ya da hedefe vurup işaretle."
+	if jid == "chibitama_rasengan":
+		var p7_msg: String = load("res://scripts/combat/fx/jutsu_p7_fx.gd").block(c, jid)
+		if p7_msg != "":
+			return p7_msg
 	if jid in ["kagero_utakata", "saibo_kasseijutsu"]:
 		var p2_msg: String = load("res://scripts/combat/fx/jutsu_p2_fx.gd").block(c, jid)
 		if p2_msg != "":

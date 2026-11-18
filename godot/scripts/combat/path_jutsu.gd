@@ -7,7 +7,7 @@ extends ClanJutsu
 ##   Silah Ustası Yolu: parşömenden gerçek silah yağmuru, zincirle çekme/kancalanma, telli silah fırtınası, demir yelpaze kalkanı,
 ##               gökten dev topuz, efsanevi Bashōsen'in dört sargısı.
 
-const PSTYLE := {"kugutsu_modoki": "sense", "rensha": "throw", "jikki_uematsu": "two_palm", "ribashiburu": "summon", "kawara_shuriken": "power", "samidare_kekka": "spin", "ayametori": "two_palm", "nadeshiko_shinku_enbu": "throw", "hari_jigoku": "power", "shisho_tenketsu": "power", 
+const PSTYLE := {"chibitama_rasengan": "power", "sunagoromo": "sense", "gyoraishin": "throw", "kaze_gaeshi": "power", "sumi_nagashi": "sense", "kugutsu_modoki": "sense", "rensha": "throw", "jikki_uematsu": "two_palm", "ribashiburu": "summon", "kawara_shuriken": "power", "samidare_kekka": "spin", "ayametori": "two_palm", "nadeshiko_shinku_enbu": "throw", "hari_jigoku": "power", "shisho_tenketsu": "power", 
 	"sen_ei_jashu": "two_palm", "jagei_jubaku": "sense", "hebi_bunshin_no_jutsu": "clone", "sen_ei_tajashu": "two_palm",
 	"kuchiyose_rashomon": "summon", "kusanagi_kuchi": "breath", "gogyo_fuin": "palm", "sen_ei_ranjashu": "ground",
 	"ten_no_juin": "power", "juin_ni_no_dankai": "power", "mandara_no_jin": "breath", "orochimaru_ryu_no_kawarimi_no_jutsu": "power",
@@ -20076,3 +20076,23 @@ func p_ribashiburu(c: Node3D, t: Node3D) -> void:
 
 func p_kawara_shuriken(c: Node3D, t: Node3D) -> void:
 	preload("res://scripts/combat/fx/jutsu_p6_fx.gd").kawara_shuriken(self, c, t)
+
+
+func p_chibitama_rasengan(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p7_fx.gd").chibitama_rasengan(self, c, t)
+
+
+func p_sunagoromo(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p7_fx.gd").sunagoromo(self, c, t)
+
+
+func p_gyoraishin(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p7_fx.gd").gyoraishin(self, c, t)
+
+
+func p_kaze_gaeshi(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p7_fx.gd").kaze_gaeshi(self, c, t)
+
+
+func p_sumi_nagashi(c: Node3D, t: Node3D) -> void:
+	load("res://scripts/combat/fx/jutsu_p7_fx.gd").sumi_nagashi(self, c, t)

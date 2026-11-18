@@ -290,7 +290,7 @@ const PATHS := {
 		"intro": "Solgun adam fırçasını kaldırmadan konuşuyor: \"Kök duyguları siler, yalnız görev kalır. Ben resmimle bir şeyler geri kazandım. Önce elinin titremediğini göster.\"",
 		"passive": {"chakra": 0.1, "jutsu": 0.05},
 		"passive_desc": "Chakra +%10, jutsu gücü +%5",
-		"order": ["sumi_bunshin_no_jutsu", "sumigasumi_no_jutsu", "choju_giga", "hoki_sumi_ryu", "fuinjutsu_okutopasu_horudo", "choshin_giga", "hoki_sumi_tora", "hoki_sumi_tori"],
+		"order": ["sumi_bunshin_no_jutsu", "sumigasumi_no_jutsu", "choju_giga", "sumi_nagashi", "hoki_sumi_ryu", "fuinjutsu_okutopasu_horudo", "choshin_giga", "hoki_sumi_tora", "hoki_sumi_tori"],
 		"quest": {"choshin_giga": "god"},
 		"dark": {},
 	},

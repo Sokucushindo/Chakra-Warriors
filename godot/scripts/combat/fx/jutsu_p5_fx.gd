@@ -209,6 +209,8 @@ void vertex() {
 	vec2 dir = v.xy - o.xy;
 	float l = length(dir);
 	dir = l > 0.01 ? dir / l : vec2(0.0, 1.0);
+	float tw = (COLOR.r - 0.5) * 2.4;   // loblar çiçek gibi dizilmesin, her yöne kabarsın
+	dir = vec2(dir.x * cos(tw) - dir.y * sin(tw), dir.x * sin(tw) + dir.y * cos(tw));
 	float stretch = mix(3.0, 1.15, min(prog * 2.2, 1.0));
 	vec2 q = (UV - 0.5) * (0.75 + COLOR.g * 1.05);
 	q.y *= stretch;
