@@ -3978,7 +3978,7 @@ func _paper_butterfly(k: int) -> Node3D:
 			w.rotation = Vector3(-PI * 0.5, (0.35 if j == 0 else -0.5) * sx, 0)
 			w.position = Vector3(sx * (0.12 if j == 0 else 0.08), 0, -0.07 if j == 0 else 0.08)
 			hinge.add_child(w)
-		var fl = hinge.create_tween().set_loops()
+		var fl = Game.safe_loops(hinge.create_tween())
 		var sp = randf_range(0.07, 0.1)
 		fl.tween_property(hinge, "rotation:z", sx * 1.0, sp)
 		fl.tween_property(hinge, "rotation:z", -sx * 0.25, sp)
@@ -4416,7 +4416,7 @@ func _wind_hand(c: Node3D, dur: float, s := 0.5, col := Color(0.6, 0.85, 1.0)) -
 		return
 	var orb = VFX.wind_ball(s)
 	ba.add_child(orb)
-	var sp = orb.create_tween().set_loops()
+	var sp = Game.safe_loops(orb.create_tween())
 	sp.tween_property(orb, "rotation:z", TAU, 0.25).from(0.0)
 	free_after(dur, ba)
 
@@ -5112,7 +5112,7 @@ func _lion_shroud(c: Node3D, bone: String, dur: float) -> Node3D:
 		var w = randf_range(0.55, 0.7)
 		tg2.scale = Vector3(w, h, w)
 		var per = randf_range(0.18, 0.32)
-		var fl = tg2.create_tween().set_loops()
+		var fl = Game.safe_loops(tg2.create_tween())
 		fl.tween_property(tg2, "scale", Vector3(w * 0.9, h * 1.15, w * 0.9), per).set_trans(Tween.TRANS_SINE)
 		fl.tween_property(tg2, "scale", Vector3(w * 1.05, h * 0.85, w * 1.05), per).set_trans(Tween.TRANS_SINE)
 	# yüz: kılıfın ön yüzüne oturan desen
@@ -8304,7 +8304,7 @@ func _blue_wings(c: Node3D, dur: float) -> Node3D:
 		for outline in [UP_W, LO_W]:
 			wing.add_child(_wing_sheet(outline, sx, m))
 		wing.rotation.y = -0.38 * sx   # uçlar geriye açılır
-		var tw = wing.create_tween().set_loops()
+		var tw = Game.safe_loops(wing.create_tween())
 		tw.tween_property(wing, "rotation:y", -0.62 * sx, 0.7).set_trans(Tween.TRANS_SINE)
 		tw.tween_property(wing, "rotation:y", -0.3 * sx, 0.7).set_trans(Tween.TRANS_SINE)
 	root.scale = Vector3.ONE * 0.05
@@ -12439,7 +12439,7 @@ func _yh_daze(e: Node3D, dur: float) -> void:
 	e.add_child(r)
 	fit_body(e, r)   # hedef boyunda (kuyruklu/dev hedefte küçük kalmasın)
 	r.position = Vector3.UP * 2.3
-	var tw = r.create_tween().set_loops(int(dur / 0.6) + 1)
+	var tw = Game.safe_loops(r.create_tween(), int(dur / 0.6) + 1)
 	tw.tween_property(r, "rotation:y", TAU, 0.6).as_relative()
 	get_tree().create_timer(dur).timeout.connect(func():
 		if is_instance_valid(r):
@@ -17075,7 +17075,7 @@ func _hakko_blade(c: Node3D, dur: float) -> void:
 	shell.mesh = gb.build(null)
 	shell.material_override = glow_m
 	tanto.add_child(shell)
-	var tw = shell.create_tween().set_loops()
+	var tw = Game.safe_loops(shell.create_tween())
 	tw.tween_property(shell, "scale", Vector3(1.4, 1.3, 1.06), 0.08)
 	tw.tween_property(shell, "scale", Vector3.ONE, 0.08)
 	free_after(dur, ba)

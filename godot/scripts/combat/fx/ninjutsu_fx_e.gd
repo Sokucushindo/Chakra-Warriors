@@ -1644,7 +1644,7 @@ static func _frog_mesh() -> Node3D:
 	inner.add_child(throat)
 	throat.position = Vector3(0, 0.27, 0.3)
 	throat.scale = Vector3(0.26, 0.15, 0.18)
-	var tw := throat.create_tween().set_loops()
+	var tw := Game.safe_loops(throat.create_tween())
 	tw.tween_property(throat, "scale", Vector3(0.36, 0.22, 0.26), 0.35).set_trans(Tween.TRANS_SINE)
 	tw.tween_property(throat, "scale", Vector3(0.26, 0.15, 0.18), 0.45).set_trans(Tween.TRANS_SINE)
 	return root
@@ -1778,7 +1778,7 @@ static func abusobu_sufia(pj: PathJutsu, c: Node3D, _t: Node3D) -> void:
 		o.position = Vector3(sx * 0.8, 1.4, 1.2)
 		o.scale = Vector3.ONE * 0.05
 		o.create_tween().tween_property(o, "scale", Vector3.ONE, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		var bob := o.create_tween().set_loops()
+		var bob := Game.safe_loops(o.create_tween())
 		bob.tween_property(o, "position:y", 1.48, 0.7).set_trans(Tween.TRANS_SINE)
 		bob.tween_property(o, "position:y", 1.32, 0.7).set_trans(Tween.TRANS_SINE)
 		orbs.append(o)

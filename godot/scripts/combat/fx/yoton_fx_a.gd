@@ -294,7 +294,7 @@ static func _ash_body() -> Node3D:
 		cr.basis = Basis.looking_at(dv, Vector3.UP if absf(dv.y) < 0.95 else Vector3.RIGHT) * Basis(Vector3.RIGHT, -PI * 0.5) * Basis.from_scale(Vector3(1.0, 1.0, 0.35))
 		cr.position = dv * 0.22
 		spin.add_child(cr)
-	var tw = spin.create_tween().set_loops()
+	var tw = Game.safe_loops(spin.create_tween())
 	tw.tween_property(spin, "rotation:z", TAU, 0.9).from(0.0)
 	return root
 
@@ -631,7 +631,7 @@ static func _ryugan_body(k: int) -> Node3D:
 	var tail = L.lava_mi(L.tube_mesh(pts, rr, 7, 0.25, ph, 0.8), 1.1, 0.25, {"nscale": 3.0, "flow": 2.5, "wob": 0.06, "near": Vector2(0.6, 1.6)})
 	root.add_child(tail)
 	root.add_child(L.glow_mi(HOT, 1.6))
-	var tw = tail.create_tween().set_loops()
+	var tw = Game.safe_loops(tail.create_tween())
 	tw.tween_property(tail, "rotation:z", 0.4, 0.15)
 	tw.tween_property(tail, "rotation:z", -0.4, 0.15)
 	return root
@@ -737,7 +737,7 @@ static func _lava_rsh(s: float) -> Node3D:
 		var bl = L.lava_mi(L.tube_mesh(pts, rr, 6, 0.15, a0, 1.0), 1.1, 0.35, {"nscale": 4.0, "flow": 2.0, "wob": 0.02, "near": Vector2(0.5, 1.3)})
 		bl.scale = Vector3(1.0, 0.35, 1.0)
 		blades.add_child(bl)
-	var bt = blades.create_tween().set_loops()
+	var bt = Game.safe_loops(blades.create_tween())
 	bt.tween_property(blades, "rotation:y", -TAU, 0.35).from(0.0)
 	var disc = L.gi(_disc_mesh(), _disc_mat())
 	disc.set_instance_shader_parameter("fade", 1.0)

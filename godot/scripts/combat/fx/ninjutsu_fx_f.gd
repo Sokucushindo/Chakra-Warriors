@@ -1054,7 +1054,7 @@ static func banbutsu_sozo_no_jutsu(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			var ring := _mi(_arc_band(0.75, 0.09, 0.0, TAU * 0.8, 40), rm)
 			pod.add_child(ring)
 			ring.rotation = Vector3(deg_to_rad(60.0 if k == 0 else -60.0), 0, deg_to_rad(20.0))
-			var rt := ring.create_tween().set_loops()
+			var rt := Game.safe_loops(ring.create_tween())
 			rt.tween_property(ring, "rotation:y", ring.rotation.y + (TAU if k == 0 else -TAU), 0.45).from(ring.rotation.y)
 		var lt := OmniLight3D.new()
 		lt.light_color = Color(1.0, 0.97, 0.88)
@@ -1118,7 +1118,7 @@ static func _yin_yang_flame(ba: Node3D, body: Color, core: Color, line: Color) -
 	var mg := _mi(_slab(tear, 0.015, Color.WHITE, _up_b()), mm)
 	ba.add_child(mg)
 	mg.position = Vector3(0, 0.38, 0)
-	var tw := mg.create_tween().set_loops()
+	var tw := Game.safe_loops(mg.create_tween())
 	tw.tween_property(mg, "position:y", 0.48, 0.35)
 	tw.tween_property(mg, "position:y", 0.38, 0.35)
 
@@ -1232,14 +1232,14 @@ static func _ras_ball(s: float, disk: bool, near0 := 0.3, near1 := 0.8) -> Node3
 		var arc := _mi(_arc_band(s * 1.35, s * 0.18, 0.0, TAU * 0.6, 24), rm)
 		spin.add_child(arc)
 		arc.rotation = Vector3(deg_to_rad(randf_range(-70, 70)), k * TAU / 3.0, deg_to_rad(randf_range(-40, 40)))
-	var st := spin.create_tween().set_loops()
+	var st := Game.safe_loops(spin.create_tween())
 	st.tween_property(spin, "rotation:y", -TAU, 0.3).from(0.0)
 	if disk:
 		var dm := _spiral(near0, near1, 4.0, 2.2, 0.25)
 		var dk := _mi(_m_ball(20), dm)
 		root.add_child(dk)
 		dk.scale = Vector3(s * 4.2, s * 0.45, s * 4.2)
-		var dt := dk.create_tween().set_loops()
+		var dt := Game.safe_loops(dk.create_tween())
 		dt.tween_property(dk, "rotation:y", -TAU, 0.4).from(0.0)
 	return root
 
@@ -1257,7 +1257,7 @@ static func _ras_wake(pj: PathJutsu, pr: Projectile) -> void:
 		e.position = Vector3(cos(k * PI), sin(k * PI), 0) * 0.32
 		_burst(pj, Vector3.ZERO, _m_ball(6), m, 40, 0.35, {"parent": e, "r": 0.02, "vmin": 0.0, "vmax": 0.3, "g": Vector3.ZERO,
 			"smin": 0.07, "smax": 0.11, "expl": 0.0, "one": false, "keep": true, "end_scale": 0.2})
-	var tw := rot.create_tween().set_loops()
+	var tw := Game.safe_loops(rot.create_tween())
 	tw.tween_property(rot, "rotation:z", TAU, 0.18).from(0.0)
 	var sm := _streak(Color(0.9, 0.96, 1.0, 0.8), Color(0.35, 0.6, 1.0), 0.5, 1.5)
 	var tail := _mi(_m_streak(), sm)
@@ -1870,7 +1870,7 @@ static func _gishu_arm() -> Node3D:
 		fl.add_child(f)
 		f.position = Vector3(0, -0.1, 0.1 + k * 0.1)
 		f.scale = Vector3.ONE * 0.35
-	var tw := fl.create_tween().set_loops()
+	var tw := Game.safe_loops(fl.create_tween())
 	tw.tween_property(fl, "scale", Vector3(1.2, 1.2, 1.0), 0.05)
 	tw.tween_property(fl, "scale", Vector3(0.85, 0.85, 1.0), 0.05)
 	return root
@@ -1931,7 +1931,7 @@ static func _venom_fog(pj: PathJutsu, at: Vector3, R: float, dur: float) -> void
 		root.add_child(ly)
 		ly.position = Vector3.UP * (0.15 + k * 0.55)
 		ly.scale = Vector3.ONE * R * (1.1 - k * 0.15)
-		var rt := ly.create_tween().set_loops()
+		var rt := Game.safe_loops(ly.create_tween())
 		rt.tween_property(ly, "rotation:y", TAU * (1.0 if k % 2 == 0 else -1.0), 14.0 + k * 3.0).from(0.0)
 	root.scale = Vector3(0.12, 1.0, 0.12)
 	var gt := root.create_tween()
@@ -1944,7 +1944,7 @@ static func _venom_fog(pj: PathJutsu, at: Vector3, R: float, dur: float) -> void
 		root.add_child(mo)
 		mo.position = Vector3(cos(a), 0, sin(a)) * R * 0.82
 		mo.scale = Vector3(1.0, 0.45, 1.0) * randf_range(0.7, 1.0)
-		var bt := mo.create_tween().set_loops()
+		var bt := Game.safe_loops(mo.create_tween())
 		bt.tween_property(mo, "position", mo.position + Vector3(0, 0.12, 0) - mo.position.normalized() * 0.3, 1.2).set_trans(Tween.TRANS_SINE)
 		bt.tween_property(mo, "position", mo.position, 1.2).set_trans(Tween.TRANS_SINE)
 		bank.append([mo, m])
@@ -2073,9 +2073,9 @@ static func _iron_sand(w: Node3D) -> Node3D:
 	ring.add_child(mi2)
 	mi2.rotation = Vector3(0.5, 1.3, 0.2)
 	mi2.scale = Vector3.ONE * 0.8
-	var tw := ring.create_tween().set_loops()
+	var tw := Game.safe_loops(ring.create_tween())
 	tw.tween_property(ring, "rotation:y", TAU, 1.6).from(0.0)
-	var t2 := mi2.create_tween().set_loops()
+	var t2 := Game.safe_loops(mi2.create_tween())
 	t2.tween_property(mi2, "rotation:y", 1.3 - TAU, 1.1).from(1.3)
 	return ring
 

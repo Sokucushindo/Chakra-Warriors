@@ -1877,7 +1877,7 @@ static func rendan_suna_shigure(pj: ClanJutsu, c: Node3D, t: Node3D) -> void:
 	spinner.add_child(rm)
 	spinner.scale = Vector3.ONE * 0.3
 	spinner.create_tween().tween_property(spinner, "scale", Vector3.ONE, 0.15).set_trans(Tween.TRANS_BACK)
-	var rt = spinner.create_tween().set_loops()
+	var rt = Game.safe_loops(spinner.create_tween())
 	rt.tween_property(spinner, "rotation:y", TAU, 0.6).from(0.0)
 	grains(pj, pj.gp(c.global_position) + Vector3.UP * 0.1, {"ring": 1.4, "ring_in": 0.8, "n": 50, "life": 0.5, "dir": Vector3.UP, "spread": 10.0, "v0": 2.0, "v1": 3.5, "g": Vector3.ZERO})
 	var info = pj.inf(c, "rendan_suna_shigure", 0.1, {"knock": 2.5, "kind": "light", "hitstop": 0.02})

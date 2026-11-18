@@ -701,7 +701,7 @@ static func pop_in(n: Node3D, t: float, s1 := 1.0) -> void:
 ## Kanat çırpma (pivot Z ekseninde); sx: +1 sağ kanat, -1 sol
 static func flap(piv: Node3D, sx: float, amp := 0.5, period := 0.5) -> void:
 	piv.rotation.z = -sx * amp * 0.6
-	var tw = piv.create_tween().set_loops()
+	var tw = Game.safe_loops(piv.create_tween())
 	tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tw.tween_property(piv, "rotation:z", sx * amp, period * 0.45)
 	tw.tween_property(piv, "rotation:z", -sx * amp * 0.6, period * 0.55)
@@ -710,7 +710,7 @@ static func flap(piv: Node3D, sx: float, amp := 0.5, period := 0.5) -> void:
 static func _scuttle(piv: Node3D, g: int) -> void:
 	var sg = 1.0 if g == 0 else -1.0
 	piv.rotation.y = 0.16 * sg
-	var tw = piv.create_tween().set_loops()
+	var tw = Game.safe_loops(piv.create_tween())
 	tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tw.tween_property(piv, "rotation:y", -0.16 * sg, 0.09)
 	tw.tween_property(piv, "rotation:y", 0.16 * sg, 0.09)
@@ -873,7 +873,7 @@ static func beetle(s := 1.0, near := 1.2) -> Node3D:
 		Loft.tube(tb, _sc([r0, r0.lerp(tip, 0.5), tip], s), _sc([Vector2(0.035, 0.008), Vector2(0.04, 0.008), Vector2(0.03, 0.006)], s), CLAY, 6, 2, true, true)
 	tail.add_child(clay_mi(tb, near))
 	root.add_child(tail)
-	var tw = tail.create_tween().set_loops()
+	var tw = Game.safe_loops(tail.create_tween())
 	tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tw.tween_property(tail, "rotation:x", 0.25, 0.12)
 	tw.tween_property(tail, "rotation:x", -0.2, 0.12)
@@ -990,7 +990,7 @@ static func dragon(s := 1.0, near := 8.0) -> Node3D:
 		tb.add("sphere", Vector3(px, py, pz) * s, Vector3(r * 2.0, r * 1.9, r * 1.55) * s, CLAY, Vector3(0, rad_to_deg(px * 0.5), 0), 14)
 	tail.add_child(clay_mi(tb, near))
 	root.add_child(tail)
-	var tw = tail.create_tween().set_loops()
+	var tw = Game.safe_loops(tail.create_tween())
 	tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tw.tween_property(tail, "rotation:y", 0.22, 1.3)
 	tw.tween_property(tail, "rotation:y", -0.22, 1.3)
@@ -1153,7 +1153,7 @@ static func palm_mouth(host: Node, c: Node3D, right := true, dur := 0.8, lump_s 
 	lmp.position = Vector3(0, 0, 0.012)
 	lmp.scale = Vector3.ONE * 0.1
 	m.add_child(lmp)
-	var tw = m.create_tween().set_loops(maxi(1, int(dur / 0.2)))
+	var tw = Game.safe_loops(m.create_tween(), maxi(1, int(dur / 0.2)))
 	tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tw.tween_property(up, "position:y", 0.007, 0.1)
 	tw.parallel().tween_property(lo, "position:y", -0.007, 0.1)
@@ -1625,7 +1625,7 @@ static func run_cycle(doll: Node3D, period := 0.34) -> void:
 		var sg = 1.0 if i == 0 else -1.0
 		var lg: Node3D = legs[i]
 		lg.rotation.x = 0.75 * sg
-		var tl = lg.create_tween().set_loops()
+		var tl = Game.safe_loops(lg.create_tween())
 		tl.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 		tl.tween_property(lg, "rotation:x", -0.75 * sg, period * 0.5)
 		tl.tween_property(lg, "rotation:x", 0.75 * sg, period * 0.5)
@@ -1634,7 +1634,7 @@ static func run_cycle(doll: Node3D, period := 0.34) -> void:
 		var am: Node3D = arms[i]
 		am.rotation.x = 0.9 * sg
 		am.rotation.z = (0.35 if i == 0 else -0.35)
-		var ta = am.create_tween().set_loops()
+		var ta = Game.safe_loops(am.create_tween())
 		ta.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 		ta.tween_property(am, "rotation:x", -0.9 * sg, period * 0.5)
 		ta.tween_property(am, "rotation:x", 0.9 * sg, period * 0.5)

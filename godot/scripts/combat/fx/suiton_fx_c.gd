@@ -342,7 +342,7 @@ static func _torrent_drill() -> Node3D:
 	core.rotation.y = PI   # dar ağız önde, geniş kuyruk arkada
 	core.scale = Vector3(0.75, 0.75, 2.8)
 	root.add_child(core)
-	var tw = spin.create_tween().set_loops()
+	var tw = Game.safe_loops(spin.create_tween())
 	tw.tween_property(spin, "rotation:y", TAU, 0.22).from(0.0)
 	return root
 
@@ -1046,7 +1046,7 @@ static func _water_helm() -> Node3D:
 	root.add_child(shell)
 	var drip = L.trail(root, {"n": 6, "life": 0.5, "dir": Vector3.DOWN, "spread": 20.0, "vmin": 0.2, "vmax": 0.6, "g": Vector3(0, -12, 0), "smin": 0.1, "smax": 0.18, "r": 0.35, "alpha": 0.9})
 	drip.position = Vector3.DOWN * 0.45
-	var tw = shell.create_tween().set_loops()
+	var tw = Game.safe_loops(shell.create_tween())
 	tw.tween_property(shell, "scale", Vector3(1.16, 1.02, 1.12), 0.35).set_trans(Tween.TRANS_SINE)
 	tw.tween_property(shell, "scale", Vector3(1.06, 1.16, 1.08), 0.35).set_trans(Tween.TRANS_SINE)
 	return root
@@ -1180,7 +1180,7 @@ static func _acid_cluster() -> Node3D:
 		core.scale = Vector3.ONE * float(o[1]) * 0.55
 		core.position = o[0]
 		root.add_child(core)
-	var tw = root.create_tween().set_loops()
+	var tw = Game.safe_loops(root.create_tween())
 	tw.tween_property(root, "rotation:z", TAU, 1.2).from(0.0)
 	return root
 
@@ -1240,7 +1240,7 @@ static func _medusa() -> Node3D:
 		piv.rotation.y = -a
 		arms.add_child(piv)
 		piv.add_child(L.wmi(_arm_mesh(k % 3), {"alpha": 0.6, "foam": 0.2, "line": 0.12, "streak": 1.0, "flow": 0.8, "wob": 0.6}))
-		var tw = piv.create_tween().set_loops()
+		var tw = Game.safe_loops(piv.create_tween())
 		tw.tween_property(piv, "rotation:z", 0.16, 0.9 + k * 0.07).set_trans(Tween.TRANS_SINE)
 		tw.tween_property(piv, "rotation:z", -0.12, 0.9 + k * 0.07).set_trans(Tween.TRANS_SINE)
 	for k in 12:
@@ -1248,9 +1248,9 @@ static func _medusa() -> Node3D:
 		var td = L.wmi(_tendril_mesh(k % 4), {"alpha": 0.7, "foam": 0.3, "line": 0.1, "flow": 0.6})
 		td.position = Vector3(cos(a) * 1.25, -0.5, sin(a) * 1.25)
 		arms.add_child(td)
-	var ta = arms.create_tween().set_loops()
+	var ta = Game.safe_loops(arms.create_tween())
 	ta.tween_property(arms, "rotation:y", TAU, 9.0).from(0.0)
-	var pulse = bell.create_tween().set_loops()
+	var pulse = Game.safe_loops(bell.create_tween())
 	pulse.tween_property(bell, "scale", Vector3(0.9, 1.08, 0.9), 0.32).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	pulse.tween_property(bell, "scale", Vector3(1.06, 0.94, 1.06), 0.55).set_trans(Tween.TRANS_SINE)
 	root.scale = Vector3.ONE * 0.2
@@ -1456,7 +1456,7 @@ static func _fuse_bubble() -> Node3D:
 	core.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	core.scale = Vector3.ONE * 0.22
 	root.add_child(core)
-	var tw = core.create_tween().set_loops()
+	var tw = Game.safe_loops(core.create_tween())
 	tw.tween_property(core, "scale", Vector3.ONE * 0.3, 0.09)
 	tw.tween_property(core, "scale", Vector3.ONE * 0.16, 0.13)
 	var l = OmniLight3D.new()

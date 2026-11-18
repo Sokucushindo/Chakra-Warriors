@@ -3922,7 +3922,7 @@ func _sargi_elbise_kit(g: Dictionary) -> void:
 	var em = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "sargi_elbise", 0.0])
 	if em == null or not _sk_begin(em):
 		return
-	var dark := Color(0.1, 0.08, 0.1)
+	var dark: Color = _lc("outer2", Color(0.1, 0.08, 0.1))
 	var V: PackedVector3Array = _sk["v"]
 	var ybot = 9.0
 	var ytop = -9.0
@@ -4679,7 +4679,7 @@ func _kok_reisi_kit(g: Dictionary) -> void:
 	var ua = absf(_bp("LeftUpperArm").x)
 	var ha = absf(_bp("LeftHand").x)
 	var wc := Color(0.92, 0.9, 0.86)
-	var x = ua + 0.02
+	var x = ua + 0.08
 	var k = 0
 	while x < ha - 0.02:
 		_sk_ring(0, -x, 0.016, 0.006, wc if k % 2 == 0 else wc.darkened(0.08), -PI, PI, 24, 0.006 + 0.002 * (k % 2), -1.0)
@@ -5972,8 +5972,8 @@ func _ip_kusak_kit(g: Dictionary) -> void:
 	var knee = _bp("LeftLowerLeg").y
 	var oc: Color = _lc("outer", Color(0.9, 0.86, 0.72))
 	var by = hips + 0.08
-	_sk_rope(_sk_girth(by + 0.02, 0.07), 0.032, rc)
-	_sk_rope(_sk_girth(by - 0.035, 0.075), 0.032, rc.darkened(0.05))
+	_sk_rope(_sk_girth(by + 0.02, 0.05), 0.032, rc)
+	_sk_rope(_sk_girth(by - 0.035, 0.055), 0.032, rc.darkened(0.05))
 	_sk_end(g)
 
 
@@ -6103,7 +6103,7 @@ func _garments(g: Dictionary) -> void:
 		_garment_tinted("yaprak_etek_ust", pk.get("a", Color(0.75, 0.88, 0.95)), func(): return _loft(g, 1, hips + 0.04, hips - 0.08, 6, torso, func(t, _a): return 0.04 + t * 0.06, 10, func(t, ang): return t > 0.5 and fposmod(ang * 4.0, 1.0) < (t - 0.5) * 1.6, hips - 0.06, 48))
 	if look.get("long_skirt") is Color:
 		# A kesim uzun etek (Striker Hinata 5): belden baldır ortasına; altındaki pantolon paçası görünür
-		_garment_tinted("cizgili_uzun_etek", look["long_skirt"], func(): return _cut_spec(g, hips + 0.06, knee - 0.06, 18, {"w": [[0.0, 0.86], [1.0, 1.75]], "d": [[0.0, 0.12], [1.0, 0.27]], "n": 2.4}, 10, hips - 0.08, 0.035))   # KESİM: hinata_outfit_5 — çok geniş A etek
+		_garment_tinted("cizgili_uzun_etek", look["long_skirt"], func(): return _cut_spec(g, hips + 0.06, knee - 0.06, 18, {"w": [[0.0, 0.88], [1.0, 1.95]], "d": [[0.0, 0.135], [1.0, 0.34]], "n": 2.4}, 10, hips - 0.08, 0.035))   # KESİM: hinata_outfit_5 — çok geniş A etek
 	if look.get("pleat_skirt", false):
 		# yüksek belli pilili kısa etek (Striker WTNY): göğüs altından uyluk ortasına; kat kat pli (açıya göre zikzak kalınlık)
 		_garment("pilili_etek", func(): return _loft(g, 1, hips + 0.15, hips - 0.21, 14, torso, func(t, a): return 0.03 + t * 0.09 + 0.012 * t * absf(sin(a * 12.0)), 3, null, hips - 0.08, 72))

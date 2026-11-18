@@ -2285,7 +2285,7 @@ static func _script_band(pj: PathJutsu, t: Node3D, r: float, dur: float, col: Co
 	holder.add_child(band)
 	pj.attach(t, holder, dur, Vector3(0, _h(t) * 0.5, 0), 2)
 	_tp(band, "reveal", 0.0, 1.0, 0.35)
-	var spin = holder.create_tween().set_loops(int(dur / 2.0) + 1)
+	var spin = Game.safe_loops(holder.create_tween(), int(dur / 2.0) + 1)
 	spin.tween_property(holder, "rotation:y", TAU, 2.0).from(0.0)
 	_fade_free(band, dur - 0.4, 0.35)
 

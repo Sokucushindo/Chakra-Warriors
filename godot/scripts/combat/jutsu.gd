@@ -435,7 +435,7 @@ func rasenshuriken_body(size := 2.8, tint := Color(0.78, 0.9, 1.0)) -> Node3D:
 		discs.append(mt)
 	root.set_meta("discs", discs)
 	# anime fırıldağı hızlı döner (ikinci katman biraz yavaş = derinlik)
-	var tw = root.create_tween().set_loops()
+	var tw = Game.safe_loops(root.create_tween())
 	tw.tween_method(func(v: float):
 		for q in discs.size():
 			(discs[q] as ShaderMaterial).set_shader_parameter("spin", v * (1.0 if q == 0 else 0.8)), 0.0, TAU * 4.0, 1.0)
@@ -1395,7 +1395,7 @@ func j_mushi_swarm(c: Node3D, t: Node3D) -> void:
 	haze.material_override = hm
 	haze.scale = Vector3.ONE * 3.2
 	cloud.add_child(haze)
-	var hw = haze.create_tween().set_loops()
+	var hw = Game.safe_loops(haze.create_tween())
 	hw.tween_property(haze, "scale", Vector3(3.6, 2.8, 3.4), 0.3)
 	hw.tween_property(haze, "scale", Vector3(3.0, 3.4, 3.1), 0.3)
 	Sfx.play("wind", c.global_position, 2.0, 0.5)
@@ -1586,7 +1586,7 @@ func gatsuga_drill(size: float) -> Node3D:
 				rs.add_vertex(v)
 		rmi.mesh = rs.commit()
 	rebuild.call()
-	var tw = ring.create_tween().set_loops()
+	var tw = Game.safe_loops(ring.create_tween())
 	tw.tween_callback(rebuild)
 	tw.tween_interval(0.06)
 	root.scale = Vector3.ONE * size * 1.1

@@ -656,7 +656,7 @@ static func katon_goka_senpu(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		for k in 4:
 			KatonLib.ash_puff(pj, at + Vector3(randf_range(-2, 2), H * randf_range(0.4, 0.8), randf_range(-2, 2)), 0.6, 1.6, 1.2, Vector3.UP * 3.0, 0.55)
 		root.queue_free())
-	var spt = spin.create_tween().set_loops(int(dur / 0.6) + 2)
+	var spt = Game.safe_loops(spin.create_tween(), int(dur / 0.6) + 2)
 	spt.tween_property(spin, "rotation:y", -TAU, 0.6).from(0.0)
 	KatonLib.scorch(pj, at, R * 1.5, 7.0, 1.0)
 	KatonLib.light(pj, at + Vector3.UP * H * 0.4, FIRE_L, 8.0, R * 6.0, dur)
@@ -797,7 +797,7 @@ static func _garuda_bird() -> Node3D:
 			var fe = KatonLib.tongue_mi(lerpf(2.6, 3.8, u), 1.3, Vector3(sx * 1.0, 0.15, lerpf(-0.1, 0.7, u)), KatonLib.PAL_FIRE, 5, sx * 0.1, 1.15)
 			fe.position = Vector3(sx * u * 0.4, 0, lerpf(-0.3, 0.6, u))
 			piv.add_child(fe)
-		var tw = piv.create_tween().set_loops()
+		var tw = Game.safe_loops(piv.create_tween())
 		tw.tween_property(piv, "rotation:z", deg_to_rad(sx * 35.0), 0.22).set_trans(Tween.TRANS_SINE)
 		tw.tween_property(piv, "rotation:z", deg_to_rad(-sx * 30.0), 0.22).set_trans(Tween.TRANS_SINE)
 	for k in 3:
@@ -937,7 +937,7 @@ static func sanmai_no_shinka(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			tg.position = out * (0.55 - ri * 0.07)
 			ring.add_child(tg)
 			parts.append(tg)
-		var spn = ring.create_tween().set_loops(int(dur / 1.2) + 1)
+		var spn = Game.safe_loops(ring.create_tween(), int(dur / 1.2) + 1)
 		var sgn = 1.0 if ri % 2 == 0 else -1.0
 		spn.tween_property(ring, "rotation:y", sgn * TAU, 1.2 + ri * 0.3).from(0.0)
 		# tutuşma aşağıdan yukarı tırmanır

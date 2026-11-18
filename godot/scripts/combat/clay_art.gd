@@ -99,7 +99,7 @@ static func _fwd(inner: Node3D) -> Node3D:
 
 static func _flap(piv: Node3D, sx: float, speed: float) -> void:
 	piv.rotation.z = sx * -0.35
-	var tw = piv.create_tween().set_loops()
+	var tw = Game.safe_loops(piv.create_tween())
 	tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tw.tween_property(piv, "rotation:z", sx * 0.55, 0.22 / speed)
 	tw.tween_property(piv, "rotation:z", sx * -0.4, 0.28 / speed)
@@ -171,7 +171,7 @@ static func c2_dragon(s := 1.0) -> Node3D:
 		r *= 0.972
 	tail.add_child(_mi(tb))
 	root.add_child(tail)
-	var tw = tail.create_tween().set_loops()
+	var tw = Game.safe_loops(tail.create_tween())
 	tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tail.rotation.y = -0.16
 	tw.tween_property(tail, "rotation:y", 0.16, 1.6)
@@ -185,14 +185,14 @@ static func c2_dragon(s := 1.0) -> Node3D:
 			root.add_child(leg)
 			var tuck = 0.2 if fz > 0.0 else 0.42
 			leg.rotation = Vector3(tuck, 0, sx * -0.1)
-			var tl = leg.create_tween().set_loops()
+			var tl = Game.safe_loops(leg.create_tween())
 			tl.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 			tl.tween_interval(0.12 * i)
 			tl.tween_property(leg, "rotation:x", tuck + 0.14, 1.3)
 			tl.tween_property(leg, "rotation:x", tuck - 0.06, 1.3)
 			i += 1
 	# gövde kanat çırpışıyla hafifçe iner kalkar, burnu hafif yukarı aşağı
-	var bob = root.create_tween().set_loops()
+	var bob = Game.safe_loops(root.create_tween())
 	bob.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	bob.tween_property(root, "position:y", 0.12 * s, 0.9)
 	bob.parallel().tween_property(root, "rotation:x", -0.04, 0.9)
@@ -212,7 +212,7 @@ static func c2_dragon(s := 1.0) -> Node3D:
 ## Büyük kanat süzülüşü: geniş, yavaş çırpış (aşağı vuruş güçlü/kısa, yukarı kalkış yavaş), arada kısa süzülme
 static func _glide(piv: Node3D, sx: float) -> void:
 	piv.rotation.z = sx * 0.1
-	var tw = piv.create_tween().set_loops()
+	var tw = Game.safe_loops(piv.create_tween())
 	tw.tween_property(piv, "rotation:z", sx * -0.42, 0.7).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tw.tween_property(piv, "rotation:z", sx * 0.5, 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tw.tween_property(piv, "rotation:z", sx * 0.1, 0.65).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)

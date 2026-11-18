@@ -6448,7 +6448,7 @@ static func _swarm(who: Node3D, tg: Node3D, dmg: float, r: float, off: Vector3, 
 			if cj:
 				cj.swarm_body(h, 1.6, 0.45, 0.02))   # Kikaichū no Jutsu'nun yapışma görünüşü: bedende sürünen benekler
 	if pr:
-		mi.create_tween().set_loops().tween_property(mi, "rotation", Vector3(TAU, TAU * 0.7, TAU * 0.4), 0.6).as_relative()
+		Game.safe_loops(mi.create_tween()).tween_property(mi, "rotation", Vector3(TAU, TAU * 0.7, TAU * 0.4), 0.6).as_relative()
 		Projectile.trail(pr, [Color(0.0, 0.0, 0.0), Color(0.03, 0.03, 0.02), Color(0.0, 0.0, 0.0, 0)], 0.09 + r * 0.06, int(90 + r * 120), 0.45, null, false)
 	Sfx.play("whoosh", from, 0.6, 0.4)
 

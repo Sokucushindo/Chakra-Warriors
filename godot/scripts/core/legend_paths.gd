@@ -719,14 +719,14 @@ func start_drill(pid: String, jid: String) -> void:
 				hinge.add_child(wing)
 				wing.position = Vector3(sd * 0.16, 0, 0)
 				bf.add_child(hinge)
-				var ft = hinge.create_tween().set_loops()
+				var ft = Game.safe_loops(hinge.create_tween())
 				ft.tween_property(hinge, "rotation_degrees:z", sd * 55.0, 0.12)
 				ft.tween_property(hinge, "rotation_degrees:z", -sd * 15.0, 0.12)
 			get_tree().current_scene.add_child(bf)
 			bf.global_position = q
 			var ph = randf() * TAU
 			var rr = randf_range(1.5, 3.0)
-			var mt = bf.create_tween().set_loops()
+			var mt = Game.safe_loops(bf.create_tween())
 			mt.tween_method(func(v: float):
 				if is_instance_valid(bf):
 					bf.global_position = q + Vector3(cos(v + ph) * rr, sin(v * 2.0) * 0.4, sin(v + ph) * rr)
@@ -751,7 +751,7 @@ func start_drill(pid: String, jid: String) -> void:
 			bag.material_override = bm
 			get_tree().current_scene.add_child(bag)
 			bag.global_position = q
-			var bt = bag.create_tween().set_loops()
+			var bt = Game.safe_loops(bag.create_tween())
 			bt.tween_property(bag, "position:y", q.y + 0.25, 0.8).set_trans(Tween.TRANS_SINE)
 			bt.tween_property(bag, "position:y", q.y, 0.8).set_trans(Tween.TRANS_SINE)
 			drill["dummies"].append(bag)

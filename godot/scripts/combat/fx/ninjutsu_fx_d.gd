@@ -1418,7 +1418,7 @@ static func rasengan(s: float, near := 1.2) -> Node3D:
 	var shell := mi(_sphere(16), wm)
 	shell.scale = Vector3.ONE * s * 1.28
 	root.add_child(shell)
-	shell.create_tween().set_loops().tween_property(shell, "rotation", Vector3(0.6, TAU, 0.3), 0.35).as_relative()
+	Game.safe_loops(shell.create_tween()).tween_property(shell, "rotation", Vector3(0.6, TAU, 0.3), 0.35).as_relative()
 	return root
 
 
@@ -1460,7 +1460,7 @@ static func rasenkyugan(pj: PathJutsu, c: Node3D, _t: Node3D) -> void:
 			var rg := mi(_annulus(0.38, 0.7, 28), sm)
 			rg.rotation = Vector3(0.5 if k == 0 else -0.6, 0, 0.3)
 			r.add_child(rg)
-			rg.create_tween().set_loops().tween_property(rg, "rotation:y", TAU * (1.0 if k == 0 else -1.0), 0.6).as_relative()
+			Game.safe_loops(rg.create_tween()).tween_property(rg, "rotation:y", TAU * (1.0 if k == 0 else -1.0), 0.6).as_relative()
 		pj.free_after(8.0, ba)
 	pj.every(8.0, 0.1, func(_i, _k):
 		if not pj.live(c):

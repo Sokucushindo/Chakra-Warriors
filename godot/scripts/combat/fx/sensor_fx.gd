@@ -89,7 +89,7 @@ static func _core(f: Node3D, col: Color, dur: float, size: float) -> void:
 	halo.mesh = hb.build(halo_m)
 	halo.material_override = halo_m
 	core.add_child(halo)
-	var tw = halo.create_tween().set_loops(int(dur / 0.8))
+	var tw = Game.safe_loops(halo.create_tween(), int(dur / 0.8))
 	tw.tween_property(halo, "scale", Vector3.ONE * 1.5, 0.4)
 	tw.parallel().tween_property(halo_m, "albedo_color:a", 0.05, 0.4)
 	tw.tween_property(halo, "scale", Vector3.ONE, 0.4)
@@ -137,7 +137,7 @@ static func _flame_aura(f: Node3D, col: Color, dur: float, size: float) -> void:
 		root.add_child(mi)
 		mi.position = Vector3(cos(a) * 0.32, 0.1, sin(a) * 0.32)
 		mi.rotation.y = -a
-		var tw = mi.create_tween().set_loops(int(dur / 0.5))
+		var tw = Game.safe_loops(mi.create_tween(), int(dur / 0.5))
 		tw.tween_property(mi, "scale", Vector3(1, randf_range(1.1, 1.3), 1), 0.25).set_trans(Tween.TRANS_SINE)
 		tw.tween_property(mi, "scale", Vector3(1, randf_range(0.8, 0.95), 1), 0.25).set_trans(Tween.TRANS_SINE)
 	f.get_tree().create_timer(dur).timeout.connect(func():

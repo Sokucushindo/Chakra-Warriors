@@ -295,7 +295,7 @@ static func shurado(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			b2.add("cone", pp * 1.18, Vector3(0.03, 0.06, 0.02), Color(0.85, 0.87, 0.9), Vector3(0, -rad_to_deg(a), -90), 4)
 		saw.add_child(_mesh(b2, L.cel("shura_steel", Color.WHITE, {"ow": 0.008, "ocol": Color(0.12, 0.12, 0.16), "rim": Color(1, 1, 1), "rim_amt": 0.5})))
 		parts.append(saw)
-		var stw = saw.create_tween().set_loops()
+		var stw = Game.safe_loops(saw.create_tween())
 		stw.tween_property(saw, "rotation:y", TAU, 1.2).as_relative()
 	var DUR = 20.0
 	if c is Player:

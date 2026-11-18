@@ -1095,7 +1095,7 @@ static func _wings(pj: PathJutsu, c: Node3D, dur: float, k := 1.0) -> Node3D:
 			_ipar(mi, {"k_a": 1.0, "k_seed": randf() * 20.0})
 			wing.add_child(mi)
 		wing.rotation.y = 0.32 * sx
-		var tw = wing.create_tween().set_loops()
+		var tw = Game.safe_loops(wing.create_tween())
 		tw.tween_property(wing, "rotation:y", 0.55 * sx, 0.75).set_trans(Tween.TRANS_SINE)
 		tw.tween_property(wing, "rotation:y", 0.25 * sx, 0.75).set_trans(Tween.TRANS_SINE)
 	root.scale = Vector3.ONE * 0.05
@@ -1175,7 +1175,7 @@ static func _jets(pj: PathJutsu, c: Node3D, dur: float, n := 4) -> void:
 		fl.position = tp[0]
 		var b0 = _yto(tp[1] + Vector3(0, -0.25, 0)) * Basis.from_scale(Vector3(0.22, 0.85, 0.22))
 		fl.basis = b0
-		var tw = fl.create_tween().set_loops()
+		var tw = Game.safe_loops(fl.create_tween())
 		tw.tween_property(fl, "scale", Vector3(0.24, 1.0, 0.24), 0.06)
 		tw.tween_property(fl, "scale", Vector3(0.2, 0.72, 0.2), 0.06)
 	root.scale = Vector3.ONE * 0.05
@@ -1880,7 +1880,7 @@ static func _arm_vents(pj: PathJutsu, c: Node3D, dur: float) -> void:
 		root.add_child(fl)
 		fl.position = mp
 		fl.basis = _yto(Vector3.DOWN) * Basis.from_scale(Vector3(0.08, 0.38, 0.08))
-		var tw = fl.create_tween().set_loops()
+		var tw = Game.safe_loops(fl.create_tween())
 		tw.tween_property(fl, "scale", Vector3(0.09, 0.45, 0.09), 0.05)
 		tw.tween_property(fl, "scale", Vector3(0.07, 0.3, 0.07), 0.05)
 	root.scale = Vector3.ONE * 0.1
@@ -2137,7 +2137,7 @@ static func _flesh_wings(pj: PathJutsu, c: Node3D, dur: float) -> void:
 		root.add_child(fl)
 		fl.position = Vector3(sx * 0.12, 0.02, -0.16)
 		fl.basis = _yto(Vector3(sx * 0.2, -0.45, -1.0)) * Basis.from_scale(Vector3(0.2, 0.75, 0.2))
-		var ft = w.create_tween().set_loops()
+		var ft = Game.safe_loops(w.create_tween())
 		ft.tween_property(w, "rotation:y", 0.12 * sx, 0.12)
 		ft.tween_property(w, "rotation:y", -0.08 * sx, 0.12)
 	root.scale = Vector3.ONE * 0.05

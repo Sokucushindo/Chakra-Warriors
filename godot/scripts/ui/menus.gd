@@ -2780,7 +2780,7 @@ static func _susanoo_preview(pr: Dictionary) -> Control:
 	sv.add_child(cam)
 	var cp = Vector3(0, 1.25, -5.2)
 	cam.transform = Transform3D(Basis.looking_at(Vector3(0, 1.1, 0) - cp), cp)
-	var tw = sn.create_tween().set_loops()
+	var tw = Game.safe_loops(sn.create_tween())
 	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tw.tween_property(sn, "rotation:y", TAU, 10.0).from(0.0)
 	return svc
@@ -2935,7 +2935,7 @@ static func _model_preview(look: Dictionary, cam_pos := Vector3(0, 1.0, -4.4), t
 	sv.add_child(cam)
 	cam.transform = Transform3D(Basis.looking_at(target - cam_pos), cam_pos)
 	if spin:
-		var tw = m.create_tween().set_loops()
+		var tw = Game.safe_loops(m.create_tween())
 		tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 		tw.tween_property(m, "rotation:y", TAU, 12.0).from(0.0)
 	svc.set_meta("model", m)

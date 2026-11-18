@@ -77,7 +77,7 @@ static func feet_chakra(c: Node3D, bones: Array, dur: float) -> void:
 		mi.mesh = b.build(mat)
 		mi.material_override = mat
 		ba.add_child(mi)
-		var tw = mi.create_tween().set_loops(int(dur / 0.5))
+		var tw = Game.safe_loops(mi.create_tween(), int(dur / 0.5))
 		tw.tween_property(mat, "albedo_color:a", 0.3, 0.25)
 		tw.tween_property(mat, "albedo_color:a", 0.8, 0.25)
 		c.get_tree().create_timer(dur).timeout.connect(func():

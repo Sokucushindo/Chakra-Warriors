@@ -2007,7 +2007,7 @@ static func _rasen_spin(root: Node3D) -> void:
 		var ring = piv.get_child(0)
 		if not (ring is MeshInstance3D) or not ((ring as MeshInstance3D).mesh is TorusMesh):
 			continue
-		var tw = ring.create_tween().set_loops()
+		var tw = Game.safe_loops(ring.create_tween())
 		tw.tween_property(ring, "rotation:y", TAU, 0.22 + k * 0.05).from(0.0)
 		k += 1
 

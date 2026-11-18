@@ -761,7 +761,7 @@ static func _orbit_rings(host: Node, parent: Node3D, r: float, col: Color) -> vo
 		h.rotation = Vector3(0.5 + i * 1.05, i * 0.9, 0.3 * i)
 		FutonLib.fixed(host, FutonLib.helix_pts(Vector3.ZERO, Vector3.UP, r, r, 0.0, 0.0, 0.0, 0.72, 36), r * 0.02, "line", col,
 			{"parent": h, "hint": Vector3.UP, "twin": false, "flow": 10.0})
-		var tw = h.create_tween().set_loops()
+		var tw = Game.safe_loops(h.create_tween())
 		tw.tween_property(h, "rotation:y", TAU, 0.7 + i * 0.25).as_relative()
 
 

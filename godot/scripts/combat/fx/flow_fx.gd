@@ -652,7 +652,7 @@ static func _on_enter(n: Node, fn: Callable) -> void:
 
 static func _spin(n: Node3D, period: float, prop := "rotation:y") -> void:
 	_on_enter(n, func():
-		var tw = n.create_tween().set_loops()
+		var tw = Game.safe_loops(n.create_tween())
 		tw.tween_property(n, prop, TAU, period).as_relative())
 
 
@@ -2527,7 +2527,7 @@ static func _panther(s: float) -> Node3D:
 	var arcs = _geo(inner, null, _white_arc())   # gövdede kare kare yer değiştiren beyaz şimşek kıvılcımları
 	var aw = weakref(arcs)
 	_on_enter(root, func():
-		var tw = root.create_tween().set_loops()
+		var tw = Game.safe_loops(root.create_tween())
 		tw.tween_callback(func():
 			var a = aw.get_ref()
 			if a == null:

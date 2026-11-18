@@ -285,7 +285,7 @@ static func _shade(parent: Node3D, at: Vector3, face: Vector3, idx: int, lead: b
 		ri.material_override = _mat(Color(0.2, 0.14, 0.35))
 		n.add_child(ri)
 	# gölge titrer (uzaktan yansıtılan görüntü)
-	var tw = n.create_tween().set_loops()
+	var tw = Game.safe_loops(n.create_tween())
 	tw.tween_property(m, "albedo_color:a", 0.72, 0.5 + r.randf() * 0.6)
 	tw.tween_property(m, "albedo_color:a", 0.92, 0.4 + r.randf() * 0.5)
 	n.set_meta("slot", idx)
@@ -500,7 +500,7 @@ static func seal_fx(I: Interiors) -> void:
 	l.omni_range = 80.0
 	dragons.add_child(l)
 	l.global_position = from.lerp(to, 0.5) + Vector3(0, 6.0, 0)
-	var tw = dragons.create_tween().set_loops()
+	var tw = Game.safe_loops(dragons.create_tween())
 	tw.tween_property(l, "light_energy", 5.5, 0.35)
 	tw.parallel().tween_property(m, "albedo_color:a", 0.9, 0.35)
 	tw.tween_property(l, "light_energy", 3.2, 0.45)

@@ -167,6 +167,7 @@ static func _run(m, o: Dictionary) -> void:
 			var n: Vector3 = (h[1] as Vector3).normalized()
 			if absf(n.y) > 0.8:
 				n = Vector3.BACK if a[6] else Vector3.FORWARD
+			n = (n + (Vector3.BACK if a[6] else Vector3.FORWARD) * 2.0).normalized()   # kabuk köşesinin eğik normali parçayı çarpıtmasın
 			var p = Vector3(a[0], a[1], (h[0] as Vector3).z)
 			if o["k"] == "disc":
 				m._sk_disc(p + n * a[7], n, a[2], a[4], a[5])
@@ -218,8 +219,9 @@ static func _leg(s: Dictionary, y: float, h: float, col: Color, d := 0.007) -> v
 static func _cuff(s: Dictionary, f: float, h: float, col: Color, d := 0.007, only := 0.0) -> void:
 	var a: Vector3 = s["ua"]
 	var c: Vector3 = s["ha"]
-	var x = lerpf(absf(a.x), absf(c.x), f)
-	var y = lerpf(a.y, c.y, f)
+	var ff = maxf(f, 0.16)   # omuz dibinde x kesiti gövdeyi de keser
+	var x = lerpf(absf(a.x), absf(c.x), ff)
+	var y = lerpf(a.y, c.y, ff)
 	for sx in [-1.0, 1.0]:
 		if only == 0.0 or only == sx:
 			_op(s, "cuff", x * sx, y, true, [x * sx, h, d, col, sx])
@@ -304,8 +306,9 @@ static func _bars(s: Dictionary, y0: float, dy: float, n: int, hw: float, h: flo
 
 ## Bacak sargısı: art arda ince halkalar
 static func _wraps(s: Dictionary, y0: float, y1: float, n: int, col: Color) -> void:
+	var h = absf(y1 - y0) / maxi(n - 1, 1) * 0.96   # sıralar birbirine değer: şerit değil sargı
 	for i in n:
-		_leg(s, lerpf(y0, y1, float(i) / maxi(n - 1, 1)), 0.016, col.darkened(0.05 * (i % 2)), 0.005)
+		_leg(s, lerpf(y0, y1, float(i) / maxi(n - 1, 1)), h, col.darkened(0.05 * (i % 2)), 0.005)
 
 
 ## Uyluk kılıfı (shuriken torbası): kayış + kese; sağ bacak
@@ -331,13 +334,13 @@ static func _swirl(s: Dictionary, cx: float, cy: float, R: float, col: Color) ->
 		var t = float(i) / 18.0
 		var a = t * TAU * 2.2
 		var q = Vector2(cx + cos(a) * R * t, cy + sin(a) * R * t * 1.05)
-		_path(s, prev.x, prev.y, q.x, q.y, 0.0075, col, true, 0.003, 0.005)
+		_path(s, prev.x, prev.y, q.x, q.y, 0.01, col, true, 0.003, 0.007)
 		prev = q
 	for i in 12:
 		var a = i * TAU / 12.0 + 0.2
 		var r0 = R * 1.18
 		var r1 = R * (1.55 if i % 2 == 0 else 1.36)
-		_path(s, cx + cos(a) * r0, cy + sin(a) * r0, cx + cos(a + 0.13) * r1, cy + sin(a + 0.13) * r1, 0.008, col, true, 0.003, 0.005)
+		_path(s, cx + cos(a) * r0, cy + sin(a) * r0, cx + cos(a + 0.13) * r1, cy + sin(a + 0.13) * r1, 0.01, col, true, 0.003, 0.007)
 
 
 # ------------------------------------------------------------------ setler
@@ -364,12 +367,12 @@ static func _spec(s: Dictionary, sid: String) -> void:
 			_path(s, 0.16, W + 0.03, -0.16, W - 0.02, 0.04, slate.darkened(0.2), true, 0.008, 0.012)
 			_box(s, 0.0, W, 0.05, 0.05, 0.008, slate.lightened(0.15), true, 0.018)
 			_tail(s, 0.05, W - 0.03, 0.05, 0.26, 0.05, slate)
-			_ring(s, N + 0.0, 0.008, BLACK, 0.006, -1.2, 1.2, 0.004, 0.15)
+			_ring(s, N + 0.0, 0.008, BLACK, 0.006, -1.2, 1.2, 0.004, 0.105)
 			_btn(s, 0.0, N - 0.11, 0.012, BLACK)
 		"ss_karga_cubbe":
 			var khaki = Color("b8a878")
-			_ring(s, N - 0.01, 0.042, khaki, 0.012, -PI, PI, 0.012, 0.2)
-			_ring(s, N + 0.018, 0.012, khaki.darkened(0.15), 0.008, -PI, PI, 0.02, 0.2)
+			_ring(s, N - 0.02, 0.04, khaki, 0.012, -PI, PI, 0.014, 0.17)
+			_ring(s, N - 0.002, 0.012, khaki.darkened(0.15), 0.008, -PI, PI, 0.012, 0.11)
 			_zip(s, 0.0, N - 0.06, K + 0.2, Color("c8bda0"))
 			_ring(s, W, 0.012, Color("4a1019"), 0.005)
 			_cuff(s, 0.86, 0.02, khaki.darkened(0.1), 0.005)
@@ -389,7 +392,6 @@ static func _spec(s: Dictionary, sid: String) -> void:
 			_crest(s, 0.0, N - 0.16, 0.05, Color("7b1f2c"), WRAP)
 			_ring(s, K + 0.05, 0.016, dk, 0.006)
 			_cuff(s, 0.72, 0.09, WRAP, 0.006)
-			_leg(s, A + 0.12, 0.03, BLACK)
 		"ss_kaya_striker", "ss_kaya_striker_kurtarici", "ss_kaya_striker_postaci":
 			var acc = {"ss_kaya_striker": Color("e8b820"), "ss_kaya_striker_kurtarici": Color("f2f2ee"), "ss_kaya_striker_postaci": Color("f0c840")}[sid]
 			_path(s, 0.05, N - 0.05, 0.075, W + 0.05, 0.006, acc, true, 0.003)
@@ -398,7 +400,7 @@ static func _spec(s: Dictionary, sid: String) -> void:
 			_cuff(s, 0.45, 0.014, acc, 0.004, 1.0)
 		"ss_kedi":
 			var fur = Color("f1eee2")
-			_ring(s, N, 0.03, fur, 0.016, -PI, PI, 0.012, 0.18)
+			_ring(s, N - 0.015, 0.03, fur, 0.016, -PI, PI, 0.012, 0.13)
 			_path(s, -0.17, C + 0.09, -0.17, W + 0.08, 0.02, fur, true, 0.012)
 			_path(s, 0.17, C + 0.09, 0.17, W + 0.08, 0.02, fur, true, 0.012)
 			_zip(s, 0.0, N - 0.04, W + 0.03)
@@ -444,7 +446,7 @@ static func _spec(s: Dictionary, sid: String) -> void:
 			_holster(s, BLACK)
 		"ss_kizil_fermuar":
 			var tr = Color("8e1c2a")
-			_ring(s, N - 0.01, 0.03, tr, 0.009, -PI, PI, 0.006, 0.16)
+			_ring(s, N - 0.01, 0.03, tr, 0.009, -PI, PI, 0.006, 0.105)
 			_path(s, 0.0, N - 0.04, 0.06, W + 0.02, 0.008, Color("e9dfd8"), true, 0.003)
 			_box(s, 0.0, N - 0.05, 0.012, 0.024, 0.004, STEEL, true, 0.007)
 			_crest(s, 0.0, N - 0.17, 0.045, Color("c83a44"), WHITE)
@@ -464,20 +466,19 @@ static func _spec(s: Dictionary, sid: String) -> void:
 			_buttons(s, 0.06, N - 0.09, W + 0.05, 5, 0.011, BLACK)
 			_belt(s, W - 0.005, 0.03, LEATHER, STEEL)
 			_belt(s, W - 0.055, 0.024, LEATHER_D, STEEL, 0.04)
-			_ring(s, N - 0.005, 0.03, Color("6e1520"), 0.01, -PI, PI, 0.006, 0.16)
+			_ring(s, N - 0.005, 0.03, Color("6e1520"), 0.01, -PI, PI, 0.006, 0.105)
 			_cuff(s, 0.86, 0.04, BLACK, 0.006)
 			_path(s, 0.0, H - 0.1, 0.0, K - 0.1, 0.009, Color("5e111b"), false, 0.003)
 		"ss_kizil_palto2":
 			var g2 = Color("7d8092")
 			_bars(s, C + 0.03, 0.05, 3, 0.11, 0.014, g2.darkened(0.25), STEEL)
-			_path(s, -0.16, C + 0.13, 0.09, C + 0.02, 0.018, g2.darkened(0.2))
 			_belt(s, W - 0.03, 0.026, g2, STEEL)
-			_ring(s, N - 0.005, 0.028, Color("6e1520"), 0.01, -PI, PI, 0.006, 0.16)
+			_ring(s, N - 0.005, 0.028, Color("6e1520"), 0.01, -PI, PI, 0.006, 0.105)
 			_cuff(s, 0.86, 0.04, BLACK, 0.006)
 			_btn(s, 0.0, C - 0.17, 0.012, BLACK)
 		"ss_kizil_takim":
 			_zip(s, 0.0, N - 0.04, H + 0.02)
-			_ring(s, N - 0.005, 0.034, WHITE, 0.012, -PI, PI, 0.008, 0.17)
+			_ring(s, N - 0.02, 0.034, WHITE, 0.012, -PI, PI, 0.012, 0.135)
 			_ring(s, H + 0.02, 0.03, Color("701018"), 0.007)
 			_cuff(s, 0.95, 0.03, Color("701018"), 0.007)
 			_path(s, -0.13, C + 0.1, -0.15, H + 0.03, 0.006, WHITE, true, 0.003)
@@ -512,8 +513,6 @@ static func _spec(s: Dictionary, sid: String) -> void:
 			_box(s, 0.03, W - 0.03, 0.04, 0.05, 0.012, pu.darkened(0.15), true, 0.01)
 			_tail(s, 0.05, W - 0.05, 0.06, 0.28, 0.05, pu)
 			_tail(s, 0.015, W - 0.05, -0.03, 0.22, 0.04, pu.darkened(0.1))
-			for f in [0.25, 0.4, 0.55, 0.7, 0.85]:
-				_cuff(s, f, 0.024, WRAP, 0.008, -1.0)
 		"ss_konoha_genin":
 			_cuff(s, 0.42, 0.04, Color("172238"), 0.008)
 			_leg(s, K - 0.06, 0.05, Color("172238"), 0.008)
@@ -533,12 +532,12 @@ static func _spec(s: Dictionary, sid: String) -> void:
 			_strap(s, -0.11, N - 0.02, -0.14, C - 0.14, 0.03, WRAP)
 			_strap(s, 0.11, N - 0.02, 0.14, C - 0.14, 0.03, WRAP)
 			_ring(s, W, 0.024, Color("8a1a2a"), 0.008)
-			_ring(s, N + 0.0, 0.036, Color("24242a"), 0.012, -PI, PI, 0.006, 0.15)
+			_ring(s, N + 0.0, 0.036, Color("24242a"), 0.012, -PI, PI, 0.006, 0.105)
 			_leg(s, A + 0.2, 0.03, Color("26262c"), 0.008)
 			_cuff(s, 0.82, 0.03, Color("26262c"), 0.006)
 		"ss_kukla_genc":
 			_zip(s, 0.0, N - 0.03, W + 0.03)
-			_ring(s, N, 0.05, Color("2e2240"), 0.012, -PI, PI, 0.006, 0.16)
+			_ring(s, N, 0.05, Color("2e2240"), 0.012, -PI, PI, 0.006, 0.105)
 			_path(s, -0.14, C + 0.04, -0.12, W + 0.05, 0.007, Color("2b2038"), true, 0.004)
 			_path(s, 0.14, C + 0.04, 0.12, W + 0.05, 0.007, Color("2b2038"), true, 0.004)
 			_box(s, 0.0, H + 0.1, 0.05, 0.03, 0.006, STEEL, true, 0.012)
@@ -586,17 +585,14 @@ static func _spec(s: Dictionary, sid: String) -> void:
 			_leg(s, A + 0.08, 0.02, dk, 0.005)
 		"ss_kurbaga_bilge", "ss_kurbaga_bilge2":
 			for sx in [-1.0, 1.0]:
-				_btn(s, sx * 0.125, C + 0.0, 0.05, Color("d8ae50"), true, 0.006)
-				_btn(s, sx * 0.125, C + 0.0, 0.036, Color("e8c468"), true, 0.01)
+				_btn(s, sx * 0.115, C + 0.02, 0.038, Color("d8ae50"), true, 0.014)
+				_btn(s, sx * 0.115, C + 0.02, 0.027, Color("e8c468"), true, 0.019)
 				_path(s, sx * 0.085, N - 0.04, sx * 0.135, K + 0.04, 0.014, Color("7a151a"), true, 0.004)
 			_wrap_collar(s, Color("6e8a6e"), 0.02, W + 0.04)
 			_belt(s, W - 0.01, 0.03, BLACK, null)
 			_cuff(s, 0.86, 0.05, Color("3a3a42"), 0.008)
 			_leg(s, A + 0.2, 0.024, LEATHER_D)
 			_leg(s, A + 0.08, 0.022, LEATHER_D)
-			if sid == "ss_kurbaga_bilge2":   # bilge kurbağaların tünediği omuz yastıkları
-				_strap(s, -0.13, N - 0.015, -0.16, C + 0.0, 0.05, Color("3e3a3c"))
-				_strap(s, 0.13, N - 0.015, 0.16, C + 0.0, 0.05, Color("5b4a78"))
 		"ss_kurucu_genc":
 			var ol = Color("b0a030")
 			_wrap_collar(s, ol, 0.026, H + 0.02, 0.07)
@@ -606,15 +602,15 @@ static func _spec(s: Dictionary, sid: String) -> void:
 			_leg(s, A + 0.22, 0.02, WRAP)
 		"ss_kurucu_palto":
 			_path(s, 0.0, N - 0.03, 0.0, A + 0.25, 0.012, Color("a01c22"), true, 0.004)
-			_ring(s, N + 0.0, 0.06, Color("17171b"), 0.012, -PI, PI, 0.008, 0.17)
+			_ring(s, N + 0.0, 0.06, Color("17171b"), 0.012, -PI, PI, 0.008, 0.105)
 			_path(s, -0.15, W - 0.04, 0.18, H - 0.1, 0.02, LEATHER, true, 0.006, 0.014)
 			_kese(s, 0.19, H - 0.13, 0.06, 0.08, LEATHER_D)
 			_box(s, 0.0, W, 0.12, 0.05, 0.012, Color("7e7f92"), true, 0.014)
 		"ss_kutlama":
 			var fur = Color("efeae0")
 			var cy = Color("2fa4b8")
-			_strap(s, -0.1, N - 0.015, -0.13, C + 0.0, 0.06, fur)
-			_strap(s, 0.1, N - 0.015, 0.13, C + 0.0, 0.06, fur)
+			_strap(s, -0.1, N - 0.015, -0.12, C + 0.0, 0.042, fur)
+			_strap(s, 0.1, N - 0.015, 0.12, C + 0.0, 0.042, fur)
 			for sx in [-1.0, 1.0]:
 				_btn(s, sx * 0.09, C - 0.05, 0.022, cy, true, 0.012)
 				_tail(s, sx * 0.09, C - 0.07, 0.0, 0.1, 0.03, fur, true, 0.3, "UpperChest")
@@ -639,7 +635,7 @@ static func _spec(s: Dictionary, sid: String) -> void:
 			_belt(s, W - 0.04, 0.03, Color("2c2448"), null)
 			for sx in [-1.0, 1.0]:
 				_kese(s, sx * 0.17, H - 0.09, 0.08, 0.14, br)
-			_wrap_collar(s, Color("7c1c66"), 0.02, C - 0.02, 0.07)
+			_wrap_collar(s, Color("7c1c66"), 0.02, N - 0.1, 0.07)
 		"ss_lavanta_ceket":
 			_zip(s, 0.0, N - 0.04, H + 0.0)
 			_ring(s, H + 0.0, 0.03, WHITE, 0.009)
@@ -652,7 +648,7 @@ static func _spec(s: Dictionary, sid: String) -> void:
 			var lv = Color("c4c0e8")
 			_ring(s, W, 0.05, lv, 0.012)
 			_box(s, 0.0, W, 0.06, 0.03, 0.006, WHITE, true, 0.018)
-			_ring(s, N - 0.0, 0.03, Color("1c1c52"), 0.012, -PI, PI, 0.01, 0.18)
+			_ring(s, N - 0.0, 0.03, Color("1c1c52"), 0.012, -PI, PI, 0.01, 0.105)
 			_crest(s, 0.0, C + 0.0, 0.055, Color("b02a30"), WHITE)
 			_path(s, 0.045, H - 0.06, 0.09, A + 0.25, 0.018, Color("b8a050"), true, 0.004)
 		"ss_maskeli_gaiden":
@@ -672,12 +668,11 @@ static func _spec(s: Dictionary, sid: String) -> void:
 		"ss_maskeli_jonin":
 			_cuff(s, 0.18, 0.05, Color("a11f24"), 0.008, 1.0)
 			_box(s, 0.0, H + 0.07, 0.15, 0.08, 0.008, Color("3f5a3c"), true, 0.004)
-			_wraps(s, K - 0.04, K - 0.12, 2, WRAP)
 			_holster(s, BLACK)
 		"ss_metal_canavar":
 			var or_c = Color("d9862e")
-			_ring(s, N - 0.005, 0.03, or_c.darkened(0.12), 0.016, -PI, PI, 0.014, 0.17)
-			_ring(s, N + 0.025, 0.026, or_c, 0.014, -PI, PI, 0.012, 0.15)
+			_ring(s, N - 0.025, 0.035, or_c.darkened(0.12), 0.018, -PI, PI, 0.01, 0.13)
+			_ring(s, N + 0.012, 0.032, or_c, 0.016, -PI, PI, 0.008, 0.105)
 			_belt(s, W - 0.02, 0.034, BLACK, STEEL, 0.075)
 			for f in [0.72, 0.8, 0.88, 0.96]:
 				_cuff(s, f, 0.024, WRAP, 0.008)
@@ -686,7 +681,7 @@ static func _spec(s: Dictionary, sid: String) -> void:
 		"ss_mevsim":
 			var dk = Color("4e9c86")
 			var pink = Color("efa0bc")
-			_strap(s, -0.1, N - 0.03, 0.15, H + 0.1, 0.009, Color("2c6a5a"))
+			_path(s, -0.1, N - 0.03, 0.15, H + 0.1, 0.009, Color("2c6a5a"))
 			for i in 4:
 				var a = i * 1.6
 				_btn(s, -0.11 + 0.08 * i, H + 0.1 + 0.03 * sin(a), 0.02, pink)
@@ -712,7 +707,7 @@ static func _spec(s: Dictionary, sid: String) -> void:
 		"ss_mor_etek":
 			_box(s, 0.0, H - 0.1, 0.05, 0.2, 0.004, Color("4a1c70"))
 			_ring(s, H + 0.03, 0.02, Color("4a1c70"), 0.006)
-			_ring(s, N - 0.005, 0.022, Color("4a1c70"), 0.008, -PI, PI, 0.006, 0.15)
+			_ring(s, N - 0.005, 0.022, Color("4a1c70"), 0.008, -PI, PI, 0.006, 0.105)
 			_cuff(s, 0.42, 0.014, Color("6a2a9a"), 0.005)
 			_cuff(s, 0.56, 0.014, Color("6a2a9a"), 0.005)
 			_leg(s, K + 0.07, 0.014, Color("6a2a9a"), 0.005)
@@ -722,11 +717,11 @@ static func _spec(s: Dictionary, sid: String) -> void:
 			_ring(s, W + 0.04, 0.05, WRAP, 0.006)
 			for dy in [-0.012, 0.012]:
 				_ring(s, W + 0.04 + dy, 0.003, Color("c8c4b8"), 0.003, -PI, PI, 0.012)
-			_ring(s, N - 0.005, 0.03, Color("3f2472"), 0.01, -PI, PI, 0.006, 0.16)
+			_ring(s, N - 0.005, 0.03, Color("3f2472"), 0.01, -PI, PI, 0.006, 0.105)
 			_kese(s, 0.0, H - 0.03, 0.1, 0.07, Color("b89a70"), false)
 			_holster(s, BLACK)
 		"ss_mor_genin":
-			_ring(s, N - 0.005, 0.03, WHITE, 0.009, -PI, PI, 0.006, 0.16)
+			_ring(s, N - 0.015, 0.03, WHITE, 0.009, -PI, PI, 0.01, 0.125)
 			_zip(s, 0.0, N - 0.04, H + 0.01, Color("9a8cc0"))
 			for x in [-0.13, 0.13]:
 				_path(s, x, C + 0.09, x, H + 0.02, 0.01, WHITE, true, 0.004)
@@ -740,13 +735,11 @@ static func _spec(s: Dictionary, sid: String) -> void:
 			_box(s, 0.0, W, 0.09, 0.05, 0.006, Color("5e2f6c"), true, 0.014)
 			for x in [-0.09, -0.045, 0.045, 0.09]:
 				_path(s, x, C + 0.09, x, W + 0.05, 0.003, Color("a89ad0"), true, 0.002)
-			_ring(s, N - 0.005, 0.03, Color("d8d2ec"), 0.009, -PI, PI, 0.006, 0.16)
+			_ring(s, N - 0.015, 0.03, Color("d8d2ec"), 0.009, -PI, PI, 0.01, 0.125)
 			_holster(s, BLACK)
 		"ss_mor_uzun":
 			_path(s, -0.02, H + 0.02, 0.05, A + 0.2, 0.012, Color("41206a"), true, 0.004)
-			_ring(s, A + 0.2, 0.016, Color("41206a"), 0.005)
-			_ring(s, H + 0.03, 0.03, Color("41206a"), 0.007)
-			_ring(s, N - 0.005, 0.022, Color("41206a"), 0.008, -PI, PI, 0.006, 0.15)
+			_ring(s, N - 0.005, 0.022, Color("41206a"), 0.008, -PI, PI, 0.006, 0.105)
 			_path(s, -0.1, C - 0.04, 0.1, C - 0.04, 0.012, Color("41206a"), true, 0.004)
 		"ss_murekkep":
 			var rd = Color("a01c22")
@@ -777,9 +770,10 @@ static func _spec(s: Dictionary, sid: String) -> void:
 			_tail(s, 0.02, W - 0.02, 0.08, 0.14, 0.045, rd)
 			_leg(s, K - 0.04, 0.024, rd.darkened(0.25), 0.012)
 		"ss_ninja_yolu_tisort":
-			_swirl(s, 0.0, C - 0.03, 0.062, Color("f6f2e8"))
+			_btn(s, -0.035, N - 0.09, 0.066, Color("ee9a32"), true, 0.003)   # gömleğin küçük baskısını örter
+			_swirl(s, 0.0, C - 0.03, 0.082, Color("f6f2e8"))
 			_crest(s, 0.2, N - 0.08, 0.018, Color("23305a"), WHITE, true)
-			_ring(s, N, 0.014, Color("1e2a48"), 0.005, -PI, PI, 0.005, 0.15)
+			_ring(s, N, 0.014, Color("1e2a48"), 0.005, -PI, PI, 0.005, 0.105)
 			_ring(s, H + 0.0, 0.016, Color("1e2a48"), 0.005)
 		"ss_okul_mor":
 			var dk = Color("6a48a8")
@@ -787,8 +781,8 @@ static func _spec(s: Dictionary, sid: String) -> void:
 			_path(s, -0.08, N - 0.02, 0.0, C + 0.0, 0.016, WHITE)
 			_path(s, 0.08, N - 0.02, 0.0, C + 0.0, 0.016, WHITE)
 			_box(s, 0.0, C - 0.01, 0.03, 0.025, 0.008, Color("8e2a6a"), true, 0.008)
-			_tail(s, -0.01, C - 0.03, -0.1, 0.11, 0.03, Color("8e2a6a"), true, 0.22, "UpperChest")
-			_tail(s, 0.01, C - 0.03, 0.1, 0.11, 0.03, Color("8e2a6a"), true, 0.22, "UpperChest")
+			_tail(s, -0.01, C - 0.03, -0.1, 0.065, 0.03, Color("8e2a6a"), true, 0.22, "UpperChest")
+			_tail(s, 0.01, C - 0.03, 0.1, 0.065, 0.03, Color("8e2a6a"), true, 0.22, "UpperChest")
 			_box(s, 0.0, N - 0.09, 0.2, 0.08, 0.004, WHITE, false)
 			_cuff(s, 0.34, 0.016, dk, 0.005)
 			_ring(s, H - 0.2, 0.012, dk, 0.005)

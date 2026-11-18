@@ -13,6 +13,7 @@ GODOT = os.path.join(ROOT, 'tools', 'Godot_v4.7.2-stable_win64_console.exe')
 PROJ = os.path.join(ROOT, 'godot')
 mode = sys.argv[1] if len(sys.argv) > 1 else 'test'
 assert mode in ('test', 'main', 'arena')   # arena: bire bir dövüş arenası deneme exe'si (adı ARENA içerince arena kipi açılır)
+subprocess.run([sys.executable, os.path.join(ROOT, 'tools', 'loop_guard.py')], check=True)   # süre harcamayan tekrarlı Tween yayın motorunu kilitler
 
 ver_file = os.path.join(ROOT, 'VERSION')
 version = open(ver_file).read().strip() if os.path.exists(ver_file) else '0.2.0'

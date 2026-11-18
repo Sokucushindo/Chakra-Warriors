@@ -272,9 +272,9 @@ static func _bullet_build(parent: Node3D, size: float, col: Color) -> void:
 		var tr = VFX.trail(h, 0.25 * size, Color.WHITE, Color.WHITE, Color.WHITE, 12, 0.0)
 		tr.material_override = sheet_mat(SHEET, 0.6)
 		tr.min_step = 0.1
-	var tw = pivot.create_tween().set_loops()
+	var tw = Game.safe_loops(pivot.create_tween())
 	tw.tween_property(pivot, "rotation:z", TAU, 0.22).from(0.0)
-	var tw2 = pivot.create_tween().set_loops()
+	var tw2 = Game.safe_loops(pivot.create_tween())
 	tw2.tween_property(pivot, "rotation:y", TAU, 0.9).from(0.0)
 	# çekirdek: kameraya dönük yumuşak beyaz-mavi parıltı (sıkışmış hava)
 	for k in 2:

@@ -1013,3 +1013,12 @@ func slot_summary(slot: int) -> String:
 	if d == null:
 		return ""
 	return "%s — %s, Güç %d  (%s)" % [d.get("name", "?"), Data.RANKS[int(d.get("rank", 0))], int(d.get("level", 1)), d.get("saved_at", "")]
+
+
+## Sonsuz tekrarlı Tween: yayın motorunda süre harcamayan tur (hedefi silinmiş, süresi 0) oyunu kilitler; her tur en az 1 ms sürsün.
+## Doğrudan set_loops() yazma; tools/loop_guard.py yayından önce hepsini buna çevirir.
+func safe_loops(tw: Tween, n := 0) -> Tween:
+	tw.set_loops(n)
+	if n <= 0:
+		tw.tween_interval(0.001)
+	return tw

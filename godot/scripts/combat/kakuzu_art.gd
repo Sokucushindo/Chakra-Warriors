@@ -68,13 +68,13 @@ static func beast(kind: String, s := 1.0) -> Node3D:
 			Loft.tube(ab, ClayArt._sc([f0, f0 + Vector3((q - 1.5) * 0.12, -0.12, 0.28)], s), ClayArt._sc([Vector2(0.07, 0.07), Vector2(0.02, 0.02)], s), INK, 5, 2)
 		arm.add_child(_m(ab))
 		body.add_child(arm)
-		var tw = arm.create_tween().set_loops()
+		var tw = Game.safe_loops(arm.create_tween())
 		tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 		arm.rotation.x = -0.06
 		tw.tween_property(arm, "rotation:x", 0.1, 1.1 + sx * 0.1)
 		tw.tween_property(arm, "rotation:x", -0.06, 1.1 + sx * 0.1)
 	# nefes alır gibi kabarıp iner
-	var br = body.create_tween().set_loops()
+	var br = Game.safe_loops(body.create_tween())
 	br.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	br.tween_property(body, "scale", Vector3(1.03, 0.98, 1.03), 0.9)
 	br.tween_property(body, "scale", Vector3.ONE, 0.9)

@@ -55,7 +55,7 @@ static func light(b: Builder, wp: Vector3, col: Color, energy: float, rng_: floa
 	l.omni_range = rng_
 	b.root.add_child(l)
 	l.global_position = wp
-	var tw = l.create_tween().set_loops()
+	var tw = Game.safe_loops(l.create_tween())
 	tw.tween_property(l, "light_energy", energy * 1.35, 0.11 + randf() * 0.05)
 	tw.tween_property(l, "light_energy", energy * 0.7, 0.16 + randf() * 0.06)
 	tw.tween_property(l, "light_energy", energy, 0.09)

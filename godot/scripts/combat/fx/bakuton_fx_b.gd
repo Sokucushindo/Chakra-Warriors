@@ -430,7 +430,7 @@ static func bakuha_jirai(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		tw.tween_property(mine, "scale", Vector3(1.25, 0.45, 1.25), 0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 		tw.tween_callback(func():
 			if is_instance_valid(mine):
-				var pulse = mine.create_tween().set_loops()
+				var pulse = Game.safe_loops(mine.create_tween())
 				pulse.tween_method(func(v: float) -> void:
 					L.sp(mine, "glow", v), 0.0, 0.3, 0.7).set_trans(Tween.TRANS_SINE)
 				pulse.tween_method(func(v: float) -> void:
@@ -473,7 +473,7 @@ static func bakuha_kibaku_te(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	if tt != null:
 		var blob = L.lump(0.5, 0.6)
 		pj.attach(tt, blob, 2.0, Vector3(0, tt.height * 0.55, -tt.radius), 2)
-		var tw = blob.create_tween().set_loops()
+		var tw = Game.safe_loops(blob.create_tween())
 		tw.tween_property(blob, "scale", Vector3.ONE * 0.65, 0.2)
 		tw.tween_property(blob, "scale", Vector3.ONE * 0.45, 0.2)
 		L.fuse(blob, 2.0, 0.9)

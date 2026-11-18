@@ -324,7 +324,7 @@ static func ressenga(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			sh.position = Vector3(cos(a) * rr, sin(a) * rr, 0.12 + f * 0.8)
 			sh.rotation = Vector3(PI * 0.5, 0.0, a)
 			piv.add_child(sh)
-		piv.create_tween().set_loops().tween_property(piv, "rotation:z", TAU, 0.12).from(0.0)
+		Game.safe_loops(piv.create_tween()).tween_property(piv, "rotation:z", TAU, 0.12).from(0.0)
 		pj.free_after(0.9, ba)
 	pj.every(0.6, 0.1, func(_i, _k):
 		if pj.live(c):

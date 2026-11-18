@@ -1207,7 +1207,7 @@ func _butterfly_wings(c: Node3D, dur: float) -> Node3D:
 			b.add("sphere", Vector3(1.0 * sx, 0.5 - k * 1.0, 0), Vector3(1.8 - k * 0.5, 1.4 - k * 0.4, 0.06), Color.WHITE, Vector3(0, 0, 25 * sx * (1 - k * 2)), 12)
 			var w = mesh_of(b, m)
 			root.add_child(w)
-			var tw = w.create_tween().set_loops()
+			var tw = Game.safe_loops(w.create_tween())
 			tw.tween_property(w, "rotation:y", 0.35 * sx, 0.3)
 			tw.tween_property(w, "rotation:y", -0.15 * sx, 0.3)
 	attach(c, root, dur, Vector3(0, 1.5, 0.35))
@@ -1655,7 +1655,7 @@ func c_tsuga(c: Node3D, t: Node3D) -> void:
 	drill.top_level = true
 	drill.scale = Vector3(0.5, 0.5, 0.95)   # Tsūga: Gatsūga'dan ince, uzun tek matkap
 	# matkap bedenin yerinde, gidiş yönüne bakar (gövde düğümü dönmez; yön hızdan/hedeften)
-	var follow = drill.create_tween().set_loops()
+	var follow = Game.safe_loops(drill.create_tween())
 	follow.tween_callback(func():
 		if not is_instance_valid(c):
 			return
@@ -2170,7 +2170,7 @@ func c_suiton_tate_eboshi(c: Node3D, t: Node3D) -> void:
 	sw.cull_mode = BaseMaterial3D.CULL_BACK
 	sw.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	body.material_overlay = sw
-	var uvt = body.create_tween().set_loops()   # girdaplar yavaşça yukarı akar
+	var uvt = Game.safe_loops(body.create_tween())   # girdaplar yavaşça yukarı akar
 	uvt.tween_property(sw, "uv1_offset", Vector3(0.0, -1.0, 0.0), 4.0).from(Vector3.ZERO)
 	root.add_child(body)
 	# dikenler gökyüzüne karşı seçilsin: daha koyu, doygun mavi (soluk ak dikenler açık gökte kayboluyordu)
@@ -2206,7 +2206,7 @@ func c_suiton_tate_eboshi(c: Node3D, t: Node3D) -> void:
 	root.scale = Vector3(0.6, 0.05, 0.6)
 	var tw = root.create_tween()
 	tw.tween_property(root, "scale", Vector3.ONE, 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	var bt = body.create_tween().set_loops()
+	var bt = Game.safe_loops(body.create_tween())
 	bt.tween_property(body, "scale", Vector3(W * 1.02, H * 0.98, D * 1.03), 0.5).set_trans(Tween.TRANS_SINE)
 	bt.tween_property(body, "scale", Vector3(W, H, D), 0.5).set_trans(Tween.TRANS_SINE)
 	VFX.splash(root.global_position + Vector3.UP * 0.5, 4.0)
@@ -3740,7 +3740,7 @@ func c_doton_kajugan_no_jutsu(c: Node3D, t: Node3D) -> void:
 		b.add("cone", Vector3.ZERO, Vector3(0.3, 0.5, 0.3), Color.WHITE, Vector3(180, 0, 0), 4)
 		var arrow = mesh_of(b, glow(Color(0.85, 0.75, 0.5)))
 		attach(tt, arrow, 8.0, Vector3((k - 1) * 0.4, tt.height + 0.6, 0), 2)
-		var tw = arrow.create_tween().set_loops()
+		var tw = Game.safe_loops(arrow.create_tween())
 		tw.tween_property(arrow, "position:y", tt.height + 0.2, 0.4)
 		tw.tween_property(arrow, "position:y", tt.height + 0.6, 0.01)
 	FX.dust(tt.global_position, 1.2)
@@ -3811,7 +3811,7 @@ func c_bakuha_kibaku_te(c: Node3D, t: Node3D) -> void:
 		return
 	var blob = _clay(0.5)
 	attach(tt, blob, 2.0, Vector3(0, tt.height * 0.55, -tt.radius), 2)
-	var tw = blob.create_tween().set_loops()
+	var tw = Game.safe_loops(blob.create_tween())
 	tw.tween_property(blob, "scale", Vector3.ONE * 0.65, 0.2)
 	tw.tween_property(blob, "scale", Vector3.ONE * 0.45, 0.2)
 	Combat.popup_text(tt.global_position + Vector3.UP * 2.4, "...", Color(1, 0.85, 0.4))
@@ -3962,7 +3962,7 @@ func c_uchiha_kaenjin(c: Node3D, _t: Node3D) -> void:
 				if not is_instance_valid(tongue):
 					return
 				var per = randf_range(0.22, 0.42)
-				var fl = tongue.create_tween().set_loops()
+				var fl = Game.safe_loops(tongue.create_tween())
 				fl.tween_property(tongue, "scale", Vector3(w * 0.9, h * 1.1, w * 0.9), per).set_trans(Tween.TRANS_SINE)
 				fl.tween_property(tongue, "scale", Vector3(w * 1.05, h * 0.85, w * 1.05), per).set_trans(Tween.TRANS_SINE))
 		var light = OmniLight3D.new()
@@ -4276,7 +4276,7 @@ func _sharingan_disc(size: float) -> Node3D:
 	var root = Node3D.new()
 	root.add_child(mi)
 	root.scale = Vector3.ONE * size
-	var spin = mi.create_tween().set_loops()
+	var spin = Game.safe_loops(mi.create_tween())
 	spin.tween_property(mi, "rotation:z", -TAU, 1.2).from(0.0)
 	return root
 

@@ -1066,12 +1066,12 @@ static func _light_vis_anim(vis: Node3D) -> void:
 		return
 	var i = 0
 	for pb in pivot.get_children():
-		var bt = pb.create_tween().set_loops()
+		var bt = Game.safe_loops(pb.create_tween())
 		var y0 = pb.position.y
 		bt.tween_property(pb, "position:y", y0 + 0.12, 0.9 + i * 0.1).set_trans(Tween.TRANS_SINE)
 		bt.tween_property(pb, "position:y", y0 - 0.12, 0.9 + i * 0.1).set_trans(Tween.TRANS_SINE)
 		i += 1
-	var rt = pivot.create_tween().set_loops()
+	var rt = Game.safe_loops(pivot.create_tween())
 	rt.tween_property(pivot, "rotation:y", TAU, 5.0).from(0.0)
 
 

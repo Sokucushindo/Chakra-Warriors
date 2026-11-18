@@ -593,7 +593,7 @@ static func _crow(pj: PathJutsu, m: Material, pos: Vector3) -> Node3D:
 		n.add_child(w)
 		var sg := 1.0 if s == 0 else -1.0
 		w.rotation.z = 0.2 * sg
-		var tw := w.create_tween().set_loops()
+		var tw := Game.safe_loops(w.create_tween())
 		tw.tween_property(w, "rotation:z", 0.95 * sg, ph)
 		tw.tween_property(w, "rotation:z", -0.6 * sg, ph)
 	return n
@@ -849,7 +849,7 @@ static func _butterfly(parent: Node3D, m: Material) -> Node3D:
 		var o := PackedVector2Array([Vector2(0, 0.02), Vector2(0.13 * sg, 0.1), Vector2(0.17 * sg, -0.02), Vector2(0.09 * sg, -0.11), Vector2(0, -0.04)])
 		var w := mi(slab_mesh(o, 0.006, Color.WHITE, Transform3D(_flat_b(), Vector3.ZERO)), m)
 		n.add_child(w)
-		var tw := w.create_tween().set_loops()
+		var tw := Game.safe_loops(w.create_tween())
 		tw.tween_property(w, "rotation:z", 1.0 * sg, ph)
 		tw.tween_property(w, "rotation:z", -0.25 * sg, ph)
 	return n

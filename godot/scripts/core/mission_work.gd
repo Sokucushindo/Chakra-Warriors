@@ -4064,14 +4064,14 @@ func job_begin(work: String, n: int, label: String) -> int:
 				ring.material_override = rm
 				ring.scale = Vector3(1, 0.1, 1)
 				sp.add_child(ring)
-				var tw = ring.create_tween().set_loops()
+				var tw = Game.safe_loops(ring.create_tween())
 				tw.tween_property(ring, "scale", Vector3(2.0, 0.1, 2.0), 1.6).from(Vector3(0.5, 0.1, 0.5))
 				var orb = Node3D.new()
 				sp.add_child(orb)
 				var fm = _fish_mesh(0.42, Color(0.08, 0.12, 0.16))
 				orb.add_child(fm)
 				fm.position = Vector3(0.55, -0.14, 0)
-				var tw2 = orb.create_tween().set_loops()
+				var tw2 = Game.safe_loops(orb.create_tween())
 				tw2.tween_property(orb, "rotation:y", -TAU, 3.4 + i * 0.5).from(0.0)
 				add.call(i, job_d["mid"], sp, {}, 5.0)
 		"plank":

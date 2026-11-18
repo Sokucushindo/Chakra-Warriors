@@ -238,7 +238,7 @@ static func _vis(mesh: Mesh, spin_ok := true) -> Node3D:
 	root.add_child(mi)
 	if spin_ok:
 		var sp = Vector3(randf_range(-16, 16), randf_range(-16, 16), randf_range(-16, 16))
-		var tw = mi.create_tween().set_loops(0)
+		var tw = Game.safe_loops(mi.create_tween())
 		tw.tween_method(func(k: float):
 			if is_instance_valid(mi):
 				mi.rotation = sp * k, 0.0, 2.0, 2.0)

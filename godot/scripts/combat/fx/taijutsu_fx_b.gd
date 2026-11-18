@@ -750,7 +750,7 @@ static func chodan_koro(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	shell.set_instance_shader_parameter("fade", 1.0)
 	shell.scale = Vector3.ONE * 0.35
 	shell.create_tween().tween_property(shell, "scale", Vector3.ONE, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	shell.create_tween().set_loops().tween_property(shell, "rotation:x", TAU, 0.4).from(0.0)
+	Game.safe_loops(shell.create_tween()).tween_property(shell, "rotation:x", TAU, 0.4).from(0.0)
 	# kalkış: ayak altında toz halkası
 	var g0 = pj.gp(c.global_position)
 	_dust(host, g0, 8, 0.6, 0.4, 0.7, DUST, 0.5, 1.4)
@@ -1409,7 +1409,7 @@ static func _nunchaku(pj: PathJutsu, c: Node3D, dur: float) -> void:
 		piv.add_child(s2)
 		s2.position = Vector3(0, 0, 0.12)
 		s2.set_instance_shader_parameter("fade", 1.0)
-		piv.create_tween().set_loops().tween_property(piv, "rotation:x", TAU * (1.0 if side == "RightHand" else -1.0), 0.16).from(0.0)
+		Game.safe_loops(piv.create_tween()).tween_property(piv, "rotation:x", TAU * (1.0 if side == "RightHand" else -1.0), 0.16).from(0.0)
 		pj.free_after(dur, ba)
 
 

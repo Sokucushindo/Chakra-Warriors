@@ -107,10 +107,29 @@ class K:
 		return body()
 
 	func ring(y: float, wd: float, col: Color, d := 0.007, lift := 0.002, a0 := -PI, a1 := PI, bins := 28) -> void:
-		if ok:
+		if not ok:
+			return
+		if wd > 0.012:
 			m._sk_ring(1, y, wd, d, col, a0, a1, bins, lift)
+			return
+		var xm = _half_at(y) * 0.96
+		var full = a1 - a0 > TAU - 0.01
+		if not full:
+			xm *= sin(minf(maxf(absf(a0), absf(a1)), PI * 0.5))
+		m._sk_path(Vector2(-xm, y), Vector2(xm, y), wd, d, col, true, lift + 0.003, 12)
+		if full:
+			m._sk_path(Vector2(-xm, y), Vector2(xm, y), wd, d, col, false, lift + 0.003, 12)
 
-	func collar(y: float, wd: float, col: Color, r := 0.11, a0 := -PI, a1 := PI) -> void:
+	## o yükseklikte kabuğun yarı genişliği (bel üstünde kollar sayılmaz)
+	func _half_at(y: float) -> float:
+		var cap = 0.15 if y >= w - 0.02 else 0.3
+		var best = 0.06
+		for q in (m._sk["v"] as PackedVector3Array):
+			if absf(q.y - y) < 0.02 and absf(q.x) < cap and absf(q.x) > best:
+				best = absf(q.x)
+		return best
+
+	func collar(y: float, wd: float, col: Color, r := 0.14, a0 := -PI, a1 := PI) -> void:
 		if ok:
 			m._sk_ring(1, y, wd, 0.008, col, a0, a1, 24, 0.003, 0.0, 0.0, r)
 
@@ -174,9 +193,9 @@ class K:
 			prev = q
 
 	## sıra perçin
-	func rivets(y: float, x0: float, x1: float, cnt: int, col: Color, front := true) -> void:
+	func rivets(y: float, x0: float, x1: float, cnt: int, col: Color, front := true, r := 0.011) -> void:
 		for i in cnt:
-			btn(lerpf(x0, x1, float(i) / maxf(cnt - 1, 1)), y, 0.011, col, front)
+			btn(lerpf(x0, x1, float(i) / maxf(cnt - 1, 1)), y, r, col, front)
 
 	func dangle(bone: String, p: Vector3, dir: Vector3, length: float, wd: float, col: Color, stiff := 0.2) -> void:
 		dangles.append([bone, p, dir, length, wd, col, stiff])
@@ -218,20 +237,10 @@ static func _cuirass(k: K, plate_c: Color, trim: Color, lace: Color, rows: int, 
 	k.plate(0.0, lerpf(y0, y1, 0.5), 0.05, 0.05, plate_c.lightened(0.15), 0.008, true, 0.012)
 
 
-## Belden sarkan zırh eteği: plaka sıraları
-static func _tassets(k: K, col: Color, trim: Color, rows: int, y_end: float) -> void:
-	k.low()
-	for i in rows:
-		var y = lerpf(k.w - 0.08, y_end, float(i) / maxf(rows - 1, 1))
-		k.ring(y, 0.012, trim, 0.005, 0.008)
-		k.rivets(y + 0.018, -0.1, 0.1, 3, col.lightened(0.35))
-	k.line(0.0, k.w - 0.05, 0.0, y_end, 0.012, trim, true, 8)
-
-
 ## Geniş kollu cübbe / kimono: yaka bandı V, kol ağzı, etek biyesi
 static func _robe(k: K, band: Color, hem = null, cuffc = null) -> void:
 	k.top()
-	k.pair(0.075, k.n - 0.03, 0.0, k.w + 0.05, 0.03, band)
+	k.pair(0.07, k.n - 0.03, 0.0, k.w + 0.05, 0.02, band)
 	if cuffc != null:
 		k.arm(1.0)
 		k.cuff(0.86, 0.024, cuffc, 1.0)
@@ -286,7 +295,6 @@ static func _recipe(k: K, sid: String) -> void:
 		"ss_orman_zirh_genc":
 			var ar = C("6d7b6d")
 			_cuirass(k, ar, ar.darkened(0.3), C("2a2f2a"), 5, 0.11)
-			_tassets(k, ar, ar.darkened(0.32), 4, k.kn + 0.08)
 		"ss_pembe_ceket":
 			k.top()
 			k.ring(k.w + 0.04, 0.026, C("c6b4e6"), 0.006, 0.004)
@@ -302,17 +310,12 @@ static func _recipe(k: K, sid: String) -> void:
 			k.line(0.03, k.n - 0.03, 0.03, k.w - 0.02, 0.009, wh, true, 9)
 			k.collar(k.n - 0.02, 0.022, wh)
 			k.btn(0.03, k.n - 0.06, 0.016, GOLD)
-			k.low()
-			k.ring(k.kn + 0.04, 0.014, wh, 0.004, 0.004)
 		"ss_pembe_kazak":
 			var p = C("e9b4c8")
 			k.top()
 			k.ring(k.w + 0.03, 0.03, WHITE, 0.007, 0.004)
 			k.ring(k.c - 0.02, 0.018, WHITE, 0.005, 0.003)
 			k.collar(k.n - 0.03, 0.022, p.darkened(0.12))
-			k.low()
-			for t in [0.3, 0.55, 0.8]:
-				k.ring(lerpf(k.w, k.kn, t), 0.009, p, 0.004, 0.004)
 		"ss_pembe_kunoichi":
 			k.top()
 			k.zip(k.n - 0.05, k.w - 0.02, C("efe9e4"), STEEL)
@@ -324,18 +327,17 @@ static func _recipe(k: K, sid: String) -> void:
 		"ss_pembe_kunoichi2":
 			var wh = C("efe7e0")
 			k.top()
-			k.ring(k.w + 0.01, 0.075, INK, 0.008, 0.004)
-			k.line(0.07, k.n - 0.03, -0.09, k.w + 0.05, 0.014, wh, true, 9)
+			k.line(0.05, k.n - 0.03, -0.07, k.w + 0.05, 0.01, wh, true, 9)
 			k.collar(k.n - 0.02, 0.02, wh)
-			k.btns(-0.02, k.n - 0.07, k.c - 0.03, 3, 0.014, wh)
+			k.btns(-0.03, k.n - 0.07, k.c - 0.03, 3, 0.012, wh)
+			k.ring(k.w + 0.03, 0.05, INK, 0.008, 0.006)
 			k.low()
-			k.pair(0.07, k.w - 0.05, 0.1, k.kn + 0.08, 0.009, wh)
+			k.ring(k.w - 0.01, 0.06, INK, 0.01, 0.006)
 		"ss_pijama":
 			var d = C("a9a9bc")
 			k.top()
-			k.pair(0.015, k.n - 0.05, 0.015, k.w - 0.05, 0.01, d)
-			k.btns(0.0, k.n - 0.07, k.w - 0.02, 5, 0.016, WHITE)
-			k.pocket(0.08, k.c - 0.05, 0.075, 0.075, C("bcbccd"), d)
+			k.line(0.02, k.n - 0.05, 0.02, k.w - 0.05, 0.012, d, true, 9)
+			k.btns(0.02, k.n - 0.08, k.w - 0.02, 4, 0.016, WHITE)
 			k.spiral(0.0, k.c - 0.02, 0.05, C("d65a4a"))
 			k.cuff(0.9, 0.02, d)
 			k.body()
@@ -355,13 +357,7 @@ static func _recipe(k: K, sid: String) -> void:
 			k.pair(0.11, k.n - 0.08, 0.1, k.w + 0.07, 0.008, pl.darkened(0.3))
 			k.ring(k.w + 0.015, 0.058, C("a8303a"), 0.009, 0.008)
 			k.plate(0.05, k.w + 0.015, 0.06, 0.05, C("86232d"), 0.01, true, 0.014)
-			if sid == "ss_ruzgar_zirh":
-				k.low()
-				k.pair(0.035, k.w - 0.06, 0.08, k.kn + 0.02, 0.008, C("332750"))
-				k.ring(k.kn - 0.04, 0.014, C("332750"), 0.004, 0.004)
-			else:
-				k.low()
-				k.ring(k.h - 0.14, 0.012, C("c6c9dc"), 0.004, 0.004)
+			if sid != "ss_ruzgar_zirh":
 				k.dangle("Hips", Vector3(0.11, k.h - 0.04, 0.09), Vector3(0.02, -1, 0.02), 0.34, 0.05, C("8c2a34"))
 		"ss_ruzgar_genc":
 			var r = C("a8303a")
@@ -403,19 +399,14 @@ static func _recipe(k: K, sid: String) -> void:
 			var oj = C("c85a22")
 			k.top()
 			k.collar(k.n - 0.03, 0.016, C("343a56"))
-			k.body()
-			k.ring(k.w + 0.0, 0.06, oj, 0.012, 0.012)
-			k.plate(0.0, k.w - 0.01, 0.1, 0.06, oj.darkened(0.14), 0.016, true, 0.018)
-			k.line(0.03, k.w - 0.03, 0.09, k.h - 0.17, 0.05, oj, true, 7, 0.008)
-			k.line(-0.03, k.w - 0.03, -0.09, k.h - 0.17, 0.05, oj, true, 7, 0.008)
+			k.low()
+			k.ring(k.w - 0.02, 0.05, oj, 0.01, 0.006)
+			k.plate(0.0, k.w - 0.03, 0.09, 0.055, oj.darkened(0.14), 0.016, true, 0.012)
 		"ss_samuray_kuro":
 			_cuirass(k, C("24242c"), C("a8242a"), C("8d1f26"), 5, 0.115)
-			_tassets(k, C("24242c"), C("a8242a"), 5, k.kn + 0.02)
 			k.top()
 			k.rivets(k.c + 0.04, -0.09, 0.09, 5, C("c8ccd4"))
 		"ss_sari_simsek":
-			k.top()
-			k.pair(0.075, k.n - 0.05, 0.085, k.w - 0.1, 0.012, GOLD)
 			k.vest()
 			k.zip(k.n - 0.09, k.w, C("3a4a38"), STEEL)
 			k.pocket(0.075, k.c - 0.06, 0.06, 0.08, C("56704f"), C("3a4a38"), STEEL)
@@ -434,20 +425,14 @@ static func _recipe(k: K, sid: String) -> void:
 			_cuirass(k, ar, ar.darkened(0.42), INK, 5, 0.11)
 			k.top()
 			k.line(0.02, k.c - 0.02, -0.03, k.c - 0.1, 0.006, INK, true, 4)
-			_tassets(k, ar, ar.darkened(0.45), 5, k.kn + 0.03)
 		"ss_savas_reisi2":
 			k.top()
-			k.collar(k.n - 0.01, 0.05, C("7a1e24"))
+			k.collar(k.n - 0.01, 0.05, C("7a1e24"), 0.2)
 			k.btns(0.0, k.c, k.w, 5, 0.02, INK)
-			k.low()
-			k.ring(k.kn + 0.1, 0.008, INK, 0.003, 0.004)
-			k.line(0.0, k.w, 0.0, k.a + 0.08, 0.008, C("d0ccc4"), true, 10)
 		"ss_savas_reisi3":
 			var l = C("6a4426")
 			k.top()
-			k.line(0.13, k.n - 0.07, -0.13, k.w + 0.03, 0.032, l, true, 9, 0.006)
-			k.line(0.13, k.n - 0.07, -0.13, k.w + 0.03, 0.032, l, false, 9, 0.006)
-			k.plate(0.0, k.c - 0.06, 0.05, 0.05, l.darkened(0.3), 0.008, true, 0.008)
+			k.plate(0.0, k.c - 0.06, 0.04, 0.04, l.darkened(0.3), 0.006, true, 0.014)
 			k.ring(k.w + 0.0, 0.03, INK, 0.007, 0.004)
 		"ss_savas_reisi_genc":
 			var ob = C("8a7da8")
@@ -455,7 +440,7 @@ static func _recipe(k: K, sid: String) -> void:
 			k.ring(k.w + 0.02, 0.08, ob, 0.01, 0.004)
 			for dy in [-0.022, 0.022]:
 				k.ring(k.w + 0.02 + dy, 0.006, ob.darkened(0.3), 0.004, 0.014)
-			k.collar(k.n - 0.01, 0.05, C("2f2348"))
+			k.collar(k.n - 0.01, 0.05, C("2f2348"), 0.2)
 		"ss_seytan":
 			var g1 = C("8a8a90")
 			k.top()
@@ -495,14 +480,10 @@ static func _recipe(k: K, sid: String) -> void:
 			k.line(0.0, k.n - 0.05, 0.08, k.c - 0.1, 0.02, y1, false, 6)
 			k.ring(k.w + 0.0, 0.04, C("5a8a3a"), 0.008, 0.005)
 			k.cuff(0.28, 0.04, y1)
-			k.body()
-			k.pair(0.1, k.h - 0.1, 0.09, k.kn + 0.08, 0.018, y1)
-			k.pair(0.075, k.kn - 0.02, 0.065, k.a + 0.12, 0.012, INK)
 		"ss_sis_striker":
 			k.top()
 			for x in [-0.09, -0.03, 0.03, 0.09]:
 				k.line(x, k.n - 0.1, x, k.w - 0.06, 0.005, C("7f70b0"), true, 8)
-			k.line(0.12, k.c + 0.03, -0.1, k.w + 0.03, 0.026, C("6b8a3a"), true, 8, 0.006)
 			k.ring(k.w - 0.01, 0.026, C("6b8a3a"), 0.006, 0.006)
 			k.pocket(0.1, k.w - 0.06, 0.08, 0.07, C("3a2f5a"), C("2a2244"), STEEL)
 		"ss_sis_striker_beyaz", "ss_sis_striker_siyah":
@@ -511,22 +492,20 @@ static func _recipe(k: K, sid: String) -> void:
 			k.top()
 			k.pair(0.045, k.n - 0.08, 0.045, k.w - 0.06, 0.006, ye)
 			k.ring(k.w - 0.01, 0.026, ye, 0.006, 0.006)
-			k.line(0.12, k.c + 0.03, -0.1, k.w + 0.03, 0.022, dk, true, 8, 0.006)
 			for i in 4:
 				k.plate(0.07 + (i % 2) * 0.03, k.w - 0.06 - i * 0.012, 0.024, 0.024, dk if i % 2 == 0 else ye, 0.006, true, 0.008)
 		"ss_siyah_ceket":
 			_track(k, C("f08a24"), C("34343c"), C("f4f0e6"))
 			k.pocket(0.09, k.w + 0.02, 0.08, 0.075, C("24242c"), C("34343c"))
 			k.pocket(-0.09, k.w + 0.02, 0.08, 0.075, C("24242c"), C("34343c"))
-			k.cuff(0.45, 0.05, C("d06a2a"), -1.0)
+			k.arm(1.0)
+			k.cuff(0.3, 0.05, C("b01c22"), 1.0, 0.007, 0.004)
+			k.arm(-1.0)
+			k.cuff(0.72, 0.05, C("3a3a42"), -1.0, 0.01, 0.004)
 		"ss_siyah_tulum":
-			var gl = C("ffdcf2")
 			k.top()
-			k.line(0.12, k.n - 0.09, -0.08, k.w + 0.02, 0.02, C("2c2c34"), true, 8, 0.006)
-			k.line(-0.12, k.n - 0.09, 0.08, k.w + 0.02, 0.02, C("2c2c34"), true, 8, 0.006)
 			k.plate(0.0, k.c - 0.05, 0.035, 0.035, STEEL, 0.007, true, 0.01)
 			k.body()
-			k.pair(0.1, k.kn + 0.1, 0.085, k.kn - 0.03, 0.01, gl)
 			k.cuff(0.86, 0.03, C("3a3a44"))
 		"ss_sokak":
 			var d = C("2d2445")
@@ -556,13 +535,9 @@ static func _recipe(k: K, sid: String) -> void:
 			k.pair(0.1, k.c + 0.03, 0.0, k.c - 0.1, 0.014, WHITE)
 			k.ring(k.w + 0.02, 0.022, C("e6dcae"), 0.007, 0.006)
 			k.plate(0.0, k.w + 0.02, 0.05, 0.03, WHITE, 0.008, true, 0.01)
-			k.low()
-			k.line(-0.085, k.w - 0.04, -0.13, k.kn + 0.02, 0.012, WHITE, true, 9)
-			k.ring(k.kn - 0.02, 0.012, WHITE, 0.004, 0.004)
 		"ss_su_zirh":
 			var ar = C("2a4ab8")
 			_cuirass(k, ar, ar.darkened(0.35), C("9ab0f0"), 4, 0.1)
-			_tassets(k, ar, ar.darkened(0.35), 3, k.h - 0.14)
 			k.body()
 			k.cuff(0.5, 0.05, C("b8a8d8"))
 		"ss_suna_genin":
@@ -579,7 +554,7 @@ static func _recipe(k: K, sid: String) -> void:
 			var og = C("d0802a")
 			k.top()
 			k.pair(0.1, k.n - 0.08, 0.13, k.w - 0.06, 0.014, og)
-			k.collar(k.n - 0.01, 0.05, C("8e2020"))
+			k.collar(k.n - 0.01, 0.05, C("8e2020"), 0.2)
 			k.line(-0.12, k.w - 0.02, 0.12, k.w - 0.02, 0.016, og, false, 8)
 			k.rivets(k.c, -0.05, 0.05, 2, GOLD)
 			k.line(0.0, k.n - 0.1, 0.0, k.w, 0.008, gn.darkened(0.3), false, 8)
@@ -601,8 +576,6 @@ static func _recipe(k: K, sid: String) -> void:
 			k.ring(k.w - 0.04, 0.024, a1.darkened(0.4), 0.005, 0.003)
 		"ss_tavsan_tanri":
 			k.top()
-			k.line(0.12, k.n - 0.07, -0.11, k.w + 0.03, 0.03, C("e0c040"), true, 9, 0.006)
-			k.line(0.1, k.n - 0.05, -0.13, k.w + 0.05, 0.016, C("5a3a90"), true, 9, 0.007)
 			k.btns(0.0, k.c - 0.02, k.w - 0.04, 4, 0.024, INK)
 			k.low()
 			k.btns(0.0, k.h - 0.06, k.kn + 0.06, 3, 0.024, INK)
@@ -611,8 +584,6 @@ static func _recipe(k: K, sid: String) -> void:
 			k.pair(0.05, k.n - 0.04, 0.06, k.w - 0.05, 0.006, INK)
 			k.body()
 			k.plate(0.0, k.c - 0.04, 0.05, 0.12, C("d8c060"), 0.005, true, 0.004)
-			k.low()
-			k.pair(0.09, k.w - 0.06, 0.14, k.a + 0.12, 0.005, INK)
 		"ss_tehlike_ceket":
 			var d = C("b89c74")
 			k.top()
@@ -674,7 +645,6 @@ static func _recipe(k: K, sid: String) -> void:
 			k.low()
 			k.pair(0.07, k.w - 0.06, 0.1, k.kn + 0.02, 0.008, b0)
 			k.line(0.0, k.w - 0.06, 0.0, k.kn + 0.02, 0.009, b0)
-			k.ring(k.kn + 0.0, 0.014, b0, 0.004, 0.004)
 			k.body()
 			k.cuff(0.82, 0.05, INK)
 			k.dangle("Hips", Vector3(0.14, k.w - 0.05, 0.08), Vector3(0.05, -1, 0.05), 0.22, 0.03, C("7a62c0"), 0.25)
@@ -684,13 +654,11 @@ static func _recipe(k: K, sid: String) -> void:
 			k.ring(k.w - 0.02, 0.016, C("6f6f90"), 0.005, 0.003)
 			k.body()
 			k.ring(k.w - 0.05, 0.03, C("172038"), 0.005, 0.004)
-			k.pair(0.1, k.h - 0.1, 0.09, k.kn + 0.12, 0.005, C("172038"))
 			k.cuff(0.9, 0.03, INK)
 		"ss_yelpaze_cocuk":
 			k.vest()
 			k.pair(0.05, k.n - 0.06, 0.05, k.w, 0.007, C("6a6a70"))
-			k.line(0.12, k.c + 0.03, -0.12, k.w + 0.04, 0.03, WHITE, true, 8, 0.007)
-			k.plate(0.0, k.c - 0.05, 0.05, 0.05, C("d4d4d0"), 0.012, true, 0.008)
+			k.plate(0.0, k.c - 0.05, 0.05, 0.05, C("d4d4d0"), 0.012, true, 0.014)
 			k.dangle("UpperChest", Vector3(0.03, k.c - 0.08, 0.15), Vector3(0.1, -1, 0.05), 0.14, 0.024, WHITE)
 			k.body()
 			k.pocket(0.0, k.w - 0.03, 0.09, 0.07, LEATHER, LEATHER.darkened(0.3), STEEL, false)
@@ -710,18 +678,14 @@ static func _recipe(k: K, sid: String) -> void:
 			k.body()
 			k.cuff(0.5, 0.06, C("8a8a90"))
 		"ss_yelpaze_kilic":
-			var l = C("5a3a24")
 			k.top()
 			k.collar(k.n - 0.005, 0.04, C("2c2c32"))
-			k.line(0.13, k.n - 0.07, -0.1, k.c - 0.1, 0.04, l, true, 8, 0.006)
-			k.line(0.13, k.n - 0.07, -0.1, k.c - 0.1, 0.04, l, false, 8, 0.006)
-			k.plate(0.02, k.c - 0.03, 0.03, 0.04, STEEL, 0.006, true, 0.009)
+			k.plate(0.02, k.c - 0.03, 0.03, 0.04, STEEL, 0.006, true, 0.016)
 			k.body()
 			k.ring(k.w - 0.04, 0.02, C("161f38"), 0.005, 0.004)
 		"ss_yelpaze_takim":
 			var bl = C("8ca8cc")
 			k.top()
-			k.line(0.1, k.n - 0.06, -0.1, k.w + 0.03, 0.02, C("3a3a44"), true, 8, 0.006)
 			k.line(0.015, k.n - 0.05, 0.015, k.w - 0.12, 0.012, bl, true, 9)
 			k.btns(0.04, k.c, k.w - 0.08, 4, 0.014, bl.darkened(0.3))
 			k.ring(k.w - 0.1, 0.014, bl, 0.004, 0.004)
@@ -740,7 +704,6 @@ static func _recipe(k: K, sid: String) -> void:
 			k.top()
 			for i in 5:
 				k.line(-0.09 + i * 0.045, k.c + 0.03, -0.09 + i * 0.045 + 0.03, k.w + 0.05, 0.004, INK, true, 6)
-			_tassets(k, C("26262e"), C("6a6488"), 4, k.kn + 0.04)
 		"ss_yemek":
 			var g2 = C("1b5126")
 			k.top()
@@ -798,9 +761,6 @@ static func _recipe(k: K, sid: String) -> void:
 			k.top()
 			k.pair(0.11, k.n - 0.09, 0.12, k.w + 0.04, 0.006, C("c8bc96"))
 			k.collar(k.n - 0.02, 0.03, INK)
-			if k.low():
-				k.pair(0.03, k.w - 0.04, 0.05, k.kn + 0.1, 0.006, C("c8bc96"))
-				k.ring(k.kn + 0.08, 0.012, C("c8bc96"), 0.004, 0.004)
 		"ss_yilan_zirh":
 			var p = C("b8b8bc")
 			k.top()
@@ -826,7 +786,6 @@ static func _recipe(k: K, sid: String) -> void:
 			k.body()
 			k.cuff(0.86, 0.03, C("2c2c3c"))
 			k.ring(k.w - 0.04, 0.02, o2, 0.005, 0.003)
-			k.pair(0.11, k.h - 0.12, 0.08, k.h - 0.2, 0.01, o2)
 
 
 static func _striker(k: K, sid: String) -> void:
