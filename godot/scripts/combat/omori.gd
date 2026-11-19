@@ -46,7 +46,9 @@ static func has_set(who: Node3D) -> bool:
 		var gs: Dictionary = Gear.equipped(Game.profile, "set")
 		return not gs.is_empty() and bool(Gear.item(String(gs["id"])).get("agirlik", false))
 	var lk = who.get("look")
-	return lk is Dictionary and lk.get("leg_warmers") is Color
+	if not (lk is Dictionary):
+		return false
+	return lk.get("leg_warmers") is Color or bool(Gear.item(str(lk.get("set_id", ""))).get("agirlik", false))   # elle modellenmiş Gōken: tozluk kıyafetin içinde
 
 
 static func is_off(who: Node3D) -> bool:
