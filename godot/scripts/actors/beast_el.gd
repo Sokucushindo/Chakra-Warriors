@@ -105,6 +105,52 @@ class Kopru extends Node:
 			skel.set_bone_pose_scale(e[0], g.basis.get_scale())
 
 
+## Baş parçası başlangıcı: bundan sonra eklenen yüzeyler ayrı "baş" ağı olur (Susanoo zırhı başı ince katmanla kaplar, yüz tanınır)
+var head_from := -1
+func begin_head() -> void:
+	head_from = Ix.size()
+
+
+## Susanoo zırhı parça boyunu pivot altındaki ağların köşelerinden ölçer: her köşe en çok bağlı olduğu pivotun altına
+## görünmez "olcu" nokta ağı olarak konur (tek parça derili gövdede pivot altında ağ yoktu, zırh boyu boş çıkıyordu)
+func _proxies() -> void:
+	var node_of := {}
+	for k in bones.keys():
+		if k is Node3D:
+			node_of[int(bones[k])] = k
+	var per := {}
+	var step := maxi(1, V.size() / 6000)
+	for i in range(0, V.size(), step):
+		var best := -1
+		var bw := -1.0
+		for q in 4:
+			var w := Wt[i * 4 + q]
+			if w > bw:
+				bw = w
+				best = Bi[i * 4 + q]
+		if not node_of.has(best):
+			continue
+		var nd: Node3D = node_of[best]
+		if not per.has(nd):
+			per[nd] = PackedVector3Array()
+		per[nd].append(V[i])
+	for nd in per.keys():
+		var inv: Transform3D = rs(nd).affine_inverse()
+		var pts := PackedVector3Array()
+		for v in per[nd]:
+			pts.append(inv * v)
+		var arr := []
+		arr.resize(Mesh.ARRAY_MAX)
+		arr[Mesh.ARRAY_VERTEX] = pts
+		var am := ArrayMesh.new()
+		am.add_surface_from_arrays(Mesh.PRIMITIVE_POINTS, arr)
+		var mi := MeshInstance3D.new()
+		mi.name = "olcu"
+		mi.mesh = am
+		mi.visible = false
+		(nd as Node3D).add_child(mi)
+
+
 ## Yüzeyi derili ağ olarak iskelete bağla
 func finish(mat: Material) -> MeshInstance3D:
 	var arr := []
@@ -115,18 +161,30 @@ func finish(mat: Material) -> MeshInstance3D:
 	arr[Mesh.ARRAY_BONES] = Bi
 	arr[Mesh.ARRAY_WEIGHTS] = Wt
 	arr[Mesh.ARRAY_INDEX] = Ix
-	var am := ArrayMesh.new()
-	am.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
-	var mi := MeshInstance3D.new()
-	mi.name = "ElGovde"
-	mi.mesh = am
-	mi.material_override = mat
-	skel.add_child(mi)
-	mi.skeleton = NodePath("..")
-	mi.skin = skel.create_skin_from_rest_transforms()
-	mi.extra_cull_margin = 2.0
+	var parts := [[Ix, "ElGovde", false]]
+	if head_from > 0 and head_from < Ix.size():
+		parts = [[Ix.slice(0, head_from), "ElGovde", false], [Ix.slice(head_from), "ElBas", true]]
+	var skin := skel.create_skin_from_rest_transforms()
+	var first: MeshInstance3D = null
+	for pt in parts:
+		arr[Mesh.ARRAY_INDEX] = pt[0]
+		var am := ArrayMesh.new()
+		am.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+		var mi := MeshInstance3D.new()
+		mi.name = String(pt[1])
+		mi.mesh = am
+		mi.material_override = mat
+		if pt[2]:
+			mi.set_meta("beast_head", true)
+		skel.add_child(mi)
+		mi.skeleton = NodePath("..")
+		mi.skin = skin
+		mi.extra_cull_margin = 2.0
+		if first == null:
+			first = mi
+	_proxies()
 	kopru.sync()
-	return mi
+	return first
 
 
 # ------------------------------------------------------------------ ağırlık

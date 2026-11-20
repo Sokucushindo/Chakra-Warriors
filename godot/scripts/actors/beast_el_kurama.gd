@@ -115,9 +115,10 @@ static func build(r: BeastRig, root: Node3D) -> void:
 	for sx: float in [-1.0, 1.0]:
 		_arm(be, r, LG[sx], sx)
 		_leg(be, r, LG[sx], sx)
-	_head(be, r, face)
 	for e in TL:
 		_tail(be, e[0], e[1], e[2], e[3])
+	be.begin_head()   # baş ayrı ağ: Susanoo zırhı yüzü ince katmanla kaplar, Kurama tanınır
+	_head(be, r, face)
 	be.finish(BeastKurama.mat())
 
 

@@ -358,6 +358,8 @@ func wear(r: BeastRig, s: Susanoo) -> void:
 				in_head = true
 				break
 			q = q.get_parent()
+		if mi.has_meta("beast_head"):   # tek parça derili canavarın ayrı baş ağı
+			in_head = true
 		restored.append([mi, mi.material_overlay])
 		mi.material_overlay = film if in_head else plate
 

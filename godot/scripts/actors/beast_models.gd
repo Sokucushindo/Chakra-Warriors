@@ -20,6 +20,10 @@ const INFO := {
 
 ## true: Kurama elle modellenmiş yeni gövdeyle kurulur (deneme; varsayılan eski). Ortam değişkeni KURAMA_EL=1 de açar.
 const KURAMA_EL := true
+## true: On Kuyruk elle modellenmiş yeni gövdeyle kurulur. Ortam JUBI_EL=0 eskiyi açar (karşılaştırma)
+const JUBI_EL := false
+## true: Shukaku elle modellenmiş yeni gövdeyle (ortam SHUKAKU_EL=0 eskiyi açar)
+const SHUKAKU_EL := false
 
 
 ## yüzey: 0 kürk, 1 deri/pul, 2 kabuk/zırh, 3 sümük
@@ -54,7 +58,11 @@ static func build(id: String, height_m := -1.0) -> BeastRig:
 	root.name = "Design"
 	r.add_child(root)
 	match id:
-		"shukaku": BeastShukaku.build(r, root)
+		"shukaku":
+			if SHUKAKU_EL and OS.get_environment("SHUKAKU_EL") != "0":
+				load("res://scripts/actors/beast_el_shukaku.gd").build(r, root)
+			else:
+				BeastShukaku.build(r, root)
 		"matatabi": BeastMatatabi.build(r, root)
 		"isobu": BeastIsobu.build(r, root)
 		"son_goku": BeastSonGoku.build(r, root)
@@ -62,7 +70,11 @@ static func build(id: String, height_m := -1.0) -> BeastRig:
 		"saiken": BeastSaiken.build(r, root)
 		"chomei": BeastChomei.build(r, root)
 		"gyuki": BeastGyuki.build(r, root)
-		"jubi": BeastJubi.build(r, root)
+		"jubi":
+			if JUBI_EL and OS.get_environment("JUBI_EL") != "0":
+				load("res://scripts/actors/beast_el_jubi.gd").build(r, root)
+			else:
+				BeastJubi.build(r, root)
 		_:
 			if id == "kurama" and (KURAMA_EL or OS.get_environment("KURAMA_EL") == "1"):
 				load("res://scripts/actors/beast_el_kurama.gd").build(r, root)   # elle modellenmiş deneme (iskelet + derili tek ağ)
