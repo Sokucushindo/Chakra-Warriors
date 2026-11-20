@@ -89,7 +89,7 @@ func take_hit(inf: Dictionary) -> void:
 			if is_instance_valid(w) and atk_node.global_position.distance_to(w.global_position) < maxf(6.0, height * 0.12):
 				dmg *= 3.0
 				Combat.popup_text(w.global_position + Vector3.UP * 2.0, "ZAYIF NOKTA!", Color(1, 0.85, 0.3))
-				FX.impact(w.global_position, Color(1, 0.9, 0.4), 1.5)
+				BeastFX.weak_hit(w.global_position)
 				break
 	if subdued:
 		dmg = 0.0
@@ -190,7 +190,7 @@ func _physics_process(dt: float) -> void:
 		ally_life -= dt
 		if ally_life <= 0.0 or not is_instance_valid(ally_owner) or hp < max_hp * 0.15:
 			dead = true
-			FX.smoke_puff(global_position + Vector3.UP * height * 0.5, height * 0.4, 40)
+			BeastFX.vanish(global_position + Vector3.UP * height * 0.5, height, info["chakra"])
 			Sfx.play("poof", global_position, 0.5)
 			queue_free()
 			return
@@ -408,7 +408,7 @@ func _run_attack(_dt: float) -> void:
 				atk_stage = 6
 				rig.play_action("tail", 0.55)
 				Combat.hit_sphere(self, global_position + Vector3.UP * height * 0.2, height * 0.7, {"dmg": _dmg(26.0), "knock": 38.0, "launch": 8.0, "kind": "heavy"})
-				FX.ring(global_position + Vector3.UP * height * 0.2, info["chakra"], height * 1.4, 0.5)
+				BeastFX.tail_sweep(global_position, info["chakra"], height * 1.4)
 		"leap":
 			# sıçrayış yayı: çömelme (0-0.22), uçuş (0.22-0.84), iniş darbesi
 			var u = clampf((k - 0.22) / 0.62, 0.0, 1.0)
@@ -425,7 +425,7 @@ func _run_attack(_dt: float) -> void:
 			if k > 0.35 and not atk_hit:
 				atk_hit = true
 				Combat.hit_sphere(self, global_position + Vector3.UP * height * 0.2, height * 0.75, {"dmg": _dmg(30.0), "knock": 34.0, "launch": 8.0, "kind": "heavy"})
-				FX.ring(global_position + Vector3.UP * height * 0.2, info["chakra"], height * 1.5, 0.6)
+				BeastFX.tail_sweep(global_position, info["chakra"], height * 1.5)
 				Sfx.play("whoosh", global_position, 0.35)
 				if Game.world:
 					Game.world.env.add_shake(0.8)
@@ -434,7 +434,7 @@ func _run_attack(_dt: float) -> void:
 				atk_hit = true
 				Sfx.play("roar", global_position, 0.55)
 				Combat.hit_sphere(self, global_position + Vector3.UP * height * 0.4, height * 0.9, {"dmg": _dmg(10.0), "knock": 40.0, "launch": 10.0, "kind": "heavy"})
-				FX.ring(rig.mouth_pos(), info["chakra"], height * 1.2, 0.7, false, fwd)
+				BeastFX.roar(rig.mouth_pos(), info["chakra"], height * 1.2, fwd)
 				if Game.world:
 					Game.world.env.add_shake(1.2)
 		"elem":
@@ -451,9 +451,7 @@ func _run_attack(_dt: float) -> void:
 
 ## Yere vuruş: halka şok dalgası + krater izi
 func _shockwave(c: Vector3, r: float) -> void:
-	FX.ring(c + Vector3.UP * 0.5, Color(0.85, 0.75, 0.55), r, 0.7)
-	FX.burst(c + Vector3.UP * 2.0, {"amount": 60, "life": 1.4, "tex": FX.tex_smoke, "add": false, "size": height * 0.15, "vmin": 6, "vmax": 18, "gravity": Vector3(0, -2, 0),
-		"colors": [Color(0.75, 0.65, 0.5, 0.9), Color(0.6, 0.55, 0.45, 0.0)]})
+	BeastFX.stomp(c, r * 0.5)
 	_crater(c, r * 0.35)
 	Sfx.play("boom", c, 0.5)
 	if Game.world:
@@ -531,8 +529,7 @@ func _element_attack_old() -> void:
 			tw.tween_property(self, "global_position", end, 0.6)
 			tw.tween_callback(func():
 				Combat.hit_zone(self, global_position, face_dir(), height * 0.9, 50.0, height, {"dmg": _dmg(40.0), "knock": 40.0, "launch": 10.0, "kind": "heavy", "element": "futton"})
-				FX.burst(global_position + Vector3.UP * height * 0.3, {"amount": 50, "life": 1.5, "tex": FX.tex_smoke, "add": false, "size": height * 0.12, "vmin": 4, "vmax": 12,
-					"colors": [Color(1, 1, 1, 0.8), Color(1, 1, 1, 0)]}))
+				BeastFX.steam(global_position + Vector3.UP * height * 0.3, height))
 		"saiken":  # aşındırıcı sümük alanı
 			_field(pl.global_position, height * 0.25, Color(0.75, 0.95, 0.85), 7.0, _dmg(6.0), "suiton")
 		"chomei":  # pul tozu: görüşü bulandırır + hücum
@@ -563,15 +560,14 @@ func _proj(from: Vector3, dir: Vector3, spd: float, r: float, el: String, col: C
 	pr.life = 4.0
 	pr.info = {"dmg": dmg, "element": el, "knock": 18.0, "launch": 5.0, "kind": "heavy", "hitstop": 0.06}
 	if el == "yoton":   # Son Gokū lav kayası: enerji küresi/ateş patlaması değil
-		pr.add_child(VFX.lava_ball(maxf(1.5, r * 2.0)))
-		VFX.element_trail(pr, "yoton", col, maxf(0.8, r))
+		pr.add_child(BeastFX.lava_ball(maxf(1.5, r * 2.0)))
 	else:
-		pr.add_child(Projectile.energy_mesh(col.lightened(0.4), col, maxf(1.5, r * 2.0), 6.0, 0.0, 2.0))
+		pr.add_child(BeastFX.shot_ball(maxf(1.5, r * 2.0), col, el))
 	pr.on_hit = func(pos: Vector3, _t: Node3D) -> void:
 		if el == "yoton":
-			VFX.lava_splash(pos, maxf(1.5, r * 0.8))
+			BeastFX.lava_hit(pos, maxf(1.5, r * 0.8))
 		else:
-			FX.explosion(pos, maxf(1.0, r * 0.6), col)
+			BeastFX.shot_hit(pos, maxf(1.0, r * 0.6), col, el)
 		Combat.hit_sphere(self, pos, maxf(4.0, r * 2.5), {"dmg": dmg * 0.5, "element": el, "knock": 14.0, "kind": "heavy"}, pr.hit_list)
 	get_tree().current_scene.add_child(pr)
 	pr.global_position = from
@@ -583,9 +579,7 @@ func _field(c: Vector3, r: float, col: Color, dur: float, dps: float, el: String
 	var n = Node3D.new()
 	get_tree().current_scene.add_child(n)
 	n.global_position = c
-	FX.ring(c + Vector3.UP * 0.3, col, r * 2.0, 0.6)
-	var cloud = FX.burst(c + Vector3.UP * 2.0, {"amount": 50, "life": dur, "tex": FX.tex_smoke, "add": false, "size": r * 0.5, "vmin": 0.5, "vmax": 2.0, "gravity": Vector3.ZERO,
-		"colors": [Color(col.r, col.g, col.b, 0.75), Color(col.r, col.g, col.b, 0.0)]})
+	BeastFX.field(c, r, col, dur, id)
 	var t = {"v": 0.0}
 	var tm = Timer.new()
 	tm.wait_time = 0.5
@@ -638,7 +632,7 @@ func _minions() -> void:
 		p.y = Game.ground_height(p.x, p.z)
 		e.global_position = p
 		e.home = p
-		FX.smoke_puff(p + Vector3.UP, 1.5, 14)
+		BeastFX.minion(p + Vector3.UP, info["chakra"])
 
 
 # ------------------------------------------------------------------ boyun eğme / mühürleme
@@ -672,11 +666,7 @@ func sealed_away(into: Node3D) -> void:
 	Interact.items.erase(seal_item)
 	_end_fight()
 	var tgt = into.global_position + Vector3.UP if into else global_position
-	for i in 6:
-		get_tree().create_timer(i * 0.25).timeout.connect(func():
-			FX.ring(global_position + Vector3.UP * height * 0.5, info["chakra"], height * (1.2 - i * 0.18), 0.4, false, Vector3.UP))
-	FX.burst(global_position + Vector3.UP * height * 0.5, {"amount": 160, "life": 1.6, "tex": FX.tex_spark, "add": true, "size": height * 0.04, "vmin": 2, "vmax": 8, "gravity": (tgt - global_position).normalized() * 30.0,
-		"colors": [info["chakra"], Color(1, 1, 1, 0)]})
+	BeastFX.sealed(global_position + Vector3.UP * height * 0.5, height, info["chakra"], tgt)
 	var tw = create_tween()
 	tw.tween_property(rig, "scale", Vector3.ONE * 0.01, 1.6).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
 	tw.tween_callback(queue_free)

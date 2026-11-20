@@ -759,8 +759,7 @@ func _footfall(right: bool, k: float) -> void:
 	if dp > 500.0:
 		return
 	var H = height_m
-	VFX.puffs(w + Vector3.UP * H * 0.02, {"amount": int(8 * k), "life": 1.1, "size": H * 0.045 * k, "radius": H * 0.035, "vmin": 2, "vmax": 5 * k, "dir": Vector3.UP, "spread": 80.0,
-		"gravity": Vector3(0, -2, 0), "colors": [Color(0.8, 0.72, 0.6, 0.85), Color(0.7, 0.62, 0.5, 0)]})
+	BeastFX.foot_dust(w, H, k)
 	if Game.world and dp < H * 2.5 and get_parent() != Game.player:
 		Game.world.env.add_shake(0.12 * k * clampf(H / 40.0, 0.4, 1.5))
 
@@ -771,8 +770,6 @@ func land_fx() -> void:
 		return
 	var w = global_position
 	var H = height_m
-	VFX.puffs(w + Vector3.UP * H * 0.03, {"amount": 40, "life": 1.4, "size": H * 0.08, "radius": H * 0.25, "vmin": 4, "vmax": 12, "dir": Vector3.UP, "spread": 85.0,
-		"gravity": Vector3(0, -3, 0), "colors": [Color(0.8, 0.72, 0.6, 0.9), Color(0.7, 0.62, 0.5, 0)]})
-	VFX.shockwave(w + Vector3.UP * 0.3, Color(0.85, 0.78, 0.65), H * 0.9, 0.5)
+	BeastFX.land(w, H)
 	if Game.world:
 		Game.world.env.add_shake(1.2)

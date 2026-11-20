@@ -140,7 +140,7 @@ func set_level(l: int) -> void:
 	if hint != "":
 		Hud.msg(hint, col.lightened(0.3), 6.0)
 	Sfx.play("roar", p.global_position, 1.3 - level * 0.08, 0.7)
-	FX.ring(p.global_position + Vector3.UP * 0.3, col, 6.0 + level * 3.0, 0.5)
+	BeastFX.cloak_pulse(p.global_position, col, 6.0 + level * 3.0)
 	if Game.world:
 		Game.world.env.add_shake(0.3 + level * 0.15)
 	if level == 6:
@@ -282,14 +282,14 @@ func _full_transform() -> void:
 	BeastSus.cam(p)   # kamera canavarın boyuna göre: omuz üstünden, tüm gövde ve önündeki alan görünür
 	p.cam.far = maxf(p.cam.far, 6000.0)
 	Buffs.add("beast", 9999.0, {"melee": 1.5, "speed": 1.5, "armor": 0.6, "jutsu": 1.2})
-	FX.smoke_puff(p.global_position + Vector3.UP * h * 0.4, h * 0.25, 30)
+	BeastFX.erupt(p.global_position + Vector3.UP * h * 0.4, h, chakra_col())
 	BeastSus.sync(p)   # Susanoo açıksa canavar onu zırh olarak giyer
 	Hud.banner("KUYRUKLU CANAVAR", "%s ile tam dönüşüm!  Sol tık: pençe  •  Sağ tık / X: Kuyruklu Canavar Topu" % BeastModels.INFO[id]["name"].split(" — ")[0], chakra_col())
 
 
 func _end_transform() -> void:
 	if is_instance_valid(rig):
-		FX.smoke_puff(p.global_position + Vector3.UP * 3.0, 4.0, 30)
+		BeastFX.vanish(p.global_position + Vector3.UP * 3.0, 8.0, chakra_col())
 		rig.queue_free()
 	rig = null
 	BeastSus.sync(p)
@@ -355,12 +355,12 @@ func _combo_hit(step: int, dir: Vector3, h: float, id: String, dmg: float) -> vo
 				c2.y = Game.ground_height(c2.x, c2.z)
 				Combat.hit_sphere(p, c2 + Vector3.UP * 2.0, h * 0.5, {"dmg": dmg * 1.5, "knock": 28.0, "launch": 14.0, "kind": "heavy"})
 				BijuuArts.melee(p, id, c2 + Vector3.UP * h * 0.05, h * 0.35, dmg * 0.3, dir)
-				VFX.cracks(c2, h * 0.25, Color(0.2, 0.15, 0.1, 0.9), 4.0)
+				BeastFX.slam_cracks(c2, h * 0.25)
 				rig.land_fx()
 		3:
 			# kuyruk savuruşu: 360° — etrafı süpürür, en çok savuran vuruş
 			Combat.hit_sphere(p, p.global_position + Vector3.UP * h * 0.2, h * 0.8, {"dmg": dmg * 1.6, "knock": 45.0, "launch": 10.0, "kind": "heavy"})
-			FX.ring(p.global_position + Vector3.UP * h * 0.2, chakra_col(), h * 1.6, 0.5)
+			BeastFX.tail_sweep(p.global_position, chakra_col(), h * 1.6)
 			Sfx.play("whoosh", p.global_position, 0.35)
 			if Game.world:
 				Game.world.env.add_shake(0.6)
@@ -518,7 +518,7 @@ func _rampage() -> void:
 		get_tree().create_timer(0.6 + i * 0.8).timeout.connect(func():
 			if level == 0: return
 			Combat.hit_sphere(p, p.global_position + Vector3.UP, 8.0 + level * 2.0, {"dmg": 30.0 + level * 10.0, "knock": 20.0, "launch": 6.0, "kind": "heavy"})
-			FX.ring(p.global_position + Vector3.UP * 0.3, chakra_col(), 10.0 + level * 3.0, 0.4)
+			BeastFX.cloak_pulse(p.global_position, chakra_col(), 10.0 + level * 3.0)
 			p.hp -= 4.0)
 
 
