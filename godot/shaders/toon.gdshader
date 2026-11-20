@@ -69,6 +69,7 @@ uniform vec4 face_ref = vec4(0.0, 1.7, 0.08, 0.0);
 uniform float outer_gap = 0.075;  // önü açık dış giysinin açıklığının yarı genişliği (m): yelek yalnız bu kadar görünür
 uniform float leg_cover_hem = -99.0;   // uzun dış giysinin etek ucu (dinlenme y): altındaki bacak / pantolon çizilmez
 uniform vec3 hand_box = vec3(-99.0, 0.0, 0.0);   // elle modellenmiş kıyafet: üst y, alt y, |x| sınırı arasında beden ve eski katmanlar çizilmez
+uniform vec2 hand_keep = vec2(99.0, 0.0);   // hand_box içinde gizlenmeyen bölge: bu y üstü ve |x| altı (iki omuz eklemi arası boyun dibi / sırt üstü)
 uniform float leg_open = 0.0;   // önü açık uzun giysi: açıklıktan görünen bacağın ön yarısı silinmez
 uniform int outer_cover = 0;  // yelek katmanı: 1 önü açık dış giysi altında (yalnız ön şerit görünür), 2 kapalı pelerin altında (gizli)
 uniform vec4 scalp_cut = vec4(99.0, -99.0, 99.0, 0.0);  // x: bu yüksekliğin üstü, y/z: bu derinliğin arkasında z yüksekliğinin üstü  // saçlıyken gövdenin kafa derisi bu yüksekliğin üstünde çizilmez (saç arasından "kel" görünmesin)  // -, göz y, göz z
@@ -313,7 +314,7 @@ void fragment() {
 		}
 	}
 	if (hide_masked && COLOR.a > 0.5) discard;
-	if (hand_box.x > -50.0 && rest.y < hand_box.x && rest.y > hand_box.y && abs(rest.x) < hand_box.z) discard;
+	if (hand_box.x > -50.0 && rest.y < hand_box.x && rest.y > hand_box.y && abs(rest.x) < hand_box.z && !(rest.y > hand_keep.x && abs(rest.x) < hand_keep.y)) discard;   // hand_keep: omuzlar arası boyun dibi çizilir (yaka/omuz kenarından yer görünmesin)
 	if (layer == 2 && outer_cover == 2) discard;
 	if (layer == 2 && outer_cover == 1 && !(rest.z > 0.0 && abs(rest.x) < outer_gap)) discard;   // dış giysinin altından taşmasın
 	if (leg_cover_hem > -50.0 && layer < 2 && rest.y < rig_b.x - 0.02 && rest.y > max(leg_cover_hem + (leg_open > 0.0 ? 0.012 : 0.07), (outer_cover != 1 && leg_cover_hem < rig_b.z + 0.25) ? rig_b.z + 0.1 : rig_b.y + 0.02) && !(outer_cover == 1 && rest.z > 0.0 && abs(rest.x) < max(outer_gap, 0.04) + 0.075) && !(rest.z > -0.01 && abs(rest.x) < leg_open)) discard;

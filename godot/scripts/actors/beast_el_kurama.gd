@@ -49,7 +49,7 @@ static func build(r: BeastRig, root: Node3D) -> void:
 	face.rotation.x = deg_to_rad(-6)
 	face.scale = Vector3(1.0, 1.0, 0.8)
 	r.jaw_close = 0.09
-	r.jaw = r._pivot(face, Vector3(0, -1.08, 0.1), "cene")
+	r.jaw = r._pivot(face, Vector3(0, -0.74, 0.15), "cene")
 	r.jaw.rotation.y = PI
 	r.mouth = r._pivot(face, Vector3(0, -0.8, -3.6), "agiz")
 	r.head.scale = Vector3.ONE * 1.25
@@ -312,7 +312,7 @@ static func _head(be, r: BeastRig, face: Node3D) -> void:
 		return 0.07 * _g(t - tz.call(-1.0), 0.05) * _g(absf(aw) - 0.62, 0.22) - 0.03 * _g(aw, 0.18) * _g(t - tz.call(-0.6), 0.1)
 	var hi: Dictionary = be.tube(hp, hr, colf, sk, 52, 36, Vector3.UP, true, true, bump, F)
 	# burun: ucun üstüne oturan yuvarlak siyah burun (keskin kenar)
-	be.tube([Vector3(0, -0.08, -3.1), Vector3(0, -0.05, -3.4), Vector3(0, -0.12, -3.68)], [Vector2(0.06, 0.05), Vector2(0.4, 0.3), Vector2(0.05, 0.05)],
+	be.tube([Vector3(0, -0.08, -3.1), Vector3(0, -0.05, -3.4), Vector3(0, -0.12, -3.68)], [Vector2(0.05, 0.04), Vector2(0.27, 0.21), Vector2(0.04, 0.04)],
 		func(_t, _a, _p): return BLK, sk, 12, 18, Vector3.UP, true, true, Callable(), F)
 	# alın ortası çizgisi, burun sırtı kırışıkları (hırlama)
 	be.band(hi, [Vector2(tz.call(-1.5), 0.0), Vector2(tz.call(-0.95), 0.0), Vector2(tz.call(-0.45), 0.0)], func(u): return 0.03 * sin(clampf(u, 0.05, 0.95) * PI) + 0.008, LINE, sk, 0.022)
@@ -351,17 +351,10 @@ static func _head(be, r: BeastRig, face: Node3D) -> void:
 		if en.z > 0.0:
 			en = -en
 		var ep_ := [e0, e0.lerp(em, 0.45), em, em.lerp(e1, 0.55), e1.lerp(em, 0.08), e1]
-		be.tube(ep_, [Vector2(0.52, 0.34), Vector2(0.76, 0.27), Vector2(0.68, 0.2), Vector2(0.43, 0.13), Vector2(0.1, 0.05), Vector2(0.02, 0.02)],
-			func(_t, _a, _p): return C, sk, 34, 18, en, false, true, Callable(), F)
-		# kulak içi: ön yüze gömülü ince siyah yaprak (keskin kenar; köşe rengi bulanık geçiş yapıyordu)
-		var ip := []
-		for q in [0.12, 0.3, 0.5, 0.7, 0.86, 0.97]:
-			var qi := float(q) * 5.0
-			var k0 := mini(int(qi), 4)
-			var ery: float = [0.34, 0.27, 0.2, 0.13, 0.05, 0.02][k0] * (1.0 - (qi - k0)) + [0.34, 0.27, 0.2, 0.13, 0.05, 0.02][k0 + 1] * (qi - k0)
-			ip.append((ep_[k0] as Vector3).lerp(ep_[k0 + 1], qi - k0) + en * ery * 0.78)
-		be.tube(ip, [Vector2(0.3, 0.08), Vector2(0.55, 0.09), Vector2(0.5, 0.08), Vector2(0.32, 0.06), Vector2(0.12, 0.03), Vector2(0.02, 0.02)],
-			func(_t, _a, _p): return BLK, sk, 30, 14, en, true, true, Callable(), F)
+		var ecol := func(t: float, a: float, _p: Vector3) -> Color:   # ön yüz siyah, kenarda ince turuncu çerçeve, dipte turuncu
+			return BLK if cos(a) > 0.3 and t > 0.1 and t < 0.94 else C
+		be.tube(ep_, [Vector2(0.52, 0.26), Vector2(0.76, 0.2), Vector2(0.68, 0.15), Vector2(0.43, 0.1), Vector2(0.1, 0.04), Vector2(0.02, 0.02)],
+			ecol, sk, 40, 28, en, false, true, Callable(), F)
 		# yanak kürkü: çene köşesinde geriye-dışa sivri tırtıklı tutamlar (önden uçurtma silueti)
 		for k in 5:
 			var z := 0.55 - k * 0.22
@@ -373,7 +366,7 @@ static func _head(be, r: BeastRig, face: Node3D) -> void:
 	# alt çene: kalın, öne incelen; üstü ağız içi (dil), kenarında alt dudak ve zikzak dişler
 	var jsk := [[r.jaw, 1.0]]
 	var jk := func(_t, _a, _p): return jsk
-	var jp := [Vector3(0, -1.17, 0.2), Vector3(0, -1.32, -0.9), Vector3(0, -1.32, -2.0), Vector3(0, -1.24, -2.85), Vector3(0, -1.16, -3.3), Vector3(0, -1.12, -3.45)]
+	var jp := [Vector3(0, -0.84, 0.2), Vector3(0, -0.86, -0.9), Vector3(0, -0.8, -2.0), Vector3(0, -0.74, -2.85), Vector3(0, -0.7, -3.3), Vector3(0, -0.68, -3.45)]
 	var jr := [Vector2(1.05, 0.34), Vector2(0.78, 0.34), Vector2(0.5, 0.28), Vector2(0.33, 0.21), Vector2(0.18, 0.13), Vector2(0.04, 0.04)]
 	var jcol := func(_t: float, a: float, p: Vector3) -> Color:
 		var aw := wrapf(a, -PI, PI)

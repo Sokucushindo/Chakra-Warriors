@@ -32,6 +32,8 @@ class El:
 	var K: float
 	var F: float
 	var UA: float
+	var UAy: float
+	var LS: float
 
 	func _init(mm, cc: Dictionary) -> void:
 		m = mm
@@ -44,6 +46,8 @@ class El:
 		K = m._bp("LeftLowerLeg").y
 		F = m._bp("LeftFoot").y
 		UA = absf(m._bp("LeftUpperArm").x)
+		UAy = m._bp("LeftUpperArm").y
+		LS = signf(m._bp("LeftUpperArm").x)
 
 	## Bedenin o yükseklikteki ölçüsü: yarı genişlik, ön z, arka z
 	func M(y: float, xl: float) -> Vector3:
@@ -82,6 +86,62 @@ class El:
 			k += 1
 		sk["ob"].append_array(bo)
 		sk["ow"].append_array(we)
+
+	## Test: OUTFIT_DBGW=1 iken her nokta bağlı olduğu kemiğe göre boyanır (yeşil gövde, kırmızı kol, sarı karışık, mavi bacak)
+	static var DBGW := OS.get_environment("OUTFIT_DBGW") != ""
+	static func _dbg_col(sl: Array) -> Color:
+		var a := 0.0
+		var l := 0.0
+		var t := 0.0
+		for e in sl:
+			var bn := String(e[0])
+			if bn.contains("Arm") or bn.contains("Hand"):
+				a += float(e[1])
+			elif bn.contains("Leg") or bn.contains("Foot"):
+				l += float(e[1])
+			else:
+				t += float(e[1])
+		var s := maxf(a + l + t, 1e-4)
+		return Color(a / s, t / s, l / s)
+
+	## Omuz köşesi kolla iner: yalnız gövdeye bağlı nokta omuz hizasında ve omuz ekleminin dışındaysa üst kola da bağlanır
+	## (T duruşunda modellenen kabuğun omuz köşesi kol aşağı inince yana sivri uç / havada omuz olarak kalıyordu)
+	func arm_blend(list: Array, p: Vector3) -> Array:
+		var arm_i := -1
+		for i in list.size():
+			var bn := String(list[i][0])
+			if bn.contains("Hand") or bn.contains("Leg") or bn.contains("Foot") or bn.contains("Shoulder") or bn.contains("LowerArm"):
+				return list
+			if bn.contains("UpperArm"):
+				arm_i = i
+		if arm_i >= 0 and list.size() == 1:   # yalnız kola bağlı kol kumaşı omuz ekleminin içine uzanıyorsa göğse de bağlanır: kol inince üst kenarı omzun üstüne kanat gibi savrulmaz
+			var g := 0.75 * (1.0 - smoothstep(UA - 0.005, UA + 0.05 + 0.9 * maxf(0.0, p.y - UAy), absf(p.x))) * smoothstep(UAy - 0.06, UAy + 0.0, p.y)   # eklemin üstü ne kadar yüksekse o kadar dışarıya kadar
+			if g < 0.01:
+				return list
+			return [[list[0][0], 1.0 - g], ["UpperChest", g]]
+		if arm_i >= 0:   # kol kökü (göğüs + üst kol karışık): omzun üstündeki noktalar kola daha çok bağlanır, kol inince kumaş boynuz gibi katlanmaz
+			var f := 0.65 * smoothstep(UAy - 0.005, UAy + 0.045, p.y) * smoothstep(UA * 0.55, UA * 0.95, absf(p.x))
+			if f < 0.01:
+				return list
+			var tot0 := 0.0
+			for e in list:
+				tot0 += float(e[1])
+			var out0 := []
+			for i in list.size():
+				var wv := float(list[i][1]) / maxf(tot0, 1e-4)
+				out0.append([list[i][0], wv + (1.0 - wv) * f if i == arm_i else wv * (1.0 - f)])
+			return out0
+		var w := 0.8 * smoothstep(UA - 0.01, UA + 0.04, absf(p.x)) * smoothstep(UAy - 0.11, UAy - 0.03, p.y) * (1.0 - smoothstep(UAy + 0.02, UAy + 0.07, p.y))   # yalnız omuz bandı: yakaya dokunmaz
+		if w < 0.01:
+			return list
+		var tot := 0.0
+		for e in list:
+			tot += float(e[1])
+		var out := []
+		for e in list:
+			out.append([e[0], float(e[1]) * (1.0 - w)])
+		out.append([("Left" if signf(p.x) == LS else "Right") + "UpperArm", w * maxf(tot, 1e-4)])
+		return out
 
 	func torso_skin(y: float) -> Array:
 		var ks := [["Hips", H], ["Spine", m._bp("Spine").y], ["Chest", m._bp("Chest").y], ["UpperChest", C], ["Neck", N]]
@@ -126,8 +186,9 @@ class El:
 				sk["ov"].append(p)
 				var n0: Vector3 = nr[j * ni + i]
 				sk["on"].append(n0.normalized() if n0.length_squared() > 0.0 else Vector3.UP)
-				sk["oc"].append(colf.call(i, j, p))
-				skin(skinf.call(i, j, p))
+				var sl: Array = arm_blend(skinf.call(i, j, p), p)
+				sk["oc"].append(_dbg_col(sl) if DBGW else colf.call(i, j, p))
+				skin(sl)
 		for j in nj - 1:
 			for i in nq:
 				var i2 := (i + 1) % ni
@@ -264,17 +325,6 @@ static func _disk_path(sid: String, gender: String) -> String:
 	return "user://el_kiyafet/%s/%s_%s.res" % [ver, sid, gender]
 
 
-static var _mat_c: ShaderMaterial
-## Kıyafet malzemesi: toon + iç yüz geçişi (yaka / omuz kenarından içeri bakınca yer görünmesin, koyu kumaş görünsün)
-static func _mat() -> ShaderMaterial:
-	if _mat_c == null:
-		_mat_c = Props.toon().duplicate()
-		var bk := ShaderMaterial.new()
-		bk.shader = load("res://shaders/cloth_back.gdshader")
-		_mat_c.next_pass = bk
-	return _mat_c
-
-
 static func has(sid) -> bool:
 	if sid == null or String(sid) == "":
 		return false
@@ -289,10 +339,12 @@ static func has(sid) -> bool:
 
 
 static func build(m, sid: String, g: Dictionary) -> void:
-	var neck: float = m._bp("Neck").y
-	var box := Vector3(neck + 0.015, m._bp("LeftFoot").y + 0.075, absf(m._bp("LeftHand").x) - 0.012)
+	var box := Vector3(m._bp("Neck").y + 0.015, m._bp("LeftFoot").y + 0.075, absf(m._bp("LeftHand").x) - 0.012)
+	var ua: Vector3 = m._bp("LeftUpperArm")
+	var keep := Vector2(ua.y, absf(ua.x) - 0.05)   # iki omuz eklemi arası boyun dibi / sırt üstü çizilir: yaka ve omuz kenarından yer görünmesin (kollar gizli kalır)
 	for mt in m.materials:
 		mt.set_shader_parameter("hand_box", box)
+		mt.set_shader_parameter("hand_keep", keep)
 	var key := "%s|%s" % [sid, str(m.look.get("gender", "m"))]
 	var disk := _disk_path(sid, str(m.look.get("gender", "m")))
 	if not _cache.has(key) and disk != "" and FileAccess.file_exists(disk):
@@ -306,7 +358,7 @@ static func build(m, sid: String, g: Dictionary) -> void:
 		m.skel.add_child(mi)
 		mi.skin = m.body_mesh.skin
 		mi.skeleton = mi.get_path_to(m.skel)
-		mi.material_override = _mat()
+		mi.material_override = Props.toon()
 		A._dangles(m, e[1])
 		return
 	var c = A._begin(m)
@@ -323,8 +375,6 @@ static func build(m, sid: String, g: Dictionary) -> void:
 				if sid in p.DONE:
 					p.recipe(k, sid)
 	var made = m._sk_end(g)
-	if made != null:
-		made.material_override = _mat()
 	_cache[key] = [made.mesh, c["dg"]]
 	if disk != "":   # bir kez kurulan kıyafet diske: sonraki açılışlarda kurulum takılması olmaz
 		(made.mesh as ArrayMesh).set_meta("dg", c["dg"])
