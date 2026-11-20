@@ -24,6 +24,8 @@ const KURAMA_EL := true
 const JUBI_EL := false
 ## true: Shukaku elle modellenmiş yeni gövdeyle (ortam SHUKAKU_EL=0 eskiyi açar)
 const SHUKAKU_EL := false
+## true: Matatabi elle modellenmiş yeni gövdeyle (Kurama yöntemi; ortam MATATABI_EL=0 eskiyi açar)
+const MATATABI_EL := true
 
 
 ## yüzey: 0 kürk, 1 deri/pul, 2 kabuk/zırh, 3 sümük
@@ -63,7 +65,11 @@ static func build(id: String, height_m := -1.0) -> BeastRig:
 				load("res://scripts/actors/beast_el_shukaku.gd").build(r, root)
 			else:
 				BeastShukaku.build(r, root)
-		"matatabi": BeastMatatabi.build(r, root)
+		"matatabi":
+			if MATATABI_EL and OS.get_environment("MATATABI_EL") != "0":
+				load("res://scripts/actors/beast_el_matatabi.gd").build(r, root)
+			else:
+				BeastMatatabi.build(r, root)
 		"isobu": BeastIsobu.build(r, root)
 		"son_goku": BeastSonGoku.build(r, root)
 		"kokuo": BeastKokuo.build(r, root)
