@@ -16,6 +16,7 @@ var mouth: Node3D         # top/nefes çıkış noktası (başın içinde)
 var arms: Array = []      # [{"sh": omuz, "el": dirsek, "side": ±1}]
 var legs: Array = []      # [{"hip": kalça, "kn": diz, "side": ±1, "front": bool}]
 var tails: Array = []     # her kuyruk: [segment Node3D...]
+var jaw_close := 0.0      # beklerken çeneyi bu kadar kapalı tut (Kurama: dişleri görünen kapalı sırıtış)
 var tail_curl := -0.05     # segment başına sabit eğim (radyan): negatif yukarı kıvırır, pozitif aşağı sarkıtır
 var tail_cfg: Array = []  # her kuyruk: {"yaw","pitch","len","amp"}
 var weak_points: Array = []   # mühür noktaları (Node3D)
@@ -587,7 +588,7 @@ func _process(dt: float) -> void:
 			var lunge = (-1.2 * sin(clampf((k - 0.3) / 0.4, 0.0, 1.0) * PI)) if action == "bite" else 0.0
 			head.position.z = lerpf(head.position.z, rz0 + lunge, minf(1.0, dt * 14.0))
 	if jaw:
-		var open = 0.06 + sin(t * 1.3) * 0.03 + stance * 0.06
+		var open = maxf(0.0, 0.06 + sin(t * 1.3) * 0.03 - jaw_close) + stance * 0.06
 		if fid == "growl":
 			open = 0.28 * fs + sin(fid_t * 30.0) * 0.03
 		elif fid == "stretch":

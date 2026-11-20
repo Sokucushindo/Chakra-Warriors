@@ -544,6 +544,6 @@ static func build(m, s, fg: Color) -> bool:
 	var ab: AABB = m.head_ab
 	var hw := clampf(ab.size.x, 0.16, 0.26) if ab.size.x > 0.05 else 0.2
 	var ey: float = m.eye_center_model.y if m.face_mi else hc.y - 0.03
-	var sc := clampf(hw / 0.19, 0.85, 1.15)
-	m._mesh_on("Head", _cache[key], Transform3D(Basis.from_scale(Vector3.ONE * sc), Vector3(hc.x, ey - 0.018, hc.z + 0.075 * sc)))
+	var sc := clampf(hw / 0.19, 0.85, 1.15) * 0.8   # yalnız yüzü kaplasın (kullanıcı: "kabile maskesi gibi büyük")
+	m._mesh_on("Head", _cache[key], Transform3D(Basis.from_scale(Vector3.ONE * sc), Vector3(hc.x, ey - 0.012, hc.z + 0.075 * sc)))
 	return true

@@ -264,6 +264,17 @@ static func _disk_path(sid: String, gender: String) -> String:
 	return "user://el_kiyafet/%s/%s_%s.res" % [ver, sid, gender]
 
 
+static var _mat_c: ShaderMaterial
+## Kıyafet malzemesi: toon + iç yüz geçişi (yaka / omuz kenarından içeri bakınca yer görünmesin, koyu kumaş görünsün)
+static func _mat() -> ShaderMaterial:
+	if _mat_c == null:
+		_mat_c = Props.toon().duplicate()
+		var bk := ShaderMaterial.new()
+		bk.shader = load("res://shaders/cloth_back.gdshader")
+		_mat_c.next_pass = bk
+	return _mat_c
+
+
 static func has(sid) -> bool:
 	if sid == null or String(sid) == "":
 		return false
@@ -295,7 +306,7 @@ static func build(m, sid: String, g: Dictionary) -> void:
 		m.skel.add_child(mi)
 		mi.skin = m.body_mesh.skin
 		mi.skeleton = mi.get_path_to(m.skel)
-		mi.material_override = Props.toon()
+		mi.material_override = _mat()
 		A._dangles(m, e[1])
 		return
 	var c = A._begin(m)
@@ -312,6 +323,8 @@ static func build(m, sid: String, g: Dictionary) -> void:
 				if sid in p.DONE:
 					p.recipe(k, sid)
 	var made = m._sk_end(g)
+	if made != null:
+		made.material_override = _mat()
 	_cache[key] = [made.mesh, c["dg"]]
 	if disk != "":   # bir kez kurulan kıyafet diske: sonraki açılışlarda kurulum takılması olmaz
 		(made.mesh as ArrayMesh).set_meta("dg", c["dg"])

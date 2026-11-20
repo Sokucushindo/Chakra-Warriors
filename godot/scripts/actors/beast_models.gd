@@ -18,6 +18,10 @@ const INFO := {
 }
 
 
+## true: Kurama elle modellenmiş yeni gövdeyle kurulur (deneme; varsayılan eski). Ortam değişkeni KURAMA_EL=1 de açar.
+const KURAMA_EL := true
+
+
 ## yüzey: 0 kürk, 1 deri/pul, 2 kabuk/zırh, 3 sümük
 const SURFACE := {"jubi": 1, "kurama": 0, "matatabi": 0, "son_goku": 0, "kokuo": 0, "shukaku": 1, "gyuki": 1, "isobu": 2, "chomei": 2, "saiken": 3, "raiju": 0}
 const SHADOW := {"jubi": Color(0.42, 0.36, 0.38), "kurama": Color(0.45, 0.16, 0.2), "matatabi": Color(0.12, 0.1, 0.35), "son_goku": Color(0.35, 0.1, 0.22), "shukaku": Color(0.6, 0.52, 0.5),
@@ -59,7 +63,11 @@ static func build(id: String, height_m := -1.0) -> BeastRig:
 		"chomei": BeastChomei.build(r, root)
 		"gyuki": BeastGyuki.build(r, root)
 		"jubi": BeastJubi.build(r, root)
-		_: BeastKurama.build(r, root)
+		_:
+			if id == "kurama" and (KURAMA_EL or OS.get_environment("KURAMA_EL") == "1"):
+				load("res://scripts/actors/beast_el_kurama.gd").build(r, root)   # elle modellenmiş deneme (iskelet + derili tek ağ)
+			else:
+				BeastKurama.build(r, root)
 	root.scale = Vector3.ONE * r.design_scale()
 	# sert cel gölgeli canavar malzemesi (peluş yumuşaklığı yerine): yüzey türü canavara göre
 	var bm = beast_material(SURFACE.get(id, 0), SHADOW.get(id, Color(0.32, 0.26, 0.42)))
