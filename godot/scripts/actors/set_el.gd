@@ -74,27 +74,37 @@ class El:
 		var we := PackedFloat32Array()
 		bo.resize(per)
 		we.resize(per)
+		# aynı kemik birleşir, en ağır `per` kemik tutulur, toplam yalnız tutulanlardan: fazla kemik atılınca toplam 1in altında kalıp nokta yere çekiliyordu
+		var acc := {}
+		for e in list:
+			if float(e[1]) > 0.0:
+				acc[String(e[0])] = float(acc.get(String(e[0]), 0.0)) + float(e[1])
+		var ks: Array = acc.keys()
+		ks.sort_custom(func(a, b): return float(acc[a]) > float(acc[b]))
+		if ks.size() > per:
+			ks.resize(per)
 		var tot := 0.0
-		for e in list:
-			tot += float(e[1])
+		for bn in ks:
+			tot += float(acc[bn])
 		var k := 0
-		for e in list:
-			if float(e[1]) <= 0.0 or k >= per:
-				continue
-			bo[k] = m._bind_index(String(e[0]))
-			we[k] = float(e[1]) / tot
+		for bn in ks:
+			bo[k] = m._bind_index(String(bn))
+			we[k] = float(acc[bn]) / maxf(tot, 1e-6)
 			k += 1
 		sk["ob"].append_array(bo)
 		sk["ow"].append_array(we)
 
 	## Test: OUTFIT_DBGW=1 iken her nokta bağlı olduğu kemiğe göre boyanır (yeşil gövde, kırmızı kol, sarı karışık, mavi bacak)
 	static var DBGW := OS.get_environment("OUTFIT_DBGW") != ""
+	static var NOARM := OS.get_environment("OUTFIT_NOARM") != ""   # test: omuz kuralları kapalı (karşılaştırma)
 	static func _dbg_col(sl: Array) -> Color:
 		var a := 0.0
 		var l := 0.0
 		var t := 0.0
 		for e in sl:
 			var bn := String(e[0])
+			if bn.contains("Shoulder"):
+				return Color(1, 1, 1)
 			if bn.contains("Arm") or bn.contains("Hand"):
 				a += float(e[1])
 			elif bn.contains("Leg") or bn.contains("Foot"):
@@ -108,40 +118,54 @@ class El:
 	## (T duruşunda modellenen kabuğun omuz köşesi kol aşağı inince yana sivri uç / havada omuz olarak kalıyordu)
 	func arm_blend(list: Array, p: Vector3) -> Array:
 		var arm_i := -1
+		var low_n := 0
 		for i in list.size():
 			var bn := String(list[i][0])
-			if bn.contains("Hand") or bn.contains("Leg") or bn.contains("Foot") or bn.contains("Shoulder") or bn.contains("LowerArm"):
+			if bn.contains("Hand") or bn.contains("Leg") or bn.contains("Foot") or bn.contains("Shoulder"):
 				return list
 			if bn.contains("UpperArm"):
 				arm_i = i
-		if arm_i >= 0 and list.size() == 1:   # yalnız kola bağlı kol kumaşı omuz ekleminin içine uzanıyorsa göğse de bağlanır: kol inince üst kenarı omzun üstüne kanat gibi savrulmaz
+			elif bn.contains("LowerArm"):
+				low_n += 1
+		if arm_i >= 0 and list.size() == 1 + low_n:   # yalnız kola bağlı kol kumaşı omuz ekleminin içine uzanıyorsa göğse de bağlanır: kol inince üst kenarı omzun üstüne kanat gibi savrulmaz
 			var g := 0.75 * (1.0 - smoothstep(UA - 0.005, UA + 0.05 + 0.9 * maxf(0.0, p.y - UAy), absf(p.x))) * smoothstep(UAy - 0.06, UAy + 0.0, p.y)   # eklemin üstü ne kadar yüksekse o kadar dışarıya kadar
 			if g < 0.01:
 				return list
-			return [[list[0][0], 1.0 - g], ["UpperChest", g]]
-		if arm_i >= 0:   # kol kökü (göğüs + üst kol karışık): omzun üstündeki noktalar kola daha çok bağlanır, kol inince kumaş boynuz gibi katlanmaz
-			var f := 0.65 * smoothstep(UAy - 0.005, UAy + 0.045, p.y) * smoothstep(UA * 0.55, UA * 0.95, absf(p.x))
+			var out1 := []
+			for e in list:
+				out1.append([e[0], float(e[1]) * (1.0 - g)])
+			var t1 := 0.0
+			for e in list:
+				t1 += float(e[1])
+			out1.append(["UpperChest", g * maxf(t1, 1e-4)])
+			return out1
+		if arm_i >= 0:   # kol kökü (göğüs + üst kol karışık): eklemin üstündeki noktalar göğse daha çok bağlanır, kol inince kumaş yukarı kanat gibi dikilmez
+			var f := 0.65 * smoothstep(UAy - 0.005, UAy + 0.045, p.y) * (1.0 - smoothstep(UA - 0.005, UA + 0.05 + 0.9 * maxf(0.0, p.y - UAy), absf(p.x)))
 			if f < 0.01:
 				return list
 			var tot0 := 0.0
 			for e in list:
 				tot0 += float(e[1])
+			tot0 = maxf(tot0, 1e-4)
+			var aw := float(list[arm_i][1]) / tot0
+			var other := 0.0
+			for e in list:
+				if not String(e[0]).contains("Arm"):
+					other += float(e[1]) / tot0
+			var mv := aw * f   # kola bağlı paydan göğüs tarafına kayan miktar
 			var out0 := []
 			for i in list.size():
-				var wv := float(list[i][1]) / maxf(tot0, 1e-4)
-				out0.append([list[i][0], wv + (1.0 - wv) * f if i == arm_i else wv * (1.0 - f)])
+				var wv := float(list[i][1]) / tot0
+				if i == arm_i:
+					out0.append([list[i][0], wv - mv])
+				elif other > 0.05 and not String(list[i][0]).contains("Arm"):
+					out0.append([list[i][0], wv + mv * wv / other])   # diğer kemiklere kendi paylarıyla dağıtılır (küçük payı şişirmez)
+				else:
+					out0.append([list[i][0], wv])
+			if other <= 0.05:
+				out0.append(["UpperChest", mv])
 			return out0
-		var w := 0.8 * smoothstep(UA - 0.01, UA + 0.04, absf(p.x)) * smoothstep(UAy - 0.11, UAy - 0.03, p.y) * (1.0 - smoothstep(UAy + 0.02, UAy + 0.07, p.y))   # yalnız omuz bandı: yakaya dokunmaz
-		if w < 0.01:
-			return list
-		var tot := 0.0
-		for e in list:
-			tot += float(e[1])
-		var out := []
-		for e in list:
-			out.append([e[0], float(e[1]) * (1.0 - w)])
-		out.append([("Left" if signf(p.x) == LS else "Right") + "UpperArm", w * maxf(tot, 1e-4)])
-		return out
+		return list
 
 	func torso_skin(y: float) -> Array:
 		var ks := [["Hips", H], ["Spine", m._bp("Spine").y], ["Chest", m._bp("Chest").y], ["UpperChest", C], ["Neck", N]]
@@ -183,10 +207,10 @@ class El:
 		for j in nj:
 			for i in ni:
 				var p: Vector3 = rows[j][i]
+				var sl: Array = skinf.call(i, j, p) if NOARM else arm_blend(skinf.call(i, j, p), p)
 				sk["ov"].append(p)
 				var n0: Vector3 = nr[j * ni + i]
 				sk["on"].append(n0.normalized() if n0.length_squared() > 0.0 else Vector3.UP)
-				var sl: Array = arm_blend(skinf.call(i, j, p), p)
 				sk["oc"].append(_dbg_col(sl) if DBGW else colf.call(i, j, p))
 				skin(sl)
 		for j in nj - 1:
@@ -341,7 +365,7 @@ static func has(sid) -> bool:
 static func build(m, sid: String, g: Dictionary) -> void:
 	var box := Vector3(m._bp("Neck").y + 0.015, m._bp("LeftFoot").y + 0.075, absf(m._bp("LeftHand").x) - 0.012)
 	var ua: Vector3 = m._bp("LeftUpperArm")
-	var keep := Vector2(ua.y, absf(ua.x) - 0.05)   # iki omuz eklemi arası boyun dibi / sırt üstü çizilir: yaka ve omuz kenarından yer görünmesin (kollar gizli kalır)
+	var keep := Vector4(ua.y, absf(ua.x) - 0.05, -0.03, 0.055)   # iki omuz eklemi arası boyun dibi çizilir: yaka ve omuz kenarından yer görünmesin (kollar ve sırt derisi gizli kalır)
 	for mt in m.materials:
 		mt.set_shader_parameter("hand_box", box)
 		mt.set_shader_parameter("hand_keep", keep)
