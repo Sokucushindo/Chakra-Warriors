@@ -37,6 +37,44 @@ def _world_key():
     return hashlib.md5(acc.encode('utf-8')).hexdigest()[:12]
 json.dump({'build': mode, 'version': version, 'world': _world_key()}, open(build_json, 'w'))
 
+# Başlangıç köylerini pakete hazır koy: oyuncunun ilk açılışı ~20 sn kısalır (village_bake.gd try_load res://data/bake yedeği).
+# Önbellek bu dünya anahtarıyla yoksa oyun bir kez gizli masaüstünde kurulup köyler pişirilir (tests/test_bake_villages.gd).
+import shutil, re
+_wk = _world_key()
+_bdir = os.path.join(ROOT, '_tmp', 'bake_dev')
+_pk = os.path.join(PROJ, 'data', 'bake')
+shutil.rmtree(_pk, ignore_errors=True)
+os.makedirs(_pk, exist_ok=True)
+if mode != 'test':
+    _prog = open(os.path.join(PROJ, 'scripts', 'core', 'progress.gd'), encoding='utf8').read()
+    _hv = re.search(r'const HOME_VILLAGES := \{(.*?)^\}', _prog, re.S | re.M).group(1)
+    _vids = re.findall(r'^\t"([a-z_]+)": \{', _hv, re.M)
+    # build.json'da dünya anahtarı varken oyun kendi kayıt klasörüne (user://bake) pişirir; geliştirme koşusu _tmp/bake_dev'e
+    _ud = os.path.join(os.environ.get('APPDATA', ''), 'Godot', 'app_userdata', 'Shinobi Yolu', 'bake')
+    def _find(vid):
+        for d in (_bdir, _ud):
+            c = [os.path.join(d, '%s_%s.%s' % (vid, _wk, e)) for e in ('scn', 'dat')]
+            if all(os.path.exists(p) for p in c):
+                return c
+        return None
+    if not all(_find(v) for v in _vids):
+        print('Köy önbelleği eksik, pişiriliyor (~2 dk)...')
+        _env = dict(os.environ)
+        _env.pop('BAKE_ANY', None)
+        subprocess.run([sys.executable, os.path.join(ROOT, 'tools', 'hd.py'), '500', os.path.join(ROOT, '_tmp', 'bake_run.txt'), '--log-file',
+                        os.path.join(ROOT, '_tmp', 'test_godot.log'), '--path', PROJ, '--resolution', '1280x720', '--',
+                        '--test=res://tests/test_bake_villages.gd'], cwd=PROJ, env=_env)
+    _mb = 0
+    for v in _vids:
+        c = _find(v)
+        if c:
+            for p in c:
+                shutil.copy(p, _pk)
+                _mb += os.path.getsize(p)
+        else:
+            print('UYARI: %s önbelleği pişirilemedi, pakete konmadı' % v)
+    print('Köy önbelleği pakete konuyor: %s, %d MB' % (', '.join(_vids), _mb // 1048576))
+
 name = {'test': 'ShinobiYolu_TEST', 'arena': 'ShinobiYolu_ARENA'}.get(mode, 'ShinobiYolu')
 out_dir = os.path.join(ROOT, {'test': 'Test', 'arena': 'Arena'}.get(mode, 'Oyun'))
 os.makedirs(out_dir, exist_ok=True)

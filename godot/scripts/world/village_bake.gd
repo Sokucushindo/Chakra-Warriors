@@ -200,6 +200,12 @@ static func try_load(parent: Node3D, vid: String) -> Node3D:
 		return null
 	var sp = _any_path(vid, "scn")
 	var dp = _any_path(vid, "dat")
+	if (not FileAccess.file_exists(sp) or not FileAccess.file_exists(dp)) and not _dev:
+		# oyuncunun kendi önbelleği yok (ilk açılış): pakete konmuş hazır köyü kullan (tools/ship_bake.py, ~20 sn kazandırır)
+		var shp = "res://data/bake/%s_%s." % [vid, key()]
+		if FileAccess.file_exists(shp + "scn") and FileAccess.file_exists(shp + "dat"):
+			sp = shp + "scn"
+			dp = shp + "dat"
 	if not FileAccess.file_exists(sp) or not FileAccess.file_exists(dp):
 		return null
 	var t0 = Time.get_ticks_msec()

@@ -315,20 +315,47 @@ static func prewarm_looks(parent: Node, progress: Callable = Callable()) -> void
 	for fdn in FACE_DONORS_M + FACE_DONORS_F:
 		_donor_part(String(fdn), "Face")
 	for a in WARM_ARCHES:
+		if i >= WARM_NOW * 2:
+			break   # kalanı yükleme ekranını geciktirmesin: oyun açıldıktan sonra arka planda, iki karede bir model
 		for gd in ["m", "f"]:
-			var lk = default_look()
-			lk.merge(Outfits.roll(a, vs[i % vs.size()]), true)
-			lk["gender"] = gd
-			var cm = CharacterModel.new()
-			holder.add_child(cm)
-			cm.setup(lk)
-			cm.free()
+			_warm_one(holder, a, gd, vs, i)
 			i += 1
 			if i % 4 == 0:
 				if progress.is_valid():
 					progress.call(float(i) / total, "")
 				await parent.get_tree().process_frame
-	holder.queue_free()
+	if i < total:
+		_warm_rest(parent, holder, i, vs)   # beklenmez: arka planda sürer
+	else:
+		holder.queue_free()
+
+
+## Ilk açılışta hemen gereken kişi türleri (genin / chūnin / jōnin); geri kalanı oyun açıldıktan sonra ısınır
+const WARM_NOW := 3
+
+
+static func _warm_one(holder: Node3D, a: String, gd: String, vs: Array, i: int) -> void:
+	var lk = default_look()
+	lk.merge(Outfits.roll(a, vs[i % vs.size()]), true)
+	lk["gender"] = gd
+	var cm = CharacterModel.new()
+	holder.add_child(cm)
+	cm.setup(lk)
+	cm.free()
+
+
+static func _warm_rest(parent: Node, holder: Node3D, start: int, vs: Array) -> void:
+	var tree = parent.get_tree()
+	var i = start
+	while i < WARM_ARCHES.size() * 2:
+		await tree.process_frame
+		await tree.process_frame
+		if not is_instance_valid(holder):
+			return
+		_warm_one(holder, WARM_ARCHES[i / 2], "m" if i % 2 == 0 else "f", vs, i)
+		i += 1
+	if is_instance_valid(holder):
+		holder.queue_free()
 
 
 static var _prewarm := {}
