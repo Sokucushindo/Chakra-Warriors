@@ -1022,7 +1022,7 @@ static func shiranui_tenketsu_bari(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		_needle_tick(pj, p)
 	var pr = pj.shot(c, from, pj.aim_at(c, tt, from), 70.0, _needle(pj), pj.inf(c, id, 0.5, {"knock": 0.0, "kind": "light", "hitstop": 0.05, "pierce_guard": true}), tt, false, 1.0, on_hit)
 	pr.radius = 0.25
-	Sfx.play("kunai", from, 2.0)
+	Sfx.play("throw_kunai", from, 2.0)
 
 
 static func _needle_mesh() -> ArrayMesh:
@@ -2021,7 +2021,7 @@ static func uchiha_ryu_kenjutsu(pj: PathJutsu, c: Node3D, t: Node3D, with_eyes :
 		if c is Player:
 			c.combat.invuln = maxf(c.combat.invuln, dur + 0.1)
 		var hits = []
-		Sfx.play("kunai", from, 1.4)
+		Sfx.play("throw_kunai", from, 1.4)
 		var dd = pj._aim_tt(c, t, tt, from + Vector3.UP)
 		dd.y = 0.0
 		dd = dd.normalized()
@@ -2240,7 +2240,7 @@ static func chakura_kami_torappu(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	var hair: Color = c.model.look.get("hair", Color(0.95, 0.86, 0.5)) if c.get("model") else Color(0.95, 0.86, 0.5)
 	var goal: Vector3 = pj.gp(tt.global_position) if tt else pj.gp(c.global_position + d * 8.0)
 	var from = pj.gp(c.global_position + d * 0.5)
-	Sfx.play("kunai", c.global_position, 1.4, 0.5)
+	Sfx.play("throw_kunai", c.global_position, 1.4, 0.5)
 	_hair_bed(pj, from, goal, d, hair, 4.2)
 	var snare = func(_i, _k):
 		if not pj.live(c):

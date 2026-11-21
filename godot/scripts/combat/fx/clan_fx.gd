@@ -1884,7 +1884,7 @@ static func senko_enbu_ten_no_dan(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			ktw.tween_interval(0.25)
 			ktw.tween_callback(kn.queue_free)
 			_streak(from, p, 0.05, thin, dur, 0.0, 0.15, {"tail": 0.6, "n": 6})
-		Sfx.play("kunai", cc.global_position, 1.3))
+		Sfx.play("throw_kunai", cc.global_position, 1.3))
 	for k in 5:   # kunailer arasında ışınlanıp vurur
 		pj.after(0.55 + k * 0.16, func():
 			var cc = cw.get_ref()

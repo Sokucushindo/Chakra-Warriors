@@ -396,7 +396,7 @@ static func kuroki_jushinki(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 					_pierce(pj, c, h, 4.0))
 			if pr:
 				_streak(pj, pr, 1.2, 0.035, Color(0.32, 0.24, 0.48, 0.75), 8))
-	Sfx.play("kunai", c.global_position, 1.2)
+	Sfx.play("throw_kunai", c.global_position, 1.2)
 
 
 # ================================================================== Fūjutsu Kyūin
@@ -778,7 +778,7 @@ static func magen_kasegui_no_jutsu(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 				var sp = L.disc(pj, pj.gp(through) + Vector3.UP * 0.05, randf_range(0.9, 1.4), L.disc_mat(9, Color(0.18, 0.0, 0.02), Color.BLACK, Color.BLACK, {"alpha": 0.85, "prog": 0.0}))
 				L.disc_life(sp, 0.08, maxf(0.2, dur - 0.5), 0.5)
 				pj.shake(0.12)
-				Sfx.play("kunai", through, 0.6))
+				Sfx.play("throw_kunai", through, 0.6))
 			stakes.append(mi))
 	# işkence: acı gerçek — süre boyunca tik hasarı, kurban kıvranır
 	pj.every(dur, 0.5, func(i, _k):

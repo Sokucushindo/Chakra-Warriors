@@ -1834,7 +1834,7 @@ func c_tsubaki_no_mai(c: Node3D, t: Node3D) -> void:
 		for k in 3:
 			hit(c, p + d * (1.0 + k * 0.9), 0.7, inf(c, "tsubaki_no_mai", 0.3, {"knock": 2.0, "kind": "light", "burn": 1.0}))
 		FX.burst(p + d * 2.2, {"amount": 5, "life": 0.25, "size": 0.4, "vmin": 2, "vmax": 5, "colors": [Color(1, 1, 0.95), Color(1, 1, 1, 0)]})
-		Sfx.play("kunai", p, 1.3))
+		Sfx.play("throw_kunai", p, 1.3))
 
 
 ## Clematis Çiçeği: kol sarmal kemik matkaba dönüşür; yüklenip tek dev saplama: blok ve zırh delinir
@@ -2791,7 +2791,7 @@ func c_sofushasan_no_tachi(c: Node3D, t: Node3D) -> void:
 		if live(tt):
 			hit(c, tt.global_position + Vector3.UP, 1.3, inf(c, "sofushasan_no_tachi", 1.6, {"knock": 2.0, "kind": "heavy", "burn": 2.0}))
 			Combat.popup_text(tt.global_position + Vector3.UP * 2.4, "Teller sıkıldı!", Color(0.9, 0.9, 1)))
-	Sfx.play("kunai", c.global_position, 0.8)
+	Sfx.play("throw_kunai", c.global_position, 0.8)
 
 
 ## Shuriken Gölge Klonu: tek shuriken havada yirmi dörde bölünür, hedefe yağar
@@ -2914,7 +2914,7 @@ func c_kamizuru_hari(c: Node3D, t: Node3D) -> void:
 		after(k * 0.04, func():
 			shot(c, origin, d, 30.0, nd, inf(c, "kamizuru_hari", 0.12, {"knock": 0.5, "kind": "light", "burn": 2.5}), target, false, 1.6, func(_p, tgt):
 				st(tgt, "slow", 2.0)))
-	Sfx.play("kunai", c.global_position, 1.6)
+	Sfx.play("throw_kunai", c.global_position, 1.6)
 
 
 ## Bal Klonu: düşmanları üstüne çeker; vurulunca patlar, çevredeki herkes yapışkan muma saplanır
@@ -3153,7 +3153,7 @@ func c_kurohigi_kiki_ippatsu(c: Node3D, t: Node3D) -> void:
 		attach(tt, blade, 1.0, Vector3(cos(a) * 1.1, 0.8 + (i % 3) * 0.5, sin(a) * 1.1))
 		blade.look_at(tt.global_position + Vector3.UP * 1.2, Vector3.UP)
 		hit(c, tt.global_position + Vector3.UP, 0.9, inf(c, "kurohigi_kiki_ippatsu", 0.3, {"knock": 0.0, "kind": "light", "burn": 2.0}))
-		Sfx.play("kunai", tt.global_position, 1.4, 0.5))
+		Sfx.play("throw_kunai", tt.global_position, 1.4, 0.5))
 
 
 ## Mekanik Kalkan: önünde kukla açılır, kalkan plakaları 6 sn mermileri keser; yaklaşanı gizli bıçaklar deler
@@ -3898,7 +3898,7 @@ func c_uchiha_ryu_shurikenjutsu_ikazuchi_sanren(c: Node3D, t: Node3D) -> void:
 			pr.homing_turn = 5.0
 			pr.spin = Vector3(0, 30, 0)
 			VFX.trail(root, 0.06, Color(0.9, 0.95, 1.0), blue, Color(blue.r, blue.g, blue.b, 0.0), 12, 1.0)
-			Sfx.play("kunai", c.global_position, 1.3))
+			Sfx.play("throw_kunai", c.global_position, 1.3))
 
 
 ## Nişan: menzilde hedef varsa ona (göğüs), yoksa oyuncunun nişangâhı
@@ -4504,7 +4504,7 @@ func c_magen_kasegui_no_jutsu(c: Node3D, t: Node3D) -> void:
 				VFX.star(through, Color(0.9, 0.1, 0.12), 1.2, 0.1)
 				FX.burst(through, {"amount": 10, "life": 0.5, "size": 0.18, "vmin": 2.0, "vmax": 5.0, "gravity": Vector3(0, -6, 0), "colors": [Color(0.7, 0.02, 0.04), Color(0.3, 0.0, 0.02, 0)]})
 				shake(0.12)
-				Sfx.play("kunai", through, 0.6))
+				Sfx.play("throw_kunai", through, 0.6))
 			stakes.append(mi))
 	# işkence: acı gerçek — süre boyunca tik hasarı, kurban kıvranır
 	every(dur, 0.5, func(i, _k):

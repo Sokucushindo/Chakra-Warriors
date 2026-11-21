@@ -907,6 +907,8 @@ func _chase(dt: float) -> void:
 			state_t = 0.0
 			model.play("throw", 0.05, 1.6, true)
 			var s = global_position + Vector3.UP * 1.4
+			if tk in ["kunai", "shuriken"]:
+				Sfx.play("throw_" + tk, s)
 			var nn = 3 if tk in ["shuriken", "senbon", "togarashi_dama", "toge_dama"] and randf() < 0.5 else 1
 			var aim = (target.global_position + Vector3.UP - s).normalized()
 			if tk == "smoke":   # kanon: kendini örter; ayağının önüne atıp sıyrılır

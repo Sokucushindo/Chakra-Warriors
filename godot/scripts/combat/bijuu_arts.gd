@@ -602,7 +602,7 @@ class Reach extends Node3D:
 			var L = maxf(prev.distance_to(p) * 1.35, radius * 0.6)
 			var r = radius * lerpf(1.0, 0.55, k)
 			if prev.distance_to(p) > 0.01:
-				seg.look_at(p, Vector3.UP if absf((p - prev).normalized().y) < 0.95 else Vector3.RIGHT)
+				seg.global_basis = Basis.looking_at((p - prev).normalized(), Vector3.UP if absf((p - prev).normalized().y) < 0.95 else Vector3.RIGHT)
 			seg.scale = Vector3(r * 2.0, r * 2.0, L)
 			prev = p
 		tipnode.global_position = prev

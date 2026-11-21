@@ -1710,7 +1710,7 @@ func j_mokuton_wall(c: Node3D, _t: Node3D) -> void:
 func j_hyoton_senbon(c: Node3D, t: Node3D) -> void:
 	var m = _mult(c)
 	var dir = _aim(c, t)
-	Sfx.play("kunai", c.global_position, 1.6)
+	Sfx.play("throw_kunai", c.global_position, 1.6)
 	VFX.star(_hand(c), Color(0.8, 0.95, 1.0), 2.0, 0.15)
 	FX.burst(_hand(c), {"amount": 24, "life": 0.5, "size": 0.25, "vmin": 2, "vmax": 6, "colors": [Color(0.95, 1, 1), Color(0.6, 0.85, 1, 0)]})
 	for i in 16:

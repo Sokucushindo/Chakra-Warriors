@@ -2366,7 +2366,7 @@ static func tsukuyomi_core(c: Node3D, t: Node3D) -> void:
 			tw2.tween_property(sw, "global_position", hitp - dir * 0.6, 0.06).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
 			tw2.tween_callback(func():
 				_tsuki_stab(host, hitp, dir)
-				Sfx.play("kunai", hitp, 0.7))
+				Sfx.play("throw_kunai", hitp, 0.7))
 			tw2.tween_interval(1.5 - k * 0.12)
 			tw2.tween_callback(sw.queue_free))
 	Combat.popup_text(base + Vector3.UP * 2.8, "72 saat...", Color(0.95, 0.2, 0.2))

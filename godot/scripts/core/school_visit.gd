@@ -179,7 +179,7 @@ func _throw(n: Node3D, hit: bool) -> void:
 	m.global_position = end
 	if hit:
 		m.global_basis = bas * Basis(Vector3(0, 0, 1), randf_range(0.2, 1.2))
-		Sfx.play("kunai", end, 0.6)
+		Sfx.play("throw_kunai", end, 0.6)
 	else:
 		m.global_basis = Basis(Vector3(1, 0, 0), PI * 0.5)
 		Sfx.play("clink", end, 0.4)

@@ -1055,7 +1055,7 @@ static func magen_jubaku_messatsu(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			st2.tween_callback(sp.queue_free)
 			_scatter(pj, _petal_mesh(), from, 5, 0.2, 2.0, 0.6, 0.12, float(k))
 			_proj_trail(pj, pr, 0.45, 0.05, Color(1.0, 0.75, 0.85, 0.8), 6)
-			Sfx.play("kunai", from, 1.2 + k * 0.03, 0.6))
+			Sfx.play("throw_kunai", from, 1.2 + k * 0.03, 0.6))
 	var rw = weakref(root)
 	pj.after(hold, func():   # kai: ağaç çözülür
 		var rn = rw.get_ref()
@@ -1555,7 +1555,7 @@ static func kongo_fuin_enyo_fusatsu(pj: PathJutsu, c: Node3D, t: Node3D) -> void
 			_flash(pj, p + Vector3.UP * 0.2, Color(1.0, 0.3, 0.25), 2.0, 3.0, 0.3)
 			_path_ribbon(pj, func(s: float) -> Vector3: return p + Vector3.UP * s * 3.0, 0.3, 0.06, Color(1.0, 0.3, 0.3, 0.9), 0.5))
 		pj.free_after(5.0, tag)
-	Sfx.play("kunai", c.global_position, 1.1)
+	Sfx.play("throw_kunai", c.global_position, 1.1)
 	var cage = func():
 		var cc = cw.get_ref()
 		var x = tw.get_ref()

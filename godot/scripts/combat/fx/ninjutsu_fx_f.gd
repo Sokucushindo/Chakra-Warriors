@@ -1772,7 +1772,7 @@ static func shikomi_shinshin_happa(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		if tw != null and tw.get_ref() != null and is_instance_valid(tw.get_ref()):
 			tp = (tw.get_ref() as Node3D).global_position
 		_needle_field(pj, pj.gp(tp), d, mat))
-	Sfx.play("kunai", c.global_position, 1.4)
+	Sfx.play("throw_kunai", c.global_position, 1.4)
 
 
 ## Yere saplanmış iğneler: eğik, kümeli; 3 sn sonra söner
@@ -1829,7 +1829,7 @@ static func gishu_senbon(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		tw.tween_property(a, "scale", (a as Node3D).scale * 0.05, 0.2).set_ease(Tween.EASE_IN)
 		tw.tween_callback((a as Node3D).queue_free))
 	pj.free_after(1.6, am)
-	Sfx.play("kunai", c.global_position, 1.6)
+	Sfx.play("throw_kunai", c.global_position, 1.6)
 
 
 ## Protez kol (uzun eksen Z, ön -Z): kapsül gövde, çıkıntılı tüpler + kara delikler, bilek bandı, arkada itiş alevi
@@ -2392,7 +2392,7 @@ static func dokugiri_jigoku_baribari(pj: PathJutsu, c: Node3D, t: Node3D) -> voi
 			nd.add_child(tr)
 			tr.scale = Vector3(0.08, 0.08, 2.2)
 			pj.shot(c, o, dir, 38.0, nd, pj.inf(c, "dokugiri_jigoku_baribari", 0.1, {"knock": 0.5, "kind": "light", "poison": 2.0}), null, false, 0.8))
-	Sfx.play("kunai", c.global_position, 1.5)
+	Sfx.play("throw_kunai", c.global_position, 1.5)
 
 
 ## Yırtık yarasa kanadı biçimli sis lekesi profili (ref)

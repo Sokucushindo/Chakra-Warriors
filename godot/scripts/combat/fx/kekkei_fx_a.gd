@@ -1240,7 +1240,7 @@ static func tsubaki_no_mai(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		for k in 3:
 			pj.hit(c, p + d * (1.0 + k * 0.9), 0.7, pj.inf(c, "tsubaki_no_mai", 0.3, {"knock": 2.0, "kind": "light", "burn": 1.0}))
 		_thrust_fx(pj, c, p, d, i)
-		Sfx.play("kunai", p, 1.3))
+		Sfx.play("throw_kunai", p, 1.3))
 
 
 ## Sol omuzdan bir an beliren, çekilip ele geçen kemik ucu
@@ -1312,7 +1312,7 @@ static func yaemugura_no_mai(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			_line(pj, at - d * 0.9, d, 1.9, 0.06, IVORY, Color(0.5, 0.52, 0.58), 0.12, d * 0.5, 0.03)
 			_chips(pj, at + d * 0.6, 2, 3.0)
 			pj.hit(c, at, 1.4, pj.inf(c, "yaemugura_no_mai", 0.2, {"knock": 8.0 if k == 5 else 0.5, "kind": "light", "bleed": 1.0}))
-			Sfx.play("kunai", at, 1.4))
+			Sfx.play("throw_kunai", at, 1.4))
 	pj.after(1.4, func():
 		if not pj.live(c):
 			return

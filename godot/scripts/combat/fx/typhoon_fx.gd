@@ -990,7 +990,7 @@ static func reppu_shuriken(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 				if c2 != null and pj.live(c2):
 					pj.hit(c2, p, 2.4, pj.inf(c2, id, 0.4, {"knock": 10.0, "launch": 3.0, "kind": "heavy", "element": "taiton"})))
 			pr.radius = 0.35)
-	Sfx.play("kunai", c.global_position, 1.3)
+	Sfx.play("throw_kunai", c.global_position, 1.3)
 
 
 # ================================================================== 4) Senpū Tatsumaki — yürüyen, kaldıran hortum

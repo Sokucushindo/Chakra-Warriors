@@ -1384,7 +1384,7 @@ static func soshujin(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 				var side = randf() < 0.5
 				_wire(pj, func(): return pj.hand_pos(c, side) if pj.live(c) else Vector3.ZERO,
 					func(): return pr.global_position if is_instance_valid(pr) else Vector3.ZERO, 0.5, Color(0.75, 0.88, 1.0, 0.7), 0.012))
-	Sfx.play("kunai", c.global_position, 1.4)
+	Sfx.play("throw_kunai", c.global_position, 1.4)
 
 
 ## Kunai (uç -Z): yaprak bıçak, sargılı sap, halka; cel + kontur
@@ -1482,7 +1482,7 @@ static func sofushasan_no_tachi(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		if pj.live(tt):
 			pj.hit(c, tt.global_position + Vector3.UP, 1.3, pj.inf(c, "sofushasan_no_tachi", 1.6, {"knock": 2.0, "kind": "heavy", "burn": 2.0}))
 			Combat.popup_text(tt.global_position + Vector3.UP * 2.4, "Teller sıkıldı!", Color(0.9, 0.9, 1)))
-	Sfx.play("kunai", c.global_position, 0.8)
+	Sfx.play("throw_kunai", c.global_position, 0.8)
 	# p_ eki: elden hedefe üç gergin tel
 	if tt24:
 		for k in 3:

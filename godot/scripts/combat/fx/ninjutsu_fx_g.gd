@@ -2099,7 +2099,7 @@ static func kaifujutsu_shuriken(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 				var pr = pj.shot(c, from, dir, 38.0, body, pj.inf(c, "kaifujutsu_shuriken", 0.12, {"knock": 1.0, "kind": "light", "bleed": 1.0}), tt if wave % 2 == 0 else null, false, 0.9)
 				if pr and not is_kunai:
 					pr.spin = Vector3(0, 32.0, 0))
-	Sfx.play("kunai", c.global_position, 1.3)
+	Sfx.play("throw_kunai", c.global_position, 1.3)
 
 
 ## Çelik shuriken: dört sivri kol, ortada delik (XZ düzleminde yassı)
@@ -2175,7 +2175,7 @@ static func genei_taju_shuriken(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 						var tw := ghost.create_tween()
 						tw.tween_property(ghost, "scale", Vector3.ONE * 0.1, 0.18).set_ease(Tween.EASE_IN)
 						tw.tween_callback(ghost.queue_free))
-	Sfx.play("kunai", c.global_position, 1.2)
+	Sfx.play("throw_kunai", c.global_position, 1.2)
 
 
 # ================================================================== 15) Asalak İblis Yıkım Tekniği

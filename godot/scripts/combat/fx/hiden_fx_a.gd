@@ -1841,7 +1841,7 @@ static func hijutsu_ishibari(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			var pr = pj.shot(c, from, d, 50.0, nd, pj.inf(c, "hijutsu_ishibari", 0.12, {"knock": 0.6, "kind": "light", "bleed": 1.0}), null, false, 0.8, func(p, h):
 				_needle_hit(pj, p, d, h))
 			_ribbon(pj, pr, 0.06, 0.22, Color(0.45, 0.7, 1.0)))
-	Sfx.play("kunai", from, 1.7, 0.4)
+	Sfx.play("throw_kunai", from, 1.7, 0.4)
 
 
 static func _needle_hit(pj: PathJutsu, p: Vector3, d: Vector3, h) -> void:

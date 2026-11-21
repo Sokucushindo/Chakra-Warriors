@@ -1476,7 +1476,7 @@ static func chigiri_core(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 				continue
 			pj.st(h, "stun", 1.0)
 			_blood(h.global_position + Vector3.UP, d, 14)
-		Sfx.play("kunai", p, 0.8)
+		Sfx.play("throw_kunai", p, 0.8)
 	pj.after(0.2, cut)
 
 

@@ -1099,7 +1099,7 @@ static func fuma_senpu_fusha(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			hits[key] = true
 			_steel_sparks(pj, mid, 16)
 			_pop(pj, mid, 1.1, {"kind": 13.0, "c1": Color(1, 1, 0.95), "c2": Color(0.75, 0.8, 0.9), "c3": INK, "seed": randf() * 9.0, "nf": 1.0}, 0.18)
-			Sfx.play("kunai", mid, 0.8)
+			Sfx.play("throw_kunai", mid, 0.8)
 			e.take_hit(pj.inf(cc, id, 1.0, {"knock": 6.0, "kind": "heavy", "bleed": 2.0, "hitstop": 0.06}))
 	var done = func():
 		if is_instance_valid(sh):

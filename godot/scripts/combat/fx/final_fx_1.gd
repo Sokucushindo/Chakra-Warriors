@@ -942,7 +942,7 @@ static func bone_bullets(jz, c: Node3D, t: Node3D) -> void:
 		pr.spin = Vector3(0, 0, 25)
 		_bone_dust(jz, pr)
 		_bone_muzzle(jz, from, dv.normalized())
-		Sfx.play("kunai", c.global_position, 0.8, 0.6))
+		Sfx.play("throw_kunai", c.global_position, 0.8, 0.6))
 
 
 ## Kemik mermisi (ileri -Z): önde iri boğum, ince boyun, arkada düz kesik halka (ref)
@@ -1760,7 +1760,7 @@ static func kagemane_shuriken_no_jutsu(pj: ClanJutsu, c: Node3D, t: Node3D) -> v
 		if is_instance_valid(shade) and is_instance_valid(p):
 			shade.global_position = pj.gp(p.global_position) + UP * 0.04
 			shade.rotation.y = p.rotation.y
-	Sfx.play("kunai", c.global_position)
+	Sfx.play("throw_kunai", c.global_position)
 
 
 static func _kage_shuriken() -> Node3D:

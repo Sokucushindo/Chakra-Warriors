@@ -1904,7 +1904,7 @@ static func tenchu(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 				sw.tween_callback(stuck.queue_free)
 				if k % 3 == 0:
 					burst(pj, land + Vector3.UP * 0.05, _chunk(), dm, 4, 0.45, {"r": 0.05, "dir": Vector3.UP, "spread": 50.0, "vmin": 1.5, "vmax": 3.0, "g": Vector3(0, -14, 0), "smin": 0.2, "smax": 0.4})))
-	Sfx.play("kunai", at, 1.1)
+	Sfx.play("throw_kunai", at, 1.1)
 
 
 static func _kunai_mat() -> ShaderMaterial:
@@ -2157,7 +2157,7 @@ static func shikomishindan(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		pj.after(k * 0.05, func():
 			pj.shot(c, from, pj.aim_at(c, tt, from).rotated(Vector3.UP, randf_range(-0.05, 0.05)), 55.0, _needle(), pj.inf(c, "shikomishindan", 0.12, {"knock": 0.2, "kind": "light", "poison": 4.0}), null, false, 0.8, func(p, _h):
 				_venom_pop(pj, p)))
-	Sfx.play("kunai", from, 1.6, 0.4)
+	Sfx.play("throw_kunai", from, 1.6, 0.4)
 
 
 static func _wrist_click(pj: PathJutsu, at: Vector3, dir: Vector3) -> void:

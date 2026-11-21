@@ -1755,7 +1755,7 @@ static func kushi_kunai(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 					_ring(g, Vector3.UP, 0.8, Color(0.75, 0.65, 0.5, 0.7), Color(0.55, 0.45, 0.35, 0.4), 0.6, 0.15, 0.4)
 					_chunks(g, 5, EARTH, 3.0, 0.1))
 			pr.radius = 0.3)
-	Sfx.play("kunai", c.global_position, 1.0)
+	Sfx.play("throw_kunai", c.global_position, 1.0)
 
 
 ## Jakage Shibari — rakibin altında dalgalanan kara gölge havuzu; havuzun kenarından toprağı yararak dört gerçek yılan çıkar,
@@ -2282,7 +2282,7 @@ static func kiiroi_senko(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		ktw.tween_interval(0.25)
 		ktw.tween_callback(kn.queue_free)
 		_streak(from, to, 0.05, _sweep(Color(1, 1, 0.9, 0.9), Color(BOLT_Y.r, BOLT_Y.g, BOLT_Y.b, 0.6), 0.4, true), 0.15, 0.0, 0.2, {"n": 6, "tail": 0.7})
-		Sfx.play("kunai", cc.global_position, 1.3))
+		Sfx.play("throw_kunai", cc.global_position, 1.3))
 	pj.after(0.62, func():
 		var cc = cw.get_ref()
 		if cc != null and pj.live(cc):

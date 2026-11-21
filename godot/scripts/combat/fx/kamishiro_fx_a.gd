@@ -2360,7 +2360,7 @@ static func kamizuru_hari(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			pj.shot(c, origin, dk, 30.0, nd, pj.inf(c, "kamizuru_hari", 0.12, {"knock": 0.5, "kind": "light", "burn": 2.5}), target, false, 1.6, func(hp, tgt):
 				pj.st(tgt, "slow", 2.0)
 				_needle_stick(pj, hp, tgt, dk)))
-	Sfx.play("kunai", c.global_position, 1.6)
+	Sfx.play("throw_kunai", c.global_position, 1.6)
 
 
 static func _needle_stick(pj: PathJutsu, hp: Vector3, tgt, dk: Vector3) -> void:
@@ -2509,7 +2509,7 @@ static func kurohigi_kiki_ippatsu(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			_blood(pj, sp, 5)
 			_chips(pj, sp, 3, KURO_C, 3.0)
 		pj.hit(c, tt.global_position + Vector3.UP, 0.9, pj.inf(c, "kurohigi_kiki_ippatsu", 0.3, {"knock": 0.0, "kind": "light", "burn": 2.0}))
-		Sfx.play("kunai", tt.global_position, 1.4, 0.5)
+		Sfx.play("throw_kunai", tt.global_position, 1.4, 0.5)
 	pj.every(1.6, 0.2, tick)
 	pj.after(0.6, func():
 		if pj.live(tt):

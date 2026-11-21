@@ -1399,7 +1399,7 @@ static func ito_buki_arashi(pj: PathJutsu, c: Node3D, _t: Node3D) -> void:
 					if pj.live(e):
 						pj.hit(c, to, e.radius + 0.5, pj.inf(c, "ito_buki_arashi", 0.32, {"knock": 2.0, "kind": "light", "hitstop": 0.03}))
 						pj.st(e, "bind", 0.6)
-						Sfx.play("kunai", to, 1.2, 0.5)
+						Sfx.play("throw_kunai", to, 1.2, 0.5)
 						_spark(pj, to, from - to)
 						if is_instance_valid(wire):
 							wire.pulse = 1.0)

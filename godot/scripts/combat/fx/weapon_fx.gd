@@ -2142,7 +2142,7 @@ static func sogu_tensasai(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 				pj.hit(c, pos, 1.2, pj.inf(c, "sogu_tensasai", 0.04, {"knock": 1.5, "kind": "light"}))
 				_sparks(pj, pos, 3, Vector3.UP, 1.0, 5.0)
 			if k % 5 == 0:
-				Sfx.play("kunai", from, randf_range(0.8, 1.2), 0.6))
+				Sfx.play("throw_kunai", from, randf_range(0.8, 1.2), 0.6))
 	for k in 7:
 		pj.after(0.5 + k * 0.1, func():
 			var p = tpos.call() + Vector3(randf_range(-1.0, 1.0), 0, randf_range(-1.0, 1.0))
@@ -2216,7 +2216,7 @@ static func soshuriken_no_jutsu(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			Combat.popup_text(tt.global_position + Vector3.UP * 2.4, "Tellerle bağlandı!", Color(0.85, 0.85, 0.9))
 			tt.take_hit(pj.inf(c, "soshuriken_no_jutsu", 0.8, {"knock": 0.0, "kind": "heavy", "bleed": 2.0}))
 			_cinch(pj, tt, 2.5))
-	Sfx.play("kunai", c.global_position, 1.1)
+	Sfx.play("throw_kunai", c.global_position, 1.1)
 
 
 ## Telli shuriken: kavisli uçuş → hedef çevresinde daralan dolanma; elden gelen tel (kavisliyken gevşek, sonra gergin)
@@ -2390,7 +2390,7 @@ static func soshoryu(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 				_sparks(pj, pos, 3, Vector3.UP, 1.0, 5.0)
 				_puff(pj, pos, Vector3(randf_range(-1, 1), 1.0, randf_range(-1, 1)), 0.2, 0.6, 0.45)
 			if k % 4 == 0:
-				Sfx.play("kunai", from, randf_range(0.9, 1.3), 0.7))
+				Sfx.play("throw_kunai", from, randf_range(0.9, 1.3), 0.7))
 	pj.after(2.55, func():
 		var g = pj.gp(tpos.call())
 		_ring(pj, g + Vector3.UP * 0.1, Vector3.UP, 0.8, 6.0, 0.5, Color(0.95, 0.9, 0.8, 0.7))

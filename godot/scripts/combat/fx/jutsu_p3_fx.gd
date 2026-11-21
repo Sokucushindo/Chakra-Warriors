@@ -238,7 +238,7 @@ static func samidare_kekka(pj, c: Node3D, t: Node3D) -> void:
 			var g: Vector3 = pj.gp(ctr + Vector3(cos(a), 0.0, sin(a)) * r)
 			pj.hit(c, g + Vector3.UP * 0.9, 1.5, pj.inf(c, "samidare_kekka", 0.2, {"knock": 0.6, "kind": "light", "hitstop": 0.0, "bleed": 1.0, "melee": false}))
 			_stuck(pj, g)
-			Sfx.play("kunai", g, randf_range(1.5, 1.9), 0.3), func() -> void:
+			Sfx.play("throw_kunai", g, randf_range(1.5, 1.9), 0.3), func() -> void:
 		if is_instance_valid(rain):
 			_fade(rain, 1.0, 0.0, 0.35, true))
 
@@ -520,7 +520,7 @@ static func nadeshiko_shinku_enbu(pj, c: Node3D, t: Node3D) -> void:
 			for k in 3:
 				var d: Vector3 = aim.rotated(Vector3.UP, (k - 1) * 0.16).normalized()
 				_kunai(pj, c, from, d, tt)
-			Sfx.play("kunai", from, randf_range(1.0, 1.25), 0.7))
+			Sfx.play("throw_kunai", from, randf_range(1.0, 1.25), 0.7))
 	pj.after(0.2 + waves * gap, func() -> void:
 		for ba2 in claws:
 			if is_instance_valid(ba2):
@@ -621,7 +621,7 @@ static func hari_jigoku(pj, c: Node3D, t: Node3D) -> void:
 					_needle_stuck(pj, p, d, hair)
 			pj.shot(c, from, d, 62.0, nd, pj.inf(c, "hari_jigoku", 0.075, {"knock": 0.8, "kind": "light", "hitstop": 0.0, "bleed": 0.5, "melee": false}), null, true, 0.62, land)
 			if k % 6 == 0:
-				Sfx.play("kunai", from, randf_range(0.7, 0.9), 0.4))
+				Sfx.play("throw_kunai", from, randf_range(0.7, 0.9), 0.4))
 	pj.after(0.5, func() -> void:
 		pj.shake(0.2))
 

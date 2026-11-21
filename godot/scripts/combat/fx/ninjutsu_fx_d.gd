@@ -1013,7 +1013,7 @@ static func shuriken_kage_bunshin_no_jutsu(pj: PathJutsu, c: Node3D, t: Node3D) 
 			var s = pj.shot(c, p, dd, 34.0, _star_shot(0.3), pj.inf(c, "shuriken_kage_bunshin_no_jutsu", 0.09, {"knock": 1.0, "kind": "light"}), tt if k % 3 == 0 else null, false, 1.4, func(q, h):
 				_star_stick(pj, q, h))
 			s.spin = Vector3(0, 30, 0))
-	Sfx.play("kunai", c.global_position)
+	Sfx.play("throw_kunai", c.global_position)
 
 
 static func _star_stick(pj: PathJutsu, p: Vector3, h) -> void:
@@ -1095,7 +1095,7 @@ static func sairento_kiringu(pj: PathJutsu, c: Node3D, _t: Node3D) -> void:
 			_slash(pj, e.global_position + Vector3.UP * 1.1, fwd, [0.8, -0.8, 0.05][i], 1.0 if i < 2 else 1.6)
 			if i == 2:
 				_flash(pj, e.global_position + Vector3.UP * 1.1, Color(1, 1, 1, 1), 0.3, 2.2, 0.2, 1.0)
-			Sfx.play("kunai", c.global_position, 1.3)))
+			Sfx.play("throw_kunai", c.global_position, 1.3)))
 
 
 # ================================================================== RİKUDŌ YIN — hilal mühür, yoktan biçim, çakra mühürlenir

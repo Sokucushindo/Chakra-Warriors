@@ -1126,7 +1126,7 @@ static func ikkosen(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		pj.shake(0.2)
 		var pr = pj.shot(cc, from, dir, 95.0, k, pj.inf(cc, id, 1.6, {"knock": 8.0, "launch": 1.0, "kind": "heavy", "bleed": 3.0, "hitstop": 0.08, "pierce_guard": true}), null, true, 0.6, func(p, _h):
 			_impact(pj, p, dir, 0.9, PALE)
-			Sfx.play("kunai", p, 0.8))
+			Sfx.play("throw_kunai", p, 0.8))
 		pr.radius = 0.4
 		var last = {"p": from}
 		var pw = weakref(pr)

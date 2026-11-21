@@ -1321,7 +1321,7 @@ func _throw(n: Node3D, to: Vector3, mode := "hit") -> void:
 	else:
 		m.global_position = end
 		m.global_basis = bas * Basis(Vector3(0, 0, 1), randf_range(0.2, 1.2))
-		Sfx.play("kunai", end, 0.7)
+		Sfx.play("throw_kunai", end, 0.7)
 	await _wait(0.3)
 	if is_instance_valid(n):
 		n.model.play("idle", 0.3)

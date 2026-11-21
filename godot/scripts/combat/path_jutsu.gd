@@ -2162,7 +2162,7 @@ func p_buki_kuchiyose(c: Node3D, t: Node3D) -> void:
 			var from = sc.global_position + sc.global_basis.y * randf_range(-0.3, 0.3) + sc.global_basis.x * randf_range(-0.15, 0.15) - sc.global_basis.z * 0.15
 			var to = (tt.global_position + Vector3.UP * tt.height * 0.5 + Vector3(randf_range(-0.6, 0.6), randf_range(-0.3, 0.4), randf_range(-0.6, 0.6))) if tt and live(tt) else from + d * 30.0 + Vector3(randf_range(-2, 2), randf_range(-1, 1), randf_range(-2, 2))
 			throw_weapon(c, "buki_kuchiyose", kind, from, to, 48.0, 0.28 if kind not in ["fuma", "ono", "kusari"] else 0.45, tt if tt and live(tt) else null)
-			Sfx.play("kunai", from, randf_range(0.9, 1.3), 0.6))
+			Sfx.play("throw_kunai", from, randf_range(0.9, 1.3), 0.6))
 
 
 ## Demir Pençe Zinciri: zincir hedefe dolanıp onu sana çeker; hedef yoksa zemine saplanıp seni oraya çeker (kanca)
@@ -11337,7 +11337,7 @@ func p_jashin_kazik(c: Node3D, t: Node3D) -> void:
 			h.set_meta("jashin_kan", Time.get_ticks_msec())
 			st(h, "marked", 10.0))
 	_etrail(pr, "", Color(0.4, 0.05, 0.05), 0.2)
-	Sfx.play("kunai", c.global_position, 0.9)
+	Sfx.play("throw_kunai", c.global_position, 0.9)
 
 
 ## Kan Yemini: beden siyah-beyaz ölüm desenine bürünür (kemik çizgileri)
@@ -16439,7 +16439,7 @@ func p_genji_no_mai(c: Node3D, t: Node3D) -> void:
 			var pr = shot(c, from, (aim_at(c, tt, from) + Vector3(randf_range(-0.05, 0.05), randf_range(-0.03, 0.05), randf_range(-0.05, 0.05))).normalized(), 44.0, _bone_dart(0.5),
 				inf(c, "genji_no_mai", 0.16, {"knock": 0.6, "kind": "light", "bleed": 1.0}), null, false, 1.0)
 			pr.spin = Vector3(0, 0, 20.0)
-			Sfx.play("kunai", from, 1.5))
+			Sfx.play("throw_kunai", from, 1.5))
 	after(0.85, func():
 		if live(c) and c is CharacterBody3D:
 			anim(c, "jump", 1.2)
@@ -16887,7 +16887,7 @@ func p_kage_zashi_no_jutsu(c: Node3D, t: Node3D) -> void:
 						Combat.popup_text(h.global_position + Vector3.UP * 2.4, "Gölge sapladı!", Color(0.65, 0.6, 0.85)))
 			if pr:
 				pr.homing_turn = 6.0
-		Sfx.play("kunai", c.global_position, 0.8)
+		Sfx.play("throw_kunai", c.global_position, 0.8)
 	after(0.5, launch)
 
 
@@ -19656,7 +19656,7 @@ func p_shiranui_fukibari(c: Node3D, t: Node3D) -> void:
 				return
 			var mouth: Vector3 = cc.global_position + Vector3.UP * 1.55 + d * 0.25
 			_senbon_shot(cc, mouth, aim_at(cc, tt, mouth), inf(cc, id, 0.5, {"knock": 0.5, "kind": "light", "bleed": 1.5, "hitstop": 0.02, "pierce_guard": true}), tt)
-			Sfx.play("kunai", mouth, 1.8))
+			Sfx.play("throw_kunai", mouth, 1.8))
 
 
 ## Shiranui: Senbon Ame* — avuç dolusu senbonu göğe savurursun; bir an sonra rakibin çevresine yağmur gibi düşerler
@@ -19711,7 +19711,7 @@ func p_shiranui_kasumi_bari(c: Node3D, t: Node3D) -> void:
 			var dir: Vector3 = d.rotated(Vector3.UP, (0.4 if k % 2 == 0 else -0.4) * (1.0 + k * 0.1))
 			var pr = _senbon_shot(cc, from, dir, inf(cc, id, 0.4, {"knock": 0.5, "kind": "light", "bleed": 1.5, "hitstop": 0.02}), tt, Callable(), 40.0)
 			pr.homing_turn = 10.0)
-	Sfx.play("kunai", c.global_position, 1.6)
+	Sfx.play("throw_kunai", c.global_position, 1.6)
 
 
 ## Shiranui: Kage Bari* — iki senbonu tek bir iğne gibi aynı hatta atarsın; ikincisi birincinin gölgesinde gizlidir: ilki
@@ -19730,7 +19730,7 @@ func p_shiranui_kage_bari(c: Node3D, t: Node3D) -> void:
 		var cc = cw.get_ref()
 		if cc != null and live(cc):
 			_senbon_shot(cc, from - dir * 0.3, dir, inf(cc, id, 0.9, {"knock": 1.0, "kind": "heavy", "bleed": 2.0, "hitstop": 0.05, "pierce_guard": true}), tt))
-	Sfx.play("kunai", from, 1.9)
+	Sfx.play("throw_kunai", from, 1.9)
 
 
 ## Shiranui: Kagenui Bari* — rakibin ayaklarının dibine yelpaze gibi senbon saplanır, kıyafetini ve gölgesini yere çiviler: bir
@@ -19753,7 +19753,7 @@ func p_shiranui_kagenui_bari(c: Node3D, t: Node3D) -> void:
 		scene_add(n, p + Vector3.UP * 0.2)
 		n.look_at(p - Vector3.UP + (p - at) * 0.4, Vector3.RIGHT)
 		free_after(2.0, n)
-	Sfx.play("kunai", at, 1.7)
+	Sfx.play("throw_kunai", at, 1.7)
 	after(0.1, func():
 		var cc = cw.get_ref()
 		var x = tw.get_ref()
@@ -19775,7 +19775,7 @@ func p_shiranui_mahi_bari(c: Node3D, t: Node3D) -> void:
 		if h and is_instance_valid(h) and live(h):
 			st(h, "slow", 3.0)
 			Combat.popup_text(h.global_position + Vector3.UP * 2.3, "Felç", Color(0.9, 0.9, 0.6)), 70.0)
-	Sfx.play("kunai", from, 2.1)
+	Sfx.play("throw_kunai", from, 2.1)
 
 
 ## Shiranui: Senbon Ōgi* — iki avuç arasında yelpaze gibi açılan on iki senbon, geniş bir koniye yayılır
@@ -19794,7 +19794,7 @@ func p_shiranui_senbon_ogi(c: Node3D, t: Node3D) -> void:
 		for k in 12:
 			var dir: Vector3 = d.rotated(Vector3.UP, lerpf(-0.5, 0.5, k / 11.0)) + Vector3.UP * randf_range(-0.04, 0.06)
 			_senbon_shot(cc, from, dir.normalized(), inf(cc, id, 0.28, {"knock": 0.5, "kind": "light", "bleed": 1.0, "hitstop": 0.01}), null, Callable(), 50.0)
-		Sfx.play("kunai", from, 1.5))
+		Sfx.play("throw_kunai", from, 1.5))
 
 
 ## Shiranui: Kuchibari Kaeshi* — dudaktaki senbonla tetikte durursun (2 sn): sana gelen atışları birer senbon fiskesiyle havada

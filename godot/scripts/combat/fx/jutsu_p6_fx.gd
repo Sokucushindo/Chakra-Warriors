@@ -239,7 +239,7 @@ static func rensha(pj, c: Node3D, t: Node3D) -> void:
 			_flash(pj, from)
 			if c is CharacterBody3D:
 				c.velocity -= f * 0.35
-			Sfx.play("kunai", from, randf_range(0.62, 0.8), 0.5))
+			Sfx.play("throw_kunai", from, randf_range(0.62, 0.8), 0.5))
 
 
 static func _spike_mesh() -> Mesh:

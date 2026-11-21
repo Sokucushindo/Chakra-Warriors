@@ -167,7 +167,7 @@ static func strike(who: Node3D, i: int, dmg: float) -> void:
 	match i:
 		0, 1, 2:
 			_blood(who, Kit.face(who), 1.5)
-			Sfx.play("kunai", who.global_position, 0.8, 0.6)
+			Sfx.play("throw_kunai", who.global_position, 0.8, 0.6)
 		3:
 			if pious:
 				K._jashin_draw(who)

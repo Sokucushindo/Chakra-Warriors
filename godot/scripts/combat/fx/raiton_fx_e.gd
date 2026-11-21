@@ -1054,7 +1054,7 @@ static func uchiha_ryu_shurikenjutsu_ikazuchi_sanren(pj: PathJutsu, c: Node3D, t
 			pr.homing_turn = 5.0
 			pr.spin = Vector3(0, 30, 0)
 			L.trail(root, RAI, 0.05, 0.18, 0.05)
-			Sfx.play("kunai", c.global_position, 1.3))
+			Sfx.play("throw_kunai", c.global_position, 1.3))
 
 
 # ═════════════════════════════════════════ Chō Biburāto Raitontō ═════════════════════════════════════════

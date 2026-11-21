@@ -78,7 +78,7 @@ static func _one(who: Node3D, to: Vector3, dmg: float) -> void:
 	var from = _muzzle(who)
 	var dir: Vector3 = (to - from).normalized()
 	_flash(from, dir)
-	Sfx.play("kunai", from, randf_range(1.5, 1.75), 0.28)
+	Sfx.play("throw_kunai", from, randf_range(1.5, 1.75), 0.28)
 	var cb = func(pos: Vector3, tgt: Node3D) -> void:
 		if tgt != null and is_instance_valid(tgt):
 			Sfx.play("hit_claw", pos, 1.5, 0.25)

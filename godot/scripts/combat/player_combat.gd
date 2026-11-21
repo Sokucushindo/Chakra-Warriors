@@ -1268,7 +1268,7 @@ func throw_tool() -> void:
 		aim = -p.cam.global_transform.basis.z
 		p.facing = atan2(-aim.x, -aim.z)
 	p.model.play("throw", 0.05, 1.8, true)
-	Sfx.play("kunai", start)
+	Sfx.play(("throw_" + tool) if tool in ["kunai", "shuriken"] else "kunai", start)
 	var n = 3 if tool in ["shuriken", "senbon", "togarashi_dama", "toge_dama"] else 1
 	if Stats.has_unlock(Game.profile, "multi_throw") and tool in ["kunai", "shuriken"]:
 		n += 2  # Silah Yağmuru
