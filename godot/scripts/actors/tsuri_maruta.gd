@@ -115,7 +115,7 @@ func _physics_process(dt: float) -> void:
 	var guarding: bool = pl.combat != null and pl.combat.action == "guard"
 	pl.take_hit({"dmg": dmg, "attacker": self, "kind": "heavy" if sp > 0.9 else "light", "dir": v.normalized(), "melee": true, "knock": 2.0 * sp})
 	if pl.hp < hp0 or guarding:
-		Mastery.gain(Game.profile, "dayaniklilik", 0.07 * (0.6 if guarding else 1.0))   # ~13 çarpmada 1 puan (kuklada vuruşla taijutsu ~25 vuruş)   # bilerek darbe karşılama: dayakla gelen kazancın üstüne
+		Mastery.gain(Game.profile, "dayaniklilik", 0.21 * (0.6 if guarding else 1.0))   # ~13 çarpmada 1 puan (kuklada vuruşla taijutsu ~25 vuruş)   # bilerek darbe karşılama: dayakla gelen kazancın üstüne
 		Sfx.play("hit_heavy", lc, randf_range(0.55, 0.7), 0.8)
 	thv *= -0.25   # gövdeye çarpıp geri teper
 
