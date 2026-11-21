@@ -394,6 +394,7 @@ static func tick() -> void:
 				{"label": "Onu teslim edeceğim", "cb": func():
 					rf["status"] = "hapiste"
 					rf["party"] = false
+					Friends.keep_peak(rf)
 					rf["bond"] = -100
 					Friends.log_event(rf, "Onu Kage'ye teslim ettin")
 					Missions._rep(Progress.home(), 20)
@@ -407,6 +408,7 @@ static func tick() -> void:
 ## İhanet (yaşam olayı): güveni düşük kaçak seni av ninjalarına satar
 static func betray(id: String) -> void:
 	var f: Dictionary = Friends.all()[id]
+	Friends.keep_peak(f)
 	f["bond"] = -60
 	f["party"] = false
 	Friends.log_event(f, "Seni ödül için av ninjalarına sattı")

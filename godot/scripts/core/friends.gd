@@ -163,6 +163,13 @@ static func log_event(f: Dictionary, text: String) -> void:
 		f["log"].pop_front()
 
 
+## En yüksek yakınlığı sakla: yakınlığı DOĞRUDAN düşüren her yer (saldırı, ihanet, ele verme, soygun) önce bunu çağırır.
+## Mangekyō bunu okur (closeness): 70'lik dostuna saldırıp öldürünce saldırı anında -100'e inen yakınlık "ezeli düşman"
+## sayılıyor, göz uyanmıyordu (kullanıcı 2026-11-22). Kanon: en yakın dostunu kendi elinle öldürmek.
+static func keep_peak(f: Dictionary) -> void:
+	f["peak"] = maxi(int(f.get("peak", 0)), int(f.get("bond", 0)))
+
+
 static func add_bond(id: String, n: int, quiet := false) -> void:
 	var f: Dictionary = all().get(id, {})
 	if f.is_empty():
@@ -170,6 +177,7 @@ static func add_bond(id: String, n: int, quiet := false) -> void:
 	var before = level_name(int(f["bond"]))
 	if n > 0:
 		n = int(round(n * (1.0 + Stats.skill(pr(), "charm"))))   # Sosyal: Sohbet Ustası / Karizma
+	keep_peak(f)   # düşmeden önceki yakınlık da sayılır (eskiden yalnız düşmüş değer yazılıyordu)
 	f["bond"] = clampi(int(f["bond"]) + n, -100, 100)
 	f["peak"] = maxi(int(f.get("peak", 0)), int(f["bond"]))   # en yüksek yakınlık (ihanet/kaçış sonrası da hatırlanır: Mangekyō)
 	var after = level_name(int(f["bond"]))
@@ -1817,6 +1825,7 @@ func _betrayal_event(id: String) -> void:
 			return
 		var amt = int(int(pr().get("ryo", 0)) * randf_range(0.1, 0.2))
 		Progress.add_ryo(-amt)
+		keep_peak(f)
 		f["bond"] = mini(int(f["bond"]), -40)
 		f["party"] = false
 		Friends.log_event(f, "Kesenden %d Ryō çaldı" % amt)
@@ -1830,6 +1839,7 @@ func _betrayal_event(id: String) -> void:
 		Missions._rep(Progress.home(), -15)
 		if Crime.heat() > 0:
 			Game.profile["flags"]["crime_heat"] = mini(100, Crime.heat() + 20)
+		keep_peak(f)
 		f["bond"] = mini(int(f["bond"]), -30)
 		Friends.log_event(f, "Seni Kage'ye şikâyet etti")
 		Hud.banner("İHBAR", "%s seni Kage'ye şikâyet etmiş (−15 itibar)." % f["name"], Color(1, 0.55, 0.45))

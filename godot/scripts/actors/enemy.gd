@@ -1825,7 +1825,7 @@ func die(info: Dictionary) -> void:
 	super.die(info)
 	# Mangekyō: yakın olduğun birini (dost, sevgili; hain/kaçak olmuş olsa bile) kendi elinle öldürmek
 	if info.get("attacker") is Player:
-		var fid = String(get_meta("friend_id", ""))
+		var fid = String(get_meta("friend_id", get_meta("slain_fid", "")))
 		if fid == "" and has_meta("bingo_id"):
 			for be in Missions._bingo()["list"]:
 				if int(be["id"]) == int(get_meta("bingo_id")):
