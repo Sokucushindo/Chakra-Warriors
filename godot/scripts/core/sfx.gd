@@ -172,21 +172,74 @@ func play_style(id: String, step: int, pos: Vector3) -> void:
 	play(String(st[0]), pos, float(st[1]) * (0.88 if fin else randf_range(0.97, 1.1)), 0.9 if fin else 0.5)
 
 
+## Müzik: assets/music/<grup>_<ad>.ogg (CC0, OpenGameArt; liste assets/music/KAYNAKLAR.txt). Durum = grup
+## (menu, konoha, suna, kiri, kumo, iwa, kar, koy, doga, gece, magara, savas, boss). Aynı durumda parça bitince
+## gruptan başka bir parça (son çalınan tekrar etmez); durum değişince 2 sn yumuşak geçiş.
+var music_groups := {}
+var _music_last := {}
+
+
+func _load_music() -> void:
+	var d = DirAccess.open("res://assets/music")
+	if d == null:
+		return
+	for f in d.get_files():
+		var fn = f.replace(".import", "")
+		if not fn.ends_with(".ogg"):
+			continue
+		var base = fn.get_basename()
+		var g = base.split("_")[0]
+		var st = load("res://assets/music/" + fn)
+		if st == null:
+			continue
+		if st is AudioStreamOggVorbis:
+			st.loop = false   # bitince finished -> gruptan sıradaki parça
+		if not music_groups.has(g):
+			music_groups[g] = []
+		if not (music_groups[g] as Array).has(st):
+			(music_groups[g] as Array).append(st)
+
+
 func music(name: String) -> void:
-	if name == music_name or not streams.has(name):
+	if music_groups.is_empty():
+		_load_music()
+	name = name.trim_prefix("muz_")
+	name = {"koy": "koy", "gece": "gece", "savas": "savas", "boss": "boss", "menu": "menu"}.get(name, name)
+	if name == music_name or not music_groups.has(name):
 		return
 	music_name = name
+	_music_play(name, 2.0)
+
+
+func _music_play(name: String, fade: float) -> void:
+	var arr: Array = music_groups[name]
+	var pick = arr.pick_random()
+	if arr.size() > 1:
+		while pick == _music_last.get(name):
+			pick = arr.pick_random()
+	_music_last[name] = pick
 	var old = music_a
 	music_a = music_b
 	music_b = old
-	var s: AudioStreamWAV = streams[name]
-	s.loop_mode = AudioStreamWAV.LOOP_FORWARD
-	s.loop_end = int(s.get_length() * s.mix_rate)
-	music_a.stream = s
+	music_a.stream = pick
 	music_a.volume_db = -60
 	music_a.play()
+	if not music_a.finished.is_connected(_music_next):
+		music_a.finished.connect(_music_next)
 	var target = linear_to_db(maxf(0.001, float(Game.settings["music"]) * 0.6))
-	var tw = create_tween().set_parallel(true)
-	tw.tween_property(music_a, "volume_db", target, 2.0)
-	tw.tween_property(music_b, "volume_db", -60.0, 2.0)
-	tw.chain().tween_callback(music_b.stop)
+	if _music_tw and _music_tw.is_valid():
+		_music_tw.kill()   # önceki geçişin "eskiyi durdur" adımı yeni parçayı susturmasın (art arda durum değişimi)
+	var fading: AudioStreamPlayer = music_b
+	_music_tw = create_tween().set_parallel(true)
+	_music_tw.tween_property(music_a, "volume_db", target, fade)
+	_music_tw.tween_property(fading, "volume_db", -60.0, fade)
+	_music_tw.chain().tween_callback(func(): if fading != music_a: fading.stop())
+
+
+var _music_tw: Tween
+
+
+## Parça bitti: aynı durumdaysak gruptan başka bir parça (kısa geçişle)
+func _music_next() -> void:
+	if music_name != "" and music_groups.has(music_name) and not music_a.playing:
+		_music_play(music_name, 1.0)

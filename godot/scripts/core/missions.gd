@@ -1855,7 +1855,7 @@ func _camp(c: Vector3, kind := "bandit") -> Node3D:
 		var a = TAU * i / 4.0 + 0.4
 		var p = Vector3(cos(a), 0, sin(a)) * 9.0
 		p.y = Game.ground_height(c.x + p.x, c.z + p.z) - c.y
-		b.add("prism", p + Vector3(0, 1.3, 0), Vector3(3.6, 2.6, 4.2), Color(0.55, 0.47, 0.35).darkened(rng.randf() * 0.2), Vector3(0, rad_to_deg(-a), 0))
+		CampKit.tent(b, Transform3D(Basis(Vector3.UP, -a - PI * 0.5), p), Color(0.55, 0.47, 0.35).darkened(rng.randf() * 0.2), 3.2, 2.3, 3.8, rng)   # önü ateşe dönük
 	for i in 5:
 		var a = rng.randf() * TAU
 		var p = Vector3(cos(a), 0, sin(a)) * rng.randf_range(3, 6)
@@ -1868,18 +1868,11 @@ func _camp(c: Vector3, kind := "bandit") -> Node3D:
 		var p = Vector3(cos(a), 0, sin(a)) * 15.0
 		p.y = Game.ground_height(c.x + p.x, c.z + p.z) - c.y
 		b.add("cyl", p + Vector3(0, 1.2, 0), Vector3(0.35, 2.4, 0.35), Color(0.4, 0.3, 0.2), Vector3.ZERO, 6)
-	for k in 6:
-		b.add("cyl", Vector3(0, 0.15, 0), Vector3(0.18, 1.2, 0.18), Color(0.35, 0.25, 0.15), Vector3(80, k * 30, 0), 5)
-	b.add("cone", Vector3(0, 0.5, 0), Vector3(0.7, 1.0, 0.7), Color(1.0, 0.55, 0.15), Vector3.ZERO, 7)
+	CampKit.campfire(b, Transform3D.IDENTITY)
 	var mi = MeshInstance3D.new()
 	mi.mesh = b.build(Props.toon())
 	root.add_child(mi)
-	var l = OmniLight3D.new()
-	l.light_color = Color(1, 0.6, 0.3)
-	l.light_energy = 1.1
-	l.omni_range = 9.0
-	l.position = Vector3(0, 1.2, 0)
-	root.add_child(l)
+	CampKit.fire_fx(root, c)
 	return root
 
 
@@ -1979,25 +1972,8 @@ func _lair_mouth(c: Vector3, lab: bool, room := "", label := "") -> Node3D:
 	var b = MB.new()
 	var rng = RandomNumberGenerator.new()
 	rng.seed = int(c.x * 3 + c.z * 5)
-	var rock = Color(0.42, 0.4, 0.38)
-	var fwd = Vector3(0, 0, 1)
-	b.add("sphere", Vector3(0, 2.0, -7.0), Vector3(16.0, 11.0, 14.0), rock, Vector3.ZERO, 12)
-	for i in 9:
-		var a = rng.randf_range(-2.4, 2.4)
-		var p = Vector3(sin(a) * rng.randf_range(6, 10), rng.randf_range(0.5, 3.5), -7.0 + cos(a) * rng.randf_range(4, 7))
-		var bs = rng.randf_range(3.0, 6.5)
-		if p.z + bs * 0.5 > -3.0 and absf(p.x) - bs * 0.5 < 3.4:   # kaya ağzın önüne düşmesin: yana itilir
-			p.x = (1.0 if p.x >= 0.0 else -1.0) * (3.6 + bs * 0.5)
-		b.add("sphere", p, Vector3.ONE * bs, rock.darkened(rng.randf() * 0.25), Vector3.ZERO, 8)
-	b.add("sphere", Vector3(0, 1.5, 0.15), Vector3(4.2, 3.6, 1.2), Color(0.04, 0.03, 0.03), Vector3.ZERO, 12)   # karanlık ağız (kaya yüzeyinin önünde)
-	b.add("box", Vector3(0, 3.5, 0.4), Vector3(5.0, 0.6, 1.0), rock.darkened(0.15))   # ağız üstü kaya lento
-	for sx in [-1.0, 1.0]:
-		b.add("cyl", Vector3(sx * 2.8, 1.1, 0.4), Vector3(0.12, 2.2, 0.12), Color(0.35, 0.25, 0.15), Vector3.ZERO, 5)
-		b.add("cone", Vector3(sx * 2.8, 2.4, 0.4), Vector3(0.35, 0.6, 0.35), Color(1.0, 0.55, 0.15) if not lab else Color(0.55, 1.0, 0.6), Vector3.ZERO, 6)
-	if lab:
-		for k in 3:   # yerde sürüklenme izleri, kırık kafes
-			b.add("box", Vector3(-1.5 + k * 1.5, 0.05, 2.5 + k), Vector3(0.25, 0.04, 2.0), Color(0.3, 0.2, 0.18))
-		b.add("box", Vector3(4.5, 0.8, 2.0), Vector3(1.6, 1.6, 1.6), Color(0.3, 0.28, 0.26))
+	var rock = Color(0.46, 0.43, 0.39)
+	var cols: Array = CampKit.cave_mouth(b, rng, rock, lab)   # düzensiz kaya tepe, kaya kemer, kararan geçit, iskele, meşaleler
 	var mi = MeshInstance3D.new()
 	mi.mesh = b.build(Props.toon())
 	root.add_child(mi)
@@ -2010,18 +1986,15 @@ func _lair_mouth(c: Vector3, lab: bool, room := "", label := "") -> Node3D:
 	root.rotation.y = atan2(face.x, face.z)
 	var body = StaticBody3D.new()
 	root.add_child(body)
-	var cs = CollisionShape3D.new()
-	var sh = SphereShape3D.new()
-	sh.radius = 6.5
-	cs.shape = sh
-	cs.position = Vector3(0, 1.5, -8.0)
-	body.add_child(cs)
-	var l = OmniLight3D.new()
-	l.light_color = Color(1, 0.6, 0.3) if not lab else Color(0.5, 1.0, 0.6)
-	l.light_energy = 1.4
-	l.omni_range = 8.0
-	l.position = Vector3(0, 2.0, 1.0)
-	root.add_child(l)
+	for cc in cols:   # çarpışma görünen kaya kütlelerinden
+		var cs = CollisionShape3D.new()
+		var sh = SphereShape3D.new()
+		sh.radius = float(cc[1])
+		cs.shape = sh
+		cs.position = cc[0]
+		body.add_child(cs)
+	for sx in [-1.0, 1.0]:   # meşale alevleri
+		CampKit.fire_fx(root, root.global_transform * Vector3(sx * 2.6, 2.3, 0.6), 0.45)
 	var door = {"pos": c + face * 0.6 + Vector3(0, 0.4, 0), "radius": 2.6, "kind": "enter", "label": label if label != "" else "[F] %s" % ("İne gir" if lab else "Mağaraya gir"),
 		"room": room if room != "" else ("lair_lab" if lab else "lair_cave"), "out": c + face * 3.0 + Vector3(0, 0.2, 0), "seed": int(c.x)}
 	Interact.add(door)

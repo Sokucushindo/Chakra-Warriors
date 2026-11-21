@@ -402,29 +402,20 @@ func _ensure_hideout() -> void:
 	var fire_at = mouth + fz * 8.0
 	fire_at.y = Game.ground_height(fire_at.x, fire_at.z)
 	var fb = MB.new()
-	for k in 6:
-		fb.add("cyl", Vector3(0, 0.12, 0), Vector3(0.14, 1.3, 0.14), Color(0.32, 0.22, 0.13), Vector3(80, k * 30, 0), 5)
-	for k in 9:
-		var a = TAU * k / 9.0
-		fb.add("sphere", Vector3(cos(a) * 0.9, 0.12, sin(a) * 0.9), Vector3(0.4, 0.28, 0.4), Color(0.4, 0.38, 0.36), Vector3.ZERO, 6)
+	CampKit.campfire(fb, Transform3D.IDENTITY)
 	for k in 4:   # ateş çevresinde kütük oturaklar
 		var a = TAU * k / 4.0 + 0.4
 		fb.add("cyl", Vector3(cos(a) * 2.6, 0.25, sin(a) * 2.6), Vector3(0.45, 1.4, 0.45), Color(0.42, 0.3, 0.18), Vector3(90, rad_to_deg(-a), 0), 8)
+	var tr0 = Transform3D(Basis(Vector3.UP, atan2(fz.x, fz.z)), Vector3.ZERO)
+	for k in 2:   # ateşin arkasında iki kaçak çadırı
+		var tp = fz * 6.0 + fx * (-5.5 + k * 3.8)
+		tp.y = Game.ground_height(fire_at.x + tp.x, fire_at.z + tp.z) - fire_at.y
+		CampKit.tent(fb, Transform3D(tr0.basis * Basis(Vector3.UP, PI + (k - 0.5) * 0.5), tp), Color(0.5, 0.45, 0.36).darkened(k * 0.1))
 	var fmi = MeshInstance3D.new()
 	fmi.mesh = fb.build(Props.toon())
 	_hideout_node.add_child(fmi)
 	fmi.global_position = fire_at
-	var fire = FX.burst(fire_at + Vector3.UP * 0.3, {"parent": _hideout_node, "amount": 24, "life": 0.7, "tex": FX.tex_soft, "size": 0.6, "radius": 0.3,
-		"vmin": 0.6, "vmax": 1.6, "dir": Vector3.UP, "spread": 15.0, "gravity": Vector3(0, 1.5, 0),
-		"colors": [Color(1.0, 0.85, 0.4, 0.9), Color(1.0, 0.45, 0.12, 0.7), Color(0.4, 0.15, 0.05, 0.0)]})
-	if fire:
-		fire.one_shot = false
-	var fl = OmniLight3D.new()
-	fl.light_color = Color(1.0, 0.6, 0.3)
-	fl.light_energy = 2.0
-	fl.omni_range = 9.0
-	_hideout_node.add_child(fl)
-	fl.global_position = fire_at + Vector3.UP * 0.8
+	CampKit.fire_fx(_hideout_node, fire_at)
 	# antrenman kuklaları (kaçak da çalışır)
 	for k in 3:
 		var dp = mouth + fz * (6.0 + k * 1.2) + fx * (7.0 + k * 2.2)
@@ -969,6 +960,9 @@ func hunters_at(pp: Vector3, ring: float) -> Array:
 		Stats.npc_ninja(a, randi_range(70, 85) + rogue_rank() * 4, 1.35)   # av-ninjası: ANBU dengi   # av-ninjası: ANBU eğrisi (eskiden +6/rütbe ile S'de kesilemiyordu)
 		a["look"]["face_style"] = ["anbu_kedi", "anbu_kurt", "anbu_kus"][i]
 		a["look"]["village"] = vid
+		if String(a["look"].get("band_style", "")) == "slashed":   # köyün av-ninjası kaçak değil: bandı çiziksiz
+			a["look"]["band_style"] = "head"
+			a["look"]["band"] = Color(0.15, 0.22, 0.55)
 		if hn < base_n:
 			Enemy.toughen(a, ceili(float(base_n) / hn), "B")
 		e.setup(a)

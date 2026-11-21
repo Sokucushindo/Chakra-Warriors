@@ -59,17 +59,19 @@ static func yield_to(e: Enemy) -> void:
 			e.team = "enemy"
 			e.hp = 1.0
 			e.take_hit({"dmg": 99999.0, "attacker": Game.player, "kind": "heavy", "dir": Game.player.face_dir(), "melee": true})}]
-	opts.append({"label": "Teslim et (ödül)" if e.has_meta("bingo_id") else "Muhafızlara teslim et", "cb": func():
-		if not is_instance_valid(e):
-			return
-		if e.has_meta("bingo_id"):
-			Missions._bingo_killed(e)
-		else:
-			Progress.add_ryo(100 + int(e.level) * 15)
-			Missions._rep(Progress.home(), 5)
-			Hud.msg("Kaçak muhafızlara teslim edildi.", Color(0.8, 0.9, 1.0))
-		FX.smoke_puff(e.global_position + Vector3.UP, 0.9, 12)
-		e.queue_free()})
+	# kaçaksan köy muhafızına teslim edemezsin (seni de yakalarlar); Bingo ödülü ise kanondaki gibi ödül toplama noktasında bozdurulur (Kakuzu)
+	if not (Orgs.is_rogue() and not e.has_meta("bingo_id")):
+		opts.append({"label": ("Ödül noktasına teslim et (Bingo ödülü)" if Orgs.is_rogue() else "Teslim et (ödül)") if e.has_meta("bingo_id") else "Muhafızlara teslim et", "cb": func():
+			if not is_instance_valid(e):
+				return
+			if e.has_meta("bingo_id"):
+				Missions._bingo_killed(e)
+			else:
+				Progress.add_ryo(100 + int(e.level) * 15)
+				Missions._rep(Progress.home(), 5)
+				Hud.msg("Kaçak muhafızlara teslim edildi.", Color(0.8, 0.9, 1.0))
+			FX.smoke_puff(e.global_position + Vector3.UP, 0.9, 12)
+			e.queue_free()})
 	opts.append({"label": "Bağışla", "cb": func(): if is_instance_valid(e): spare(e)})
 	Hud.dialog(nm, "Beni öldürecek misin? ...Ya da beni o ödül kâğıdı için teslim mi edeceksin?", opts)
 
@@ -105,6 +107,19 @@ static func spare(e: Enemy) -> void:
 		"last_talk": 0.0, "element": String(e.element), "clan": String(e.arch.get("clan", "")), "eye": [0, 0], "rank": clampi(int(e.level / 20), 0, 3),
 		"family": [], "status": "kaçak", "log": [], "news": "", "title": "Kaçak ninja", "rogue": true, "motive": m[0], "lair": [lm.x, lm.y],
 		"loyalty": randi_range(20, 90)}
+	# köyüne bağlı ninja (seni avlayan av-ninjası, köy muhafızı...) bağışlanınca kaçak olmaz: köyünde yaşayan, sana borçlu bir dost olur
+	var fac = String(e.get_meta("faction", "rogue"))
+	if e.has_meta("hunter_nin") or fac in ["hunter", "konoha", "suna", "kiri", "kumo", "iwa", "ame"]:
+		var vil = fac if fac in ["konoha", "suna", "kiri", "kumo", "iwa", "ame"] else String(lk.get("village", "konoha"))
+		if String(lk.get("band_style", "")) == "slashed":
+			lk["band_style"] = "head"
+			fs[id]["look"] = Friends._ser(lk)
+		fs[id]["village"] = vil
+		fs[id]["status"] = ""
+		fs[id]["rogue"] = false
+		fs[id]["title"] = "%s ninjası" % String(Game.village(vil).get("name", "Köy"))
+		fs[id].erase("motive")
+		fs[id].erase("lair")
 	if e.has_meta("bingo_id"):
 		for be in Missions._bingo()["list"]:
 			if int(be["id"]) == int(e.get_meta("bingo_id")):
@@ -114,7 +129,10 @@ static func spare(e: Enemy) -> void:
 		Missions._bb_spawned.erase(int(e.get_meta("bingo_id")))
 	Friends.log_event(fs[id], "Onu öldürebilecekken bağışladın")
 	Combat.popup_text(e.global_position + Vector3.UP * 2.4, "Bunu unutmayacağım.", Color(0.8, 1.0, 0.8))
-	Hud.banner("BORÇLU KAÇAK", "%s sana hayatını borçlu. Kampı haritada işaretli (İlişkiler)." % nm, Color(0.75, 0.9, 0.7))
+	if fs[id].get("rogue", false):
+		Hud.banner("BORÇLU KAÇAK", "%s sana hayatını borçlu. Kampı haritada işaretli (İlişkiler)." % nm, Color(0.75, 0.9, 0.7))
+	else:
+		Hud.banner("BAĞIŞLANDI", "%s sana hayatını borçlu. Köyüne döndü (İlişkiler)." % nm, Color(0.75, 0.9, 0.7))
 	FX.smoke_puff(e.global_position + Vector3.UP, 0.9, 12)
 	e.queue_free()
 
