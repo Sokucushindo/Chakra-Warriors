@@ -39,6 +39,20 @@ func dummy(pos: Vector3) -> void:
 	pending.append(["dummy", pos])
 
 
+## Kukla olan her yere (25 m içinde yoksa) bir Tsuri Maruta: dayanıklılık antrenmanı (kullanıcı: "dummylerin olduğu her yere")
+var marutas: Array = []
+func maruta_near(parent: Node3D, at: Vector3) -> void:
+	marutas = marutas.filter(func(m): return is_instance_valid(m))
+	for m in marutas:
+		if (m as Node3D).global_position.distance_to(at) < 25.0:
+			return
+	var q = Missions.open_ground(at + Vector3(0, 0, -5.5), 5.0)
+	var tm = TsuriMaruta.new()
+	parent.add_child(tm)
+	tm.global_position = q
+	marutas.append(tm)
+
+
 func camp(pos: Vector3, kind: String, count: int) -> void:
 	pending.append(["camp", pos, kind, count])
 
@@ -50,6 +64,7 @@ func flush(parent: Node3D) -> void:
 				var d = TrainingDummy.new()
 				parent.add_child(d)
 				d.global_position = p[1]
+				maruta_near(parent, p[1])
 			"camp":
 				for i in p[3]:
 					var e = Enemy.new()

@@ -423,6 +423,8 @@ func _ensure_hideout() -> void:
 		var d = TrainingDummy.new()
 		_hideout_node.add_child(d)
 		d.global_position = dp
+		if k == 0:
+			Spawner.maruta_near(_hideout_node, dp + fx * 3.0)
 	# eski kayıt: sığınakta tanıştığın (yeri kaydedilmemiş) kaçaklar ateş başına yerleşir
 	for fid0 in Friends.all():
 		var f0: Dictionary = Friends.all()[fid0]

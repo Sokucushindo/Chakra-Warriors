@@ -177,6 +177,7 @@ func play_style(id: String, step: int, pos: Vector3) -> void:
 ## gruptan başka bir parça (son çalınan tekrar etmez); durum değişince 2 sn yumuşak geçiş.
 var music_groups := {}
 var _music_last := {}
+var _music_loaded := false
 
 
 func _load_music() -> void:
@@ -201,8 +202,9 @@ func _load_music() -> void:
 
 
 func music(name: String) -> void:
-	if music_groups.is_empty():
-		_load_music()
+	if not _music_loaded:
+		_music_loaded = true
+		_load_music()   # klasör yoksa / boşsa müzik çalmaz (kullanıcı 2026-11-21: tüm müzikler kaldırıldı)
 	name = name.trim_prefix("muz_")
 	name = {"koy": "koy", "gece": "gece", "savas": "savas", "boss": "boss", "menu": "menu"}.get(name, name)
 	if name == music_name or not music_groups.has(name):
