@@ -34,7 +34,7 @@ TAG=X PROFV=1 bash _tmp/run_ht.sh       # 16 / 70 / 300 m/sn; 10 dakikayı aşar
 
 ## "güncelle" = yayın
 `python build.py main` → `python tools/make_zip.py` → commit → `git push origin HEAD:main` →
-`python tools/github_release.py "notlar"`. Sürüm notu Türkçe, oyuncu gözüyle (iç değişken adı yok).
+`python tools/github_release.py "notlar"`. Sürüm notu İNGİLİZCE, oyuncu gözüyle (iç değişken adı yok).
 "güncelle" denmeden yayınlama, commit atma.
 
 ## Çalışma kuralları
