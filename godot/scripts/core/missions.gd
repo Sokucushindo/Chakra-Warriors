@@ -2368,9 +2368,6 @@ func complete() -> void:
 	if str(m.get("title", "")) == "Kahraman Suyu":   # muhafızlar bir şişe bırakır (tek kaynak)
 		Game.profile["inventory"]["eiyu_mizu"] = int(Game.profile["inventory"].get("eiyu_mizu", 0)) + 1
 		Hud.msg("Muhafızlar sana bir şişe Kahraman Suyu verdi. Bedelini bil.", Color(0.7, 0.9, 1.0))
-	if str(m["rank"]) == "S" and randf() < 0.18:   # Bijūgan satılmaz: yalnız en zor görevlerden
-		Game.profile["inventory"]["bijugan"] = int(Game.profile["inventory"].get("bijugan", 0)) + 1
-		Hud.msg("Ele geçirilen eşyalar arasında bir Bijūgan kapsülü var.", Color(1.0, 0.7, 0.4))
 	Journal.add("[%s] %s görevini tamamladın." % [m["rank"], m["title"]], "mission")
 	_call_hook(String(m.get("hook", "")), m, true)
 	Hud.objective_changed()

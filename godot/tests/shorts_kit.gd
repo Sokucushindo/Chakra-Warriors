@@ -221,20 +221,28 @@ func _dummy(dist := 11.0) -> Node3D:
 func _dshot(id: String, nm: String, dur: float, big: bool, cut: String, col := Color(1.0, 0.86, 0.45)) -> void:
 	_clear_fx()
 	_god()
-	var dm = _dummy()
+	var dm = _dummy(8.0 if landscape() else 11.0)
 	await _w(0.25)
 	var f = pl.face_dir()
 	var sd = f.cross(Vector3.UP).normalized()
 	var off = -f * (9.0 if big else 5.5) - sd * (1.6 if big else 1.0) + Vector3.UP * (5.0 if big else 3.0)
 	var look = f * (10.0 if big else 6.0) + Vector3.UP * (3.0 if big else 0.6)
 	if landscape():   # yatay kadraj geniş: kamera daha yakın ve alçak (karakter ve teknik büyük görünsün)
-		off = -f * (6.5 if big else 4.2) - sd * (1.2 if big else 0.8) + Vector3.UP * (3.6 if big else 2.2)
-		look = f * (9.0 if big else 6.0) + Vector3.UP * (2.4 if big else 1.0)
+		off = -f * (4.6 if big else 2.9) - sd * (1.1 if big else 0.75) + Vector3.UP * (2.9 if big else 1.8)
+		look = f * (6.5 if big else 4.6) + Vector3.UP * (1.9 if big else 1.1)
 	cam.global_position = pl.global_position + off
 	cam.look_at(pl.global_position + look)
 	_cut(cut, "a")
 	_caption(nm, col)
-	_cast(id, dm)
+	await _cast(id, dm)
+	# mühürlü teknik: el mühürleri bitip teknik çıkana kadar kamera yerinde bekler (süre mühürde dolup teknik kadraja girmiyordu)
+	var tw := 0.0
+	while String(pl.combat.action) == "cast" and tw < 5.0:
+		cam.global_position = pl.global_position + off
+		cam.look_at(pl.global_position + look)
+		await get_tree().process_frame
+		tw += get_process_delta_time()
+	_cut(cut, "r")   # teknik çıktı (kurgu buradan biraz önce başlatır)
 	_watch(cut, func(): return dm.global_position + Vector3.UP if is_instance_valid(dm) else null, dur)
 	await _move(off, off + sd * 1.2 - f * 0.8 + Vector3.UP * 0.4, look, look + f * 1.5, dur, pl)
 	_cut(cut, "b")

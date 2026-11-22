@@ -524,7 +524,7 @@ func _route(e: InputEvent) -> void:
 				if tk:
 					tk.talk()
 	elif e.is_action_pressed("tool_next"):
-		var tools = ["kunai", "shuriken", "mushu_dokugiri", "kosho_mimikazari", "hiko_tsubasa", "yuki_ita", "toge_dama", "kemuri_fuda", "chusha_bari", "senbon", "tag", "makibishi", "smoke", "kemuri_senkodan", "okarina", "eiyu_mizu", "agiz_kozu", "aobiko", "inochi_kare", "genjutsu_kosui", "genjutsu_yaku", "bijugan", "hikaridama", "togarashi_dama", "doku", "gedokuyaku", "kibaku_dama", "hyodama", "raizutsu", "suzu", "boenkyo", "bakusaidama", "kibaku_fuda", "kosen", "sode_kunai", "nuno_maki", "fuin_fuda", "kekkai_fuda"]
+		var tools = ["kunai", "shuriken", "mushu_dokugiri", "kosho_mimikazari", "hiko_tsubasa", "yuki_ita", "toge_dama", "kemuri_fuda", "chusha_bari", "senbon", "tag", "makibishi", "smoke", "kemuri_senkodan", "okarina", "eiyu_mizu", "agiz_kozu", "aobiko", "inochi_kare", "genjutsu_kosui", "genjutsu_yaku", "hikaridama", "togarashi_dama", "doku", "gedokuyaku", "kibaku_dama", "hyodama", "raizutsu", "suzu", "boenkyo", "bakusaidama", "kibaku_fuda", "kosen", "sode_kunai", "nuno_maki", "fuin_fuda", "kekkai_fuda"]
 		var i = tools.find(Game.profile.get("throw_sel", "kunai"))
 		for k in tools.size():
 			i = (i + 1) % tools.size()

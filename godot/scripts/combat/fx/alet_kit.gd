@@ -277,8 +277,6 @@ static func ai_tools(e: Node3D) -> Array:
 				break
 	if sk >= 0.6 and d < 2.4:
 		out.append("genjutsu_yaku")
-	if sk >= 0.75 and e.get_instance_id() % 6 == 0 and float(e.hp) < float(e.max_hp) * 0.5 and not e.has_meta("bijugan_ictim") and not e.buffs.has("beast") and (e.get_meta("jin_cloak", {}) as Dictionary).is_empty():
-		out.append("bijugan")   # nadir: her güçlü ninjada yok
 	if sk >= 0.3:
 		for f in fighters():
 			if f != e and not f.is_dead() and not Combat.hostile(e, f) and e.global_position.distance_to(f.global_position) < 11.0:

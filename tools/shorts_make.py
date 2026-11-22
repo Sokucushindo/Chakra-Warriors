@@ -22,7 +22,7 @@ def cuts(path):
     if path not in _cache:
         c = {}
         for l in open(path, encoding='utf-8', errors='replace'):
-            m = re.match(r'CUT (\S+) ([ab]) (\d+)', l.strip())
+            m = re.match(r'CUT (\S+) ([abr]) (\d+)', l.strip())
             if m:
                 c.setdefault(m.group(1), {})[m.group(2)] = int(m.group(3))
         _cache[path] = c
@@ -51,6 +51,8 @@ def main():
         c = cuts(s.get('run') or s['ui'])[s['cut']]
         a, b = c['a'], c['b']
         a, b = a + int((b - a) * s.get('f0', 0.0)), a + int((b - a) * s.get('f1', 1.0))
+        if s.get('from_r') and 'r' in c:   # mühürlü teknik: çıkıştan biraz önce başla
+            a = max(c['a'], c['r'] - int(s.get('lead', 0.5) * FPS))
         if 'max_s' in s:
             b = min(b, a + int(s['max_s'] * FPS))
         af = 'atrim=start=%.4f:end=%.4f,asetpts=PTS-STARTPTS' % (a / FPS, b / FPS)

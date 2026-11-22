@@ -281,6 +281,11 @@ static func on_enemy_killed(e: Node) -> void:
 
 ## Eski kayıtlar: Naruto hikâye adımları (4..14) serbest oyuna çevrilir
 static func migrate(p: Dictionary) -> void:
+	# Bijūgan oyundan kaldırıldı (kullanıcı 2026-11-23): eski kayıtlardaki kapsüller ve seçili alet temizlenir
+	if p.has("inventory") and (p["inventory"] as Dictionary).has("bijugan"):
+		p["inventory"].erase("bijugan")
+	if String(p.get("throw_sel", "")) == "bijugan":
+		p["throw_sel"] = "kunai"
 	if not p.has("seed"):
 		p["seed"] = randi()
 	var s = int(p.get("story", 0))
