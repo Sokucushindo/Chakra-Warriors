@@ -327,6 +327,75 @@ func _cycle(dt: float, anims: Array, period := 3.5) -> void:
 		model.play(anims.pick_random(), 0.3, 1.0, true)
 
 
+## Oturan NPC'nin altı (kullanıcı: "sit and talk'ta havada oturuyorlar, altlarına sandalye ver"): kalçanın altında gerçek bir
+## oturak (bank, tabure, kütük) yoksa ahşap tabure konur; her karede kalça oturağın üstüne hizalanır (sit ve Sitting_Talking
+## kliplerinin kalça yüksekliği farklı: biri havada, öbürü gömük kalıyordu). Yerde oturanlar (floor_sit) dokunulmaz.
+var _seat_y := NAN
+var _seat_on := false
+var _seat_frame := 0
+var _stool: MeshInstance3D = null
+static var _stool_mesh: ArrayMesh = null
+
+
+func _hips_w() -> Vector3:
+	var sk: Skeleton3D = model.skel
+	var hb = sk.find_bone("Hips") if sk else -1
+	if hb < 0:
+		return global_position + Vector3.UP * 0.45 * model.age_scale
+	return (sk.global_transform * sk.get_bone_global_pose(hb)).origin
+
+
+func _seat_fix() -> void:
+	if floor_sit or model == null or model.skel == null:
+		return
+	_seat_on = true
+	_seat_frame = Engine.get_physics_frames()
+	var a: float = model.age_scale
+	var hp := _hips_w()
+	if is_nan(_seat_y):
+		# kalçanın altında oturak var mı (zeminden 25 cm yukarıda bir çarpışma yüzeyi)
+		var q := PhysicsRayQueryParameters3D.create(Vector3(hp.x, global_position.y + 1.0 * a, hp.z), Vector3(hp.x, global_position.y - 0.2, hp.z))
+		q.exclude = [get_rid()]
+		var hit := get_world_3d().direct_space_state.intersect_ray(q)
+		var gy := Game.ground_height(hp.x, hp.z)
+		if not hit.is_empty() and float(hit["position"].y) > gy + 0.25 and float(hit["position"].y) < global_position.y + 0.8 * a:
+			_seat_y = float(hit["position"].y)
+		else:
+			_seat_y = gy + 0.43 * a
+			if _stool_mesh == null:
+				var b := MB.new()
+				var wood := Color(0.47, 0.34, 0.21)
+				b.add("cyl", Vector3(0, -0.035, 0), Vector3(0.42, 0.07, 0.42), wood.lightened(0.08), Vector3.ZERO, 12)   # oturak tablası
+				b.add("cyl", Vector3(0, -0.003, 0), Vector3(0.34, 0.012, 0.34), Color(0.62, 0.5, 0.36), Vector3.ZERO, 12)   # hasır minder
+				for k in 3:
+					var an := TAU * k / 3.0
+					b.add("cyl", Vector3(cos(an) * 0.13, -0.22, sin(an) * 0.13), Vector3(0.05, 0.42, 0.05), wood.darkened(0.15), Vector3(cos(an) * 8.0, 0, -sin(an) * 8.0), 6)
+				b.add("torus", Vector3(0, -0.28, 0), Vector3(0.3, 0.3, 0.3), wood.darkened(0.25), Vector3.ZERO, 10)   # ayak bağı
+				_stool_mesh = b.build(Props.toon())
+			_stool = MeshInstance3D.new()
+			_stool.mesh = _stool_mesh
+			_stool.top_level = true
+			add_child(_stool)
+			var top := _seat_y
+			_stool.global_transform = Transform3D(Basis.from_scale(Vector3(a, (top - gy) / 0.43, a)), Vector3(hp.x, top, hp.z))
+	if _stool:
+		_stool.visible = true
+	# kalça = oturak + kalça kalınlığı
+	var hr := hp.y - model.global_position.y
+	model.position.y = clampf(_seat_y + 0.07 * a - global_position.y - hr, -0.4, 0.6)
+
+
+func _unseat() -> void:
+	_seat_on = false
+	model.position.y = 0.0
+	if _stool:
+		_stool.visible = false
+	_seat_y = NAN
+	if _stool:
+		_stool.queue_free()
+		_stool = null
+
+
 func _physics_process(dt: float) -> void:
 	if Game.paused or Game.player == null or fading:
 		return
@@ -342,6 +411,8 @@ func _physics_process(dt: float) -> void:
 	elif not model.anim.is_playing():
 		model.anim.play()
 	_social(dt, dist)
+	if _seat_on and Engine.get_physics_frames() - _seat_frame > 2:
+		_unseat()   # artık oturmuyor: model yerine, tabure gizli
 	match role:
 		"roof":
 			_roof(dt)
@@ -369,8 +440,10 @@ func _physics_process(dt: float) -> void:
 				_cycle(dt, ["idle", "interact", "talk", "yes", "no", "fold"])
 			elif eat_mode or role == "student":
 				_cycle(dt, ["sit", "sit", "a/Sitting_Talking"], 4.0)
+				_seat_fix()
 			else:
 				model.play("sit", 0.3)
+				_seat_fix()
 			return
 		"chat":
 			step_move(Vector3.ZERO, dt, false)

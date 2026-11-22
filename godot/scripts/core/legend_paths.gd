@@ -914,7 +914,7 @@ func _drill_tick(dt: float) -> void:
 				drill["c"] = int(drill["acc"])
 				Hud.objective_progress(_drill_text())
 			if int(drill["c"]) >= int(drill["n"]):
-				Mastery.gain(pr(), "dayaniklilik", 0.5)
+				Mastery.gain(pr(), "dayaniklilik", 1.5)
 				end_drill(true)
 				return
 	if drill.is_empty():

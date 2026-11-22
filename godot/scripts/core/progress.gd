@@ -1155,7 +1155,7 @@ func _weights_tick() -> void:
 	_wt_last = pos
 	if _wt_dist >= 25.0:
 		_wt_dist -= 25.0
-		Mastery.gain(p(), "dayaniklilik", 0.06)
+		Mastery.gain(p(), "dayaniklilik", 0.18)
 		Mastery.gain(p(), "hiz", 0.015)
 
 

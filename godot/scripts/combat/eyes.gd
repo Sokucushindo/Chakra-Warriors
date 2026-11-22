@@ -403,30 +403,40 @@ func _eye_closeup(kind: int) -> void:
 	var hb = sk.find_bone("Head")
 	if hb < 0:
 		return
-	var f: Vector3 = p.face_dir()
-	f.y = 0.0
-	f = f.normalized()
-	var right = f.cross(Vector3.UP).normalized()
 	var a = float(p.model.age_scale)
-	var head: Vector3 = (sk.global_transform * sk.get_bone_global_pose(hb)).origin
-	var eye_p = head + Vector3.UP * 0.075 * a + f * 0.085 * a
+	# göz konumu her karede baştan: koşarken / havadayken açınca kamera eski noktaya dalıyordu (göz kayıyordu)
+	var eye_at = func() -> Array:
+		var f: Vector3 = p.face_dir()
+		f.y = 0.0
+		f = f.normalized() if f.length() > 0.01 else Vector3.FORWARD
+		var head: Vector3 = (sk.global_transform * sk.get_bone_global_pose(hb)).origin
+		return [head + Vector3.UP * 0.075 * a + f * 0.085 * a, f]
 	var cam = Camera3D.new()
 	cam.fov = 40.0
 	cam.near = 0.01
 	Game.world.add_child(cam)
-	cam.global_position = eye_p + f * 1.6 * a + Vector3.UP * 0.04
-	cam.look_at(eye_p)
+	var place = func(t: float) -> void:
+		if not is_instance_valid(p) or not is_instance_valid(cam):
+			return
+		var ef: Array = eye_at.call()
+		var ep: Vector3 = ef[0]
+		var f: Vector3 = ef[1]
+		var k := pow(t, 3.0)   # EXPO_IN benzeri: yavaş başlar, göze hızla dalar
+		cam.global_position = ep + f * lerpf(1.6, 0.42, k) * a + Vector3.UP * lerpf(0.04, 0.01, k)
+		cam.look_at(ep)
+		cam.fov = lerpf(40.0, 30.0, k)
+	place.call(0.0)
 	cam.current = true
 	p.input_locked = maxf(p.input_locked, 1.15)
 	var col = Color(1, 0.12, 0.1) if kind != 6 else Color(0.7, 0.55, 1.0)
 	var tw = cam.create_tween()
-	tw.tween_property(cam, "global_position", eye_p + f * 0.42 * a + Vector3.UP * 0.01, 0.7).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
-	tw.parallel().tween_property(cam, "fov", 30.0, 0.7).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+	tw.tween_method(place, 0.0, 1.0, 0.7)
 	tw.tween_callback(func():
-		FX.ring(eye_p, col, 0.35, 0.25, false, -f)
+		var ef: Array = eye_at.call()
+		FX.ring(ef[0], col, 0.35, 0.25, false, -ef[1])
 		if Game.world:
 			Game.world.env.shake = maxf(Game.world.env.shake, 0.4))
-	tw.tween_interval(0.35)
+	tw.tween_method(func(_t: float): place.call(1.0), 0.0, 1.0, 0.35)   # beklerken de gözü izler
 	tw.tween_callback(func():
 		if is_instance_valid(p) and p.cam:
 			p.cam.current = true

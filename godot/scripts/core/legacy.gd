@@ -261,6 +261,7 @@ static func inherit(fid: String) -> String:
 			continue
 		of2["title"] = "Annenin tanıdığı" if old_f else "Babanın tanıdığı"
 		of2["bond"] = int(int(of2.get("bond", 0)) * 0.5)
+		of2.erase("peak")   # yeni kuşak: ebeveynin yakınlığı Mangekyō için sayılmaz
 		of2["love"] = 0
 		of2.erase("romance")
 		of2.erase("pupil")

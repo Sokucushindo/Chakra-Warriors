@@ -158,6 +158,8 @@ func attack(v: Node, alarm := false) -> void:
 			WorldPeople.after_spawn(e, wp)
 	e.team = "enemy"
 	e.target = Game.player
+	if fid != "":
+		e.set_meta("slain_fid", fid)   # düşmana dönen dost: öldürünce kim olduğu bilinsin (Mangekyō, ilişki kaydı)
 	victims.append({"node": e, "vid": _village_at(at), "fid": fid, "civ": civ, "dead": false})
 	var who = String(v.display)
 	v.queue_free()
@@ -169,6 +171,7 @@ func attack(v: Node, alarm := false) -> void:
 		return
 	if fid != "":
 		var f: Dictionary = Friends.all()[fid]
+		Friends.keep_peak(f)
 		f["bond"] = -100
 		f["party"] = false
 		Friends.log_event(f, "Ona saldırdın")
@@ -214,12 +217,14 @@ func betray(node: Node, fid: String) -> void:
 	var f: Dictionary = Friends.all().get(fid, {})
 	if not f.is_empty():
 		f["party"] = false
+		Friends.keep_peak(f)
 		f["bond"] = -100
 		f["status"] = "ihanet"
 		Friends.log_event(f, "Ona ihanet ettin")
 	node.team = "enemy"
 	node.set_meta("teammate", false)
 	if node.has_meta("friend_id"):
+		node.set_meta("slain_fid", String(node.get_meta("friend_id")))   # ihanet ettiğin dost: öldürünce Mangekyō (kanon)
 		node.remove_meta("friend_id")
 	node.target = Game.player
 	if node.nameplate:

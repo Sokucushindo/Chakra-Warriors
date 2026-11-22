@@ -545,5 +545,32 @@ static func build(m, s, fg: Color) -> bool:
 	var hw := clampf(ab.size.x, 0.16, 0.26) if ab.size.x > 0.05 else 0.2
 	var ey: float = m.eye_center_model.y if m.face_mi else hc.y - 0.03
 	var sc := clampf(hw / 0.19, 0.85, 1.15) * 0.8   # yalnız yüzü kaplasın (kullanıcı: "kabile maskesi gibi büyük")
-	m._mesh_on("Head", _cache[key], Transform3D(Basis.from_scale(Vector3.ONE * sc), Vector3(hc.x, ey - 0.012, hc.z + 0.075 * sc)))
+	var org := Vector3(hc.x, ey - 0.012, hc.z + 0.075 * sc)
+	org.z += _push(m, org, sc)   # yüz kabuğun önüne taşmasın (şakak / kaş köşeleri 1-2 cm içeri giriyordu)
+	m._mesh_on("Head", _cache[key], Transform3D(Basis.from_scale(Vector3.ONE * sc), org))
 	return true
+
+
+static var _push_cache := {}
+## Maske dış çizgisinin içinde kalan yüz köşelerinden kabuğun önüne en çok taşanı kadar maske öne alınır (+3 mm pay).
+## Yüz modeline göre önbellekli (yaş / cinsiyet / yüz kaynağı)
+static func _push(m, org: Vector3, sc: float) -> float:
+	if m._face_src.is_empty():
+		return 0.0
+	var key := "%s|%.3f|%.3f" % [m._sk_key, sc, org.z - float(m._head_center().z)]
+	if _push_cache.has(key):
+		return _push_cache[key]
+	var fm: Mesh = m._face_src[0]
+	var fx: Transform3D = m._face_src[1]
+	var k := Mk.new(Color.WHITE)
+	var worst := 0.0
+	for si in fm.get_surface_count():
+		for v in (fm.surface_get_arrays(si)[Mesh.ARRAY_VERTEX] as PackedVector3Array):
+			var q: Vector3 = fx * v
+			var l := Vector2(q.x - org.x, q.y - org.y) / sc
+			if l.length() > k.edge(atan2(l.x, l.y)).length() * 0.97:
+				continue
+			worst = maxf(worst, q.z - (org.z + k.S(l.x, l.y) * sc))
+	var r := (worst + 0.003) if worst > 0.0 else 0.0
+	_push_cache[key] = r
+	return r

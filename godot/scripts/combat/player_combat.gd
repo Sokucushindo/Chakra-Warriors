@@ -1455,7 +1455,7 @@ func begin_cast(jid: String) -> void:
 	_seal_fail = mc.begins_with("fail:") and randf() < float(mc.substr(5))
 	if tai:
 		p.spend_stamina(cost)
-		Mastery.gain(Game.profile, "dayaniklilik", cost / 500.0)   # beden zorladıkça dayanıklılık gelişir
+		Mastery.gain(Game.profile, "dayaniklilik", cost / 170.0)   # beden zorladıkça dayanıklılık gelişir (2026-11-22: /500 çok yavaştı)
 	else:
 		p.chakra -= cost
 	ClanMech.pay(jid, j)
@@ -1597,7 +1597,7 @@ func take_hit(info: Dictionary) -> void:
 		if not ClanMech.try_extra_life():
 			Progress.on_player_died()
 		return
-	Mastery.gain(Game.profile, "dayaniklilik", clampf(dmg / maxf(1.0, p.max_hp), 0.0, 0.5) * 0.4)   # dayak yedikçe dayanıklılık
+	Mastery.gain(Game.profile, "dayaniklilik", clampf(dmg / maxf(1.0, p.max_hp), 0.0, 0.5) * 1.2)   # dayak yedikçe dayanıklılık (2026-11-22: 0.4 çok yavaştı)
 	last_hit_t = 0.0
 	# Jashin laneti: çemberdeyken sana gelen acı bağlı hedefe de gelir
 	if p.has_meta("jashin_link"):

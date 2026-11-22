@@ -785,19 +785,52 @@ func _process(dt: float) -> void:
 		menu_cam.global_position = c + Vector3(cos(menu_t) * 320.0, 110.0, sin(menu_t) * 320.0)
 		menu_cam.look_at(c + Vector3(0, 30, 0), Vector3.UP)
 	if mode == "game" and player and Engine.get_process_frames() % 30 == 0:
-		# bölgeye göre müzik
-		var near_enemy = Combat.nearest_enemy(player, 25.0) != null
-		var night: bool = world.env.time_of_day < 0.24 or world.env.time_of_day > 0.78
-		if Hud.boss and is_instance_valid(Hud.boss):
-			Sfx.music("muz_boss")
-		elif near_enemy:
-			Sfx.music("muz_savas")
-		elif night:
-			Sfx.music("muz_gece")
-		else:
-			Sfx.music("muz_koy")
+		Sfx.music(_music_state())
 	if mode == "game" and Engine.get_process_frames() % 3600 == 0:
 		Game.save_game()
+
+
+var _fight_t := 0.0
+## Müzik durumu: boss > savaş (düşman yanından ayrılınca 6 sn daha sürer) > mağara / iç mekân > gece > köyün kendi parçası > doğa
+func _music_state() -> String:
+	if Hud.boss and is_instance_valid(Hud.boss):
+		return "boss"
+	var now = Time.get_ticks_msec() / 1000.0
+	if Combat.nearest_enemy(player, 25.0) != null:
+		_fight_t = now
+	if now - _fight_t < 6.0 and _fight_t > 0.0:
+		return "savas"
+	var it = Interiors.inst
+	if it and it.inside != "":
+		if it.inside in ["rogue_hideout", "akatsuki_cave", "lair_cave", "lair_lab", "snake_lab"]:
+			return "magara"
+		return "koy"
+	var p = player.global_position
+	var vid := ""
+	var vg := 0
+	var m := Vector2(p.x, -p.z)
+	for v in Game.world_info["villages"]:
+		if m.distance_squared_to(Vector2(v["x"], v["y"])) < pow(float(v["r"]) * 1.1, 2.0):
+			vid = String(v.get("id", ""))
+			vg = int(v.get("ground", 11))
+			break
+	var night: bool = world.env.time_of_day < 0.22 or world.env.time_of_day > 0.8
+	if night:
+		return "gece"
+	if vid != "":
+		if vid in ["konoha", "suna", "kiri", "kumo", "iwa"]:
+			return vid
+		if vg in [8, 15]:
+			return "kar"
+		if vg in [1, 3, 13]:
+			return "suna"
+		return "koy"
+	var b = Game.biome_at(p.x, p.z)
+	if b in [1, 3, 13]:
+		return "suna"
+	if b in [8, 15]:
+		return "kar"
+	return "doga"
 
 
 # ------------------------------------------------------------------ otomatik test (geliştirici)

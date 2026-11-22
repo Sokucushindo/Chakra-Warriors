@@ -496,8 +496,18 @@ static func _gate_tick() -> void:
 			if st == "duel":
 				me["test"] = "go"
 			recruiter = _spawn(WorldPeople.get_p(String(me["by"])), Missions.open_ground(gp + Vector3(3.0, 0, 2.0), 12.0), "neutral")
+		elif st == "duel" and is_instance_valid(recruiter) and (not near or Game.player.is_dead() or Game.player.hp <= maxf(1.5, Game.player.max_hp * 0.04)):
+			# sınavı kaybettin / bıraktın: sınayan durur, sonra yeniden denenebilir (eskiden tek atıp öldürüyor, sınav "dövüşte" kilitleniyordu)
+			recruiter.team = "neutral"
+			recruiter.target = null
+			recruiter.hp = recruiter.max_hp
+			recruiter.remove_meta("duel_rival")
+			me["test"] = "go"
+			if near and not Game.player.is_dead():
+				Hud.dialog("%s — Akatsuki" % String(recruiter.arch.get("name", "")), "Dövüşü kesip sana tepeden bakıyor: \"Bu kadar mı? Yüzük ağırdır. Güçlenince yine gel; burada bekliyor olacağım.\"", [])
 		elif st == "duel" and is_instance_valid(recruiter) and recruiter.hp <= recruiter.max_hp * 0.5:
 			recruiter.team = "neutral"
+			recruiter.remove_meta("duel_rival")
 			recruiter.hp = recruiter.max_hp
 			me["test"] = "pass"
 			Hud.dialog("%s — Akatsuki" % String(recruiter.arch.get("name", "")), "Elini kaldırıp dövüşü kesiyor: \"Yeter. Yüzüğü taşıyabilirsin. İçeri gir; lider seni bekliyor.\"", [])
@@ -525,6 +535,7 @@ static func gate(it: Dictionary) -> void:
 			{"label": "Dövüş", "tip": "Onu canının yarısına indirirsen sınavı geçersin.", "cb": func():
 				if is_instance_valid(recruiter):
 					recruiter.team = "enemy"
+					recruiter.set_meta("duel_rival", true)   # sınav: seni öldürmez (dostça düello kuralı), canın dibe inerse sınav biter
 					me["test"] = "duel"
 					Hud.banner("SINAV", "%s seni sınıyor" % String(recruiter.arch.get("name", "")), Color(0.85, 0.15, 0.18))},
 			{"label": "Henüz değil", "cb": func(): pass}])

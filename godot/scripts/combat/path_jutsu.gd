@@ -9809,7 +9809,7 @@ static func climb_mark(c: Node3D, n: Vector3) -> void:
 	var rec: Dictionary = Game.profile.get("climb_rec", {})
 	var prev = float(rec.get(tid, 0.0))
 	var gain_key = "chakra" if kind == "ki" else "dayaniklilik"
-	Mastery.gain(Game.profile, gain_key, 0.15 + height * 0.04 + maxf(0.0, height - prev) * 0.15)
+	Mastery.gain(Game.profile, gain_key, (0.15 + height * 0.04 + maxf(0.0, height - prev) * 0.15) * (3.0 if gain_key == "dayaniklilik" else 1.0))   # kaya tırmanışı: dayanıklılık x3 (2026-11-22)
 	if height > prev:
 		rec[tid] = height
 		Game.profile["climb_rec"] = rec

@@ -163,6 +163,13 @@ static func log_event(f: Dictionary, text: String) -> void:
 		f["log"].pop_front()
 
 
+## En yüksek yakınlığı sakla: yakınlığı DOĞRUDAN düşüren her yer (saldırı, ihanet, ele verme, soygun) önce bunu çağırır.
+## Mangekyō bunu okur (closeness): 70'lik dostuna saldırıp öldürünce saldırı anında -100'e inen yakınlık "ezeli düşman"
+## sayılıyor, göz uyanmıyordu (kullanıcı 2026-11-22). Kanon: en yakın dostunu kendi elinle öldürmek.
+static func keep_peak(f: Dictionary) -> void:
+	f["peak"] = maxi(int(f.get("peak", 0)), int(f.get("bond", 0)))
+
+
 static func add_bond(id: String, n: int, quiet := false) -> void:
 	var f: Dictionary = all().get(id, {})
 	if f.is_empty():
@@ -170,6 +177,7 @@ static func add_bond(id: String, n: int, quiet := false) -> void:
 	var before = level_name(int(f["bond"]))
 	if n > 0:
 		n = int(round(n * (1.0 + Stats.skill(pr(), "charm"))))   # Sosyal: Sohbet Ustası / Karizma
+	keep_peak(f)   # düşmeden önceki yakınlık da sayılır (eskiden yalnız düşmüş değer yazılıyordu)
 	f["bond"] = clampi(int(f["bond"]) + n, -100, 100)
 	f["peak"] = maxi(int(f.get("peak", 0)), int(f["bond"]))   # en yüksek yakınlık (ihanet/kaçış sonrası da hatırlanır: Mangekyō)
 	var after = level_name(int(f["bond"]))
@@ -1408,20 +1416,16 @@ func _lair_props(n: Node3D) -> void:
 	root.global_position = n.global_position
 	var b = MB.new()
 	var gy = func(x: float, z: float) -> float: return Game.ground_height(n.global_position.x + x, n.global_position.z + z) - n.global_position.y
-	b.add("prism", Vector3(-3.5, gy.call(-3.5, -2.0) + 1.0, -2.0), Vector3(2.6, 2.0, 3.0), Color(0.35, 0.32, 0.28), Vector3(0, 30, 0))
-	for k in 6:
-		b.add("cyl", Vector3(1.6, gy.call(1.6, 0.6) + 0.1, 0.6), Vector3(0.12, 1.0, 0.12), Color(0.3, 0.22, 0.14), Vector3(80, k * 30, 0), 5)
-	b.add("cone", Vector3(1.6, gy.call(1.6, 0.6) + 0.4, 0.6), Vector3(0.6, 0.9, 0.6), Color(1.0, 0.55, 0.15), Vector3.ZERO, 7)
-	b.add("box", Vector3(-1.0, gy.call(-1.0, 1.8) + 0.3, 1.8), Vector3(0.7, 0.6, 0.5), Color(0.45, 0.32, 0.2))
-	b.add("box", Vector3(3.2, gy.call(3.2, -0.6) + 0.15, -0.6), Vector3(1.8, 0.12, 0.8), Color(0.5, 0.42, 0.32))
+	# çadır ateşe bakar; ateş, tencere sehpası, sandık, kütük oturak, kurumaya asılmış bez
+	CampKit.tent(b, Transform3D(Basis(Vector3.UP, deg_to_rad(60.0)), Vector3(-3.6, gy.call(-3.6, -2.4), -2.4)), Color(0.5, 0.45, 0.35))
+	CampKit.campfire(b, Transform3D(Basis(), Vector3(1.6, gy.call(1.6, 0.6), 0.6)))
+	b.add("box", Vector3(-1.4, gy.call(-1.4, 2.4) + 0.3, 2.4), Vector3(0.7, 0.6, 0.5), Color(0.45, 0.32, 0.2), Vector3(0, 20, 0))
+	b.add("box", Vector3(-1.4, gy.call(-1.4, 2.4) + 0.62, 2.4), Vector3(0.74, 0.06, 0.54), Color(0.35, 0.25, 0.15), Vector3(0, 20, 0))
+	b.add("cyl", Vector3(3.6, gy.call(3.6, -0.2) + 0.22, -0.2), Vector3(0.44, 1.5, 0.44), Color(0.42, 0.3, 0.18), Vector3(90, 70, 0), 8)
 	var mi = MeshInstance3D.new()
 	mi.mesh = b.build(Props.toon())
 	root.add_child(mi)
-	var l = OmniLight3D.new()
-	l.light_color = Color(1, 0.6, 0.3)
-	l.omni_range = 7.0
-	l.position = Vector3(1.6, 1.0, 0.6)
-	root.add_child(l)
+	CampKit.fire_fx(root, root.global_position + Vector3(1.6, gy.call(1.6, 0.6), 0.6))
 
 
 ## Tanıdığın klanı kayda yazılır: dünyadaki gerçek kişiden, yoksa soyadından (eskiden yol / takım tanışmalarında boş kalıyor,
@@ -1821,6 +1825,7 @@ func _betrayal_event(id: String) -> void:
 			return
 		var amt = int(int(pr().get("ryo", 0)) * randf_range(0.1, 0.2))
 		Progress.add_ryo(-amt)
+		keep_peak(f)
 		f["bond"] = mini(int(f["bond"]), -40)
 		f["party"] = false
 		Friends.log_event(f, "Kesenden %d Ryō çaldı" % amt)
@@ -1834,6 +1839,7 @@ func _betrayal_event(id: String) -> void:
 		Missions._rep(Progress.home(), -15)
 		if Crime.heat() > 0:
 			Game.profile["flags"]["crime_heat"] = mini(100, Crime.heat() + 20)
+		keep_peak(f)
 		f["bond"] = mini(int(f["bond"]), -30)
 		Friends.log_event(f, "Seni Kage'ye şikâyet etti")
 		Hud.banner("İHBAR", "%s seni Kage'ye şikâyet etmiş (−15 itibar)." % f["name"], Color(1, 0.55, 0.45))

@@ -393,7 +393,9 @@ func step_sound(p: Vector3) -> String:
 	var v = randi() % 3
 	var it = Interiors.inst
 	if it and it.inside != "":
-		return "step_stone%d" % v if it.inside.begins_with("lair_") else "step_wood%d" % v
+		if it.inside in ["rogue_hideout", "akatsuki_cave", "lair_cave"]:
+			return "step_cave"   # mağara: kayalık zemin + kısa yankı (eskiden sığınakta tahta sesi çalıyordu)
+		return "step_stone%d" % v if it.inside.begins_with("lair_") or it.inside in ["snake_lab", "naka_shrine"] else "step_wood%d" % v
 	var b = biome_at(p.x, p.z)   # 1 kumsal, 3 çöl, 13 Suna | 2 orman, 4 yağmur, 6 pirinç, 7 çimen, 10 bataklık, 11 Konoha | 5 kaya, 9 dağ, 14 taş köy | 8 kar, 15 karlı köy
 	var th = terrain_height(p.x, p.z)
 	if p.y > th + 1.3 and p.y > water_level(p.x, p.z, th) + 0.8:   # çatı, köprü, balkon, dal: altındaki toprağın sesi değil

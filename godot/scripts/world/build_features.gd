@@ -102,6 +102,71 @@ static func _build(b: Builder, f: Dictionary, rng: RandomNumberGenerator) -> voi
 		"paddy":  # su dolu pirinç tarlası (basamak)
 			var r: float = f["r"]
 			load("res://scripts/world/farm_kit.gd").paddy(b, x, n, yaw, r, r * 0.8, rng)
+			_paddy_farm(b, x, n, g, yaw, r)
+
+
+static var _paddy_pts: Array = []
+## Pirinç tarlasının başında çiftçi evi + ambar + pirinç kurutma sırığı (kullanıcı: "tarlaların başına evler ekle").
+## Ev tarlanın iki ucundan diğer tarlalara / suya / köye uzak olanına, önü tarlaya dönük kurulur; ikisi de uygun değilse kurulmaz.
+static func _paddy_farm(b: Builder, x: float, n: float, g: float, yaw: float, r: float) -> void:
+	if _paddy_pts.is_empty():
+		var list = JSON.parse_string(FileAccess.get_file_as_string("res://data/world/features.json"))
+		for f in (list if list is Array else []):
+			if String(f["t"]) == "paddy":
+				_paddy_pts.append(Vector3(float(f["x"]), float(f["y"]), float(f["r"])))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(Vector2i(int(x), int(n)))
+	var dp := r * 0.8
+	var best := 0.0
+	var best_s := 0.0
+	for sv in [-1.0, 1.0]:
+		var o := Builder.rot(rng.randf_range(-r * 0.25, r * 0.25), sv * (dp * 0.5 + 8.5), yaw)
+		var hx := x + o.x
+		var hn := n + o.y
+		var clear := 1e9
+		for q in _paddy_pts:
+			if absf(q.x - x) < 1.0 and absf(q.y - n) < 1.0:
+				continue
+			clear = minf(clear, Vector2(hx - q.x, hn - q.y).length() - q.z * 0.75)
+		for v in Game.world_info.get("villages", []):
+			clear = minf(clear, Vector2(hx - float(v["x"]), hn - float(v["y"])).length() - float(v["r"]))
+		var th := Game.terrain_height(hx, -hn)
+		if Game.water_level(hx, -hn, th) > th - 0.3:
+			continue   # su / dere kenarı
+		var lo := th
+		var hi := th
+		for k in 4:
+			var c := Builder.rot((k % 2 - 0.5) * 9.0, (k / 2 - 0.5) * 8.0, yaw)
+			var t2 := Game.terrain_height(hx + c.x, -(hn + c.y))
+			lo = minf(lo, t2)
+			hi = maxf(hi, t2)
+		if hi - lo > 3.0:
+			continue   # dik yamaç
+		if clear > best:
+			best = clear
+			best_s = sv
+	if best < 9.0:
+		return
+	var bio := Game.biome_at(x, -n)
+	var st := "suna" if bio in [3, 13] else ("snow" if bio in [8, 15] else ("iwa" if bio in [5, 9, 14] else "wood"))
+	var ho := Builder.rot(rng.randf_range(-r * 0.2, r * 0.2), best_s * (dp * 0.5 + 8.5), yaw)
+	var hy := yaw if best_s < 0.0 else yaw + 180.0   # önü tarlaya
+	b.house(x + ho.x, n + ho.y, rng.randf_range(8.0, 9.5), rng.randf_range(6.5, 7.5), 1, hy, st, rng)
+	var so := Builder.rot(ho.x * 0.0 + (r * 0.45 if rng.randf() < 0.5 else -r * 0.45), best_s * (dp * 0.5 + 7.0), yaw)
+	b.house(x + so.x, n + so.y, 5.0, 4.5, 1, hy, st, rng)   # ambar / alet kulübesi
+	# hazakake: tarla kenarında iki direk arasına asılmış pirinç demetleri
+	var ko := Builder.rot(0.0, best_s * (dp * 0.5 + 2.2), yaw)
+	var kx := x + ko.x
+	var kn := n + ko.y
+	var kg := Game.terrain_height(kx, -kn)
+	var wood := Color(0.42, 0.3, 0.19)
+	for sx in [-1.0, 1.0]:
+		var po := Builder.rot(sx * 3.2, 0.0, yaw)
+		b.box(Vector3(kx + po.x, kg + 0.9, kn + po.y), Vector3(0.14, 1.8, 0.14), wood, yaw, false)
+	b.box(Vector3(kx, kg + 1.65, kn), Vector3(6.6, 0.1, 0.1), wood.darkened(0.1), yaw, false)
+	for k in 9:
+		var bo := Builder.rot(-2.8 + k * 0.7, 0.0, yaw)
+		b.box(Vector3(kx + bo.x, kg + 1.25, kn + bo.y), Vector3(0.42, 0.8, 0.3), Color(0.82, 0.7, 0.4).darkened(rng.randf() * 0.15), yaw, false)
 
 
 static func _pillar(b: Builder, x: float, n: float, g: float, h: float, r: float, rng: RandomNumberGenerator, c: Color, spire := false) -> void:
