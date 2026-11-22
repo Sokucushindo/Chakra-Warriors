@@ -23,7 +23,8 @@ var shift_off_road := false   # house(): yolu kapatıyorsa ATLAMA, yoldan dışa
 var house_ok := false   # son house() gerçekten kuruldu mu (yol yüzünden atlandıysa false: kapı/süs eklenmesin)
 var placed_xn := Vector2.ZERO  # son house() çağrısının gerçek konumu (kaydırıldıysa yeni yer)
 var last_house := {}  # son yerleştirilen şablon ev (w, d, h, roof_top)
-var houses: Array = []  # [x, n, gen, der, yaw, taban, stil] (peyzaj bahçeleri için)
+var houses: Array = []  # [x, n, gen, der, yaw, taban, stil, kat] (peyzaj bahçeleri ve kapatıcı kutular için)
+var last_floors := 1
 var solids := {}  # 16 m ızgara (dünya xz) -> [[cx, cz, yarı_x, yarı_z, açı]] (peyzaj çakışma kontrolü)
 var landscape := true  # finish()'te yeterince ev varsa CityLandscape ile bahçe/sokak ağacı/park
 const SCELL := 16.0
@@ -482,6 +483,47 @@ func finish() -> void:
 	_finish_rest()
 
 
+## Occlusion culling: evlerin içine oturan, yarı boyutlu kutu kapatıcılar (binaların arkasındaki ev / ağaç / sokak çizilmesin).
+## Kutu evin ayak izinden içeri çekilir ve yüksekliği gövdenin ~%70'idir: gerçek yüzeyin dışına taşmaz (taşarsa arkadaki nesne yanlışlıkla kaybolur).
+## Hücre (128 m) başına tek OccluderInstance3D; sahneyle birlikte köy önbelleğine girer.
+const OCC_INSET := 0.78
+const OCC_HEIGHT := 0.7
+const OCC_CELL := 128.0
+func build_occluders() -> void:
+	if not is_instance_valid(root) or houses.is_empty():
+		return
+	var cells := {}
+	for h in houses:
+		var hw: float = float(h[2]) * 0.5 * OCC_INSET
+		var hd: float = float(h[3]) * 0.5 * OCC_INSET
+		var floors_n: int = int(h[7]) if h.size() > 7 else 1
+		var hh: float = maxf(floors_n * 4.2 * OCC_HEIGHT, 2.4)
+		if hw < 1.0 or hd < 1.0:
+			continue
+		var c: Vector3 = origin + Vector3(float(h[0]), float(h[5]), -float(h[1]))
+		var b = Basis(Vector3.UP, deg_to_rad(-float(h[4])))
+		var key = Vector2i(floori(c.x / OCC_CELL), floori(c.z / OCC_CELL))
+		if not cells.has(key):
+			cells[key] = [PackedVector3Array(), PackedInt32Array()]
+		var vs: PackedVector3Array = cells[key][0]
+		var ix: PackedInt32Array = cells[key][1]
+		var o = vs.size()
+		for yy in [0.2, hh]:
+			for sx in [-1.0, 1.0]:
+				for sz in [-1.0, 1.0]:
+					vs.append(c + b * Vector3(sx * hw, yy, sz * hd))
+		# köşe sırası: o+0..3 alt (sx,sz: --, -+, +-, ++), o+4..7 üst
+		for q in [[0, 2, 3, 1], [4, 5, 7, 6], [0, 1, 5, 4], [2, 6, 7, 3], [0, 4, 6, 2], [1, 3, 7, 5]]:
+			ix.append_array(PackedInt32Array([o + q[0], o + q[1], o + q[2], o + q[0], o + q[2], o + q[3]]))
+	for key in cells:
+		var oc = ArrayOccluder3D.new()
+		oc.set_arrays(cells[key][0], cells[key][1])
+		var oi = OccluderInstance3D.new()
+		oi.name = "Occ_%d_%d" % [key.x, key.y]
+		oi.occluder = oc
+		root.add_child(oi)
+
+
 static var dressing := 0
 func _finish_after_dress() -> void:
 	await CityLandscape.dress(self)
@@ -557,6 +599,7 @@ func _finish_rest() -> void:
 		mi.visibility_range_end_margin = 30.0 if tv > 0.0 and tv < 300.0 else 60.0
 		root.add_child(mi)
 	cells.clear()
+	build_occluders()
 	cap_ranges(root, view_dist)
 	cap_ranges.call_deferred(root, view_dist)
 
@@ -689,6 +732,7 @@ func house(x: float, n: float, wdt: float, dep: float, floors: int, yaw: float, 
 	_house_body(x, n, wdt, dep, floors, yaw, style, rng)
 	house_ok = true
 	yoff = 0.0
+	last_floors = floors
 	_record_house(x, n, wdt, dep, yaw, g.y, style)
 
 
@@ -700,7 +744,7 @@ func _record_house(x: float, n: float, wdt: float, dep: float, yaw: float, base:
 		overlap_post += 1   # gerçek şablon ölçüsüyle çakışma (ölçüm)
 		if overlap_log.size() < 12:
 			overlap_log.append([key, int(x), int(n), int(hw), int(hd), int(last_house.get("arch", -1))])
-	houses.append([x, n, hw, hd, yaw, base, style])
+	houses.append([x, n, hw, hd, yaw, base, style, last_floors])
 	var hk = Vector2i(floori(x / 32.0), floori(n / 32.0))
 	if not house_grid.has(hk):
 		house_grid[hk] = []
