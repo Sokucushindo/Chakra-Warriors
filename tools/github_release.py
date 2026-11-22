@@ -1,5 +1,5 @@
 ## GitHub release: python tools/github_release.py "notlar"
-## VERSION'daki sürümle release açar ve ShinobiYolu_vX.Y.Z.zip'i yükler (kimlik: git credential / Git Credential Manager).
+## VERSION'daki sürümle release açar ve ChakraWarriors_vX.Y.Z.zip'i yükler (kimlik: git credential / Git Credential Manager).
 import subprocess, json, urllib.request, urllib.error, sys, os
 
 os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -10,10 +10,10 @@ if not tok:
 H = {'Authorization': 'token ' + tok, 'Accept': 'application/vnd.github+json'}
 repo = 'Sokucushindo/Chakra-Warriors'
 tag = 'v' + open('VERSION').read().strip()
-zipn = 'ShinobiYolu_%s.zip' % tag
+zipn = 'ChakraWarriors_%s.zip' % tag
 notes = sys.argv[1] if len(sys.argv) > 1 else ''
 body = {'tag_name': tag, 'target_commitish': 'main', 'name': 'Chakra Warriors ' + tag,
-        'body': notes + '\n\nDownload: ' + zipn + ' - unzip it and run ShinobiYolu.exe inside the ShinobiYolu folder.'}
+        'body': notes + '\n\nDownload: ' + zipn + ' - unzip it and run ChakraWarriors.exe inside the ChakraWarriors folder.'}
 req = urllib.request.Request('https://api.github.com/repos/%s/releases' % repo, data=json.dumps(body).encode(), headers=H, method='POST')
 try:
     r = json.load(urllib.request.urlopen(req))

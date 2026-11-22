@@ -18,8 +18,8 @@ An open-world ninja action RPG made with Godot 4.7, set in the Naruto universe. 
 
 ## How to play
 
-1. Open the **Releases** page and download the latest `ShinobiYolu_vX.Y.Z.zip`.
-2. Unzip it and run `ShinobiYolu.exe` inside the `ShinobiYolu` folder (Windows, no install needed).
+1. Open the **Releases** page and download the latest `ChakraWarriors_vX.Y.Z.zip`.
+2. Unzip it and run `ChakraWarriors.exe` inside the `ChakraWarriors` folder (Windows, no install needed).
 
 The game starts in English; you can switch the language in the settings.
 

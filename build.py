@@ -1,6 +1,6 @@
 """Godot projesini Windows exe olarak dışa aktarır.
   python build.py test   -> Test\\ShinobiYolu_TEST.exe  (her değişiklikten sonra)
-  python build.py main   -> Oyun\\ShinobiYolu.exe       ("güncelle" denince, sürüm artar)
+  python build.py main   -> Oyun\\ChakraWarriors.exe    ("güncelle" denince, sürüm artar)
 """
 import os
 import sys
@@ -77,7 +77,7 @@ if mode != 'test':
             print('UYARI: %s önbelleği pişirilemedi, pakete konmadı' % v)
     print('Köy önbelleği pakete konuyor: %s, %d MB' % (', '.join(_vids), _mb // 1048576))
 
-name = {'test': 'ShinobiYolu_TEST', 'arena': 'ShinobiYolu_ARENA'}.get(mode, 'ShinobiYolu')
+name = {'test': 'ShinobiYolu_TEST', 'arena': 'ShinobiYolu_ARENA'}.get(mode, 'ChakraWarriors')
 out_dir = os.path.join(ROOT, {'test': 'Test', 'arena': 'Arena'}.get(mode, 'Oyun'))
 os.makedirs(out_dir, exist_ok=True)
 for f in os.listdir(out_dir):  # eski (Python sürümü) exe'leri temizle
