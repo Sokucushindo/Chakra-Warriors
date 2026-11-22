@@ -50,7 +50,9 @@ if mode != 'test':
     _hv = re.search(r'const HOME_VILLAGES := \{(.*?)^\}', _prog, re.S | re.M).group(1)
     _vids = re.findall(r'^\t"([a-z_]+)": \{', _hv, re.M)
     # build.json'da dünya anahtarı varken oyun kendi kayıt klasörüne (user://bake) pişirir; geliştirme koşusu _tmp/bake_dev'e
-    _ud = os.path.join(os.environ.get('APPDATA', ''), 'Godot', 'app_userdata', 'Shinobi Yolu', 'bake')
+    _pj = open(os.path.join(PROJ, 'project.godot'), encoding='utf8').read()
+    _cu = re.search(r'custom_user_dir_name="([^"]+)"', _pj)   # oyunun kayıt klasörü (project.godot'ta sabit; yeniden adlandırmada değişir)
+    _ud = os.path.join(os.environ.get('APPDATA', ''), *(_cu.group(1).split('/') if _cu else ['Godot', 'app_userdata', 'Shinobi Yolu']), 'bake')
     def _find(vid):
         for d in (_bdir, _ud):
             c = [os.path.join(d, '%s_%s.%s' % (vid, _wk, e)) for e in ('scn', 'dat')]
