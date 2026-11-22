@@ -21,6 +21,11 @@ func _ready() -> void:
 		# toon.gdshader'daki taban gölge payı nokta ışıklarda küme hücrelerini kare kare boyar;
 		# fenerler yalnızca katman 1'i (arazi, çimen, karakterler) aydınlatır, yapılar katman 2'de.
 		l.light_cull_mask = 1
+		# uzaklıkla yumuşak sönme (Godot performans rehberi: ışıklarda Distance Fade); kapalıyken çizime hiç girmez
+		l.distance_fade_enabled = true
+		l.distance_fade_begin = 70.0
+		l.distance_fade_length = 30.0
+		l.visible = false
 		add_child(l)
 		pool.append(l)
 
@@ -44,5 +49,7 @@ func _process(dt: float) -> void:
 		if i < near.size() and night > 0.05:
 			pool[i].global_position = near[i][1]
 			pool[i].light_energy = 1.8 * night   # fener ışık havuzu belirgin (sarı, güçlü)
+			pool[i].visible = true
 		else:
 			pool[i].light_energy = 0.0
+			pool[i].visible = false   # gündüz / boşta: enerjisi 0 olan ışık da kümeye giriyordu

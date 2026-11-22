@@ -817,6 +817,8 @@ func apply_graphics() -> void:
 		# yüksek kalitede gölge süzgeci bir kademe yukarı: orta kademe gölge içinde kumlanma (parazit) yapıyordu (~1.5-2 ms)
 		RenderingServer.directional_soft_shadow_filter_set_quality(RenderingServer.SHADOW_QUALITY_SOFT_HIGH if q >= 2 else RenderingServer.SHADOW_QUALITY_SOFT_MEDIUM)
 		RenderingServer.positional_soft_shadow_filter_set_quality(RenderingServer.SHADOW_QUALITY_SOFT_HIGH if q >= 2 else RenderingServer.SHADOW_QUALITY_SOFT_LOW)   # ev içi lamba gölgesi: düşük kademe kenarı noktalı yapıyordu
+		# güneş gölge haritası: 4096 Konoha'da ekran kartı süresinin ~üçte birini yiyordu (2048'de 43 -> 58 FPS, görüntü farkı seçilmiyor)
+		RenderingServer.directional_shadow_atlas_set_size([1024, 2048, 2048][q], true)
 		if env.post:
 			env.post.visible = bool(settings["outline"])
 		env.set_dreamy(bool(settings.get("dreamy", true)))
