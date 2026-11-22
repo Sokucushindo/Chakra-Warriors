@@ -1626,94 +1626,32 @@ static func valley_end(parent: Node3D, l: Dictionary) -> void:
 		Waterfalls.add_epic(b.w(Vector3(0, spec["river"], fall_n - 4.0)), float(spec["upper"]) - float(spec["river"]) + 2.0, 120.0,
 			{"throw": 16.0, "arch": 7.0, "back": 4.0, "river_len": 600.0, "river_w": float(spec["half"]) * 1.6, "upper_len": 900.0, "upper_w": 124.0,
 			"trickles": [[-72.0, 5.0, 0.75], [-86.0, 3.0, 0.45], [70.0, 4.0, 0.6], [84.0, 3.5, 0.85]]})
-	# iki dev heykel şelalenin iki yanında kanyon kenarında, birbirine bakıyor (hayran modeli; yoksa prosedürel)
-	_valley_cliffs(b, spec)
-	if not _valley_statues(b, float(spec["half"]), fall_n - 75.0, float(spec["river"])):
-		for sx in [-1.0, 1.0]:
-			_statue(b, (float(spec["half"]) + 55.0) * sx, fall_n - 40.0, rim, -90.0 * sx, rock, sx > 0.0)
+	# kanyon: dikey katmanlı kaya sütunları; iki dev heykel şelalenin iki yanında, birbirine bakıyor (ref: refs/valley_end)
+	_valley_columns(b, spec)
+	_valley_statues(b, float(spec["half"]), fall_n - 75.0, float(spec["river"]))
 	b.interact(Vector3(0, spec["river"] + 0.5, fall_n - 160.0), 20, "valley", "[F] Sonun Vadisi'nde meditasyon yap")
 	b.finish()
 
 
-## Sonun Vadisi hayran modeli (Sketchfab, Valledelfin.fbx): yalnızca iki heykel gövdesi kullanılır (kanyon, şelale ve nehir
-## bizim arazimiz). Orijinal kafalar ve saçlar boyun üstünden kesilir; yerine kendi efsanevi ninjalarımızın taş büstleri konur.
-const VALLEY_MODEL := "res://assets/sketchfab/valley_of_end/source/Valledelfin.fbx"
-const VALLEY_HIDE := ["40_Cliff_0_1_0_0", "Plane", "Plane_001", "Material_003", "Material_004"]
-const VALLEY_HAIR := "Material_014"   # saç ile hakama aynı parça: saç kısmı bel üstünden kesilir
-const VALLEY_HAIR_CUT := 4.3
-const VALLEY_SC := 14.5                # model ~7.3 birim -> ~105 m heykel (animedeki gibi şelale boyunda, dipten yükselir)
-## [modelde heykel merkezi x, z, kesim x aralığı, boyun y, büst görünümü (özgün iki kurucu ninja)]
+## Sonun Vadisi heykelleri (ref: refs/valley_end/Valley_of_the_End.png): oyunun kendi ninja modeli taşa oyulur, ~100 m.
+## Sengoku zırhı, yere inen etek; bir el yüz hizasında iki parmak mührü (Tai no In), öbür el belde kılıç kabzasında.
+## Yüzler kanon karakter değil: kendi iki kurucu ninjamız (biri sakin, biri öfkeli rakip). İkinci heykel aynadır.
+const VALLEY_H := 100.0
 const VALLEY_STATUE := [
-	{"x": -2.8, "z": -20.4, "lo": -1e9, "hi": -0.36, "neck": 6.22,
-		"look": {"gender": "m", "hair_style": "geriye", "face_id": 0, "band": Color.WHITE, "band_style": "head"}},   # sakin kurucu (erkek yüz)
-	{"x": 2.08, "z": -20.7, "lo": -0.36, "hi": 1e9, "neck": 6.36,
-		"look": {"gender": "m", "hair_style": "diken", "face_id": 1, "band": null}},   # öfkeli rakip (erkek yüz)
+	{"gender": "m", "hair_style": "geriye", "face_id": 0, "band": Color.WHITE, "band_style": "head"},   # sakin kurucu
+	{"gender": "m", "hair_style": "diken", "face_id": 1, "band": null},                                 # öfkeli rakip
+]
+## [kemik, model uzayında yön (+Z önü, +X modelin solu)] — sağ el mühürde, sol el belde (ikinci heykelde x ve taraf aynalanır)
+const VALLEY_POSE := [
+	["RightUpperArm", Vector3(-0.6, -0.42, 0.68)], ["RightLowerArm", Vector3(0.12, 0.97, 0.2)], ["RightHand", Vector3(0.0, 1.0, 0.12)],
+	["LeftUpperArm", Vector3(0.28, -0.88, 0.3)], ["LeftLowerArm", Vector3(-0.45, -0.25, 0.85)], ["LeftHand", Vector3(-0.7, -0.2, 0.68)],
 ]
 
 
-## Kanyon duvarlarını modelin oyuk kayalarıyla giydirir (düz arazi duvarının önünde, şelalenin aşağısında).
-## Model kanyonu ~12 birim geniş, 7 birim yüksek: iç yüzleri arazi duvarının biraz önüne (±%82) gelecek, 133 m derinliğe ölçeklenir.
-static func _valley_cliffs(b: Builder, spec: Dictionary) -> void:
-	if not ResourceLoader.exists(VALLEY_MODEL):
-		return
-	var ps = load(VALLEY_MODEL)
-	if ps == null:
-		return
-	var river = float(spec["river"])
-	var fall_n = float(spec["fall_dy"])
-	var sc = Vector3(float(spec["half"]) * 0.82 / 5.7, (float(spec["rim"]) - river) / 7.0, 11.0)
-	var root: Node3D = ps.instantiate()
-	b.root.add_child(root)
-	# modelde z=0 şelaleye yakın dar boğaz; aşağı akış +z (bizde de dünyada aşağı akış +z)
-	root.scale = sc
-	root.global_position = b.w(Vector3(0, river, fall_n))
-	var z_clip = b.w(Vector3(0, 0, fall_n - 6.0)).z
-	var m = ShaderMaterial.new()
-	m.shader = load("res://shaders/valley_statue.gdshader")
-	m.set_shader_parameter("stone", Color(0.6, 0.55, 0.48))
-	m.set_shader_parameter("moss", 0.55)
-	m.set_shader_parameter("z_min", z_clip)
-	var cliff: MeshInstance3D = null
-	for mi in root.find_children("*", "MeshInstance3D", true, false):
-		if String(mi.name) == "40_Cliff_0_1_0_0":
-			cliff = mi
-		else:
-			mi.queue_free()
-	if cliff == null:
-		return
-	cliff.material_override = m
-	cliff.visibility_range_end = 30000.0
-	# çarpışma: ölçekli üçgenler dünya koordinatında (Jolt eşit olmayan ölçekli şekli sevmez); şelale üstü atlanır
-	var xf = cliff.global_transform
-	var src: PackedVector3Array = cliff.mesh.get_faces()
-	var faces = PackedVector3Array()
-	for t in range(0, src.size(), 3):
-		var a = xf * src[t]
-		var c2 = xf * src[t + 1]
-		var d = xf * src[t + 2]
-		if a.z < z_clip and c2.z < z_clip and d.z < z_clip:
-			continue
-		faces.append(a); faces.append(c2); faces.append(d)
-	var shape = ConcavePolygonShape3D.new()
-	shape.set_faces(faces)
-	var body = StaticBody3D.new()
-	b.root.add_child(body)
-	var cs = CollisionShape3D.new()
-	cs.shape = shape
-	body.add_child(cs)
-	body.global_transform = Transform3D.IDENTITY
-
-
-static func _valley_statues(b: Builder, half: float, n: float, g: float) -> bool:
-	if not ResourceLoader.exists(VALLEY_MODEL):
-		return false
-	var ps = load(VALLEY_MODEL)
-	if ps == null:
-		return false
-	var rock = Color(0.62, 0.58, 0.52)
-	var sh = load("res://shaders/valley_statue.gdshader")
+static func _valley_statues(b: Builder, half: float, n: float, g: float) -> void:
+	var rock = Color(0.52, 0.58, 0.5)
+	var sh = load("res://shaders/stone_head.gdshader")
 	for i in 2:
-		var d: Dictionary = VALLEY_STATUE[i]
 		var sx = -1.0 if i == 0 else 1.0
 		# kaide: nehirden yükselen kaya blok (heykel suyun içinden yükselir), üstü düz
 		var px = half * 0.7 * sx
@@ -1721,43 +1659,139 @@ static func _valley_statues(b: Builder, half: float, n: float, g: float) -> bool
 		b.cyl(Vector3(px, (g - 6.0 + ped_top) * 0.5, n), 44.0, ped_top - g + 6.0, rock.darkened(0.12), true, 14)
 		b.cyl(Vector3(px, ped_top - 0.4, n), 40.0, 0.8, rock.darkened(0.05), false, 14)
 		var feet_l = Vector3(px, ped_top, n)
-		var feet = b.w(feet_l)
-		var root: Node3D = ps.instantiate()
-		b.root.add_child(root)
-		# modelde heykeller kanyonun dışına bakıyor: 180° çevir -> birbirlerine ve aşağı akışa (izleyene) bakarlar
-		root.scale = Vector3.ONE * VALLEY_SC
-		root.rotation.y = PI
-		root.global_position = feet + Vector3(float(d["x"]), 0.0, float(d["z"])) * VALLEY_SC
-		for mi in root.find_children("*", "MeshInstance3D", true, false):
-			if String(mi.name) in VALLEY_HIDE:
-				mi.queue_free()
-				continue
-			var m = ShaderMaterial.new()
-			m.shader = sh
-			m.set_shader_parameter("stone", rock)
-			m.set_shader_parameter("x_min", root.global_position.x - float(d["hi"]) * VALLEY_SC)
-			m.set_shader_parameter("x_max", root.global_position.x - float(d["lo"]) * VALLEY_SC)
-			var cut = VALLEY_HAIR_CUT if String(mi.name) == VALLEY_HAIR else float(d["neck"])
-			m.set_shader_parameter("y_cut", feet.y + cut * VALLEY_SC)
-			mi.material_override = m
+		var hm = CharacterModel.new()
+		b.root.add_child(hm)
+		hm.setup(_valley_look(VALLEY_STATUE[i]))
+		hm.anim.stop()
+		hm.set_process(false)
+		# taş: saç / kumaş sarkıtları ve poz katmanı çalışmasın (heykel kıpırdamaz)
+		for c in hm.find_children("*", "", true, false):
+			c.set_process(false)
+			c.set_physics_process(false)
+			if c is SkeletonModifier3D:
+				c.active = false
+		var sk: Skeleton3D = hm.skel
+		for bp in VALLEY_POSE:
+			var bn = String(bp[0])
+			var d: Vector3 = bp[1]
+			if i == 1:   # ayna: taraf ve x değişir
+				bn = bn.replace("Right", "#").replace("Left", "Right").replace("#", "Left")
+				d.x = -d.x
+			_bone_dir(sk, bn, d)
+		# mühür eli: işaret + orta parmak dik, yüzük + serçe katlı (Tai no In); bel eli kabzayı kavrar
+		var seal_side = "Right" if i == 0 else "Left"
+		var grip_side = "Left" if i == 0 else "Right"
+		_fingers(sk, seal_side, [0.0, 0.0, 1.5, 1.5, 0.4])
+		_fingers(sk, grip_side, [1.3, 1.3, 1.3, 1.3, 0.8])
+		var top_y = sk.get_bone_global_rest(sk.find_bone("Head")).origin.y + 0.2
+		var sc = VALLEY_H / maxf(top_y, 1.0)
+		hm.scale = Vector3.ONE * sc
+		# yüz öbür heykele ve biraz aşağı akışa (izleyene) dönük; model -Z'ye bakar, yerel n arttıkça dünya z azalır
+		var yaw = atan2(sx, -0.6)
+		hm.rotation.y = yaw
+		hm.global_position = b.w(feet_l)
+		var m = ShaderMaterial.new()
+		m.shader = sh
+		m.set_shader_parameter("stone", rock)
+		for mi in hm.find_children("*", "MeshInstance3D", true, false):
 			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-			# kesilen öbür heykel yarısı gölge/görünürlük sınırını büyütmesin
 			mi.visibility_range_end = 30000.0
-		# çarpışma: gövde sütunu (omuzlara çıkılabilir) + kaide
+			mi.extra_cull_margin = 40.0
+			if mi.mesh == null:
+				continue
+			# her yüzey kendi dokusuyla taşa oyulur: göz, kaş, zırh dikişleri ve saç telleri çizgi olarak okunur
+			for si in mi.mesh.get_surface_count():
+				var src = mi.get_surface_override_material(si)
+				if src == null:
+					src = mi.mesh.surface_get_material(si)
+				if src == null and mi.material_override != null:
+					src = mi.material_override
+				var t: Texture2D = null
+				if src is ShaderMaterial:
+					t = src.get_shader_parameter("tex")
+				elif src is BaseMaterial3D:
+					if src.albedo_color.a < 0.05:
+						continue
+					t = src.albedo_texture
+				var smat = m.duplicate()
+				if t != null:
+					smat.set_shader_parameter("tex", t)
+					smat.set_shader_parameter("use_tex", true)
+				mi.set_surface_override_material(si, smat)
+			mi.material_override = null
+		# çarpışma: gövde sütunu (omuzlara çıkılabilir); mühür kolu ayrı blok
 		var body = StaticBody3D.new()
 		b.root.add_child(body)
 		var cs = CollisionShape3D.new()
 		var bx = BoxShape3D.new()
-		bx.size = Vector3(2.4, 5.9, 1.9) * VALLEY_SC
+		bx.size = Vector3(VALLEY_H * 0.26, VALLEY_H * 0.8, VALLEY_H * 0.18)
 		cs.shape = bx
 		body.add_child(cs)
-		body.global_position = feet + Vector3(0, 2.95 * VALLEY_SC, 0)
-		# taş büst: modelin kafası ~1 birim; gövde gibi öbür heykele ve biraz aşağı akışa bakar
-		# (büst yüzü yaw'da (-sin, 0, -cos) yönündedir: hedef (-sx, 0, +0.6) -> yaw = atan2(sx, -0.6))
-		var head_at = feet_l + Vector3(0, (float(d["neck"]) + 0.42) * VALLEY_SC, 0)
-		# yüz öbür heykele ve aşağı akışa (izleyene) dönük: eskiden yukarı akışa (şelaleye) bakıyordu -> "kafalar ters"
-		BuildKonoha._stone_head(b, i, head_at, 0.95 * VALLEY_SC, rock.lightened(0.04), d["look"], atan2(sx, -0.6))
-	return true
+		body.global_position = b.w(feet_l) + Vector3(0, VALLEY_H * 0.4, 0)
+		body.rotation.y = yaw
+
+
+## Heykel görünümü: Sengoku Musha seti (zırh + hakama) sahte profile giydirilip görünüme çevrilir
+static func _valley_look(extra: Dictionary) -> Dictionary:
+	var look = {"gender": "m", "age": "adult", "top_style": "uzun", "vest": null, "skin": Color(0.9, 0.8, 0.7), "hair": Color(0.2, 0.2, 0.2)}
+	look.merge(extra, true)
+	var fake = {"gear": [], "equip": {}, "gear_uid": 0, "look": look}
+	if Gear.grant(fake, "set_sengoku", "set") >= 0:
+		Gear.apply_look(fake)
+	return fake["look"]
+
+
+## Kemiği model uzayında verilen yöne çevirir (kemiğin +Y ekseni = doğrultusu; PoseOverlay._rot_model ile aynı)
+static func _bone_dir(sk: Skeleton3D, bone: String, dir_model: Vector3) -> void:
+	var bi = sk.find_bone(bone)
+	if bi < 0:
+		return
+	var gp = sk.get_bone_global_pose(bi)
+	var q = Quaternion(gp.basis.y.normalized(), dir_model.normalized())
+	var parent = sk.get_bone_parent(bi)
+	var pb = sk.get_bone_global_pose(parent).basis if parent >= 0 else Basis.IDENTITY
+	sk.set_bone_pose_rotation(bi, (pb.inverse() * (Basis(q) * gp.basis)).get_rotation_quaternion())
+
+
+## Parmak katlama (PoseOverlay._apply_cast ile aynı ölçü): f = [işaret, orta, yüzük, serçe, başparmak]
+static func _fingers(sk: Skeleton3D, side: String, f: Array) -> void:
+	var sgn = 1.0 if side == "Left" else -1.0
+	for k in 4:
+		for seg in PoseOverlay.FINGER_SEG:
+			var bi = sk.find_bone(side + PoseOverlay.FINGERS[k] + seg)
+			if bi >= 0:
+				sk.set_bone_pose_rotation(bi, sk.get_bone_pose_rotation(bi) * Quaternion.from_euler(Vector3(f[k] * 0.55 * sgn, 0, 0)))
+	for seg in PoseOverlay.THUMB_SEG:
+		var bi = sk.find_bone(side + "Thumb" + seg)
+		if bi >= 0:
+			sk.set_bone_pose_rotation(bi, sk.get_bone_pose_rotation(bi) * Quaternion.from_euler(Vector3(f[4] * 0.4 * sgn, 0, -f[4] * 0.3)))
+
+
+## Kanyon duvarı: dikey katmanlı kaya sütunları (ref'teki çizgili, yosunlu sütunlar). Nehirden kenara, şelaleden aşağı akışa.
+static func _valley_columns(b: Builder, spec: Dictionary) -> void:
+	var river = float(spec["river"])
+	var upper = float(spec["upper"])
+	var rim = float(spec["rim"])
+	var half = float(spec["half"])
+	var fall_n = float(spec["fall_dy"])
+	var rng = RandomNumberGenerator.new()
+	rng.seed = 4417
+	var rock = Color(0.56, 0.6, 0.52)
+	# yerel n azaldıkça aşağı akış (şelale fall_n'de; altında nehir, üstünde yukarı nehir yatağı)
+	for sx in [-1.0, 1.0]:
+		var n = fall_n + 260.0
+		while n > fall_n - 430.0:
+			var d = rng.randf_range(18.0, 34.0)
+			var x = (half + 4.0 + d * 0.32 + rng.randf_range(-3.0, 6.0)) * sx   # iç yüzü duvar eteğinde, sırtı yamaca gömülü
+			var base = (upper if n > fall_n + 6.0 else river) - 4.0
+			var top = rim + rng.randf_range(-14.0, 18.0)
+			var col = rock.darkened(rng.randf_range(0.0, 0.2)).lerp(Color(0.4, 0.5, 0.35), rng.randf_range(0.0, 0.4))
+			# iki katman: alttaki kalın gövde, üstte biraz incelen ve kayan blok (ref'teki katmanlı sütunlar)
+			var split = lerpf(base, top, rng.randf_range(0.35, 0.65))
+			b.cyl(Vector3(x, (base + split) * 0.5, n), d, split - base, col, true, 7)
+			var d2 = d * rng.randf_range(0.8, 0.92)
+			b.cyl(Vector3(x + rng.randf_range(-2.0, 2.0), (split + top) * 0.5, n + rng.randf_range(-2.0, 2.0)), d2, top - split, col.lightened(0.04), true, 7)
+			n -= d * rng.randf_range(0.55, 0.78)
 
 
 ## 100 m'lik dev shinobi heykeli: kaide, hakama etekli bacaklar, zırhlı gövde, saç, mühür yapan el
