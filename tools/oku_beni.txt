@@ -1,5 +1,5 @@
-Shinobi Yolu v{v}
-================
+Chakra Warriors v{v}
+===================
 
 Kurulum yok: ShinobiYolu.exe'ye çift tıkla, oyun açılır.
 (Windows "bilinmeyen yayıncı" uyarısı verirse: "Ek bilgi" > "Yine de çalıştır".)
@@ -27,3 +27,31 @@ J / U          çağrı komutu / çağrı özel
 L              haritadaki işaretçiyi değiştir (görev, dost, aranan, hedef)
 Tab I K M      ninja menüsü / envanter / jutsular / harita
 Esc            duraklat
+
+--------------------------------------------------------------------------------
+ENGLISH
+No install: double-click ShinobiYolu.exe and the game starts.
+(If Windows shows "unknown publisher": "More info" > "Run anyway".)
+The game starts in English; you can switch to Turkish in Settings > Language.
+UPDATE: put the new ShinobiYolu.exe over the old one. Saves are kept in a separate folder
+(%APPDATA%\Godotpp_userdata\Shinobi Yolu) and are not deleted.
+
+KEYS
+W A S D        move
+Space / Ctrl   jump / long leap
+Shift          dash
+Left / Right   attack / block
+1-6            jutsu slots
+G              hand-seal mode
+Q              kawarimi (substitution)
+C              charge chakra
+R / T          throw / switch tool
+E / middle     lock on target
+F              interact / talk
+H / Y / O      salve / pill / switch pill
+V Z X B        eyes / sage / beast / gates
+N              draw weapon
+J / U          summon command / summon special
+L              switch map marker (mission, friend, wanted, target)
+Tab I K M      ninja menu / inventory / jutsu / map
+Esc            pause

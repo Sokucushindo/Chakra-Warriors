@@ -782,7 +782,7 @@
   "elements": [],
   "tier": 2,
   "dmg_k": 1.29,
-  "meaning": "Ninken Yoldaşı"
+  "meaning": "Ninken Yoldaşı", "name_en": "Ninken Companion"
  },
  "gatsuga": {
   "id": "gatsuga",
@@ -1019,7 +1019,7 @@
   "elements": [],
   "tier": 2,
   "dmg_k": 0.53,
-  "meaning": "Beyaz Işık Chakra Kılıcı",
+  "meaning": "Beyaz Işık Chakra Kılıcı", "name_en": "White Light Chakra Sabre",
   "need": "weapon:hakko_chakura_to"
  },
  "hatake_ninken": {
@@ -1101,7 +1101,7 @@
   "elements": [],
   "tier": 2,
   "dmg_k": 1.05,
-  "meaning": "Arı Sürüsü"
+  "meaning": "Arı Sürüsü", "name_en": "Bee Swarm"
  },
  "kamizuru_wax": {
   "id": "kamizuru_wax",
@@ -1124,7 +1124,7 @@
   "elements": [],
   "tier": 2,
   "dmg_k": 1.27,
-  "meaning": "Mitsu Rensei: Bal Mumu Kalkanı"
+  "meaning": "Mitsu Rensei: Bal Mumu Kalkanı", "name_en": "Mitsu Rensei: Honey Wax Shield"
  },
  "akurobatto": {
   "id": "akurobatto",
@@ -30103,7 +30103,7 @@
  "tsuchigumo_kinjutsu": {
   "id": "tsuchigumo_kinjutsu",
   "name": "Kinjutsu: Dohatsuten",
-  "name_en": "Yasak Teknik: Toprak Örümceği Patlaması",
+  "name_en": "Forbidden Technique: Earth Spider Blast",
   "cost": 76,
   "cd": 14.8,
   "element": "doton",
@@ -30126,7 +30126,7 @@
  "jugo_jet_yumruk": {
   "id": "jugo_jet_yumruk",
   "name": "Kassokuken",
-  "name_en": "Jet Yumruğu",
+  "name_en": "Jet Punch",
   "cost": 30,
   "cd": 6.8,
   "element": "",
@@ -30148,7 +30148,7 @@
  "jugo_cekim": {
   "id": "jugo_cekim",
   "name": "Saibō Kyūin",
-  "name_en": "Doğa Enerjisini Çek",
+  "name_en": "Draw Natural Energy",
   "cost": 34,
   "cd": 7.4,
   "element": "",
@@ -30190,7 +30190,7 @@
  "jugo_top_kol": {
   "id": "jugo_top_kol",
   "name": "Taren Fujizuho",
-  "name_en": "Doğa Topu",
+  "name_en": "Nature Ball",
   "cost": 52,
   "cd": 10.6,
   "element": "",
@@ -30233,7 +30233,7 @@
  "jugo_ofke": {
   "id": "jugo_ofke",
   "name": "Senninka",
-  "name_en": "Öfke Dönüşümü",
+  "name_en": "Rage Transformation",
   "cost": 72,
   "cd": 14.1,
   "element": "",
@@ -30254,7 +30254,7 @@
  "kaminarimon_denko_ken": {
   "id": "kaminarimon_denko_ken",
   "name": "Raiton: Denkō Ken",
-  "name_en": "Şimşek Yumruğu",
+  "name_en": "Lightning Fist",
   "cost": 26,
   "cd": 6.0,
   "element": "raiton",
@@ -30277,7 +30277,7 @@
  "kaminarimon_raijin_tate": {
   "id": "kaminarimon_raijin_tate",
   "name": "Raiton: Raijin no Tate",
-  "name_en": "Şimşek Kalkanı",
+  "name_en": "Lightning Shield",
   "cost": 32,
   "cd": 7.1,
   "element": "raiton",
@@ -30300,7 +30300,7 @@
  "kaminarimon_denki_ito": {
   "id": "kaminarimon_denki_ito",
   "name": "Raiton: Denki Ito Wana",
-  "name_en": "Elektrik Teli Tuzağı",
+  "name_en": "Electric Wire Trap",
   "cost": 36,
   "cd": 7.8,
   "element": "raiton",
@@ -30323,7 +30323,7 @@
  "kaminarimon_raikou": {
   "id": "kaminarimon_raikou",
   "name": "Raiton: Raikō Sō",
-  "name_en": "Şimşek Koşusu",
+  "name_en": "Lightning Dash",
   "cost": 40,
   "cd": 8.5,
   "element": "raiton",
@@ -30346,7 +30346,7 @@
  "kaminarimon_raikyu_ame": {
   "id": "kaminarimon_raikyu_ame",
   "name": "Raiton: Raikyū no Ame",
-  "name_en": "Şimşek Küresi Yağmuru",
+  "name_en": "Lightning Orb Rain",
   "cost": 48,
   "cd": 9.9,
   "element": "raiton",
@@ -30391,7 +30391,7 @@
  "kaminarimon_kuro_ikazuchi": {
   "id": "kaminarimon_kuro_ikazuchi",
   "name": "Raiton: Kuro Ikazuchi Uchi",
-  "name_en": "Kara Şimşek Darbesi",
+  "name_en": "Black Lightning Strike",
   "cost": 64,
   "cd": 12.7,
   "element": "raiton",
@@ -30414,7 +30414,7 @@
  "kaminarimon_tenrai": {
   "id": "kaminarimon_tenrai",
   "name": "Raiton: Tenrai Chū",
-  "name_en": "Gök Gürültüsü Sütunu",
+  "name_en": "Thunder Pillar",
   "cost": 72,
   "cd": 14.1,
   "element": "raiton",
@@ -30437,7 +30437,7 @@
  "yuhi_hanabira": {
   "id": "yuhi_hanabira",
   "name": "Genjutsu: Hanabira Nogare",
-  "name_en": "Gül Yaprağı İllüzyonu",
+  "name_en": "Rose Petal Illusion",
   "cost": 26,
   "cd": 6.0,
   "element": "",
@@ -30458,7 +30458,7 @@
  "yuhi_sarmasik": {
   "id": "yuhi_sarmasik",
   "name": "Genjutsu: Ingen Shibari",
-  "name_en": "Sarmaşık Kıskacı",
+  "name_en": "Ivy Grip",
   "cost": 36,
   "cd": 7.8,
   "element": "",
@@ -30479,7 +30479,7 @@
  "kurosuki_ikazuchi_kiba": {
   "id": "kurosuki_ikazuchi_kiba",
   "name": "Raiton: Ikazuchi no Kiba",
-  "name_en": "Şimşek Dişi",
+  "name_en": "Lightning Fang",
   "cost": 52,
   "cd": 10.6,
   "element": "raiton",
