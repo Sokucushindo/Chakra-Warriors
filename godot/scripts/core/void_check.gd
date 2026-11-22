@@ -159,7 +159,7 @@ static func run(main: Node) -> void:
 		["12 tek nesneler gizli (yapı, eşya, zemin)", hide_single],
 	]
 	var lines = []
-	lines.append("Shinobi Yolu siyah leke teşhisi  %s" % Time.get_datetime_string_from_system())
+	lines.append("Chakra Warriors siyah leke teşhisi  %s" % Time.get_datetime_string_from_system())
 	lines.append("Sürüm %s (%s)" % [Game.version, Game.build_tag])
 	lines.append("Ekran kartı: %s | sürücü: %s | Vulkan %s" % [RenderingServer.get_video_adapter_name(), str(OS.get_video_adapter_driver_info()), RenderingServer.get_video_adapter_api_version()])
 	lines.append("Pencere %s | tuval %s | ölçek %.2f" % [str(DisplayServer.window_get_size()), str(vp.get_visible_rect().size), vp.scaling_3d_scale])

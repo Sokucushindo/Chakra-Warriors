@@ -12,7 +12,7 @@ repo = 'Sokucushindo/Shindobaba'
 tag = 'v' + open('VERSION').read().strip()
 zipn = 'ShinobiYolu_%s.zip' % tag
 notes = sys.argv[1] if len(sys.argv) > 1 else ''
-body = {'tag_name': tag, 'target_commitish': 'main', 'name': 'Shinobi Yolu ' + tag,
+body = {'tag_name': tag, 'target_commitish': 'main', 'name': 'Chakra Warriors ' + tag,
         'body': notes + '\n\nİndir: ' + zipn + ' - zipi aç, ShinobiYolu klasöründeki ShinobiYolu.exe yi çalıştır.'}
 req = urllib.request.Request('https://api.github.com/repos/%s/releases' % repo, data=json.dumps(body).encode(), headers=H, method='POST')
 try:

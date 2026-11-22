@@ -776,6 +776,8 @@ func load_settings() -> void:
 			settings["look"] = 2
 		if not cf.has_section_key("ayarlar", "aa"):   # ayrıntılı grafik öncesi kayıt: ayrıntılar kalite ön ayarından
 			_quality_details(int(settings["quality"]))
+	else:
+		settings["lang"] = "en"   # ilk kurulum (ayar dosyası yok): oyun İngilizce açılır; Ayarlar > Dil'den değişir
 	apply_settings()
 
 
@@ -944,7 +946,7 @@ func apply_settings() -> void:
 	apply_graphics()   # tam ekranda çözünürlük = 3B çizim ölçeği
 
 
-## Arayüz dili: ayardaki, yoksa bilgisayarın dili (Türkçe değilse İngilizce)
+## Arayüz dili: ayardaki; ilk kurulumda İngilizce (load_settings), eski kayıtta boşsa bilgisayarın dili
 func lang() -> String:
 	var l := String(settings.get("lang", ""))
 	if l in Lang.CODES:

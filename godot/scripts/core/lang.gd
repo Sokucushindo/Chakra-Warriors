@@ -235,7 +235,16 @@ func _one(s: String) -> String:
 		if s == s.to_lower():
 			return v.to_lower() if v.length() > 1 and v.substr(1) == v.substr(1).to_lower() else v
 		return v
-	return _tmpl(s)
+	var r := _tmpl(s)
+	if r != "":
+		return r
+	# sona eklenen noktalama: "Kabuk Kalkanı!" → "Shell Shield!" (bağırış, soru, üç nokta)
+	var core := s.rstrip("!?.…")
+	if core != s and core.length() >= 3 and not core.ends_with(" "):
+		var tc := _one(core)
+		if tc != "":
+			return tc + s.substr(core.length())
+	return ""
 
 
 ## Parça sonuçları saklanır (her yeni birleşik yazıda bütün şablonlar yeniden denenmesin)

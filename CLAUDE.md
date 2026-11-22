@@ -1,4 +1,4 @@
-# Shinobi Yolu — çalışma kılavuzu
+# Chakra Warriors (eski adı Shinobi Yolu) — çalışma kılavuzu
 
 Godot 4.7.2 projesi (`godot/`), GDScript. Naruto evreninde açık dünya ninja oyunu; kanon karakter yok.
 Ayrıntılı kurallar ve süren işler hafıza dizininde (`MEMORY.md` dizini); burası yalnız her oturumda gereken çekirdek.

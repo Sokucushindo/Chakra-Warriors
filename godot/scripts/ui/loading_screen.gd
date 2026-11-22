@@ -115,7 +115,7 @@ func _init() -> void:
 	logo.position = Vector2(96, 80)
 	add_child(logo)
 	logo.add_child(UI.label("忍 の 道", 20, UI.ACCENT, HORIZONTAL_ALIGNMENT_LEFT, true))
-	var t = UI.label("SHINOBI YOLU", 58, UI.CREAM, HORIZONTAL_ALIGNMENT_LEFT, true)
+	var t = UI.label("CHAKRA WARRIORS", 58, UI.CREAM, HORIZONTAL_ALIGNMENT_LEFT, true)
 	t.add_theme_font_override("font", UI.title_font())
 	logo.add_child(t)
 	logo.add_child(UI.brush_line(220))
