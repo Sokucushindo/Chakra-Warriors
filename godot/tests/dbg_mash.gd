@@ -45,11 +45,38 @@ func _ready() -> void:
 	print("MASH kisi: %s gercek Guc %d rutbe %s goz %s el %s" % [String(wp["name"]), int(wp["level"]), str(wp["rank"]), str(wp["eye"]), str(wp["els"])])
 	wp["level"] = elv
 	WorldPeople._learn(wp)
-	var a = WorldPeople.arch_of(wp)
-	a["respawn"] = false
-	var e = Enemy.new()
-	e.setup(a)
-	get_tree().current_scene.add_child(e)
+	var e: Enemy
+	if OS.get_environment("RIVAL") != "":   # «Rakip» (seni yenen biri geri döner): RIVAL = seni yenenin Güç'ü, ELV kullanılmaz
+		Game.profile["rival"] = {"name": "Kaçak Ninja", "kind": "rogue", "element": "raiton", "level": int(OS.get_environment("RIVAL")), "wins": 1, "t": 9999.0}
+		var far = Missions.open_ground(pl.global_position + Vector3(0, 0, 2500.0), 60.0)
+		far.y = Game.ground_height(far.x, far.z) + 0.3
+		pl.global_position = far
+		Game.ui_open = false
+		print("MASH rakip sart: gorev=%s sinav=%s exams=%s" % [str(Missions.active()), str(ChuninExam.stage), str(Exams.cur)])
+		for k in 2000:
+			Journal._rival_tick(2.0)
+			if Game.profile["rival"].get("active", false):
+				break
+		for n in get_tree().current_scene.get_children():
+			if n is Enemy and n.has_meta("rival"):
+				e = n
+		print("MASH rakip dogdu=%s" % str(e != null))
+		elv = int(e.level)
+		e.global_position = Missions.open_ground(pl.global_position + pl.face_dir() * 6.0, 10.0)
+	elif OS.get_environment("EXAM") != "":   # Chūnin sınavı rakibi (EXAM = ölçek: orman 0.75, ön eleme 1.0, final 1.25; CLV = adayın Güç'ü)
+		var ppl = ChuninExam._new_team()["people"]
+		var person: Dictionary = ppl[0]
+		if OS.get_environment("CLV") != "":
+			person["exam"]["lv"] = int(OS.get_environment("CLV"))
+		var r = ChuninExam._cand_of("pool", 0, 0, person)
+		e = ChuninExam._rival_enemy(r, float(OS.get_environment("EXAM")))
+		elv = int(r["lv"])
+	else:
+		var a = WorldPeople.arch_of(wp)
+		a["respawn"] = false
+		e = Enemy.new()
+		e.setup(a)
+		get_tree().current_scene.add_child(e)
 	e.global_position = Missions.open_ground(pl.global_position + pl.face_dir() * 6.0, 10.0)
 	e.home = e.global_position
 	print("MASH oyuncu Guc %d can %.0f vurus carpani %.2f | dusman Guc %d can %.0f guc %.2f" % [Mastery.power(Game.profile), pl.hp, Stats.melee_mult(Game.profile), elv, e.max_hp, e.power])

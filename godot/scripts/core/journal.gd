@@ -246,13 +246,16 @@ static func _rival_tick(dt: float) -> void:
 	var a = Enemy.archetype(String(r["kind"]), 0)
 	a["respawn"] = false
 	a["name"] = "«Rakip» " + String(r["name"]).replace("«Rakip» ", "")
-	var rlv = int(r.get("lv", randi_range(6, 12)))   # rakip kendi hızıyla güçlenir: her karşılaşmada biraz daha güçlü
+	# rakip seni yenen kişinin Güç'üyle döner ve kendi hızıyla güçlenir: her karşılaşmada biraz daha güçlü
+	# (eskiden kayıttaki "level" okunmuyordu: kim yenerse yensin Güç 6-12 + ayrı can formülü -> tek vuruşluk)
+	var rlv = int(r.get("lv", r.get("level", randi_range(6, 12))))
 	r["lv"] = rlv + randi_range(2, 5)
-	a["level"] = rlv
-	a["hp"] = float(a["hp"]) * 1.8 + rlv * 18.0
-	a["power"] = float(a["power"]) * 1.25 + int(pr()["level"]) * 0.015
 	if String(r.get("element", "")) != "":
 		a["element"] = r["element"]
+	Stats.npc_ninja(a, rlv, 1.2)   # ortak NPC eğrisi; seni bir kez yenmiş biri: köy jōnin takımı payı
+	var auto = Enemy.auto_jutsu(String(r["kind"]), String(a["element"]), rlv)
+	if not auto.is_empty():
+		a["jutsu"] = auto
 	e.setup(a)
 	e.set_meta("rival", true)
 	Game.player.get_tree().current_scene.add_child(e)
