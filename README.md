@@ -1,36 +1,53 @@
-# Shinobi Yolu
+# Chakra Warriors
 
-Godot 4.7 ile yapılmış açık dünya ninja aksiyon / RPG oyunu. Beş büyük köy, klanlar, doğa dönüşümleri, kuyruklu canavarlar, rütbe sınavları (Akademi → Genin → Chūnin → Jōnin → ANBU → Kage), görevler, Bingo Kitabı, dostluklar ve kendi genin takımını yetiştirme.
+An open-world ninja action RPG made with Godot 4.7, set in the Naruto universe. Five great villages, clans, chakra natures, tailed beasts, rank exams (Academy → Genin → Chūnin → Jōnin → ANBU → Kage), missions, the Bingo Book, friendships, marriage and family, and training your own genin team.
 
-## Oynamak
+> **Fan game.** Chakra Warriors is a free, non-commercial fan project. It is not affiliated with or endorsed by the official Naruto franchise. No canon characters appear in the game; you create your own ninja.
 
-**Releases** sayfasından `ShinobiYolu.exe`'yi indir ve çalıştır (Windows, kurulum gerekmez).
+## Features
 
-### Tuşlar
+- **Create your own ninja**: clan, home village, chakra nature, looks and outfit
+- **1300+ jutsu**: ninjutsu, genjutsu, taijutsu and kekkei genkai, learned by practice
+- **Dōjutsu**: Sharingan, Mangekyō Sharingan, Byakugan, Rinnegan and more
+- **Hand seals**: weave real seal sequences to cast techniques
+- **Susanoo, Sage Mode, the Eight Gates, tailed beast modes**
+- **Huge open world**: the five great villages and the lands between them
+- **RPG systems**: missions from D to S rank, Bingo Book bounties, outfits and gear, rank progression
+- **Life sim**: friends, rivals, marriage, children, aging and passing on your legacy
+- **Story cutscenes**
 
-| Tuş | İş |
+## How to play
+
+1. Open the **Releases** page and download the latest `ShinobiYolu_vX.Y.Z.zip`.
+2. Unzip it and run `ShinobiYolu.exe` inside the `ShinobiYolu` folder (Windows, no install needed).
+
+The game starts in English; you can switch the language in the settings.
+
+### Controls
+
+| Key | Action |
 |---|---|
-| W A S D | Hareket |
-| Space / Ctrl / Shift | Zıpla / uzun sıçrayış / atılma |
-| Sol tık / Sağ tık | Saldırı / blok |
-| 1–6 | Jutsu yuvaları |
-| G | Mühür modu |
-| Q | Kawarimi (yer değiştirme) |
-| C | Chakra doldur |
-| R / T | Fırlat / fırlatılacak aleti değiştir |
-| E veya orta tık | Hedefe kilitlen |
-| F | Etkileşim / konuş |
-| H / Y / O | Merhem / hap / hap değiştir |
-| V / Z / X / B | Göz / Sennin / Canavar / Kapılar modları |
-| N | Silah çek |
-| J / U | Çağrı komutu / çağrı özel |
-| L | Haritadaki işaretçiyi değiştir (görev, dost, aranan, hedef) |
-| Tab / I / K / M | Ninja menüsü / envanter / jutsular / harita |
-| Esc | Duraklat |
+| W A S D | Move |
+| Space / Ctrl / Shift | Jump / long leap / dash |
+| Left click / Right click | Attack / block |
+| 1–6 | Jutsu slots |
+| G | Hand seal mode |
+| Q | Kawarimi (substitution) |
+| C | Charge chakra |
+| R / T | Throw / switch throwing tool |
+| E or middle click | Lock on target |
+| F | Interact / talk |
+| H / Y / O | Salve / pill / switch pill |
+| V / Z / X / B | Eye / Sage / Beast / Gates modes |
+| N | Draw weapon |
+| J / U | Summon command / summon special |
+| L | Switch map marker (mission, friend, wanted, target) |
+| Tab / I / K / M | Ninja menu / inventory / jutsu / map |
+| Esc | Pause |
 
-## Kaynaktan derlemek
+## Building from source
 
-1. Godot 4.7.2'yi indir ve `tools/` klasörüne koy.
-2. `python build.py main` komutunu çalıştır. Exe `Oyun/` klasörüne çıkar.
+1. Download Godot 4.7.2 and place it in the `tools/` folder.
+2. Run `python build.py main`. The exe is written to the `Oyun/` folder.
 
-Godot projesi `godot/` klasöründe. Testler `godot/tests/` altında, `--test=res://tests/<ad>.gd` ile çalışır.
+The Godot project lives in `godot/`. Tests are in `godot/tests/` and run with `--test=res://tests/<name>.gd`.
