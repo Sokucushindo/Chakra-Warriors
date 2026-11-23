@@ -19,10 +19,11 @@ var _ph_next := [0.0, 0.0, 0.0]
 
 
 var _lpf := 0
+var _t_on := 0
 func _on_pf() -> void:
 	var nw = Time.get_ticks_usec()
 	if on and _lpf > 0 and nw - _lpf > 40000:
-		print("HF dongu %.0f | isleyis %.0f cizim %.0f fizik+bekleme %.0f | asama isi %.1f (%d adet)" % [(nw - _lpf) / 1000.0, (_td - _tp) / 1000.0, (_te - _td) / 1000.0, (nw - _te) / 1000.0, int(Engine.get_meta("stg_us", 0)) / 1000.0, int(Engine.get_meta("stg_n", 0))])
+		print("T%.2f " % ((nw - _t_on) / 1000000.0), "HF dongu %.0f | isleyis %.0f cizim %.0f fizik+bekleme %.0f | asama isi %.1f (%d adet)" % [(nw - _lpf) / 1000.0, (_td - _tp) / 1000.0, (_te - _td) / 1000.0, (nw - _te) / 1000.0, int(Engine.get_meta("stg_us", 0)) / 1000.0, int(Engine.get_meta("stg_n", 0))])
 	Engine.set_meta("stg_us", 0)
 	Engine.set_meta("stg_n", 0)
 	_lpf = nw
@@ -71,6 +72,7 @@ func _ready() -> void:
 	RenderingServer.frame_pre_draw.connect(_on_pre)
 	RenderingServer.frame_post_draw.connect(_on_post)
 	on = true
+	_t_on = Time.get_ticks_usec()
 	if OS.get_environment("HT_REAL") != "":   # gerçek tuşlarla koşu: ileri + Shift (ninja koşusu), 2 sn'de bir Ctrl süper zıplama
 		pl.facing = atan2(-dir.x, dir.y)
 		Input.action_press("forward")
@@ -79,6 +81,7 @@ func _ready() -> void:
 		while tl > 0.0:
 			await get_tree().create_timer(2.0).timeout
 			tl -= 2.0
+			print("T%.2f LEAP" % ((Time.get_ticks_usec() - _t_on) / 1000000.0))
 			Input.action_press("leap")
 			await get_tree().create_timer(0.12).timeout
 			Input.action_release("leap")

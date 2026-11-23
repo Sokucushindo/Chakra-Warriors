@@ -1,4 +1,5 @@
 extends RefCounted
+const DyeMat = preload("res://scripts/core/dye_mat.gd")
 ## Yarım yüz parçaları: bez maske, peçe, gözlük, gaz maskesi, mempo, sargı... (MaskV2 çağırır)
 ## Hepsi yüz kabuğundan (face_r) üretilir: bez yüze oturur, sert parçalar yüze değen contadan çıkar, kopuk durmaz.
 ## Kaynak: refs/kiyafet/yy_* (bez maske, Ame solunum maskesi, samuray solunum aparatı, yarım peçe, mühürlü göz kapağı, tel gözlük)
@@ -1444,22 +1445,27 @@ static func _design(k: Y, s: String, fg: Color) -> void:
 
 
 static func build(m, s, fg: Color) -> bool:
+	# renk anahtarda değil: aynı maske + kafa bir kez kurulur, başka renkler gölgelendiricide çevrilir (her NPC rengi
+	# farklı olduğu için önbellek hiç tutmuyor, maske her seferinde sıfırdan kuruluyordu)
 	var key := ""
 	if m._sk_key != "":
-		key = "%s|%s|%s" % [m._sk_key, s, fg.to_html(false)]
+		key = "%s|%s" % [m._sk_key, s]
 	var e = _cache.get(key) if key != "" else null
 	if e == null:
 		var k := Y.new(m)
 		_design(k, String(s), fg)
-		e = [k.mb.build(Props.toon()), k.post]
+		e = [k.mb.build(Props.toon()), k.post, fg]
 		if key != "":
 			if _cache.size() >= CACHE_MAX:
 				_cache.clear()
 			_cache[key] = e
-	m._mesh_on("Head", e[0], Transform3D.IDENTITY)
+	var fg0: Color = e[2] if e.size() > 2 else fg
+	var mi = m._mesh_on("Head", e[0], Transform3D.IDENTITY)
+	if not fg0.is_equal_approx(fg):
+		mi.material_override = DyeMat.mat(fg0, fg)
 	for p in e[1]:
 		if p[0] == "slab":
 			m.hair_mask_slab(p[1], p[2], p[3], p[4], p[5])
 		else:
-			m.dangle_strip("Head", p[1], p[2], p[3], p[4], p[5], p[6], Vector3(1, 0, 0), p[7])
+			m.dangle_strip("Head", p[1], p[2], p[3], p[4], DyeMat.remap(p[5], fg0, fg) if p[5] is Color else p[5], p[6], Vector3(1, 0, 0), p[7])
 	return true

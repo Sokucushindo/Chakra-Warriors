@@ -1,4 +1,5 @@
 extends RefCounted
+const DyeMat = preload("res://scripts/core/dye_mat.gd")
 ## Kumaş başlıklar (HeadV2 çağırır). Hepsi kafanın ölçülmüş yüzeyine (yön başına deri yarıçapı) oturan gerçek kabuk:
 ## kıvrım / dikiş / kat / örgü geometriden gelir, sarkan uçlar ikincil hareketlidir. Araçlar: Kit (head_kit.gd).
 const Kit = preload("res://scripts/actors/head_kit.gd")
@@ -454,14 +455,27 @@ static func _crown(mb: MB, F: Dictionary, na: int, rows: Array, disp: Callable, 
 
 ## Hazır mesh (aynı başlık + kafa için bir kez kurulur: kalabalıkta takılma olmasın)
 static func _put(m, key: String, make: Callable) -> MeshInstance3D:
-	var k := "%s|%s|%s" % [key, m._sk_key, m.look.get("gender", "m")]
+	# renk anahtardan çıkarılır: aynı başlık + kafa bir kez kurulur, başka renkler gölgelendiricide çevrilir
+	var parts := key.split("|")
+	var col0 := Color(-1, 0, 0)
+	var nk := []
+	for t in parts:
+		if col0.r < 0.0 and (t.length() == 6 or t.length() == 8) and t.is_valid_hex_number():
+			col0 = Color.html(t)
+			continue
+		nk.append(t)
+	var k := "%s|%s|%s" % ["|".join(nk), m._sk_key, m.look.get("gender", "m")]
 	if m._sk_key == "" or not _mc.has(k):
 		if _mc.size() > 160:
 			_mc.clear()
 		var mb := MB.new()
 		make.call(mb)
-		_mc[k] = mb.build(Props.toon())
-	return m._mesh_on("Head", _mc[k], Transform3D.IDENTITY)
+		_mc[k] = [mb.build(Props.toon()), col0]
+	var e: Array = _mc[k] if _mc[k] is Array else [_mc[k], col0]
+	var mi = m._mesh_on("Head", e[0], Transform3D.IDENTITY)
+	if col0.r >= 0.0 and (e[1] as Color).r >= 0.0 and not (e[1] as Color).is_equal_approx(col0):
+		mi.material_override = DyeMat.mat(e[1], col0)
+	return mi
 
 
 static func _hang(m, pack: Dictionary) -> void:

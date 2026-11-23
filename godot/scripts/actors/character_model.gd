@@ -331,8 +331,9 @@ static func prewarm_looks(parent: Node, progress: Callable = Callable()) -> void
 		holder.queue_free()
 
 
-## Ilk açılışta hemen gereken kişi türleri (genin / chūnin / jōnin); geri kalanı oyun açıldıktan sonra ısınır
-const WARM_NOW := 3
+## Yükleme ekranında ısıtılan kişi türü sayısı: HEPSİ (eskiden 3'ü ısınıp kalanı oyun açıldıktan sonra iki karede bir tam model
+## kuruyordu: oyuna girişin ilk saniyelerinde sürekli takılma). Yükleme birkaç saniye uzar, oyunda takılma olmaz.
+const WARM_NOW := 99
 
 
 static func _warm_one(holder: Node3D, a: String, gd: String, vs: Array, i: int) -> void:
@@ -7927,7 +7928,6 @@ func _cone_hat(cen: Vector3, R: float, H: float, col: Color, line: Color, lines:
 
 ## Sert (kemiğe sabit) aksesuarlar: şapka, maske detayları, sırt eşyaları, yelek kayışları, eldiven plakaları, kemer
 func _accessories() -> void:
-	var _pc = Time.get_ticks_usec()
 	var hc = _head_center()
 	var ab = head_ab
 	var hw = clampf(ab.size.x, 0.16, 0.26) if ab.size.x > 0.05 else 0.2
@@ -7949,7 +7949,6 @@ func _accessories() -> void:
 		hair_mask_plane(Vector3.UP, Vector3(0, htop - 0.06, 0))
 	if not sf_head and look.get("head_style") == "kage":
 		KageAttire.hat(self, String(look.get("kage_vid") if look.get("kage_vid") != null else look.get("village", "konoha")))
-	if PROF: print("PROFC basla %.0f" % [(Time.get_ticks_usec() - _pc) / 1000.0]); _pc = Time.get_ticks_usec()
 	match (null if sf_head or HeadV2.has(look.get("head_style")) else look.get("head_style")):
 		"kasa":
 			var m = MB.new()
@@ -8162,7 +8161,6 @@ func _accessories() -> void:
 			var ybj = cloth_band(hg, 0.004, 0.034, 0.1, 0.026, 0.004)
 			cloth_band(hg.darkened(0.06), 0.02, 0.02, 0.0, 0.0, 0.018, 0.0165)
 	var fg: Color = look.get("facegear", Color.WHITE) if look.get("facegear") != null else Color.WHITE
-	if PROF: print("PROFC baslik %.0f" % [(Time.get_ticks_usec() - _pc) / 1000.0]); _pc = Time.get_ticks_usec()
 	var fs = null if sf_face or MaskV2.has(look.get("face_style")) else look.get("face_style")
 	if fs != null and String(fs).begins_with("anbu"):
 		var m = MB.new()
@@ -8334,12 +8332,10 @@ func _accessories() -> void:
 			# el sırtı (dinlenme T pozunda üst yüz bileğin 1.2 cm üstünde, el 0..7.8 cm dışarı, z -6.8..1.2 cm): plaka yüzeye oturur
 			m.add("box", Vector3(0.038 * sx, 0.0165, -0.022), Vector3(0.058, 0.009, 0.05), steel)
 			_mesh_on(side + "Hand", m.build(Props.toon()), Transform3D(Basis.IDENTITY, hp))
-	if PROF: print("PROFC yuz %.0f" % [(Time.get_ticks_usec() - _pc) / 1000.0]); _pc = Time.get_ticks_usec()
 	OutfitParts.accessories(self)
 
 
 ## Yaka, fermuar, bel bağı
-	if PROF: print("PROFC son %.0f" % [(Time.get_ticks_usec() - _pc) / 1000.0])
 
 func _cloth_details() -> void:
 	var ts = top_style()

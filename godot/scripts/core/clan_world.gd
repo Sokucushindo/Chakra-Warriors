@@ -563,6 +563,28 @@ func _resident_spots(v: Dictionary, c: String, n: int) -> Array:
 
 
 ## Köyün klan grupları (bir kez hesaplanır): [{clan, vid, spots}]. Sakinler yalnız oyuncu grubun yakınındayken doğar.
+## Klan gruplarını her karede bir klan hesaplayarak kurar (Konoha'da tüm klanların yerleri tek karede hesaplanınca
+## köye girişte FPS 2'ye düşüyordu). Bitince true.
+var _gb_v := {}
+var _gb := {}
+func _groups_step(v: Dictionary) -> bool:
+	var vid := String(v["id"])
+	if _groups.has(vid):
+		return true
+	if not _gb.has(vid):
+		_gb[vid] = {"clans": _clans_of(vid), "i": 0, "out": []}
+	var st: Dictionary = _gb[vid]
+	if int(st["i"]) < (st["clans"] as Array).size():
+		var c: String = st["clans"][st["i"]]
+		var n: int = (6 if KONOHA_DISTRICT.has(c) and vid == "konoha" else 3)
+		(st["out"] as Array).append({"clan": c, "vid": vid, "spots": _resident_spots(v, c, n), "nodes": []})
+		st["i"] = int(st["i"]) + 1
+		return false
+	_groups[vid] = st["out"]
+	_gb.erase(vid)
+	return true
+
+
 func _groups_of(v: Dictionary) -> Array:
 	var vid := String(v["id"])
 	if _groups.has(vid):
@@ -671,6 +693,9 @@ func _tick_residents() -> void:
 				_free_group(g)
 	if here.is_empty():
 		return
+	if not _groups.has(String(here["id"])):
+		_gb_v = here   # klan yerleri karelere yayılarak hesaplanır (_process); bitince sakinler sıraya girer
+		return
 	for g in _groups_of(here):
 		if not g["nodes"].is_empty() or g["spots"].is_empty() or int(g.get("pending", 0)) > 0 or _queue.any(func(q): return q[0] == g):
 			continue
@@ -696,6 +721,9 @@ var _spawn_cd := 0.0
 func _process(dt: float) -> void:
 	if Game.paused or Game.profile.is_empty() or Game.player == null:
 		return
+	if not _gb_v.is_empty() and _groups_step(_gb_v):
+		_gb_v = {}
+		_res_t = 0.0   # yerler hazır: sakinler hemen sıraya girsin
 	# karakter modeli pahalı: her karede en fazla bir sakin doğar
 	_spawn_cd -= dt
 	if not _queue.is_empty() and _spawn_cd <= 0.0:
@@ -703,7 +731,8 @@ func _process(dt: float) -> void:
 		if q.size() < 3:
 			q.append(_resident_plan(q[0], q[1]))
 			q.append(0)
-		if q[3] < 600 and not CharacterModel.prepare(q[2]["look"]):
+		var _ready_now = q[3] >= 600 or CharacterModel.prepare(q[2]["look"])
+		if not _ready_now:
 			q[3] += 1   # yüzü / saçı arka planda hazırlanıyor: sonraki karede yeniden bakılır
 		else:
 			_queue.pop_front()
