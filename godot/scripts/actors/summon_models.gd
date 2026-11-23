@@ -108,55 +108,6 @@ static func _pivot(parent: Node3D, at: Vector3) -> Node3D:
 	return n
 
 
-# ------------------------------------------------------------------ CC0 hazır modeller (Quaternius, assets/packs): kurbağa, yılan, Shiba
-## ref_h: modelin dinlenme pozundaki yüksekliği (ölçek için); recolor: malzeme adı -> renk; anims: idle/move/attack -> klip adı
-const PACKS := {
-	"frog": {"file": "res://assets/packs/frog.glb", "ref_h": 2.7, "anims": {"idle": "CharacterArmature|Idle", "move": "CharacterArmature|Jump", "attack": "CharacterArmature|Punch"}},
-	"snake": {"file": "res://assets/packs/snake.glb", "ref_h": 3.0, "anims": {"idle": "SnakeArmature|Snake_Idle", "move": "SnakeArmature|Snake_Walk", "attack": "SnakeArmature|Snake_Attack"}},
-	"shiba": {"file": "res://assets/packs/shiba.glb", "ref_h": 3.1, "anims": {"idle": "AnimalArmature|Idle", "move": "AnimalArmature|Gallop", "attack": "AnimalArmature|Attack"}},
-}
-
-
-static func _pack(out: Dictionary, key: String, h: float, recolor: Dictionary) -> Dictionary:
-	var spec: Dictionary = PACKS[key]
-	var inst: Node3D = (load(spec["file"]) as PackedScene).instantiate()
-	var holder = Node3D.new()
-	out["root"].add_child(holder)
-	holder.add_child(inst)
-	holder.rotation.y = PI          # Quaternius +Z'ye bakar, çağrılar -Z
-	var k = h / float(spec["ref_h"])
-	holder.scale = Vector3.ONE * k
-	var bm = BeastModels.beast_material(1, Color(0.3, 0.26, 0.4))
-	for mi in inst.find_children("*", "MeshInstance3D", true, false):
-		for si in mi.mesh.get_surface_count():
-			var sm = mi.mesh.surface_get_material(si)
-			var nm = String(sm.resource_name) if sm else ""
-			var col = recolor.get(nm, sm.albedo_color if sm is BaseMaterial3D else Color.WHITE)
-			var m = ShaderMaterial.new()
-			m.shader = load("res://shaders/beast.gdshader")
-			m.set_shader_parameter("surface", 1)
-			m.set_shader_parameter("stroke", 0.25)
-			m.set_shader_parameter("shadow_tint", Color(0.3, 0.26, 0.4))
-			m.set_shader_parameter("use_tint", true)
-			m.set_shader_parameter("tint", col)
-			mi.set_surface_override_material(si, m)
-	var ap: AnimationPlayer = inst.find_child("AnimationPlayer", true, false)
-	var anims: Dictionary = spec["anims"]
-	if ap:
-		for a in ["idle", "move"]:
-			if ap.has_animation(anims[a]):
-				ap.get_animation(anims[a]).loop_mode = Animation.LOOP_LINEAR
-		if ap.has_animation(anims["idle"]):
-			ap.play(anims["idle"])
-	var sk: Skeleton3D = null
-	for c in inst.find_children("*", "Skeleton3D", true, false):
-		sk = c
-	out["anim"] = "model"
-	out["player"] = ap
-	out["anims"] = anims
-	return {"skel": sk, "scale": k, "holder": holder}
-
-
 ## Aksesuarı kemiğe bağlar: model_xf model (ölçeksiz, Quaternius) uzayında
 static func _bone_mesh(pk: Dictionary, bone: String, b: MB, model_xf := Transform3D.IDENTITY) -> void:
 	var sk: Skeleton3D = pk["skel"]

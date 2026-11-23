@@ -4,8 +4,6 @@ extends RefCounted
 ## sahneyi tek bir ArrayMesh'e birleştirir (malzeme başına bir yüzey), ölçekler, zemine oturtur,
 ## malzemeleri anime ışığına (asset_toon) çevirir. Sonuçlar önbelleğe alınır; MultiMesh ile kullanılır.
 
-const NATURE := "res://assets/packs/nature/"
-const JAPAN := "res://assets/packs/japan/"
 const FOLIAGE_WORDS := ["leaf", "leaves", "grass", "flower", "petal", "bush", "fern", "clover", "plant", "foliage", "bamboo", "needle"]
 
 static var _cache := {}
@@ -189,28 +187,67 @@ static func lod(m: ArrayMesh, ratio := 0.15) -> ArrayMesh:
 	return out
 
 
-## Aksesuarlar (assets/packs/japan): anahtar -> [dosya, varsayılan yükseklik]
-const PROPS := {
-	"torii": ["torii_gate_7SyX.glb", 7.0], "torii_red": ["torii_8ZgG.glb", 7.0], "torii_lanterns": ["torii_gate_lYTD.glb", 7.5], "torii_small": ["torii_8ZgG.glb", 4.5],
-	"pagoda": ["pagoda_1zS7.glb", 26.0], "pagoda_wood": ["pagoda_d1M5.glb", 18.0], "pagoda_green": ["pagoda_eHOI.glb", 14.0],
-	"stone_lamp": ["japanese_stone_lamp_5gZf.glb", 2.2], "toro": ["toro_0Sgu.glb", 2.0], "red_lantern": ["red_lantern_7PZh.glb", 0.7],
-	"paper_lantern": ["lantern_ilX8.glb", 0.6], "post_lantern": ["post_lantern_ZSQ6.glb", 3.0], "hanging_lantern": ["hanging_lantern_3jzk.glb", 0.8],
-	"wood_lantern": ["lantern_d80a.glb", 3.0], "bamboo": ["bamboo_auVD.glb", 9.0], "bonsai": ["bonsai_1Bty.glb", 1.2],
-	"shrine": ["shrine_tFxd.glb", 1.6], "bench": ["bench_cp2Q.glb", 1.0], "gazebo": ["gazebo_xYZB.glb", 5.0], "watch_tower": ["watch_tower_cMxu.glb", 14.0],
-}
+## Aksesuarlar: kodla üretilen modeller (hazır model paketi kaldırıldı). anahtar -> varsayılan yükseklik (m)
+const PROPS := {"torii_red": 7.0, "torii_small": 4.5, "bench": 1.0}   # bambu: Builder.prop oyunun anime bambusunu kullanır
+const _PROP_REF := {"torii_red": 7.0, "torii_small": 7.0, "bench": 0.95}   # modelin kurulduğu boy
 
 
 static func prop(kind: String, height := 0.0) -> ArrayMesh:
 	if not PROPS.has(kind):
 		return null
-	var e: Array = PROPS[kind]
-	return mesh(JAPAN + e[0], height if height > 0.0 else float(e[1]), 1.0, {"sway": false})
+	var h: float = height if height > 0.0 else float(PROPS[kind])
+	var key = "prop|%s|%.2f" % [kind, h]
+	if _cache.has(key):
+		return _cache[key]
+	var s: float = h / float(_PROP_REF[kind])
+	var mb := MB.new()
+	match kind:
+		"torii_red", "torii_small":
+			_torii(mb, s)
+		"bench":
+			_bench(mb, s)
+	var m: ArrayMesh = mb.build(Props.toon())
+	_cache[key] = m
+	return m
 
 
-## Sokak/bahçe ağacı: yaklaşık 9 m geniş yapraklı ağaç varyantı (seed ile)
-static func tree_mesh(seed: int) -> ArrayMesh:
-	var names = ["CommonTree_1", "CommonTree_2", "CommonTree_3", "CommonTree_4", "CommonTree_5"]
-	return mesh(NATURE + names[absi(seed) % names.size()] + ".gltf", 9.0, 1.0, {})
+## Myōjin torii (7 m): içe hafif eğik iki direk + siyah taban, direkleri delip taşan nuki kirişi, ortada gakuzuka,
+## kırmızı shimaki üstünde uçları yukarı kıvrık siyah kasagi
+static func _torii(mb: MB, s: float) -> void:
+	var red := Color(0.84, 0.2, 0.12)
+	var red_d := Color(0.62, 0.12, 0.08)
+	var blk := Color(0.12, 0.1, 0.1)
+	var half := 2.3
+	for sx in [-1.0, 1.0]:
+		var lean: float = 2.2 * sx   # tepeleri içe
+		mb.add_grad("cyl", Vector3(sx * half, 3.0, 0) * s, Vector3(0.6, 5.9, 0.6) * s, red, red_d, Vector3(0, 0, lean), 12)
+		mb.add("cyl", Vector3(sx * half, 0.28, 0) * s, Vector3(0.82, 0.56, 0.82) * s, blk, Vector3.ZERO, 12)   # kamaki (siyah taban)
+		mb.add("cyl", Vector3(sx * half, 0.6, 0) * s, Vector3(0.7, 0.08, 0.7) * s, Color(0.75, 0.6, 0.2), Vector3.ZERO, 12)   # pirinç bilezik
+	mb.add("box", Vector3(0, 4.55, 0) * s, Vector3(6.5, 0.36, 0.26) * s, red)          # nuki
+	mb.add("box", Vector3(0, 5.12, 0) * s, Vector3(0.36, 0.78, 0.24) * s, red_d)       # gakuzuka
+	mb.add("box", Vector3(0, 5.62, 0) * s, Vector3(6.0, 0.34, 0.34) * s, red)          # shimaki
+	mb.add("box", Vector3(0, 5.98, 0) * s, Vector3(5.0, 0.4, 0.5) * s, blk)            # kasagi orta
+	for sx in [-1.0, 1.0]:
+		# kasagi kanatları: uca doğru yükselen iki parça (sorihashi kıvrımı)
+		mb.add("box", Vector3(sx * 2.95, 6.03, 0) * s, Vector3(1.1, 0.4, 0.52) * s, blk, Vector3(0, 0, 5.0 * sx))
+		mb.add("box", Vector3(sx * 3.7, 6.16, 0) * s, Vector3(0.75, 0.36, 0.5) * s, blk, Vector3(0, 0, 14.0 * sx))
+	mb.add("box", Vector3(0, 6.22, 0) * s, Vector3(4.6, 0.1, 0.42) * s, Color(0.2, 0.17, 0.16))   # üst sırt
+
+
+## Ahşap bank: üç tahta oturak, iki ayak çerçevesi, eğik iki tahta arkalık
+static func _bench(mb: MB, s: float) -> void:
+	var wood := Color(0.62, 0.44, 0.27)
+	var wood_d := Color(0.38, 0.26, 0.16)
+	for k in 3:
+		mb.add("box", Vector3(0, 0.46, -0.16 + k * 0.16) * s, Vector3(1.9, 0.05, 0.14) * s, wood.lightened(0.04 * k))
+	for sx in [-1.0, 1.0]:
+		mb.add("box", Vector3(sx * 0.78, 0.22, 0.12) * s, Vector3(0.08, 0.44, 0.08) * s, wood_d)
+		mb.add("box", Vector3(sx * 0.78, 0.22, -0.16) * s, Vector3(0.08, 0.44, 0.08) * s, wood_d)
+		mb.add("box", Vector3(sx * 0.78, 0.41, -0.02) * s, Vector3(0.08, 0.06, 0.46) * s, wood_d)   # oturak taşıyıcı
+		mb.add("box", Vector3(sx * 0.78, 0.68, 0.25) * s, Vector3(0.07, 0.56, 0.07) * s, wood_d, Vector3(-12, 0, 0))   # arkalık dikmesi
+		mb.add("box", Vector3(sx * 0.78, 0.1, -0.02) * s, Vector3(0.07, 0.05, 0.4) * s, wood_d)   # alt bağ
+	mb.add("box", Vector3(0, 0.66, 0.27) * s, Vector3(1.86, 0.11, 0.035) * s, wood, Vector3(-12, 0, 0))
+	mb.add("box", Vector3(0, 0.86, 0.31) * s, Vector3(1.86, 0.11, 0.035) * s, wood.lightened(0.05), Vector3(-12, 0, 0))
 
 
 ## Hazır Japon kasaba evleri (Sketchfab "Stylized Little Japanese Town Street"): [[mesh, boyut], ...]

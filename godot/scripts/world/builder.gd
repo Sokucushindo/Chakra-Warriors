@@ -1072,6 +1072,12 @@ func _underwater(x: float, n: float, y: float) -> bool:
 func prop(kind: String, p: Vector3, yaw_deg := 0.0, height := 0.0, collide := 0.0) -> bool:
 	if _underwater(p.x, p.z, p.y):
 		return true   # su altında süs yok (true: çağıran yedek prosedürel modeli de kurmasın)
+	if kind == "bamboo":   # oyunun kendi anime bambusu (orman bambusuyla aynı; yakın / orta / uzak kademeli)
+		var wpb = w(p)
+		var bm = AnimeTree.mesh("bamboo", "bamboo", absi(int(wpb.x * 7.0 + wpb.z * 13.0)) % 4)
+		var bh: float = bm.get_aabb().size.y
+		pack_mesh(bm, p, yaw_deg, (height if height > 0.0 else 9.0) / maxf(bh, 0.1), 0.7)
+		return true
 	var m = AssetLib.prop(kind, height)
 	if m == null:
 		return false
