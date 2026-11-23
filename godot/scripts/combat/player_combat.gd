@@ -240,7 +240,7 @@ func _start_step() -> void:
 	# bloktan vuruşa geçiş: blok pozu kollarda kalıp vuruş animasyonuyla karışıyordu (kollar kilitli, takılma) -> hemen bırak
 	p.model.overlay.snap("guard", 0.0)
 	p.model.play(c["anim"], 0.05, c["speed"], true)
-	p.model.overlay.set_pose("kick", 1.0 if c.get("kick", false) else 0.0)
+	p.model.overlay.set_pose("kick", 1.0 if c.get("kick", false) and not c.has("keys") else 0.0)   # el yapımı vuruşta eski tekme pozu altta açık kalmasın
 	var armed_now = not Gear.weapon(Game.profile).is_empty() and bool(Game.profile.get("weapon_drawn", false))
 	Combat.punch_fist(p.model, String(c.get("keyed_id", "")), armed_now, float(c.get("dur", 0.6)) + 0.1)   # silahsız vuruş: sıkılı yumruk
 	_set_two_hand(c.get("two_hand", false), float(c.get("dur", 0.6)), float(c.get("two_off", 0.32)))

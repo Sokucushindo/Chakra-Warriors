@@ -11,8 +11,8 @@ const F = preload("res://scripts/combat/style_legs.gd")
 
 static func steps() -> Array:
 	return [
-		C.step(0.55, 0.26, C.R_SPREAD, C.L_GUARD, C.R_SPREAD, C.L_SPREAD, F.PIVOT, C.KICK_HIGH_R, 40.0, -80.0, 0.32, -10.0),   # 1 Senpū
-		C.step(0.55, 0.26, C.R_LOW, C.L_LOW, C.R_LOW, C.L_LOW, F.LOW, C.KICK_LOW_L, -40.0, 70.0, 0.72, 20.0),                # 2 Reppū
+		C.step(0.55, 0.26, C.R_SPREAD, C.L_GUARD, C.R_SPREAD, C.L_SPREAD, F.PIVOT, C.KICK_ROUND_R, -40.0, 55.0, 0.32, -10.0),   # 1 Senpū (kalça bacağın tersine dönüyordu: tekme yana gidiyordu)
+		C.step(0.55, 0.26, C.R_LOW, C.L_LOW, C.R_LOW, C.L_LOW, F.LOW, C.KICK_LOW_L, 40.0, -55.0, 0.72, 20.0),                # 2 Reppū (sol bacak süpürme: kalça sağa döner)
 		C.step(0.6, 0.3, C.R_GUARD, C.L_GUARD, C.R_SPREAD, C.L_SPREAD, F.SHIFT, C.KICK_UP_R, 0.0, 0.0, 0.3, -18.0),         # 3 Shōfū
 		{"len": 0.85, "hit": 0.55, "keys": [   # 4 Kage Buyō: sıçrar, havada toplanır -> topuk iner
 			C.t(0.0, 0.35, 0, 4, C.R_GUARD, C.L_GUARD, F.FIGHT),

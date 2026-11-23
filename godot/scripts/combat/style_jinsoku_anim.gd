@@ -33,7 +33,7 @@ static func steps() -> Array:
 		{"len": 0.9, "hit": 0.4, "keys": [   # 6 üstten topuk: havada diz toplanır -> topuk iner
 			C.t(0.0, 0.35, 0, 4, C.R_GUARD, C.L_GUARD, F.FIGHT),
 			C.t(0.2, 0.3, 0, -10, C.R_HIGH, C.L_HIGH, F.HOP),
-			C.t(0.4, 0.5, 0, 24, C.R_BACK, C.L_BACK, C.KICK_HIGH_R),
+			C.t(0.4, 0.5, 0, 24, C.R_BACK, C.L_BACK, C.KICK_UP_R),   # topuk önden yukarı kalkar (döner tekme pozu bacağı yana atıyordu)
 			C.t(0.6, 0.6, 0, 20, C.R_BACK, C.L_BACK, F.LOW),
 			C.t(0.9, 0.35, 0, 4, C.R_GUARD, C.L_GUARD, F.FIGHT),
 		]},

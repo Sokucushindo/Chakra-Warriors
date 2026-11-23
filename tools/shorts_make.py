@@ -44,6 +44,8 @@ def main():
     os.makedirs('parts', exist_ok=True)
     parts = []
     sec_dur = {}   # bölüm -> süre (müzik geçişleri bölüm sınırına oturur)
+    seg_t0 = []    # her segmentin videodaki başlangıcı (seslendirme yerleşimi)
+    t_acc = 0.0
     land = plan.get('landscape', False)   # yatay fragman: 1920x1080
     W, H = (1920, 1080) if land else (1080, 1920)
     for i, s in enumerate(plan['segments']):
@@ -57,6 +59,8 @@ def main():
             b = min(b, a + int(s['max_s'] * FPS))
         af = 'atrim=start=%.4f:end=%.4f,asetpts=PTS-STARTPTS' % (a / FPS, b / FPS)
         sec_dur[s.get('sec', '')] = sec_dur.get(s.get('sec', ''), 0.0) + (b - a) / FPS
+        seg_t0.append(t_acc)
+        t_acc += (b - a) / FPS
         extra_txt = ''
         for t in s.get('texts', []):   # [metin, boyut, y, renk]
             extra_txt += ",drawtext=fontfile='%s':text='%s':fontsize=%d:fontcolor=%s:borderw=4:bordercolor=black:x=(w-tw)/2:y=%d" % (FONT, txt(t[0]), t[1], t[3] if len(t) > 3 else 'white', t[2])
@@ -107,7 +111,20 @@ def main():
     for k in range(1, len(mus)):
         fc += '[%s][m%d]acrossfade=d=1.5:c1=tri:c2=tri[x%d];' % (cur, k, k)
         cur = 'x%d' % k
-    fc += '[%s]afade=t=in:d=0.3[mm];[g][mm]amix=inputs=2:duration=first:normalize=0,afade=t=out:st=%.2f:d=2.5,alimiter=limit=0.95[a]' % (cur, max(0.0, dur - 2.5))
+    vo = plan.get('vo', [])   # seslendirme: [{"file", "seg": segment no, "at": sn}] — konuşurken müzik kısılır
+    if vo:
+        n0 = len(mus) + 1
+        vl = []
+        for k, v in enumerate(vo):
+            ins += ['-i', v['file']]
+            ms = int((seg_t0[v['seg']] + v.get('at', 0.0)) * 1000)
+            fc += '[%d:a]aresample=48000,volume=%.2f,adelay=%d|%d[v%d];' % (n0 + k, plan.get('vo_vol', 1.6), ms, ms, k)
+            vl.append('[v%d]' % k)
+        fc += '%samix=inputs=%d:normalize=0,asplit[vo][vk];' % (''.join(vl), len(vl))
+        fc += '[%s]afade=t=in:d=0.3[mm0];[mm0][vk]sidechaincompress=threshold=0.03:ratio=8:attack=20:release=350[mm];' % cur
+        fc += '[g][mm][vo]amix=inputs=3:duration=first:normalize=0,afade=t=out:st=%.2f:d=2.0,alimiter=limit=0.95[a]' % max(0.0, dur - 2.0)
+    else:
+        fc += '[%s]afade=t=in:d=0.3[mm];[g][mm]amix=inputs=2:duration=first:normalize=0,afade=t=out:st=%.2f:d=2.5,alimiter=limit=0.95[a]' % (cur, max(0.0, dur - 2.5))
     ff(ins + ['-filter_complex', fc, '-map', '0:v', '-map', '[a]', '-c:v', 'copy',
               '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-movflags', '+faststart', '-shortest', plan['out']])
     print('OK', plan['out'], round(dur, 1), 'sn')

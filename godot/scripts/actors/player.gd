@@ -603,7 +603,8 @@ func _physics_process(dt: float) -> void:
 			hreg *= 2.0
 		hp = minf(max_hp, hp + hreg * dt)
 	if hp <= 0.0:
-		model.play("death", 0.1)
+		if not has_meta("dying"):   # ölüm ara sahnesi pozları kendisi verir
+			model.play("death", 0.1)
 		return
 	_update_leap_charge(dt)
 	if fly_src != "":

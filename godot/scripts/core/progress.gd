@@ -724,19 +724,23 @@ func on_player_died() -> void:
 	WorldAssault.player_defeated()
 	Orgs.on_player_defeated()
 	var rogue = Orgs.is_rogue()
-	Hud.banner("YENİLDİN", "Sığınağında, ateşin başında uyanıyorsun..." if rogue else "Hastanede uyanıyorsun...", Color(0.9, 0.3, 0.3))
 	var pr = p()
 	var lost = int(int(pr["ryo"]) * 0.1)
 	if lost > 0:
 		add_ryo(-lost)
-		Hud.msg("Bayılınca kesendeki paranın %%10'u kayboldu (%d Ryō)." % lost, Color(1, 0.6, 0.5), 6.0)
 	if Interiors.inst and Interiors.inst.inside != "":
 		Interiors.inst.abort()   # içeride (mağara/in) öldün: oda kapanır, kapıya atılmazsın; düşman inde seni bekler
-	get_tree().create_timer(2.5).timeout.connect(func():
+	# ölüm ara sahnesi (sendeleme -> diz çökme -> yığılma -> karanlık); yeniden doğuş karanlıkta olur
+	var wake = func():
 		# kaçak köy hastanesinde doğamaz: sığınağında uyanır
 		var pos = Missions.open_ground(Orgs.hideout_spawn(), 6.0) if Orgs.is_rogue() else _hospital_pos()
 		_calm_after_death(pos)   # sen baygınken olur: uyandığında kimse başında değildir
-		Game.player.respawn(pos))
+		Game.player.respawn(pos)
+		if lost > 0:   # uyanınca fark edersin
+			Hud.msg("Bayılınca kesendeki paranın %%10'u kayboldu (%d Ryō)." % lost, Color(1, 0.6, 0.5), 8.0)
+	# yazı ara sahnede ekran kararırken çıkar
+	var title = func(): Hud.banner("YENİLDİN", "Sığınağında, ateşin başında uyanıyorsun..." if rogue else "Hastanede uyanıyorsun...", Color(0.9, 0.3, 0.3))
+	DeathScene.start(wake, title)
 
 
 ## Baygınken saatler geçer: seni kovalayanlar peşini bırakır, uyanacağın yerin başındaki düşmanlar çekip gider.

@@ -40,7 +40,7 @@ static func steps() -> Array:
 		C.step(0.36, 0.13, C.R_GUARD, C.L_COCK, C.R_GUARD, C.L_PUNCH, F.SHIFT, F.STEPIN, 10.0, -16.0, 0.36, 8.0),            # 1 sol direkt
 		C.step(0.4, 0.15, C.R_COCK, C.L_GUARD, C.R_PUNCH, C.L_GUARD, F.SHIFT, F.PIVOT, -24.0, 30.0, 0.38, 14.0),             # 2 sağ kroşe (arka topuk döner)
 		C.step(0.44, 0.17, C.R_LOW, C.L_GUARD, C.R_UPPER, C.L_COCK, F.LOW, F.STEPIN, -18.0, 24.0, 0.46, 6.0),                # 3 çöküp gövdeye aparkat
-		C.step(0.5, 0.2, C.R_GUARD, C.L_GUARD, C.R_SPREAD, C.L_GUARD, F.PIVOT, C.KICK_HIGH_R, 35.0, -75.0, 0.32, -10.0),     # 4 yüksek döner tekme
+		C.step(0.5, 0.2, C.R_GUARD, C.L_GUARD, C.R_SPREAD, C.L_GUARD, F.PIVOT, C.KICK_ROUND_R, -35.0, 55.0, 0.32, -10.0),     # 4 yüksek döner tekme (sağ bacak: kalça SOLA döner, bacak öne gelir; -75 bacağı yana/arkaya atıyordu)
 		C.step(0.46, 0.18, C.R_GUARD, C.L_GUARD, C.R_BACK, C.L_GUARD, F.SHIFT, C.KICK_FRONT_R, -8.0, 0.0, 0.34, -14.0),      # 5 ön tekme
 		{"len": 0.72, "hit": 0.3, "keys": [   # 6 geri çekilip adım atarak sert sağ direkt
 			C.t(0.0, 0.35, 0, 4, C.R_GUARD, C.L_GUARD, F.FIGHT),
@@ -150,7 +150,7 @@ static func moves(branch: String, armed := false) -> Array:
 	var tuck_l := {"LeftUpperLeg": F.HOP["LeftUpperLeg"], "LeftLowerLeg": F.HOP["LeftLowerLeg"], "LeftFoot": F.HOP["LeftFoot"]}
 	var tuck_r := {"RightUpperLeg": F.HOP["RightUpperLeg"], "RightLowerLeg": F.HOP["RightLowerLeg"], "RightFoot": F.HOP["RightFoot"]}
 	var air_front_r = _legs(C.KICK_FRONT_R, tuck_l)                 # havada sağ ön tekme, sol diz toplu
-	var air_round_l = _legs(mir(C.KICK_HIGH_R), tuck_r)             # havada sol döner tekme, sağ diz toplu
+	var air_round_l = _legs(mir(C.KICK_ROUND_R), tuck_r)             # havada sol döner tekme, sağ diz toplu
 	var air_arch := {"LeftUpperLeg": Vector3(0.2, -0.75, -0.63), "LeftLowerLeg": Vector3(0.05, -0.3, -0.95), "LeftFoot": Vector3(0.05, -0.9, -0.4),
 		"RightUpperLeg": Vector3(-0.2, -0.75, -0.63), "RightLowerLeg": Vector3(-0.05, -0.3, -0.95), "RightFoot": Vector3(-0.05, -0.9, -0.4)}   # gövde geriye kavis, topuklar arkada
 	var l_down = mir(C.R_DOWN)
@@ -174,9 +174,9 @@ static func moves(branch: String, armed := false) -> Array:
 				]},
 				{"len": 0.38, "hit": 0.16, "dmg": 5.0, "reach": 1.8, "lunge": 5.0, "knock": 1.0, "float": 4.0, "keys": [
 					C.t(0.0, 0.3, 0, 4, C.R_GUARD, C.L_GUARD, F.HOP),
-					C.t(0.08, 0.3, -40, 0, C.R_GUARD, C.L_COCK, F.HOP),
-					C.t(0.16, 0.3, 80, -10, C.R_GUARD, C.L_SPREAD, air_round_l),
-					C.t(0.27, 0.3, 70, -8, C.R_GUARD, C.L_SPREAD, air_round_l),
+					C.t(0.08, 0.3, 40, 0, C.R_GUARD, C.L_COCK, F.HOP),   # sol döner tekme: kalça SAĞA döner (eskiden ters: bacak arkaya gidiyordu)
+					C.t(0.16, 0.3, -55, -10, C.R_GUARD, C.L_SPREAD, air_round_l),
+					C.t(0.27, 0.3, -50, -8, C.R_GUARD, C.L_SPREAD, air_round_l),
 					C.t(0.38, 0.3, 0, 4, C.R_GUARD, C.L_GUARD, F.HOP),
 				]},
 				{"len": 0.62, "hit": 0.27, "dmg": 9.0, "reach": 1.9, "lunge": 5.0, "knock": 3.0, "spike": 26.0, "heavy": true, "keys": [
@@ -192,8 +192,8 @@ static func moves(branch: String, armed := false) -> Array:
 				{"len": 0.56, "hit": 0.24, "dmg": 5.5, "reach": 1.9, "lunge": 4.0, "knock": 2.0, "launch": 3.2, "down": true, "heavy": true, "keys": [
 					C.t(0.0, 0.35, 0, 4, C.R_GUARD, C.L_GUARD, F.FIGHT),
 					C.t(0.12, 0.7, -40, 10, C.R_LOW, C.L_LOW, F.LOW),                  # yere iner
-					C.t(0.24, 0.74, 70, 16, C.R_GROUND, C.L_LOW, C.KICK_LOW_L),         # alçak süpürme
-					C.t(0.38, 0.74, 60, 14, C.R_GROUND, C.L_LOW, C.KICK_LOW_L),
+					C.t(0.24, 0.74, -55, 16, C.R_GROUND, C.L_LOW, C.KICK_LOW_L),         # alçak süpürme (sol bacak: kalça sağa döner; +70 bacağı yana atıyordu)
+					C.t(0.38, 0.74, -50, 14, C.R_GROUND, C.L_LOW, C.KICK_LOW_L),
 					C.t(0.56, 0.45, 0, 6, C.R_GUARD, C.L_GUARD, F.FIGHT),
 				]},
 				{"len": 0.64, "hit": 0.3, "dmg": 8.0, "reach": 1.6, "lunge": 4.0, "knock": 3.0, "launch": 6.0, "down": true, "heavy": true, "keys": [

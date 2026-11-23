@@ -42,6 +42,9 @@ const R_DOWN := {"RightUpperArm": Vector3(-0.1, -0.6, 0.8), "RightLowerArm": Vec
 const KICK_HIGH_R := {"RightUpperLeg": Vector3(-0.85, 0.35, 0.4), "RightLowerLeg": Vector3(-0.95, 0.2, 0.2), "LeftUpperLeg": Vector3(0.1, -0.98, 0.05), "LeftLowerLeg": Vector3(0.05, -0.98, -0.12)}
 const KICK_LOW_L := {"LeftUpperLeg": Vector3(0.5, 0.1, 0.86), "LeftLowerLeg": Vector3(0.6, 0.1, 0.8), "RightUpperLeg": Vector3(-0.15, -0.95, 0.2), "RightLowerLeg": Vector3(-0.05, -0.98, -0.15)}
 const KICK_UP_R := {"RightUpperLeg": Vector3(-0.05, 0.6, 0.8), "RightLowerLeg": Vector3(0.0, 0.95, 0.3), "LeftUpperLeg": Vector3(0.1, -0.98, 0.05), "LeftLowerLeg": Vector3(0.05, -0.98, -0.12)}   # dikey yukarı tekme
+## Döner tekme (sağ): kalça en çok ~55° sola döner (60° üstü bacakları gövdeyle döndürür, eşikte bacak sıçrar), bacak kalçanın
+## sağından çıkıp hedefe doğru baş hizasında uzanır — yön modele göre: kalça dönükken de bacak ÖNE gider (yana savrulmaz)
+const KICK_ROUND_R := {"RightUpperLeg": Vector3(-0.3, 0.4, 0.87), "RightLowerLeg": Vector3(-0.15, 0.45, 0.88), "LeftUpperLeg": Vector3(0.1, -0.98, 0.05), "LeftLowerLeg": Vector3(0.05, -0.98, -0.12)}
 const KICK_FRONT_R := {"RightUpperLeg": Vector3(-0.05, 0.1, 1), "RightLowerLeg": Vector3(0.0, 0.05, 1), "LeftUpperLeg": Vector3(0.1, -0.98, 0.05), "LeftLowerLeg": Vector3(0.05, -0.98, -0.12)}
 
 

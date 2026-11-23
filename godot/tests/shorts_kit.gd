@@ -33,6 +33,8 @@ func _process(_dt: float) -> void:
 				e.maki = 0
 				e.sub_bars = 0.0
 				e.sub_cd = 99.0
+				if e.get("nameplate") and is_instance_valid(e.nameplate):
+					e.nameplate.visible = false   # büyük kırmızı isim yazıları dikey kadrajı kaplıyordu
 
 
 func _ready() -> void:
@@ -322,7 +324,14 @@ func _jshot(id: String, nm: String, tgt: Node3D, dur: float, cut: String, col: C
 	var look = f * (dist * 0.6) + Vector3.UP * 1.0
 	_cut(cut, "a")
 	_caption(nm, col)
-	_cast(id, tgt)
+	await _cast(id, tgt)
+	var tw := 0.0
+	while String(pl.combat.action) == "cast" and tw < 5.0:   # mühürler bitene kadar bekle
+		cam.global_position = pl.global_position + off
+		cam.look_at(pl.global_position + look)
+		await get_tree().process_frame
+		tw += get_process_delta_time()
+	_cut(cut, "r")
 	_watch(cut, func(): return tgt.global_position + Vector3.UP if is_instance_valid(tgt) else null, dur)
 	await _move(off, off + sd * 1.0 - f * 0.5 + Vector3.UP * 0.3, look, look + f * 1.0, dur, pl)
 	_cut(cut, "b")

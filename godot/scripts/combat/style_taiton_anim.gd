@@ -14,8 +14,8 @@ static func steps() -> Array:
 		{"len": 0.75, "hit": 0.36, "keys": [   # 3 dönen tekme: tam tur (girdap bedenin çevresinde)
 			C.t(0.0, 0.35, 0, 4, C.R_GUARD, C.L_GUARD, F.FIGHT),
 			C.t(0.18, 0.42, -90, 0, C.R_SPREAD, C.L_SPREAD, F.SHIFT),
-			C.t(0.36, 0.3, -200, -6, C.R_SPREAD, C.L_SPREAD, C.KICK_HIGH_R),
-			C.t(0.52, 0.32, -320, -4, C.R_SPREAD, C.L_SPREAD, C.KICK_HIGH_R),
+			C.t(0.36, 0.3, -290, -6, C.R_SPREAD, C.L_SPREAD, C.KICK_HIGH_R),   # isabette bacak hedefe bakar (-200'de yandaydı)
+			C.t(0.52, 0.32, -335, -4, C.R_SPREAD, C.L_SPREAD, C.KICK_HIGH_R),
 			C.t(0.75, 0.35, -360, 4, C.R_GUARD, C.L_GUARD, F.FIGHT),
 		]},
 		C.step(0.7, 0.34, C.R_SEAL, C.L_SEAL, C.R_PALM, C.L_PALM, F.SHIFT, F.STEPIN, 0.0, 0.0, 0.42, 14.0),
