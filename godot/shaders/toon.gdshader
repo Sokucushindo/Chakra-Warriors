@@ -13,18 +13,36 @@ uniform vec4 dye_a = vec4(-1.0);
 uniform vec4 dye_a_to = vec4(0.0);
 uniform vec4 dye_b = vec4(-1.0);
 uniform vec4 dye_b_to = vec4(0.0);
-vec3 _recol(vec3 vc, vec3 s, vec3 d, float tol) {
+vec3 _hsv(vec3 c) {
+	vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+	vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+	vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+	float d = q.x - min(q.w, q.y);
+	return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + 1e-10)), d / (q.x + 1e-10), q.x);
+}
+// aynı renk ailesi (kıvrım gölgesi, yama, açık kenar dahil) hedef renge; ton korunur. Renkli kaynakta renk tonu (hue)
+// ile, grimsi kaynakta parlaklık + düşük doygunlukla eşleşir (koyu lacivertte bölüm duyarlılığı yamalar bırakıyordu)
+vec3 _recol(vec3 vc, vec3 s, vec3 d, float tol, bool by_hue) {
 	float ls = max(dot(s, vec3(0.3333)), 0.002);
 	float lv = max(dot(vc, vec3(0.3333)), 0.002);
 	float k = lv / ls;
-	if (k < 0.35 || k > 1.8) return vc;
-	if (distance(vc / lv, s / ls) > tol) return vc;
-	return clamp(d * k, vec3(0.0), vec3(1.0));   // aynı renk ailesi (koyu / açık tonları dahil) hedef renge, tonu korunarak
+	vec3 hs = _hsv(s);
+	vec3 hv = _hsv(vc);
+	if (by_hue && hs.y > 0.2) {
+		if (k < 0.25 || k > 3.2) return vc;
+		float dh = abs(hv.x - hs.x);
+		dh = min(dh, 1.0 - dh);
+		if (dh > tol || hv.y < hs.y * 0.35) return vc;
+	} else {
+		if (k < 0.35 || k > 1.8) return vc;
+		if (distance(vc / lv, s / ls) > tol) return vc;
+	}
+	return clamp(d * k, vec3(0.0), vec3(1.0));
 }
 vec3 dye_map(vec3 vc) {
-	if (skin_from.w > 0.5) vc = _recol(vc, skin_from.rgb, skin_to.rgb, 0.06);
-	if (dye_a.w > 0.5) vc = _recol(vc, dye_a.rgb, dye_a_to.rgb, 0.12);
-	if (dye_b.w > 0.5) vc = _recol(vc, dye_b.rgb, dye_b_to.rgb, 0.12);
+	if (skin_from.w > 0.5) vc = _recol(vc, skin_from.rgb, skin_to.rgb, 0.06, false);
+	if (dye_a.w > 0.5) vc = _recol(vc, dye_a.rgb, dye_a_to.rgb, 0.07, true);
+	if (dye_b.w > 0.5) vc = _recol(vc, dye_b.rgb, dye_b_to.rgb, 0.07, true);
 	return vc;
 }
 uniform sampler2D tex : source_color, filter_linear_mipmap, hint_default_white;
@@ -344,6 +362,9 @@ void fragment() {
 	if (scalp && scalp_col.a < 0.5) discard;
 	if (palette_mode) {
 		int slot = slot_ov > 0.5 ? int(slot_ov + 0.5) : cloth_slot(rest);
+		// elle yapılmış kıyafet giyiliyken yaka / omuz arasından görünen gövde her zaman ten: iç tişört rengi (siyah balıkçı vb.)
+		// yakadan taşıp boynu kalın ve kopuk gösteriyordu; yakayı kıyafetin kendisi çizer
+		if (layer == 0 && hand_box.x > -50.0 && rest.y > hand_box.y && rest.y < hand_box.x + 0.07 && abs(rest.x) < hand_box.z && slot >= 1 && slot <= 8 && slot != 6 && slot != 7) slot = 0;
 		slot = clamp(slot, 0, 11);   // kenar yumuşatmada uzak (piksel altı) üçgenlerde değer üçgenin dışına taşar: renk tablosunun dışından okuma bazı kartlarda çöp / siyah verir
 		if (layer == 2) {
 			if (rest.y < rig_b.x + 0.03 || rest.y > rig_a.w - 0.01 || abs(rest.x) > rig_a.x * 1.08) discard;

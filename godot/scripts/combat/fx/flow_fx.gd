@@ -1799,6 +1799,21 @@ static func _kz_data() -> Array:
 		var a = k * TAU / 12.0
 		var dv = Vector3(cos(a), sin(a), 0)
 		_tube_mb(b, [hc + dv * 2.45 + Vector3(0, 0, -0.06), hc + dv * 4.6 + Vector3(0, 0, -0.06)], 0.04, D, 4)
+	# ref: halenin dışında tüy gibi üst üste binen dört sıra açık el (yelpaze), alttan yukarı her sıra biraz daha dışta / geride
+	for r in 4:
+		var n = 30 + r * 6
+		var rad = 4.6 + r * 0.55
+		for k in n:
+			var a = (k + 0.5 * (r % 2)) / float(n) * TAU
+			if sin(a) < -0.55:   # cüppenin altına giren alt uç boş (ref: el halkası etek hizasında kesilir)
+				continue
+			var dv = Vector3(cos(a), sin(a), 0.0)
+			var o = hc + dv * rad + Vector3(0, 0, 0.12 + r * 0.1)
+			var fl = 1.0 + 0.12 * sin(k * 1.7 + r)
+			var colr = W.darkened(0.04 * float((k + r) % 3))
+			_tube_mb(b, [o, o + dv * 0.45 * fl], [0.13, 0.11], colr, 5)
+			_tube_mb(b, _circle(o + dv * 0.42 * fl, Vector3(dv.y, -dv.x, 0) * 0.12, Vector3(0, 0, 0.12), 8), 0.025, D, 3)   # bilek bandı
+			_hand_mb(b, o + dv * 0.5 * fl, (dv + Vector3(0, 0, -0.12)).normalized(), 0.62, colr)
 	# haleden ışın gibi açılan iki sıra kol
 	var hands = []
 	for r in 2:
@@ -1977,11 +1992,41 @@ static func _arm_slam(pj: PathJutsu, q: Vector3) -> void:
 		"spread": 70.0, "vmin": 4.0, "vmax": 9.0, "gravity": Vector3(0, -16, 0)})   # tahta kıymıkları
 
 
+## Aynı düşmana en çok 4 vuruş (onlarca kol / beş baş tek kişiyi anında eritmesin)
+static func _kz_capped(counts: Dictionary) -> Array:
+	var ex := []
+	for f in counts:
+		if int(counts[f]) >= 4:
+			ex.append(f)
+	return ex
+
+
+static func _kz_head_hit(pj: PathJutsu, c: Node3D, goal: Vector3, kind: String, counts: Dictionary) -> void:
+	if not pj.live(c):
+		return
+	var inf = pj.inf(c, "kanzeon_renge_o", 0.45, {"knock": 8.0, "kind": "heavy", "element": kind, "burn": 2.0 if kind == "katon" else 0.0, "stun": 0.4 if kind == "raiton" else 0.0})
+	for e in pj.hit(c, goal, 13.0, inf, _kz_capped(counts)):
+		counts[e] = int(counts.get(e, 0)) + 1
+	_earth_burst(pj, goal, 3.0)
+	WorldDamage.impact(goal, 10.0, {"dmg": 80.0, "element": kind, "kind": "heavy"})
+
+
+static func _kz_arm_hit(pj: PathJutsu, c: Node3D, q: Vector3, counts: Dictionary, big: bool) -> void:
+	_arm_slam(pj, q)
+	if not pj.live(c):
+		return
+	for e in pj.hit(c, q + Vector3.UP, 7.0, pj.inf(c, "kanzeon_renge_o", 0.3, {"knock": 10.0, "kind": "heavy"}), _kz_capped(counts)):
+		counts[e] = int(counts.get(e, 0)) + 1
+	if big:
+		WorldDamage.impact(q, 5.0, {"dmg": 50.0, "kind": "heavy"})
+		pj.shake(0.4)
+
+
 static func kanzeon_renge_o(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	pj.busy(c, 1.6)
-	var tt = pj.tg(c, t, 70.0)
+	var tt = pj.tg(c, t, 85.0)
 	var fd = pj.fwd(c, t)
-	var goal0 = pj.gp(tt.global_position if tt else c.global_position + fd * 35.0)
+	var goal0 = pj.gp(tt.global_position if tt else c.global_position + fd * 40.0)
 	var at = pj.gp(c.global_position - fd * 70.0)
 	var kz = _kanzeon(pj, at - Vector3.UP * 170.0, atan2(-(goal0 - at).x, -(goal0 - at).z))
 	for k in 8:
@@ -1994,11 +2039,15 @@ static func kanzeon_renge_o(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	Sfx.play("earth", at, 0.35)
 	var tw = kz.create_tween()
 	tw.tween_property(kz, "global_position", at, 1.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tw.tween_callback(func():   # Issai Kaiku: beş baş, beş doğa
-		var goal = pj.gp(tt.global_position if tt and pj.live(tt) else goal0) + Vector3.UP * 1.0
+	var side = fd.cross(Vector3.UP).normalized()
+	var counts := {}   # aynı düşmana sınırlı vuruş: onlarca kol tek kişiyi anında eritmesin
+	tw.tween_callback(func():   # Issai Kaiku: beş baş, beş doğa — her baş alanın başka bir köşesini döver (ortası hedef)
+		var goal_c = pj.gp(tt.global_position if tt and pj.live(tt) else goal0) + Vector3.UP * 1.0
 		var kinds = ["katon", "suiton", "raiton", "fuuton", "doton"]
+		var offs = [Vector2(0, 0), Vector2(-22, 10), Vector2(22, 10), Vector2(-16, -16), Vector2(16, -16)]
 		var heads: Array = kz.get_meta("heads")
 		for i in 5:
+			var goal: Vector3 = pj.gp(goal_c + side * offs[i].x + fd * offs[i].y) + Vector3.UP * 1.0
 			var from = _kz_world(kz, heads[i])
 			var d = (goal - from).normalized()
 			var L = from.distance_to(goal) + 6.0
@@ -2013,18 +2062,16 @@ static func kanzeon_renge_o(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 					_kz_wind(pj, from, goal)
 				"doton":
 					_kz_rocks(pj, from, goal)
-			pj.after(0.5, func():
-				if pj.live(c):
-					pj.hit(c, goal, 7.0, pj.inf(c, "kanzeon_renge_o", 0.45, {"knock": 8.0, "kind": "heavy", "element": kinds[i], "burn": 2.0 if kinds[i] == "katon" else 0.0, "stun": 0.4 if kinds[i] == "raiton" else 0.0})))
+			pj.after(0.5, _kz_head_hit.bind(pj, c, goal, String(kinds[i]), counts))
 		pj.shake(1.0))
 	tw.tween_interval(1.4)
 	tw.tween_callback(func():   # Chōjō Kebutsu: haleden kollar
-		for k in 18:
-			pj.after(k * 0.08, func():
+		for k in 60:   # haleden kopan kollar ~60 x 45 m alanı tarar
+			pj.after(k * 0.045, func():
 				if not is_instance_valid(kz):
 					return
 				var goal = pj.gp(tt.global_position if tt and pj.live(tt) else goal0)
-				var q = goal + Vector3(randf_range(-7, 7), 0, randf_range(-7, 7))
+				var q = pj.gp(goal + side * randf_range(-30.0, 30.0) + fd * randf_range(-22.0, 22.0))
 				var hands: Array = kz.get_meta("hands")
 				var src = _kz_world(kz, hands[randi() % hands.size()])
 				var hand = _wgeo(pj, _wood_arm_mesh(), _carve())
@@ -2036,8 +2083,7 @@ static func kanzeon_renge_o(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 				var tw2 = hand.create_tween()
 				tw2.tween_property(hand, "global_position", q - (q - src).normalized() * 20.0, clampf(src.distance_to(q) / 260.0, 0.3, 0.7)).set_ease(Tween.EASE_IN)
 				tw2.tween_callback(func():
-					_arm_slam(pj, q)
-					pj.hit(c, q + Vector3.UP, 4.5, pj.inf(c, "kanzeon_renge_o", 0.3, {"knock": 10.0, "kind": "heavy"})))
+					_kz_arm_hit(pj, c, q, counts, k % 3 == 0))
 				tw2.tween_interval(0.4)
 				tw2.tween_method(func(v: float): _set_fade(hand, v), 1.0, 0.0, 0.25)
 				tw2.tween_callback(hand.queue_free)))

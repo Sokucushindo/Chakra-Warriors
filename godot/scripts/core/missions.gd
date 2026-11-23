@@ -1546,6 +1546,8 @@ static func _og_ok(q: Vector3, space) -> bool:
 	if not up.is_empty() and not (up["collider"] is CharacterBody3D):
 		return false
 	# gövde boyunda çakışma (yandan değen kaya/duvar/ağaç gövdesi, ışının ıskaladığı içbükey kaya)
+	if _og_q == null:   # statik ilk değer bazı açılışlarda henüz kurulmamış oluyordu (binlerce hata, zemin araması hep başarısız)
+		_og_q = _make_og_q()
 	for hy in [0.7, 1.5]:
 		_og_q.transform = Transform3D(Basis.IDENTITY, Vector3(q.x, gh + hy, q.z))
 		for h in space.intersect_shape(_og_q, 4):

@@ -441,7 +441,7 @@ static func _disk_path(sid: String, gender: String) -> String:
 		var d = JSON.parse_string(f.get_as_text())
 		if d is Dictionary:
 			ver = str(d.get("version", "dev"))
-	return "user://el_kiyafet/%s/%s_%s.res" % [ver, sid, gender]
+	return "user://el_kiyafet/%s/t2_%s_%s.res" % [ver, sid, gender]   # t2: sabit tenle kurulmuş kayıt (eski kayıtlar ilk kuranın tenini taşır)
 
 
 static func has(sid) -> bool:
@@ -455,6 +455,9 @@ static func has(sid) -> bool:
 		if sid in p.DONE:
 			return true
 	return false
+
+
+const CANON_SKIN := Color(0.9, 0.72, 0.58)
 
 
 static func build(m, sid: String, g: Dictionary) -> void:
@@ -481,8 +484,13 @@ static func build(m, sid: String, g: Dictionary) -> void:
 		_personalize(mi, m)
 		A._dangles(m, e[1])
 		return
+	# kıyafet her zaman SABİT tenle kurulur, giyerken bu ten giyenin tenine çevrilir (_personalize): önbellek / disk kaydı
+	# kimden gelirse gelsin ten doğru çıkar (eskiden ilk kuranın teni herkese kalıyordu: koyu tenliler beyaz kol)
+	var real_skin = m.look.get("skin", CANON_SKIN)
+	m.look["skin"] = CANON_SKIN
 	var c = A._begin(m)
 	if c.is_empty():
+		m.look["skin"] = real_skin
 		return
 	var k := El.new(m, c)
 	if sid == "set_shugonin":
@@ -494,11 +502,11 @@ static func build(m, sid: String, g: Dictionary) -> void:
 			for p in _pl():
 				if sid in p.DONE:
 					p.recipe(k, sid)
-	var sk0 = m.look.get("skin", Color(0.9, 0.72, 0.58))
-	var pal := _palette(m._sk["oc"], sk0 if sk0 is Color else Color(0.9, 0.72, 0.58))
+	var pal := _palette(m._sk["oc"], CANON_SKIN)
 	var made = m._sk_end(g)
+	m.look["skin"] = real_skin
 	(made.mesh as ArrayMesh).set_meta("pal", pal)
-	(made.mesh as ArrayMesh).set_meta("skin0", sk0 if sk0 is Color else Color(0.9, 0.72, 0.58))   # tariflerin kullandığı ten (Q._skc ile aynı kural)
+	(made.mesh as ArrayMesh).set_meta("skin0", CANON_SKIN)
 	_personalize(made, m)
 	_cache[key] = [made.mesh, c["dg"]]
 	if disk != "":   # bir kez kurulan kıyafet diske: sonraki açılışlarda kurulum takılması olmaz
@@ -550,8 +558,8 @@ static func _personalize(mi: MeshInstance3D, m) -> void:
 	var sv = m.look.get("skin", Color(0.9, 0.72, 0.58))
 	var skin_now: Color = sv if sv is Color else Color(0.9, 0.72, 0.58)
 	var params := {}
-	if mi.mesh.has_meta("skin0"):
-		var s0: Color = mi.mesh.get_meta("skin0")
+	if true:
+		var s0: Color = mi.mesh.get_meta("skin0", CANON_SKIN)
 		if not s0.is_equal_approx(skin_now):
 			params["skin_from"] = Vector4(s0.r, s0.g, s0.b, 1.0)
 			params["skin_to"] = Vector4(skin_now.r, skin_now.g, skin_now.b, 1.0)

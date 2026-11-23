@@ -6,8 +6,8 @@ extends Node3D
 ## Saldırı: Chōjō Kebutsu (eller yağmur gibi iner). Boy ~450 m. Tasarım: toplam yükseklik 10 birim, ön -Z.
 
 const H := 450.0
-const WOOD := Color(0.55, 0.54, 0.42)
-const DARK := Color(0.38, 0.37, 0.28)
+const WOOD := Color(0.56, 0.47, 0.36)   # ref: sıcak kahverengi tahta (eski gri-yeşil sisle taşa benziyordu)
+const DARK := Color(0.34, 0.27, 0.2)
 
 var body: Node3D
 var fan: MultiMeshInstance3D
@@ -45,11 +45,12 @@ static func arm_mesh() -> ArrayMesh:
 	var b = MB.new()
 	Loft.tube(b, [Vector3(0, 0, 0), Vector3(0, 0.45, 0), Vector3(0, 0.8, 0)], [0.075, 0.065, 0.058], WOOD, 8, 2)
 	b.add("cyl", Vector3(0, 0.78, 0), Vector3(0.14, 0.04, 0.14), DARK, Vector3.ZERO, 10)   # bilek bandı (ref)
-	Loft.blob(b, Vector3(0, 0.86, 0), Vector3(0, 1, 0), 0.12, [Vector2(0.05, 0.02), Vector2(0.065, 0.025), Vector2(0.06, 0.022), Vector2(0.05, 0.018)], WOOD, 8)
+	Loft.blob(b, Vector3(0, 0.84, 0), Vector3(0, 1, 0), 0.2, [Vector2(0.08, 0.03), Vector2(0.105, 0.036), Vector2(0.1, 0.033), Vector2(0.085, 0.028)], WOOD, 10)
 	for f in 4:
-		var fx = lerpf(-0.045, 0.045, f / 3.0)
-		Loft.tube(b, [Vector3(fx, 0.96, 0), Vector3(fx * 1.25, 1.03, 0.005), Vector3(fx * 1.4, 1.09, 0.012)], [0.014, 0.012, 0.008], WOOD, 5, 2)
-	Loft.tube(b, [Vector3(0.06, 0.88, 0), Vector3(0.1, 0.94, 0.01), Vector3(0.12, 0.99, 0.02)], [0.016, 0.013, 0.008], WOOD, 5, 2)
+		var fx = lerpf(-0.072, 0.072, f / 3.0)
+		var fl = [0.13, 0.16, 0.15, 0.115][f]
+		Loft.tube(b, [Vector3(fx, 1.0, 0), Vector3(fx * 1.2, 1.0 + fl * 0.55, 0.008), Vector3(fx * 1.35, 1.0 + fl, 0.018)], [0.022, 0.019, 0.013], WOOD, 6, 2)
+	Loft.tube(b, [Vector3(0.1, 0.86, 0), Vector3(0.16, 0.93, 0.012), Vector3(0.19, 1.0, 0.025)], [0.024, 0.02, 0.013], WOOD, 6, 2)
 	_arm_mesh = b.build(Props.toon())
 	return _arm_mesh
 

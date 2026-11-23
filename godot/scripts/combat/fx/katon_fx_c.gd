@@ -534,9 +534,10 @@ static func katon_bakufu_ranbu(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 
 
 # ================================================================== 2) Gōka Mekkyaku
-## Büyük Ateş Yok Ediş (ref): derin nefes (göğüste kabaran ısı, sıcak hava titrer, kor zerreleri ağza çekilir); ağızdan
-## kesintisiz alev ileri akar, önünde 46 m'ye açılan kemerli bir alev cephesi yürür (ortası önde), cephenin dibinde
-## yuvarlanan alev topakları, arkasında alev denizi, yerde kavrulmuş şeritler.
+## Büyük Ateş Yok Ediş (ref refs/fx/katon_goka_mekkyaku): derin nefes (göğüste kabaran ısı, sıcak hava titrer, kor zerreleri
+## ağza çekilir); ağızdan kesintisiz alev ileri akar ve ufku kaplayan bir alev tsunamisine dönüşür: gövdesi üst üste kabaran
+## kalın alev topaklarından (sarı çekirdek, turuncu dış), üstünde üç sıra yalayan dil (ortadaki en yüksek ve en parlak);
+## cephe 80 m genişliğe, 26 m boya açılıp 65 m yürür, dibinde iri topaklar yuvarlanır, arkasında alev denizi, yerde kavrulmuş şeritler.
 static func katon_goka_mekkyaku(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	_eyes(pj, c, 2.0)
 	var m0 = pj._mouth_pos(c)
@@ -548,7 +549,7 @@ static func katon_goka_mekkyaku(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		KatonLib.embers(pj, rp, 3, 0.2, 0.0, {"dir": (m0 - rp).normalized(), "spread": 8.0, "vmin": 4.0, "vmax": 5.0, "g": Vector3.ZERO, "life": 0.45, "damp": 0.0})
 	var d = pj.fwd(c, t)
 	var side = d.cross(Vector3.UP).normalized()
-	pj.busy(c, 2.2)
+	pj.busy(c, 2.8)
 	pj.anim(c, "cast_out", 0.8)
 	_cam_pull(c, 0.6, 0.5)
 	var mo: Vector3 = Jutsu._mouth(c) + d * 0.8
@@ -557,73 +558,103 @@ static func katon_goka_mekkyaku(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	var root = Node3D.new()
 	KatonLib.put(pj, root, Vector3(mo.x, start.y, mo.z))
 	root.global_basis = Basis.looking_at(d, Vector3.UP)
+	# cephe: 3 sıra alev dili (arka sıra yüksek-koyu, orta en parlak, ön alçak) + gövdeyi oluşturan kabaran alev topakları
+	var ROWS = [[20, 0.0, 1.0, 0.2], [24, 2.5, 1.15, 0.0], [18, 5.0, 0.7, 0.08]]   # [dil sayısı, geri kayma, boy çarpanı, renk]
 	var front: Array = []
-	var NF = 16
-	for n in NF:
-		var tm = KatonLib.tongue_mi(1.0, 1.0, Vector3.UP, 0.0, 7, 0.0, 1.0)
-		tm.visible = false
-		root.add_child(tm)
-		front.append(tm)
+	for r in ROWS.size():
+		for n in int(ROWS[r][0]):
+			var tm = KatonLib.tongue_mi(1.0, 1.0, Vector3.UP, float(ROWS[r][3]), 7, 0.0, 1.2 if r == 1 else 1.0)
+			tm.visible = false
+			root.add_child(tm)
+			front.append([tm, r, float(n) / (int(ROWS[r][0]) - 1) - 0.5, randf() * TAU])
+	var billows: Array = []
+	for n in 26:
+		var bm = KatonLib.mass_mi(1.0, randf_range(0.0, 0.08), 1.45, 1.4)   # sarı çekirdekli parlak gövde (ref), kızıla dönmez
+		bm.visible = false
+		root.add_child(bm)
+		billows.append([bm, randf_range(-0.5, 0.5), randf_range(0.25, 0.75), randf() * TAU])
 	var light = OmniLight3D.new()
 	light.light_color = FIRE_L
-	light.light_energy = 5.0
-	light.omni_range = 40.0
+	light.light_energy = 7.0
+	light.omni_range = 70.0
 	root.add_child(light)
 	var hits = []
-	pj.every(2.0, 0.05, func(i, k):
-		var reach = 6.0 + minf(1.0, k * 1.3) * 40.0
-		var w = lerpf(4.0, 46.0, minf(1.0, k * 1.5))
-		var h = lerpf(3.0, 12.0, minf(1.0, k * 1.8))
-		var cen = pj.gp(start + d * reach * 0.8)
-		light.global_position = cen + Vector3.UP * 4.0
-		# kemerli cephe: ortadaki diller önde ve yüksek, kanatlar geride ve alçak
-		for n in NF:
-			var tm: MeshInstance3D = front[n]
+	var DUR = 2.8
+	pj.every(DUR, 0.05, func(i, k):
+		var ka = minf(1.0, k * 1.25)
+		var reach = 6.0 + ka * 59.0
+		var w = lerpf(5.0, 80.0, minf(1.0, k * 1.5))
+		var h = lerpf(4.0, 26.0, minf(1.0, k * 1.7))
+		var cen = pj.gp(start + d * reach * 0.85)
+		light.global_position = cen + Vector3.UP * 8.0
+		# kemerli cephe: ortası önde ve yüksek, kanatlar geride ve alçak
+		for f in front:
+			var tm: MeshInstance3D = f[0]
 			if not is_instance_valid(tm):
 				continue
-			var u = float(n) / (NF - 1) - 0.5
-			var edge = 1.0 - absf(u) * 0.9
-			var hh = h * edge * (0.75 + 0.3 * sin(i * 0.7 + n * 1.9))
-			var ww = w / NF * 2.3
+			var row: int = f[1]
+			var u: float = f[2]
+			var edge = 1.0 - absf(u) * 0.75
+			var hh = h * float(ROWS[row][2]) * edge * (0.7 + 0.35 * sin(i * 0.55 + float(f[3])))
+			var ww = w / float(ROWS[row][0]) * 2.6
 			tm.visible = true
-			tm.position = Vector3(u * w, 0.0, -reach + absf(u) * w * 0.3)
-			tm.basis = KatonLib.axis_basis(Vector3(u * 0.5, 1.0, -0.45)) * Basis.from_scale(Vector3(ww, hh, ww))
-		# cephenin dibinde ileri yuvarlanan topaklar
-		for q in 2:
-			var uq = randf_range(-0.42, 0.42)
-			var gpq = root.to_global(Vector3(uq * w, h * 0.22, -reach + absf(uq) * w * 0.3 + 1.0))
-			KatonLib.mass(pj, gpq, h * 0.14, h * 0.3, 0.6, d * 7.0 + Vector3.UP * 1.5, 0.0, 1.0, 2.0, 0.8)
+			tm.position = Vector3(u * w, h * 0.12 * float(row == 0), -reach + absf(u) * w * 0.28 + float(ROWS[row][1]))
+			tm.basis = KatonLib.axis_basis(Vector3(u * 0.45, 1.0, -0.5)) * Basis.from_scale(Vector3(ww, hh, ww))
+		# gövde: üst üste kabaran, kendi içinde dönen kalın alev topakları (ref: bulut gibi şişen sarı-turuncu kütle)
+		for bb in billows:
+			var bm: MeshInstance3D = bb[0]
+			if not is_instance_valid(bm):
+				continue
+			var u: float = bb[1]
+			var hy: float = bb[2]
+			var r = h * (0.26 + 0.07 * sin(i * 0.4 + float(bb[3]))) * (1.0 - absf(u) * 0.6)
+			bm.visible = true
+			bm.position = Vector3(u * w * 0.9, h * hy * (1.0 - absf(u) * 0.5), -reach + absf(u) * w * 0.28 + 1.5)
+			bm.scale = Vector3(r * 1.3, r, r * 0.9)
+		# cephenin dibinde ileri yuvarlanan iri topaklar
+		for q in 4:
+			var uq = randf_range(-0.45, 0.45)
+			var gpq = root.to_global(Vector3(uq * w, h * 0.18, -reach + absf(uq) * w * 0.28 + 1.0))
+			KatonLib.mass(pj, gpq, h * 0.12, h * 0.26, 0.45, d * 9.0 + Vector3.UP * 2.0, 0.0, 1.9, 2.0, 0.8)   # kısa ömürlü, sıcak: soğuyup kızıl bant / gri topak bırakmaz
+		# tepeden kopup yükselen alev parçaları
+		if i % 2 == 1:
+			var ut = randf_range(-0.3, 0.3)
+			KatonLib.mass(pj, root.to_global(Vector3(ut * w, h * 0.95, -reach + 3.0)), h * 0.08, h * 0.16, 0.5, Vector3.UP * 6.0 + d * 3.0, 0.05, 1.9, 1.5, 1.0)   # gri duman değil: kopan alev
 		# arkadaki alev denizi
 		if i % 2 == 0:
-			for q in 3:
+			for q in 5:
 				var dz = randf() * reach
-				var lx = randf_range(-0.5, 0.5) * lerpf(4.0, w, dz / maxf(reach, 0.01))
+				var lx = randf_range(-0.5, 0.5) * lerpf(5.0, w, dz / maxf(reach, 0.01))
 				var sp = KatonLib.floor_at(root.to_global(Vector3(lx, 0.0, -dz)))
-				KatonLib.tongue(pj, sp, h * randf_range(0.2, 0.38), randf_range(1.4, 2.6), 0.55, Vector3(0, 1, 0) + d * 0.3, d * 2.0, 0.0, 6, 1.0)
+				KatonLib.tongue(pj, sp, h * randf_range(0.2, 0.4), randf_range(2.0, 3.6), 0.6, Vector3(0, 1, 0) + d * 0.3, d * 2.5, 0.0, 6, 1.0)
 			if is_instance_valid(c):
-				KatonLib.tongue(pj, Jutsu._mouth(c), 3.5, 1.6, 0.3, d - Vector3.UP * 0.25, d * 12.0, 0.0, 5, 1.0)
+				KatonLib.tongue(pj, Jutsu._mouth(c), 4.5, 2.2, 0.3, d - Vector3.UP * 0.25, d * 14.0, 0.0, 5, 1.1)
 		if i % 3 == 0:
-			for n in 5:
-				var pq = cen + side * (n - 2) * w * 0.2
+			for n in 7:
+				var pq = cen + side * (n - 3) * w * 0.14
 				GroundFX.add(pq, "cracked", 2.1, 5.0)
-				KatonLib.scorch(pj, pq, 3.5, 8.0)
-				WorldDamage.impact(pq, 4.0, {"dmg": 30.0, "element": "katon", "kind": "light"})
-		for n in 7:
-			var hp = cen + Vector3.UP * 1.5 + side * (n - 3) * w * 0.15
-			for e in pj.hit(c, hp, 3.8, pj.inf(c, "katon_goka_mekkyaku", 0.6, {"knock": 9.0, "kind": "heavy", "element": "katon", "burn": 3.0}), hits):
+				KatonLib.scorch(pj, pq, 4.0, 8.0)
+				WorldDamage.impact(pq, 5.0, {"dmg": 30.0, "element": "katon", "kind": "light"})
+		for n in 11:
+			var hp = cen + Vector3.UP * 2.0 + side * (n - 5) * w * 0.09
+			for e in pj.hit(c, hp, 5.0, pj.inf(c, "katon_goka_mekkyaku", 0.6, {"knock": 9.0, "kind": "heavy", "element": "katon", "burn": 3.0}), hits):
 				hits.append(e)
-		if i % 6 == 0:
-			pj.shake(0.35)
-	, func():
-		for row in 3:
-			for n in 5:
-				GroundFX.add(pj.gp(start + d * (12.0 + row * 12.0) + side * (n - 2) * 8.0), "burning", 5.5, 6.0, c)
-		var tw = root.create_tween().set_parallel()
-		for tm in front:
-			if is_instance_valid(tm):
-				tw.tween_method(KatonLib.pf(tm, "heat"), 1.0, 0.0, 0.7)
-		tw.tween_property(light, "light_energy", 0.0, 0.7)
-		tw.chain().tween_callback(root.queue_free))
+		if i % 5 == 0:
+			pj.shake(0.45)
+		, func():
+			for row in 4:
+				for n in 7:
+					GroundFX.add(pj.gp(start + d * (12.0 + row * 13.0) + side * (n - 3) * 10.0), "burning", 5.5, 6.0, c)
+			var tw = root.create_tween().set_parallel()
+			for f in front:
+				if is_instance_valid(f[0]):
+					tw.tween_method(KatonLib.pf(f[0], "heat"), 1.0, 0.0, 0.8)
+			for bb in billows:
+				if is_instance_valid(bb[0]):
+					tw.tween_method(KatonLib.pf(bb[0], "heat"), 1.2, 0.0, 0.9)
+					tw.tween_property(bb[0], "position:y", (bb[0] as Node3D).position.y + 8.0, 0.9)
+			tw.tween_property(light, "light_energy", 0.0, 0.8)
+			tw.chain().tween_callback(root.queue_free))
 
 
 # ================================================================== 3) Gōen no Jutsu
