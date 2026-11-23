@@ -2252,15 +2252,16 @@ func _funeral_tick() -> void:
 				# ulak seni törene çağırır (isteğe bağlı)
 				var gp = Graveyard.pos_of(String(f.get("village", Progress.home())))
 				var nm = String(f["name"])
-				Hud.dialog("Ulak", "%s hayatını kaybetti... Cenaze töreni birkaç dakika sonra %s mezarlığında. %s da konuşma yapacak. Ailesi seni de orada görmek istiyor." % [nm, vn, Kage.kage_name(String(f.get("village", Progress.home())))], [
+				Hud.dialog("Ulak", "%s hayatını kaybetti... Herkes %s mezarlığında toplanıyor; sen geldiğinde tören başlayacak. %s da konuşma yapacak. Ailesi seni de orada görmek istiyor." % [nm, vn, Kage.kage_name(String(f.get("village", Progress.home())))], [
 					{"label": "Katılacağım", "cb": func():
 						Game.profile["waypoint"] = [gp.x, gp.y, gp.z, "Cenaze: %s" % nm]
 						Game.profile["track"] = "waypoint"
 						Hud.msg("Mezarlık haritada işaretlendi.", Color(0.85, 0.85, 0.95))},
 					{"label": "Katılamam", "cb": func(): Hud.msg("Tören sensiz yapılacak.", Color(0.8, 0.8, 0.85))}])
-		elif funeral.is_empty() and now >= float(f.get("funeral_t", 0.0)):
+		elif funeral.is_empty() and now >= float(f["died_t"]) + 3.0:
+			# mezarlığa varınca tören hemen başlar (eskiden ölümden 4 dk sonrasını bekliyordu: erken gelen boş mezarlıkta dikiliyordu)
 			var gp2 = Graveyard.pos_of(String(f.get("village", Progress.home())))
-			if gp2 != Vector3.INF and pp.distance_to(gp2) < 40.0:
+			if gp2 != Vector3.INF and pp.distance_to(gp2) < 40.0 and not Hud.dialog_open():
 				_start_funeral(id)
 			elif now > float(f["died_t"]) + 2400.0:
 				_bury(id, false)

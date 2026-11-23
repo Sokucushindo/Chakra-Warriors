@@ -131,14 +131,110 @@ func _last_breath() -> void:
 	var kid_short = String(cf["name"]).split(" ")[-1]
 	var was_kage = Kage.is_kage()
 	var home = Progress.home()
+	var me_word = "Anne" if String(p.get("gender", "m")) == "f" else "Baba"
+	var old_pos: Vector3 = pl.global_position
+	var fd: Vector3 = pl.face_dir()
+	var right: Vector3 = fd.cross(Vector3.UP).normalized()
+	_cine_on()
 	pl.model.play("idle", 0.3)
+	_pose(pl, "tired", {"anim": "idle"})   # eller dizde, soluk soluğa
+	_cam_shot(old_pos + fd * 3.4 + right * 1.6 + Vector3.UP * 1.5, old_pos + Vector3.UP * 1.2)
 	Hud.banner("SON NEFES", "%s, %d yaşında. Dizlerin tutmuyor; gözünün önünde koca bir ömür." % [old_name, yrs], Color(0.85, 0.8, 0.7))
+	Sfx.play("heartbeat", old_pos, 0.7, 0.8)
+	await _wait(3.4)
+	# --- aile başucuna gelir (yalnız köyündeysen: uzakta, yolda ölen yalnız ölür)
+	var heir_n: Villager = null
+	var spouse_n: Villager = null
+	var kids_n: Array = []
+	if _at_home():
+		heir_n = _family(id, old_pos + fd * 1.15, old_pos + fd * 9.0 + right * 3.0)
+		var sid = Friends.spouse_id()
+		if sid != "" and Friends.all().has(sid) and String(Friends.all()[sid].get("status", "")) == "":
+			spouse_n = _family(sid, old_pos + right * 1.1 + fd * 0.35, old_pos + right * 9.0 - fd * 2.0)
+		var k := 0
+		for oid in Friends.all():
+			var of: Dictionary = Friends.all()[oid]
+			if oid != id and of.get("child", false) and String(of.get("status", "")) == "" and k < 2:
+				kids_n.append(_family(oid, old_pos - right * (1.1 + k * 0.7) + fd * (0.5 + k * 0.5), old_pos - right * 9.0 + fd * (3.0 + k)))
+				k += 1
+		_cam_shot(old_pos - fd * 3.2 + right * 2.2 + Vector3.UP * 2.0, old_pos + fd * 0.6 + Vector3.UP * 1.0)
+		var walkers: Array = ([heir_n, spouse_n] + kids_n).filter(func(x): return x != null)
+		for w in walkers:
+			_say(w, "%s!" % me_word if w != spouse_n else "Buradayım... yanındayım.", 2.6)
+		await _wait(0.4)
+		for w in walkers:
+			_look_at(w, old_pos)
+		await _wait(3.0)
+		_clear_pose(pl)
+		pl.model.play("idle", 0.3)
+		if spouse_n:
+			_look_at(pl, spouse_n.global_position)
+			_cam_shot(old_pos + fd * 2.2 - right * 1.6 + Vector3.UP * 1.6, (old_pos + spouse_n.global_position) * 0.5 + Vector3.UP * 1.4)
+			await _tell("Benimle yürüdüğün her gün için... teşekkür ederim.", 3.2)
+			_say(spouse_n, "Sensiz bu ev nasıl ev olur...", 3.0)
+			await _wait(3.0)
+		_look_at(pl, heir_n.global_position)
+		_look_at(heir_n, old_pos)
+		_cam_shot(old_pos + right * 2.6 + fd * 0.6 + Vector3.UP * 1.5, old_pos + fd * 0.6 + Vector3.UP * 1.35)
+		await _tell("%s. Gel buraya." % kid_short, 2.4)
+		# alın koruyucusunu çözer, mirasçısına uzatır; o eğilip alır ve alnına bağlar (miras töreniyle aynı el işi)
+		_pose(pl, "knot", {"anim": "idle"})
+		Sfx.play("pickup", old_pos, 0.5, 0.8)
+		await _wait(2.2)
+		band = _band_mesh()
+		band.global_position = _bone(pl, "Head")
+		band_at = pl
+		_pose(pl, "offer", {"anim": "idle", "reach": 0.38, "lean": 10.0})
+		await _tell("Bu bant artık senin. Benden ileriye git.", 3.0)
+		_pose(heir_n, "bow", {"anim": "idle", "len": 1.8})
+		await _wait(1.8)
+		_pose(heir_n, "offer", {"anim": "idle", "reach": 0.4, "lean": 12.0})
+		await _wait(0.7)
+		band_at = heir_n
+		_clear_pose(pl)
+		pl.model.play("idle", 0.3)
+		await _wait(0.8)
+		_pose(heir_n, "knot", {"anim": "idle"})
+		band_at = null
+		band.queue_free()
+		await _wait(2.2)
+		_clear_pose(heir_n)
+		_say(heir_n, "Seni utandırmayacağım, %s. Söz." % me_word.to_lower(), 3.0)
+		await _wait(2.6)
+	else:
+		_clear_pose(pl)
+		pl.model.play("idle", 0.3)
+		await _tell("%s... yol artık senin. Keşke yanımda olsaydın." % kid_short, 3.4)
+		_pose(pl, "offer", {"anim": "idle", "reach": 0.22, "lean": 4.0})   # bandını çözüp göğsüne bastırır
+		await _wait(2.2)
+		_clear_pose(pl)
+	# --- dizleri tutmaz: çöker, son sözler, son nefes
+	_cam_shot(old_pos + right * 2.4 + fd * 0.9 + Vector3.UP * 1.0, old_pos + Vector3.UP * 0.7)   # yandan: önündeki mirasçı kadrajı kapatmasın
+	pl.model.play("a/Fixing_Kneeling", 0.15, 1.0, true)
+	_cine_k = 0.45
+	Sfx.play("heartbeat", old_pos, 0.65, 0.7)
+	await _wait(0.95)
+	pl.model.play("a/Fixing_Kneeling", 0.12, 0.1)   # çöktü: elini yere dayamış, ağır soluk
+	for w in [heir_n, spouse_n]:
+		if w:
+			var q: Vector3 = old_pos + (w.global_position - old_pos).normalized() * 0.75
+			_go_w(w, q, 1.6)
+	await _wait(1.6)
+	await _tell("Ateşin İradesi... sizde yaşasın.", 3.2)
+	if heir_n:
+		_say(heir_n, "%s, gitme..." % me_word, 2.6)
+	await _wait(1.2)
+	Sfx.play("heartbeat", old_pos, 0.6, 0.45)
+	pl.model.play("death", 0.35, 0.55, true)
+	_cam_shot(old_pos + fd * 0.6 + right * 0.3 + Vector3.UP * 4.0, old_pos - fd * 0.4)
+	_cine_k = 0.85
+	for w in [heir_n, spouse_n] + kids_n:
+		if w:
+			_pose(w, "bow", {"anim": "idle", "len": 30.0})   # başlar öne eğilir
 	await _wait(3.2)
-	_say(pl, "%s... yol artık senin." % kid_short, 3.4)
-	await _wait(2.4)
-	pl.model.play("death", 0.25, 0.6, true)
-	await _wait(3.0)
-	await Interiors.inst._fade(1.0, 1.4)
+	await Interiors.inst._fade(1.0, 1.6)
+	# --- geçiş: yol mirasçıya geçer
+	var kid_pos: Vector3 = heir_n.global_position if heir_n else old_pos + fd * 1.2
 	var kid_years = Aging.person_years(cf)
 	var me_id = Legacy.inherit(id)
 	var me: Dictionary = Friends.all()[me_id]
@@ -158,20 +254,180 @@ func _last_breath() -> void:
 		Orgs.state()["bounty"] = 0
 	if was_kage:
 		Kage.succeed(home, "%s yaşlılıktan öldü" % old_name)
+	for w in [heir_n, spouse_n] + kids_n:
+		if w:
+			_clear_pose(w)
+	if heir_n:
+		heir_n.queue_free()   # mirasçı artık sensin
+	pl.global_position = kid_pos + Vector3.UP * 0.05
 	pl.velocity = Vector3.ZERO
 	pl.rebuild_model()
 	pl.apply_profile_stats()
 	pl.hp = pl.max_hp
 	pl.chakra = pl.max_chakra
 	Progress.on_power_changed()
+	_look_at(pl, old_pos)
+	# eski beden yerde yatar; eşin başında diz çöker
+	var body = Friends.inst()._spawn_npc(me_id, old_pos, false)
+	body.set_physics_process(false)
+	body.display_override = old_name
+	if body.name_tag:
+		body.name_tag.visible = false
+	_face(body, atan2(-fd.x, -fd.z))
+	body.model.play("death", 0.0, 1.0, true)
+	body.model.anim.seek(body.model.anim.current_animation_length - 0.02, true)
+	if spouse_n:
+		spouse_n.model.play("a/Fixing_Kneeling", 0.0, 1.0, true)
+		spouse_n.model.anim.seek(1.2, true)
+		spouse_n.model.play("a/Fixing_Kneeling", 0.0, 0.08)   # diz çökmüş, kıpırtısız
 	Journal.add("%s %d yaşında son nefesini verdi. Başucundaydım; alın koruyucusu artık bende." % [old_name, yrs], "milestone")
 	Game.save_game()
-	await _wait(1.6)
-	await Interiors.inst._fade(0.0, 1.4)
+	_cam_shot(kid_pos - fd * 2.6 + right * 1.4 + Vector3.UP * 1.7, old_pos + Vector3.UP * 0.4)
+	await _wait(1.4)
+	_cine_k = 0.35
+	await Interiors.inst._fade(0.0, 1.6)
 	Hud.banner("YENİ NESİL", "%s — %s'in yolu sende yaşıyor" % [String(p["name"]), old_name.split(" ")[-1]], Color(1.0, 0.85, 0.45))
 	_pose(pl, "bow", {"anim": "idle", "len": 2.6})
 	await _wait(2.8)
 	_clear_pose(pl)
+	_cine_off()
+	# sahne çözülür: aile yasını tutar, beden cenazeye kadar yerde kalmaz (cenaze köy mezarlığında, ulak haber verir)
+	var stay: Array = [spouse_n, body] + kids_n
+	for w in [spouse_n] + kids_n:
+		if w and w.name_tag:
+			w.name_tag.visible = true
+	Friends.inst().get_tree().create_timer(40.0, false).timeout.connect(func():
+		for n in stay:
+			if n and is_instance_valid(n):
+				if n.has_method("vanish"):
+					n.vanish()
+				else:
+					n.queue_free())
+
+
+## Ölüm anında köyünde mi (aile başucuna yalnız köydeyse gelir)
+func _at_home() -> bool:
+	var v = Game.village(Progress.home())
+	if v.is_empty() or Interiors.inst.inside != "":
+		return false
+	return Game.to_map(Game.player.global_position).distance_to(Vector2(float(v["x"]), float(v["y"]))) < float(v["r"]) + 60.0
+
+
+## Aileden biri başucuna gelir: köyde yakındaysa kendisi yürür, değilse koşarak gelir (uzaktan doğar)
+func _family(fid: String, spot: Vector3, from: Vector3) -> Villager:
+	var n: Villager = null
+	for c in Friends.inst().get_parent().get_children():
+		if c is Villager and c.has_meta("friend_id") and String(c.get_meta("friend_id")) == fid and c.global_position.distance_to(spot) < 60.0:
+			n = c
+			break
+	if n == null:
+		n = Friends.inst()._spawn_npc(fid, from, false)
+	n.set_physics_process(false)
+	if n.name_tag:
+		n.name_tag.visible = false   # başındaki ad / rütbe yazısı sahneyi örtmesin
+	spot.y = Game.ground_height(spot.x, spot.z)
+	_go_w(n, spot, 2.2)
+	return n
+
+
+# ---- sahne kamerası + solma (ölüm sahnesiyle aynı ekran efekti)
+var _cine_cam: Camera3D
+var _cine_mat: ShaderMaterial
+var _cine_layer: CanvasLayer
+var _cine_k := 0.0
+var _cine_now := 0.0
+var _cam_from := Vector3.ZERO
+var _cam_at := Vector3.ZERO
+var _cine_bh: Node
+
+
+func _cine_on() -> void:
+	_cine_layer = CanvasLayer.new()
+	_cine_layer.layer = 9
+	add_child(_cine_layer)
+	var r := ColorRect.new()
+	r.set_anchors_preset(Control.PRESET_FULL_RECT)
+	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sh := Shader.new()
+	sh.code = DeathScene.SHADER
+	_cine_mat = ShaderMaterial.new()
+	_cine_mat.shader = sh
+	r.material = _cine_mat
+	_cine_layer.add_child(r)
+	_cine_cam = Camera3D.new()
+	_cine_cam.fov = 50.0
+	_cine_cam.far = 4000.0
+	add_child(_cine_cam)
+	_cine_cam.global_transform = Game.player.cam.global_transform
+	_cam_from = _cine_cam.global_position
+	_cam_at = Game.player.global_position + Vector3.UP * 1.2
+	if Game.world and Game.world.get("env"):
+		Game.world.env.attach_post(_cine_cam)
+	_cine_cam.current = true
+	_cine_k = 0.2
+	Hud.show_game_hud(false)
+	if Hud.banner_box.get_parent() != Hud:
+		_cine_bh = Hud.banner_box.get_parent()
+		Hud.banner_box.reparent(Hud, false)
+
+
+func _cine_off() -> void:
+	var pl = Game.player
+	if pl and is_instance_valid(pl) and pl.cam:
+		pl.cam.current = true
+		if Game.world and Game.world.get("env"):
+			Game.world.env.attach_post(pl.cam)
+	if _cine_bh and is_instance_valid(_cine_bh) and Hud.banner_box.get_parent() != _cine_bh:
+		Hud.banner_box.reparent(_cine_bh, false)
+	_cine_bh = null
+	Hud.show_game_hud(true)
+	if is_instance_valid(_cine_layer):
+		_cine_layer.queue_free()
+	if is_instance_valid(_cine_cam):
+		_cine_cam.queue_free()
+
+
+func _cam_shot(from: Vector3, at: Vector3) -> void:
+	# kamera yapıya / araziye girmesin: açı duvara çarparsa aynası (öbür yan), sonra yükseği denenir; hiçbiri açık değilse en uzak açık nokta
+	var off: Vector3 = from - at
+	var fdv: Vector3 = Game.player.face_dir()
+	var lat: Vector3 = off - fdv * off.dot(fdv)
+	lat.y = 0.0
+	var cands = [from, from - lat * 2.0, from + Vector3.UP * 1.6, from - lat * 2.0 + Vector3.UP * 1.6]
+	var best: Vector3 = from
+	var best_d := -1.0
+	for cnd in cands:
+		var q = PhysicsRayQueryParameters3D.create(at, cnd, 1)
+		q.exclude = [Game.player.get_rid()]
+		var hit = Game.player.get_world_3d().direct_space_state.intersect_ray(q)
+		if hit.is_empty():
+			best = cnd
+			break
+		var hp: Vector3 = at + (hit["position"] - at) * 0.85
+		if hp.distance_to(at) > best_d:
+			best_d = hp.distance_to(at)
+			best = hp
+	from = best
+	from.y = maxf(from.y, Game.ground_height(from.x, from.z) + 0.4)
+	# açı değişimi KESME ile (kayarken duvar / ev içinden geçiyordu); çekim boyunca hedefe doğru yavaşça yaklaşır
+	_cine_cam.global_position = from
+	if from.distance_to(at) > 0.05:
+		_cine_cam.look_at(at, Vector3.UP)
+	_cam_from = from.lerp(at, 0.15)
+	_cam_at = at
+
+
+func _cine_tick(dt: float) -> void:
+	if not is_instance_valid(_cine_cam) or not _cine_cam.current:
+		return
+	_cine_now = move_toward(_cine_now, _cine_k, dt * 0.35)
+	_cine_mat.set_shader_parameter("bars", clampf(_cine_now * 4.0, 0.0, 1.0))
+	_cine_mat.set_shader_parameter("desat", _cine_now)
+	_cine_mat.set_shader_parameter("vig", _cine_now * 0.9)
+	var p = _cine_cam.global_position.lerp(_cam_from, minf(1.0, dt * 0.25))
+	_cine_cam.global_position = p
+	var want = _cine_cam.global_transform.looking_at(_cam_at, Vector3.UP).basis
+	_cine_cam.global_basis = _cine_cam.global_basis.slerp(want, minf(1.0, dt * 2.5)).orthonormalized()
 
 
 # ====================================================================== geçiş (kayıt)
@@ -382,10 +638,13 @@ func _exit_tree() -> void:
 	if cur == self:
 		cur = null
 		_release_player()
+	if is_instance_valid(_cine_cam):
+		_cine_off()   # sahne yarıda kalırsa oyuncu kamerası ve arayüz geri gelir
 
 
 func _process(dt: float) -> void:
 	_apply_poses(dt)
+	_cine_tick(dt)
 	if is_instance_valid(band) and is_instance_valid(band_at):
 		# el kemikleri oyuncuda gecikmeli okunur: bant poz formülünden yerleşir (avuçların üstü)
 		var reach = float(st[band_at].get("reach", 0.4)) if st.has(band_at) else 0.4
