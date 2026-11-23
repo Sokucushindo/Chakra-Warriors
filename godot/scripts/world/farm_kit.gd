@@ -102,7 +102,9 @@ static func _tuft(m: MB, at: Vector3, n: int, ln: float, w: float, lean: float, 
 
 
 # ------------------------------------------------------------------ pirinç tarlası
-static func paddy(b: Builder, x: float, n: float, yaw: float, wd: float, dp: float, rng: RandomNumberGenerator) -> void:
+## can_yield: oyun sırasında (dünya bölgesi) ortak kare bütçesi dolunca bir sonraki kareye geçer; tarla başına ~2000 pirinç öbeği
+## tek karede ~95 ms sürüyordu (yükleme sonrası düzinelerce tarla = FPS 7)
+static func paddy(b: Builder, x: float, n: float, yaw: float, wd: float, dp: float, rng: RandomNumberGenerator, can_yield := false) -> void:
 	var cw: Vector3 = _at(b, x, n, yaw, 0.0, 0.0)
 	var soil: MB = b._cell(cw, 2)
 	var crop: MB = b._cell(cw, 1)
@@ -128,6 +130,10 @@ static func paddy(b: Builder, x: float, n: float, yaw: float, wd: float, dp: flo
 				_tuft(crop, p, 5, rng.randf_range(0.55, 0.78), 0.022, 0.3, Color(0.27, 0.47, 0.2), Color(0.55, 0.72, 0.28).lerp(Color(0.78, 0.72, 0.32), ripe * 0.5), rng)
 				v += 0.72
 			u += 0.82
+			if can_yield and BuildSites.frame_busy():
+				await Engine.get_main_loop().process_frame
+				if not is_instance_valid(b.root):
+					return
 	var c0: Vector3 = _at(b, x, n, yaw, 0.0, 0.0)
 	b._grass_clear(c0, Vector3(wd + 1.0, 0.1, dp + 1.0), -yaw)
 

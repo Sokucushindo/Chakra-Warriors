@@ -105,6 +105,14 @@ static func _build(b: Builder, f: Dictionary, rng: RandomNumberGenerator) -> voi
 			_paddy_farm(b, x, n, g, yaw, r)
 
 
+## Dünya akışında pirinç tarlası: kurulum karelere yayılır (bkz. FarmKit.paddy can_yield)
+static func paddy_async(b: Builder, f: Dictionary, rng: RandomNumberGenerator) -> void:
+	var r: float = f["r"]
+	await load("res://scripts/world/farm_kit.gd").paddy(b, f["x"], f["y"], f["yaw"], r, r * 0.8, rng, true)
+	if is_instance_valid(b.root):
+		_paddy_farm(b, f["x"], f["y"], f["g"], f["yaw"], r)
+
+
 static var _paddy_pts: Array = []
 ## Pirinç tarlasının başında çiftçi evi + ambar + pirinç kurutma sırığı (kullanıcı: "tarlaların başına evler ekle").
 ## Ev tarlanın iki ucundan diğer tarlalara / suya / köye uzak olanına, önü tarlaya dönük kurulur; ikisi de uygun değilse kurulmaz.

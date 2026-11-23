@@ -224,7 +224,7 @@ class Ctx:
 
 	## Oyun sırasında (akışla kurulan köyler) iş karelere bölünür: karede ~4 ms
 	func busy() -> bool:
-		return async and Time.get_ticks_usec() - slice_t > int(BuildSites.budget_ms * 1000.0)
+		return async and BuildSites.frame_busy()
 
 	func rest() -> void:
 		await Engine.get_main_loop().process_frame

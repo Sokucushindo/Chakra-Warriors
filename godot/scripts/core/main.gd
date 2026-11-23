@@ -308,7 +308,7 @@ func _start_new_game() -> void:
 	Game.profile["pos"] = null
 	Buffs.reset()
 	Progress.refresh_story()
-	_begin_game(Progress.home_spawn())
+	await _begin_game(Progress.home_spawn())
 	var vname = String(Game.village(Progress.home()).get("name", "Konoha"))
 	Hud.banner(vname.to_upper(), "Akademi öğrencisi %s'nin hikâyesi başlıyor" % s["name"], UI.ACCENT)
 
@@ -324,7 +324,7 @@ func load_slot(slot: int) -> void:
 	else:
 		p = Progress.home_spawn()
 	world.env.time_of_day = float(Game.profile.get("time", 0.35))
-	_begin_game(p)
+	await _begin_game(p)
 
 
 var perf_panel: Control
@@ -418,6 +418,32 @@ func _begin_game(pos: Vector3) -> void:
 		var m: Dictionary = Game.profile["active_mission"]
 		if m.get("type", "") != "story":
 			Missions._setup(m)
+	await _settle_world()
+
+
+## Kayıt yüklenince / yeni oyunda çevredeki dünya bölgeleri (yerleşimler, tarlalar, peyzaj) yükleme ekranında, tam hızla kurulur.
+## Eskiden oyun başlayınca kuruluyordu: ilk 1-2 dakika FPS 7 ("menüye dönüp girince yine kasıyor").
+func _settle_world() -> void:
+	var ws = world.stream if world and "stream" in world else null
+	if ws == null:
+		return
+	_show_loading()
+	player.set_physics_process(false)
+	BuildSites.boost = true
+	var t0 := Time.get_ticks_msec()
+	var quiet := 0
+	while Time.get_ticks_msec() - t0 < 120000:
+		await get_tree().process_frame
+		var busy: bool = ws.busy() or Builder.dressing > 0 or Builder.resting > 0
+		quiet = 0 if busy else quiet + 1
+		if quiet > 45 and Time.get_ticks_msec() - t0 > 1500:
+			break
+		_loading_progress(clampf((Time.get_ticks_msec() - t0) / 20000.0, 0.05, 0.97), "Çevre hazırlanıyor")
+	BuildSites.boost = false
+	player.set_physics_process(true)
+	if loading:
+		loading.queue_free()
+		loading = null
 
 
 # ------------------------------------------------------------------ oyun içi

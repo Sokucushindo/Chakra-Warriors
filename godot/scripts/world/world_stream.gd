@@ -75,13 +75,13 @@ func _process(dt: float) -> void:
 				_free(k)
 	_road_jobs()
 	# bölge kurulumu pahalı: üç karede bir (bitki parçalarıyla aynı kareye düşmesin)
-	if not _queue.is_empty() and Engine.get_process_frames() % 3 == 1:
+	if not _queue.is_empty() and (BuildSites.boost or Engine.get_process_frames() % 3 == 1):
 		var q: Array = _queue.pop_front()
 		var tb := Time.get_ticks_usec()
 		_build(q[1], q[2])
 		if _prof:
 			print("BOLGE_US ", Time.get_ticks_usec() - tb, " pois=", q[2])
-	elif not _poi_q.is_empty() and Engine.get_process_frames() % 3 == 2:
+	elif not _poi_q.is_empty() and (BuildSites.boost or Engine.get_process_frames() % 3 == 2):
 		# bölgenin yerleri: karede bir tane (eskiden bölgenin tümü tek karede kuruluyor, 100-270 ms donduruyordu)
 		var pq: Array = _poi_q.pop_front()
 		var reg = regions.get(pq[0])
@@ -98,7 +98,7 @@ func _process(dt: float) -> void:
 const ROAD_BUDGET_US := 1200
 func _road_jobs() -> void:
 	var t0 := Time.get_ticks_usec()
-	while Time.get_ticks_usec() - t0 < ROAD_BUDGET_US:
+	while Time.get_ticks_usec() - t0 < (60000 if BuildSites.boost else ROAD_BUDGET_US):
 		if _road_job.is_empty():
 			if not _start_road_job():
 				return
@@ -155,7 +155,19 @@ func _free(k: Vector2i) -> void:
 	regions.erase(k)
 
 
+var building := 0   # karelere yayılmış, bitmemiş bölge kurulumu
+## Yükleme ekranı bunu bekler: kurulacak / kurulmakta bölge ya da yer kaldı mı
+func busy() -> bool:
+	return building > 0 or not _queue.is_empty() or not _poi_q.is_empty() or not _road_job.is_empty()
+
+
 func _build(k: Vector2i, with_pois: bool) -> void:
+	building += 1
+	await _build_body(k, with_pois)
+	building -= 1
+
+
+func _build_body(k: Vector2i, with_pois: bool) -> void:
 	if regions.has(k):
 		# bölge kurulu, yalnız yerleri eksik: yapılar baştan kurulmaz, yerler sıraya girer
 		var r0: Dictionary = regions[k]
@@ -179,7 +191,6 @@ func _build(k: Vector2i, with_pois: bool) -> void:
 	if not feats.is_empty():
 		var b := Builder.new(node, 0.0, 0.0, 0.0, "Yapilar")
 		b.view_dist = 3000.0
-		var tb := Time.get_ticks_usec()
 		for f in feats:
 			var g := Game.terrain_height(float(f["x"]), -float(f["y"]))
 			if f["t"] in ["pillar", "spire", "mesa"]:
@@ -189,13 +200,17 @@ func _build(k: Vector2i, with_pois: bool) -> void:
 			var ff: Dictionary = f.duplicate()
 			ff["g"] = g if f["t"] != "bridge" else 0.0
 			var before := Interact.items.size()
-			BuildFeatures._build(b, ff, rng)
+			if ff["t"] == "paddy" and Game.player != null and Game.player.is_inside_tree():
+				await BuildFeatures.paddy_async(b, ff, rng)
+				if not is_instance_valid(node) or regions.get(k) != reg:
+					return
+			else:
+				BuildFeatures._build(b, ff, rng)
 			reg["inter"].append_array(Interact.items.slice(before))   # her yapının etkileşimleri ayrı (aradaki karelerde başkaları da ekler)
-			if Time.get_ticks_usec() - tb > 3000:
+			if Game.player != null and Game.player.is_inside_tree() and BuildSites.frame_busy():   # ortak kare bütçesi (yükleme ekranında beklemez)
 				await get_tree().process_frame
 				if not is_instance_valid(node) or regions.get(k) != reg:
 					return   # bu arada uzaklaşıldı, bölge silindi
-				tb = Time.get_ticks_usec()
 		var before2 := Interact.items.size()
 		b.finish()
 		reg["inter"].append_array(Interact.items.slice(before2))

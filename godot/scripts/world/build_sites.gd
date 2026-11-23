@@ -236,6 +236,19 @@ static func _rng(s: int) -> RandomNumberGenerator:
 ## Kare kare kurulum için bekleme noktası
 static var budget_ms := 8.0     # kare başına kurulum süresi; hızlı seyahat yükleme ekranında 120 ms
 static var _ylast := 0
+## Oyun sırasında kareye yayılan tüm kurulumların (bölge yapıları, peyzaj) ORTAK bütçesi: her iş kendi payını ayrı alınca
+## 12 bölge aynı anda kurulurken kare ~140 ms'ye çıkıyordu (yükleme sonrası 2 dk FPS 7)
+const FRAME_BUDGET_MS := 2.5   # 8 ms'de çizimle birlikte kare 16 ms'yi aşıyor, FPS 35'e iniyordu
+static var boost := false   # yükleme ekranı: bütçe büyük (oyun akmıyor)
+static var _bf := -1
+static var _bf_t := 0
+static func frame_busy() -> bool:
+	var f := Engine.get_process_frames()
+	if f != _bf:
+		_bf = f
+		_bf_t = Time.get_ticks_usec()
+		return false
+	return Time.get_ticks_usec() - _bf_t > int((100.0 if boost else minf(budget_ms, FRAME_BUDGET_MS)) * 1000.0)
 static func _yield() -> void:
 	if Time.get_ticks_msec() - _ylast < budget_ms:
 		return   # bütçe dolmadı: aynı karede devam (her 12 evde bir kare beklemek binlerce evde dakikalar sürüyordu)

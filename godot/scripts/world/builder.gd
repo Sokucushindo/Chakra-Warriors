@@ -552,19 +552,56 @@ func build_occluders() -> void:
 
 static var dressing := 0
 func _finish_after_dress() -> void:
+	if key == "yapilar" and not houses.is_empty():
+		# dünya bölgesinin evleri haritanın 0 noktasına göre yereldi: peyzaj (park / ağaç / arsa taraması) 0'dan en uzak eve
+		# kadar ~11 km'lik daireyi tarıyordu (bölge başına ~600 bin aday, dakikalarca FPS 7). Merkez evlerin ortasına taşınır.
+		var cx := 0.0
+		var cn := 0.0
+		for h in houses:
+			cx += float(h[0])
+			cn += float(h[1])
+		cx /= houses.size()
+		cn /= houses.size()
+		origin += Vector3(cx, 0.0, -cn)
+		for i in houses.size():
+			var h2: Array = (houses[i] as Array).duplicate()
+			h2[0] = float(h2[0]) - cx
+			h2[1] = float(h2[1]) - cn
+			houses[i] = h2
 	await CityLandscape.dress(self)
 	dressing -= 1
 	if is_instance_valid(root):
 		_finish_rest()
 
 
+## Oyun sırasında kurulan dünya bölgesi: parçaların meshe dönüşmesi ortak kare bütçesiyle karelere yayılır
+## (tek karede 25-100 ms sürüyordu). Köyler (pişirme bekler) eskisi gibi tek seferde.
+func _spread() -> bool:
+	return key == "yapilar" and Game.player != null and Game.player.is_inside_tree()
+
+
+static var resting := 0   # karelere yayılmış _finish_rest sayısı (yükleme ekranı bitmesini bekler)
 func _finish_rest() -> void:
+	var spread := _spread()
+	if spread:
+		resting += 1
+		await _finish_rest_body(true)
+		resting -= 1
+	else:
+		_finish_rest_body(false)
+
+
+func _finish_rest_body(spread: bool) -> void:
 	for eb in extra_bodies:   # peyzajın eklediği ayrı gövdeler (üçgen şekiller) de ağaca girsin
 		if is_instance_valid(eb) and eb.get_parent() == null:
 			root.add_child(eb)
 	if placer != null:
 		placer.finish()
 	for pk in packs:
+		if spread and BuildSites.frame_busy():
+			await Engine.get_main_loop().process_frame
+			if not is_instance_valid(root):
+				return
 		var pe: Array = packs[pk]
 		var xfs: Array = pe[1]
 		var end = view_dist * float(Game.settings["view"]) * float(pe[2])
@@ -604,6 +641,10 @@ func _finish_rest() -> void:
 			root.add_child(mmi)
 	packs.clear()
 	for key in cells:
+		if spread and BuildSites.frame_busy():
+			await Engine.get_main_loop().process_frame
+			if not is_instance_valid(root):
+				return
 		var mb: MB = cells[key]
 		if mb.is_empty():
 			continue
