@@ -1187,7 +1187,46 @@ func _buy(id: String, title: String, items: Array) -> void:
 
 
 # ------------------------------------------------------------------ güncelleme
+var _ui_stuck := 0.0
+
+
+## Arayüz bekçisi: hiçbir pencere / menü açık değilken "arayüz açık", görünür fare ya da duraklama kalmışsa (bir akış penceresini
+## kapatmadan değiştirip bıraktıysa: Rinnegan uyanışı vb.) oyun donmuş gibi kalıyordu, ESC düzeltiyordu — yarım saniye sonra kendisi toparlar
+func _ui_watchdog(dt: float) -> void:
+	var pl = Game.player
+	if pl == null or not is_instance_valid(pl) or not pl.is_inside_tree():
+		_ui_stuck = 0.0
+		return
+	var open := false
+	for c in dialog_layer.get_children():
+		if not c.is_queued_for_deletion():
+			open = true
+			break
+	# duraklama menüsü / sınav kartı da bu katmanda: katman boşken oyun duraklamış kalmışsa (kartı başka bir pencere silip
+	# devam ettirmeden bıraktıysa) ekranda hiçbir şey yokken oyun donuk kalıyordu
+	var bad = not open and (Game.paused or Game.ui_open or get_tree().paused or (Input.mouse_mode != Input.MOUSE_MODE_CAPTURED and DisplayServer.window_is_focused()))
+	if not bad:
+		_ui_stuck = 0.0
+		return
+	_ui_stuck += dt
+	if _ui_stuck < 0.5:
+		return
+	_ui_stuck = 0.0
+	if Game.paused:
+		var m = get_tree().current_scene
+		if m and m.has_method("resume"):
+			m.resume()   # ESC'nin yaptığının aynısı
+			return
+		Game.paused = false
+	Game.ui_open = false
+	if get_tree().paused:
+		get_tree().paused = false
+	if DisplayServer.window_is_focused():
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+
 func _process(dt: float) -> void:
+	_ui_watchdog(dt)
 	if not game_hud.visible:
 		return
 	var pl = Game.player

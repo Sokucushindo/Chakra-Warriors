@@ -330,6 +330,12 @@ func step_move(wish: Vector3, dt: float, turn := true) -> void:
 	velocity.y -= 32.0 * dt
 	var pre = global_position
 	move_and_slide()
+	# iç içe geçme itmesi kaçağı: hızı sıfırken bile fizik ayırma itmesi karakteri her karede metrelerce kaydırabiliyordu
+	var lim = maxf(Vector2(velocity.x, velocity.z).length(), hv.length()) * dt * 1.6 + 0.06
+	var mvd = Vector2(global_position.x - pre.x, global_position.z - pre.z)
+	if mvd.length() > lim:
+		mvd = mvd.normalized() * lim
+		global_position = Vector3(pre.x + mvd.x, global_position.y, pre.z + mvd.y)
 	var g = Game.ground_height(global_position.x, global_position.z)
 	# uçuruma ışınlanma yok: adımda aşılamayacak dik arazi yatay hareketi durdurur
 	var horiz = Vector2(global_position.x - pre.x, global_position.z - pre.z).length()

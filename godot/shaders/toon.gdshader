@@ -5,6 +5,28 @@ render_mode cull_back, diffuse_toon, specular_toon;
 
 uniform vec4 tint : source_color = vec4(1.0);
 uniform bool use_vertex_color = true;
+// elle yapılmış kıyafet: kurulduğu karakterin ten rengi / tarifin ana renkleri, giyenin teni / seçtiği boyaya çevrilir
+// (önbellek ortak: ilk kuranın teni ve tarifin sabit renkleri herkeste kalıyordu — koyu ten beyazlıyor, boya değişmiyordu)
+uniform vec4 skin_from = vec4(-1.0);
+uniform vec4 skin_to = vec4(0.0);
+uniform vec4 dye_a = vec4(-1.0);
+uniform vec4 dye_a_to = vec4(0.0);
+uniform vec4 dye_b = vec4(-1.0);
+uniform vec4 dye_b_to = vec4(0.0);
+vec3 _recol(vec3 vc, vec3 s, vec3 d, float tol) {
+	float ls = max(dot(s, vec3(0.3333)), 0.002);
+	float lv = max(dot(vc, vec3(0.3333)), 0.002);
+	float k = lv / ls;
+	if (k < 0.35 || k > 1.8) return vc;
+	if (distance(vc / lv, s / ls) > tol) return vc;
+	return clamp(d * k, vec3(0.0), vec3(1.0));   // aynı renk ailesi (koyu / açık tonları dahil) hedef renge, tonu korunarak
+}
+vec3 dye_map(vec3 vc) {
+	if (skin_from.w > 0.5) vc = _recol(vc, skin_from.rgb, skin_to.rgb, 0.06);
+	if (dye_a.w > 0.5) vc = _recol(vc, dye_a.rgb, dye_a_to.rgb, 0.12);
+	if (dye_b.w > 0.5) vc = _recol(vc, dye_b.rgb, dye_b_to.rgb, 0.12);
+	return vc;
+}
 uniform sampler2D tex : source_color, filter_linear_mipmap, hint_default_white;
 uniform float rim_amount = 0.35;
 uniform float spec_amount = 0.0;
@@ -1120,7 +1142,7 @@ void fragment() {
 		vc = mix(vc / 12.92, pow((vc + 0.055) / 1.055, vec3(2.4)), step(0.04045, vc));
 		c.rgb = mix(c.rgb, vc, COLOR.a);
 	} else if (use_vertex_color) {
-		vec3 vc = clamp(COLOR.rgb, vec3(0.0), vec3(1.0));   // taşan (eksi) değerin kuvveti geçersiz sayı üretir
+		vec3 vc = dye_map(clamp(COLOR.rgb, vec3(0.0), vec3(1.0)));   // taşan (eksi) değerin kuvveti geçersiz sayı üretir
 		vc = mix(vc / 12.92, pow((vc + 0.055) / 1.055, vec3(2.4)), step(0.04045, vc));  // sRGB -> lineer
 		c *= vec4(vc, COLOR.a);
 	}

@@ -1838,6 +1838,8 @@ static func apply_look(p: Dictionary) -> void:
 			continue
 		if String(it0.get("slot", "")) == "set":
 			L["set_id"] = String(it0.get("base", g0["id"]))
+			# elle yapılmış set boyası: seçilen üst / alt renk + eşyanın varsayılanı (fark varsa kıyafetin ana renkleri çevrilir)
+			L["set_dye"] = [String(g0.get("c1", "")) if g0.get("dyed_c1", false) else "", String(g0.get("c2", "")) if g0.get("dyed_c2", false) else ""]
 			# set renkleri: c1 = ÜST (üst giysi), c2 = ALT (pantolon); diğer parçalar setin kendi renkleriyle
 			for pt in it0.get("parts", []):
 				var pit = item(String(pt[0]))

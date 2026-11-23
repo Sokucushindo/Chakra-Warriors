@@ -2735,6 +2735,7 @@ static func _tab_wardrobe(main: Node, body: Control) -> void:
 			for c in SWATCHES:
 				fl.add_child(_swatch(c, Color.html(cur[key]).is_equal_approx(c), func():
 					cur[key] = c.to_html(false)
+					cur["dyed_" + key] = true   # elle yapılmış set: yalnız gerçekten boyanan renk kıyafete uygulanır
 					refresh.call()))
 			dv.add_child(fl)
 

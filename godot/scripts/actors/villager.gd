@@ -176,6 +176,7 @@ func _ready() -> void:
 	remove_from_group("fighters")
 	add_to_group("talkers")
 	collision_layer = 4
+	collision_mask = 1 | 2   # köylüler birbirine çarpmaz (üst üste doğan ikisi birbirini itip saniyede 40 m kayarak binalara giriyordu); yönlendirme birbirinden kaçırır
 	if model and look.get("age", "adult") != "adult":
 		model.apply_age(look["age"])
 		radius *= model.age_scale

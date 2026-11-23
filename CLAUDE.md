@@ -62,6 +62,9 @@ TAG=X PROFV=1 bash _tmp/run_ht.sh       # 16 / 70 / 300 m/sn; 10 dakikayı aşar
 18. Çarpışma görselin kendi şeklinden; ulaşılabilir her kaya / yapı katıdır. Görünmez duvar bırakma.
 19. Vücut değiştiren teknikler gerçek kemikleri büyütür / biçimlendirir; kutu-küre el yok. Sarkan parçalar (saç, kumaş) ikincil hareketli.
 20. Hazır model / doku eklenince exe paketine girdiğini doğrula (editör görür, exe görmeyebilir); arkadaşın kartı 4 GB — doku bütçesine dikkat.
+21. Oyun iki dilli (Türkçe + İngilizce): oyuncuya görünen her yeni / değişen yazı (pencere, konuşma, afiş, menü, ipucu) aynı işte
+   `godot/data/i18n/en.json`'a İngilizcesiyle eklenir (dosya biçimi: satır başına bir kayıt). Teslimden ve "güncelle"den önce
+   `python tools/i18n_extract.py <değişen .gd dosyaları>` ile eksik yok denetlenir; oyunu İngilizce açıp yarım çeviri ("Bu is now...") kalmadığına bakılır.
 
 ## Tuzaklar
 - Dosyalar CRLF; betikle yamalarken satır sonunu koru.

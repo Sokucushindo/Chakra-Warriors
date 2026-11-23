@@ -105,17 +105,47 @@ var relax_dist := 0.4
 var relax_meta_r := Vector3(-0.6, -0.3, 0.0)   # sağ (silah) eli boşken başparmak içe kıvrık
 var relax_thumb := Vector3.ZERO
 var relax_free := true   # boştaki el: animasyonun zikzak başparmağı yerine rahat, hafif kıvrık el
+var ov = null            # PoseOverlay: elde yumruk / mühür / sahne pozu varsa rahat kıvrım uygulanmaz
+## Boş elin rahat kıvrımı (kemik dinlenme açısından mutlak, radyan): işaretten serçeye doğru artan, doğal yarı açık el.
+## Animasyonun yapışık parmaklı şekilsiz eldiven duruşu yerine (kullanıcı 2026-11-23: "eller garip duruyor").
+const RELAX_CURL := [[0.22, 0.32, 0.18], [0.32, 0.42, 0.22], [0.42, 0.5, 0.26], [0.52, 0.55, 0.3]]
+const RELAX_SPREAD := [0.05, 0.0, -0.04, -0.09]
 
 
 ## Boştaki el rahat duruş: parmaklar hafif kıvrık, başparmak işaret parmağının yanında düz-hafif kıvrık (zikzak yok)
 func _relax_hand(sk: Skeleton3D, side: String) -> void:
 	# boştaki el animasyonun orijinal hâlinde kalır; YALNIZ zikzak başparmak düzeltilir (işaret parmağının yanına yatık)
 	var sgn = 1.0 if side == "Left" else -1.0
+	if _hand_free(side):
+		var segs := ["Proximal", "Intermediate", "Distal"]
+		var fins := ["Index", "Middle", "Ring", "Little"]
+		for i in 4:
+			for s in 3:
+				var q := Quaternion(Vector3.RIGHT, float(RELAX_CURL[i][s]))
+				if s == 0:
+					q = Quaternion(Vector3.FORWARD, float(RELAX_SPREAD[i]) * sgn) * q
+				_curl(sk, side + String(fins[i]) + String(segs[s]), q, 0.9)
 	var rm = relax_meta if side == "Left" else relax_meta_r
 	if rm != Vector3.ZERO:
 		_curl(sk, side + "ThumbMetacarpal", Quaternion.from_euler(Vector3(rm.x * sgn, rm.y * sgn, rm.z * sgn)), 1.0)
 	_curl(sk, side + "ThumbProximal", Quaternion.from_euler(Vector3(relax_thumb.x * sgn, relax_thumb.y * sgn, relax_thumb.z * sgn)), 1.0)
 	_curl(sk, side + "ThumbDistal", Quaternion.from_euler(Vector3(relax_dist * sgn, 0, 0)), 1.0)
+
+
+## Elde başka bir poz yok mu (yumruk, mühür, sahne / kombo el pozu, iki elle tutuş): yalnız o zaman rahat kıvrım
+func _hand_free(side: String) -> bool:
+	if ov == null or not is_instance_valid(ov):
+		return false
+	if absf(float(ov.fist.get(side, 0.0))) > 0.01:
+		return false
+	for pn in ["cast", "seal", "guard", "kick"]:
+		if float(ov.weights.get(pn, 0.0)) > 0.02:
+			return false
+	if ov.key_t >= 0.0 and not ov.key_anim.is_empty():
+		return false
+	if two_hand_w > 0.0 or (reach_w > 0.0 and side == reach_side):
+		return false
+	return true
 
 
 ## İki kemikli IK: sol omuz-dirsek-el zinciri, silah sapındaki hedefe uzanır (dirsek aşağı-dışa)

@@ -48,6 +48,100 @@ class El:
 		UA = absf(m._bp("LeftUpperArm").x)
 		UAy = m._bp("LeftUpperArm").y
 		LS = signf(m._bp("LeftUpperArm").x)
+		_body_index()
+
+	# ---- bedenden ağırlık aktarma (omuz / boyun / üst kol): kıyafetin bedene yakın noktası, altındaki derinin kemik ağırlığını alır.
+	# Çıplak beden kol inince omuzda düzgün kıvrılıyor; yapışık kumaş da öyle kıvrılır (elle tahmin edilen ağırlıklar kol inince
+	# omuzda tümsek, boyunda kalınlık, kol kökünde açılan aralık yapıyordu). Bedenden uzak bol kumaş (kimono kolu, pelerin) eski kuralla kalır.
+	const BT_CELL := 0.04
+	var _bt := {}          # 3B hücre -> beden köşe indisleri (yalnız omuz bölgesi)
+	var _bnames := {}      # beden bağlama indisi -> kemik adı
+	var _bt_y0 := 0.0
+	var _bt_y1 := 0.0
+	var _bt_x := 0.0
+	static var NOBT := OS.get_environment("OUTFIT_BT") == ""   # DENEYSEL, varsayılan KAPALI (OUTFIT_BT=1 açar): ilk denemede belirgin iyileşme yok, kenpo yakasını yırtık gösterdi
+
+	func _body_index() -> void:
+		var V: PackedVector3Array = c["V"]
+		_bt_y0 = UAy - 0.2
+		_bt_y1 = N + 0.06
+		_bt_x = UA + 0.2
+		for i in V.size():
+			var q: Vector3 = V[i]
+			if q.y < _bt_y0 - 0.12 or q.y > _bt_y1 + 0.12 or absf(q.x) > _bt_x + 0.12:
+				continue
+			var key := Vector3i(floori(q.x / BT_CELL), floori(q.y / BT_CELL), floori(q.z / BT_CELL))
+			if not _bt.has(key):
+				_bt[key] = []
+			_bt[key].append(i)
+		var sk_r: Skin = m.body_mesh.skin if m.body_mesh else null
+		if sk_r:
+			for i in sk_r.get_bind_count():
+				var nm := String(sk_r.get_bind_name(i))
+				if nm == "":
+					var bb := sk_r.get_bind_bone(i)
+					nm = String(m.skel.get_bone_name(bb)) if bb >= 0 else ""
+				_bnames[i] = nm
+
+	func body_blend(list: Array, p: Vector3) -> Array:
+		if NOBT or _bt.is_empty():
+			return list
+		# bölge: üst kolun altından boynun üstüne, omuz ekleminin biraz dışına kadar (yumuşak geçiş)
+		var ry := smoothstep(_bt_y0, _bt_y0 + 0.08, p.y) * (1.0 - smoothstep(_bt_y1 - 0.04, _bt_y1, p.y))
+		var rx := 1.0 - smoothstep(_bt_x - 0.08, _bt_x, absf(p.x))
+		if ry * rx < 0.01:
+			return list
+		for e in list:
+			var bn := String(e[0])
+			if bn.contains("Hand") or bn.contains("Leg") or bn.contains("Foot") or bn == "Head":
+				return list
+		var V: PackedVector3Array = c["V"]
+		var ck := Vector3i(floori(p.x / BT_CELL), floori(p.y / BT_CELL), floori(p.z / BT_CELL))
+		var best := -1
+		var bd := 1e9
+		for dx in range(-3, 4):
+			for dy in range(-3, 4):
+				for dz in range(-3, 4):
+					var l = _bt.get(ck + Vector3i(dx, dy, dz))
+					if l == null:
+						continue
+					for i in l:
+						var d2 := p.distance_squared_to(V[i])
+						if d2 < bd:
+							bd = d2
+							best = i
+		if best < 0:
+			return list
+		var t := ry * rx * (1.0 - smoothstep(0.035, 0.11, sqrt(bd)))
+		if t < 0.01:
+			return list
+		var B: Array = sk["b"]
+		var W: Array = sk["w"]
+		var bw := {}
+		var bb = B[best]
+		var ww = W[best]
+		for k in mini(per, (bb as Array).size() if bb is Array else bb.size()):
+			var wv := float(ww[k])
+			if wv <= 0.0:
+				continue
+			var nm := String(_bnames.get(int(bb[k]), ""))
+			if nm != "":
+				bw[nm] = float(bw.get(nm, 0.0)) + wv
+		if bw.is_empty():
+			return list
+		var t0 := 0.0
+		for e in list:
+			t0 += float(e[1])
+		t0 = maxf(t0, 1e-6)
+		var bt := 0.0
+		for nm in bw:
+			bt += float(bw[nm])
+		var out := []
+		for e in list:
+			out.append([e[0], float(e[1]) / t0 * (1.0 - t)])
+		for nm in bw:
+			out.append([nm, float(bw[nm]) / bt * t])
+		return out
 
 	## Bedenin o yükseklikteki ölçüsü: yarı genişlik, ön z, arka z
 	func M(y: float, xl: float) -> Vector3:
@@ -208,6 +302,7 @@ class El:
 			for i in ni:
 				var p: Vector3 = rows[j][i]
 				var sl: Array = skinf.call(i, j, p) if NOARM else arm_blend(skinf.call(i, j, p), p)
+				sl = body_blend(sl, p)
 				sk["ov"].append(p)
 				var n0: Vector3 = nr[j * ni + i]
 				sk["on"].append(n0.normalized() if n0.length_squared() > 0.0 else Vector3.UP)
@@ -365,7 +460,7 @@ static func has(sid) -> bool:
 static func build(m, sid: String, g: Dictionary) -> void:
 	var box := Vector3(m._bp("Neck").y + 0.015, m._bp("LeftFoot").y + 0.075, absf(m._bp("LeftHand").x) - 0.012)
 	var ua: Vector3 = m._bp("LeftUpperArm")
-	var keep := Vector4(ua.y, absf(ua.x) - 0.05, -0.03, 0.055)   # iki omuz eklemi arası boyun dibi çizilir: yaka ve omuz kenarından yer görünmesin (kollar ve sırt derisi gizli kalır)
+	var keep := Vector4(ua.y, absf(ua.x) - 0.05, -0.03, 0.085)   # sırtta boyun arkası genişliği: 0.055 boynun yanlarını kesiyordu, oyun kamerasından boyun saydam görünüyordu   # iki omuz eklemi arası boyun dibi çizilir: yaka ve omuz kenarından yer görünmesin (kollar ve sırt derisi gizli kalır)
 	for mt in m.materials:
 		mt.set_shader_parameter("hand_box", box)
 		mt.set_shader_parameter("hand_keep", keep)
@@ -383,6 +478,7 @@ static func build(m, sid: String, g: Dictionary) -> void:
 		mi.skin = m.body_mesh.skin
 		mi.skeleton = mi.get_path_to(m.skel)
 		mi.material_override = Props.toon()
+		_personalize(mi, m)
 		A._dangles(m, e[1])
 		return
 	var c = A._begin(m)
@@ -398,13 +494,82 @@ static func build(m, sid: String, g: Dictionary) -> void:
 			for p in _pl():
 				if sid in p.DONE:
 					p.recipe(k, sid)
+	var sk0 = m.look.get("skin", Color(0.9, 0.72, 0.58))
+	var pal := _palette(m._sk["oc"], sk0 if sk0 is Color else Color(0.9, 0.72, 0.58))
 	var made = m._sk_end(g)
+	(made.mesh as ArrayMesh).set_meta("pal", pal)
+	(made.mesh as ArrayMesh).set_meta("skin0", sk0 if sk0 is Color else Color(0.9, 0.72, 0.58))   # tariflerin kullandığı ten (Q._skc ile aynı kural)
+	_personalize(made, m)
 	_cache[key] = [made.mesh, c["dg"]]
 	if disk != "":   # bir kez kurulan kıyafet diske: sonraki açılışlarda kurulum takılması olmaz
 		(made.mesh as ArrayMesh).set_meta("dg", c["dg"])
 		DirAccess.make_dir_recursive_absolute(disk.get_base_dir())
 		ResourceSaver.save(made.mesh, disk)
 	A._dangles(m, c["dg"])
+
+
+## Kıyafetin iki ana rengi (ten hariç, en çok noktası olan iki farklı renk ailesi): boya bu renkleri seçilen renge çevirir
+static func _palette(cols: PackedColorArray, skin: Color) -> Array:
+	var cnt := {}
+	var rep := {}
+	var sl := maxf((skin.r + skin.g + skin.b) / 3.0, 0.002)
+	var sch := Vector3(skin.r, skin.g, skin.b) / sl
+	for c0 in cols:
+		var l := maxf((c0.r + c0.g + c0.b) / 3.0, 0.002)
+		if (Vector3(c0.r, c0.g, c0.b) / l).distance_to(sch) < 0.08 and l / sl > 0.5 and l / sl < 1.6:
+			continue   # ten
+		var q := Vector3i(roundi(c0.r * 20.0), roundi(c0.g * 20.0), roundi(c0.b * 20.0))
+		cnt[q] = int(cnt.get(q, 0)) + 1
+		if not rep.has(q):
+			rep[q] = c0
+	var keys: Array = cnt.keys()
+	keys.sort_custom(func(a, b): return int(cnt[a]) > int(cnt[b]))
+	var out := []
+	for q in keys:
+		var c1: Color = rep[q]
+		var ok := true
+		for o in out:
+			var la := maxf(((o as Color).r + o.g + o.b) / 3.0, 0.002)
+			var lb := maxf((c1.r + c1.g + c1.b) / 3.0, 0.002)
+			if (Vector3(o.r, o.g, o.b) / la).distance_to(Vector3(c1.r, c1.g, c1.b) / lb) < 0.2 and lb / la > 0.4 and lb / la < 2.5:
+				ok = false   # aynı renk ailesi
+				break
+		if ok:
+			out.append(c1)
+		if out.size() >= 2:
+			break
+	return out
+
+
+## Giyene özel: kurulumdaki ten rengi giyenin tenine, tarifin ana renkleri seçilen boyaya (gölgelendiricide, örnek başına)
+static func _personalize(mi: MeshInstance3D, m) -> void:
+	if mi == null or mi.mesh == null:
+		return
+	# not: örnek başına (instance) değişken KULLANMA — aynı gölgelendirici binlerce dünya nesnesinde: tampon taşıyordu.
+	# Çevrilecek renk varsa bu kıyafet kendi malzeme kopyasını alır; yoksa ortak malzemede kalır.
+	var sv = m.look.get("skin", Color(0.9, 0.72, 0.58))
+	var skin_now: Color = sv if sv is Color else Color(0.9, 0.72, 0.58)
+	var params := {}
+	if mi.mesh.has_meta("skin0"):
+		var s0: Color = mi.mesh.get_meta("skin0")
+		if not s0.is_equal_approx(skin_now):
+			params["skin_from"] = Vector4(s0.r, s0.g, s0.b, 1.0)
+			params["skin_to"] = Vector4(skin_now.r, skin_now.g, skin_now.b, 1.0)
+	var dye: Array = m.look.get("set_dye", [])
+	var pal: Array = mi.mesh.get_meta("pal", []) if mi.mesh.has_meta("pal") else []
+	for i in mini(2, pal.size()):
+		if dye.size() > i and String(dye[i]) != "":
+			var src: Color = pal[i]
+			var dst := Color.html(String(dye[i]))
+			var nm := "dye_a" if i == 0 else "dye_b"
+			params[nm] = Vector4(src.r, src.g, src.b, 1.0)
+			params[nm + "_to"] = Vector4(dst.r, dst.g, dst.b, 1.0)
+	if params.is_empty():
+		return
+	var mt: ShaderMaterial = Props.toon().duplicate()
+	for pn in params:
+		mt.set_shader_parameter(pn, params[pn])
+	mi.material_override = mt
 
 
 # ------------------------------------------------------------------ ortak parçalar

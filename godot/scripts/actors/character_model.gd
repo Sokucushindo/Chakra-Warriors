@@ -1568,6 +1568,7 @@ func setup(l: Dictionary) -> void:
 	overlay.key_weapon_cb = _key_blade_sk
 	skel.add_child(overlay)
 	rig = WeaponRig.new()   # overlay'den sonra: silahlı el yumruk, kın hareketi
+	rig.ov = overlay   # boş elin rahat kıvrımı, el pozu (yumruk / mühür / uzatma) yokken uygulanır
 	skel.add_child(rig)
 	if skel.find_bone("LeftHand") >= 0:
 		var lr = _grest(skel.find_bone("LeftHand"))
