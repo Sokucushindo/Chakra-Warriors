@@ -228,6 +228,8 @@ static func _belly(top: Color, belly: Color, stripe := Color(0, 0, 0, 0)) -> Cal
 
 ## Badem göz: sklera + iris + bebek (yassı, yüzeye yapışık)
 static func _anime_eye(r: BeastRig, parent: Node3D, pos: Vector3, size: Vector3, sclera: Color, iris: Color, pupil: Color, rot := Vector3.ZERO, pupil_kind := "slit") -> void:
+	if r and pupil_kind != "none":   # iris katmanı (beyaz göz zemini "none" ile çizilir): Sharingan deseni bu boyda
+		r.eye_slots.append({"parent": parent, "pos": pos, "size": size, "rot": rot, "front": 0.66})   # iris küresi önü 0.6, bebek 0.63
 	var mb = MB.new()
 	mb.add("sphere", pos, size, sclera, rot, 14)
 	var fwd = Basis.from_euler(rot * PI / 180.0) * Vector3(0, 0, -1)

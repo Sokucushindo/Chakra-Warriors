@@ -13474,5 +13474,11 @@
 "Ateşin İradesi... sizde yaşasın.": "May the Will of Fire... live on in you.",
 "%s, gitme...": "%s, don't go...",
 "%s hayatını kaybetti... Herkes %s mezarlığında toplanıyor; sen geldiğinde tören başlayacak. %s da konuşma yapacak. Ailesi seni de orada görmek istiyor.": "%s has passed away... Everyone is gathering at the %s graveyard; the ceremony will begin when you arrive. %s will also give a speech. The family would like to see you there.",
-"Kulağına bir haber çalındı: %s hayatını kaybetmiş. Kaçak olduğun için cenazesine çağrılmadın.": "Word reached you: %s has passed away. As a rogue ninja, you were not invited to the funeral."
+"Kulağına bir haber çalındı: %s hayatını kaybetmiş. Kaçak olduğun için cenazesine çağrılmadın.": "Word reached you: %s has passed away. As a rogue ninja, you were not invited to the funeral.",
+"Kendi naklini yapmak için Shōsen (tıbbi ninjutsu) ve en az 50 Iryō (tıbbi) ustalığı gerekir. Tutma şansı tıbbi ustalığınla artar.": "To perform your own transplant you need Shōsen (medical ninjutsu) and at least 50 Iryō (medical) mastery. The success chance grows with your medical mastery.",
+"Henüz Sharingan'ınla çağırabileceğin kuyruklu canavar yok.": "There is no tailed beast you can summon with your Sharingan yet.",
+"Çağrılacak": "Summon",
+"  (mühür kabında)": "  (in the sealing jar)",
+"Mühür kabındaki canavarları da Mangekyō'nla dışarı çağırıp yönetebilirsin; boyun eğdirmek için canavarı dövüşte diz çöktürüp mühürleme penceresinde «Sharingan ile boyun eğdir» seç. Jutsular (K) ekranından «Bijū Kuchiyose»yi bir yuvaya koy; Mangekyō açıkken çağırırsın (40 sn, 120 chakra). Kontrol ettiğin canavarın gözleri Sharingan olur.": "You can also call out and command the beasts in your sealing jar with your Mangekyō. To subdue a beast, bring it to its knees in battle and choose «Subdue with Sharingan» in the sealing window. Put «Bijū Kuchiyose» in a slot from the Jutsu (K) screen; summon it while your Mangekyō is active (40 s, 120 chakra). The beast you control gets Sharingan eyes.",
+"Sharingan'la boyun eğdirdiğin ya da mühür kabında tuttuğun kuyruklu canavarı 40 sn savaşa çağırır; gözleri Sharingan olur, emrine girer (Mangekyō açık olmalı). Hangisinin geleceğini Çağrılar sekmesinden seçersin.": "Summons a tailed beast you subdued with your Sharingan or keep in your sealing jar for 40 s; its eyes turn to Sharingan and it obeys you (Mangekyō must be active). Choose which one comes in the Summons tab."
 }

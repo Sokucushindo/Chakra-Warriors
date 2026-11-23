@@ -33,6 +33,32 @@ static var _tree_meshes: Array = []
 var house_grid := {}   # 32 m yerel ızgara -> ev kayıtları (ağaç yerleşimi hızlı kontrol)
 ## yaprak dökümü: köy ağaçlarının [dünya konumu (taç), renk, taç yarıçapı] listesi
 static var leaf_spots: Array = []
+static var crowd_skips := 0   # iç içe kalacağı için dikilmeyen ağaç sayısı (ölçüm)
+static var tree_grid := {}   # dünya xz 16 m hücre -> [[Vector2 gövde, ölçek, sokak ağacı mı]] — ağaçlar iç içe dikilmesin
+
+
+## Bu noktaya ağaç dikilirse başka bir ağacın gövdesiyle iç içe mi (taçlar birbirine girer, gövdeler yapışık görünür)
+## gap: ölçek başına gereken gövde arası (m); street: yalnız sokak ağaçlarına karşı ek en kısa mesafe
+static func tree_crowded(p: Vector2, s: float, gap := 1.9, street_min := 0.0) -> bool:
+	var c = Vector2i(floori(p.x / 16.0), floori(p.y / 16.0))
+	for gx in range(-1, 2):
+		for gz in range(-1, 2):
+			for t in tree_grid.get(c + Vector2i(gx, gz), []):
+				var d = p.distance_to(t[0])
+				if d < gap * (s + float(t[1])):
+					crowd_skips += 1
+					return true
+				if street_min > 0.0 and t[2] and d < street_min:
+					crowd_skips += 1
+					return true
+	return false
+
+
+static func tree_mark(p: Vector2, s: float, street := false) -> void:
+	var c = Vector2i(floori(p.x / 16.0), floori(p.y / 16.0))
+	if not tree_grid.has(c):
+		tree_grid[c] = []
+	tree_grid[c].append([p, s, street])
 static var landscape_on := true  # testlerde karşılaştırma için kapatılabilir
 
 static var roof_points := {}  # köy id -> [çatı tepe noktaları] (çatıdan çatıya koşan ninjalar için)
@@ -953,6 +979,10 @@ func tree(x: float, n: float, s: float, rng: RandomNumberGenerator, y := 0.0) ->
 					return
 	if tm != null:
 		var sc = s * rng.randf_range(0.85, 1.15)
+		var wp0 = w(Vector3(x, y, n))
+		if tree_crowded(Vector2(wp0.x, wp0.z), sc):
+			return   # yanında başka ağaç var: gövdeler iç içe, taçlar birbirine giriyordu
+		tree_mark(Vector2(wp0.x, wp0.z), sc)
 		var rot = rng.randf() * 360.0
 		pack_mesh(tm, Vector3(x, y, n), rot, sc, 1.0)
 		tree_limbs(tm, Vector3(x, y, n), rot, sc)

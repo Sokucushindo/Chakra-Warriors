@@ -208,12 +208,20 @@ static func _tab_summons(main: Node, body: Control) -> void:
 		var mv = UI.vbox(8)
 		mcard.add_child(mv)
 		mv.add_child(UI.label("Bijū Kuchiyose (Mangekyō)", 20, red, HORIZONTAL_ALIGNMENT_LEFT, true))
-		var bound: Array = pr.get("beast_ms", [])
-		var names: Array = bound.map(func(bid): return String(BeastModels.INFO.get(bid, {}).get("name", bid)).split(" — ")[0])
-		var mtxt = UI.label(("Sharingan'ının emrindeki canavarlar: %s." % ", ".join(names)) if not bound.is_empty() else "Henüz boyun eğdirdiğin kuyruklu canavar yok.", 16, UI.TEXT)
-		mtxt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		mv.add_child(mtxt)
-		var mtip = UI.label("Mühürlemeden bağlamak için: canavarı dövüşte diz çöktür, mühürleme penceresinde «Sharingan ile boyun eğdir» seç. Sonra Jutsular (K) ekranından «Bijū Kuchiyose»yi bir yuvaya koy; Mangekyō açıkken çağırırsın (40 sn, 120 chakra).", 14, UI.MUTED)
+		var bound: Array = TailedBeasts.ms_pool()   # boyun eğdirdiklerin + mühür kabındakiler
+		var names: Array = bound.map(func(bid): return String(BeastModels.INFO.get(bid, {}).get("name", bid)).split(" — ")[0] + ("  (mühür kabında)" if bid in TailedBeasts.jarred() else ""))
+		if bound.is_empty():
+			var mtxt = UI.label("Henüz Sharingan'ınla çağırabileceğin kuyruklu canavar yok.", 16, UI.TEXT)
+			mtxt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			mv.add_child(mtxt)
+		else:
+			# çağrılacak canavar: ◀ ▶ seçici
+			var cur_pick = String(pr.get("beast_ms_pick", ""))
+			var pi = maxi(0, bound.find(cur_pick))
+			if not cur_pick in bound:
+				pr["beast_ms_pick"] = String(bound[0])
+			mv.add_child(_arrow_row("Çağrılacak", names, pi, func(i: int): pr["beast_ms_pick"] = String(bound[i])))
+		var mtip = UI.label("Mühür kabındaki canavarları da Mangekyō'nla dışarı çağırıp yönetebilirsin; boyun eğdirmek için canavarı dövüşte diz çöktürüp mühürleme penceresinde «Sharingan ile boyun eğdir» seç. Jutsular (K) ekranından «Bijū Kuchiyose»yi bir yuvaya koy; Mangekyō açıkken çağırırsın (40 sn, 120 chakra). Kontrol ettiğin canavarın gözleri Sharingan olur.", 14, UI.MUTED)
 		mtip.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		mv.add_child(mtip)
 	var cs: Dictionary = pr.get("contracts", {})
@@ -385,7 +393,7 @@ static func _eye_panel(main: Node, dv: VBoxContainer, pr: Dictionary) -> void:
 			dv.add_child(UI.button("Kendi tıbbi ninjutsunla nakil yap (tutma %%%d)" % int(round(EyeSurgery.self_chance(pr) * 100.0)), func():
 				Hud.dialog("Kendi Ameliyatın", "Düşman yokken oturup gözünü kendin değiştireceksin. Beden ağır yıpranır; tutmazsa göz bozulur.", EyeSurgery.options("self")), 420, "eye"))
 		else:
-			dv.add_child(UI.label("Kendi naklini yapmak için Shōsen (tıbbi ninjutsu) ve en az 50 chakra kontrolü ustalığı gerekir.", 13, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
+			dv.add_child(UI.label("Kendi naklini yapmak için Shōsen (tıbbi ninjutsu) ve en az 50 Iryō (tıbbi) ustalığı gerekir. Tutma şansı tıbbi ustalığınla artar.", 13, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
 	dv.add_child(UI.label("Başkasından alınan gözü köy hastanesi takmaz (kanon: klan gözü klanın malıdır). Nakli takımındaki tıbbi ninja sahada yapar (Rin–Kakashi), kendi tıbbi ninjutsunla yaparsın ya da yeraltındaki Kara Cerrah gizlice takar.", 13, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
 	# uzun açıklamalar tek satır kalınca paneli genişletip sol göz kutusunu ekranın dışına itiyordu (her çözünürlükte): satırları kaydır
 	for l in dv.get_children():

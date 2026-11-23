@@ -876,9 +876,12 @@ static func _yard(c: Ctx, h: Array) -> void:
 	var r_tree = rng.randf()
 	if r_tree < 0.5 and not (kit["tree"] as Array).is_empty():
 		var q = at.call(side * (hw + 2.4), rng.randf_range(-hd * 0.3, hd * 0.5))
-		if c.open(q.x, q.y, 1.8, 10.5):
-			var tt: int = kit["tree"][rng.randi() % kit["tree"].size()]
-			var s = rng.randf_range(0.85, 1.25) if tt != 7 else rng.randf_range(0.8, 1.05)   # bahçe ağacı evin çatısını geçsin (çok kısaydı)
+		var tt0: int = kit["tree"][rng.randi() % kit["tree"].size()]
+		var s0 = rng.randf_range(0.85, 1.25) if tt0 != 7 else rng.randf_range(0.8, 1.05)   # bahçe ağacı evin çatısını geçsin (çok kısaydı)
+		if c.open(q.x, q.y, 1.8, 10.5) and not Builder.tree_crowded(c.wxz(q.x, q.y), s0):
+			var tt: int = tt0
+			var s = s0
+			Builder.tree_mark(c.wxz(q.x, q.y), s)
 			c.put(veg(tt), q.x, q.y, rng.randf() * 360.0, Vector3.ONE * s, 420.0, false, -0.1)
 			c.solid_cyl(q.x, q.y, 0.3 * s + 0.1, 4.5 * s)
 		elif kit["bamboo"] and rng.randf() < 0.5:
@@ -959,9 +962,13 @@ static func _street_trees(c: Ctx, rad: float) -> void:
 				# harita -> yerel (x doğu, n kuzey)
 				var lx = q.x - cen.x
 				var ln = q.y - cen.y
-				if c.open(lx, ln, 1.6, half + 0.4):
-					var tt: int = types[c.rng.randi() % types.size()]
-					var s = c.rng.randf_range(1.05, 1.45) if tt != 7 else c.rng.randf_range(0.9, 1.1)
+				var tt: int = types[c.rng.randi() % types.size()]
+				var s = c.rng.randf_range(1.05, 1.45) if tt != 7 else c.rng.randf_range(0.9, 1.1)
+				var tp: Vector2 = c.wxz(lx, ln)
+				# sokak ağaçları arası en az 11 m (komşu / kesişen yol parçaları aynı kaldırıma sık sık ağaç dikiyordu), diğer ağaçlarla gövde payı
+				var roomy = not Builder.tree_crowded(tp, s, 1.9, 11.0)
+				if roomy and c.open(lx, ln, 1.6, half + 0.4):
+					Builder.tree_mark(tp, s, true)
 					c.put(veg(tt), lx, ln, c.rng.randf() * 360.0, Vector3.ONE * s, 700.0, true, -0.1)
 					c.put(ring_m, lx, ln, 0.0, Vector3.ONE, 220.0, false, 0.02)
 					c.solid_cyl(lx, ln, 0.35 * s + 0.1, 5.0 * s)
@@ -1127,6 +1134,9 @@ static func _park(c: Ctx, px: float, pn: float, r: float) -> void:
 		elif not (kit["tree"] as Array).is_empty():
 			var tt: int = kit["tree"][rng.randi() % kit["tree"].size()]
 			var s = rng.randf_range(1.2, 1.8)
+			if Builder.tree_crowded(c.wxz(tx, tn), s):
+				continue   # çemberde komşu ağaçla iç içe
+			Builder.tree_mark(c.wxz(tx, tn), s)
 			c.put(veg(tt), tx, tn, rng.randf() * 360.0, Vector3.ONE * s, 900.0, true, -0.1)
 			c.solid_cyl(tx, tn, 0.35 * s + 0.1, 5.0 * s)
 		if rng.randf() < 0.6:

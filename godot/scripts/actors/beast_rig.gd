@@ -17,6 +17,8 @@ var arms: Array = []      # [{"sh": omuz, "el": dirsek, "side": ±1}]
 var legs: Array = []      # [{"hip": kalça, "kn": diz, "side": ±1, "front": bool}]
 var tails: Array = []     # her kuyruk: [segment Node3D...]
 var jaw_close := 0.0      # beklerken çeneyi bu kadar kapalı tut (Kurama: dişleri görünen kapalı sırıtış)
+var eye_slots: Array = []  # [{parent, pos, size, rot}] — Sharingan kontrolünde gözün üstüne desen (set_sharingan)
+var _shari: Array = []
 var tail_curl := -0.05     # segment başına sabit eğim (radyan): negatif yukarı kıvırır, pozitif aşağı sarkıtır
 var tail_cfg: Array = []  # her kuyruk: {"yaw","pitch","len","amp"}
 var weak_points: Array = []   # mühür noktaları (Node3D)
@@ -100,6 +102,7 @@ static func claw(mb: MB, base: Vector3, dir: Vector3, length: float, r: float, c
 
 ## Göz: parlayan (ışıksız) badem göz + bebek
 func _eye(parent: Node3D, pos: Vector3, size: Vector3, iris: Color, pupil: Color, rot := Vector3.ZERO, slit := true) -> void:
+	eye_slots.append({"parent": parent, "pos": pos, "size": size, "rot": rot, "front": 0.53})   # küre önü 0.5, bebek 0.52
 	var mb = MB.new()
 	mb.add("sphere", pos, size, iris, rot, 10)
 	if slit:
@@ -113,6 +116,53 @@ func _eye(parent: Node3D, pos: Vector3, size: Vector3, iris: Color, pupil: Color
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mi.material_override = m
 	parent.add_child(mi)
+
+
+## Sharingan kontrolü (kanon: Obito / Madara canavarı Sharingan'la yönetince canavarın gözleri Sharingan olur):
+## her gözün önüne kırmızı iris + siyah bebek + bebeği çevreleyen üç tomoe (virgül: baş + incelen kuyruk)
+func set_sharingan(on: bool) -> void:
+	for n in _shari:
+		if is_instance_valid(n):
+			n.queue_free()
+	_shari.clear()
+	if not on:
+		return
+	var red = Color(0.82, 0.03, 0.04)
+	var blk = Color(0.03, 0.02, 0.02)
+	for e in eye_slots:
+		var par: Node3D = e["parent"]
+		if not is_instance_valid(par):
+			continue
+		var sz: Vector3 = e["size"]
+		var rot: Vector3 = e["rot"]
+		var B = Basis.from_euler(rot * PI / 180.0)
+		var fwd = B * Vector3(0, 0, -1)
+		var ax = B * Vector3(1, 0, 0)
+		var ay = B * Vector3(0, 1, 0)
+		var rad = minf(sz.x, sz.y) * 0.42   # iris yarıçapı: gözün kısa ekseni (badem gözde taşmasın)
+		var c: Vector3 = e["pos"] + fwd * sz.z * (float(e.get("front", 0.53)) - 0.02)   # gözün en ön yüzeyinin hemen önü
+		var mb = MB.new()
+		mb.add("sphere", c, Vector3(rad * 2.0, rad * 2.0, sz.z * 0.12), red, rot, 16)
+		var f2 = c + fwd * sz.z * 0.05
+		mb.add("sphere", f2, Vector3(rad * 0.42, rad * 0.42, sz.z * 0.06), blk, rot, 10)   # bebek
+		for k in 3:
+			var a = deg_to_rad(90.0 + k * 120.0)
+			var rr = rad * 0.58
+			var hp = f2 + (ax * cos(a) + ay * sin(a)) * rr
+			mb.add("sphere", hp, Vector3(rad * 0.3, rad * 0.3, sz.z * 0.05), blk, rot, 8)   # tomoe başı
+			for t in 3:   # saat yönünde incelen kuyruk
+				var a2 = a - deg_to_rad(16.0 + t * 13.0)
+				var tp = f2 + (ax * cos(a2) + ay * sin(a2)) * (rr + rad * 0.04 * t)
+				var w = rad * (0.22 - t * 0.06)
+				mb.add("sphere", tp, Vector3(w, w, sz.z * 0.05), blk, rot, 6)
+		var mi = MeshInstance3D.new()
+		mi.mesh = mb.build(null)
+		var m = StandardMaterial3D.new()
+		m.vertex_color_use_as_albedo = true
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		mi.material_override = m
+		par.add_child(mi)
+		_shari.append(mi)
 
 
 ## Kuyruk zinciri: segment başına ayrı pivot (dalga animasyonu için)

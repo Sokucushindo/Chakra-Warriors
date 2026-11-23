@@ -13,23 +13,32 @@ extends RefCounted
 const OP_TIME := 5.0
 
 
-## Kendi tıbbi ninjutsunla nakil yapabilir mi? (Shōsen bilgisi + chakra kontrolü ustalığı 50)
+## Kendi tıbbi ninjutsunla nakil yapabilir mi? (Shōsen bilgisi + Iryō / tıbbi ustalık 50; eskiden chakra kontrolüne bakıyordu:
+## tıbbı 0 olan biri %90 ile göz takabiliyordu)
 static func can_self(pr: Dictionary) -> bool:
-	return "shousen" in pr.get("learned", []) and Mastery.get_v(pr, "chakra") >= 50.0
+	return "shousen" in pr.get("learned", []) and Mastery.get_v(pr, "iryo") >= 50.0
 
 
-## Kendi ameliyatının tutma olasılığı: chakra kontrolü 50 -> %40, 100 -> %90; ileri tıbbi teknikler (Tsunade yolu) +%10
+## Kendi ameliyatının tutma olasılığı: Iryō 50 -> %40, 100 -> %90; ileri tıbbi teknikler (Tsunade yolu) +%5'er
 static func self_chance(pr: Dictionary) -> float:
-	var c = clampf(0.4 + (Mastery.get_v(pr, "chakra") - 50.0) * 0.01, 0.4, 0.9)
+	var c = clampf(0.4 + (Mastery.get_v(pr, "iryo") - 50.0) * 0.01, 0.4, 0.9)
 	for adv in ["in_yu_shometsu", "sozo_saisei", "chakura_no_mesu"]:
 		if adv in pr.get("learned", []):
 			c += 0.05
 	return minf(0.97, c)
 
 
+## Takımdaki tıbbi ninjanın gücüne göre (genin %35 civarı, usta tıbbi ninja %80): eskiden herkes için sabit %88'di
+static func medic_chance(lv: float) -> float:
+	return clampf(0.3 + lv * 0.006, 0.35, 0.8)
+
+
+static var medic_lv := 20.0   # seçeneği açan takım arkadaşının gücü (squad _talk yazar)
+
+
 static func surgeons(pr: Dictionary) -> Dictionary:
 	return {
-		"medic": {"title": "Sahada nakil", "chance": 0.88, "price": 0, "hp": 0.15, "recover": 150.0,
+		"medic": {"title": "Sahada nakil", "chance": medic_chance(medic_lv), "price": 0, "hp": 0.15, "recover": 150.0,
 			"ok": "Gözün sarıldı. \"Bir süre bandajı çıkarma; beden yeni gözü tanıyana kadar ağrıyacak.\""},
 		"self": {"title": "Kendi tıbbi ninjutsunla nakil", "chance": self_chance(pr), "price": 0, "hp": 0.4, "recover": 300.0,
 			"ok": "Titreyen ellerle son sinir bağını da kapattın. Göz tuttu."},

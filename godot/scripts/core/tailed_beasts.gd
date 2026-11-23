@@ -382,12 +382,34 @@ func _spawn(id: String, lair: Vector2) -> void:
 
 ## Mangekyō ile bağlı canavarı müttefik olarak çağır (40 sn); birden çoksa sırayla
 var _ms_idx := 0
-func summon_ms_beast(c: Node3D) -> bool:
-	var lst: Array = Game.profile.get("beast_ms", [])
+## Mangekyō ile çağrılabilecek canavarlar: Sharingan'la boyun eğdirdiklerin + Mangekyō / Ebedi Mangekyō varsa mühür kabındakiler
+## (kanon: Obito kaptaki / Gedō Mazō'daki canavarları Sharingan'la dışarı çağırıp yönetti)
+func ms_pool() -> Array:
+	var out: Array = (Game.profile.get("beast_ms", []) as Array).duplicate()
+	if Progress.has_eye("mangekyo"):
+		for id in jarred():
+			if not id in out:
+				out.append(id)
+	return out
+
+
+## Çağrılacak canavar (menüden seçilir); seçili değilse / artık yoksa sırayla
+func ms_pick() -> String:
+	var lst = ms_pool()
 	if lst.is_empty():
-		return false
+		return ""
+	var pk = String(Game.profile.get("beast_ms_pick", ""))
+	if pk in lst:
+		return pk
 	var id = String(lst[_ms_idx % lst.size()])
 	_ms_idx += 1
+	return id
+
+
+func summon_ms_beast(c: Node3D) -> bool:
+	var id = ms_pick()
+	if id == "":
+		return false
 	for n in get_tree().get_nodes_in_group("fighters"):
 		if n is TailedBeast and n.ally_owner == c:
 			n.ally_life = 0.0   # eskisi geri döner
@@ -494,7 +516,7 @@ func _finish_seal(b, how: String) -> void:
 	Sfx.play("seal", Game.player.global_position, 0.6)
 	match how:
 		"player":
-			b.sealed_away(Game.player)
+			b.absorbed_into(Game.player)   # ruhu emilerek içine çekilir
 			make_jinchuriki(id)
 		"jar":
 			b.sealed_away(null)

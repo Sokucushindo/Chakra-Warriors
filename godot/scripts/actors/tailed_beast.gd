@@ -181,6 +181,8 @@ func make_ally(owner_n: Node3D, life: float) -> void:
 	set_meta("faction", "")
 	aggro = true
 	display_name = display_name.split(" — ")[0] + " (Sharingan'ın kontrolünde)"
+	if rig:
+		rig.set_sharingan(true)   # kanon: Sharingan'la yönetilen canavarın gözleri Sharingan olur
 
 
 func _physics_process(dt: float) -> void:
@@ -669,6 +671,135 @@ func sealed_away(into: Node3D) -> void:
 	BeastFX.sealed(global_position + Vector3.UP * height * 0.5, height, info["chakra"], tgt)
 	var tw = create_tween()
 	tw.tween_property(rig, "scale", Vector3.ONE * 0.01, 1.6).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	tw.tween_callback(queue_free)
+
+
+## İçine mühürleme: canavarın ruhu emilir — beden yarı saydam parlayan bir ruha döner, göğsünden mühürleyenin karnına sarmal
+## bir chakra akıntısı akar, canavar kendi ekseninde dönerek, uzayıp küçülerek akıntıyla içine çekilir; karındaki mühür
+## sarmalı parlar, son anda içine girerken sarsıntı. (Sahne efektleri burada, sıfırdan.)
+func absorbed_into(into: Node3D) -> void:
+	dead = true
+	Interact.items.erase(seal_item)
+	_end_fight()
+	set_physics_process(false)
+	var col: Color = info["chakra"]
+	var pl = into
+	if pl and pl.get("model") and pl.model.overlay:
+		pl.model.overlay.set_pose("seal", 1.0)   # el mührü
+	if pl is Player:
+		pl.input_locked = maxf(pl.input_locked, 5.2)
+		pl.velocity = Vector3.ZERO
+	# 1) beden ruha döner: her parçaya kenarı parlayan yarı saydam chakra katmanı
+	var gm := ShaderMaterial.new()
+	var sh := Shader.new()
+	sh.code = """shader_type spatial;
+render_mode unshaded, blend_add, depth_draw_never, cull_back;
+uniform vec4 col : source_color;
+uniform float k = 0.0;
+void fragment() {
+	float rim = pow(1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0), 2.0);
+	float flow = 0.5 + 0.5 * sin(TIME * 9.0 + (VERTEX.y + VERTEX.x) * 0.6);
+	ALBEDO = col.rgb * (0.9 + rim * 3.0) * (0.8 + flow * 0.4);
+	ALPHA = clamp(k * (0.55 + rim), 0.0, 1.0);
+}"""
+	gm.shader = sh
+	gm.set_shader_parameter("col", col)
+	for mi in rig.find_children("*", "MeshInstance3D", true, false):
+		(mi as MeshInstance3D).material_overlay = gm
+	var tk = create_tween()
+	tk.tween_method(func(x: float): gm.set_shader_parameter("k", x), 0.0, 1.0, 0.9)
+	# karındaki mühür sarmalı (tek parça: chakra renginde noktalar sarmal üzerinde)
+	var mark: MeshInstance3D = null
+	if pl and is_instance_valid(pl):
+		var mb := MB.new()
+		for i in 34:
+			var u = float(i) / 33.0
+			var a = u * TAU * 2.2
+			var rr = 0.03 + u * 0.15
+			mb.add("sphere", Vector3(cos(a) * rr, sin(a) * rr, 0.0), Vector3.ONE * (0.022 + u * 0.012), col.lightened(0.3), Vector3.ZERO, 6)
+		mark = MeshInstance3D.new()
+		mark.mesh = mb.build(null)
+		var mm := StandardMaterial3D.new()
+		mm.vertex_color_use_as_albedo = true
+		mm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		mm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		mm.albedo_color = Color(1, 1, 1, 0.0)
+		mark.material_override = mm
+		pl.add_child(mark)
+		var fd: Vector3 = pl.face_dir() if pl.has_method("face_dir") else Vector3.FORWARD
+		var belly: Vector3 = pl.global_position + Vector3.UP * 0.95 * float(pl.model.age_scale if pl.get("model") else 1.0)
+		mark.global_position = Vector3(pl.global_position.x, belly.y, pl.global_position.z) + fd * 0.2   # karnın ortası, gövdenin önü
+		mark.look_at(mark.global_position + fd, Vector3.UP)
+		var tm = mark.create_tween()
+		tm.tween_property(mm, "albedo_color:a", 1.0, 0.6)
+		tm.parallel().tween_property(mark, "rotation:z", TAU * 2.0, 4.6)
+	# 2) sarmal ruh akıntısı: göğüsten karna, eğri boyunca dönen parlak taneler (canavar küçüldükçe çıkış noktası da gelir)
+	var src := func() -> Vector3: return rig.global_position + Vector3.UP * height * 0.5 * rig.scale.y
+	var dst := func() -> Vector3: return (mark.global_position if is_instance_valid(mark) else (pl.global_position + Vector3.UP if is_instance_valid(pl) else global_position))
+	var root = get_tree().current_scene
+	for i in 240:
+		get_tree().create_timer(0.3 + i * 0.014, false).timeout.connect(func():
+			if not is_instance_valid(root):
+				return
+			var o := MeshInstance3D.new()
+			var sm := SphereMesh.new()
+			var r0 = clampf(height * 0.016, 0.2, 1.1) * randf_range(0.6, 1.2)
+			sm.radius = r0
+			sm.height = r0 * 2.0
+			sm.radial_segments = 8
+			sm.rings = 4
+			o.mesh = sm
+			var om := StandardMaterial3D.new()
+			om.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			om.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+			om.albedo_color = col.lightened(randf_range(0.0, 0.25)) * 1.15   # parlak ama canavarın chakra renginde
+			o.material_override = om
+			o.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			root.add_child(o)
+			var ph = randf() * TAU
+			var spin = randf_range(2.0, 3.5)
+			var dur = randf_range(0.7, 1.0)
+			var tw2 = o.create_tween()
+			tw2.tween_method(func(t: float):
+				if not is_instance_valid(o):
+					return
+				var a0: Vector3 = src.call() if is_instance_valid(rig) else dst.call()
+				var b0: Vector3 = dst.call()
+				var mid = a0.lerp(b0, 0.5) + Vector3.UP * a0.distance_to(b0) * 0.18
+				var p = a0.lerp(mid, t).lerp(mid.lerp(b0, t), t)   # ikinci derece eğri
+				var ax = (b0 - a0).normalized()
+				var sd = ax.cross(Vector3.UP).normalized()
+				var up2 = sd.cross(ax).normalized()
+				var rad = a0.distance_to(b0) * 0.08 * (1.0 - t) + 0.05
+				var ang = ph + t * TAU * spin
+				o.global_position = p + (sd * cos(ang) + up2 * sin(ang)) * rad
+				o.scale = Vector3.ONE * maxf(0.06, 1.0 - t * 0.94), 0.0, 1.0, dur)   # karna vardıkça incelir (mühre akar).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+			tw2.tween_callback(o.queue_free))
+	# 3) beden akıntıyla çekilir: döner, uzar, küçülür, karna girer
+	var start: Vector3 = rig.global_position
+	var tw = create_tween()
+	tw.tween_interval(1.0)
+	tw.tween_method(func(t: float):
+		if not is_instance_valid(rig):
+			return
+		var d: Vector3 = dst.call()
+		rig.global_position = start.lerp(d - Vector3.UP * height * 0.5 * (1.0 - t) * 0.02, t * t)
+		var s = lerpf(1.0, 0.006, pow(t, 0.7))
+		rig.scale = Vector3(s * (1.0 - t * 0.45), s * (1.0 + t * 0.8), s * (1.0 - t * 0.45))
+		rig.rotation.y += 0.08 + t * 0.35, 0.0, 1.0, 2.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	tw.tween_callback(func():
+		if Game.world:
+			Game.world.env.add_shake(1.0)
+		Sfx.play("seal", global_position, 0.6, 0.9)
+		if is_instance_valid(pl) and pl.get("model"):
+			pl.model.play("hit", 0.05, 0.8, true)   # içine giren güçle sarsılır
+			pl.model.overlay.set_pose("seal", 0.0)
+		if is_instance_valid(mark):
+			var tf = mark.create_tween()
+			tf.tween_property(mark, "scale", Vector3.ONE * 1.8, 0.25)
+			tf.tween_property(mark.material_override, "albedo_color:a", 0.0, 0.8)
+			tf.tween_callback(mark.queue_free))
+	tw.tween_interval(0.3)
 	tw.tween_callback(queue_free)
 
 

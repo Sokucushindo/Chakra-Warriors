@@ -785,29 +785,48 @@ static func _house_paths(b: Builder, vc: Vector2) -> void:
 		if start < 0:
 			orphan += 1
 			continue
-		linked += 1
-		var prev = Vector2(dp.x, dp.z)
+		# iz: kapıdan caddeye (ya da başka bir patikaya) hücre zinciri
+		var chain: Array = [Vector2(dp.x, dp.z)]
+		var cells: Array = []
 		var cur = start
-		var run_a = prev
-		var run_dir = Vector2.ZERO
 		var guard = 0
+		var joined = false
 		while cur >= 0 and guard < 80:
 			guard += 1
-			var pt = Vector2(ox + (cur % N + 0.5) * CELL, oz + (cur / N + 0.5) * CELL)
-			var dir = (pt - prev).normalized()
-			if run_dir != Vector2.ZERO and dir.dot(run_dir) < 0.999:
-				RMc.add_lane(run_a, prev, 1.25, true)
-				lanes += 1
-				run_a = prev
-			run_dir = dir
-			prev = pt
+			chain.append(Vector2(ox + (cur % N + 0.5) * CELL, oz + (cur / N + 0.5) * CELL))
+			cells.append(cur)
 			if painted[cur] == 1:
+				joined = true
 				break   # başka bir evin patikasına bağlandı
-			painted[cur] = 1
 			cur = parent[cur]
-		if prev != run_a:
-			RMc.add_lane(run_a, prev, 1.25, true)
+		if cells.size() > 24:
+			orphan += 1
+			continue   # 70 m'den uzun: tarlanın ortasından dolanan patika çizilmez (karman çorman görünüyordu)
+		linked += 1
+		for cc in cells:
+			painted[cc] = 1
+		# düzleştirme: engel (yapı içi) yoksa ileriki en uzak noktaya düz çizgi — 8 yönlü ızgara zikzağı kalkar
+		var ia = 0
+		while ia < chain.size() - 1:
+			var ib = chain.size() - 1
+			while ib > ia + 1:
+				var pa: Vector2 = chain[ia]
+				var pb: Vector2 = chain[ib]
+				var clear = true
+				var n_s = int(pa.distance_to(pb) / 1.5) + 1
+				for si in range(1, n_s):
+					var m = pa.lerp(pb, float(si) / n_s)
+					var mi = int((m.x - ox) / CELL)
+					var mj = int((m.y - oz) / CELL)
+					if mi < 0 or mj < 0 or mi >= N or mj >= N or blocked[mj * N + mi] == 2:
+						clear = false
+						break
+				if clear:
+					break
+				ib -= 1
+			RMc.add_lane(chain[ia], chain[ib], 1.25, true)
 			lanes += 1
+			ia = ib
 	print("Konoha patika: ", _path_doors.size(), " kapı, ", linked, " bağlı, ", orphan, " ulaşılamadı, ", lanes, " parça, ", Time.get_ticks_msec() - t0, " ms")
 
 

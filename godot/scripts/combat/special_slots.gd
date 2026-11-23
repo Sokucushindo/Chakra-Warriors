@@ -46,9 +46,9 @@ static func refresh(pr: Dictionary) -> Array:
 			out.append(id)
 		else:
 			Data.jutsu.erase(id)
-	if not (pr.get("beast_ms", []) as Array).is_empty():
+	if not TailedBeasts.ms_pool().is_empty():
 		Data.jutsu[MS_BIJUU_ID] = {"name": "Bijū Kuchiyose (Mangekyō)", "cost": 120, "cd": 60.0, "element": "", "category": "dojutsu", "canon_rank": "S",
-			"seals": [], "virtual": "msbijuu", "desc": "Sharingan'la boyun eğdirdiğin kuyruklu canavarı 40 sn savaşa çağırır (gözler açık olmalı). Birden çoksa sırayla gelir."}
+			"seals": [], "virtual": "msbijuu", "desc": "Sharingan'la boyun eğdirdiğin ya da mühür kabında tuttuğun kuyruklu canavarı 40 sn savaşa çağırır; gözleri Sharingan olur, emrine girer (Mangekyō açık olmalı). Hangisinin geleceğini Çağrılar sekmesinden seçersin."}
 		out.append(MS_BIJUU_ID)
 	else:
 		Data.jutsu.erase(MS_BIJUU_ID)

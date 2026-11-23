@@ -500,6 +500,8 @@ func _talk(key: String) -> void:
 	if mates.size() > 1 and not mates.any(func(m): return bool(m.get("medic", false))):
 		mates[1]["medic"] = true
 	if key != "sensei" and bool(mates[int(key.substr(1))].get("medic", false)):
+		var mf: Dictionary = Friends.all().get(fid(key), {})
+		EyeSurgery.medic_lv = float(mf.get("pupil_lv", mf.get("level", maxf(5.0, float(pr().get("level", 10)) - 1.0))))
 		var eo = EyeSurgery.options("medic")
 		if not eo.is_empty():
 			extra.append({"label": "Kavanozdaki gözü bana tak (sahada nakil)", "cb": func():
