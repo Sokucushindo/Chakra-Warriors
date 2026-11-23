@@ -462,7 +462,7 @@ static func plate_mesh(center: Vector3, d: Vector3, strip: bool, R: float, W := 
 				x = (float(ix) / nx * 2.0 - 1.0) * R
 				z = (float(iz) / nz * 2.0 - 1.0) * R
 			var wpos = center + side * x + fwd * z
-			var y = Game.jutsu_floor(wpos.x, wpos.z) - center.y + 0.035
+			var y = Game.jutsu_floor_at(wpos).y - center.y + 0.035
 			sf.set_color(Color(0.85, 0.87, 0.9))
 			sf.set_uv(Vector2.ZERO)
 			sf.add_vertex(Vector3(x, y, z))
@@ -554,7 +554,7 @@ static func _toss(mi: MeshInstance3D, p0: Vector3, v0: Vector3, tumble: Vector3,
 			return
 		var lt = tt - stt["t0"]
 		var p = stt["p0"] + stt["v0"] * lt + Vector3.DOWN * 0.5 * G * lt * lt
-		var fl = Game.jutsu_floor(p.x, p.z)
+		var fl = Game.jutsu_floor_at(p).y
 		if lt > 0.02 and p.y <= fl + s * 0.1:
 			var v = stt["v0"] + Vector3.DOWN * G * lt
 			if not stt["bounced"]:   # tek sekme (metal tıngırdar)
@@ -596,7 +596,7 @@ static func scrape(pj: PathJutsu, pos: Vector3, R: float, n: int, dur: float, ho
 			dir = dir.rotated(Vector3.UP, randf_range(-0.35, 0.35))
 			var q = p + dir * L / segn
 			var mid = (p + q) * 0.5
-			mid.y = Game.jutsu_floor(c.x + mid.x, c.z + mid.z) - c.y + 0.04
+			mid.y = Game.jutsu_floor_at(Vector3(c.x + mid.x, c.y, c.z + mid.z)).y - c.y + 0.04
 			var ry = rad_to_deg(atan2(dir.x, dir.z))
 			bm.add("box", mid, Vector3(wd, 0.02, L / segn + 0.05), Color.WHITE, Vector3(0, ry, 0), 4)
 			bh.add("box", mid + Vector3.UP * 0.01, Vector3(wd * 0.28, 0.02, L / segn), Color.WHITE, Vector3(0, ry, 0), 4)
@@ -718,7 +718,7 @@ static func cloth_tear(pj: PathJutsu, c: Node3D, n: int) -> void:
 		tw.set_parallel(true)
 		tw.tween_property(mi, "global_position", p1, 0.5).set_ease(Tween.EASE_OUT)
 		tw.tween_property(mi, "rotation", Vector3(randf_range(-6, 6), randf_range(-6, 6), randf_range(-6, 6)), 0.9)
-		tw.chain().tween_property(mi, "global_position", Game.jutsu_floor(p1.x, p1.z) * Vector3.UP + Vector3(p1.x, 0, p1.z), 0.9).set_ease(Tween.EASE_IN)
+		tw.chain().tween_property(mi, "global_position", Game.jutsu_floor_at(p1).y * Vector3.UP + Vector3(p1.x, 0, p1.z), 0.9).set_ease(Tween.EASE_IN)
 		tw.chain().tween_property(mi, "scale", Vector3.ONE * 0.05, 0.3)
 		tw.chain().tween_callback(mi.queue_free)
 
@@ -821,7 +821,7 @@ static func kodan(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			var drop = _gl(MudFX.lump_mesh(1, 0.0), 1.0, 0.0)
 			pj.scene_add(drop, now)
 			drop.scale = Vector3.ONE * 0.06
-			var fl = Game.jutsu_floor(now.x, now.z)
+			var fl = Game.jutsu_floor_at(now).y
 			var dtw = drop.create_tween()
 			dtw.tween_property(drop, "global_position", Vector3(now.x, fl, now.z), clampf((now.y - fl) * 0.18, 0.1, 0.6)).set_ease(Tween.EASE_IN)
 			dtw.tween_property(drop, "scale", Vector3(0.12, 0.02, 0.12), 0.08)
@@ -1169,7 +1169,7 @@ static func kosa(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 					lk.queue_free()
 					continue
 				var p: Vector3 = lk.global_position
-				var fl = Game.jutsu_floor(p.x, p.z)
+				var fl = Game.jutsu_floor_at(p).y
 				var ltw = lk.create_tween()
 				ltw.set_parallel(true)
 				ltw.tween_property(lk, "global_position", Vector3(p.x, fl + 0.03, p.z), clampf((p.y - fl) * 0.25, 0.1, 0.45)).set_ease(Tween.EASE_IN)

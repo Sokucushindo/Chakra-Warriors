@@ -44,7 +44,7 @@ static func _gust_path(p0: Vector3, d: Vector3, L: float, side: Vector3, up: Vec
 
 ## Merkezden dışa kıvrılarak kaçan kısa çizgiler (darbe anı)
 static func _radial_lines(host: Node, at: Vector3, r: float, n: int, w: float, life: float, tint := WHITE, flat := false) -> void:
-	var gy = Game.jutsu_floor(at.x, at.z)
+	var gy = Game.jutsu_floor_at(at).y
 	for i in n:
 		var a = TAU * i / n + randf_range(-0.2, 0.2)
 		var dir = Vector3(cos(a), (randf_range(-0.05, 0.25) if flat else randf_range(-0.5, 0.8)), sin(a)).normalized()
@@ -81,7 +81,7 @@ static func _daitoppa_wave(host: Node, mo: Vector3, d0: Vector3, reach: float, w
 	var d = d0.normalized()
 	var side = FutonLib.side_of(d)
 	var up = FutonLib.up_of(d)
-	var gy = Game.jutsu_floor(mo.x, mo.z)
+	var gy = Game.jutsu_floor_at(mo).y
 	FutonLib.warp(host, mo, 0.3, 3.0 if first else 2.2, 0.35, {"power": 1.8, "glint": 0.5})
 	# yelpaze perdeleri: ağızda dar, ileride geniş; alttakiler yere yapışıp toz bandını taşır
 	var ns = 7 if first else 5
@@ -321,7 +321,7 @@ static func futon_fujin_no_jutsu(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	var dc = FutonLib.ground_col(at)
 	var tint = Color(lerpf(DUST_GREY.r, dc.r, 0.4), lerpf(DUST_GREY.g, dc.g, 0.4), lerpf(DUST_GREY.b, dc.b, 0.4), 0.95)
 	var side = FutonLib.side_of(d)
-	var gy = Game.jutsu_floor(at.x, at.z)
+	var gy = Game.jutsu_floor_at(at).y
 	for i in 5:
 		var s0 = randf_range(-0.5, 0.5)
 		var ph = randf() * TAU
@@ -632,7 +632,7 @@ static func daikamaitachi_no_jutsu(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		var o = c.global_position + Vector3.UP * 1.4
 		Dangle.gust(o + d * 15.0, d * 28.0, 20.0, 0.7)
 		var side = FutonLib.side_of(d)
-		var gy = Game.jutsu_floor(o.x, o.z)
+		var gy = Game.jutsu_floor_at(o).y
 		for i in 9:
 			var s0 = lerpf(-1.0, 1.0, (i + 0.5) / 9.0)
 			var u0 = randf_range(-0.2, 0.9)

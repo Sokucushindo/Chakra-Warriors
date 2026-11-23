@@ -1857,7 +1857,7 @@ static func tsuchigumo_shizen_kosoku(pj: PathJutsu, c: Node3D, t: Node3D) -> voi
 		for q in 18:
 			var u = float(q) / 17.0
 			var p = from.lerp(at, u) + sd * sin(u * PI * (2.0 + v) + v * 1.7) * 0.5 * sin(u * PI)
-			p.y = Game.jutsu_floor(p.x, p.z) + 0.06
+			p.y = Game.jutsu_floor_at(p).y + 0.06
 			pts.append(p)
 			ws.append(0.14 * (1.0 - u * 0.4))
 			nrm.append(Vector3.UP)
@@ -2628,7 +2628,7 @@ static func uzumaki_fuinjutsu(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	var nseg = maxi(2, int(L / 0.5) + 1)
 	for q in nseg:
 		var p = from.lerp(cen - d * 3.0, float(q) / float(nseg - 1)) if L > 3.5 else from.lerp(cen, float(q) / float(nseg - 1))
-		p.y = Game.jutsu_floor(p.x, p.z) + 0.05
+		p.y = Game.jutsu_floor_at(p).y + 0.05
 		pts.append(p)
 		ws.append(0.5)
 		nr.append(Vector3.UP)

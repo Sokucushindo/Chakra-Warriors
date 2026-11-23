@@ -101,7 +101,7 @@ static func _numb(f: Node3D) -> void:
 
 
 static func burst(who: Node3D, pos: Vector3) -> void:
-	var fl = Game.jutsu_floor(pos.x, pos.z)
+	var fl = Game.jutsu_floor_at(pos).y
 	var c = Vector3(pos.x, fl + 0.4 if pos.y - fl < 3.0 else pos.y, pos.z)
 	var s = {"t": 0.0, "acc": 0.0, "mi": null}
 	var fn = func(dt: float) -> bool:

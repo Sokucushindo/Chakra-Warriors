@@ -432,7 +432,7 @@ static func ressenpu(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 
 static func _ressen_sweep(pj: PathJutsu, from: Vector3, d: Vector3) -> void:
 	var sd = FutonLib.side_of(d)
-	var gy = Game.jutsu_floor(from.x, from.z)
+	var gy = Game.jutsu_floor_at(from).y
 	for i in 3:
 		var h = [0.35, 0.9, 1.5][i]
 		var ph = randf() * TAU
@@ -709,7 +709,7 @@ static func _beast_wave(pj: PathJutsu, o: Vector3, d: Vector3, side: Vector3, sg
 	tw.tween_method(func(q: float):
 		if is_instance_valid(root):
 			var p = start + d * 16.0 * q + side * sgn * sin(q * PI) * 1.6
-			p.y = Game.jutsu_floor(p.x, p.z)
+			p.y = Game.jutsu_floor_at(p).y
 			root.global_position = p, 0.0, 1.0, 0.6)
 	tw.tween_interval(0.25)
 	tw.tween_callback(root.queue_free)
@@ -952,7 +952,7 @@ static func _fan_open(fan: Dictionary, k: int) -> void:
 
 
 static func _fan_gale(pj: PathJutsu, o: Vector3, d: Vector3, reach: float, half_deg: float, k: int) -> void:
-	var gy = Game.jutsu_floor(o.x, o.z)
+	var gy = Game.jutsu_floor_at(o).y
 	var n_s = 3 + k * 2
 	var n_l = 6 + k * 4
 	var sweep = 1.0 if k % 2 == 0 else -1.0

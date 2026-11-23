@@ -526,7 +526,7 @@ static func look(n: Node3D, dirv: Vector3) -> void:
 
 
 static func floor_at(p: Vector3) -> Vector3:
-	return Vector3(p.x, Game.jutsu_floor(p.x, p.z), p.z)
+	return Game.jutsu_floor_at(p)
 
 
 static func side_of(d: Vector3) -> Vector3:
@@ -884,7 +884,7 @@ static func toss(host: Node, mi: Node3D, p0: Vector3, v: Vector3, life: float, g
 		if not is_instance_valid(mi) or stt["land"]:
 			return
 		var pos = p0 + v * tm + Vector3.DOWN * 0.5 * g * tm * tm
-		var fy = Game.jutsu_floor(pos.x, pos.z) + 0.05
+		var fy = Game.jutsu_floor_at(pos).y + 0.05
 		if pos.y < fy and tm > 0.05:
 			pos.y = fy
 			stt["land"] = true

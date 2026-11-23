@@ -382,7 +382,7 @@ static func cam_pos() -> Vector3:
 
 
 static func floor_at(p: Vector3) -> Vector3:
-	return Vector3(p.x, Game.jutsu_floor(p.x, p.z), p.z)
+	return Game.jutsu_floor_at(p)
 
 
 static func rdir() -> Vector3:
@@ -620,7 +620,7 @@ static func ground_path(a: Vector3, b: Vector3, rough: float, depth: int, lift :
 	var pts = jag(a, b, rough, depth, true)
 	for i in pts.size():
 		var p: Vector3 = pts[i]
-		pts[i] = Vector3(p.x, Game.jutsu_floor(p.x, p.z) + lift, p.z)
+		pts[i] = Vector3(p.x, Game.jutsu_floor_at(p).y + lift, p.z)
 	return pts
 
 
@@ -959,7 +959,7 @@ static func dust_ring(g: Vector3, r0: float, r1: float, dur: float, col := Color
 		for i in nseg + 1:
 			var a = TAU * i / nseg
 			var q = g + Vector3(cos(a), 0, sin(a)) * r * float(wob[i])
-			line.append(Vector3(q.x, Game.jutsu_floor(q.x, q.z) + 0.15 + f * 0.3, q.z))
+			line.append(Vector3(q.x, Game.jutsu_floor_at(q).y + 0.15 + f * 0.3, q.z))
 		draw(im, m, [{"p": line, "w": 0.25 + f * 0.6, "a": 1.0 - f, "k": 2}], 1.0, cam_pos(), true)
 		return true)
 
@@ -987,7 +987,7 @@ static func debris(g: Vector3, n: int, speed := 6.0, col := Color(0.42, 0.38, 0.
 			var vv: Vector3 = stt["v"]
 			vv.y -= 16.0 * dt
 			var np = mi.global_position + vv * dt
-			var fl = Game.jutsu_floor(np.x, np.z)
+			var fl = Game.jutsu_floor_at(np).y
 			if np.y < fl + 0.05:
 				np.y = fl + 0.05
 				vv = vv * 0.3

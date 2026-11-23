@@ -212,7 +212,7 @@ static func _coil(who: Node3D, tg, f: Vector3, D: float, from: Vector3, dmg: flo
 ## Hebi Tobi: uç ileride yere saplanır, gövde kısalıp kullanıcıyı yol boyunca çeker
 static func _snake_jump(who: Node3D, from: Vector3, flat: Vector3, D: float, dmg: float) -> void:
 	var anchor = who.global_position + flat * (D + 1.5)
-	anchor.y = Game.jutsu_floor(anchor.x, anchor.z) + 0.1
+	anchor.y = Game.jutsu_floor_at(anchor).y + 0.1
 	var start = who.global_position
 	var land = PlayerCombat.safe_dest(who, start, anchor - flat * 0.8)
 	var done: Array = []

@@ -88,7 +88,7 @@ static func _wave(c: Vector3, f: Vector3, s: Vector3, r: float, a0: float, a1: f
 
 
 static func _floor_at(p: Vector3) -> Vector3:
-	return Vector3(p.x, Game.jutsu_floor(p.x, p.z) + 0.03, p.z)
+	return Vector3(p.x, Game.jutsu_floor_at(p).y + 0.03, p.z)
 
 
 static func _beam(from: Vector3, to: Vector3) -> void:

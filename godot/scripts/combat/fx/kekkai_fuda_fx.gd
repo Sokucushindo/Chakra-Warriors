@@ -104,7 +104,7 @@ static func _ring(c: Vector3) -> MeshInstance3D:
 		var d = Vector3(cos(a), 0, sin(a))
 		for s in [-1.0, 1.0]:
 			var p: Vector3 = c + d * (R + s * 0.11)
-			p.y = Game.jutsu_floor(p.x, p.z) + 0.04
+			p.y = Game.jutsu_floor_at(p).y + 0.04
 			im.surface_set_uv(Vector2(float(i) / n, 0.5 + s * 0.5))
 			im.surface_add_vertex(p)
 	im.surface_end()
@@ -128,7 +128,7 @@ static func _ripple(at: Vector3, n: Vector3) -> void:
 
 
 static func raise(who: Node3D, pos: Vector3) -> void:
-	var c = Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z), pos.z)
+	var c = Game.jutsu_floor_at(pos)
 	var s = {"t": 0.0, "acc": 0.0, "tags": [], "inside": {}, "ring": null, "tear": {}}
 	var oid = who.get_instance_id()
 	var fn = func(dt: float) -> bool:
@@ -138,7 +138,7 @@ static func raise(who: Node3D, pos: Vector3) -> void:
 		var a = PI * 0.25 + k * PI * 0.5
 		var off = Vector3(cos(a), 0, sin(a)) * R
 		var g = c + off
-		g.y = Game.jutsu_floor(g.x, g.z)
+		g.y = Game.jutsu_floor_at(g).y
 		var mi = MeshInstance3D.new()
 		mi.mesh = _stake()
 		root.add_child(mi)

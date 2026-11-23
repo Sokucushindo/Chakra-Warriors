@@ -358,7 +358,7 @@ static func put(h: Node, n: Node3D, pos: Vector3) -> Node3D:
 
 
 static func ground(p: Vector3) -> Vector3:
-	return Vector3(p.x, Game.jutsu_floor(p.x, p.z), p.z)
+	return Game.jutsu_floor_at(p)
 
 
 static func free_later(h: Node, n: Node, t: float) -> void:

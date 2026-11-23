@@ -150,7 +150,7 @@ static func _vc() -> StandardMaterial3D:
 
 
 static func _near_ground(p: Vector3, h := 2.5) -> bool:
-	return p.y - Game.jutsu_floor(p.x, p.z) < h
+	return p.y - Game.jutsu_floor_at(p).y < h
 
 
 ## a → b arası n eşit nokta (inceltmeli şeritler için)
@@ -571,7 +571,7 @@ static func _toll(cen: Vector3, k: int, col: Color) -> void:
 					var a = lerpf(a0, a1, i / 5.0)
 					var rr = r + randf_range(-0.18, 0.18)
 					var p = cen + Vector3(cos(a) * rr, 0, sin(a) * rr)
-					pts.append(Vector3(p.x, Game.jutsu_floor(p.x, p.z) + 0.08, p.z))
+					pts.append(Vector3(p.x, Game.jutsu_floor_at(p).y + 0.08, p.z))
 				polys.append({"p": pts, "w": 0.06, "a": 1.0})
 				var mid: Vector3 = pts[3]
 				var hgt = (1.1 - age * 2.2) * randf_range(0.5, 1.0)
@@ -586,7 +586,7 @@ static func _toll(cen: Vector3, k: int, col: Color) -> void:
 	for i in 49:
 		var a = TAU * i / 48.0
 		var q = cen + Vector3(cos(a), 0, sin(a)) * rmax * randf_range(0.97, 1.03)
-		trace.append(Vector3(q.x, Game.jutsu_floor(q.x, q.z) + 0.05, q.z))
+		trace.append(Vector3(q.x, Game.jutsu_floor_at(q).y + 0.05, q.z))
 	var dm = _ink(Color(0.1, 0.12, 0.2, 0.75))
 	L.host(func(im, _n, _dt, age) -> bool:
 		if age > 1.9:
@@ -1464,7 +1464,7 @@ static func _panther_pounce(pj: PathJutsu, c: Node3D, tt: Node3D, from: Vector3,
 	pr.homing_turn = 4.0
 	pr.radius = 1.2
 	pr.on_tick = func(p, _dt):
-		p.global_position.y = Game.jutsu_floor(p.global_position.x, p.global_position.z) + 0.9
+		p.global_position.y = Game.jutsu_floor_at(p.global_position).y + 0.9
 	_panther_wake(pr, s)
 	return pr
 
@@ -1743,7 +1743,7 @@ static func _straight_blast(at: Vector3, d: Vector3) -> void:
 		for dv in fan:
 			var s0 = g + Vector3(dv) * (1.0 + f * 5.0)
 			var e0 = s0 + Vector3(dv) * (1.2 + f * 1.5)
-			polys.append({"p": [Vector3(s0.x, Game.jutsu_floor(s0.x, s0.z) + 0.2, s0.z), Vector3(e0.x, Game.jutsu_floor(e0.x, e0.z) + 0.25, e0.z)], "w": 0.3 + f * 0.4, "a": 1.0, "k": 2})
+			polys.append({"p": [Vector3(s0.x, Game.jutsu_floor_at(s0).y + 0.2, s0.z), Vector3(e0.x, Game.jutsu_floor_at(e0).y + 0.25, e0.z)], "w": 0.3 + f * 0.4, "a": 1.0, "k": 2})
 		L.draw(im, sm, polys, 1.0 - f, L.cam_pos(), true)
 		return true)
 	L.debris(g + d * 1.5, 8, 7.0, DUST.darkened(0.3), d * 0.8)

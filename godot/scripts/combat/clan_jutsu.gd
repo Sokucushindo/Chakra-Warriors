@@ -92,7 +92,7 @@ func J() -> Node:
 
 
 func gp(p: Vector3) -> Vector3:
-	return Vector3(p.x, Game.jutsu_floor(p.x, p.z), p.z)
+	return Game.jutsu_floor_at(p)
 
 
 func mult(c: Node3D) -> float:
@@ -3611,7 +3611,7 @@ func c_ikazuchi_koga(c: Node3D, t: Node3D) -> void:
 		var off = sin(st0["t"] * w) * 1.8
 		p.global_position += side * (off - st0["off"])
 		st0["off"] = off
-		p.global_position.y = Game.jutsu_floor(p.global_position.x, p.global_position.z) + 0.9
+		p.global_position.y = Game.jutsu_floor_at(p.global_position).y + 0.9
 		# gövde zikzak yönüne döner (yanal hız / ileri hız)
 		if is_instance_valid(hound):
 			hound.rotation.y = -atan2(cos(st0["t"] * w) * 1.8 * w, spd)

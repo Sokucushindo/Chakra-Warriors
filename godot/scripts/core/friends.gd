@@ -1178,7 +1178,7 @@ func _spawn(id: String) -> Node:
 	var pp = Game.player.global_position
 	var back = -Game.player.face_dir() if Game.player.has_method("face_dir") else Vector3.BACK
 	var q = pp + back * 4.0 + back.cross(Vector3.UP) * randf_range(-3.0, 3.0)
-	q.y = Game.jutsu_floor(q.x, q.z)
+	q.y = Game.jutsu_floor_at(q).y
 	e.global_position = q
 	e.home = q
 	FX.smoke_puff(q + Vector3.UP, 0.8, 10)
@@ -2774,7 +2774,7 @@ func _process(dt: float) -> void:
 			n.home = pp + off
 			if n.global_position.distance_to(pp) > 60.0:
 				var q = pp + off
-				q.y = Game.jutsu_floor(q.x, q.z)   # mağarada oda zemini (arazi 1500 m aşağıda)
+				q.y = Game.jutsu_floor_at(q).y   # mağarada oda zemini (arazi 1500 m aşağıda)
 				FX.smoke_puff(n.global_position + Vector3.UP, 0.6, 8)
 				n.global_position = q
 				n.target = null

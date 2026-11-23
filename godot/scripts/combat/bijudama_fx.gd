@@ -225,7 +225,7 @@ static func _cracks(g: Vector3, size: float, dur: float) -> void:
 	var m := _smat(_CRACK_SH, "crack")
 	mi.material_override = m
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	var y := Game.jutsu_floor(g.x, g.z) + 0.06 + size * 0.03
+	var y := Game.jutsu_floor_at(g).y + 0.06 + size * 0.03
 	if not _add(mi, Vector3(g.x, y, g.z)):
 		return
 	mi.global_transform = Transform3D(Basis(Vector3.RIGHT, -PI * 0.5).rotated(Vector3.UP, randf() * TAU).scaled(Vector3.ONE * size * 0.5), Vector3(g.x, y, g.z))

@@ -268,7 +268,7 @@ static func _shadow(who: Node3D, tg) -> void:
 		for i in 13:
 			var u = i / 12.0 * k
 			var q = from + f * L * u
-			q.y = Game.jutsu_floor(q.x, q.z) + 0.04
+			q.y = Game.jutsu_floor_at(q).y + 0.04
 			var w = 0.2 + 0.06 * sin(u * 14.0 + t * 8.0)
 			im.surface_set_uv(Vector2(u, 0))
 			im.surface_add_vertex(q - side * w)

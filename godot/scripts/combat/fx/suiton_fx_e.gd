@@ -257,7 +257,7 @@ static func _slowmo(h: Node, s: float, real_dur: float) -> void:
 
 
 static func _near_ground(p: Vector3, lim := 1.6) -> bool:
-	return p.y - Game.jutsu_floor(p.x, p.z) < lim
+	return p.y - Game.jutsu_floor_at(p).y < lim
 
 
 # ------------------------------------------------------------------ meshler (gerçek boy)
@@ -1798,12 +1798,12 @@ static func suiton_suikosandan_no_jutsu(pj: PathJutsu, c: Node3D, t: Node3D) -> 
 				var dn = dir0.normalized() if Lr > 0.1 else d
 				var sd = dn.cross(Vector3.UP)
 				var a: Vector3 = from + dn * maxf(0.0, Lr - 2.8)
-				a.y = Game.jutsu_floor(a.x, a.z)
+				a.y = Game.jutsu_floor_at(a).y
 				var p: Vector3
 				if u < 0.62:   # yerin içinden: yalnız sırt yüzgeci görünür
 					var q = u / 0.62
 					p = from.lerp(a, q) + sd * sin(q * 7.0 + ph) * 0.7 * (1.0 - q)
-					p.y = Game.jutsu_floor(p.x, p.z) - sink
+					p.y = Game.jutsu_floor_at(p).y - sink
 					_shark_pose(sh, i * 0.025, 0.0, 1.5)
 					if i % 2 == 0:   # yüzgecin açtığı V dalgası
 						L.ripple(pj, p, 0.15, 0.9, 0.4, {"foam": 1.0, "alpha": 0.75})

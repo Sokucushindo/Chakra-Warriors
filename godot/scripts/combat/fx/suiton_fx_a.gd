@@ -94,14 +94,25 @@ static func kirigakure_no_jutsu(js, c: Node3D, _t: Node3D) -> void:
 		var rr = r * randf_range(0.2, 0.85)
 		L.mist(js, Vector3(cos(a) * rr, 0.5, sin(a) * rr), randf_range(10.0, 13.0), dur * 0.75, {"parent": mass, "alpha": 0.6,
 			"drift": Vector3(cos(a), 0, sin(a)) * 2.0, "s0": 0.3, "grow": 0.4, "near": 5.0, "fin": 0.15, "fout": 0.3})
-	if Game.world:
-		Game.world.env.set_tint(Color(0.85, 0.88, 0.95, 0.35))
-		js.get_tree().create_timer(dur).timeout.connect(func(): Game.world.env.set_tint(Color(0, 0, 0, 0)))
+	# ekran pusu yalnız oyuncu sisin İÇİNDEYKEN (eskiden uzaktaki NPC atınca bile tüm ekran beyazlıyor, tekrar atınca hiç kalkmıyordu)
+	_mist_tint_tick(js, pos, r * 1.15, Time.get_ticks_msec() + int(dur * 1000.0), false)
 	for f in js.get_tree().get_nodes_in_group("fighters"):
 		if Combat.hostile(c, f) and f.global_position.distance_to(pos) < r * 1.5 and f.has_method("lose_target"):
 			f.lose_target(dur * 0.7)
 	if c is Player:
 		Buffs.add("kirigakure", dur, {"stealth": 1.0})
+
+
+## Sis pusu: oyuncu sis alanına girince ekran beyazlar, çıkınca / sis bitince kalkar (0.3 sn'de bir denetlenir)
+static func _mist_tint_tick(js: Node, pos: Vector3, r: float, end_ms: int, on: bool) -> void:
+	if not is_instance_valid(js) or Game.world == null:
+		return
+	var pl = Game.player
+	var inside: bool = Time.get_ticks_msec() < end_ms and pl != null and is_instance_valid(pl) and Vector2(pl.global_position.x - pos.x, pl.global_position.z - pos.z).length() < r and absf(pl.global_position.y - pos.y) < 14.0
+	if inside != on:
+		Game.world.env.set_tint(Color(0.85, 0.88, 0.95, 0.35) if inside else Color(0, 0, 0, 0))
+	if Time.get_ticks_msec() < end_ms or inside:
+		js.get_tree().create_timer(0.3).timeout.connect(_mist_tint_tick.bind(js, pos, r, end_ms, inside))
 
 
 # ================================================================== Suirō no Jutsu (Jutsu otomatik yüklemesi)

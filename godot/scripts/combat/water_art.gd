@@ -32,7 +32,7 @@ static var _crowns: Array = []
 static func splash(pos: Vector3, s := 1.0) -> void:
 	if VFX.busy():
 		return
-	var g = Game.jutsu_floor(pos.x, pos.z)
+	var g = Game.jutsu_floor_at(pos).y
 	var base = Vector3(pos.x, maxf(g, pos.y - s * 0.6), pos.z)
 	if pos.y - g < 1.5 + s:
 		sheet(Vector3(pos.x, g + 0.04, pos.z), s * 1.6, 1.1)
@@ -287,7 +287,7 @@ static func puffs(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
 ## Halka kartı yerine: yerde (düz) su örtüsü; dik halka ise küçük sprey
 static func ring(pos: Vector3, _col: Color, size := 6.0, dur := 0.4, flat := true, normal := Vector3.UP) -> void:
 	if flat and normal.y > 0.7:
-		sheet(Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z) + 0.04, pos.z), size * 0.5, maxf(0.6, dur * 2.0))
+		sheet(Vector3(pos.x, Game.jutsu_floor_at(pos).y + 0.04, pos.z), size * 0.5, maxf(0.6, dur * 2.0))
 	else:
 		spray(pos, clampf(size * 0.15, 0.3, 1.5), normal, 60.0, 0.8)
 

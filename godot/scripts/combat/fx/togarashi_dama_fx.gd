@@ -106,7 +106,7 @@ static func launch(who: Node3D, start: Vector3, dir: Vector3, _target: Node3D) -
 
 
 static func burst(pos: Vector3) -> void:
-	var fl = Game.jutsu_floor(pos.x, pos.z)
+	var fl = Game.jutsu_floor_at(pos).y
 	var base = Vector3(pos.x, fl if pos.y - fl < 3.0 else pos.y - 1.0, pos.z)
 	var s = {"t": 0.0, "acc": 0.0, "mi": null, "pop": {}}
 	var fn = func(dt: float) -> bool:

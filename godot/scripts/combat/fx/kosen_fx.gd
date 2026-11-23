@@ -219,7 +219,7 @@ static func _anchor(from: Vector3, d: Vector3, who: Node3D) -> Vector3:
 	if not hit.is_empty():
 		return hit["position"]
 	var p = from + d * TRAP_HALF
-	p.y = Game.jutsu_floor(p.x, p.z) + 0.3
+	p.y = Game.jutsu_floor_at(p).y + 0.3
 	return p
 
 
@@ -227,7 +227,7 @@ static func _trap(who: Node3D, pos: Vector3, f: Vector3) -> void:
 	if f.length() < 0.1:
 		f = Vector3.FORWARD
 	var side = Vector3.UP.cross(f).normalized()
-	var c = Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z) + 0.3, pos.z)
+	var c = Vector3(pos.x, Game.jutsu_floor_at(pos).y + 0.3, pos.z)
 	var a = _anchor(c, side, who)
 	var b = _anchor(c, -side, who)
 	var s = {"t": 0.0, "acc": 0.0}

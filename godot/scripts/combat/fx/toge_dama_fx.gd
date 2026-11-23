@@ -89,8 +89,8 @@ static func burst(who: Node3D, at: Vector3, mult: float) -> void:
 				v.y -= 16.0 * dt
 				e["v"] = v
 				var p: Vector3 = (e["p"] as Vector3) + v * dt
-				if p.y <= Game.jutsu_floor(p.x, p.z):
-					p.y = Game.jutsu_floor(p.x, p.z) + 0.02
+				if p.y <= Game.jutsu_floor_at(p).y:
+					p.y = Game.jutsu_floor_at(p).y + 0.02
 					e["fly"] = false
 				e["p"] = p
 				if is_instance_valid(who):

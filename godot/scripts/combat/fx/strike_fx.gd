@@ -736,7 +736,7 @@ static func _disc_mesh(c: Vector3, R: float, r_in: float, col: Color, edge_col: 
 	var st = SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var vert = func(x: float, z: float, rf: float, af: float) -> Array:
-		var y = Game.jutsu_floor(c.x + x, c.z + z) - c.y + lift
+		var y = Game.jutsu_floor_at(Vector3(c.x + x, c.y, c.z + z)).y - c.y + lift
 		return [Vector3(x, y, z), Vector3.UP, Vector2(af, 0.5 + 0.5 * rf), col.lerp(edge_col, rf)]
 	var grid = []
 	for i in nr + 1:
@@ -799,7 +799,7 @@ static func _fly(mi: MeshInstance3D, p0: Vector3, v0: Vector3, g: float, tum: Ve
 		if stt["done"] or not is_instance_valid(mi):
 			return
 		var p = p0 + v0 * q + Vector3.DOWN * 0.5 * g * q * q
-		var fl = Game.jutsu_floor(p.x, p.z)
+		var fl = Game.jutsu_floor_at(p).y
 		if q > 0.04 and p.y <= fl:
 			stt["done"] = true
 			on_land.call(mi, Vector3(p.x, fl, p.z))
@@ -863,7 +863,7 @@ static func _leaf(pj: PathJutsu, p0: Vector3, v: Vector3, s: float) -> void:
 		var hz = Vector3(v.x, 0, v.z) * (1.0 - exp(-2.2 * q)) / 2.2
 		var y = v.y * (1.0 - exp(-3.0 * q)) / 3.0 - 1.1 * q
 		var p = p0 + hz + Vector3.UP * y + sw * sin(q * 4.0 + ph) * 0.35
-		var fl = Game.jutsu_floor(p.x, p.z)
+		var fl = Game.jutsu_floor_at(p).y
 		if q > 0.15 and p.y <= fl + 0.02:
 			stt["done"] = true
 			_land_soft(1.2).call(mi, Vector3(p.x, fl, p.z))
@@ -989,8 +989,8 @@ static func _ground_strip(pj: PathJutsu, pts: Array, widths: Array, col: Color, 
 		var sd = Vector3(-tv.z, 0, tv.x).normalized() * widths[i] * 0.5
 		var l = pts[i] - sd
 		var r = pts[i] + sd
-		l.y = Game.jutsu_floor(l.x, l.z) + lift
-		r.y = Game.jutsu_floor(r.x, r.z) + lift
+		l.y = Game.jutsu_floor_at(l).y + lift
+		r.y = Game.jutsu_floor_at(r).y + lift
 		lr.append([l - gp0, r - gp0])
 	for i in n - 1:
 		var u0 = float(i) / (n - 1)

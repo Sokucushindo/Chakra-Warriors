@@ -267,7 +267,7 @@ static func strike(who: Node3D, i: int, dmg: float) -> void:
 		var side = f.normalized().cross(Vector3.UP)
 		for k in u:
 			var q = aim + side * (k - 1) * 2.4
-			q.y = Game.jutsu_floor(q.x, q.z)
+			q.y = Game.jutsu_floor_at(q).y
 			_bomb(who, q, dmg * 0.75)
 	else:
 		for k in 6:

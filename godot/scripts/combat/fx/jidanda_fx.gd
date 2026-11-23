@@ -168,7 +168,7 @@ static func _swing(who: Node3D, T: float, path: Callable, tick := Callable(), ro
 
 
 static func _ground(p: Vector3, r := 0.93) -> Vector3:
-	return Vector3(p.x, Game.jutsu_floor(p.x, p.z) + r, p.z)
+	return Vector3(p.x, Game.jutsu_floor_at(p).y + r, p.z)
 
 
 # ------------------------------------------------------------------ patlama / darbe

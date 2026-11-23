@@ -451,7 +451,7 @@ static func put(h: Node, n: Node3D, pos: Vector3) -> Node3D:
 
 
 static func ground(p: Vector3) -> Vector3:
-	return Vector3(p.x, Game.jutsu_floor(p.x, p.z), p.z)
+	return Game.jutsu_floor_at(p)
 
 
 static func later(h: Node, t: float, fn: Callable) -> void:
@@ -901,7 +901,7 @@ static func debris(h: Node, pos: Vector3, o := {}) -> void:
 	var pal = float(o.get("pal", ICE))
 	var life = float(o.get("life", 1.1))
 	var dirb: Vector3 = o.get("dir", Vector3.ZERO)
-	var flo = Game.jutsu_floor(pos.x, pos.z)
+	var flo = Game.jutsu_floor_at(pos).y
 	for i in n:
 		var mi = imi(chunk_mesh(s * randf_range(0.6, 1.3), i % 5), {"pal": pal, "alpha": 0.9, "near": 1.5})
 		put(h, mi, pos + Vector3(randf_range(-1, 1), randf_range(-0.5, 0.5), randf_range(-1, 1)) * float(o.get("r", 0.4)))

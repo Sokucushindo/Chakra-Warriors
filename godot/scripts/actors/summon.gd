@@ -331,7 +331,7 @@ func _ai(dt: float) -> void:
 	velocity.x = wish.x
 	velocity.z = wish.z
 	if fly:
-		var gh = Game.jutsu_floor(global_position.x, global_position.z)
+		var gh = Game.jutsu_floor_at(global_position).y
 		var want = gh + (2.0 + height * 0.6 if tgt == null else 1.0 + height * 0.3)
 		velocity.y = clampf((want - global_position.y) * 2.0, -10.0, 10.0)
 	move_and_slide()
@@ -341,7 +341,7 @@ func _ai(dt: float) -> void:
 func _ground() -> void:
 	if def.get("fly", false) and not mounted:
 		return
-	var g = Game.jutsu_floor(global_position.x, global_position.z)
+	var g = Game.jutsu_floor_at(global_position).y
 	if global_position.y < g or (is_on_floor() == false and global_position.y - g < 0.3):
 		global_position.y = g
 		velocity.y = 0
@@ -507,7 +507,7 @@ func _special() -> void:
 		"rin_rhino", "rin_ox":   # Chikushōdō: boynuzlu hücum — öne yıkarak koşar
 			var dir = face_dir()
 			var to = global_position + dir * (8.0 + height)
-			to.y = Game.jutsu_floor(to.x, to.z)
+			to.y = Game.jutsu_floor_at(to).y
 			var tw = create_tween()
 			tw.tween_property(self, "global_position", to, 0.45).set_trans(Tween.TRANS_QUAD)
 			for k in 4:
@@ -700,7 +700,7 @@ func _toad_oil(t: Node3D) -> void:
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	pool.material_override = mat
 	get_tree().current_scene.add_child(pool)
-	pool.global_position = Vector3(at.x, Game.jutsu_floor(at.x, at.z) + 0.04, at.z)
+	pool.global_position = Vector3(at.x, Game.jutsu_floor_at(at).y + 0.04, at.z)
 	var tw = pool.create_tween()
 	for k in 12:
 		tw.tween_callback(func():
@@ -1052,7 +1052,7 @@ func _ride(dt: float) -> void:
 		elif Input.is_action_pressed("leap"):
 			vy = -9.0
 		velocity.y = vy
-		var gh = Game.jutsu_floor(global_position.x, global_position.z)
+		var gh = Game.jutsu_floor_at(global_position).y
 		if global_position.y < gh + 1.0:
 			global_position.y = gh + 1.0
 	else:

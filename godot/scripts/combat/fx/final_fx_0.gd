@@ -1050,7 +1050,7 @@ static func _claw_dissolve(st: Dictionary) -> void:
 			var q = p + Vector3(randf_range(-0.2, 0.2), randf_range(-0.1, 0.2), randf_range(-0.2, 0.2))
 			var dr = _bit(q, Vector3.ONE * randf_range(0.06, 0.11), Color.WHITE, "drop")
 			_fly(dr, q, Vector3(randf_range(-0.4, 0.4), randf_range(0.0, 0.8), randf_range(-0.4, 0.4)), 12.0, randf_range(0.4, 0.6))
-		var g = Vector3(p.x, Game.jutsu_floor(p.x, p.z) + 0.04, p.z)
+		var g = Vector3(p.x, Game.jutsu_floor_at(p).y + 0.04, p.z)
 		_ring(g, 3.0, Vector3.ZERO, Color(0.8, 0.93, 1.0), Color(0.2, 0.45, 0.8), 0.1, 1.2, 0.05, 0.7)
 	free_later(ba, 0.45)
 
@@ -1200,7 +1200,7 @@ static func _track_line(from: Vector3, to: Vector3) -> void:
 	for i in n:
 		var s = float(i + 1) / (n + 1)
 		var p = from + d * L * s
-		p.y = Game.jutsu_floor(p.x, p.z)
+		p.y = Game.jutsu_floor_at(p).y
 		var delay = s * 0.18
 		_later(delay, func():
 			var bump = _mi(_sphere(10), _mat("cel"))
@@ -1414,7 +1414,7 @@ static func _liquid_body(c: Node3D, dur: float) -> void:
 	tw.tween_method(sets, top, base - 0.3, 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tw.tween_callback(func(): wm.set_shader_parameter("sweep", -10000.0))
 	# dönüşüm anı: ayakta dalgacık, yukarı sıçrayan birkaç damla
-	var g = Vector3(c.global_position.x, Game.jutsu_floor(c.global_position.x, c.global_position.z) + 0.04, c.global_position.z)
+	var g = Vector3(c.global_position.x, Game.jutsu_floor_at(c.global_position).y + 0.04, c.global_position.z)
 	_ring(g, 3.0, Vector3.ZERO, Color(0.85, 0.95, 1.0), Color(0.2, 0.45, 0.85), 0.2, 1.3, 0.05, 0.6)
 	for k in 6:
 		var a = TAU * k / 6.0
@@ -1428,7 +1428,7 @@ static func _liquid_body(c: Node3D, dur: float) -> void:
 		if cc == null or not is_instance_valid(cc):
 			return
 		var p = (cc as Node3D).global_position + Vector3(randf_range(-0.25, 0.25), randf_range(0.8, 1.6), randf_range(-0.25, 0.25))
-		var gy = Game.jutsu_floor(p.x, p.z)
+		var gy = Game.jutsu_floor_at(p).y
 		var fall = maxf(0.1, sqrt(2.0 * maxf(0.05, p.y - gy) / 12.0))
 		var dr = _bit(p, Vector3(0.06, 0.09, 0.06), Color.WHITE, "drop")
 		dr.rotation = Vector3.ZERO
@@ -1455,7 +1455,7 @@ static func _liquid_body(c: Node3D, dur: float) -> void:
 				if is_instance_valid(mi) and (mi as MeshInstance3D).material_overlay == wm:
 					(mi as MeshInstance3D).material_overlay = null)
 		var q = (cc as Node3D).global_position
-		_ring(Vector3(q.x, Game.jutsu_floor(q.x, q.z) + 0.04, q.z), 3.5, Vector3.ZERO, Color(0.85, 0.95, 1.0), Color(0.2, 0.45, 0.85), 0.2, 1.5, 0.06, 0.9)
+		_ring(Vector3(q.x, Game.jutsu_floor_at(q).y + 0.04, q.z), 3.5, Vector3.ZERO, Color(0.85, 0.95, 1.0), Color(0.2, 0.45, 0.85), 0.2, 1.5, 0.06, 0.9)
 	_later(dur, finish)
 
 
@@ -1527,7 +1527,7 @@ static func _gun_splash(pos: Vector3, aim: Vector3) -> void:
 		var dr = _bit(pos, Vector3.ONE * randf_range(0.06, 0.11), Color.WHITE, "drop")
 		_fly(dr, pos, v, 14.0, randf_range(0.4, 0.6))
 	_ring(pos - aim * 0.1, 2.4, -aim, Color(0.9, 0.97, 1.0), Color(0.15, 0.4, 0.85), 0.1, 1.0, 0.05, 0.3, {"near_a": 0.5, "near_b": 1.8})
-	var gy = Game.jutsu_floor(pos.x, pos.z)
+	var gy = Game.jutsu_floor_at(pos).y
 	if pos.y - gy < 1.6:
 		_ring(Vector3(pos.x, gy + 0.04, pos.z), 2.4, Vector3.ZERO, Color(0.85, 0.95, 1.0), Color(0.2, 0.45, 0.85), 0.1, 0.9, 0.04, 0.6)
 
@@ -1736,7 +1736,7 @@ static func _tenketsu_close(pj: PathJutsu, t: Node3D, dur: float, col := Color(0
 ## Ref (Neji): ileri basan ayakta toz sürtünmesi
 static func _foot_scuff(c: Node3D) -> void:
 	var fd: Vector3 = c.face_dir()
-	var p = Vector3(c.global_position.x, Game.jutsu_floor(c.global_position.x, c.global_position.z), c.global_position.z) + fd * 0.4
+	var p = Vector3(c.global_position.x, Game.jutsu_floor_at(c.global_position).y, c.global_position.z) + fd * 0.4
 	for k in 3:
 		var side = fd.cross(Vector3.UP).normalized() * randf_range(-0.3, 0.3)
 		_puff(p + side + Vector3.UP * 0.12, 0.35, DUST_PAL, -fd * randf_range(0.6, 1.2) + Vector3.UP * 0.3, 0.5, 1.5, Vector2(1.0, 4.0), 0.5)
@@ -1799,7 +1799,7 @@ static func jukenho_ichigekishin(pj: PathJutsu, c: Node3D, _t: Node3D) -> void:
 		var cp = c.global_position + Vector3.UP * 1.0
 		_spike_burst(c)
 		# zemin: kısa radyal çatlak + dışa savrulan toz + ak kırıntı
-		var g = Vector3(c.global_position.x, Game.jutsu_floor(c.global_position.x, c.global_position.z), c.global_position.z)
+		var g = Vector3(c.global_position.x, Game.jutsu_floor_at(c.global_position).y, c.global_position.z)
 		_cracks(g, 2.4, 10, Color(0.3, 0.33, 0.4), 1.6)
 		_dust_ring(g, 1.3)
 		_ring(g + Vector3.UP * 0.05, 8.0, Vector3.ZERO, Color(0.95, 0.98, 1.0), Color(0.35, 0.5, 0.75), 0.4, 3.4, 0.06, 0.32, {"near_a": 0.6, "near_b": 2.5})

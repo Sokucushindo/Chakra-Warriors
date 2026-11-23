@@ -239,7 +239,7 @@ static func strike(who: Node3D, i: int, dmg: float) -> void:
 		return base + side * lerpf(-D * 0.55, D * 0.55, j / 9.0)
 	var ground = func(j: int) -> Vector3:
 		var q = who.global_position + f * lerpf(3.0, D + 2.0, j / 8.0) + side * sin(j * 1.4) * 0.8
-		q.y = Game.jutsu_floor(q.x, q.z)
+		q.y = Game.jutsu_floor_at(q).y
 		return q
 	if i == 0:
 		_burst(who, 5, 0.09, scatter, dmg * 0.22)

@@ -31,7 +31,7 @@ static func add(pos: Vector3, kind: String, r: float, dur := 4.0, caster: Node3D
 	# kullanıcı isteği (2026-11-01): jutsu bitince yerde kalan bölge/birikinti sistemi tamamen kapalı
 	if ENABLED == false or VFX.scene() == null:
 		return
-	var g = Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z), pos.z)
+	var g = Game.jutsu_floor_at(pos)
 	if pos.y - g.y > 3.0 + r * 0.3:
 		return   # havada patlayan jutsu zemine iz bırakmaz
 	_ensure()

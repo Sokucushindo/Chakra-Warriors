@@ -1955,7 +1955,7 @@ static func _shadow_bind(pj: PathJutsu, c: Node3D, tt: Node3D, at: Vector3, dur:
 		for i in n:
 			var k = float(i) / float(n - 1) * reach
 			var q = pa.lerp(pb, k)
-			pts.append(Vector3(q.x, Game.jutsu_floor(q.x, q.z) + 0.03, q.z))
+			pts.append(Vector3(q.x, Game.jutsu_floor_at(q).y + 0.03, q.z))
 			ws.append(0.34 + 0.08 * sin(k * 23.0 + u * 30.0))
 		return [pts, ws, _fill(n, Color(1, 1, 1, al)), Vector3.UP]
 	_live_ribbon(pj, mi, dur, build)
@@ -2034,7 +2034,7 @@ static func uchiha_ryu_kenjutsu(pj: PathJutsu, c: Node3D, t: Node3D, with_eyes :
 			if not is_instance_valid(c):
 				return
 			var p = from.lerp(dest, x)
-			p.y = maxf(p.y, Game.jutsu_floor(p.x, p.z))
+			p.y = maxf(p.y, Game.jutsu_floor_at(p).y)
 			c.global_position = p
 			if "velocity" in c:
 				c.velocity = Vector3.ZERO
@@ -2269,7 +2269,7 @@ static func _hair_bed(pj: PathJutsu, from: Vector3, goal: Vector3, d: Vector3, h
 		for j in 12:
 			var u = j / 11.0
 			var p = from.lerp(end, u) + side * (sin(u * PI * 2.0 + k) * 0.12 + sw * sin(u * PI))
-			p.y = Game.jutsu_floor(p.x, p.z) + 0.04
+			p.y = Game.jutsu_floor_at(p).y + 0.04
 			pts.append(p)
 			rr.append(Vector2(0.012, 0.012))
 		Loft.tube(mb, pts, rr, hair, 4, 1)
@@ -2281,8 +2281,8 @@ static func _hair_bed(pj: PathJutsu, from: Vector3, goal: Vector3, d: Vector3, h
 		var dl = Vector3(cos(ang), 0, sin(ang)) * randf_range(0.25, 0.55)
 		var a = c0 - dl * 0.5
 		var b = c0 + dl * 0.5
-		a.y = Game.jutsu_floor(a.x, a.z) + 0.035
-		b.y = Game.jutsu_floor(b.x, b.z) + 0.035
+		a.y = Game.jutsu_floor_at(a).y + 0.035
+		b.y = Game.jutsu_floor_at(b).y + 0.035
 		var m = (a + b) * 0.5 + side * randf_range(-0.05, 0.05)
 		Loft.tube(mb, [a, m, b], [0.009, 0.009, 0.009], hair if k % 3 != 0 else hair.darkened(0.55), 4, 1)
 	var root = Node3D.new()
@@ -2298,7 +2298,7 @@ static func _hair_bed(pj: PathJutsu, from: Vector3, goal: Vector3, d: Vector3, h
 	for i in n:
 		var u = float(i) / float(n - 1)
 		var p = from.lerp(goal, u) + side * sin(u * PI * 3.0) * 0.35
-		p.y = Game.jutsu_floor(p.x, p.z) + 0.06
+		p.y = Game.jutsu_floor_at(p).y + 0.06
 		base.append(p)
 	var fw = weakref(flow)
 	var tw = flow.create_tween()

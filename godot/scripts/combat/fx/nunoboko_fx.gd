@@ -192,12 +192,12 @@ static func _creation(who: Node3D, dmg: float) -> void:
 			for sign_v in [-1.0, 1.0]:
 				var a = i * 0.7
 				var q = from + f * (i * 0.72) + side * sin(a) * sign_v * 1.0
-				q.y = Game.jutsu_floor(q.x, q.z) - 0.4
+				q.y = Game.jutsu_floor_at(q).y - 0.4
 				var o = _orb_node(box["root"], 0.75 + i * 0.015)
 				o.global_position = q
 				orbs.append({"n": o, "t0": t, "base": q})
 			var c = from + f * (i * 0.72)
-			c.y = Game.jutsu_floor(c.x, c.z) + 1.0
+			c.y = Game.jutsu_floor_at(c).y + 1.0
 			done.append_array(Combat.hit_sphere(who, c, 1.6, {"dmg": dmg * 0.5, "knock": 1.5, "launch": 3.5, "kind": "heavy", "hitstop": 0.04, "melee": false}, done))
 			_star(c + Vector3(randf_range(-1, 1), randf_range(0.5, 2.4), randf_range(-1, 1)), 1.4, 0.05)
 			Sfx.play("earth", c, 0.55 + i * 0.02, 0.3)

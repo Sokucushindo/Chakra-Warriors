@@ -57,7 +57,7 @@ static func launch(who: Node3D, start: Vector3, dir: Vector3, _target: Node3D) -
 
 
 static func erupt(who: Node3D, at: Vector3) -> void:
-	var g = Vector3(at.x, Game.jutsu_floor(at.x, at.z), at.z)
+	var g = Game.jutsu_floor_at(at)
 	var mm = MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.mesh = Kit.cached_mesh("hyo_spike", Callable(_build_spike))
@@ -67,7 +67,7 @@ static func erupt(who: Node3D, at: Vector3) -> void:
 		var a = randf() * TAU
 		var r = sqrt(randf()) * R
 		var p = Vector3(cos(a) * r, 0.0, sin(a) * r)
-		p.y = Game.jutsu_floor(g.x + p.x, g.z + p.z) - g.y
+		p.y = Game.jutsu_floor_at(Vector3(g.x + p.x, g.y, g.z + p.z)).y - g.y
 		var out = Vector3(cos(a), 2.4, sin(a)).normalized()
 		var x = out.cross(Vector3.FORWARD if absf(out.z) < 0.9 else Vector3.RIGHT).normalized()
 		data.append([p, Basis(x, out, x.cross(out)), randf_range(1.5, 3.4) * (1.15 - r / R * 0.55), randf_range(0.28, 0.5), r / R * 0.12])

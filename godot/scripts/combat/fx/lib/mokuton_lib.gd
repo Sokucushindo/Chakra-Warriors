@@ -662,7 +662,7 @@ static func wander(from: Vector3, dir: Vector3, L: float, n: int, o := {}) -> Ar
 		if hug:
 			var w = org + p
 			var q = float(i) / float(maxi(n - 1, 1))
-			p.y = Game.jutsu_floor(w.x, w.z) - org.y + lift + maxf(0.0, sin(ph + i * 1.3)) * arch * (1.0 - q * 0.6)
+			p.y = Game.jutsu_floor_at(w).y - org.y + lift + maxf(0.0, sin(ph + i * 1.3)) * arch * (1.0 - q * 0.6)
 		pts.append(p)
 	return pts
 
@@ -800,7 +800,7 @@ static func away_dir(host: Node, p: Vector3) -> Vector3:
 
 
 static func floor_at(p: Vector3) -> Vector3:
-	return Vector3(p.x, Game.jutsu_floor(p.x, p.z), p.z)
+	return Game.jutsu_floor_at(p)
 
 
 ## Ahşap ağ örneği (+ "ol" kontur çocuğu). o: body, seed, grow, taper, nf, fresh, ow (0 = kontursuz), ocol, parent,
@@ -898,7 +898,7 @@ static func toss(n: Node3D, p0: Vector3, v: Vector3, life_t: float, grav := 18.0
 		if not is_instance_valid(n):
 			return
 		var q = p0 + v * t + Vector3.DOWN * 0.5 * grav * t * t
-		var fl = Game.jutsu_floor(q.x, q.z) + 0.05
+		var fl = Game.jutsu_floor_at(q).y + 0.05
 		if q.y >= fl:
 			st["tr"] = t
 		q.y = maxf(q.y, fl)
@@ -1158,7 +1158,7 @@ static func scar(host: Node, p: Vector3, r: float, life_t: float, o := {}) -> Me
 		parent.add_child(mi)
 		mi.position = p
 	else:
-		var fl = Vector3(p.x, Game.jutsu_floor(p.x, p.z) + 0.05 + r * 0.004, p.z)
+		var fl = Vector3(p.x, Game.jutsu_floor_at(p).y + 0.05 + r * 0.004, p.z)
 		if o.has("y"):
 			fl.y = float(o["y"])
 		put(host, mi, fl)

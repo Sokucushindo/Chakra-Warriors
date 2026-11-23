@@ -49,7 +49,7 @@ static func launch(who: Node3D, start: Vector3, dir: Vector3, _target: Node3D) -
 
 ## Projectile.caltrops da buraya gelir (düşmanın kaçarken ayağının dibine saçması dahil)
 static func scatter(who: Node3D, at: Vector3, dur: float) -> void:
-	at.y = Game.jutsu_floor(at.x, at.z)
+	at.y = Game.jutsu_floor_at(at).y
 	var mm = MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.mesh = _spike_mesh()
@@ -60,7 +60,7 @@ static func scatter(who: Node3D, at: Vector3, dur: float) -> void:
 		var r = sqrt(randf()) * (FIELD_R - 0.2)
 		var x = cos(a) * r
 		var z = sin(a) * r
-		spikes.append({"p": Vector3(x, Game.jutsu_floor(at.x + x, at.z + z) - at.y + 0.01, z),
+		spikes.append({"p": Vector3(x, Game.jutsu_floor_at(Vector3(at.x + x, at.y, at.z + z)).y - at.y + 0.01, z),
 			"b": Basis(Vector3.UP, randf() * TAU) * Basis(Vector3.RIGHT, randf_range(-0.3, 0.3)),
 			"hop": randf_range(0.6, 1.5), "ax": Vector3(randf_range(-1, 1), 0.3, randf_range(-1, 1)).normalized(), "live": true})
 		mm.set_instance_transform(i, Transform3D(Basis.IDENTITY, Vector3.ZERO))

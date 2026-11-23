@@ -669,7 +669,7 @@ static func cracks(pos: Vector3, size := 4.0, col := Color(0.12, 0.09, 0.07, 0.9
 	var mi = _card(2, col, col, float(randi_range(6, 9)), false)
 	scene().add_child(mi)
 	_track(mi)
-	var g = Game.jutsu_floor(pos.x, pos.z) + 0.06 + size * 0.04   # büyük izi engebeli zemin kesmesin
+	var g = Game.jutsu_floor_at(pos).y + 0.06 + size * 0.04   # büyük izi engebeli zemin kesmesin
 	mi.global_transform = Transform3D(Basis(Vector3.RIGHT, -PI * 0.5).rotated(Vector3.UP, randf() * TAU), Vector3(pos.x, g, pos.z))
 	mi.scale = Vector3.ONE * size
 	var m: ShaderMaterial = mi.material_override
@@ -824,7 +824,7 @@ static func goo_drops(pos: Vector3, kind := "molten", n := 8, s := 1.0, vmax := 
 		mi.scale = Vector3(r, r * 1.3, r)
 		var a = randf() * TAU
 		var v = Vector3(cos(a), 0, sin(a)) * randf_range(1.0, vmax * 0.6) + Vector3.UP * randf_range(vmax * 0.5, vmax)
-		var gy = Game.jutsu_floor(pos.x + v.x * 0.5, pos.z + v.z * 0.5)
+		var gy = Game.jutsu_floor_at(Vector3(pos.x + v.x * 0.5, pos.y, pos.z + v.z * 0.5)).y
 		var st0 = {"t": 0.0, "landed": false}
 		var tw = mi.create_tween()
 		tw.tween_method(func(t: float):
@@ -856,7 +856,7 @@ static func lava_splash(pos: Vector3, s := 1.0, kind := "molten") -> void:
 		"dir": Vector3.UP, "spread": 40.0, "colors": [Color(0.92, 0.9, 0.9, 0.0), Color(0.88, 0.86, 0.86, 0.5), Color(0.82, 0.8, 0.8, 0.0)]})
 	if kind == "molten":
 		FX.light(pos, Color(1.0, 0.35, 0.15), 3.0 * s, 7.0 * s, 0.8)
-		cracks(Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z) + 0.05, pos.z), 2.0 * s, Color(0.55, 0.06, 0.03, 0.9), 4.0)
+		cracks(Vector3(pos.x, Game.jutsu_floor_at(pos).y + 0.05, pos.z), 2.0 * s, Color(0.55, 0.06, 0.03, 0.9), 4.0)
 
 
 ## Cel duman halkası (patlamanın etrafında yayılan)
@@ -999,7 +999,7 @@ static func _explosion(pos: Vector3, s := 1.0, col := Color(1.0, 0.55, 0.15)) ->
 			"damp": 2.0, "gravity": Vector3(0, 3.0, 0), "spin": 20.0, "outline_col": Color(0.3, 0.26, 0.23), "shade": 0.25, "glow": 1.0, "outline": 0.03, "rough": 0.16,
 			"colors": [Color(0.34, 0.29, 0.26, 0.0), Color(0.36, 0.31, 0.28, 0.75), Color(0.42, 0.38, 0.35, 0.5), Color(0.45, 0.41, 0.38, 0)]}))
 	embers(pos, pr[2], int(22 * s), 18.0 * s, 1.0)
-	var g = Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z) + 0.12, pos.z)
+	var g = Vector3(pos.x, Game.jutsu_floor_at(pos).y + 0.12, pos.z)
 	if pos.y - g.y < 3.0 * s:
 		cracks(g, 3.5 * s, Color(0.1, 0.06, 0.04, 0.85), 6.0, false)
 		if preset != "black":
@@ -1096,7 +1096,7 @@ static func _black_fire_particles(parent: Node3D, size: float, r: float, k: floa
 static func _black_smolder(pos: Vector3, size := 2.0, dur := 6.0) -> void:
 	var root = Node3D.new()
 	scene().add_child(root)
-	root.global_position = Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z) + 0.05, pos.z)
+	root.global_position = Vector3(pos.x, Game.jutsu_floor_at(pos).y + 0.05, pos.z)
 	_black_fire_particles(root, size * 0.45, size * 0.9, 1.4)
 	cracks(pos, size * 2.2, Color(0.04, 0.0, 0.05, 0.95), dur + 2.0)
 	scene().get_tree().create_timer(dur).timeout.connect(func():
@@ -1215,7 +1215,7 @@ static func black_smolder(pos: Vector3, size := 2.0, dur := 6.0) -> void:
 static func release(c: Node3D, origin: Vector3, col: Color, g: float, tier: int, big := true) -> void:
 	var ep = epic
 	epic = 1.0
-	var feet = Vector3(c.global_position.x, Game.jutsu_floor(c.global_position.x, c.global_position.z) + 0.08, c.global_position.z)
+	var feet = Vector3(c.global_position.x, Game.jutsu_floor_at(c.global_position).y + 0.08, c.global_position.z)
 	# KURAL (kullanıcı 2026-11-16, "her jutsumda aynı efektleri görüyorum"): her jutsuda çıkan ORTAK görsel yok —
 	# ışık çakması, kıvılcım, ayak tozu, ekran hız çizgileri, ekran flaşı kaldırıldı. Görünen her şey tekniğin kendi
 	# kodunda. Kalan yalnız his: kamera sarsıntısı, kısa yavaş çekim, kameranın geri çekilmesi.
@@ -1271,7 +1271,7 @@ static func linger(pos: Vector3, el: String, col: Color, g: float, dur := 3.0) -
 	# kullanıcı isteği (2026-11-01): jutsu sonrası yerde kalan birikinti/alev/buz/kaya izleri tamamen kapalı
 	if not LINGER_ON or busy() or g < 1.1:
 		return
-	var gp = Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z), pos.z)
+	var gp = Game.jutsu_floor_at(pos)
 	if pos.y - gp.y > 4.0:
 		return
 	var root = Node3D.new()
@@ -1642,7 +1642,7 @@ static func clay_blast(pos: Vector3, s := 1.0) -> void:
 			"gravity": Vector3(0, 0.8, 0), "spin": 15.0, "rough": 0.22, "outline": 0.035, "outline_col": Color(0.28, 0.27, 0.29), "shade": 0.3,
 			"colors": [Color(0.62, 0.61, 0.62, 0.0), Color(0.62, 0.61, 0.62, 0.75), Color(0.5, 0.49, 0.51, 0.55), Color(0.38, 0.37, 0.39, 0.0)]}))   # duman ince ve kısa: ekranı gri topaklarla doldurmasın (duman kuralı)
 	embers(pos, Color(1.0, 0.6, 0.15), int(18 * n), 16.0 * z, 0.7)
-	var g = Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z) + 0.1, pos.z)
+	var g = Vector3(pos.x, Game.jutsu_floor_at(pos).y + 0.1, pos.z)
 	var near = pos.y - g.y < 3.5 * s
 	# uçuşan toprak (yerdeyse kahverengi) ve gri kaya/kil parçaları
 	debris(pos, Color(0.42, 0.33, 0.24) if near else Color(0.55, 0.53, 0.5), int(14 * n) + 4, 13.0 * z, 0.3 * z + 0.1)

@@ -1056,7 +1056,7 @@ static func ground_mark(host: Node, p: Vector3, rx: float, rz: float, yaw: float
 	mi.set_instance_shader_parameter("grow", 0.0)
 	mi.set_instance_shader_parameter("fade", 1.0)
 	mi.set_instance_shader_parameter("heat", 1.0)
-	_put(host, mi, Vector3(p.x, Game.jutsu_floor(p.x, p.z) + 0.06, p.z))
+	_put(host, mi, Vector3(p.x, Game.jutsu_floor_at(p).y + 0.06, p.z))
 	mi.rotation.y = yaw
 	mi.scale = Vector3(rx, 1.0, rz)
 	var tw = mi.create_tween()
@@ -1078,7 +1078,7 @@ static func cracks(host: Node, p: Vector3, R: float, n: int, col: Color, life: f
 		for s in 8:
 			var u = float(s) / 7.0
 			var pp = p + dv * (L * u) + sv * randf_range(-0.35, 0.35) * u * 2.0
-			pp.y = Game.jutsu_floor(pp.x, pp.z) + 0.08
+			pp.y = Game.jutsu_floor_at(pp).y + 0.08
 			pts.append(pp)
 		var mi = ribbon_mi(pts, 0.06, col, false, {"taper": 1.0, "rag": 0.3, "core": 0.0, "twin": false, "hint": Vector3.UP})
 		_put(host, mi, Vector3.ZERO)
@@ -1148,7 +1148,7 @@ static func _toss(host: Node, mi: MeshInstance3D, p0: Vector3, v: Vector3, life:
 		if not is_instance_valid(mi) or stt["land"] >= 0.0:
 			return
 		var q = p0 + v * tm + Vector3.DOWN * 0.5 * g * tm * tm
-		var fl = Game.jutsu_floor(q.x, q.z)
+		var fl = Game.jutsu_floor_at(q).y
 		if tm > 0.05 and q.y <= fl + 0.04:
 			q.y = fl + 0.04
 			stt["land"] = tm
@@ -1522,7 +1522,7 @@ static func _bakuen_burst(pj: PathJutsu, at: Vector3) -> void:
 			return at + Vector3(cos(a), 0, sin(a)) * (1.0 + u * 7.0) + Vector3.UP * u * 3.0, 16)
 		streak(pj, pts, 0.18, Color(0.92, 0.97, 1.0, 0.85), 0.6, false, {"rag": 0.5, "core": 0.0, "delay": k * 0.02})
 	embers(pj, at, 40, 3.0, 8.0)
-	if at.y - Game.jutsu_floor(at.x, at.z) < 3.0:
+	if at.y - Game.jutsu_floor_at(at).y < 3.0:
 		ground_mark(pj, at, 6.0, 6.0, randf() * TAU, 0.0, 6.0)
 
 
@@ -1548,11 +1548,11 @@ static func uzusenpuhi_no_jutsu(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		var hgt = 3.4 * minf(1.0, k * 3.0)
 		for j in 3:
 			var p = wc + side * randf_range(-3.2, 3.2)
-			p.y = Game.jutsu_floor(p.x, p.z)
+			p.y = Game.jutsu_floor_at(p).y
 			tongue(pj, p, maxf(0.8, hgt * randf_range(0.75, 1.15)), randf_range(1.1, 1.7), 0.5, Vector3.UP, Vector3.UP * 0.8, 1.2)
 		if i % 2 == 0:
 			var bp = wc + side * randf_range(-2.8, 2.8)
-			bp.y = Game.jutsu_floor(bp.x, bp.z) + randf_range(0.5, maxf(0.6, hgt * 0.7))
+			bp.y = Game.jutsu_floor_at(bp).y + randf_range(0.5, maxf(0.6, hgt * 0.7))
 			fire_blob(pj, bp, 0.3, 0.9, 0.45, Vector3.UP * 2.5)
 		if i % 4 == 0:
 			embers(pj, wc + Vector3.UP * 1.5, 8, 3.0, 5.0)
@@ -1583,10 +1583,10 @@ static func uzusenpuhi_no_jutsu(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			for j in 4:
 				var u = randf()
 				var p = wc + d * (u * front) + side * randf_range(-1.0, 1.0) * (2.0 + u * front * 0.22)
-				p.y = Game.jutsu_floor(p.x, p.z)
+				p.y = Game.jutsu_floor_at(p).y
 				tongue(pj, p, randf_range(2.4, 4.2), randf_range(1.6, 2.4), 0.45, (d * 1.1 + Vector3.UP).normalized(), d * 12.0, 1.25)
 			var bp = wc + d * front * randf_range(0.5, 1.0) + side * randf_range(-1.5, 1.5) * (1.0 + front * 0.15)
-			bp.y = Game.jutsu_floor(bp.x, bp.z) + 1.2
+			bp.y = Game.jutsu_floor_at(bp).y + 1.2
 			fire_blob(pj, bp, 0.6, 2.0, 0.4, d * 14.0 + Vector3.UP * 2.0)
 			if i % 3 == 0:
 				embers(pj, wc + d * front * 0.6 + Vector3.UP, 10, 3.0, 9.0)
@@ -1630,7 +1630,7 @@ static func katon_kaenbu(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			var a = randf() * TAU
 			var r = randf_range(1.2, 4.0)
 			var p = at + Vector3(cos(a), 0, sin(a)) * r
-			p.y = Game.jutsu_floor(p.x, p.z)
+			p.y = Game.jutsu_floor_at(p).y
 			var tg_v = Vector3(-sin(a), 0, cos(a))
 			tongue(pj, p, randf_range(1.2, 2.4), 0.9, 0.6, (tg_v * 0.7 + Vector3.UP).normalized(), tg_v * 4.0)
 		for q in 2:   # alevli sis: düşük ısılı, yarı saydam kızıl-turuncu alev kütleleri teğet savrulur
@@ -1718,7 +1718,7 @@ static func _ryuka_burst(pj: PathJutsu, p: Vector3) -> void:
 	star(pj, p, 2.5, Color(1.0, 0.8, 0.45), 0.25, 6.0)
 	embers(pj, p, 16, 1.0, 4.0)
 	light(pj, p, Color(1.0, 0.55, 0.2), 5.0, 8.0, 0.6)
-	if p.y - Game.jutsu_floor(p.x, p.z) < 2.5:
+	if p.y - Game.jutsu_floor_at(p).y < 2.5:
 		ground_mark(pj, p, 1.8, 1.8, randf() * TAU, 0.0, 4.0)
 
 
@@ -1790,7 +1790,7 @@ static func _burning_oil(pj: PathJutsu, p: Vector3, r: float, dur: float) -> voi
 	ground_mark(pj, at, r, r * 0.8, randf() * TAU, 2.0, dur + 0.5, 0.4)
 	pj.every(dur, 0.25, func(i, _k):
 		var q = at + Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)) * r * 0.7
-		q.y = Game.jutsu_floor(q.x, q.z)
+		q.y = Game.jutsu_floor_at(q).y
 		tongue(pj, q, randf_range(1.0, 2.0), randf_range(0.7, 1.1), 0.6, Vector3.UP, Vector3.UP * 0.6, 1.1, true)
 		if i % 2 == 0:
 			bubble(pj, q + Vector3.UP * 0.05)
@@ -1805,7 +1805,7 @@ static func oil_crest(host: Node, p: Vector3, s: float, d: Vector3) -> void:
 	mi.set_instance_shader_parameter("hot", 0.25)
 	mi.set_instance_shader_parameter("lump", 0.5)
 	mi.set_instance_shader_parameter("seed", randf() * 10.0)
-	var g = Vector3(p.x, Game.jutsu_floor(p.x, p.z), p.z)
+	var g = Game.jutsu_floor_at(p)
 	_put(host, mi, g)
 	_look(mi, d)
 	mi.scale = Vector3(s * 1.2, 0.05, s * 0.7)
@@ -2178,7 +2178,7 @@ static func _light_beam(pj: PathJutsu, o: Vector3, end: Vector3, d: Vector3) -> 
 	for k in 5:
 		sparks(pj, o.lerp(end, (k + 0.5) / 5.0), {"n": 8, "life": 0.5, "vmin": 1.0, "vmax": 3.0, "g": Vector3.ZERO, "size": 0.08,
 			"cols": [Color(1, 1, 1, 1), Color(0.75, 0.88, 1.0, 1), Color(0.75, 0.88, 1.0, 0)]})
-	var fl = Game.jutsu_floor(end.x, end.z)
+	var fl = Game.jutsu_floor_at(end).y
 	if end.y - fl < 4.0:   # ışığın değdiği yerde kristal filizlenir
 		var gpos = Vector3(end.x, fl, end.z)
 		for k in 5:

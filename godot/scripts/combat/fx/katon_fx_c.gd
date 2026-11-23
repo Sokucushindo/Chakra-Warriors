@@ -1409,7 +1409,7 @@ static func senpo_gokashin_ensen(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			for i in 14:
 				var u = i / 13.0
 				var q = mo + dk * (0.6 + u * 17.0) + Vector3.UP * sin(u * PI) * 1.6
-				q.y = maxf(q.y, Game.jutsu_floor(q.x, q.z) + 0.6)
+				q.y = maxf(q.y, Game.jutsu_floor_at(q).y + 0.6)
 				pts.append(q)
 				wid.append(0.3 + 0.7 * u)
 			KatonLib.ribbon(pj, pts, 1.6, 1.3, 0.0, {"flow": 4.0, "tiles": 6.0, "rag": 0.5, "widths": wid, "heat": 1.0})

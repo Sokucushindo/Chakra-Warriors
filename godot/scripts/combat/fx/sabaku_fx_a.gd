@@ -611,7 +611,7 @@ static func ground(host: Node, pos: Vector3, r: float, mode: int, life: float, o
 	var mi = _gi(_plane(), _smat("ground", GROUND_SHADER), {"tint": o.get("tint", SM), "mode": float(mode), "seed": randf() * 20.0,
 		"spin": float(o.get("spin", 0.0)), "opacity": float(o.get("alpha", 0.9))})
 	var sc: Vector3 = o.get("scale", Vector3(r, 1.0, r))
-	_put(host, mi, Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z) + 0.05 + float(o.get("lift", 0.0)), pos.z))
+	_put(host, mi, Vector3(pos.x, Game.jutsu_floor_at(pos).y + 0.05 + float(o.get("lift", 0.0)), pos.z))
 	mi.rotation.y = float(o.get("yaw", randf() * TAU))
 	var gt = float(o.get("grow_t", 0.25))
 	mi.scale = Vector3(sc.x * 0.25, 1.0, sc.z * 0.25)
@@ -870,7 +870,7 @@ static func _flake(host: Node, pos: Vector3) -> void:
 	_put(host, fl, pos)
 	fl.rotation = Vector3(randf() * 2.0, randf() * TAU, randf() * 2.0)
 	var tw = fl.create_tween()
-	tw.tween_property(fl, "global_position", pos + Vector3(randf_range(-0.2, 0.2), -pos.y + Game.jutsu_floor(pos.x, pos.z) + 0.03, randf_range(-0.2, 0.2)), 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_property(fl, "global_position", pos + Vector3(randf_range(-0.2, 0.2), -pos.y + Game.jutsu_floor_at(pos).y + 0.03, randf_range(-0.2, 0.2)), 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tw.parallel().tween_property(fl, "rotation", fl.rotation + Vector3(4.0, 1.0, 3.0), 0.5)
 	crumble(host, fl, 0.7, 0.5)
 

@@ -998,7 +998,7 @@ static func _rim_slabs(pj: PathJutsu, g: Vector3, r: float) -> void:
 ## küre olarak yayılır, zemin dışa kazınır (ışınsal krater + devrilen toprak levhaları), toz perdeleri ve kaya parçaları dışa
 ## savrulur. Düşmanlar savrulur, ninjutsu mermileri geri çevrilir, kara alevler savrulur, ağaç / ev yıkılır.
 static func _shinra(pj: PathJutsu, c: Node3D, center: Vector3, r: float, power: float) -> void:
-	var g = Vector3(center.x, Game.jutsu_floor(center.x, center.z), center.z)
+	var g = Game.jutsu_floor_at(center)
 	L.force_sphere(pj, center, 0.5, r, 0.7 + r * 0.01, 0.07, Color(0.85, 0.97, 0.9), 0.0)
 	pj.after(0.12, func():
 		L.force_sphere(pj, center, 0.5, r * 0.7, 0.6 + r * 0.01, 0.04, Color(0.85, 0.97, 0.9), 2.0))

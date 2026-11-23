@@ -442,7 +442,7 @@ func smoke_puff(pos: Vector3, s := 1.0, n := 14) -> void:
 		"damp": 6.0, "gravity": Vector3(0, 0.6, 0), "colors": mist, "grow": 1.7, "mist": true})
 	var g = Vector3(pos.x, pos.y - 0.85 * s, pos.z)
 	if Game.has_method("jutsu_floor"):
-		g.y = maxf(g.y, Game.jutsu_floor(pos.x, pos.z) + 0.15)
+		g.y = maxf(g.y, Game.jutsu_floor_at(pos).y + 0.15)
 	puff3d(g, {"amount": int(n * 0.8), "life": 1.4, "size": 0.9 * s, "radius": 0.6 * s, "vmin": 3.0 * s, "vmax": 4.0 * s, "dir": Vector3.UP,
 		"spread": 88.0, "damp": 3.5, "gravity": Vector3(0, -0.2, 0), "colors": mist, "grow": 1.8, "mist": true})
 	puff3d(pos + Vector3.UP * 0.4 * s, {"amount": int(n * 0.5), "life": 2.0, "size": 0.6 * s, "radius": 0.8 * s, "vmin": 0.5, "vmax": 1.5,
@@ -592,7 +592,7 @@ func hit_spark(pos: Vector3, col := Color(1.0, 0.85, 0.4), s := 1.0) -> void:
 
 func impact(pos: Vector3, col: Color, s := 1.0) -> void:
 	hit_spark(pos, col, s * 1.3)
-	var g = Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z) + 0.1, pos.z)
+	var g = Vector3(pos.x, Game.jutsu_floor_at(pos).y + 0.1, pos.z)
 	VFX.shockwave(g, col, 7.0 * s, 0.45)
 	dust(g, 1.4 * s)
 	if s >= 1.2:

@@ -185,7 +185,7 @@ static func _flat(col: Color) -> StandardMaterial3D:
 
 
 static func _near_ground(p: Vector3, h := 2.5) -> bool:
-	return p.y - Game.jutsu_floor(p.x, p.z) < h
+	return p.y - Game.jutsu_floor_at(p).y < h
 
 
 # ═════════════════════════════════════════ ortak yapı taşları (bu grubun) ═════════════════════════════════════════

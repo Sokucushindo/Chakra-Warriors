@@ -205,7 +205,7 @@ static func _flat(v: Vector3) -> Vector3:
 
 
 static func _gp(p: Vector3) -> Vector3:
-	return Vector3(p.x, Game.jutsu_floor(p.x, p.z), p.z)
+	return Game.jutsu_floor_at(p)
 
 
 static func _shake(a: float) -> void:
@@ -488,7 +488,7 @@ class Mover extends Node:
 		t += dt
 		var k = clampf(t / dur, 0.0, 1.0)
 		var p = a.lerp(b, k) + Vector3.UP * arc * 4.0 * k * (1.0 - k)
-		p.y = maxf(p.y, Game.jutsu_floor(p.x, p.z))
+		p.y = maxf(p.y, Game.jutsu_floor_at(p).y)
 		if user is CharacterBody3D and user.collision_mask != 0:
 			var col = user.move_and_collide(p - user.global_position)
 			user.velocity = Vector3.ZERO

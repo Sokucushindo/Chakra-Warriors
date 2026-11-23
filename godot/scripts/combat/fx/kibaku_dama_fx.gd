@@ -199,7 +199,7 @@ static func _roll(who: Node3D, at: Vector3, v0: Vector3, fuse: float, mult: floa
 			if not hit.is_empty() and (hit["normal"] as Vector3).y < 0.7:
 				v = v.bounce(hit["normal"]) * 0.5
 				to = from
-		var fl = Game.jutsu_floor(to.x, to.z) + BALL_R
+		var fl = Game.jutsu_floor_at(to).y + BALL_R
 		if to.y <= fl:
 			to.y = fl
 			if v.y < -2.0:
@@ -264,7 +264,7 @@ static func _explode(who: Node3D, at: Vector3, mult: float) -> void:
 	bl[1] = Kit.cards(root, _scrap_mesh(), Kit.shader_mat("kibaku_kagit", SCRAP_SH), Vector3(14, 12, 14))
 	var fl = Kit.quad(root, 7.5, Kit.shader_mat("kibaku_parlama", FLARE_SH))
 	Kit.tween_param(fl, "prog", 0.0, 1.0, 0.18, true)
-	var gy = Game.jutsu_floor(at.x, at.z)
+	var gy = Game.jutsu_floor_at(at).y
 	if at.y - gy < 2.5:
 		var pm = PlaneMesh.new()
 		pm.size = Vector2.ONE * BLAST_R * 2.1

@@ -110,7 +110,7 @@ static func _burning(h: Node) -> bool:
 static func _drop(spot: Dictionary, dur: float) -> void:
 	var fl = spot["node"]
 	var at: Vector3 = spot["last"]
-	at.y = Game.jutsu_floor(at.x, at.z)
+	at.y = Game.jutsu_floor_at(at).y
 	if fl != null and is_instance_valid(fl):
 		fl.reparent(_tree().current_scene)
 		fl.global_position = at

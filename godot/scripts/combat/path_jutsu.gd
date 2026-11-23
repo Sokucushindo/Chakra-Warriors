@@ -3204,7 +3204,7 @@ func _etrail(pr: Projectile, el: String, col: Color, size: float) -> void:
 
 ## Elemente özel çarpma (s: ölçek)
 func impact_fx(el: String, col: Color, at: Vector3, s := 1.0) -> void:
-	var g = Vector3(at.x, Game.jutsu_floor(at.x, at.z), at.z)
+	var g = Game.jutsu_floor_at(at)
 	var near_ground = at.y - g.y < 2.5
 	if el in ["shakuton", "futton", "jinton", "ranton"]:   # her doğa kendi isabeti (başka elementin kılığı değil)
 		JutsuEngine.impact_for(el, at, col, s)
@@ -4949,7 +4949,7 @@ func _black_panther_shot(c: Node3D, tt: Node3D, from: Vector3, dir: Vector3, id:
 	pr.homing_turn = 4.0
 	pr.radius = 1.2
 	pr.on_tick = func(p, _dt):
-		p.global_position.y = Game.jutsu_floor(p.global_position.x, p.global_position.z) + 0.9
+		p.global_position.y = Game.jutsu_floor_at(p.global_position).y + 0.9
 	every(2.0, 0.06, func(_i, _k):
 		if is_instance_valid(pr):
 			VFX.bolt(pr.global_position, pr.global_position + Vector3(randf_range(-1.5, 1.5), randf_range(-1, 1.5), randf_range(-1.5, 1.5)), Color(1, 1, 1), 0.06, 0.1, 1), Callable())
@@ -6641,7 +6641,7 @@ static func izanagi_rewrite(c: Node3D) -> bool:
 	var side = back.cross(Vector3.UP) * (1.0 if randf() < 0.5 else -1.0)
 	FX.smoke_puff(c.global_position + Vector3.UP, 0.6, 8)
 	var to = c.global_position + back * 2.5 + side * 2.0
-	to.y = Game.jutsu_floor(to.x, to.z)
+	to.y = Game.jutsu_floor_at(to).y
 	c.global_position = to
 	Combat.popup_text(c.global_position + Vector3.UP * 2.6, "Yanılsama — İzanagi", Color(0.95, 0.25, 0.3))
 	FX.ring(c.global_position + Vector3.UP, Color(0.85, 0.08, 0.1), 3.0, 0.4)
@@ -13022,8 +13022,8 @@ func p_raiso_ikazuchi_no_utage(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.0)
 	var tt = tg(c, t, 30.0)
 	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 14.0)
-	if Game.world:
-		Game.world.env.set_tint(Color(0.05, 0.05, 0.12, 0.25))
+	if Game.world and Game.player and is_instance_valid(Game.player) and Game.player.global_position.distance_to(at) < 70.0:   # yalnız yakındaki oyuncuda, kendiliğinden geçer
+		Game.world.env.flash_tint(Color(0.05, 0.05, 0.12, 0.25), 1.9)
 	for k in 10:
 		after(0.3 + k * 0.12, func():
 			var p = at + Vector3(randf_range(-6, 6), 0, randf_range(-6, 6))

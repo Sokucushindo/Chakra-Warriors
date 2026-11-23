@@ -763,7 +763,7 @@ static func _shark_bite(sh: Node3D) -> void:
 static func _shark_pop(h: Node, p: Vector3, ln: float) -> void:
 	L.spray(h, p, Vector3.UP, {"n": int(10 + ln * 6), "spread": 75.0, "vmin": 2.0, "vmax": 4.0 + ln * 1.5, "life": 0.55,
 		"smin": 0.18 + ln * 0.05, "smax": 0.32 + ln * 0.1, "r": ln * 0.25, "foam": 0.3, "alpha": 0.85})
-	if p.y - Game.jutsu_floor(p.x, p.z) < 1.6:
+	if p.y - Game.jutsu_floor_at(p).y < 1.6:
 		L.crown(h, L.ground(p), 0.5 + ln * 0.35, {"h": 0.9, "foam": 0.3})
 		L.puddle(h, p, 0.6 + ln * 0.4, 1.5, {"alpha": 0.5})
 
@@ -1142,7 +1142,7 @@ static func hoshigaki_bakusui_shoha(pj: PathJutsu, c: Node3D, t: Node3D) -> void
 			tw.tween_method(func(r: float):
 				if is_instance_valid(seg):
 					seg.global_position = Vector3(g0.x, 0, g0.z) + rd * r
-					seg.global_position.y = Game.jutsu_floor(seg.global_position.x, seg.global_position.z) + 0.15 + 0.15 * (1.0 - r / 20.0), 1.0, 20.0, 0.8).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+					seg.global_position.y = Game.jutsu_floor_at(seg.global_position).y + 0.15 + 0.15 * (1.0 - r / 20.0), 1.0, 20.0, 0.8).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 			tw.tween_method(func(v: float): if is_instance_valid(seg): _fade_all(seg, v), 1.0, 0.0, 0.5)
 			tw.tween_callback(seg.queue_free)
 		for k in 12:
@@ -1496,7 +1496,7 @@ static func suiton_suika_bakuso_no_jutsu(pj: PathJutsu, c: Node3D, t: Node3D) ->
 		if cc == null or not pj.live(cc):
 			return
 		var p = from.lerp(to, k)
-		p.y = Game.jutsu_floor(p.x, p.z)
+		p.y = Game.jutsu_floor_at(p).y
 		cc.global_position = p
 		if "velocity" in cc:
 			cc.velocity = Vector3.ZERO

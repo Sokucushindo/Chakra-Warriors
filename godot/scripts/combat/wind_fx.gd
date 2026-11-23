@@ -163,7 +163,7 @@ static func wake(from: Vector3, d: Vector3, length: float, width: float, col: Co
 	for k in steps:
 		var t = float(k + 1) / steps
 		var p = from + d * length * t
-		var gy = Game.jutsu_floor(p.x, p.z)
+		var gy = Game.jutsu_floor_at(p).y
 		if p.y - gy > 3.5 + width * 0.25:
 			continue
 		var pp = Vector3(p.x, gy + 0.2, p.z)
@@ -209,7 +209,7 @@ static func swirl(pos: Vector3, radius: float, height: float, dur := 1.0, n := 1
 				streak(pth, randf_range(0.45, 0.7), randf_range(0.05, 0.1) * maxf(1.0, radius * 0.12), col, w * 0.35 + randf() * 0.15, 20)
 		if dust and w % 2 == 0:
 			var dc = dust_col(pos)
-			var gp = Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z) + 0.2, pos.z)
+			var gp = Vector3(pos.x, Game.jutsu_floor_at(pos).y + 0.2, pos.z)
 			var f = func():
 				soft_dust(gp, {"amount": int(4 + radius), "life": 1.0, "size": 0.8 + radius * 0.12, "radius": radius * 0.8,
 					"vmin": 1.5, "vmax": 4.0, "dir": Vector3.UP, "spread": 30.0, "damp": 1.5, "tangent": 18.0 + radius * 2.0, "orbit": 0.6}, dc)
@@ -219,7 +219,7 @@ static func swirl(pos: Vector3, radius: float, height: float, dur := 1.0, n := 1
 ## Patlama/basınç: merkezden her yöne kıvrılarak kaçan perdeler ve çizgiler + yerde yumuşak toz halkası (kubbe yerine)
 static func blast(pos: Vector3, radius: float, n := 24, col := LINE, debris := true) -> void:
 	radius *= VFX.epic
-	var gy = Game.jutsu_floor(pos.x, pos.z)
+	var gy = Game.jutsu_floor_at(pos).y
 	var tint = SHEET if col == LINE else Color(col.r, col.g, col.b, 1.0)
 	var ns = clampi(n / 3, 4, 12)
 	for i in n:

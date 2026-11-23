@@ -114,7 +114,7 @@ static func _puff_mesh() -> Mesh:
 
 ## Görüş kesen bulut (tek düğüm; K.GROUP üyesi). toxic: içindekini zehirler
 static func cloud(who: Node3D, at: Vector3, r: float, life: float, toxic: bool) -> void:
-	var fl = Game.jutsu_floor(at.x, at.z)
+	var fl = Game.jutsu_floor_at(at).y
 	var c = Vector3(at.x, fl + 0.5 if at.y - fl < 3.0 else at.y, at.z)
 	var s = {"t": 0.0, "life": life, "acc": 0.0, "n": null, "mi": null}
 	var fn = func(dt: float) -> bool:

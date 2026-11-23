@@ -386,6 +386,29 @@ func jutsu_floor(x: float, z: float) -> float:
 	return ground_height(x, z)
 
 
+## Noktanın ALTINDAKİ gerçek zemin (çatı, köprü, balkon, kaya dahil): nokta arazinin 0.6 m'den yukarısındaysa kendi yüksekliğinin
+## biraz üstünden aşağı ışın atılır, ilk sağlam yüzey alınır. Eskiden jutsular yalnız arazi yüksekliğine oturuyordu: çatıdan atılan
+## teknik çatının altındaki toprağa iniyordu. Yerdeki noktalarda eski hızlı hesap aynen kullanılır.
+func jutsu_floor_at(p: Vector3) -> Vector3:
+	var base := jutsu_floor(p.x, p.z)
+	if not (p.y > base + 0.6) or world == null or not is_instance_valid(world):
+		return Vector3(p.x, base, p.z)
+	var space = world.get_world_3d().direct_space_state if world.is_inside_tree() else null
+	if space == null:
+		return Vector3(p.x, base, p.z)
+	var q := PhysicsRayQueryParameters3D.create(Vector3(p.x, p.y + 2.0, p.z), Vector3(p.x, base - 0.5, p.z), 1)
+	q.collide_with_areas = false
+	for _i in 3:
+		var h = space.intersect_ray(q)
+		if h.is_empty():
+			break
+		if h["collider"] is CharacterBody3D:   # karakterin kendi kapsülü zemin sayılmaz
+			q.exclude = q.exclude + [h["rid"]]
+			continue
+		return Vector3(p.x, maxf(float(h["position"].y), base), p.z)
+	return Vector3(p.x, base, p.z)
+
+
 ## Adım sesi: zeminin ekranda boyandığı malzemeyle aynı (terrain.gdshader):
 ## yol / sokak her yerde toprak boyanır (taş köy 14 ve karlı köy 15 sokağı gri taş, kum köy/çöl kumlu);
 ## yol dışı: Konoha (11) ve yeşil biyomlar çimen, kar, kaya, kum, su kendi sesi. İç mekân tahta, in taş.

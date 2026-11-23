@@ -194,10 +194,15 @@ static func tween_param(gi: GeometryInstance3D, pname: String, a: float, b: floa
 
 
 ## Tam ekran katmanı (yalnız oyuncunun gözü: kör olma, dumanın içi, yanan göz). Gölgelendirici aracın kendi dosyasında.
+static var _scr_guard_on := false
+
+
 static func screen(key: String, code: String) -> MeshInstance3D:
 	var k = "scr:" + key
 	var old = _c.get(k)
 	if old != null and is_instance_valid(old):
+		old.set_meta("touch", Time.get_ticks_msec())
+		_scr_guard_start()
 		return old
 	var m = shader_mat("scr_" + key, code)
 	m.render_priority = 121   # kenar çizgisi katmanının (120) üstünde
@@ -209,7 +214,39 @@ static func screen(key: String, code: String) -> MeshInstance3D:
 	mi.visible = false
 	scene().add_child(mi)
 	_c[k] = mi
+	mi.set_meta("touch", Time.get_ticks_msec())
+	_scr_guard_start()
 	return mi
+
+
+## Ekran perdesi bekçisi: perdeyi yöneten kod 10 sn boyunca ona hiç dokunmadıysa (sahibi silindi / sayacı durdu) perde kapanır.
+## Eskiden düşmanın duman / zehir / kör eden aracı yarıda kalınca perde ekranda sonsuza dek kalıyordu.
+static func _scr_guard_start() -> void:
+	if _scr_guard_on:
+		return
+	var tr = tree()
+	if tr == null:
+		return
+	_scr_guard_on = true
+	tr.create_timer(1.0, false).timeout.connect(_scr_guard)
+
+
+static func _scr_guard() -> void:
+	_scr_guard_on = false
+	var now = Time.get_ticks_msec()
+	var any := false
+	for k in _c.keys():
+		if not String(k).begins_with("scr:"):
+			continue
+		var mi = _c[k]
+		if mi == null or not is_instance_valid(mi) or not mi.visible:
+			continue
+		if now - int(mi.get_meta("touch", now)) > 10000:
+			mi.visible = false
+		else:
+			any = true
+	if any:
+		_scr_guard_start()
 
 
 # ------------------------------------------------------------------ yapay zekâ

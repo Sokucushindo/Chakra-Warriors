@@ -816,7 +816,7 @@ static func _fly(mi: MeshInstance3D, p0: Vector3, v0: Vector3, g: float, s: floa
 		if stt["done"] or not is_instance_valid(mi):
 			return
 		var p = p0 + v0 * q + Vector3.DOWN * 0.5 * g * q * q
-		var fl = Game.jutsu_floor(p.x, p.z)
+		var fl = Game.jutsu_floor_at(p).y
 		if q > 0.05 and p.y <= fl:
 			stt["done"] = true
 			mi.global_position = Vector3(p.x, fl + s * 0.12, p.z)
@@ -869,7 +869,7 @@ static func _ground_pts(a: Vector3, b: Vector3, n: int, lift := 0.04) -> Array:
 	var out = []
 	for i in n + 1:
 		var p = a.lerp(b, float(i) / n)
-		out.append(Vector3(p.x, Game.jutsu_floor(p.x, p.z) + lift, p.z))
+		out.append(Vector3(p.x, Game.jutsu_floor_at(p).y + lift, p.z))
 	return out
 
 
@@ -901,7 +901,7 @@ static func _gouge(pj: PathJutsu, a: Vector3, b: Vector3, w: float, stay := 1.6)
 		var lp = []
 		for p in pts:
 			var q: Vector3 = p + sd * sgn * w * 0.62
-			lp.append(Vector3(q.x, Game.jutsu_floor(q.x, q.z) + 0.05, q.z))
+			lp.append(Vector3(q.x, Game.jutsu_floor_at(q).y + 0.05, q.z))
 		var lip = _ground_strip(pj, lp, _taper(lp.size(), w * 0.32, w * 0.32, 9.0), LIP, {"tear": 0.45})
 		_sweep(lip, 0.08, stay, 0.8, false)
 
@@ -918,7 +918,7 @@ static func _scar(pj: PathJutsu, g: Vector3, R: float, n: int, stay := 2.0) -> v
 		for i in 7:
 			var q = i / 6.0
 			var p = g + dv * L * q + sd * randf_range(-0.14, 0.14) * L * q
-			pts.append(Vector3(p.x, Game.jutsu_floor(p.x, p.z) + 0.045, p.z))
+			pts.append(Vector3(p.x, Game.jutsu_floor_at(p).y + 0.045, p.z))
 			ws.append(lerpf(minf(0.3, R * 0.09), 0.015, q))
 		var mi = _ground_strip(pj, pts, ws, GROOVE, {})
 		_sweep(mi, 0.16, stay * randf_range(0.8, 1.2), 0.9, false)
@@ -927,7 +927,7 @@ static func _scar(pj: PathJutsu, g: Vector3, R: float, n: int, stay := 2.0) -> v
 ## Yerde leke (yanık / zehir): yumuşak kenarlı yamalı disk
 static func _ground_disc(pj: PathJutsu, g: Vector3, R: float, col: Color, stay: float) -> void:
 	var mi = _mi(_disc_mesh(), _trail_mat(false), {"tint": col, "soft": 0.8, "tear": 0.25, "ends": 0.0})
-	pj.scene_add(mi, Vector3(g.x, Game.jutsu_floor(g.x, g.z) + 0.03, g.z))
+	pj.scene_add(mi, Vector3(g.x, Game.jutsu_floor_at(g).y + 0.03, g.z))
 	mi.rotation.y = randf() * TAU
 	mi.scale = Vector3(R * 0.4, 1.0, R * 0.4)
 	var tw = mi.create_tween()
@@ -1384,7 +1384,7 @@ static func _feather_shot(pj: PathJutsu, p: Vector3, dir: Vector3, dist: float, 
 			return
 		var u = q - t
 		var pp = p1 + dir * (1.0 - exp(-2.0 * u)) * 0.6 + Vector3.DOWN * 0.9 * u + sw * sin(u * 4.0 + ph) * 0.35
-		var fl = Game.jutsu_floor(pp.x, pp.z)
+		var fl = Game.jutsu_floor_at(pp).y
 		if pp.y <= fl + 0.02:
 			stt["done"] = true
 			fth.global_position = Vector3(pp.x, fl + 0.02, pp.z)
@@ -1838,7 +1838,7 @@ static func _poison_splash(pj: PathJutsu, at: Vector3) -> void:
 			if stt["done"] or not is_instance_valid(mi):
 				return
 			var p = at + v * q + Vector3.DOWN * 9.0 * q * q
-			var fl = Game.jutsu_floor(p.x, p.z)
+			var fl = Game.jutsu_floor_at(p).y
 			if q > 0.05 and p.y <= fl:
 				stt["done"] = true
 				_ground_disc(pj, Vector3(p.x, fl, p.z), randf_range(0.18, 0.32), Color(POISON.r * 0.7, POISON.g * 0.6, POISON.b * 0.7, 0.8), 2.0)
@@ -1988,7 +1988,7 @@ static func enbu_ni_no_dan(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		var u = m / 24.0
 		var a = u * TAU * 1.6
 		var q = g0 + Vector3(cos(a), 0, sin(a)) * lerpf(0.4, 2.4, u)
-		spiral.append(Vector3(q.x, Game.jutsu_floor(q.x, q.z) + 0.04, q.z))
+		spiral.append(Vector3(q.x, Game.jutsu_floor_at(q).y + 0.04, q.z))
 	var sw = _ground_strip(pj, spiral, _taper(spiral.size(), 0.18, 0.3, 6.0), Color(0.3, 0.24, 0.18, 0.75), {"tear": 0.3})
 	_sweep(sw, 0.3, 1.6, 0.8, false)
 	_dust_ring(pj, g0, 1.0, 3.0, 10, 0.45, 1.0)

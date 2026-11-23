@@ -344,7 +344,7 @@ func j_fuuton_daitoppa(c: Node3D, t: Node3D) -> void:
 
 ## Rüzgâr kütlesi: ağızdan ileri genişleyen yarı saydam soluk gövde + akışla kıvrılan yoğun beyaz çizgiler (kabuk değil: kenarları söner)
 func _wind_mass(c: Node3D, mo: Vector3, d: Vector3, reach: float, width: float, height: float, dur: float) -> void:
-	var gy = Game.jutsu_floor(mo.x, mo.z)
+	var gy = Game.jutsu_floor_at(mo).y
 	var root = Node3D.new()
 	get_tree().current_scene.add_child(root)
 	root.global_transform = Transform3D(Basis.looking_at(-d, Vector3.UP), Vector3(mo.x, gy, mo.z))
@@ -485,7 +485,7 @@ func _rasen_burst(c: Node3D, pos: Vector3, m: float, rad := 6.0, hits := true, h
 	ct.tween_property(core, "scale", Vector3.ONE * 0.05, 0.3)
 	ct.tween_callback(core.queue_free)
 	# tabanda dışa savrulan toz halkası + yerde krater
-	var gy = Game.jutsu_floor(pos.x, pos.z)
+	var gy = Game.jutsu_floor_at(pos).y
 	var base = Vector3(pos.x, gy, pos.z)
 	var npuff = clampi(int(rad * 2.3), 6, 22)   # toz halkası küre boyuna göre (Mini'de küreyi örtmesin)
 	for k in npuff:
@@ -829,8 +829,7 @@ func j_narakumi(c: Node3D, t: Node3D) -> void:
 		t.apply_status("stun", 3.0)
 		t.apply_status("fear", 3.0)
 	if Game.world:
-		Game.world.env.set_tint(Color(0.6, 0.3, 0.8, 0.25))
-		get_tree().create_timer(0.8).timeout.connect(func(): Game.world.env.set_tint(Color(0, 0, 0, 0)))
+		Game.world.env.flash_tint(Color(0.6, 0.3, 0.8, 0.25), 0.8)
 
 
 func j_kokuangyo(c: Node3D, _t: Node3D) -> void:
@@ -839,8 +838,7 @@ func j_kokuangyo(c: Node3D, _t: Node3D) -> void:
 		if Combat.hostile(c, f) and f.global_position.distance_to(c.global_position) < 25 and f.has_method("lose_target"):
 			f.lose_target(6.0)
 	if Game.world:
-		Game.world.env.set_tint(Color(0.05, 0.05, 0.1, 0.6))
-		get_tree().create_timer(1.2).timeout.connect(func(): Game.world.env.set_tint(Color(0, 0, 0, 0)))
+		Game.world.env.flash_tint(Color(0.05, 0.05, 0.1, 0.6), 1.2)
 
 
 func j_kuchiyose(c: Node3D, _t: Node3D) -> void:
@@ -913,7 +911,7 @@ func _dash(c: Node3D, t: Node3D, dur: float, speed: float, on_tick: Callable, on
 
 
 func _ground(p: Vector3) -> Vector3:
-	return Vector3(p.x, Game.jutsu_floor(p.x, p.z), p.z)
+	return Game.jutsu_floor_at(p)
 
 
 # ---------------------------------------------------------------- Hyuga
@@ -996,7 +994,7 @@ func _shadow_line(c: Node3D, t: Node3D, dur: float) -> void:
 		for k in n + 1:
 			var u = float(k) / n * grow
 			var p = a + fwd * full * u + side * amp * sin(u * TAU)   # yumuşak S (iki uç merkez hatta)
-			p.y = Game.jutsu_floor(p.x, p.z) + 0.05
+			p.y = Game.jutsu_floor_at(p).y + 0.05
 			var dir = (p - prev)
 			dir.y = 0.0
 			var sd = dir.normalized().cross(Vector3.UP) if dir.length() > 0.001 else side
@@ -1049,7 +1047,7 @@ func _shadow_path(a_fn: Callable, b_fn: Callable, dur: float, half_w := 0.38, po
 		for k in n + 1:
 			var u = float(k) / n * grow
 			var p = a + fwd * full * u + side * amp * sin(u * TAU)
-			p.y = Game.jutsu_floor(p.x, p.z) + 0.05
+			p.y = Game.jutsu_floor_at(p).y + 0.05
 			var dir = p - prev
 			dir.y = 0.0
 			var sd = dir.normalized().cross(Vector3.UP) if dir.length() > 0.001 else side

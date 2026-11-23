@@ -953,7 +953,7 @@ func _on_hit_fx(pt: Vector3, c: Dictionary) -> void:
 	var heavy: bool = c.get("heavy", false)
 	FX.hit_spark(pt, c.get("fx", Color(1.0, 0.85, 0.45) if not heavy else Color(1.0, 0.55, 0.25)), 1.4 if heavy else 0.9)
 	if c.get("water", false):   # Samehada bitiriş: yere çakma — etrafa su kubbesi + sprey (videodaki gibi)
-		var gp = Vector3(pt.x, Game.jutsu_floor(pt.x, pt.z), pt.z)
+		var gp = Game.jutsu_floor_at(pt)
 		WaterArt.splash(gp, 2.6 if c.get("water_big", false) else 1.6)
 		if c.get("water_big", false):
 			WaterArt.dome(gp, 4.5)
@@ -1212,7 +1212,7 @@ static func safe_dest(body: Node3D, from: Vector3, dest: Vector3) -> Vector3:
 	elif Interiors.inst and Interiors.inst.inside != "":
 		return Vector3(from.x, from.y, from.z)   # odada zemin bulunamadı (duvar dışı/boşluk): yerinde kal, asla araziye düşme
 	else:
-		dest.y = Game.jutsu_floor(dest.x, dest.z) + 0.1
+		dest.y = Game.jutsu_floor_at(dest).y + 0.1
 	return dest
 
 

@@ -224,7 +224,7 @@ static func _splash(pj: Node, pos: Vector3, n: int, spd: float, size: float, up 
 	var d = Drops.new()
 	pj.add_child(d)
 	d.global_position = Vector3.ZERO
-	d.floor_y = Game.jutsu_floor(pos.x, pos.z) - 0.05
+	d.floor_y = Game.jutsu_floor_at(pos).y - 0.05
 	for i in n:
 		var g = _gi(_sphere(), _mat("liq"))
 		d.add_child(g)
@@ -510,7 +510,7 @@ static func tessui_heki(pj: PathJutsu, c: Node3D, _t: Node3D) -> void:
 	_ketsu_eyes(pj, c, 1.6)
 	var full = _source(pj, c, 0.06)
 	var f = _fwd(c)
-	var gy = Game.jutsu_floor(c.global_position.x, c.global_position.z)
+	var gy = Game.jutsu_floor_at(c.global_position).y
 	var ctr = Vector3(c.global_position.x, gy, c.global_position.z)
 	var H = 3.4 if full else 2.6
 	var dur = 4.0
@@ -650,7 +650,7 @@ static func tessui_dan(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			pj.shot(cc, from, aim.normalized(), 30.0, shell, info, x if x != null and pj.live(x) else null, false, 1.6, func(hp_: Vector3, _tg = null):
 				var at = hp_ if hp_ != Vector3.ZERO else (shell.global_position if is_instance_valid(shell) else from)
 				_splash(pj, at, 14, 5.0, 0.11, -aim.normalized() + Vector3.UP * 0.6, 0.8)
-				_floor_ring(pj, Vector3(at.x, Game.jutsu_floor(at.x, at.z), at.z), 0.8, Color(0.5, 0.06, 0.05, 0.7), 1.6, 1.6, false))
+				_floor_ring(pj, Game.jutsu_floor_at(at), 0.8, Color(0.5, 0.06, 0.05, 0.7), 1.6, 1.6, false))
 			Sfx.play("whoosh", from, 1.2))
 
 
@@ -666,7 +666,7 @@ static func kioku_yomi(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		var dv: Vector3 = tt.global_position - c.global_position
 		dv.y = 0.0
 		var to: Vector3 = tt.global_position - dv.normalized() * 1.1
-		_floor_ring(pj, Vector3(c.global_position.x, Game.jutsu_floor(c.global_position.x, c.global_position.z), c.global_position.z), 0.9, Color(0.6, 0.05, 0.05, 0.6), 0.5, 1.6)
+		_floor_ring(pj, Vector3(c.global_position.x, Game.jutsu_floor_at(c.global_position).y, c.global_position.z), 0.9, Color(0.6, 0.05, 0.05, 0.6), 0.5, 1.6)
 		c.create_tween().tween_property(c, "global_position", Vector3(to.x, c.global_position.y, to.z), 0.14)
 	if tt == null:
 		Combat.popup_text(c.global_position + Vector3.UP * 2.4, "Dokunacak kadar yakın değil", Color(0.8, 0.6, 0.6))

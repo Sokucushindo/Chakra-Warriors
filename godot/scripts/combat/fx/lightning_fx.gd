@@ -274,7 +274,7 @@ static func _rand_dir() -> Vector3:
 
 
 static func _floor(p: Vector3) -> Vector3:
-	return Vector3(p.x, Game.jutsu_floor(p.x, p.z), p.z)
+	return Game.jutsu_floor_at(p)
 
 
 ## Uç noktası sabit (Vector3) ya da hareketli (Callable) olabilir
@@ -700,7 +700,7 @@ static func rocks(n: Node, at: Vector3, count: int, speed: float) -> void:
 			r["v"] = v
 			var mi: MeshInstance3D = r["mi"]
 			mi.position += v * dt
-			var gy = Game.jutsu_floor(node.global_position.x + mi.position.x, node.global_position.z + mi.position.z) - node.global_position.y
+			var gy = Game.jutsu_floor_at(Vector3(node.global_position.x + mi.position.x, node.global_position.y, node.global_position.z + mi.position.z)).y - node.global_position.y
 			if mi.position.y < gy:
 				mi.position.y = gy
 				r["v"] = Vector3(v.x * 0.4, 0.0, v.z * 0.4)
@@ -967,8 +967,9 @@ static func kirin(js, c: Node3D, t: Node3D) -> void:   # js: Jutsu otomatik yük
 	var sky = pos + Vector3.UP * 70.0 - js._aim_flat(c, t) * 10.0   # animede fırtına bulutları gökyüzünde; ejder oradan iner
 	var col = Color(0.55, 0.75, 1.0)
 	Sfx.play("thunder", sky, 0.6)
-	if Game.world:
-		Game.world.env.set_tint(Color(0.05, 0.05, 0.15, 0.35))
+	# fırtına karanlığı yalnız yakındaki oyuncuda ve kendiliğinden geçer (atan ölünce temizleme kodu çalışmıyor, ekran kararık kalıyordu)
+	if Game.world and Game.player and is_instance_valid(Game.player) and Game.player.global_position.distance_to(pos) < 90.0:
+		Game.world.env.flash_tint(Color(0.05, 0.05, 0.15, 0.35), 4.0)
 	# 1) bulut toplanması: kabaran koyu topaklar + içinde çakan şimşekler (bulut içten aydınlanır)
 	# Görsel bulut alçakta (yerden ~30 m, kameradan görünür, ekranın üstünü kaplar); ses / oynanış konumları değişmedi
 	var cloud_at: Vector3 = pos + Vector3.UP * 30.0 - js._aim_flat(c, t) * 6.0

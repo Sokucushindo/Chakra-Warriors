@@ -256,7 +256,7 @@ static func fold_rolls(pj: PathJutsu, center: Vector3, R: float, n: int, parent:
 			var wob = rr * (1.0 + 0.16 * sin(a * 3.0 + ph) + 0.08 * sin(a * 7.0 + ph * 2.0))
 			var lx = off.x + cos(a) * wob
 			var lz = off.z + sin(a) * wob
-			pts.append(Vector3(lx, Game.jutsu_floor(c.x + lx, c.z + lz) - c.y + 0.05, lz))
+			pts.append(Vector3(lx, Game.jutsu_floor_at(Vector3(c.x + lx, c.y, c.z + lz)).y - c.y + 0.05, lz))
 			radii.append(thick * (0.35 + 0.65 * sin(u * PI)) * (1.0 + 0.45 * sin(u * 9.0 + ph)))
 		var mi = _mi(tube_mesh(pts, radii, 7, 0.25, randf() * 10.0, 0.5), 0.0, 0.55, 0.0, 1.0)
 		root.add_child(mi)
@@ -266,7 +266,7 @@ static func fold_rolls(pj: PathJutsu, center: Vector3, R: float, n: int, parent:
 		var lx = cos(a) * dist
 		var lz = sin(a) * dist
 		var lm = _mi(lump_mesh(randi() % 6, 0.35, 0.7), 0.0, 0.5, 0.0, 1.2)
-		lm.position = Vector3(lx, Game.jutsu_floor(c.x + lx, c.z + lz) - c.y + 0.02, lz)
+		lm.position = Vector3(lx, Game.jutsu_floor_at(Vector3(c.x + lx, c.y, c.z + lz)).y - c.y + 0.02, lz)
 		var sz = R * randf_range(0.04, 0.09)
 		lm.scale = Vector3(sz * randf_range(1.0, 1.8), sz * 0.6, sz)
 		lm.rotation.y = randf() * TAU
@@ -402,7 +402,7 @@ static func splat_mesh(variant: int, R := 1.0, center = null, rag := 0.32, dome 
 	var vadd = func(x: float, y: float, z: float, alpha: float):
 		var yy = y
 		if conform:
-			yy += Game.jutsu_floor(center.x + x, center.z + z) - center.y + 0.03
+			yy += Game.jutsu_floor_at(Vector3(center.x + x, center.y, center.z + z)).y - center.y + 0.03
 		sf.set_color(Color(1, 1, 1, alpha))
 		sf.set_uv(Vector2(x, z))
 		sf.add_vertex(Vector3(x, yy, z))
@@ -559,7 +559,7 @@ static func flow_mesh(origin: Vector3, d: Vector3, w0: float, w1: float, L: floa
 			var fld = 0.22 * sin(zg * 1.7 - absf(u) * 2.2 + sd) + 0.12 * sin(zg * 3.1 + u * 4.0)
 			var y = h * prof * (1.0 + fld)
 			var wpos = origin + side * x + d * z
-			y += Game.jutsu_floor(wpos.x, wpos.z) - origin.y + 0.03
+			y += Game.jutsu_floor_at(wpos).y - origin.y + 0.03
 			var a = 0.0 if ix == 0 or ix == nx else 1.0
 			sf.set_color(Color(1, 1, 1, a))
 			sf.set_uv(Vector2(u, zg))
@@ -603,7 +603,7 @@ static func _fly(mi: MeshInstance3D, p0: Vector3, v0: Vector3, g: float, size: f
 		if stt["done"] or not is_instance_valid(mi):
 			return
 		var p = p0 + v0 * tt + Vector3.DOWN * 0.5 * g * tt * tt
-		var fl = Game.jutsu_floor(p.x, p.z)
+		var fl = Game.jutsu_floor_at(p).y
 		if tt > 0.03 and p.y <= fl:
 			stt["done"] = true
 			on_land.call(mi, Vector3(p.x, fl, p.z))
@@ -731,12 +731,12 @@ static func ground_cracks(pj: PathJutsu, pos: Vector3, R: float, n: int, col: Co
 			dir = dir.rotated(Vector3.UP, randf_range(-0.55, 0.55))
 			var q = p + dir * L / segn
 			var mid = (p + q) * 0.5
-			mid.y = Game.jutsu_floor(c.x + mid.x, c.z + mid.z) - c.y + 0.035
+			mid.y = Game.jutsu_floor_at(Vector3(c.x + mid.x, c.y, c.z + mid.z)).y - c.y + 0.035
 			b.add("box", mid, Vector3(wd, 0.03, L / segn + 0.06), col, Vector3(0, rad_to_deg(atan2(dir.x, dir.z)), 0), 4)
 			if s > 0 and randf() < 0.35:   # yan dal
 				var bd = dir.rotated(Vector3.UP, 0.9 if randf() < 0.5 else -0.9)
 				var bm = p + bd * L / segn * 0.35
-				bm.y = Game.jutsu_floor(c.x + bm.x, c.z + bm.z) - c.y + 0.035
+				bm.y = Game.jutsu_floor_at(Vector3(c.x + bm.x, c.y, c.z + bm.z)).y - c.y + 0.035
 				b.add("box", bm, Vector3(wd * 0.6, 0.03, L / segn * 0.7), col, Vector3(0, rad_to_deg(atan2(bd.x, bd.z)), 0), 4)
 			wd *= 0.8
 			p = q

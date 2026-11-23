@@ -563,7 +563,7 @@ static func pf(mi: GeometryInstance3D, k: String) -> Callable:
 
 
 static func floor_at(p: Vector3) -> Vector3:
-	return Vector3(p.x, Game.jutsu_floor(p.x, p.z), p.z)
+	return Game.jutsu_floor_at(p)
 
 
 static func side_of(d: Vector3) -> Vector3:
@@ -921,7 +921,7 @@ static func strip_mesh(pts: PackedVector3Array, widths: PackedFloat32Array, side
 			var x = -1.0 + 2.0 * float(j) / float(nc - 1)
 			var q = pts[i] + side * w * x
 			var pr = pow(maxf(1.0 - x * x, 0.0), 0.6)
-			q.y = Game.jutsu_floor(q.x, q.z) + lift + H * pr
+			q.y = Game.jutsu_floor_at(q).y + lift + H * pr
 			pv.append(q)
 			var xc = clampf(x, -0.97, 0.97)
 			var dh = H * 0.6 * pow(1.0 - xc * xc, -0.4) * (-2.0 * xc) / maxf(w, 0.1)
@@ -1001,7 +1001,7 @@ static func toss(host: Node, mi: Node3D, p0: Vector3, v: Vector3, life: float, g
 		if not is_instance_valid(mi) or stt["land"]:
 			return
 		var pos = p0 + v * tm + Vector3.DOWN * 0.5 * g * tm * tm
-		var fy = Game.jutsu_floor(pos.x, pos.z) + 0.04
+		var fy = Game.jutsu_floor_at(pos).y + 0.04
 		if pos.y < fy and tm > 0.06 and v.y - g * tm < 0.0:
 			pos.y = fy
 			stt["land"] = true

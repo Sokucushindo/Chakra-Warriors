@@ -1119,7 +1119,7 @@ static func katon_goukakyuu(js, c: Node3D, t: Node3D) -> void:
 		else:
 			p.vel = p.vel.move_toward(dir * 24.0, dt * 40.0)
 		# top yerin üstünde yuvarlansın (merkez görsel yarıçapın yarısı kadar yukarıda)
-		var gy = Game.jutsu_floor(p.global_position.x, p.global_position.z)
+		var gy = Game.jutsu_floor_at(p.global_position).y
 		p.global_position.y = lerpf(p.global_position.y, gy + 1.6 * g, minf(1.0, dt * 3.0))
 		# yuvarlanma: hıza göre ileri döner
 		if is_instance_valid(roller):
@@ -1139,7 +1139,7 @@ static func katon_goukakyuu(js, c: Node3D, t: Node3D) -> void:
 		var ge = pr.epic
 		_goukakyuu_impact(js, pos, ge)
 		_blast_marks(pos, 1.3 * ge)
-		var gp = Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z), pos.z)
+		var gp = Game.jutsu_floor_at(pos)
 		_crack_zone(gp, 3.0 * ge * ge)
 		if Game.world:
 			Game.world.env.add_shake(1.2)
@@ -1383,7 +1383,7 @@ static func katon_dai_endan(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		for i in 12:
 			var tm = i * 0.07
 			var p = sh + vel * tm + Vector3.DOWN * 0.5 * 9.0 * tm * tm
-			var fy = Game.jutsu_floor(p.x, p.z) + 0.1
+			var fy = Game.jutsu_floor_at(p).y + 0.1
 			if p.y < fy:
 				p.y = fy
 			pts.append(p)

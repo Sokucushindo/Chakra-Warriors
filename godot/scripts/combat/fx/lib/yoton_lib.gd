@@ -497,7 +497,7 @@ static func pf(mi: GeometryInstance3D, k: String) -> Callable:
 
 
 static func floor_at(p: Vector3) -> Vector3:
-	return Vector3(p.x, Game.jutsu_floor(p.x, p.z), p.z)
+	return Game.jutsu_floor_at(p)
 
 
 static func side_of(d: Vector3) -> Vector3:
@@ -788,7 +788,7 @@ static func drop(host: Node, mi: MeshInstance3D, p: Vector3, v: Vector3, r: floa
 			return
 		var vel = v + Vector3.DOWN * g * tm
 		var pos = p + v * tm + Vector3.DOWN * 0.5 * g * tm * tm
-		var fy = Game.jutsu_floor(pos.x, pos.z) + 0.03
+		var fy = Game.jutsu_floor_at(pos).y + 0.03
 		if pos.y < fy and tm > 0.04:
 			pos.y = fy
 			stt["land"] = true
@@ -842,7 +842,7 @@ static func crust_rock(host: Node, p: Vector3, v: Vector3, s: float, life := 1.8
 		if not is_instance_valid(mi) or stt["land"]:
 			return
 		var pos = p + v * tm + Vector3.DOWN * 0.5 * 20.0 * tm * tm
-		var fy = Game.jutsu_floor(pos.x, pos.z) + s * 0.5
+		var fy = Game.jutsu_floor_at(pos).y + s * 0.5
 		if pos.y < fy and tm > 0.05:
 			pos.y = fy
 			stt["land"] = true

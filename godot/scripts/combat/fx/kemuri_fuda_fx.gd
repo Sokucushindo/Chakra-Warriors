@@ -109,7 +109,7 @@ static func launch(who: Node3D, _start: Vector3, _dir: Vector3, _target: Node3D)
 
 
 static func release(who: Node3D, at: Vector3) -> void:
-	var c = Vector3(at.x, Game.jutsu_floor(at.x, at.z), at.z)
+	var c = Game.jutsu_floor_at(at)
 	var s = {"t": 0.0, "life": LIFE, "acc": 0.0, "n": null, "mi": null}
 	var fn = func(dt: float) -> bool:
 		s["t"] += dt

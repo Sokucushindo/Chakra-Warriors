@@ -745,7 +745,7 @@ func _gate_look(g: int) -> void:
 ## Kapı açılış patlaması (anime): 5 hava sütunu, 6 yerde dönen kaya krateri, 7 hava kubbesi
 func _gate_burst(g: int) -> void:
 	var at = p.global_position
-	var gp_ = Vector3(at.x, Game.jutsu_floor(at.x, at.z), at.z)
+	var gp_ = Game.jutsu_floor_at(at)
 	WindFX.blast(at + Vector3.UP * 1.5, 1.5 + g * 0.5, 6 + g * 2, WindFX.LINE, false)
 	if g >= 5:
 		WindFX.swirl(gp_, 1.6, 10.0 + g, 0.6, 10, Color(0.85, 0.95, 1.0, 0.9), false)   # yukarı patlayan hava/su sütunu

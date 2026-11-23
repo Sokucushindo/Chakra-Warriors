@@ -267,7 +267,7 @@ static func _cam() -> Vector3:
 
 
 static func _g(p: Vector3) -> Vector3:
-	return Vector3(p.x, Game.jutsu_floor(p.x, p.z), p.z)
+	return Game.jutsu_floor_at(p)
 
 
 static func _rdir() -> Vector3:
@@ -601,7 +601,7 @@ static func _bits(at: Vector3, n: int, mesh: Mesh, mat: Material, vel: Callable,
 	mmi.top_level = true
 	mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	mmi.extra_cull_margin = 20.0
-	var gy = Game.jutsu_floor(at.x, at.z)
+	var gy = Game.jutsu_floor_at(at).y
 	var P = []
 	var V = []
 	var AX = []
@@ -2325,7 +2325,7 @@ static func shunshin(_pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	var hit = space.intersect_ray(PhysicsRayQueryParameters3D.create(from + Vector3.UP, to + Vector3.UP, 1))
 	if not hit.is_empty():
 		to = hit["position"] - d * 0.8
-	to.y = Game.jutsu_floor(to.x, to.z)
+	to.y = Game.jutsu_floor_at(to).y
 	var cols = _look_cols(c)
 	_smear(from, cols, to - from, false)
 	_leaf_whirl(from + Vector3.UP * 0.1, 12)

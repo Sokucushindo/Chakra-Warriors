@@ -207,7 +207,7 @@ static func _dog_wall(pl: Dictionary) -> Node3D:
 static func doryuheki(pj, c: Node3D, _t: Node3D) -> void:
 	var d = pj._aim_flat(c, _t)
 	var pos = c.global_position + d * 3.5
-	pos.y = Game.jutsu_floor(pos.x, pos.z)
+	pos.y = Game.jutsu_floor_at(pos).y
 	var wall = StaticBody3D.new()
 	var cs = CollisionShape3D.new()
 	var sh = BoxShape3D.new()

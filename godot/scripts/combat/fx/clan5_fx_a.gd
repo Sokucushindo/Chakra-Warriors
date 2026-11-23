@@ -329,7 +329,7 @@ static func _cam() -> Vector3:
 
 
 static func _flr(p: Vector3) -> Vector3:
-	return Vector3(p.x, Game.jutsu_floor(p.x, p.z) + 0.04, p.z)
+	return Vector3(p.x, Game.jutsu_floor_at(p).y + 0.04, p.z)
 
 
 static func _sh(key: String) -> Shader:
@@ -1964,7 +1964,7 @@ static func _flash_hop(who: Node3D, p: Vector3, tgt: Node3D, ground := true) -> 
 	Sfx.play("whoosh", to, 1.6, 0.5)
 	_bolt_line(a + Vector3.UP * 1.0, to + Vector3.UP * 1.0)
 	if ground:
-		_seal_flash(Vector3(to.x, Game.jutsu_floor(to.x, to.z) + 0.05, to.z), Vector3.UP, 1.0)
+		_seal_flash(Vector3(to.x, Game.jutsu_floor_at(to).y + 0.05, to.z), Vector3.UP, 1.0)
 	else:
 		_seal_flash(to + Vector3.UP * 1.0, (_cam() - to).normalized(), 0.8)
 	_light(to + Vector3.UP, BOLT_Y, 2.2, 5.0, 0.2)

@@ -1056,7 +1056,7 @@ static func _web_field(at: Vector3, R: float, hold: float, col: Color) -> void:
 	for line in lines:
 		for s in line:
 			var p: Vector3 = s["p"]
-			s["p"] = Vector3(p.x, Game.jutsu_floor(p.x, p.z) + 0.05, p.z)
+			s["p"] = Vector3(p.x, Game.jutsu_floor_at(p).y + 0.05, p.z)
 	var total = 0.35 + hold + 0.3
 	var stt = {"next": 0.0, "jit": [], "surge": []}
 	L.host(func(im, _n, _dt, age) -> bool:

@@ -150,7 +150,7 @@ static func _vc_mat() -> StandardMaterial3D:
 
 
 static func _near_ground(p: Vector3, h := 2.5) -> bool:
-	return p.y - Game.jutsu_floor(p.x, p.z) < h
+	return p.y - Game.jutsu_floor_at(p).y < h
 
 
 static func _safe(n) -> Node3D:
@@ -532,7 +532,7 @@ static func _panther_shot(pj: PathJutsu, c: Node3D, tt: Node3D, from: Vector3, d
 	pr.homing_turn = 4.0
 	pr.radius = 1.2
 	pr.on_tick = func(p, _dt):
-		p.global_position.y = Game.jutsu_floor(p.global_position.x, p.global_position.z) + 0.9
+		p.global_position.y = Game.jutsu_floor_at(p.global_position).y + 0.9
 	_panther_aura(pj, pr, s)
 	return pr
 
@@ -835,7 +835,7 @@ static func _seal(at: Vector3, r: float, dur: float) -> void:
 			for i in cnt:
 				var a = TAU * i / nseg + rot * (1.0 if rr > r * 0.8 else -1.0)
 				var q = at + Vector3(cos(a), 0, sin(a)) * rr
-				line.append(Vector3(q.x, Game.jutsu_floor(q.x, q.z) + 0.07, q.z))
+				line.append(Vector3(q.x, Game.jutsu_floor_at(q).y + 0.07, q.z))
 			polys.append({"p": line, "w": 0.06, "a": 1.0, "k": 2})
 		if draw_f >= 1.0:
 			for k in 8:
@@ -1234,7 +1234,7 @@ static func _sixteen_cage(at: Vector3, pts: Array, dur: float, tick: Dictionary)
 			for i in 41:
 				var a = TAU * i / 40.0
 				var q = at + Vector3(cos(a), 0, sin(a)) * 4.5
-				ring.append(Vector3(q.x, Game.jutsu_floor(q.x, q.z) + 0.07, q.z))
+				ring.append(Vector3(q.x, Game.jutsu_floor_at(q).y + 0.07, q.z))
 			stt["g"] = [{"p": ring, "w": 0.07, "a": 1.0, "k": 2}]
 		var cam = L.cam_pos()
 		var fade = clampf((dur - age) / 0.3, 0.0, 1.0)

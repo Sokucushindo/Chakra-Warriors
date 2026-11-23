@@ -268,7 +268,7 @@ static func hyoton_kokuryu_bofusetsu(pj: PathJutsu, c: Node3D, t: Node3D) -> voi
 			var off = (sd * cos(s0["t"] * 14.0) + sd.cross(v) * sin(s0["t"] * 14.0)) * 1.5 * minf(1.0, s0["t"] * 3.0)
 			p.global_position += off - s0["off"]
 			s0["off"] = off
-			var fl = Game.jutsu_floor(p.global_position.x, p.global_position.z) + 0.9   # sarmal ejderi yere gömmesin
+			var fl = Game.jutsu_floor_at(p.global_position).y + 0.9   # sarmal ejderi yere gömmesin
 			if p.global_position.y < fl:
 				p.global_position.y = fl
 		L.snow(pj, from, {"dark": true, "n": 30, "r": 0.6, "dir": d0, "spread": 50.0, "vmin": 3.0, "vmax": 8.0})
@@ -459,7 +459,7 @@ static func hyoton_roga_nadare(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 				kick.position = Vector3(0, -0.8, 0.3)
 				var ph = {"v": randf() * TAU}
 				pr.on_tick = func(p, dt):
-					p.global_position.y = Game.jutsu_floor(p.global_position.x, p.global_position.z) + 0.85
+					p.global_position.y = Game.jutsu_floor_at(p.global_position).y + 0.85
 					ph["v"] += dt * 15.0
 					_run(wolf, ph["v"], 0.7)
 					for q in pj.get_tree().get_nodes_in_group("projectiles"):
@@ -754,7 +754,7 @@ static func hyoton_haryu_moko(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		ttr.position = Vector3(0, -1.1, 1.0)
 		var s0 = {"d": 0.0, "ph": 0.0}
 		pr.on_tick = func(p, dt):
-			p.global_position.y = Game.jutsu_floor(p.global_position.x, p.global_position.z) + 1.3
+			p.global_position.y = Game.jutsu_floor_at(p.global_position).y + 1.3
 			s0["d"] += p.vel.length() * dt
 			s0["ph"] += dt * 10.0
 			_run(tiger, s0["ph"], 0.55)

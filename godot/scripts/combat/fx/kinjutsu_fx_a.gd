@@ -993,7 +993,7 @@ static func _toss(pj: PathJutsu, mi: Node3D, p0: Vector3, v: Vector3, life: floa
 	_put(pj, mi, p0)
 	var ax = (_rnd_dir() + UP * 0.4).normalized()
 	var sc0 = mi.scale
-	var fl = Game.jutsu_floor(p0.x, p0.z)
+	var fl = Game.jutsu_floor_at(p0).y
 	var upd = func(u: float) -> void:
 		if not is_instance_valid(mi):
 			return

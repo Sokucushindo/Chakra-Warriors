@@ -474,7 +474,7 @@ static func pf(mi: GeometryInstance3D, k: String) -> Callable:
 
 
 static func floor_at(p: Vector3) -> Vector3:
-	return Vector3(p.x, Game.jutsu_floor(p.x, p.z), p.z)
+	return Game.jutsu_floor_at(p)
 
 
 static func side_of(d: Vector3) -> Vector3:
@@ -1005,7 +1005,7 @@ static func chunks(host: Node, p: Vector3, n: int, speed: float, col: Color, siz
 		var p0 = mi.global_position
 		var spin = Vector3(randf_range(-9, 9), randf_range(-9, 9), randf_range(-9, 9))
 		var life = randf_range(0.8, 1.3)
-		var gy = Game.jutsu_floor(p0.x, p0.z)
+		var gy = Game.jutsu_floor_at(p0).y
 		var tw = mi.create_tween()
 		tw.tween_method(func(t: float):
 			if not is_instance_valid(mi):

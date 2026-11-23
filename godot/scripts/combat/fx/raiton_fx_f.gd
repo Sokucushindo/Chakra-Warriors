@@ -456,7 +456,7 @@ static func kamui_raikiri(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		dash.tween_method(func(x: float):
 			if pj.live(c):
 				var q = from.lerp(dest, x)
-				q.y = maxf(q.y, Game.jutsu_floor(q.x, q.z))
+				q.y = maxf(q.y, Game.jutsu_floor_at(q).y)
 				c.global_position = q
 				if "velocity" in c:
 					c.velocity = Vector3.ZERO, 0.0, 1.0, 0.16)

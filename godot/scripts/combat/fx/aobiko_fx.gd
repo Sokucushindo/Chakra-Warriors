@@ -94,7 +94,7 @@ static func explode(who: Node3D, at: Vector3, mult: float) -> void:
 
 
 static func _spread(who: Node3D, at: Vector3, mult: float) -> void:
-	var g = Vector3(at.x, Game.jutsu_floor(at.x, at.z) + 0.02, at.z)
+	var g = Vector3(at.x, Game.jutsu_floor_at(at).y + 0.02, at.z)
 	if _wet_here(g) or _raining():
 		explode(who, g, mult)
 		return

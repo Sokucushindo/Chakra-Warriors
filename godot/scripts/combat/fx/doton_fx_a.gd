@@ -405,7 +405,7 @@ static func retsudo_tensho(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 					var a = TAU * (i + randf_range(-0.2, 0.2)) / cnt
 					var rad = Vector3(cos(a), 0, sin(a))
 					var q = at + rad * r
-					var fy = Game.jutsu_floor(q.x, q.z) - at.y
+					var fy = Game.jutsu_floor_at(q).y - at.y
 					var sl = DotonLib.rock(_slab_mesh(randi() % 5), pl["body"], {"top": pl["top"], "top_y": 0.25, "strata": 2.6, "ow": 0.045, "shadow": true})
 					ring.add_child(sl)
 					var lr = ring.global_basis.inverse() * rad

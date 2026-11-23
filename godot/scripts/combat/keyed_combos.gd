@@ -2549,7 +2549,7 @@ static func _shadow_needles(tg: Node3D, n: int) -> void:
 	for k in n:
 		var a = k * TAU / n + randf_range(-0.2, 0.2)
 		var g = tg.global_position + Vector3(cos(a), 0, sin(a)) * randf_range(1.2, 2.0)
-		g.y = Game.jutsu_floor(g.x, g.z)
+		g.y = Game.jutsu_floor_at(g).y
 		var dir = (body + Vector3(randf_range(-0.2, 0.2), randf_range(-0.3, 0.4), randf_range(-0.2, 0.2)) - g).normalized()
 		var L = g.distance_to(body) + 0.35
 		var nd = MeshInstance3D.new()
@@ -6053,7 +6053,7 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 					var hand = who.global_position + Vector3.UP * 1.3 + f * 0.6
 					var to = tg.global_position + Vector3.UP * 1.0 if tg and tg.global_position.distance_to(who.global_position) < 6.5 else hand + f * 5.0
 					if pj:
-						var gh = Vector3(hand.x, Game.jutsu_floor(hand.x, hand.z), hand.z)   # _wood_trunk tabanı yere indirir: elden çıksın diye sonra ele taşınır
+						var gh = Game.jutsu_floor_at(hand)   # _wood_trunk tabanı yere indirir: elden çıksın diye sonra ele taşınır
 						for k in 3:
 							var tip = to + side * (k - 1) * 0.35 + Vector3.UP * (k % 2) * 0.3
 							var br: Node3D = pj._wood_trunk(hand, gh + (tip - hand), 0.07, 0.5, k * 0.04, 0.3)
@@ -7462,7 +7462,7 @@ static func _kg_style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vec
 							var off = sin(st0["t"] * 7.5) * 1.0
 							p.global_position += sd * (off - st0["off"])
 							st0["off"] = off
-							p.global_position.y = Game.jutsu_floor(p.global_position.x, p.global_position.z) + 0.9
+							p.global_position.y = Game.jutsu_floor_at(p.global_position).y + 0.9
 							if is_instance_valid(hound):
 								hound.rotation.y = -atan2(cos(st0["t"] * 7.5) * 7.5, spd)
 				3:   # Kuroi Kaminari: avuçlar birleşik, düz kara şimşek hattı (siyah-beyaz)
@@ -7496,7 +7496,7 @@ static func _kg_style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vec
 						pr5.homing_turn = 4.0
 						pr5.radius = 1.0
 						pr5.on_tick = func(p, _dt):
-							p.global_position.y = Game.jutsu_floor(p.global_position.x, p.global_position.z) + 0.9
+							p.global_position.y = Game.jutsu_floor_at(p.global_position).y + 0.9
 					VFX.black_bolt(hand, hand + f * 2.0, 0.2, 0.25, 2)
 					Sfx.play("roar", who.global_position, 1.1, 0.7)
 		"style_yoton":
@@ -7794,7 +7794,7 @@ static func _kg_style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vec
 			var tg = _near_foe(who, 16.0)
 			var hand = who.global_position + Vector3.UP * 1.3 + f * 0.6
 			var dist = tg.global_position.distance_to(who.global_position) if tg else 99.0
-			var gh = Vector3(hand.x, Game.jutsu_floor(hand.x, hand.z), hand.z)   # _wood_trunk tabanı yere iner: elden çıksın diye sonra ele taşınır
+			var gh = Game.jutsu_floor_at(hand)   # _wood_trunk tabanı yere iner: elden çıksın diye sonra ele taşınır
 			match i:
 				0:   # Mokuton: Kui — avuçtan iki kazık (yavaşlatır)
 					for k in 2:

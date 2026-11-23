@@ -1451,7 +1451,7 @@ func _kamui_warp(t: Node3D) -> void:
 		var f = p.cam_forward() if p.has_method("cam_forward") else p.face_dir()
 		f.y = 0
 		dest = from + f.normalized() * 22.0
-	dest.y = Game.jutsu_floor(dest.x, dest.z)
+	dest.y = Game.jutsu_floor_at(dest).y
 	MsArts.kamui_vortex(from + Vector3.UP * 1.1, 1.3, 0.8)
 	add_blind(0.02 * minf(2.0, from.distance_to(dest) / 15.0))
 	p.model.visible = false
@@ -1476,7 +1476,7 @@ func _shisui_shunshin(t: Node3D) -> void:
 	var tg = t if t and is_instance_valid(t) and t.global_position.distance_to(p.global_position) < 30.0 else Combat.nearest_enemy(p, 30.0)
 	var from = p.global_position
 	var dest = (tg.global_position + (from - tg.global_position).normalized() * 1.6) if tg else from + p.face_dir() * 14.0
-	dest.y = Game.jutsu_floor(dest.x, dest.z)
+	dest.y = Game.jutsu_floor_at(dest).y
 	var col = Color(0.3, 0.95, 0.5)
 	for k in 6:
 		var q = from.lerp(dest, k / 5.0) + Vector3.UP

@@ -1740,141 +1740,6 @@ static func _hand_mb(b: MB, at: Vector3, dir: Vector3, s: float, col: Color) -> 
 	_tube_mb(b, [at + y * 0.2 * s + x * 0.25 * s, at + y * 0.4 * s + x * 0.45 * s], [0.06 * s, 0.045 * s], col, 4)   # başparmak
 
 
-static func _kz_data() -> Array:
-	if _cache.has("kz"):
-		return _cache["kz"]
-	var W = Color(0.52, 0.41, 0.33)
-	var D = Color(0.34, 0.26, 0.2)
-	var b = MB.new()
-	# uzun cüppe: yerde geniş etekten yukarı daralan sütun + dikey kıvrım çizgileri
-	var ry = [0.0, 1.5, 3.5, 5.5, 6.6]
-	var rr = [1.55, 1.12, 0.86, 0.8, 0.95]
-	_tube_mb(b, [Vector3(0, -0.6, 0), Vector3(0, 0.0, 0), Vector3(0, 1.5, 0), Vector3(0, 3.5, 0), Vector3(0, 5.5, 0), Vector3(0, 6.6, 0)], [1.6, 1.55, 1.12, 0.86, 0.8, 0.95], W, 22)
-	for k in 9:
-		var a = lerpf(-1.2, 1.2, k / 8.0)
-		var fp = []
-		for i in 4:
-			var yy = [0.05, 2.0, 3.8, 5.3][i]
-			var r0 = 0.0
-			for j in 4:
-				if yy >= ry[j] and yy <= ry[j + 1]:
-					r0 = lerpf(rr[j], rr[j + 1], (yy - ry[j]) / (ry[j + 1] - ry[j]))
-			fp.append(Vector3(sin(a) * (r0 + 0.02), yy, -cos(a) * (r0 + 0.02)))
-		_tube_mb(b, fp, 0.035, D, 4)
-	_tube_mb(b, _circle(Vector3(0, 5.6, 0), Vector3(0.83, 0, 0), Vector3(0, 0, 0.83), 28), 0.07, D, 5)   # kuşak
-	_tube_mb(b, [Vector3(0, 6.4, 0), Vector3(0, 7.3, 0), Vector3(0, 7.7, 0)], [1.0, 1.08, 0.45], W, 18)   # göğüs
-	_tube_mb(b, [Vector3(0.85, 7.45, -0.4), Vector3(0.25, 6.85, -0.95), Vector3(-0.45, 6.1, -0.92), Vector3(-0.82, 5.65, -0.55)], 0.12, W.darkened(0.08), 6)   # omuz örtüsü
-	for s in [-1.0, 1.0]:   # göğüs önünde dua eden ana kollar
-		_tube_mb(b, [Vector3(s * 1.02, 7.3, 0), Vector3(s * 1.15, 6.75, -0.3), Vector3(s * 0.75, 6.75, -0.78), Vector3(s * 0.16, 7.0, -0.98)], [0.27, 0.24, 0.2, 0.15], W, 10)
-		b.add("box", Vector3(s * 0.06, 7.32, -1.02), Vector3(0.1, 0.56, 0.3), W, Vector3(-10, 0, s * 8.0))
-	# baş: sakin yüz, topuz, kıvırcık saç taneleri, uzun kulaklar, kapalı gözler
-	_tube_mb(b, [Vector3(0, 7.6, 0), Vector3(0, 7.95, -0.03)], [0.3, 0.28], W, 12)
-	b.add("sphere", Vector3(0, 8.3, -0.05), Vector3(1.0, 1.15, 1.0), W, Vector3.ZERO, 16)
-	b.add("sphere", Vector3(0, 8.95, 0.02), Vector3(0.46, 0.5, 0.46), D, Vector3.ZERO, 12)
-	b.add("sphere", Vector3(0, 9.25, 0.02), Vector3(0.22, 0.25, 0.22), D, Vector3.ZERO, 10)
-	for k in 14:
-		var a = k * TAU / 14.0
-		b.add("sphere", Vector3(cos(a) * 0.4, 8.72, sin(a) * 0.4 - 0.05), Vector3(0.14, 0.12, 0.14), D, Vector3.ZERO, 6)
-	for s in [-1.0, 1.0]:
-		_tube_mb(b, [Vector3(s * 0.08, 8.3, -0.53), Vector3(s * 0.2, 8.28, -0.52), Vector3(s * 0.3, 8.31, -0.47)], 0.02, D, 4)
-		b.add("sphere", Vector3(s * 0.5, 8.12, 0.0), Vector3(0.12, 0.52, 0.18), W, Vector3.ZERO, 8)
-	b.add("box", Vector3(0, 8.15, -0.56), Vector3(0.08, 0.18, 0.08), W)
-	b.add("box", Vector3(0, 7.97, -0.52), Vector3(0.16, 0.02, 0.02), D)
-	b.add("sphere", Vector3(0, 8.45, -0.55), Vector3(0.06, 0.06, 0.04), D, Vector3.ZERO, 6)
-	# taç gibi beş küçük baş (Issai Kaiku çıkış noktaları)
-	var heads = []
-	for k in 5:
-		var a = lerpf(-1.25, 1.25, k / 4.0)
-		var hp = Vector3(sin(a) * 0.64, 8.62, -cos(a) * 0.52)
-		b.add("sphere", hp, Vector3(0.26, 0.3, 0.26), W.lightened(0.05), Vector3.ZERO, 10)
-		b.add("sphere", hp + Vector3(0, 0.2, 0), Vector3(0.1, 0.12, 0.1), D, Vector3.ZERO, 6)
-		heads.append(hp + Vector3(sin(a) * 0.14, 0, -cos(a) * 0.14))
-	_tube_mb(b, _circle(Vector3(0, 8.5, 0), Vector3(0.66, 0, 0), Vector3(0, 0, 0.55), 26), 0.04, D, 4)
-	# hale: gövdenin ardında büyük disk + iki halka + ışınlar
-	var hc = Vector3(0, 7.4, 0.6)
-	b.add("cyl", hc + Vector3(0, 0, 0.05), Vector3(9.2, 0.08, 9.2), W.darkened(0.12), Vector3(90, 0, 0), 40)
-	_tube_mb(b, _circle(hc, Vector3(4.75, 0, 0), Vector3(0, 4.75, 0), 48), 0.18, D, 6)
-	_tube_mb(b, _circle(hc + Vector3(0, 0, -0.05), Vector3(2.35, 0, 0), Vector3(0, 2.35, 0), 32), 0.1, D, 5)
-	for k in 12:
-		var a = k * TAU / 12.0
-		var dv = Vector3(cos(a), sin(a), 0)
-		_tube_mb(b, [hc + dv * 2.45 + Vector3(0, 0, -0.06), hc + dv * 4.6 + Vector3(0, 0, -0.06)], 0.04, D, 4)
-	# ref: halenin dışında tüy gibi üst üste binen dört sıra açık el (yelpaze), alttan yukarı her sıra biraz daha dışta / geride
-	for r in 4:
-		var n = 30 + r * 6
-		var rad = 4.6 + r * 0.55
-		for k in n:
-			var a = (k + 0.5 * (r % 2)) / float(n) * TAU
-			if sin(a) < -0.55:   # cüppenin altına giren alt uç boş (ref: el halkası etek hizasında kesilir)
-				continue
-			var dv = Vector3(cos(a), sin(a), 0.0)
-			var o = hc + dv * rad + Vector3(0, 0, 0.12 + r * 0.1)
-			var fl = 1.0 + 0.12 * sin(k * 1.7 + r)
-			var colr = W.darkened(0.04 * float((k + r) % 3))
-			_tube_mb(b, [o, o + dv * 0.45 * fl], [0.13, 0.11], colr, 5)
-			_tube_mb(b, _circle(o + dv * 0.42 * fl, Vector3(dv.y, -dv.x, 0) * 0.12, Vector3(0, 0, 0.12), 8), 0.025, D, 3)   # bilek bandı
-			_hand_mb(b, o + dv * 0.5 * fl, (dv + Vector3(0, 0, -0.12)).normalized(), 0.62, colr)
-	# haleden ışın gibi açılan iki sıra kol
-	var hands = []
-	for r in 2:
-		var n = 22 + r * 8
-		var L = 2.6 + r * 1.4
-		for k in n:
-			var a = (k + 0.5 * r) / float(n) * TAU
-			var dv = Vector3(cos(a), sin(a), 0.12 + r * 0.08).normalized()
-			var o = hc + Vector3(cos(a), sin(a), 0) * (2.3 + r * 0.25) + Vector3(0, 0, 0.2 + r * 0.15)
-			var tip = o + dv * L
-			var colr = W if (k + r) % 2 == 0 else W.darkened(0.07)
-			_tube_mb(b, [o, o + dv * L * 0.5 + Vector3(0, 0, -0.1), tip], [0.16, 0.13, 0.1], colr, 6)
-			_hand_mb(b, tip, dv, 0.55, colr)
-			hands.append(tip + dv * 0.3)
-	for s in [-1.0, 1.0]:   # öne uzanan dört uzun kol (ref)
-		for h in 2:
-			var o = Vector3(s * 0.95, 7.2 - h * 0.6, 0.15)
-			var pts = [o, o + Vector3(s * 2.0, 0.8 - h * 1.6, -0.6), o + Vector3(s * 4.2, 1.0 - h * 2.6, -1.4), o + Vector3(s * 5.6, 0.6 - h * 3.4, -2.2)]
-			_tube_mb(b, pts, [0.2, 0.18, 0.15, 0.12], W, 8)
-			_hand_mb(b, pts[3], (pts[3] - pts[2]).normalized(), 0.75, W)
-			hands.append(pts[3])
-	var data = [b.build(null), heads, hands]
-	_cache["kz"] = data
-	return data
-
-
-static func _kanzeon(pj: PathJutsu, pos: Vector3, yaw: float) -> Node3D:
-	var data = _kz_data()
-	var root = _root(pj, pos)
-	root.rotation.y = yaw
-	var body = Node3D.new()
-	root.add_child(body)
-	body.scale = Vector3.ONE * 16.0   # tasarım boyu 10 → ~160 m
-	var mi = _geo(body, data[0], _carve())
-	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-	root.set_meta("body", body)
-	root.set_meta("heads", data[1])
-	root.set_meta("hands", data[2])
-	return root
-
-
-static func _kz_world(kz: Node3D, p: Vector3) -> Vector3:
-	var body: Node3D = kz.get_meta("body")
-	return body.global_transform * p
-
-
-static func _wood_arm_mesh() -> ArrayMesh:
-	if _cache.has("kz_arm"):
-		return _cache["kz_arm"]
-	var W = Color(0.52, 0.41, 0.33)
-	var b = MB.new()
-	_tube_mb(b, [Vector3(0, 0, 0), Vector3(0.004, 0.4, 0), Vector3(0, 0.82, 0)], [0.05, 0.046, 0.04], W, 10)
-	_tube_mb(b, _circle(Vector3(0, 0.8, 0), Vector3(0.044, 0, 0), Vector3(0, 0, 0.044), 12), 0.008, W.darkened(0.25), 4)   # bilek bandı
-	_hand_mb(b, Vector3(0, 0.82, 0), Vector3.UP, 0.18, W)
-	for k in 3:   # tahta lif çizgileri
-		var a = k * 2.1
-		_tube_mb(b, [Vector3(cos(a) * 0.049, 0.05, sin(a) * 0.049), Vector3(cos(a + 0.2) * 0.045, 0.45, sin(a + 0.2) * 0.045), Vector3(cos(a) * 0.041, 0.78, sin(a) * 0.041)], 0.004, W.darkened(0.3), 3)
-	_cache["kz_arm"] = b.build(null)
-	return _cache["kz_arm"]
-
-
 static func _earth_burst(pj: PathJutsu, at: Vector3, s: float) -> void:
 	_cracks(pj, at, 2.2 * s, 7, 3.0)
 	_parts(pj, pj.gp(at) + Vector3.UP * 0.3, {"kind": "chip", "mesh": _chip_mesh(Color(0.45, 0.38, 0.3)), "amount": int(12 * s), "life": 1.2, "size": 0.35 * s,
@@ -2028,68 +1893,118 @@ static func kanzeon_renge_o(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	var fd = pj.fwd(c, t)
 	var goal0 = pj.gp(tt.global_position if tt else c.global_position + fd * 40.0)
 	var at = pj.gp(c.global_position - fd * 70.0)
-	var kz = _kanzeon(pj, at - Vector3.UP * 170.0, atan2(-(goal0 - at).x, -(goal0 - at).z))
+	var kz = Kanzeon.spawn(pj.get_tree().current_scene, at - Vector3.UP * 175.0, atan2(-fd.x, -fd.z))   # ön -Z hedefe
 	for k in 8:
-		_earth_burst(pj, at + Vector3(cos(k * 0.8) * 20.0, 0, sin(k * 0.8) * 20.0), 4.0)
-	var rise = _parts(pj, at + Vector3.UP * 3.0, {"kind": "cel", "loop": true, "amount": 40, "life": 2.0, "size": 7.0, "grow": 1.6, "box": Vector3(26.0, 2.0, 26.0),
+		_earth_burst(pj, at + Vector3(cos(k * 0.8) * 22.0, 0, sin(k * 0.8) * 22.0), 4.0)
+	var rise = _parts(pj, at + Vector3.UP * 3.0, {"kind": "cel", "loop": true, "amount": 40, "life": 2.0, "size": 7.0, "grow": 1.6, "box": Vector3(30.0, 2.0, 30.0),
 		"spread": 70.0, "vmin": 2.0, "vmax": 6.0, "damp": 1.0, "gravity": Vector3(0, 0.5, 0),
 		"colors": [Color(0.6, 0.52, 0.42, 0.0), Color(0.6, 0.52, 0.42, 0.95), Color(0.5, 0.44, 0.36, 0.0)]})   # yükselirken taban tozu
 	_stop_emit(rise, 1.6)
 	pj.shake(1.6)
 	Sfx.play("earth", at, 0.35)
+	var st := {"kz": kz, "c": c, "tt": tt, "goal0": goal0, "fd": fd, "side": fd.cross(Vector3.UP).normalized(), "counts": {}}
 	var tw = kz.create_tween()
 	tw.tween_property(kz, "global_position", at, 1.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	var side = fd.cross(Vector3.UP).normalized()
-	var counts := {}   # aynı düşmana sınırlı vuruş: onlarca kol tek kişiyi anında eritmesin
-	tw.tween_callback(func():   # Issai Kaiku: beş baş, beş doğa — her baş alanın başka bir köşesini döver (ortası hedef)
-		var goal_c = pj.gp(tt.global_position if tt and pj.live(tt) else goal0) + Vector3.UP * 1.0
-		var kinds = ["katon", "suiton", "raiton", "fuuton", "doton"]
-		var offs = [Vector2(0, 0), Vector2(-22, 10), Vector2(22, 10), Vector2(-16, -16), Vector2(16, -16)]
-		var heads: Array = kz.get_meta("heads")
-		for i in 5:
-			var goal: Vector3 = pj.gp(goal_c + side * offs[i].x + fd * offs[i].y) + Vector3.UP * 1.0
-			var from = _kz_world(kz, heads[i])
-			var d = (goal - from).normalized()
-			var L = from.distance_to(goal) + 6.0
-			match kinds[i]:
-				"katon":
-					_kz_fire(pj, from, d, L)
-				"suiton":
-					_kz_water(pj, from, goal)
-				"raiton":
-					_kz_bolt(pj, from, goal)
-				"fuuton":
-					_kz_wind(pj, from, goal)
-				"doton":
-					_kz_rocks(pj, from, goal)
-			pj.after(0.5, _kz_head_hit.bind(pj, c, goal, String(kinds[i]), counts))
-		pj.shake(1.0))
-	tw.tween_interval(1.4)
-	tw.tween_callback(func():   # Chōjō Kebutsu: haleden kollar
-		for k in 60:   # haleden kopan kollar ~60 x 45 m alanı tarar
-			pj.after(k * 0.045, func():
-				if not is_instance_valid(kz):
-					return
-				var goal = pj.gp(tt.global_position if tt and pj.live(tt) else goal0)
-				var q = pj.gp(goal + side * randf_range(-30.0, 30.0) + fd * randf_range(-22.0, 22.0))
-				var hands: Array = kz.get_meta("hands")
-				var src = _kz_world(kz, hands[randi() % hands.size()])
-				var hand = _wgeo(pj, _wood_arm_mesh(), _carve())
-				hand.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-				hand.global_position = src
-				hand.look_at(q + Vector3(0.001, 0, 0), Vector3.UP)
-				hand.rotate_object_local(Vector3.RIGHT, -PI * 0.5)
-				hand.scale = Vector3.ONE * 22.0
-				var tw2 = hand.create_tween()
-				tw2.tween_property(hand, "global_position", q - (q - src).normalized() * 20.0, clampf(src.distance_to(q) / 260.0, 0.3, 0.7)).set_ease(Tween.EASE_IN)
-				tw2.tween_callback(func():
-					_kz_arm_hit(pj, c, q, counts, k % 3 == 0))
-				tw2.tween_interval(0.4)
-				tw2.tween_method(func(v: float): _set_fade(hand, v), 1.0, 0.0, 0.25)
-				tw2.tween_callback(hand.queue_free)))
-	tw.tween_interval(2.6)
-	tw.tween_property(kz, "global_position", at - Vector3.UP * 170.0, 1.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_callback(_kz_issai.bind(pj, st))
+	tw.tween_interval(1.2)
+	tw.tween_callback(_kz_slaps.bind(pj, st))
+	tw.tween_interval(4.6)
+	tw.tween_property(kz, "global_position", at - Vector3.UP * 175.0, 1.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tw.tween_callback(kz.queue_free)
+
+
+## Issai Kaiku (ref kz 0:36): taçtaki beş maske baş aynı anda beş doğayı püskürtür — her biri alanın başka köşesine
+static func _kz_issai(pj: PathJutsu, st: Dictionary) -> void:
+	var kz: Kanzeon = st["kz"]
+	if not is_instance_valid(kz):
+		return
+	var tt = st["tt"]
+	var fd: Vector3 = st["fd"]
+	var side: Vector3 = st["side"]
+	var goal_c = pj.gp(tt.global_position if tt and pj.live(tt) else st["goal0"]) + Vector3.UP * 1.0
+	var kinds = ["katon", "suiton", "raiton", "fuuton", "doton"]
+	var offs = [Vector2(-22, 10), Vector2(-16, -16), Vector2(0, 0), Vector2(16, -16), Vector2(22, 10)]
+	for i in 5:
+		var goal: Vector3 = pj.gp(goal_c + side * offs[i].x + fd * offs[i].y) + Vector3.UP * 1.0
+		var from = kz.head_world(i)
+		var d = (goal - from).normalized()
+		var L = from.distance_to(goal) + 6.0
+		match kinds[i]:
+			"katon":
+				_kz_fire(pj, from, d, L)
+			"suiton":
+				_kz_water(pj, from, goal)
+			"raiton":
+				_kz_bolt(pj, from, goal)
+			"fuuton":
+				_kz_wind(pj, from, goal)
+			"doton":
+				_kz_rocks(pj, from, goal)
+		pj.after(0.5, _kz_head_hit.bind(pj, st["c"], goal, String(kinds[i]), st["counts"]))
+	pj.shake(1.0)
+
+
+## Heykele bağlı kollar (ref kz 0:12-0:16): hale tüylerinden ve dört uzun koldan uzanan kollar açık avuçla yere çarpar,
+## yarı geri çekilip yeni noktaya iner; en sonda dört kol birlikte hedefin üstüne iner
+static func _kz_slaps(pj: PathJutsu, st: Dictionary) -> void:
+	var kz: Kanzeon = st["kz"]
+	if not is_instance_valid(kz):
+		return
+	for k in 28:
+		pj.after(k * 0.06, _kz_arm_run.bind(pj, st, k))
+	pj.after(3.0, _kz_final.bind(pj, st))
+
+
+static func _kz_goal(pj: PathJutsu, st: Dictionary, spread: float) -> Vector3:
+	var tt = st["tt"]
+	var g: Vector3 = pj.gp(tt.global_position if tt and pj.live(tt) else st["goal0"])
+	return pj.gp(g + (st["side"] as Vector3) * randf_range(-30.0, 30.0) * spread + (st["fd"] as Vector3) * randf_range(-22.0, 22.0) * spread)
+
+
+static func _kz_arm_run(pj: PathJutsu, st: Dictionary, k: int) -> void:
+	var kz: Kanzeon = st["kz"]
+	if not is_instance_valid(kz):
+		return
+	var a = kz.new_arm(randf_range(1.3, 1.7), randf_range(5.5, 6.5))
+	var hit := _kz_slap_hit.bind(pj, st, k)
+	for w in 2:
+		pj.after(w * 1.2 + randf() * 0.25, func():
+			if is_instance_valid(kz) and a in kz.arms:
+				kz.slap(a, _kz_goal(pj, st, 1.0), 0.28, 0.16, 0.4, hit))
+	pj.after(2.6 + randf() * 0.3, func():
+		if is_instance_valid(kz) and a in kz.arms:
+			kz.retract(a, 0.5))
+
+
+static func _kz_slap_hit(q: Vector3, pj: PathJutsu, st: Dictionary, k: int) -> void:
+	_kz_arm_hit(pj, st["c"], q, st["counts"], k % 3 == 0)
+
+
+static func _kz_final(pj: PathJutsu, st: Dictionary) -> void:
+	var kz: Kanzeon = st["kz"]
+	if not is_instance_valid(kz):
+		return
+	var tt = st["tt"]
+	var g: Vector3 = pj.gp(tt.global_position if tt and pj.live(tt) else st["goal0"])
+	for j in 4:
+		var a = kz.new_arm(2.2, 8.0)
+		var q = pj.gp(g + (st["side"] as Vector3) * (j - 1.5) * 5.0)
+		kz.slap(a, q, 0.34, 0.3, 0.3, _kz_big_hit.bind(pj, st, j))
+		pj.after(1.1, func():
+			if is_instance_valid(kz) and a in kz.arms:
+				kz.retract(a, 0.5))
+
+
+static func _kz_big_hit(q: Vector3, pj: PathJutsu, st: Dictionary, j: int) -> void:
+	_earth_burst(pj, q, 3.5)
+	_cracks(pj, q, 12.0, 12, 5.0)
+	_dust(pj, q, 5.0, Color(0.6, 0.52, 0.42))
+	if j == 0:
+		var c = st["c"]
+		if pj.live(c):
+			pj.hit(c, q + Vector3.UP, 18.0, pj.inf(c, "kanzeon_renge_o", 0.5, {"knock": 18.0, "kind": "heavy"}))
+		WorldDamage.impact(q, 16.0, {"dmg": 150.0, "kind": "heavy"})
+		pj.shake(1.3)
 
 
 # ================================================================== 11) Senpō: Sumi San Rasenshuriken — kara mürekkep rasenshuriken
@@ -2157,7 +2072,7 @@ static func _ink_burst(pj: PathJutsu, c: Node3D, pos: Vector3, m: float, rad: fl
 	tw.tween_method(func(v: float): _set_fade(root, v), 1.0, 0.0, 0.45)
 	tw.parallel().tween_property(dome, "scale", Vector3.ONE * rad * 1.15, 0.45)
 	tw.tween_callback(root.queue_free)
-	var gy = Game.jutsu_floor(pos.x, pos.z)
+	var gy = Game.jutsu_floor_at(pos).y
 	var base = Vector3(pos.x, gy, pos.z)
 	_cracks(pj, base, rad * 1.2, 9, 4.0)
 	for q in 7:   # yerde kara mürekkep lekeleri
@@ -2657,7 +2572,7 @@ static func ranton_burakku_hantingu(pj: PathJutsu, c: Node3D, t: Node3D) -> void
 				pr.homing_turn = 5.0
 				pr.radius = 0.9
 				pr.on_tick = func(p, _dt):
-					p.global_position.y = Game.jutsu_floor(p.global_position.x, p.global_position.z) + 0.9
+					p.global_position.y = Game.jutsu_floor_at(p.global_position).y + 0.9
 			Sfx.play("roar", from, 1.3, 0.5)
 		pj.after(0.15 + k * 0.12, launch)
 	var merge = func():

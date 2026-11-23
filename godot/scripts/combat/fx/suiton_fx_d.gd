@@ -165,7 +165,7 @@ static func _drape_strip(at: Vector3, d: Vector3, w: float, length: float, lift:
 			var x = lerpf(-hw * (1.0 + jl), hw * (1.0 + jr), u)
 			var edge = absf(u - 0.5) * 2.0
 			var wp = at + bs * Vector3(x, 0, z)
-			var y = Game.jutsu_floor(wp.x, wp.z) - at.y + lift * (1.0 - edge * edge * 0.85)
+			var y = Game.jutsu_floor_at(wp).y - at.y + lift * (1.0 - edge * edge * 0.85)
 			row.append(Vector3(x, y, z))
 			urow.append(Vector2(x / 3.0, zl / 3.0))
 			var ea = 1.0 - smoothstep(0.45, 1.0, edge + 0.08 * sin(zl * 2.3 + u * 9.0 + ph))
@@ -617,7 +617,7 @@ static func _great_wave(js, c: Node3D, d: Dictionary, dir: Vector3) -> void:
 		var p = start + dir * k * dist
 		if is_instance_valid(wave):
 			var vp = p + dir * ahead
-			wave.global_position = Vector3(vp.x, Game.jutsu_floor(vp.x, vp.z), vp.z)
+			wave.global_position = Game.jutsu_floor_at(vp)
 			# atanın önünde alçak doğar, uzaklaştıkça boy atar
 			wave.scale = Vector3(1.0, lerpf(0.2, 1.0, smoothstep(0.0, 10.0, k * dist)) * minf(1.0, k * 8.0 + 0.05), 1.0)
 		if is_instance_valid(bed):

@@ -158,7 +158,7 @@ static func _gy(x: float, z: float) -> float:
 
 
 static func _ground(p: Vector3) -> Vector3:
-	return Vector3(p.x, _gy(p.x, p.z), p.z)
+	return Vector3(p.x, Game.jutsu_floor_at(p).y + 0.045, p.z)   # çatı / köprü üstünde de gerçek zemin
 
 
 static func _shader(key: String) -> Shader:

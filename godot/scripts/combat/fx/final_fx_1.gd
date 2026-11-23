@@ -525,7 +525,7 @@ static func _add(pj: Node, n: Node3D, pos: Vector3) -> Node3D:
 
 
 static func _gp(p: Vector3) -> Vector3:
-	return Vector3(p.x, Game.jutsu_floor(p.x, p.z), p.z)
+	return Game.jutsu_floor_at(p)
 
 
 static func _h(t: Node3D) -> float:
@@ -1829,7 +1829,7 @@ static func _shadow_strip(pj: Node, a_fn: Callable, b_fn: Callable, dur: float, 
 		for k in n + 1:
 			var u = float(k) / n * grow
 			var p = a + fw * full * u + side * amp * sin(u * TAU)
-			p.y = Game.jutsu_floor(p.x, p.z) + 0.05
+			p.y = Game.jutsu_floor_at(p).y + 0.05
 			var w = half_w * (1.0 + wob * 0.5 * sin(u * 23.0 + ph + el * 6.0))
 			if grow < 0.99 and u > grow - 0.06:
 				w *= 0.5

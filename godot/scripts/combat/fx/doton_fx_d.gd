@@ -178,7 +178,7 @@ void fragment() {
 
 static func yomi(js, c: Node3D, t: Node3D) -> void:
 	var pos = js._aim_ground(c, t, 8.0)
-	pos.y = Game.jutsu_floor(pos.x, pos.z) + 0.05
+	pos.y = Game.jutsu_floor_at(pos).y + 0.05
 	var pl = DL.pal(pos)
 	var mi = DL.disc(js, pos, 6.0, _shader("yomi", YOMI_SHADER))
 	mi.set_instance_shader_parameter("seed", randf() * 10.0)
@@ -710,7 +710,7 @@ static func doryuusou(js, c: Node3D, t: Node3D) -> void:
 			if not is_instance_valid(c):
 				return
 			var p = c.global_position + d * (2.0 + k * 1.8)
-			p.y = Game.jutsu_floor(p.x, p.z)
+			p.y = Game.jutsu_floor_at(p).y
 			var pl = DL.pal(p)
 			for s in 3:
 				var q = DL.floor_at(p + side * randf_range(-0.7, 0.7) + d * randf_range(-0.4, 0.4))
@@ -864,7 +864,7 @@ static func tsuchi_nami_no_jutsu(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 					var a = lerpf(-0.85, 0.85, float(j) / float(n - 1))
 					var dir = d.rotated(Vector3.UP, a)
 					var p = g0 + dir * r
-					p.y = Game.jutsu_floor(p.x, p.z) - 0.12
+					p.y = Game.jutsu_floor_at(p).y - 0.12
 					sg2.global_position = p
 					_yaw(sg2, dir)
 					var edge = 1.0 - pow(absf(a) / 0.85, 3.0) * 0.55

@@ -17,6 +17,7 @@ const PIERCE_EYES := [2, 6, 7, 8]
 
 static var _veil_k := 0.0
 static var _veil_frame := -1
+static var _veil_guard_on := false   # perde açıkken bağımsız bekçi döngüsü (duman erken silinse de perde kalksın)
 
 const PUFF_SH := """shader_type spatial;
 render_mode unshaded, cull_disabled, skip_vertex_transform;
@@ -184,7 +185,7 @@ static func _day_light() -> float:
 
 
 static func burst(who: Node3D, pos: Vector3) -> void:
-	var fl = Game.jutsu_floor(pos.x, pos.z)
+	var fl = Game.jutsu_floor_at(pos).y
 	var base = Vector3(pos.x, fl if pos.y - fl < 4.0 else pos.y - 1.5, pos.z)
 	var s = {"t": 0.0, "life": LIFE, "acc": 0.0, "n": null, "mi": null}
 	var oid = who.get_instance_id() if is_instance_valid(who) else 0
@@ -340,6 +341,35 @@ static func _veil_tick(dt: float) -> void:
 	var v = Kit.screen("kemuri", VEIL_SH)
 	v.visible = _veil_k > 0.01
 	v.material_override.set_shader_parameter("k", _veil_k)
+	if v.visible and not _veil_guard_on:
+		_veil_guard_on = true
+		_veil_guard()
+
+
+## Perde bekçisi: dumanın kendi sayacından bağımsız; 0.25 sn'de bir — kamera artık hiçbir canlı dumanın içinde değilse perdeyi
+## söndürür (eskiden duman bulutu erken silinince / sayacı durunca perde ekranda sonsuza dek kalıyordu)
+static func _veil_guard() -> void:
+	var tr = Kit.tree()
+	if tr == null:
+		_veil_guard_on = false
+		return
+	var pl = Game.player
+	var inside := false
+	if pl != null and is_instance_valid(pl) and pl.cam != null:
+		var cp: Vector3 = pl.cam.global_position
+		for c in _clouds():
+			if is_instance_valid(c) and c.is_inside_tree() and cp.distance_to(c.get_meta("c")) < float(c.get_meta("r", 0.0)) * 0.8:
+				inside = true
+				break
+	if not inside:
+		_veil_k = move_toward(_veil_k, 0.0, 0.25 * 3.5)
+		var v = Kit.screen("kemuri", VEIL_SH)
+		v.material_override.set_shader_parameter("k", _veil_k)
+		if _veil_k <= 0.01:
+			v.visible = false
+			_veil_guard_on = false
+			return
+	tr.create_timer(0.25, false).timeout.connect(_veil_guard)
 
 
 static func _veil_clear() -> void:

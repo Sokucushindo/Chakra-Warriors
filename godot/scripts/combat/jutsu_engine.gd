@@ -657,7 +657,7 @@ static func _water_wave(c: Node3D, d: Dictionary, start: Vector3, dir: Vector3, 
 			var side = dir.cross(Vector3.UP).normalized()
 			WaterArt.spray(p + side * randf_range(-w * 0.45, w * 0.45) + Vector3.UP * h * 1.1 - dir * 0.5, 0.9, (dir + Vector3.UP * 0.6).normalized(), 30.0)
 		if st0["i"] % 6 == 0:
-			WaterArt.ripple(Vector3(p.x, Game.jutsu_floor(p.x, p.z), p.z) - dir * 1.0, w * 0.35)
+			WaterArt.ripple(Game.jutsu_floor_at(p) - dir * 1.0, w * 0.35)
 		if is_instance_valid(c):
 			hit.append_array(Combat.hit_sphere(c, p + Vector3.UP, w * 0.5, inf, hit)), 0.0, 1.0, 1.0)
 	tw.tween_property(mi, "scale", Vector3(1.1, 0.05, 1.1), 0.3)

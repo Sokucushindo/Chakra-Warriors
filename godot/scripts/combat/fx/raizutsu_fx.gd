@@ -67,7 +67,7 @@ static func _bolt(root: Node3D, a: Vector3, b: Vector3, w: float, jag: float, li
 static func launch(who: Node3D, _start: Vector3, _dir: Vector3, _target: Node3D) -> Projectile:
 	var f: Vector3 = who.face_dir() if who.has_method("face_dir") else -who.global_transform.basis.z
 	var g = who.global_position + Vector3(f.x, 0, f.z).normalized() * 0.55
-	g.y = Game.jutsu_floor(g.x, g.z)
+	g.y = Game.jutsu_floor_at(g).y
 	var s = {"t": 0.0, "fired": false}
 	var box := {}
 	var fn = func(dt: float) -> bool:

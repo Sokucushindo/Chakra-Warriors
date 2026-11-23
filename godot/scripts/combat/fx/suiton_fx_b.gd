@@ -779,7 +779,7 @@ static func suiton_suijinheki(js, c: Node3D, _t: Node3D) -> void:
 
 
 static func _wall_fx(js, c: Node3D, dur: float) -> void:
-	var gy0 = Game.jutsu_floor(c.global_position.x, c.global_position.z)
+	var gy0 = Game.jutsu_floor_at(c.global_position).y
 	# ağızdan yere püskürme
 	var mouth = _mouth(c)
 	var land = Vector3(mouth.x, gy0, mouth.z) + c.face_dir() * 1.3

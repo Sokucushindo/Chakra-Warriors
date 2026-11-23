@@ -1096,7 +1096,7 @@ static func ikazuchi_koga(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		var off := sin(st0["t"] * w) * 1.8
 		p.global_position += side * (off - st0["off"])
 		st0["off"] = off
-		p.global_position.y = Game.jutsu_floor(p.global_position.x, p.global_position.z) + 0.9
+		p.global_position.y = Game.jutsu_floor_at(p.global_position).y + 0.9
 		if is_instance_valid(hound):
 			hound.rotation.y = -atan2(cos(st0["t"] * w) * 1.8 * w, spd)
 			# dörtnala: ön ve arka bacak çiftleri karşıt evrede

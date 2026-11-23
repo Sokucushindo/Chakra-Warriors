@@ -364,7 +364,7 @@ static func mokuton_hotei_no_jutsu(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		var rad = (6.0 - i * 0.092 * 60.0 / 160.0) * big
 		var p = Vector3(cos(a), 0.0, sin(a)) * rad
 		var w = at + p
-		p.y = Game.jutsu_floor(w.x, w.z) - at.y + 0.06 * big
+		p.y = Game.jutsu_floor_at(w).y - at.y + 0.06 * big
 		sp.append(p)
 		sr.append(0.95 * big)
 		ridge.append(p + Vector3.UP * 0.1 * big)
@@ -384,7 +384,7 @@ static func mokuton_hotei_no_jutsu(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		var a = TAU * k / n + randf() * 0.2
 		var sh = big * randf_range(0.9, 1.1)
 		var base = at + Vector3(cos(a), 0, sin(a)) * (3.8 * big)
-		base.y = Game.jutsu_floor(base.x, base.z)
+		base.y = Game.jutsu_floor_at(base).y
 		var holder = Node3D.new()
 		ML.put(pj, holder, base + Vector3.DOWN * 2.0 * big)
 		holder.look_at_from_position(holder.global_position, Vector3(at.x, holder.global_position.y, at.z), Vector3.UP)
@@ -819,20 +819,8 @@ static func taju_mokuton_bunshin_no_jutsu(pj: PathJutsu, c: Node3D, t: Node3D) -
 
 
 # ================================================================== Senpō Mokuton: Shin Sūsenju
-## Ref (Hashirama): gerçek ShinSusenju heykeli kullanıcının arkasında yeri yırtarak yükselir — tabanında dev toz setleri ve
-## yarıklar. Sonra binlerce kolundan ahşap eller kopup hedef alanına iner: her biri bilek bantlı uzun ön kol + açık avuç (kameraya
-## yakın kısım noktalı silinir); düştüğü yerde avuç izi, kıymık ve toz halkası kalır, el kuruyup geri çekilir.
-static func _susenju_hand() -> Dictionary:
-	if _cache.has("susenju_hand"):
-		return _cache["susenju_hand"]
-	var g = ML.Geo.new()
-	# yerel: kol +Y boyunca, parmak uçları ~42 m'de (eski kol ölçeğiyle aynı iniş mesafesi)
-	var L = _hand(g, 8.5, {"base": Vector3(0, 30.0, 0), "arm": 3.5, "curl": 0.12, "spread": 0.16, "band": true, "seed": 4.0})
-	var out = {"mesh": g.build(), "len": L}
-	_cache["susenju_hand"] = out
-	return out
-
-
+## Ref (Hashirama, _tmp/vs/hm): gerçek ShinSusenju heykeli kullanıcının arkasında yeri yırtarak yükselir — tabanında dev toz
+## setleri ve yarıklar. Chōjō Kebutsu: kuyruktaki kollar heykelden kopmadan hedefe uzanıp yumruk yağdırır (ShinSusenju.punch).
 static func _palm_print_mesh() -> ArrayMesh:
 	if _cache.has("palm_print"):
 		return _cache["palm_print"]
@@ -893,7 +881,7 @@ static func senpo_mokuton_shin_susenju(pj: PathJutsu, c: Node3D, t: Node3D) -> v
 	var fd = pj.fwd(c, t)
 	var goal0 = pj.gp(tt.global_position if tt else c.global_position + fd * 45.0)
 	var at = pj.gp(c.global_position - fd * 220.0)
-	# heykelin önü -Z: dönüş açısı -fd'den alınır ki yüzü ve açık elleri hedefe baksın (eskiden sırtı dönüktü)
+	# heykelin önü -Z: dönüş açısı -fd'den alınır ki yüzü ve kolları hedefe baksın
 	var ss = ShinSusenju.spawn(pj.get_tree().current_scene, at - Vector3.UP * 480.0, atan2(-fd.x, -fd.z))
 	# yükseliş: tabanda yırtılan yer, dev toz setleri
 	var sl = ML.soil_col(at)
@@ -911,59 +899,91 @@ static func senpo_mokuton_shin_susenju(pj: PathJutsu, c: Node3D, t: Node3D) -> v
 			ML.dust(pj, q + Vector3.UP * 10.0, randf_range(26.0, 40.0) * (1.0 - k * 0.3), 2.4, {"col": ML.dust_col(at), "vel": Vector3(cos(a), 0.5, sin(a)) * 9.0, "nf": 30.0}))
 	pj.shake(2.0)
 	Sfx.play("earth", at, 0.3)
-	var hd = _susenju_hand()
-	var side = fd.cross(Vector3.UP).normalized()
-	var counts := {}   # aynı düşmana en çok 4 el: yüz el tek kişiyi anında eritmesin
+	var st := {"ss": ss, "c": c, "tt": tt, "goal0": goal0, "fd": fd, "side": fd.cross(Vector3.UP).normalized(), "counts": {}}
 	var tw = ss.create_tween()
 	tw.tween_property(ss, "global_position", at, 2.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tw.tween_callback(func():
-		# Chōjō Kebutsu (ref): binlerce kolun elleri bir bölgenin tamamını döver — hedefin çevresinde ~110 x 80 m alana
-		# üç dalga hâlinde 120 el; her dalga alanı baştan sona tarar, en son dalga hedefin üstünde yoğunlaşır
-		var N := 120
-		for k in N:
-			var wave := int(k / 40)
-			pj.after(wave * 1.1 + float(k % 40) * 0.024, func():
-				if not is_instance_valid(ss):
-					return
-				var goal = pj.gp(tt.global_position if tt and pj.live(tt) else goal0)
-				var spread := 1.0 if wave < 2 else 0.55
-				var u := randf_range(-1.0, 1.0)
-				var v := randf_range(-1.0, 1.0)
-				var q: Vector3 = pj.gp(goal + side * u * 55.0 * spread + fd * v * 40.0 * spread)
-				var src = ss.random_hand_world()
-				var hand = ML.inst(pj, hd["mesh"], src, {"ow": 0.35, "nf": 30.0, "seed": k * 0.37})
-				hand.look_at(q + Vector3(0.001, 0, 0), Vector3.UP)
-				hand.rotate_object_local(Vector3.RIGHT, -PI * 0.5)   # kol (+Y) hedefe uzanır
-				var dir = (q - src).normalized()
-				var tw2 = hand.create_tween()
-				var dur = clampf(src.distance_to(q) / 420.0, 0.35, 0.8)
-				tw2.tween_property(hand, "global_position", q - dir * 42.0, dur).set_ease(Tween.EASE_IN)
-				tw2.tween_callback(func():
-					_palm_print(pj, q, dir, 9.0, 7.0)
-					var s2 = ML.soil_col(q)
-					ML.dust_ring(pj, q, 7.0, 8, 4.5, 1.4, {"spd": 8.0, "nf": 10.0})
-					if k % 2 == 0:
-						ML.chips(pj, q + Vector3.UP * 1.0, 14, 14.0, {"col": s2, "col2": s2.lightened(0.3), "size": 0.9, "rad": 3.0})
-					if k % 3 == 0:
-						ML.splinters(pj, q + Vector3.UP * 2.0, 3, 1.6, 10.0, {"col": s2})
-						_crack_zone(q, 9.0)
-					var ex := []
-					for f in counts:
-						if int(counts[f]) >= 4:
-							ex.append(f)
-					for e in pj.hit(c, q + Vector3.UP, 8.5, pj.inf(c, "senpo_mokuton_shin_susenju", 0.3, {"knock": 14.0, "kind": "heavy", "element": "mokuton"}), ex):
-						counts[e] = int(counts.get(e, 0)) + 1
-					if k % 4 == 0:
-						WorldDamage.impact(q, 7.0, {"dmg": 60.0, "element": "mokuton", "kind": "heavy"})
-					if k % 3 == 0:
-						pj.shake(0.6))
-				tw2.tween_interval(0.6)
-				tw2.tween_method(ML.pf(hand, "wither"), 0.0, 0.8, 0.1)
-				tw2.tween_property(hand, "global_position", q - dir * 75.0, 0.3).set_ease(Tween.EASE_IN)
-				tw2.tween_callback(hand.queue_free)))
-	tw.tween_interval(5.4)
+	tw.tween_callback(_ss_barrage.bind(pj, st))
+	tw.tween_interval(6.4)
 	tw.tween_property(ss, "global_position", at - Vector3.UP * 480.0, 2.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tw.tween_callback(ss.queue_free)
+
+
+## Chōjō Kebutsu (ref _tmp/vs/hm 1:00-1:28): kuyruktan 40 kol hedefe kesintisiz uzanır, her biri üç kez yumruk atar
+## (vur, yarı geri çekil, yeni noktaya yeniden uzan); ilk iki dalga ~110 x 80 m alanı döver, son dalga hedefin üstüne yoğunlaşır.
+## Kollar geri sarılırken hedefte dev toz-ışık patlaması.
+static func _ss_barrage(pj: PathJutsu, st: Dictionary) -> void:
+	var ss: ShinSusenju = st["ss"]
+	if not is_instance_valid(ss):
+		return
+	for k in 40:
+		pj.after(k * 0.05, _ss_arm_run.bind(pj, st, k))
+	pj.after(4.6, _ss_finale.bind(pj, st))
+
+
+static func _ss_goal(pj: PathJutsu, st: Dictionary, spread: float) -> Vector3:
+	var tt = st["tt"]
+	var goal: Vector3 = pj.gp(tt.global_position if tt and pj.live(tt) else st["goal0"])
+	return pj.gp(goal + (st["side"] as Vector3) * randf_range(-55.0, 55.0) * spread + (st["fd"] as Vector3) * randf_range(-40.0, 40.0) * spread)
+
+
+static func _ss_arm_run(pj: PathJutsu, st: Dictionary, k: int) -> void:
+	var ss: ShinSusenju = st["ss"]
+	if not is_instance_valid(ss):
+		return
+	var a = ss.new_arm(randf_range(2.6, 3.4), randf_range(9.0, 11.0))
+	var hit := _ss_impact.bind(pj, st, k)
+	for w in 3:
+		var spread := 1.0 if w < 2 else 0.4
+		pj.after(w * 1.15 + randf() * 0.2, func():
+			if is_instance_valid(ss) and a in ss.arms:
+				ss.punch(a, _ss_goal(pj, st, spread), 0.26, 0.14, 0.42, hit))
+	pj.after(3.6 + randf() * 0.3, func():
+		if is_instance_valid(ss) and a in ss.arms:
+			ss.retract(a, 0.55))
+
+
+## Yumruğun yere indiği an: yumruk çukuru, toz halkası, yarık, kıymık; aynı düşmana en çok 4 yumruk
+static func _ss_impact(q: Vector3, pj: PathJutsu, st: Dictionary, k: int) -> void:
+	var s2 = ML.soil_col(q)
+	ML.scar(pj, q, 7.0, 6.0, {"lines": 8.0, "pit": 1.0})
+	ML.dust_ring(pj, q, 9.0, 8, 5.0, 1.4, {"spd": 9.0, "nf": 10.0})
+	if k % 2 == 0:
+		ML.chips(pj, q + Vector3.UP * 1.0, 14, 16.0, {"col": s2, "col2": s2.lightened(0.3), "size": 1.0, "rad": 3.0})
+	if k % 3 == 0:
+		ML.splinters(pj, q + Vector3.UP * 2.0, 3, 1.6, 10.0, {"col": s2})
+		_crack_zone(q, 10.0)
+		WorldDamage.impact(q, 8.0, {"dmg": 70.0, "element": "mokuton", "kind": "heavy"})
+	var c = st["c"]
+	if pj.live(c):
+		var counts: Dictionary = st["counts"]
+		var ex := []
+		for f in counts:
+			if int(counts[f]) >= 4:
+				ex.append(f)
+		for e in pj.hit(c, q + Vector3.UP * 2.0, 9.0, pj.inf(c, "senpo_mokuton_shin_susenju", 0.3, {"knock": 14.0, "kind": "heavy", "element": "mokuton"}), ex):
+			counts[e] = int(counts.get(e, 0)) + 1
+	if k % 4 == 0:
+		pj.shake(0.6)
+
+
+## Son: hedef bölgesinde yükselen dev toz kubbesi + taş yağmuru (ref 1:20-1:28), alana tek ağır vuruş
+static func _ss_finale(pj: PathJutsu, st: Dictionary) -> void:
+	var tt = st["tt"]
+	var q: Vector3 = pj.gp(tt.global_position if tt and pj.live(tt) else st["goal0"])
+	var dc = ML.dust_col(q)
+	for j in 14:
+		var a = j * TAU / 14.0
+		var p = q + Vector3(cos(a), 0, sin(a)) * randf_range(4.0, 26.0)
+		ML.dust(pj, p + Vector3.UP * 6.0, randf_range(16.0, 26.0), 2.8, {"col": dc, "vel": Vector3(cos(a) * 6.0, 7.0, sin(a) * 6.0), "nf": 20.0})
+	ML.scar(pj, q, 40.0, 9.0, {"lines": 18.0, "pit": 1.0})
+	ML.chips(pj, q + Vector3.UP * 3.0, 40, 40.0, {"col": ML.soil_col(q), "col2": ML.soil_col(q).lightened(0.3), "size": 2.0, "rad": 10.0, "life": 2.2})
+	_crack_zone(q, 30.0)
+	WorldDamage.impact(q, 24.0, {"dmg": 200.0, "element": "mokuton", "kind": "heavy"})
+	var c = st["c"]
+	if pj.live(c):
+		pj.hit(c, q + Vector3.UP * 2.0, 24.0, pj.inf(c, "senpo_mokuton_shin_susenju", 0.6, {"knock": 24.0, "kind": "heavy", "element": "mokuton"}))
+	pj.shake(1.6)
+	Sfx.play("earth", q, 0.25)
 
 
 # ================================================================== Jukai Heki
@@ -993,7 +1013,7 @@ static func mokuton_jukai_heki(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			var u = u0 + amp * sin(y * fq + ph) * ramp
 			var w = 0.28 * cos(y * fq + ph) * ramp + (0.2 if k % 2 == 0 else -0.2)
 			var wy = at + side * u
-			var fl = Game.jutsu_floor(wy.x, wy.z) - at.y if i == 0 else 0.0
+			var fl = Game.jutsu_floor_at(wy).y - at.y if i == 0 else 0.0
 			pts.append(side * u + d * w + Vector3.UP * (y - 0.4 + fl))
 			radii.append(r0 * lerpf(1.1, 0.75, float(i) / 12.0))
 		L = maxf(L, ML.tube(g, pts, radii, {"sides": 9, "sx": 1.0, "sy": 0.55, "nfn": side_n, "cap_end": true, "gnarl": 0.06, "seed": k * 0.9}))

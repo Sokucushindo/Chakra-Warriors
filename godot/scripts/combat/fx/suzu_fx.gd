@@ -139,7 +139,7 @@ static func launch(who: Node3D, start: Vector3, dir: Vector3, target: Node3D) ->
 
 
 static func _plant(field: Dictionary, pos: Vector3) -> void:
-	var g = Game.jutsu_floor(pos.x, pos.z)
+	var g = Game.jutsu_floor_at(pos).y
 	(field["bells"] as Array).append(Vector3(pos.x, maxf(pos.y, g + 0.35), pos.z))
 
 

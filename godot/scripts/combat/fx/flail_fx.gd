@@ -171,7 +171,7 @@ static func strike(who: Node3D, i: int, dmg: float) -> void:
 	match i:
 		2, 5:
 			var q: Vector3 = who.global_position + f * (2.1 if i == 2 else 2.8)
-			q.y = Game.jutsu_floor(q.x, q.z) + 0.04
+			q.y = Game.jutsu_floor_at(q).y + 0.04
 			_crack(q, 1.4 if i == 2 else 2.8)
 			_chips(q + Vector3.UP * 0.1, 5 if i == 2 else 10)
 			Sfx.play("earth", q, 0.9, 0.6)

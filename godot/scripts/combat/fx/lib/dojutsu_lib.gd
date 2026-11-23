@@ -546,7 +546,7 @@ static func dissolve(n: Node3D, delay: float, t: float) -> void:
 
 
 static func floor_at(p: Vector3) -> Vector3:
-	return Vector3(p.x, Game.jutsu_floor(p.x, p.z), p.z)
+	return Game.jutsu_floor_at(p)
 
 
 ## Kare (düz) disk: ground = yere yatık, değilse kamera yüzlü (bill)

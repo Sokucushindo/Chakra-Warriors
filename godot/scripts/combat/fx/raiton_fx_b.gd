@@ -20,7 +20,7 @@ static func _cam() -> Vector3:
 
 ## Zemine yakın mı (yanık / yer arkı yalnız yere değen çarpmada)
 static func _near_ground(p: Vector3, h := 1.8) -> bool:
-	return p.y - Game.jutsu_floor(p.x, p.z) < h
+	return p.y - Game.jutsu_floor_at(p).y < h
 
 
 ## Düğümün çevresinde kısa süre dönen ışık (anlık ışıktan farklı: düğümü izler)
@@ -175,7 +175,7 @@ static func thunderbolt(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 ## (Kaynak yok, kendi tasarım) İki ince metal kazık, tepelerinde küçük plazma düğüm; aralarında hafif sarkık, içinden
 ## akım nabızları koşan ince tel. Atanın elinden kazıklara fırlayarak gerilir, 8 sn uğuldar, sonunda kopup yere düşer.
 static func _stake(top: Vector3, dur: float) -> void:
-	var g = Game.jutsu_floor(top.x, top.z)
+	var g = Game.jutsu_floor_at(top).y
 	var h = maxf(top.y - g, 0.3)
 	var b = MB.new()
 	b.add("cyl", Vector3(0, h * 0.5, 0), Vector3(0.07, h, 0.07), Color(0.24, 0.26, 0.3), Vector3.ZERO, 6)

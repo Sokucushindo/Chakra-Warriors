@@ -444,7 +444,7 @@ static func pf(mi: GeometryInstance3D, k: String) -> Callable:
 
 
 static func floor_at(p: Vector3) -> Vector3:
-	return Vector3(p.x, Game.jutsu_floor(p.x, p.z), p.z)
+	return Game.jutsu_floor_at(p)
 
 
 static func side_of(d: Vector3) -> Vector3:

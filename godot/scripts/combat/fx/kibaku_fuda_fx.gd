@@ -179,7 +179,7 @@ static func _stick(who: Node3D, pos: Vector3, tg: Node3D, vel: Vector3, mult: fl
 			n = hit["normal"]
 			at = hit["position"]
 		else:
-			at.y = Game.jutsu_floor(at.x, at.z) if tg != null else maxf(at.y, Game.jutsu_floor(at.x, at.z))   # kişiye yer kalmadıysa ayağının dibine düşer
+			at.y = Game.jutsu_floor_at(at).y if tg != null else maxf(at.y, Game.jutsu_floor_at(at).y)   # kişiye yer kalmadıysa ayağının dibine düşer
 		at += n * 0.012
 	if is_instance_valid(who):
 		var mine = _of(who)
@@ -213,7 +213,7 @@ static func _tick(s: Dictionary, dt: float) -> bool:
 			var p: Vector3 = body.global_position + s["off"]
 			if p.distance_to(s["last"]) > 4.0:   # Kawarimi / ışınlanma: etiket geride kalır
 				s["body"] = null
-				n.global_position = Vector3(s["last"].x, Game.jutsu_floor(s["last"].x, s["last"].z) + 0.02, s["last"].z)
+				n.global_position = Vector3(s["last"].x, Game.jutsu_floor_at(s["last"]).y + 0.02, s["last"].z)
 				n.global_transform.basis = Basis.looking_at(Vector3.DOWN, Vector3.FORWARD)
 				s["normal"] = Vector3.UP
 			else:
