@@ -369,6 +369,14 @@ static func dress(a: Dictionary, p: Dictionary) -> void:
 	if not is_member(p):
 		return
 	var lk: Dictionary = a.get("look", {})
+	# oyuncununkiyle aynı el yapımı Akatsuki seti: kişinin kendi seti (set_id) varsa pelerinin önüne geçiyor, üye pelerinsiz görünüyordu
+	var keep = {}
+	for k in ["hair", "hair_style", "gender", "skin", "eye", "age", "face_paint", "face_paint_col", "keep_hair", "own_hair", "face_id", "face_cut", "face_v", "years", "age_seed"]:
+		if lk.has(k):
+			keep[k] = lk[k]
+	Gear.preview_set_look(lk, "set_akatsuki")
+	lk.merge(keep, true)
+	lk["set_id"] = "set_akatsuki"
 	lk["outer_style"] = "org_pelerin"
 	lk["outer"] = Color(0.13, 0.14, 0.26)
 	lk["outer_pattern"] = 6

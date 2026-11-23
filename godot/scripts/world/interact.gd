@@ -2,6 +2,7 @@ extends Node
 ## Etkileşim noktaları kaydı (autoload "Interact"): [F] ile konuşma, dükkân, görev masası vb.
 
 var items: Array = []
+const DOOR_R := 5.0
 
 
 func add(d: Dictionary) -> void:
@@ -15,7 +16,10 @@ func nearest(p: Vector3) -> Dictionary:
 		var d: float = p.distance_to(it["pos"])
 		if it.has("home_of") and String(it["home_of"]) != Progress.home():
 			continue   # başka köydeki boş ev: senin evin değil
-		if d < float(it["radius"]) and d < bd:
+		var rr: float = float(it["radius"])
+		if String(it.get("kind", "")) == "enter":
+			rr = maxf(rr, DOOR_R)   # kapı: yaklaşınca yazı çıksın (2-3 m'de ancak kapıya yapışınca çıkıyordu)
+		if d < rr and d < bd:
 			bd = d
 			best = it
 	return best

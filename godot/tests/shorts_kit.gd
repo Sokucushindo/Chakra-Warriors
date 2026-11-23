@@ -43,8 +43,8 @@ func _ready() -> void:
 	Lang.apply("en")
 	Combat.quiet = true
 	main.creator_state = {"slot": 3, "name": "Kaito", "gender": "m", "clan": "uchiha", "element": "katon", "hair_style": "dağınık", "hair": Color(0.08, 0.08, 0.1), "top": Color(0.15, 0.2, 0.33), "pants": Color(0.15, 0.15, 0.17), "skin": Color(0.96, 0.8, 0.66), "eye": Color(0.1, 0.1, 0.1)}
-	main._start_new_game()
-	await _w(3.0)
+	await main._start_new_game()
+	await _w(1.0)
 	_closeui()
 	var env = main.world.env
 	env.time_of_day = 0.42
@@ -116,6 +116,13 @@ func _clear_fx() -> void:
 
 func _goto(at: Vector3, settle := 4.0) -> void:
 	pl.respawn(at + Vector3.UP * 0.5)
+	# çevre (yerleşim, tarla, peyzaj) çekimden önce tam kurulsun: kadrajda sonradan belirmesin
+	BuildSites.boost = true
+	await _w(1.0)
+	var t0 := Time.get_ticks_msec()
+	while Time.get_ticks_msec() - t0 < 60000 and (main.world.stream.busy() or Builder.dressing > 0 or Builder.resting > 0):
+		await get_tree().process_frame
+	BuildSites.boost = false
 	await _w(settle)
 	_closeui()
 	_god()

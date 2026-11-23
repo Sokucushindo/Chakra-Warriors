@@ -548,9 +548,9 @@ func _build_texts() -> void:
 	prompt_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var ph = UI.hbox(10)
 	prompt_box.add_child(ph)
-	prompt_key = UI.key_badge("F", 16)
+	prompt_key = UI.key_badge("F", 19)
 	ph.add_child(prompt_key)
-	prompt_lbl = UI.label("", 17, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true)
+	prompt_lbl = UI.label("", 21, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true)
 	ph.add_child(prompt_lbl)
 	prompt_box.visible = false
 	game_hud.add_child(prompt_box)
@@ -1306,14 +1306,22 @@ func _process(dt: float) -> void:
 	var catch = _near_catchable(pl)
 	var tk = _near_talker(pl) if it.is_empty() and not catch else null
 	var ptxt = it.get("label", "") if not it.is_empty() else ((String(catch.get("catch_label")) if catch.get("catch_label") != null else "Yakala!") if catch else (Lang.t("Konuş: %s") % tk.display if tk else ""))
-	ptxt = Lang.t(String(ptxt).replace("[F] ", "").replace("[F]", "").strip_edges())
+	# önce tam metin çevrilir (sözlükte "[F] ..." ile kayıtlı), sonra [F] atılır — eskiden önce atılıyor, çeviri bulunmuyordu
+	var ptr = Lang.t(String(ptxt))
+	if ptr == String(ptxt):
+		ptr = Lang.t(String(ptxt).replace("[F] ", "").replace("[F]", "").strip_edges())
+	ptxt = ptr.replace("[F] ", "").replace("[F]", "").strip_edges()
 	prompt_box.visible = ptxt != ""
 	if prompt_box.visible:
 		prompt_key.get_child(0).text = Keys.name("interact")
 	if prompt_box.visible and prompt_lbl.text != ptxt:
 		prompt_lbl.text = ptxt
 		prompt_box.reset_size()
-		prompt_box.position = Vector2(-prompt_box.size.x * 0.5, -148)
+		# alt orta çapası: konum çapaya göre (offset) verilir — position ekranın sol üstüne göre olduğundan kutu ekran dışına düşüyordu
+		prompt_box.offset_left = -prompt_box.size.x * 0.5
+		prompt_box.offset_right = prompt_box.size.x * 0.5
+		prompt_box.offset_top = -148.0 - prompt_box.size.y
+		prompt_box.offset_bottom = -148.0
 	var rn = Game.region_name(pl.global_position) if Engine.get_process_frames() % 20 == 0 else region_name
 	if rn != region_name:
 		region_name = rn
