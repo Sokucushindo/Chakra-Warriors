@@ -55,9 +55,8 @@ _pk = os.path.join(PROJ, 'data', 'bake')
 shutil.rmtree(_pk, ignore_errors=True)
 os.makedirs(_pk, exist_ok=True)
 if mode != 'test':
-    _prog = open(os.path.join(PROJ, 'scripts', 'core', 'progress.gd'), encoding='utf8').read()
-    _hv = re.search(r'const HOME_VILLAGES := \{(.*?)^\}', _prog, re.S | re.M).group(1)
-    _vids = re.findall(r'^\t"([a-z_]+)": \{', _hv, re.M)
+    # BÜTÜN köyler pakete pişmiş girer (kullanıcı: boyut önemli değil, oyun sırasında köy kurulumu takılması olmasın)
+    _vids = [v['id'] for v in json.load(open(os.path.join(PROJ, 'data', 'world', 'world.json'), encoding='utf8'))['villages']]
     # build.json'da dünya anahtarı varken oyun kendi kayıt klasörüne (user://bake) pişirir; geliştirme koşusu _tmp/bake_dev'e
     _pj = open(os.path.join(PROJ, 'project.godot'), encoding='utf8').read()
     _cu = re.search(r'custom_user_dir_name="([^"]+)"', _pj)   # oyunun kayıt klasörü (project.godot'ta sabit; yeniden adlandırmada değişir)
@@ -69,10 +68,10 @@ if mode != 'test':
                 return c
         return None
     if not all(_find(v) for v in _vids):
-        print('Köy önbelleği eksik, pişiriliyor (~2 dk)...')
+        print('Köy önbelleği eksik, pişiriliyor (~10 dk)...')
         _env = dict(os.environ)
         _env.pop('BAKE_ANY', None)
-        subprocess.run([sys.executable, os.path.join(ROOT, 'tools', 'hd.py'), '500', os.path.join(ROOT, '_tmp', 'bake_run.txt'), '--log-file',
+        subprocess.run([sys.executable, os.path.join(ROOT, 'tools', 'hd.py'), '2400', os.path.join(ROOT, '_tmp', 'bake_run.txt'), '--log-file',
                         os.path.join(ROOT, '_tmp', 'test_godot.log'), '--path', PROJ, '--resolution', '1280x720', '--',
                         '--test=res://tests/test_bake_villages.gd'], cwd=PROJ, env=_env)
     _mb = 0

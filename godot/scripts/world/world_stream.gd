@@ -170,13 +170,16 @@ func _build(k: Vector2i, with_pois: bool) -> void:
 	var node := Node3D.new()
 	node.name = "Bolge_%d_%d" % [k.x, k.y]
 	add_child(node)
-	var before := Interact.items.size()
+	# bölge kaydı hemen: yapılar birkaç kareye yayılarak kurulur (eskiden tek karede, FPS 9'a düşüyordu)
+	var reg: Dictionary = {"node": node, "inter": [], "pois": with_pois, "road": false}
+	regions[k] = reg
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(k)
 	var feats: Array = feat_by_region.get(k, [])
 	if not feats.is_empty():
 		var b := Builder.new(node, 0.0, 0.0, 0.0, "Yapilar")
 		b.view_dist = 3000.0
+		var tb := Time.get_ticks_usec()
 		for f in feats:
 			var g := Game.terrain_height(float(f["x"]), -float(f["y"]))
 			if f["t"] in ["pillar", "spire", "mesa"]:
@@ -185,10 +188,17 @@ func _build(k: Vector2i, with_pois: bool) -> void:
 					g = minf(g, Game.terrain_height(float(f["x"]) + cos(a) * r, -float(f["y"]) + sin(a) * r))
 			var ff: Dictionary = f.duplicate()
 			ff["g"] = g if f["t"] != "bridge" else 0.0
+			var before := Interact.items.size()
 			BuildFeatures._build(b, ff, rng)
+			reg["inter"].append_array(Interact.items.slice(before))   # her yapının etkileşimleri ayrı (aradaki karelerde başkaları da ekler)
+			if Time.get_ticks_usec() - tb > 3000:
+				await get_tree().process_frame
+				if not is_instance_valid(node) or regions.get(k) != reg:
+					return   # bu arada uzaklaşıldı, bölge silindi
+				tb = Time.get_ticks_usec()
+		var before2 := Interact.items.size()
 		b.finish()
+		reg["inter"].append_array(Interact.items.slice(before2))
 	if with_pois:
 		for p in poi_by_region.get(k, []):
 			_poi_q.append([k, node, p])
-	var inter: Array = Interact.items.slice(before)
-	regions[k] = {"node": node, "inter": inter, "pois": with_pois, "road": false}
