@@ -1529,6 +1529,7 @@ func rebuild_model() -> void:
 	_fit_capsule()
 	model.rotation.y = facing
 	old.queue_free()
-	FX.smoke_puff(global_position + Vector3.UP, 0.8, 10)
+	if not scene_hold:   # törende / sahnede kıyafet değişimi dumansız (rütbe yeleği, şapka, bant)
+		FX.smoke_puff(global_position + Vector3.UP, 0.8, 10)
 	if combat and combat.modes and combat.modes.eyes:
 		combat.modes.eyes.refresh_visual.call_deferred()

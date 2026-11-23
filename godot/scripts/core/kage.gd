@@ -603,8 +603,11 @@ func selection_done(m: Dictionary, ok: bool) -> void:
 
 
 func inaugurate() -> void:
-	var kt = Progress.home_info()["kage"]
-	var vn = String(Game.village(Progress.home()).get("name", ""))
+	# yemin töreni (Kage Kulesi önünde, eski Kage şapkayı uzatır, halk toplanır): şapka başına konduğu an Kage olursun
+	Ceremony.start("kage", {"vid": Progress.home(), "grant": _inaug_grant, "done": _inaug_done})
+
+
+func _inaug_grant() -> void:
 	Progress.promote(6)
 	var pr = p()
 	Gear.ensure(pr)
@@ -613,9 +616,11 @@ func inaugurate() -> void:
 	Gear.apply_look(pr)
 	if Game.player:
 		Game.player.rebuild_model()
-		for i in 6:
-			var a = TAU * i / 6.0
-			FX.ring(Game.player.global_position + Vector3(cos(a) * 6, 4 + i, sin(a) * 6), Color(1, 0.75, 0.3), 5.0, 0.8, false)
+
+
+func _inaug_done() -> void:
+	var kt = Progress.home_info()["kage"]
+	var pr = p()
 	st()
 	add_log("%s yemin etti. Yeni dönem başladı." % pr["name"])
 	_ensure_squads()

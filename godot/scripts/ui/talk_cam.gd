@@ -29,6 +29,8 @@ func _ready() -> void:
 
 ## Diyalog başladı: konuşan karakter + yazının akma süresi (ağız oynar)
 func begin(sp: Node3D, talk_dur: float) -> void:
+	if is_instance_valid(Ceremony.cur):
+		return   # törenin kendi kamerası var
 	if Game.player == null or sp == null or not is_instance_valid(sp) or sp == Game.player:
 		return
 	if sp.global_position.distance_to(Game.player.global_position) > 6.0 or Game.player.get("interior_locked"):

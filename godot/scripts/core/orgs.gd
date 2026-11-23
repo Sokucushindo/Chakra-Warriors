@@ -246,6 +246,15 @@ func defect_prompt() -> void:
 
 
 func defect() -> void:
+	# sakin bir andaysan ve alnında bant varsa: çözüp sembolün üstüne kunaiyle çizik atarsın (kovalanırken / dövüşte sahnesiz)
+	var lk: Dictionary = p().get("look", {})
+	if Ceremony.calm() and lk.get("band") != null and String(lk.get("band_style", "none")) in ["head", "slashed"]:
+		Ceremony.start("rogue", {"vid": Progress.home(), "grant": _defect_apply})
+	else:
+		_defect_apply()
+
+
+func _defect_apply() -> void:
 	var f = flags()
 	f["rogue"] = true
 	f["rogue_from"] = Progress.home()
@@ -285,6 +294,11 @@ func _pardon_mission() -> Dictionary:
 func pardon_done(_m: Dictionary, ok: bool) -> void:
 	if not ok:
 		return
+	# af töreni: Kage karşılar, çizik bandı teslim edersin, yenisini alnına bağlarsın
+	Ceremony.start("pardon", {"vid": String(flags().get("rogue_from", Progress.home())), "grant": _pardon_apply})
+
+
+func _pardon_apply() -> void:
 	var f = flags()
 	f["rogue"] = false
 	f.erase("hideout")

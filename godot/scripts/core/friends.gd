@@ -2248,7 +2248,11 @@ func _funeral_tick() -> void:
 			f["funeral_t"] = now + 240.0
 			f["epitaph"] = EPITAPHS.pick_random()
 			var vn = Game.village(String(f.get("village", Progress.home()))).get("name", "Köy")
-			if int(f.get("bond", 0)) >= 0:
+			if Orgs.is_rogue():
+				# kaçaksın: köy seni cenazeye çağırmaz (ulak gelmez); haberi dolaylı duyarsın
+				if int(f.get("bond", 0)) >= 0:
+					Hud.msg("Kulağına bir haber çalındı: %s hayatını kaybetmiş. Kaçak olduğun için cenazesine çağrılmadın." % String(f["name"]), Color(0.8, 0.8, 0.85), 7.0)
+			elif int(f.get("bond", 0)) >= 0:
 				# ulak seni törene çağırır (isteğe bağlı)
 				var gp = Graveyard.pos_of(String(f.get("village", Progress.home())))
 				var nm = String(f["name"])
@@ -2261,7 +2265,7 @@ func _funeral_tick() -> void:
 		elif funeral.is_empty() and now >= float(f["died_t"]) + 3.0:
 			# mezarlığa varınca tören hemen başlar (eskiden ölümden 4 dk sonrasını bekliyordu: erken gelen boş mezarlıkta dikiliyordu)
 			var gp2 = Graveyard.pos_of(String(f.get("village", Progress.home())))
-			if gp2 != Vector3.INF and pp.distance_to(gp2) < 40.0 and not Hud.dialog_open():
+			if gp2 != Vector3.INF and pp.distance_to(gp2) < 40.0 and not Hud.dialog_open() and not Orgs.is_rogue():   # kaçak törene katılamaz
 				_start_funeral(id)
 			elif now > float(f["died_t"]) + 2400.0:
 				_bury(id, false)

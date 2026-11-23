@@ -852,11 +852,14 @@ func _judge() -> void:
 	Game.profile["active_mission"] = {}
 	if passed:
 		ExamUI.scorecard("Chūnin Sınavı — Jüri Kararı", rows, "Turnuvadaki stratejin ve liderliğin takdir topladı. Bugünden itibaren bir CHŪNİN'sin!", true, func():
-			Progress.promote(2)
-			Progress.add_xp(900)
-			Progress.add_ryo(1500)
-			Journal.add("Chūnin oldun! Jüri liderliğini takdir etti.", "milestone")
-			Exams.exam_finished.emit("chunin", true))
+			# terfi töreni: Kage adını okur, yeleğini verir; adaylar alkışlar
+			var g_cb = func(): Progress.promote(2)
+			var d_cb = func():
+				Progress.add_xp(900)
+				Progress.add_ryo(1500)
+				Journal.add("Chūnin oldun! Jüri liderliğini takdir etti.", "milestone")
+				Exams.exam_finished.emit("chunin", true)
+			Ceremony.start("chunin", {"grant": g_cb, "done": d_cb}))
 	else:
 		Journal.add("Chūnin Sınavı'nda jüri seni bu dönem terfi ettirmedi.", "exam")
 		ExamUI.scorecard("Chūnin Sınavı — Jüri Kararı", rows, "Jüri seni bu dönem terfi ettirmedi. Güçlenip bir sonraki dönem tekrar katıl (ev sahibi sırayla değişir).", false, func():

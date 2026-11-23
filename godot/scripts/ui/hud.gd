@@ -883,6 +883,9 @@ var forced_speaker: Node3D = null   # hizmet noktasının bağlı olduğu kişi 
 var last_dialog := ""   # son diyalog metni (testler ve hata ayıklama)
 var last_options: Array = []
 func dialog(title: String, text: String, options: Array) -> void:
+	if is_instance_valid(Ceremony.cur) and not Ceremony.cur.dialogs_ok:
+		Ceremony.cur.queued.append([title, text, options])   # tören sürerken açılan pencere (takım haberi vb.) törenden sonra
+		return
 	last_dialog = text
 	last_options = options
 	# görev masası ve bingo kitabı kendi ekranlarında

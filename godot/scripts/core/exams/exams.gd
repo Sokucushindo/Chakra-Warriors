@@ -586,12 +586,14 @@ func _bell_result(passed: bool, why: String) -> void:
 	if passed:
 		var t = "Parşömeni aldınız — ve bunu birlikte yaptınız. GEÇTİNİZ." if why == "scroll" else "Parşömeni alamadınız, ama hiçbiriniz diğerini geride bırakmadı ve birlikte savaştınız. Aradığım buydu. GEÇTİNİZ."
 		flags()["bell_passed"] = true
-		Progress.promote(1)
 		Progress.add_xp(200)
 		Progress.add_ryo(200)
 		Progress.set_story(4)
 		Missions.has_marker = false
-		Hud.dialog(GeninSquad.sensei_name(), t + "\n\nArtık %s'nin bir Genin'isin! Görevleri bundan sonra ben alacağım; takım olarak çıkacağız." % String(Game.village(Progress.home()).get("name", "Köy")), [])
+		# mezuniyet töreni: hocan alın koruyucunu uzatır, alnına bağlarsın, takımla hatıra fotoğrafı
+		var g_cb = func(): Progress.promote(1)
+		var d_cb = func(): Hud.dialog(GeninSquad.sensei_name(), t + "\n\nArtık %s'nin bir Genin'isin! Görevleri bundan sonra ben alacağım; takım olarak çıkacağız." % String(Game.village(Progress.home()).get("name", "Köy")), [])
+		Ceremony.start("genin", {"grant": g_cb, "done": d_cb})
 		exam_finished.emit("bell", true)
 	else:
 		var why_t = {"abandon": "Parşömeni aldın ama arkadaşını bağlı bıraktın. Görevi tamamlamak için arkadaşını terk eden bir ninjayı takımımda istemem.",
@@ -653,11 +655,15 @@ func jonin_done(m: Dictionary, ok: bool) -> void:
 		return
 	var votes = int(m.get("flags", {}).get("votes", 0))
 	if votes >= 1:
-		Progress.promote(3)
-		Journal.add("Jōnin oldun. Artık başkalarının hayatı senin kararlarına bağlı.", "milestone")
-		Gear.grant(p(), "set_jonin")
-		Hud.dialog(Progress.home_info()["kage"], "İki jōninin tavsiyesi ve kriz yönetimin oybirliğiyle kabul edildi. Bugünden itibaren bir JŌNİN'sin. Artık bir Tokubetsu Jōnin uzmanlığı da seçebilirsin (Kage Kulesi).", [])
-		exam_finished.emit("jonin", true)
+		# terfi töreni: Kage ve kefil iki jōnin; yelek takıldığı an jōnin olursun
+		var g_cb = func():
+			Progress.promote(3)
+			Gear.grant(p(), "set_jonin")
+		var d_cb = func():
+			Journal.add("Jōnin oldun. Artık başkalarının hayatı senin kararlarına bağlı.", "milestone")
+			Hud.dialog(Progress.home_info()["kage"], "İki jōninin tavsiyesi ve kriz yönetimin oybirliğiyle kabul edildi. Bugünden itibaren bir JŌNİN'sin. Artık bir Tokubetsu Jōnin uzmanlığı da seçebilirsin (Kage Kulesi).", [])
+			exam_finished.emit("jonin", true)
+		Ceremony.start("jonin", {"grant": g_cb, "done": d_cb})
 	else:
 		Hud.dialog(Progress.home_info()["kage"], "Krizi çözdün ama jōninler liderlik tercihlerinden emin değil. Biraz daha A-rank görev al ve tekrar başvur.", [])
 		exam_finished.emit("jonin", false)

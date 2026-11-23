@@ -642,6 +642,8 @@ func caught(n: Node, attacker: Node = null) -> bool:
 func hostile(a: Node, b: Node) -> bool:
 	if a == b or b == null or a == null:
 		return false
+	if is_instance_valid(Ceremony.cur) and (a == Game.player or b == Game.player):
+		return false   # tören sahnesi sürerken kimse oyuncuyu hedef almaz (af töreninde av ninjaları, nöbetçiler)
 	if a is Prey or b is Prey:   # av hayvanı: yalnız oyuncu (ve klonu / çağrısı) avlar; köy takımları, haydutlar karışmaz
 		var o = b if a is Prey else a
 		return o == Game.player or o is ShadowClone or (o is Summon and o.get("owner_f") == Game.player)
