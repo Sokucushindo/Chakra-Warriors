@@ -343,6 +343,9 @@ func is_empty() -> bool:
 	return verts.is_empty()
 
 
+static var keep_arr := false   # CharacterModel.setup sırasında açık (dünya modellerinin verisi saklanmaz: bellek)
+
+
 func build(material: Material = null) -> ArrayMesh:
 	var arr := []
 	arr.resize(Mesh.ARRAY_MAX)
@@ -355,6 +358,8 @@ func build(material: Material = null) -> ArrayMesh:
 	if verts.is_empty():
 		return m
 	m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+	if keep_arr:
+		m.set_meta("_arr", [arr])   # karakter kurulumunda veri iliştirilir: sonradan ekran kartından geri okunmaz (MeshArr)
 	if material:
 		m.surface_set_material(0, material)
 	return m

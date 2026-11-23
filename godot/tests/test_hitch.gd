@@ -71,7 +71,21 @@ func _ready() -> void:
 	RenderingServer.frame_pre_draw.connect(_on_pre)
 	RenderingServer.frame_post_draw.connect(_on_post)
 	on = true
-	await get_tree().create_timer(sec).timeout
+	if OS.get_environment("HT_REAL") != "":   # gerçek tuşlarla koşu: ileri + Shift (ninja koşusu), 2 sn'de bir Ctrl süper zıplama
+		pl.facing = atan2(-dir.x, dir.y)
+		Input.action_press("forward")
+		Input.action_press("dash")
+		var tl = sec
+		while tl > 0.0:
+			await get_tree().create_timer(2.0).timeout
+			tl -= 2.0
+			Input.action_press("leap")
+			await get_tree().create_timer(0.12).timeout
+			Input.action_release("leap")
+		Input.action_release("forward")
+		Input.action_release("dash")
+	else:
+		await get_tree().create_timer(sec).timeout
 	on = false
 	frames.sort()
 	var n = frames.size()
@@ -90,8 +104,62 @@ func _ready() -> void:
 	get_tree().quit()
 
 
+var _dr_t := 0.0
 func _process(_dt: float) -> void:
 	var now = Time.get_ticks_usec()
+	if on and OS.get_environment("HT_DRAW") != "":
+		_dr_t += _dt
+		if _dr_t > 1.0 and not has_meta("census") and Engine.get_frames_drawn() > 600:
+			set_meta("census", true)
+			var cam = get_viewport().get_camera_3d()
+			var by := {}
+			var mmn := {}
+			for gi in get_tree().root.find_children("*", "GeometryInstance3D", true, false):
+				if not gi.is_visible_in_tree():
+					continue
+				var d = gi.global_position.distance_to(cam.global_position)
+				if gi.visibility_range_end > 0.0 and d > gi.visibility_range_end + gi.visibility_range_end_margin:
+					continue
+				var top = gi
+				var path := []
+				var n = gi.get_parent()
+				while n != null and n != get_tree().root and path.size() < 6:
+					path.push_front(String(n.name))
+					n = n.get_parent()
+				var bucket = "<150" if d < 150.0 else ("<500" if d < 500.0 else (">1500" if d > 1500.0 else "<1500"))
+				var key = "/".join(path.slice(0, 4)) + " :" + gi.get_class().replace("Instance3D", "") + " " + bucket + (" aralik=%d" % int(gi.visibility_range_end))
+				by[key] = int(by.get(key, 0)) + 1
+				if gi is MultiMeshInstance3D and gi.multimesh:
+					mmn[key] = int(mmn.get(key, 0)) + gi.multimesh.visible_instance_count if gi.multimesh.visible_instance_count >= 0 else gi.multimesh.instance_count
+			var ic := {}
+			var meshes := {}
+			for mmi in get_tree().root.find_children("*", "MultiMeshInstance3D", true, false):
+				if mmi.multimesh and mmi.is_visible_in_tree() and String(mmi.get_path()).contains("Sites/Konoha"):
+					var c = mmi.multimesh.instance_count
+					var b2 = "1" if c <= 1 else ("2-4" if c <= 4 else ("5-20" if c <= 20 else ">20"))
+					ic[b2] = int(ic.get(b2, 0)) + 1
+					meshes[mmi.multimesh.mesh] = true
+			print("KONOHA MM ornek_sayisi ", ic, " farkli_model=", meshes.size())
+			var par := {}
+			var nonid := 0
+			var pnames := {}
+			for mmi in get_tree().root.find_children("*", "MultiMeshInstance3D", true, false):
+				if mmi.multimesh and String(mmi.get_path()).contains("Sites/Konoha"):
+					par[mmi.get_parent()] = int(par.get(mmi.get_parent(), 0)) + 1
+					if not mmi.transform.is_equal_approx(Transform3D.IDENTITY):
+						nonid += 1
+					var pn = String(mmi.get_parent().name).left(6) + "<" + String(mmi.get_parent().get_parent().name).left(8)
+					pnames[pn] = int(pnames.get(pn, 0)) + 1
+			var pk = pnames.keys()
+			pk.sort_custom(func(a, b): return pnames[a] > pnames[b])
+			print("KONOHA ebeveyn=%d birim_olmayan=%d ornek_ebeveyn=%s" % [par.size(), nonid, str(pk.slice(0, 8).map(func(x): return "%s:%d" % [x, pnames[x]]))])
+			var ks = by.keys()
+			ks.sort_custom(func(a, b): return by[a] > by[b])
+			for k in ks.slice(0, 25):
+				print("CIZIM %5d  %s" % [by[k], k])
+		if _dr_t > 1.0:
+			_dr_t = 0.0
+			print("DRAW fps=%d cagri=%d nesne=%d ucgen=%dk | gorunen_mi=%d" % [Engine.get_frames_per_second(), int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)), int(Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME)), int(Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME) / 1000), get_tree().get_nodes_in_group("fighters").size()])
 	if _lt != 0 and on:
 		var ms = (now - _lt) / 1000.0
 		frames.append(ms)

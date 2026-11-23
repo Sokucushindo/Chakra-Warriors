@@ -1,5 +1,6 @@
 class_name Summon
 extends Fighter
+const MeshArr = preload("res://scripts/core/mesh_arr.gd")
 ## Kuchiyose ile çağrılan hayvan. Sözleşme + kademe + tanım (Contracts.DEFS) ile kurulur.
 ## Roller: scout (düşmanları işaretler), tracker (hedefe iz), healer (oyuncuyu iyileştirir), binder (bağlar),
 ## fighter / pack / wind / staff / tank / genjutsu / giant / giant_healer. Dev olanlara [F] ile binilir.
@@ -1003,7 +1004,7 @@ func _seat_local() -> Vector3:
 			continue
 		var xf = inv * mi.global_transform
 		for si in mi.mesh.get_surface_count():
-			var arr = mi.mesh.surface_get_arrays(si)
+			var arr = MeshArr.get_arrays(mi.mesh, si)
 			var vv = arr[Mesh.ARRAY_VERTEX]
 			if vv == null:
 				continue

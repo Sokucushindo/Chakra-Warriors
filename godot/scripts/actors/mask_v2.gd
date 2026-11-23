@@ -1,4 +1,5 @@
 extends RefCounted
+const MeshArr = preload("res://scripts/core/mesh_arr.gd")
 ## Tam yüz maskeleri (ref refs/kiyafet/anbu/Konoha_Anbu): kavisli kabuk, yuvarlak göz deliği, yüzeye oturan fırça boyası.
 ## Her maske kendi çizimi; boyalar kabuğun üstünde incelen şeritler (çubuk / kutu yok).
 
@@ -565,7 +566,7 @@ static func _push(m, org: Vector3, sc: float) -> float:
 	var k := Mk.new(Color.WHITE)
 	var worst := 0.0
 	for si in fm.get_surface_count():
-		for v in (fm.surface_get_arrays(si)[Mesh.ARRAY_VERTEX] as PackedVector3Array):
+		for v in (MeshArr.get_arrays(fm, si)[Mesh.ARRAY_VERTEX] as PackedVector3Array):
 			var q: Vector3 = fx * v
 			var l := Vector2(q.x - org.x, q.y - org.y) / sc
 			if l.length() > k.edge(atan2(l.x, l.y)).length() * 0.97:

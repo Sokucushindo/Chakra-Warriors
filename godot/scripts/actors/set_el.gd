@@ -432,16 +432,99 @@ class El:
 
 
 ## Disk önbelleği yalnız yayın sürümünde (geliştirmede kod değişir); dosya adı sürüme bağlı
-static func _disk_path(sid: String, gender: String) -> String:
-	if not (OS.has_feature("template") or OS.get_environment("EL_CACHE") != ""):
-		return ""
-	var ver := "dev"
+static var _el_dir_c := ""
+
+
+## Yükleme ekranında: NPC'lerin giydiği elle yapılmış setlerden (Outfits.TYPE_WEAR) ve oyuncunun setinden diskte olmayanları
+## gizli bir modelde kurup diske yazar. Oyun sırasında ilk kez görülen setin kurulması her yerde donma yapıyordu;
+## bu iş artık yalnız güncellemeden sonraki ilk açılışta, yükleme ekranında olur.
+static func prewarm_missing(parent: Node, progress: Callable = Callable()) -> void:
+	if _disk_path("x", "m") == "":
+		return
+	var jobs := []
+	var sids := []
+	for e in Outfits.TYPE_WEAR:
+		sids.append(String(e["set"]))
+	var ps = Game.profile.get("equip", {}).get("set") if Game.profile.get("equip") is Dictionary else null
+	if ps is Dictionary and ps.has("id"):
+		sids.append(String(ps["id"]))
+	for sid in sids:
+		if not has(sid):
+			continue
+		for g in ["m", "f"]:
+			if Outfits._fits(sid, g == "f") and not FileAccess.file_exists(_disk_path(sid, g)) and not _cache.has("%s|%s" % [sid, g]):
+				jobs.append([sid, g])
+	if jobs.is_empty():
+		return
+	var holder = Node3D.new()
+	parent.add_child(holder)
+	holder.position = Vector3(0, -900, 0)
+	holder.visible = false
+	for i in jobs.size():
+		var lk = CharacterModel.default_look()
+		lk["gender"] = jobs[i][1]
+		lk = Outfits.wear_set(lk, jobs[i][0])
+		var cm = CharacterModel.new()
+		holder.add_child(cm)
+		cm.setup(lk)
+		cm.free()
+		if progress.is_valid():
+			progress.call(float(i + 1) / jobs.size(), "")
+		await parent.get_tree().process_frame
+	holder.queue_free()
+
+
+## Önbellek klasörü: kıyafet kodunun içerik özeti (build.json "el"), yoksa sürüm. İlk çağrıda eski klasörler arka planda silinir.
+static func _el_dir() -> String:
+	if _el_dir_c != "":
+		return _el_dir_c
+	var key := "dev"
 	var f := FileAccess.open("res://data/build.json", FileAccess.READ)
 	if f != null:
 		var d = JSON.parse_string(f.get_as_text())
 		if d is Dictionary:
-			ver = str(d.get("version", "dev"))
-	return "user://el_kiyafet/%s/t2_%s_%s.res" % [ver, sid, gender]   # t2: sabit tenle kurulmuş kayıt (eski kayıtlar ilk kuranın tenini taşır)
+			key = str(d.get("el", d.get("version", "dev")))
+	_el_dir_c = key
+	WorkerThreadPool.add_task(_prune_old.bind(key))
+	return key
+
+
+## Eski sürümlerden kalan kıyafet klasörlerini siler (her biri yüzlerce MB olabiliyordu)
+static func _prune_old(keep: String) -> void:
+	var root := "user://el_kiyafet"
+	var da := DirAccess.open(root)
+	if da == null:
+		return
+	# sabit tenle kurulmuş (t2_) kıyafetler bugünkü kodla aynı: sürüm adlı eski klasörlerden yeni klasöre taşınır, yeniden kurulmaz
+	DirAccess.make_dir_recursive_absolute(root + "/" + keep)
+	var subs: Array = Array(da.get_directories())
+	subs.sort()
+	subs.reverse()
+	for sub in subs:
+		if sub == keep or not "." in sub:
+			continue
+		var d1 := DirAccess.open(root + "/" + sub)
+		if d1 == null:
+			continue
+		for fn in d1.get_files():
+			if fn.begins_with("t2_") and not FileAccess.file_exists(root + "/" + keep + "/" + fn):
+				DirAccess.rename_absolute(root + "/" + sub + "/" + fn, root + "/" + keep + "/" + fn)
+	for sub in da.get_directories():
+		if sub == keep:
+			continue
+		var p := root + "/" + sub
+		var d2 := DirAccess.open(p)
+		if d2 == null:
+			continue
+		for fn in d2.get_files():
+			d2.remove(fn)
+		DirAccess.remove_absolute(p)
+
+
+static func _disk_path(sid: String, gender: String) -> String:
+	if not (OS.has_feature("template") or OS.get_environment("EL_CACHE") != ""):
+		return ""
+	return "user://el_kiyafet/%s/t2_%s_%s.res" % [_el_dir(), sid, gender]   # t2: sabit tenle kurulmuş kayıt (eski kayıtlar ilk kuranın tenini taşır)
 
 
 static func has(sid) -> bool:

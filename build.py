@@ -35,7 +35,16 @@ def _world_key():
     files.sort()
     acc = ''.join(f + hashlib.md5(open(os.path.join(PROJ, f[6:]), 'rb').read()).hexdigest() for f in files)
     return hashlib.md5(acc.encode('utf-8')).hexdigest()[:12]
-json.dump({'build': mode, 'version': version, 'world': _world_key()}, open(build_json, 'w'))
+def _el_key():
+    # elle yapılmış kıyafet önbelleği anahtarı: kıyafet kurulum kodunun içerik özeti. Sürüm numarasına bağlı değil:
+    # kıyafet kodu değişmeyen güncellemelerde oyuncunun diskteki kıyafetleri korunur (eskiden her sürümde hepsi
+    # oyun sırasında yeniden kuruluyordu -> her yerde takılma)
+    d = os.path.join(PROJ, 'scripts', 'actors')
+    files = sorted(f for f in os.listdir(d) if (f.startswith('set_el') or f.startswith('set_v2')) and f.endswith('.gd'))
+    files += ['loft.gd', 'mb.gd']
+    acc = ''.join(f + hashlib.md5(open(os.path.join(d, f), 'rb').read()).hexdigest() for f in files if os.path.exists(os.path.join(d, f)))
+    return hashlib.md5(acc.encode('utf-8')).hexdigest()[:12]
+json.dump({'build': mode, 'version': version, 'world': _world_key(), 'el': _el_key()}, open(build_json, 'w'))
 
 # Başlangıç köylerini pakete hazır koy: oyuncunun ilk açılışı ~20 sn kısalır (village_bake.gd try_load res://data/bake yedeği).
 # Önbellek bu dünya anahtarıyla yoksa oyun bir kez gizli masaüstünde kurulup köyler pişirilir (tests/test_bake_villages.gd).

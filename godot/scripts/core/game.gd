@@ -1019,6 +1019,48 @@ func save_game() -> void:
 	f.store_string(JSON.stringify(profile, " "))
 
 
+## Otomatik kayıt (dakikada bir): ana akışta yalnız profilin kopyası alınır; metne çevirme + diske yazma iş parçacığında.
+## Eskiden ~1 MB kayıt her dakika ana akışta girintili metne çevrilip yazılıyordu: her yerde dakikada bir ~140 ms donma.
+## Geçici dosyaya yazılıp yerine konur (yazarken oyun kapanırsa kayıt bozulmaz).
+var _save_busy := false
+
+
+func save_game_async() -> void:
+	if profile.is_empty() or _save_busy:
+		return
+	var t0 := Time.get_ticks_usec()
+	if player:
+		profile["pos"] = [player.global_position.x, player.global_position.y + 0.5, player.global_position.z]
+	if world and world.has_method("get_time_of_day"):
+		profile["time"] = world.get_time_of_day()
+	profile["saved_at"] = Time.get_datetime_string_from_system(false, true)
+	profile["world_ver"] = WORLD_VERSION
+	var snap: Dictionary = profile.duplicate(true)
+	var path := save_path(int(profile.get("slot", 1)))
+	_save_busy = true
+	WorkerThreadPool.add_task(_save_worker.bind(snap, path))
+	print("KAYIT oto: ana akışta %.1f ms" % ((Time.get_ticks_usec() - t0) / 1000.0))
+
+
+func _save_worker(snap: Dictionary, path: String) -> void:
+	var txt := JSON.stringify(snap)
+	var tmp := path + ".tmp"
+	var f := FileAccess.open(tmp, FileAccess.WRITE)
+	if f != null:
+		f.store_string(txt)
+		f.close()
+		if DirAccess.rename_absolute(tmp, path) != OK:
+			var f2 := FileAccess.open(path, FileAccess.WRITE)
+			if f2 != null:
+				f2.store_string(txt)
+				f2.close()
+	_save_done.call_deferred()
+
+
+func _save_done() -> void:
+	_save_busy = false
+
+
 func load_game(slot: int) -> bool:
 	var p := save_path(slot)
 	if not FileAccess.file_exists(p):

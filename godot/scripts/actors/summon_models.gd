@@ -1,5 +1,6 @@
 class_name SummonModels
 extends RefCounted
+const MeshArr = preload("res://scripts/core/mesh_arr.gd")
 ## Çağırma hayvanlarının prosedürel modelleri. Modeller -Z'ye bakar, gerçek boyutta (metre) kurulur.
 ## Dönen sözlük: {"root": Node3D, "anim": tür ("hop", "slither", "crawl", "fly", "walk", "flock", "biped", "spider"),
 ##   "legs": [Node3D], "wings": [Node3D], "segments": [Node3D], "head": Node3D, "tail": Node3D, "mouth": Vector3 (yerel)}
@@ -380,7 +381,7 @@ static func _coil_anim(out: Dictionary, node: Node3D, sz: Vector3) -> void:
 			c = c.get_parent()
 		for k in chain:
 			xf = xf * (k as Node3D).transform
-		var arr = mi.mesh.surface_get_arrays(0)
+		var arr = MeshArr.get_arrays(mi.mesh, 0)
 		var vs: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
 		var step = maxi(1, vs.size() / 4000)
 		for i in range(0, vs.size(), step):

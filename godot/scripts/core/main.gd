@@ -787,7 +787,7 @@ func _process(dt: float) -> void:
 	if mode == "game" and player and Engine.get_process_frames() % 30 == 0:
 		Sfx.music(_music_state())
 	if mode == "game" and Engine.get_process_frames() % 3600 == 0:
-		Game.save_game()
+		Game.save_game_async()   # dakikada bir otomatik kayıt iş parçacığında (ana akışta yazmak her dakika donma yapıyordu)
 
 
 var _fight_t := 0.0

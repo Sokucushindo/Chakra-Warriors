@@ -1,5 +1,6 @@
 class_name SFProps
 extends RefCounted
+const MeshArr = preload("res://scripts/core/mesh_arr.gd")
 ## Sketchfab hayran modellerinden silah ve aksesuarlar (assets/sketchfab, git'e girmez; yoksa prosedürel model kullanılır).
 ## Silah düğümü sözleşmesi (CharacterModel.weapon_mesh ile aynı): kabza başlangıçta (0,0,0), namlu +Z yönünde.
 ## len: metre cinsinden toplam uzunluk; flip: modelin uzun ekseninde kabza ters uçtaysa; grip: elin tuttuğu yer (kabza ucundan oran);
@@ -173,7 +174,7 @@ static func _points(root: Node3D) -> PackedVector3Array:
 	for mi in mis:
 		if mi.visible and mi.mesh:
 			for si in mi.mesh.get_surface_count():
-				total += (mi.mesh.surface_get_arrays(si)[Mesh.ARRAY_VERTEX] as PackedVector3Array).size()
+				total += (MeshArr.get_arrays(mi.mesh, si)[Mesh.ARRAY_VERTEX] as PackedVector3Array).size()
 	var stride = maxi(1, total / 6000)
 	for mi in mis:
 		if not mi.visible or mi.mesh == null:
@@ -184,7 +185,7 @@ static func _points(root: Node3D) -> PackedVector3Array:
 			xf = (c as Node3D).transform * xf
 			c = c.get_parent()
 		for si in mi.mesh.get_surface_count():
-			var vs: PackedVector3Array = mi.mesh.surface_get_arrays(si)[Mesh.ARRAY_VERTEX]
+			var vs: PackedVector3Array = MeshArr.get_arrays(mi.mesh, si)[Mesh.ARRAY_VERTEX]
 			for i in range(0, vs.size(), stride):
 				out.append(xf * vs[i])
 	return out

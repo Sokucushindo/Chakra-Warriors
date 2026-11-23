@@ -1,5 +1,6 @@
 class_name Dangle
 extends Node3D
+const MeshArr = preload("res://scripts/core/mesh_arr.gd")
 ## İkincil hareket (saç tutamı, bant kuyruğu, örgü, uzun saç, kumaş ucu...): sabit bir mesh'in sarkan kısımları
 ## küçük bir iskelete derilenir, iskeletin zincirleri Verlet fiziğiyle (kusarigama zinciri gibi) sürülür.
 ## Kök (zincirin ilk noktası) bu düğüme sabittir: düğüm bir kemiğe takılıysa saç/kumaş o kemikle gelir, uçları gecikir,
@@ -61,7 +62,7 @@ static func build(mesh: ArrayMesh, chain_defs: Array, assign: Callable, arrays: 
 		return {}
 	var am = ArrayMesh.new()
 	for si in (arrays.size() if not arrays.is_empty() else mesh.get_surface_count()):
-		var arr = arrays[si] if not arrays.is_empty() else mesh.surface_get_arrays(si)
+		var arr = arrays[si] if not arrays.is_empty() else MeshArr.get_arrays(mesh, si)
 		var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
 		var bones = PackedInt32Array(); var weights = PackedFloat32Array()
 		bones.resize(v.size() * 4); weights.resize(v.size() * 4)
@@ -521,7 +522,7 @@ static func sector_chains(mv_list: Array, center: Vector3, root_y: float, opts :
 static func sectors(mesh: ArrayMesh, to_model: Transform3D, center: Vector3, root_y: float, opts := {}) -> Dictionary:
 	var allv = []
 	for si in mesh.get_surface_count():
-		var v: PackedVector3Array = mesh.surface_get_arrays(si)[Mesh.ARRAY_VERTEX]
+		var v: PackedVector3Array = MeshArr.get_arrays(mesh, si)[Mesh.ARRAY_VERTEX]
 		var mv = PackedVector3Array()
 		mv.resize(v.size())
 		for i in v.size():

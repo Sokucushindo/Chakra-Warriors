@@ -1,5 +1,6 @@
 class_name CharacterModel
 extends Node3D
+const MeshArr = preload("res://scripts/core/mesh_arr.gd")
 const HeadV2 = preload("res://scripts/actors/head_v2.gd")
 const MaskV2 = preload("res://scripts/actors/mask_v2.gd")
 const SetEl = preload("res://scripts/actors/set_el.gd")
@@ -400,7 +401,7 @@ var band_ring: Array = []   # alın yüksekliğinde kafa çevresi [açı -> yar�
 func _measure_skull(m: ArrayMesh, xf: Transform3D) -> void:
 	var pts = PackedVector3Array()
 	for si in m.get_surface_count():
-		var vv: PackedVector3Array = m.surface_get_arrays(si)[Mesh.ARRAY_VERTEX]
+		var vv: PackedVector3Array = MeshArr.get_arrays(m, si)[Mesh.ARRAY_VERTEX]
 		for q in vv:
 			pts.append(xf * q)
 	if pts.size() < 50:
@@ -459,7 +460,7 @@ func _band_mesh(col: Color) -> Array:
 			st.set_normal(ns[i])
 			st.add_vertex(quad[i])
 	st.generate_tangents()
-	var mesh = st.commit()
+	var mesh = MeshArr.commit(st)
 	# ön: +Z yönündeki yarıçap
 	var kf = int(floor((atan2(1.0, 0.0) + PI) / TAU * bins)) % bins
 	var fz = skull_c.z + rad[kf] + 0.011
@@ -495,7 +496,7 @@ static func _donor_part(donor: String, mesh_name: String, mat_filter := "") -> D
 		var mname = mat.resource_name if mat else ""
 		if mat_filter != "" and not mname.contains(mat_filter):
 			continue
-		var arr = mesh.surface_get_arrays(si)
+		var arr = MeshArr.get_arrays(mesh, si)
 		if not groups.has(mname):
 			groups[mname] = {"v": PackedVector3Array(), "n": PackedVector3Array(), "uv": PackedVector2Array(), "i": PackedInt32Array(), "mat": mat}
 		var gr = groups[mname]
@@ -635,7 +636,7 @@ static func _marr(m: ArrayMesh, si: int) -> Array:
 	_arr_mx.unlock()
 	if c != null and si < (c as Array).size():
 		return (c[si] as Array).duplicate(true)   # derin kopya: paketli diziler paylaşılır, sığ kopyada önbellekteki kaynak ağ bozuluyordu
-	return m.surface_get_arrays(si)
+	return MeshArr.get_arrays(m, si)
 
 
 ## ---- Yüzün arka planda hazırlanması -----------------------------------------------------------------------------
@@ -721,7 +722,7 @@ static func face_prepare(l: Dictionary) -> bool:
 	if not have:
 		var lst = []
 		for si in bm.get_surface_count():
-			lst.append(bm.surface_get_arrays(si))
+			lst.append(MeshArr.get_arrays(bm, si))
 		_arr_mx.lock()
 		_arr_cache[bm.get_instance_id()] = lst
 		_arr_mx.unlock()
@@ -1397,7 +1398,7 @@ func _face_and_hair() -> void:
 		var cs = Transform3D(Basis.IDENTITY, skull_c) * Transform3D(Basis.from_scale(Vector3.ONE * CLUMP_SCALE), Vector3.ZERO) * Transform3D(Basis.IDENTITY, -skull_c)
 		if AnimeHair.has(hd[2]):
 			cs = bxf
-			_anime_hair_vs = _hair_vs_cache.get(hk) if _hair_vs_cache.has(hk) else (_hair_cache[hk] as ArrayMesh).surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+			_anime_hair_vs = _hair_vs_cache.get(hk) if _hair_vs_cache.has(hk) else MeshArr.get_arrays(_hair_cache[hk] as ArrayMesh, 0)[Mesh.ARRAY_VERTEX]
 			_hair_vs_cache[hk] = _anime_hair_vs
 			if bxf != Transform3D.IDENTITY:
 				_anime_hair_vs = bxf * _anime_hair_vs
@@ -1497,6 +1498,7 @@ static func _stg_end(nm := "") -> void:
 
 
 func setup(l: Dictionary) -> void:
+	MB.keep_arr = true   # kurulumda üretilen modeller verisini taşır (geri okuma yok)
 	if staged:
 		_stg_begin()
 	look = default_look()
@@ -1584,6 +1586,7 @@ func setup(l: Dictionary) -> void:
 	if staged:
 		_stg_end("son")
 	built = true
+	MB.keep_arr = false
 
 
 ## Performans: küçük parçalar (kıyafet ayrıntısı, aksesuar, küçük silah) gölge düşürmez. Güneş gölgesi 4 kademeli olduğundan
@@ -1826,7 +1829,7 @@ func _geo_for(gender: String) -> Dictionary:
 			if nm == &"":
 				nm = skel.get_bone_name(skin.get_bind_bone(i))
 			bind_names[i] = String(nm)
-	var arr = mesh.surface_get_arrays(0)
+	var arr = MeshArr.get_arrays(mesh, 0)
 	for k in [Mesh.ARRAY_CUSTOM0, Mesh.ARRAY_CUSTOM1, Mesh.ARRAY_CUSTOM2, Mesh.ARRAY_CUSTOM3, Mesh.ARRAY_TEX_UV2]:
 		arr[k] = null
 	var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
@@ -2878,7 +2881,7 @@ func _skinned_mesh(g: Dictionary, verts: PackedVector3Array, custom: PackedFloat
 ## Mesh'in köşeleri: kurulurken saklandıysa oradan, yoksa bir kez geri okunup saklanır
 static func _mesh_vs(m: ArrayMesh) -> PackedVector3Array:
 	if not m.has_meta("vs"):
-		m.set_meta("vs", m.surface_get_arrays(0)[Mesh.ARRAY_VERTEX])
+		m.set_meta("vs", MeshArr.get_arrays(m, 0)[Mesh.ARRAY_VERTEX])
 	return m.get_meta("vs")
 
 
@@ -3012,7 +3015,7 @@ func _dyn_garment(shell: MeshInstance3D, key: String) -> void:
 
 
 static func _build_dyn_garment(mesh: ArrayMesh, center: Vector3, root_y: float, nb: int, stiff: float) -> Dictionary:
-	var arr = mesh.surface_get_arrays(0)
+	var arr = MeshArr.get_arrays(mesh, 0)
 	var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
 	var sc = Dangle.sector_chains([v], center, root_y, {"sectors": 8, "points": 4, "min_len": 0.12, "fade": 0.05,
 		"def": {"stiff": stiff, "stiff_tip": stiff * 0.55, "damp": 0.8, "grav": 0.6, "drag": 0.8, "air": 0.22, "follow": 0.6, "col_r": 0.025, "col_from": 1}})
@@ -6864,7 +6867,7 @@ func _sk_begin(src: ArrayMesh) -> bool:
 		_sk = {"v": d0["v"], "n": d0["n"], "b": d0["b"], "w": d0["w"], "per": d0["per"], "ov": PackedVector3Array(), "on": PackedVector3Array(), "oc": PackedColorArray(),
 			"ob": PackedInt32Array(), "ow": PackedFloat32Array(), "oi": PackedInt32Array(), "custom": d0["custom"], "d0": d0}
 		return true
-	var a = src.surface_get_arrays(0)
+	var a = MeshArr.get_arrays(src, 0)
 	var idx: PackedInt32Array = a[Mesh.ARRAY_INDEX]
 	var used := {}
 	for i in idx:
@@ -7385,7 +7388,7 @@ func _thigh_holster() -> void:
 		if c is MeshInstance3D and String(c.name).begins_with("Cloth") and c.mesh is ArrayMesh and c.visible:
 			gk += "|%d" % c.mesh.get_instance_id()
 			for si in c.mesh.get_surface_count():
-				cloth_vs.append_array(c.mesh.surface_get_arrays(si)[Mesh.ARRAY_VERTEX])
+				cloth_vs.append_array(MeshArr.get_arrays(c.mesh, si)[Mesh.ARRAY_VERTEX])
 	if cloth_vs.size() > 0:
 		vs = vs.duplicate()
 		vs.append_array(cloth_vs)
@@ -7479,7 +7482,7 @@ func _wear_vs() -> PackedVector3Array:
 	for c in skel.get_children():
 		if c is MeshInstance3D and String(c.name).begins_with("Cloth") and c.mesh is ArrayMesh and c.visible:
 			for si in c.mesh.get_surface_count():
-				vs.append_array(c.mesh.surface_get_arrays(si)[Mesh.ARRAY_VERTEX])
+				vs.append_array(MeshArr.get_arrays(c.mesh, si)[Mesh.ARRAY_VERTEX])
 	return vs
 
 
@@ -7630,7 +7633,7 @@ func _head_vs() -> PackedVector3Array:
 func _body_vs() -> PackedVector3Array:
 	var k = "%s|%d" % [look.get("gender", "m"), body_mesh.mesh.get_instance_id()]
 	if not _body_vs_cache.has(k):
-		_body_vs_cache[k] = body_mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+		_body_vs_cache[k] = MeshArr.get_arrays(body_mesh.mesh, 0)[Mesh.ARRAY_VERTEX]
 	return _body_vs_cache[k]
 
 
@@ -7736,7 +7739,7 @@ static func _xsec(node: Node3D, zc: float, band := 0.03) -> AABB:
 		if mesh == null:
 			continue
 		for si in mesh.get_surface_count():
-			var vs: PackedVector3Array = mesh.surface_get_arrays(si)[Mesh.ARRAY_VERTEX]
+			var vs: PackedVector3Array = MeshArr.get_arrays(mesh, si)[Mesh.ARRAY_VERTEX]
 			for v in vs:
 				var w = xf * v
 				if absf(w.z - zc) < band:
@@ -7875,7 +7878,7 @@ func _helmet_shell_mesh(col: Color, front_edge_y: float, back_drop: float, pad :
 			st.set_color(col.darkened(0.1))
 			st.add_vertex(e[idx])
 	st.generate_normals()
-	return st.commit()
+	return MeshArr.commit(st)
 
 
 ## Yönlü kutu (merkez, eksenler, tam boyut) — vertex renkli
@@ -7914,7 +7917,7 @@ func _cone_hat(cen: Vector3, R: float, H: float, col: Color, line: Color, lines:
 			st.set_color(col.darkened(0.2))
 			st.add_vertex(q2[idx])
 	st.generate_normals()
-	var mi = _mesh_on("Head", st.commit(), Transform3D.IDENTITY)
+	var mi = _mesh_on("Head", MeshArr.commit(st), Transform3D.IDENTITY)
 	var mat = ShaderMaterial.new()
 	mat.shader = load("res://shaders/toon.gdshader")
 	mat.set_shader_parameter("rim_amount", 0.15)
@@ -8654,7 +8657,7 @@ static func _scalp_cap(c: Vector3, r: Vector3, front: float, eye_y: float, hab: 
 						st.set_normal(v[1])
 						st.set_uv(Vector2.ZERO)
 						st.add_vertex(v[0])
-	return st.commit()
+	return MeshArr.commit(st)
 
 
 ## Anime saç tutamı: kökten uca incelen, kavisli, yassı baklava kesitli tüp
@@ -9032,7 +9035,7 @@ static func _hair_clumps(style: String, c: Vector3, r: Vector3) -> ArrayMesh:
 		"kısa":
 			bangs.call(3, 30.0, 0.07, 0.04)
 	st.generate_normals()
-	return st.commit()
+	return MeshArr.commit(st)
 
 
 ## Tutam mesh'inden ikincil hareket paketi: uzun/sarkan tutamlar benzer kök+yönle zincirlerde toplanır,
@@ -9108,7 +9111,7 @@ static func _clump_dangle(mesh: ArrayMesh) -> Dictionary:
 		var hp = hair_profile(L, upward)
 		hp["pts"] = pts
 		defs.append(hp)
-	var uv2: PackedVector2Array = mesh.surface_get_arrays(0)[Mesh.ARRAY_TEX_UV2]
+	var uv2: PackedVector2Array = MeshArr.get_arrays(mesh, 0)[Mesh.ARRAY_TEX_UV2]
 	var assign = func(i: int, v: Vector3, _si: int) -> Array:
 		var sid = int(uv2[i].x)
 		if not of.has(sid):
@@ -9173,7 +9176,7 @@ static func _anime_dangle_s(mesh: ArrayMesh, st: Array, skull_c: Vector3, skull_
 			of[i] = ci
 	if defs.is_empty():
 		return {}
-	var uv2: PackedVector2Array = (arrays[0] if not arrays.is_empty() else mesh.surface_get_arrays(0))[Mesh.ARRAY_TEX_UV2]
+	var uv2: PackedVector2Array = (arrays[0] if not arrays.is_empty() else MeshArr.get_arrays(mesh, 0))[Mesh.ARRAY_TEX_UV2]
 	var assign = func(vi: int, v: Vector3, _si: int) -> Array:
 		var sid = int(round(uv2[vi].x))
 		if sid < 0 or not of.has(sid):
@@ -9218,7 +9221,7 @@ func dangle_strip(bone: String, model_root: Vector3, dir: Vector3, length: float
 				st.set_color(col)
 				st.add_vertex(vv)
 	st.generate_normals()
-	var mesh = st.commit()
+	var mesh = MeshArr.commit(st)
 	var pack = Dangle.build(mesh, [{"pts": pts, "stiff": stiff + 0.06, "stiff_tip": stiff * 0.4, "damp": 0.82, "grav": 0.7, "drag": 1.2, "air": 0.3, "follow": 0.5, "col_r": 0.012, "col_from": 1}],
 		func(_i, v, _si): return [[0, Dangle.project(pts, v)[0], 1.0]])
 	var d = Dangle.make(pack, Props.toon())
@@ -9254,7 +9257,7 @@ func _head_radial() -> PackedFloat32Array:
 		var fx: Transform3D = _face_src[1]
 		var fv = PackedVector3Array()
 		for si in fm.get_surface_count():
-			for q in (fm.surface_get_arrays(si)[Mesh.ARRAY_VERTEX] as PackedVector3Array):
+			for q in (MeshArr.get_arrays(fm, si)[Mesh.ARRAY_VERTEX] as PackedVector3Array):
 				fv.append(fx * q)
 		src.append(fv)
 	var ny = _bp("Neck").y
@@ -9479,7 +9482,7 @@ func _plane_ring_body_scan(p0: Vector3, B: Basis, rmax: float, pad: float, bins 
 				n = n.get_parent()
 		vs = vs.duplicate()
 		for si in c.mesh.get_surface_count():
-			for q in c.mesh.surface_get_arrays(si)[Mesh.ARRAY_VERTEX]:
+			for q in MeshArr.get_arrays(c.mesh, si)[Mesh.ARRAY_VERTEX]:
 				var w = xf * q
 				if absf((w - p0).dot(nrm)) < 0.02:
 					vs.append(w)
@@ -9609,7 +9612,7 @@ func _hiruzen_helmet(hg: Color) -> void:
 			for t in [-1.0, 1.0]:
 				_box_basis(st, c + bq.x * (t * 0.02) + bq.y * 0.024 + bq.z * 0.005, bq, Vector3(0.007, 0.012, 0.009), iron)
 	st.generate_normals()
-	var hm = _mesh_on("Head", st.commit(), Transform3D.IDENTITY)
+	var hm = _mesh_on("Head", MeshArr.commit(st), Transform3D.IDENTITY)
 	var mat = ShaderMaterial.new()
 	mat.shader = load("res://shaders/toon.gdshader")
 	mat.set_shader_parameter("rim_amount", 0.2)
@@ -9684,7 +9687,7 @@ func _band_wear(bc: Color, wear: String) -> void:
 				_box_basis(st, Vector3(skull_c.x + sx * (px + 0.008), by - 0.065, pz + 0.006), b, Vector3(0.05, 0.12, 0.006), steel)
 				_box_basis(st, Vector3(skull_c.x + sx * (px + 0.012), by - 0.065, pz + 0.006), b, Vector3(0.04, 0.008, 0.003), steel.darkened(0.25))
 			st.generate_normals()
-			var cm = st.commit()
+			var cm = MeshArr.commit(st)
 			cm.surface_set_material(0, Props.toon())
 			_mesh_on("Head", cm, Transform3D.IDENTITY)
 		"tobirama":   # ref tobirama_3/4/5: alnı şakaklara kadar saran geniş, uzun plaka
@@ -9843,7 +9846,7 @@ func hood(cc: Color, deep := "") -> void:
 		rmap[k] = maxf(rmap.get(k, 0.0), d.length())
 	if face_mi != null:
 		for si in face_mi.mesh.get_surface_count():
-			for v in face_mi.mesh.surface_get_arrays(si)[Mesh.ARRAY_VERTEX]:
+			for v in MeshArr.get_arrays(face_mi.mesh, si)[Mesh.ARRAY_VERTEX]:
 				var q = _face_xf * v
 				var d = Vector2(q.x - cen.x, q.z - cen.z)
 				var k = Vector2i(int(floor((atan2(d.y, d.x) + PI) / TAU * nb)) % nb, int(floor((q.y - y_lo) / dy)))
@@ -9903,7 +9906,7 @@ func hood(cc: Color, deep := "") -> void:
 				st.set_color(cc.darkened(0.45))
 				st.add_vertex(c0 + (q[i] - c0) * 0.96)
 	st.generate_normals()
-	_mesh_on("Head", st.commit(), Transform3D.IDENTITY).material_override = Props.toon()
+	_mesh_on("Head", MeshArr.commit(st), Transform3D.IDENTITY).material_override = Props.toon()
 
 
 var cap_grid: Array = []   # son head_cap ızgarası [satır (alt->tepe)][açı] (kaburga/süs için)
@@ -9987,7 +9990,7 @@ func kabuto(cc: Color, crest := "") -> void:
 				quad.call(pts, cc.darkened(0.05))
 				quad.call([pts[3], pts[2], pts[2] + d * 0.002 - side * 0.006, pts[3] + d * 0.002 - side * 0.006], gold)
 	st.generate_normals()
-	_mesh_on("Head", st.commit(), Transform3D.IDENTITY).material_override = Props.toon()
+	_mesh_on("Head", MeshArr.commit(st), Transform3D.IDENTITY).material_override = Props.toon()
 	# arma: alnın önünde altın hilal ya da V boynuz
 	var fz = skull_c.z + r_at.call(PI * 0.5) + 0.012
 	var base = Vector3(skull_c.x, by + 0.02, fz)
@@ -10027,7 +10030,7 @@ func _face_map() -> void:
 	var chin0 = eye_center_model.y - 0.1
 	if face_mi != null:
 		for si in face_mi.mesh.get_surface_count():
-			for v in face_mi.mesh.surface_get_arrays(si)[Mesh.ARRAY_VERTEX]:
+			for v in MeshArr.get_arrays(face_mi.mesh, si)[Mesh.ARRAY_VERTEX]:
 				var fq = _face_xf * v
 				if fq.y > chin0 - 0.01:   # çene altı (yatay yüzey) haritayı disk gibi açıyordu: orada yalnız boyun
 					pts.append(fq)
@@ -10103,7 +10106,7 @@ func face_patch(cc: Color, a_c: float, a_half: float, y0: float, y1: float, pad:
 					var c0 = Vector3(skull_c.x, q[i].y, skull_c.z)
 					st.set_color(cc.darkened(0.4)); st.add_vertex(c0 + (q[i] - c0) * 0.985)
 	st.generate_normals()
-	var mi = _mesh_on("Head", st.commit(), Transform3D.IDENTITY)
+	var mi = _mesh_on("Head", MeshArr.commit(st), Transform3D.IDENTITY)
 	mi.material_override = Props.toon()
 	return mi
 
@@ -10123,7 +10126,7 @@ func face_line(cc: Color, path: Array, w: float, pad: float) -> void:
 		for k in [0, 1, 2, 0, 2, 3, 0, 2, 1, 0, 3, 2]:
 			st.set_color(cc); st.add_vertex(q[k])
 	st.generate_normals()
-	_mesh_on("Head", st.commit(), Transform3D.IDENTITY).material_override = Props.toon()
+	_mesh_on("Head", MeshArr.commit(st), Transform3D.IDENTITY).material_override = Props.toon()
 
 
 ## Göz merkezi yönleri (a, y): sağ göz = karakterin sağı (-X)
@@ -10334,7 +10337,7 @@ func head_cap(cc: Color, edge_y: float, back_drop: float, puff := 0.04, pad := 0
 	st.generate_normals()
 	cap_grid = ring
 	cap_cen = cen
-	var mi = _mesh_on("Head", st.commit(), Transform3D.IDENTITY)
+	var mi = _mesh_on("Head", MeshArr.commit(st), Transform3D.IDENTITY)
 	mi.material_override = Props.toon()
 	if mask:
 		# başlığın altında kalan saç kesilir: önde alt kenar, arkada ense hizası düzlemi
@@ -10380,7 +10383,7 @@ func _hitai(bone: String, cen: Vector3, rad: PackedFloat32Array, bc: Color, bh: 
 				st.set_color(q[4])
 				st.add_vertex(q[i])
 	st.generate_normals()
-	var bmi = _mesh_on(bone, st.commit(), Transform3D.IDENTITY)
+	var bmi = _mesh_on(bone, MeshArr.commit(st), Transform3D.IDENTITY)
 	bmi.material_override = Props.toon()
 	if PROF: print("PROFB kumas %.0f" % [(Time.get_ticks_usec() - _hq2) / 1000.0]); _hq2 = Time.get_ticks_usec()
 	var rv = MB.new()
@@ -10419,7 +10422,7 @@ func _hitai(bone: String, cen: Vector3, rad: PackedFloat32Array, bc: Color, bh: 
 						ps.set_color(steel.darkened(0.25))
 						ps.add_vertex(q2[i])
 		ps.generate_normals()
-		var pmi = _mesh_on(bone, ps.commit(), Transform3D.IDENTITY)
+		var pmi = _mesh_on(bone, MeshArr.commit(ps), Transform3D.IDENTITY)
 		pmi.material_override = Props.toon()
 		# perçinler: dört köşe
 		for sa in [-1.0, 1.0]:
@@ -10462,7 +10465,7 @@ func _hitai(bone: String, cen: Vector3, rad: PackedFloat32Array, bc: Color, bh: 
 				ss.set_uv(q[i][1])
 				ss.add_vertex(q[i][0])
 		ss.generate_normals()
-		var smesh = ss.commit()
+		var smesh = MeshArr.commit(ss)
 		var sm = StandardMaterial3D.new()
 		sm.albedo_texture = symbol_texture(look["village"], look["band_style"] == "slashed")
 		sm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
@@ -10515,7 +10518,7 @@ func _skull_band(col: Color, y: float, h: float, pad: float, tilt := 0.0) -> Mes
 		for idx in [0, 2, 1, 0, 3, 2, 0, 1, 2, 0, 2, 3]:
 			st.add_vertex(o[idx])
 	st.generate_normals()
-	var bm = st.commit()
+	var bm = MeshArr.commit(st)
 	bm.surface_set_material(0, Props.toon())   # köşe rengi (varsayılan malzeme beyaz çiziyordu)
 	return _mesh_on("Head", bm, Transform3D.IDENTITY)
 
