@@ -453,6 +453,9 @@ static func _mi(mesh: Mesh, mat: Material) -> MeshInstance3D:
 ## Katmanlı dönen ateş topu (Gōkakyū): sıcak çekirdek + iki türbülanslı alev kabuğu + kıvılcım
 static func fireball(size := 1.0, preset := "fire") -> Node3D:
 	size *= epic
+	# 2026-11-24: ateş topları Katon'un yeni opak ateş topu (sarmal gövde + taç); kara / mavi alev kendi paletiyle
+	if preset in ["fire", "blue", "black"]:
+		return KatonLib.fireball_node(size * 0.55, {"fire": KatonLib.PAL_FIRE, "blue": KatonLib.PAL_BLUE, "black": KatonLib.PAL_BLACK}[preset], 1.0)
 	var root = Node3D.new()
 	var outer = _mi(_sphere(0.5, 28, 14), mat_fire(preset, 2.6, 2.2, 0.5, 1.3, 0.16, Vector3(0, 0.4, 1)))
 	outer.scale = Vector3.ONE * size * 1.15
@@ -1189,6 +1192,11 @@ static func smoke_ring(pos: Vector3, size := 3.0, col := Color(0.3, 0.27, 0.25))
 
 static func explosion(pos: Vector3, s := 1.0, col := Color(1.0, 0.55, 0.15)) -> void:
 	Dangle.blast(pos, 40.0 * s, 6.0 * s)   # yakındaki saç/kumaş dışa savrulur
+	if col.r > 0.8 and col.b < 0.35 and col.g < 0.8 and Game.world:   # ateş patlaması: Katon'un Storm patlaması (parlama, alev mantarı, duman, yanık)
+		KatonLib.fireball_impact(Game.world.get_tree().current_scene, pos, 1.1 * s * epic, KatonLib.PAL_FIRE)
+		Game.world.env.add_shake(0.7 * s)
+		Sfx.play("boom", pos)
+		return
 	var ep = epic
 	epic = 1.0
 	_explosion(pos, s * ep, col)

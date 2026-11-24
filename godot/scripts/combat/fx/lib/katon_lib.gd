@@ -552,7 +552,7 @@ void fragment() {
 	vein *= step(k, 0.8) * step(0.03, heat) * (1.0 - smoothstep(0.35, 0.8, k)) * smoothstep(0.35, 0.7, kf(sp * 0.6 + vec2(seed)));
 	vec4 rc = kramp(0.12 + heat * 0.22 + (n - 0.5) * 0.08, pal);
 	col = mix(col, rc.rgb, vein * heat);
-	float a = (1.0 - smoothstep(0.55, 1.0, k)) * 0.8;
+	float a = (1.0 - smoothstep(0.6, 1.0, k)) * 0.95;
 	ALBEDO = pow(col, vec3(2.2)) * (1.0 + vein * heat * 0.8);
 	ALPHA = a * fade;
 }
@@ -736,6 +736,15 @@ static func fireball_tick(host: Node, node: Node3D, pos: Vector3, vel: Vector3, 
 
 ## Ateş topu çarpması (ölçekli Storm patlaması): parlama + alev mantarı + kıvılcım; büyükse duman sütunu
 static func fireball_impact(host: Node, pos: Vector3, r: float, pal := 0.0) -> void:
+	r *= 1.35   # kullanıcı 2026-11-24: patlamalar küçük kalıyordu
+	# yerde kalıcı iz: kavruk yanık + kızgın damarlar + bir süre yanan alev dilleri (kullanıcı: "yerde yanık yok")
+	var g = floor_at(pos)
+	if pos.y - g.y < r * 2.5 and host != null:
+		scorch(host, g, r * 2.4, 18.0, 0.0, pal, 0.25)
+		for k in clampi(int(3 + r * 2.0), 3, 10):
+			var a = randf() * TAU
+			var gp = floor_at(g + Vector3(cos(a), 0, sin(a)) * randf_range(0.3, 1.0) * r * 1.6)
+			tongue(host, gp, randf_range(0.6, 1.3) * minf(r, 2.5), 0.5 * minf(r, 2.5), randf_range(2.0, 4.0), Vector3.UP, Vector3.ZERO, pal, 3, 1.1)
 	flash_ball(host, pos, r * 1.4, pal)
 	fire_burst(host, pos, r * 0.6, r * 1.6, clampf(0.6 + r * 0.25, 0.6, 1.4), clampi(int(5 + r * 3), 5, 14), pal)
 	if r >= 0.9:
@@ -1210,8 +1219,9 @@ static func glow(host: Node, p: Vector3, s: float, col: Color, life: float) -> M
 
 ## Isı dalgalanması: sıcak havanın arkasındaki görüntü titrer (w en, h boy)
 static func shimmer(host: Node, p: Vector3, w: float, h: float, life: float) -> MeshInstance3D:
-	if STYLE >= 3:
-		return null   # ekran kopyası saydam katmandan önce alınır: önündeki alevi silip arkadaki duvarı gösteriyordu (krem dikdörtgenler)
+	if STYLE >= 3 or OPAQUE_BODY:
+		return null   # ekran kopyası saydam katmandan önce alınır: önündeki alevi silip arkadaki duvarı gösteriyordu (krem dikdörtgenler);
+		# opak yapıda da düz dikdörtgen kart gibi okunuyor (kullanıcı 2026-11-24: "patlamada bariz 2D png")
 	var mi = gi(_quad_c(), shimmer_mat())
 	mi.set_instance_shader_parameter("seed", randf() * 10.0)
 	mi.set_instance_shader_parameter("fade", 0.0)

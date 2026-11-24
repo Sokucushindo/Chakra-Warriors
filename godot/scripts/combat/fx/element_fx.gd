@@ -1551,7 +1551,7 @@ static func _kstream(pj: PathJutsu, c: Node3D, from: Vector3, d: Vector3, L: flo
 		var src = KatonLib_src(pj, c, from)
 		var reach = minf(L, (i + 1) * 0.035 * spd)
 		# akım: ağızdan uca kadar yol boyunca dağılan, uca doğru büyüyüp kabaran alev topakları (kopuk top değil, kesintisiz sel)
-		for q in 6:
+		for q in 6 + int(W * 0.5):   # geniş akımda daha çok topak (sel boşluksuz)
 			var u = pow(randf(), 0.8)
 			var sz = lerpf(0.35, W * 0.42, u)
 			var p = src + d * (u * reach) + side * randf_range(-0.5, 0.5) * sz + Vector3.UP * randf_range(-0.3, 0.3) * sz
@@ -1797,7 +1797,7 @@ static func futon_gamayu_endan(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			var base = c.global_position + Vector3.UP * 1.2
 			streak(pj, _path(func(u: float) -> Vector3: return base + o * u + d * (u * 32.0), 10), 0.14, Color(1.0, 0.93, 0.78, 0.85), 0.5, false,
 				{"rag": 0.45, "core": 0.0, "delay": q * 0.02})
-		_kstream(pj, c, mo, d, 32.0, 6.5, 0.7, true)
+		_kstream(pj, c, mo, d, 34.0, 10.0, 1.1, true)   # dev alev fırtınası (kullanıcı: basic kalıyordu)
 		pj.after(0.45, func():
 			_kb(pj, mo + d * 32.0, 1.0, 4.0, 0.7, Vector3.ZERO, true)
 			_ke(pj, mo + d * 32.0, 30, 3.0, 6.0)
@@ -1885,7 +1885,7 @@ static func senpo_goemon(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			ba.add_child(mi)
 			mi.position = Vector3(0, 0.08, 0)
 			mi.scale = Vector3.ONE * 0.05
-			mi.create_tween().tween_property(mi, "scale", Vector3.ONE * 0.6, 0.3).set_trans(Tween.TRANS_BACK)
+			mi.create_tween().tween_property(mi, "scale", Vector3.ONE * 1.1, 0.3).set_trans(Tween.TRANS_BACK)   # kullanıcı: kurbağalar çok küçük
 			poof(pj, ba.global_position + Vector3.UP * 0.2, 0.35)
 			elders.append(ba)
 	pj.after(0.5, func():
@@ -1896,14 +1896,14 @@ static func senpo_goemon(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		# kaynar yağ + rüzgâr + ateş: kurbağaların yağ yayları, alev akımı, beyaz rüzgâr şeritleri
 		for sx in [-1.0, 1.0]:
 			_oil_arc(pj, c.global_position + Vector3.UP * 1.6 + side * sx * 0.3, d, 0.5)
-		_kstream(pj, c, o, d, 20.0, 4.5, 0.9)
+		_kstream(pj, c, o, d, 34.0, 11.0, 1.4)   # yağ + rüzgâr + ateş: önü kaplayan dev alev seli (kullanıcı: epic değil)
 		for q in 8:
 			var off = side * randf_range(-1.6, 1.6) + Vector3.UP * randf_range(-0.6, 0.8)
 			streak(pj, _path(func(u: float) -> Vector3: return o + off * u + d * (u * 20.0), 10), 0.13, Color(1.0, 0.95, 0.85, 0.85), 0.5, false,
 				{"rag": 0.5, "core": 0.0, "delay": q * 0.025})
-		for k in 10:   # kaynar yağ dalgası: kabaran amber sırtlar, kaynayan kabarcıklar, sarı damarlı yağ zemini
+		for k in 14:   # kaynar yağ dalgası: kabaran amber sırtlar, kaynayan kabarcıklar, sarı damarlı yağ zemini
 			pj.after(k * 0.06, func():
-				var p = pj.gp(c.global_position + d * (3.0 + k * 1.8))
+				var p = pj.gp(c.global_position + d * (3.0 + k * 2.3))
 				ground_mark(pj, p, 2.6, 2.6, randf() * TAU, 2.0, 4.5, 0.15)
 				for q in 3:   # kabarıp çöken yağ sırtı: yassı, topaklı amber yağ kütleleri
 					oil_crest(pj, p + side * randf_range(-2.0, 2.0), randf_range(0.6, 1.0), d)
@@ -1911,9 +1911,10 @@ static func senpo_goemon(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 				bubble(pj, p + side * randf_range(-1.5, 1.5), 0.35)
 				if k % 3 == 0:
 					_ke(pj, p + Vector3.UP * 0.5, 8, 1.5, 3.0))
-		_oil_pool(pj, c, c.global_position + d * 10.0, 4.5, 4.0)
-		GroundFX.add(c.global_position + d * 10.0, "burning", 4.5, 4.0, c)
-		Combat.hit_zone(c, c.global_position, d, 20.0, 18.0, 3.0, pj.inf(c, "senpo_goemon", 1.8, {"knock": 14.0, "kind": "heavy", "element": "katon", "burn": 5.0}))
+		_oil_pool(pj, c, c.global_position + d * 16.0, 7.0, 5.0)
+		GroundFX.add(c.global_position + d * 16.0, "burning", 7.0, 5.0, c)
+		KatonLib.scorch(pj, c.global_position + d * 16.0, 9.0, 20.0)
+		Combat.hit_zone(c, c.global_position, d, 34.0, 24.0, 5.0, pj.inf(c, "senpo_goemon", 1.8, {"knock": 14.0, "kind": "heavy", "element": "katon", "burn": 5.0}))
 		Sfx.play("fire", c.global_position, 0.5)
 		Sfx.play("water", c.global_position, 0.7))
 	pj.after(1.8, func():

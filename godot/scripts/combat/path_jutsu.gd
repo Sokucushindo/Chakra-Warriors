@@ -4256,12 +4256,12 @@ func p_katon_gamayu_endan(c: Node3D, t: Node3D) -> void:
 			return
 		anim(c, "push", 1.2)
 		fire_stream(_mouth_pos(c), (d - Vector3.UP * 0.05).normalized(), 24.0, 5.5, 12)
-		after(0.5, func(): impact_fx("katon", Color(1, 0.5, 0.1), gp(c.global_position + d * 22.0) + Vector3.UP, 2.0))
-		VFX.embers(c.global_position + Vector3.UP * 1.4 + d * 4.0, Color(1, 0.55, 0.1), 60, 16.0)
+		after(0.5, func(): KatonLib.fireball_impact(get_tree().current_scene, gp(c.global_position + d * 22.0) + Vector3.UP, 2.4, KatonLib.PAL_FIRE))
 		Sfx.play("fire", c.global_position, 0.6)
 		Combat.hit_zone(c, c.global_position, d, 24.0, 26.0, 4.0, inf(c, "katon_gamayu_endan", 1.6, {"element": "katon", "burn": 3.0, "knock": 8.0, "kind": "heavy"}))
 		var pool_at = gp(c.global_position + d * 12.0)
-		VFX.linger(pool_at, "katon", Color(1, 0.5, 0.1), 2.5, 5.0)
+		KatonLib.burn_patch(get_tree().current_scene, pool_at, 3.5, 5.0, KatonLib.PAL_FIRE, 0.08, 1.8)   # yanan yağ gölü
+		KatonLib.scorch(get_tree().current_scene, pool_at, 5.0, 16.0)
 		every(5.0, 0.5, func(_i, _k):
 			for e in enemies_near(c, pool_at, 4.0):
 				e.take_hit(inf(c, "katon_gamayu_endan", 0.12, {"element": "katon", "burn": 1.0, "knock": 0.0, "kind": "light"})), Callable())
@@ -4279,20 +4279,22 @@ func p_senpo_kawazu_naki(c: Node3D, _t: Node3D) -> void:
 
 ## Alev seli: ağızdan büyüyerek ilerleyen katmanlı alev küreleri zinciri (gerçek alev shader'ı), kor ve duman
 func fire_stream(from: Vector3, d: Vector3, length: float, max_size: float, n: int) -> void:
-	for k in n:
-		after(k * 0.035, func():
-			var fb = VFX.fireball(0.8 + max_size * float(k) / n)
-			get_tree().current_scene.add_child(fb)
-			fb.global_position = from
-			var end = from + d * (length * (0.35 + 0.65 * float(k) / n))
-			var tw = fb.create_tween()
-			tw.tween_property(fb, "global_position", end, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-			tw.parallel().tween_property(fb, "scale", Vector3.ONE * 1.3, 0.35)
-			tw.tween_property(fb, "scale", Vector3.ONE * 0.05, 0.35)
-			tw.tween_callback(fb.queue_free)
-			VFX.puffs(end, {"amount": 8, "life": 0.9, "size": 1.2 + k * 0.2, "radius": 0.8, "vmin": 1, "vmax": 3, "dir": Vector3.UP, "spread": 40.0, "add": false,
-				"colors": [Color(0.35, 0.25, 0.2, 0.6), Color(0.25, 0.2, 0.18, 0)]}))
-	VFX.embers(from + d * length * 0.4, Color(1, 0.55, 0.1), 50, 14.0)
+	# 2026-11-24: Katon'un opak alev seli — ağızdan uca kadar yol boyunca kabaran, uca doğru büyüyen alev topakları
+	# (eski ortak ateş küresi zinciri + gri duman parçacıkları kaldırıldı)
+	var host = get_tree().current_scene
+	var side = d.cross(Vector3.UP).normalized()
+	var dur = 0.45 + n * 0.02
+	var spd = length / 0.3
+	every(dur, 0.03, func(i, _k):
+		var reach = minf(length, (i + 1) * 0.03 * spd)
+		for q in 6:
+			var u = pow(randf(), 0.8)
+			var sz = lerpf(0.35, max_size * 0.45, u)
+			var p = from + d * (u * reach) + side * randf_range(-0.5, 0.5) * sz + Vector3.UP * randf_range(-0.3, 0.3) * sz
+			KatonLib.fire_puff(host, p, sz * 0.45, sz, 0.35, d * 9.0 + Vector3.UP * 0.8, KatonLib.PAL_FIRE, 1.15, 0.6), func():
+		KatonLib.fire_burst(host, from + d * length, max_size * 0.3, max_size * 0.75, 0.8, 8, KatonLib.PAL_FIRE)
+		KatonLib.scorch(host, KatonLib.floor_at(from + d * length * 0.6), max_size * 1.2, 14.0))
+	KatonLib.embers(host, from + d * length * 0.4, 40, max_size * 0.4, KatonLib.PAL_FIRE, {"dir": d, "spread": 40.0, "vmin": 6.0, "vmax": 14.0, "life": 1.0})
 
 
 # ================================================================== Yeni jutsular A (Sv.10): referansla, detaylı efekt

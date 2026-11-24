@@ -254,63 +254,106 @@ static func zangetsu(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 
 
 # ================================================================== Enton: Kagutsuchi no Tsurugi
-## Avuçtan kara alev kılıcı uzar (alevden şekillenmiş dalgalı ağız + uçta kanca dil); atılışta arkasında kara alev
-## dilleri bırakır; savuruşta önde yarım ay biçiminde kara alev yelpazesi açılır, yere düşen alev kara kor olup yanar.
+## Kanon (Sasuke, wiki "Sword of Kagutsuchi" + Storm 3 "Stabbing Flame"): Susanoo'nun elindeki kara alev küresi biçim
+## değiştirerek dev bir kara alev kılıcına döner; önce yatay savrulur (önündeki yay tutuşur), sonra yere saplanır: hedefin
+## altından kara alev dikenleri fışkırıp onu havaya atar. Kesilen her şey Amaterasu ile yanar. Susanoo şart (oyuncu ve düşman aynı).
 static func enton_kagutsuchi_no_tsurugi(_pj_unused, c: Node3D, t: Node3D) -> void:
+	var sn = Susanoo.of(c, "enton_kagutsuchi_no_tsurugi")
+	if sn == null:
+		return
 	var host = Jutsu.get_tree().current_scene
-	var sw = Node3D.new()
-	c.add_child(sw)
-	sw.position = Vector3(0.35, 1.1, -0.5)
-	# kılıç gövdesi: kara alev kütlesi çubuğu (ileri -Z) + boyunca dalgalı diller + uçta kanca dil
-	for k in 6:
-		var z = -0.25 - k * 0.3
-		var m = KatonFXC._black_mass_mi(0.12 - k * 0.012, 0.35)
+	var H = sn.h()
+	var S = H / 1.8
+	var tg = Jutsu._tg(c, t, 14.0 + H * 0.5)
+	var aim = MsArts._aim_fn(c, tg, 6.0 + H * 0.3)
+	var d = MsArts._turn(c, aim.call())
+	var side = d.cross(Vector3.UP).normalized()
+	MsArts._pj().busy(c, 1.5)
+	MsArts._anim(c, "cast", 1.0)
+	sn.hide_weapons(1.7)
+	# 1) elde kara alev küresi toplanır (kol yana-arkaya kalkık: savuruşa hazırlık)
+	var wind = Susanoo.arm(true, (side + Vector3.UP * 0.55 - d * 0.25).normalized(), (side * 0.6 + Vector3.UP * 0.8).normalized())
+	sn.pose({"arms": wind, "spine": -10.0}, 0.6)
+	var orb = KatonFXC._black_orb(S * 0.22)
+	host.add_child(orb)
+	sn.follow_fx(orb, 0.4, func(): return sn.hand(true))
+	# 2) küre kılıca biçimlenir: kara alev kütlesi zinciri + ağız boyunca yukarı yalayan ince kara diller + uç
+	var L = S * 2.4
+	var blade = Node3D.new()
+	host.add_child(blade)
+	blade.visible = false
+	for k in 9:
+		var u = k / 8.0
+		var z = -u * L
+		var w = lerpf(0.16, 0.06, u) * S
+		var m = KatonFXC._black_mass_mi(w, 0.3)
 		m.position = Vector3(0, 0, z)
-		m.scale = Vector3(0.12 - k * 0.012, 0.12 - k * 0.012, 0.22)
-		sw.add_child(m)
-		var tg = KatonFXC._black_tongue_mi(0.45 - k * 0.04, 0.2, Vector3(0, 1.0, 0.25).normalized(), 1.0)
-		tg.position = Vector3(0, 0.05, z)
-		sw.add_child(tg)
-	var tip = KatonFXC._black_tongue_mi(0.7, 0.25, Vector3(0, 0.3, -1.0).normalized(), 1.1)
-	tip.position = Vector3(0, 0.05, -2.0)
-	sw.add_child(tip)
-	sw.scale = Vector3(1, 1, 0.05)
-	sw.create_tween().tween_property(sw, "scale", Vector3.ONE * 1.4, 0.25).set_trans(Tween.TRANS_BACK)
-	Sfx.play("genjutsu", c.global_position, 0.7)
-	var inf = Jutsu._inf(c, "enton_kagutsuchi_no_tsurugi", 0.7, {"knock": 8.0, "kind": "heavy", "hitstop": 0.06, "element": "katon"})
-	var hitl = []
-	var step = [0]
-	Jutsu.get_tree().create_timer(0.25).timeout.connect(func():
-		if not is_instance_valid(c):
+		m.scale = Vector3(w, w * 1.6, L / 8.0 * 0.75)
+		blade.add_child(m)
+		for q in 2:
+			var tgm = KatonFXC._black_tongue_mi(lerpf(0.9, 0.4, u) * S * randf_range(0.8, 1.2), 0.22 * S, Vector3(0, 1.0, 0.45 + q * 0.3).normalized(), 1.1)
+			tgm.position = Vector3(0, w * 0.6, z + q * 0.1 * S)
+			blade.add_child(tgm)
+	var tip = KatonFXC._black_tongue_mi(0.9 * S, 0.22 * S, Vector3(0, 0.15, -1.0).normalized(), 1.15)
+	tip.position = Vector3(0, 0, -L)
+	blade.add_child(tip)
+	var bdir = func() -> Vector3:
+		var fa = sn.hand(true) - sn.bone_at("RightLowerArm")
+		return fa.normalized() if fa.length() > 0.01 else d
+	MsArts._later(0.35, func():
+		if is_instance_valid(orb):
+			orb.queue_free()
+		if not is_instance_valid(blade):
 			return
-		if c.get("model") and c.model:
-			c.model.play("slash_c", 0.05, 1.3, true)
-		Jutsu._dash(c, t, 0.32, 24.0, func(p: Vector3):
-			for h in Combat.hit_sphere(c, p, 2.0, inf, hitl):
+		blade.visible = true
+		blade.scale = Vector3(1, 1, 0.05)
+		blade.create_tween().tween_property(blade, "scale", Vector3.ONE, 0.18).set_trans(Tween.TRANS_BACK)
+		sn.follow_fx(blade, 1.25, func(): return sn.hand(true), bdir))
+	Sfx.play("genjutsu", c.global_position, 0.7)
+	var inf = Jutsu._inf(c, "enton_kagutsuchi_no_tsurugi", 0.7, {"knock": 10.0, "kind": "heavy", "hitstop": 0.08, "element": "katon"})
+	var up_inf = Jutsu._inf(c, "enton_kagutsuchi_no_tsurugi", 0.6, {"knock": 4.0, "launch": 9.0, "kind": "heavy", "hitstop": 0.06, "element": "katon"})
+	var hitl = []
+	# 3) yatay savuruş: kol sağdan sola, önündeki yay boyunca kara alev yelpazesi ve tutuşma
+	MsArts._later(0.6, func():
+		if not (is_instance_valid(c) and is_instance_valid(sn)):
+			return
+		sn.pose({"arms": Susanoo.arm(true, (-side * 0.55 + d * 0.8).normalized(), (-side * 0.9 + d * 0.35).normalized()), "spine": 12.0}, 0.45, true)
+		var o = c.global_position + Vector3.UP * H * 0.35
+		var R = L * 0.9 + 1.0
+		for k in 11:
+			var u = (k / 10.0) * 2.0 - 1.0
+			var ax = (d * cos(u * 1.2) - side * sin(u * 1.2)).normalized()
+			var p = o + ax * R
+			KatonFXC._black_tongue(host, p - Vector3.UP * 0.6 * S, randf_range(1.4, 2.2) * S, 0.5 * S, 0.6, (ax * 0.5 + Vector3.UP).normalized(), ax * 2.0 * S)
+			for h in Combat.hit_sphere(c, p, 1.2 + S * 0.4, inf, hitl):
 				hitl.append(h)
 				Jutsu._ignite(h, 6.0)
-			step[0] += 1
-			if step[0] % 2 == 0:
-				KatonFXC._black_tongue(host, p - Vector3.UP * 0.6, 1.0, 0.5, 0.5, Vector3(0, 1, 0.2).normalized()), func():
-			if not is_instance_valid(c):
-				return
-			# savuruş: önde yarım ay kara alev yelpazesi (9 dil yay boyunca, dışa yatık)
-			var d: Vector3 = c.face_dir()
-			var sd = d.cross(Vector3.UP).normalized()
-			var o = c.global_position + Vector3.UP * 1.1 + d * 1.2
-			for k in 9:
-				var u = (k / 8.0) * 2.0 - 1.0
-				var ax = (d * cos(u * 1.1) + sd * sin(u * 1.1) + Vector3.UP * 0.25).normalized()
-				KatonFXC._black_tongue(host, o + sd * u * 1.6, randf_range(2.2, 3.0), 0.8, 0.7, ax, ax * 1.2)
-			# yere düşen kara korlar: alçak, yavaş sönen diller
-			var g = KatonLib.floor_at(c.global_position + d * 2.0)
-			for k in 6:
-				var a = randf() * TAU
-				KatonFXC._black_tongue(host, g + Vector3(cos(a), 0, sin(a)) * randf_range(0.3, 1.6), randf_range(0.5, 0.9), 0.5, randf_range(2.5, 4.5))
-			if is_instance_valid(sw):
-				var tw = sw.create_tween()
-				tw.tween_property(sw, "scale", Vector3(0.2, 0.2, 0.05), 0.2)
-				tw.tween_callback(sw.queue_free)))
+		MsArts._shake(0.6))
+	# 4) yere saplama: hedefin altından kara alev dikenleri fışkırır, havaya atar
+	MsArts._later(1.05, func():
+		if not (is_instance_valid(c) and is_instance_valid(sn)):
+			return
+		sn.pose({"arms": Susanoo.arm(true, (d * 0.7 + Vector3.UP * 0.2).normalized(), (d * 0.3 - Vector3.UP * 0.95).normalized()), "spine": 22.0}, 0.5, true)
+		var at: Vector3 = aim.call()
+		var g = KatonLib.floor_at(at)
+		for k in 16:
+			var a = randf() * TAU
+			var rr = randf_range(0.0, 2.2) * sqrt(S)
+			var ax = Vector3(cos(a) * rr * 0.15, 1.0, sin(a) * rr * 0.15).normalized()
+			KatonFXC._black_tongue(host, g + Vector3(cos(a), 0, sin(a)) * rr, randf_range(2.2, 3.6) * sqrt(S), 0.45 * sqrt(S), 0.7, ax, ax * 2.0)
+		for k in 8:   # yerde kalan kara korlar
+			var a = randf() * TAU
+			KatonFXC._black_tongue(host, g + Vector3(cos(a), 0, sin(a)) * randf_range(0.3, 2.6), randf_range(0.6, 1.1), 0.4, randf_range(3.0, 5.0))
+		KatonLib.scorch(host, g, 3.4 * sqrt(S), 16.0, 1.0, KatonLib.PAL_BLACK)
+		for h in Combat.hit_sphere(c, g + Vector3.UP, 2.6 * sqrt(S), up_inf, []):
+			Jutsu._ignite(h, 6.0)
+		MsArts._shake(1.0)
+		Sfx.play("fire", g, 0.5))
+	MsArts._later(1.6, func():
+		if is_instance_valid(blade):
+			var tw = blade.create_tween()
+			tw.tween_property(blade, "scale", Vector3(0.2, 0.2, 0.05), 0.2)
+			tw.tween_callback(blade.queue_free))
 
 
 # ================================================================== Susanoo: Gōkakyū

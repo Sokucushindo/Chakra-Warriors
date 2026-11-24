@@ -1345,6 +1345,8 @@ static func katon_suyaki(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		if float(cg["until"]) > now and Vector2(at.x - cg["at"].x, at.z - cg["at"].z).length() < float(cg["r"]) + 1.0:
 			_suyaki_oven(pj, c, cg["at"], float(cg["r"]))
 			return
+	if c is Player:   # kanon: fırını Raiton'un on altı sütunlu kafesi kurar; kafes yoksa yalnız yer kavrulur
+		Hud.msg("Suyaki fırını için hedef önce Raiton: Jūroku Chūshibari kafesine alınmalı.", Color(1.0, 0.7, 0.4))
 	# ısınma: kızgın damarlı zemin hızla yayılır, birkaç dil önden fırlar
 	KatonLib.scorch(pj, at, 3.2, 6.0, 0.0, KatonLib.PAL_FIRE, 0.35)
 	for k in 5:

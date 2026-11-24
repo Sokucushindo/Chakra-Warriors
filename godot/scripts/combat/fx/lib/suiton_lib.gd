@@ -807,20 +807,39 @@ static func crown(h: Node, pos: Vector3, s := 1.0, o := {}) -> MeshInstance3D:
 	var mi = wmi(liquid_crown_mesh(randi() % 4), {"foam": o.get("foam", 0.2), "alpha": o.get("alpha", 0.85), "pal": o.get("pal", 0.0), "wob": 0.9, "line": 0.12, "flow": 2.5})
 	put(h, mi, pos)
 	mi.rotation.y = randf() * TAU
-	var hs = float(o.get("h", 1.0))
-	var fall = float(o.get("fall", 0.45))
+	var hs = float(o.get("h", 1.0)) * 0.6   # kullanıcı 2026-11-24: sıçrama "png gibi" — taç alçak, asıl sıçramayı damlalar yapar
+	var fall = float(o.get("fall", 0.45)) * 0.8
 	mi.scale = Vector3(s * 0.5, 0.05, s * 0.5)
+	# taçtan kopup kavisle düşen kalın su damlaları (3B, gölgeli, yere düşünce küçük halka)
+	var pal = o.get("pal", 0.0)
+	for k in clampi(int(8 + s * 6.0), 8, 22):
+		var a = randf() * TAU
+		var out = Vector3(cos(a), 0, sin(a))
+		var v0 = out * randf_range(1.5, 3.5) * sqrt(s) + Vector3.UP * randf_range(3.0, 6.0) * sqrt(s)
+		var dr = wmi(sphere_mesh(), {"foam": 0.15, "alpha": 0.9, "pal": pal, "wob": 0.4, "line": 0.12, "flow": 1.0})
+		var p0 = pos + out * 0.4 * s + Vector3.UP * 0.2
+		put(h, dr, p0)
+		var r = randf_range(0.07, 0.16) * sqrt(s)
+		dr.scale = Vector3(r, r * 1.3, r)
+		var life = clampf((v0.y * 2.0) / 9.8, 0.45, 1.3)
+		var tw0 = dr.create_tween()
+		tw0.tween_method(func(tt: float) -> void:
+			if is_instance_valid(dr):
+				dr.global_position = p0 + v0 * tt + Vector3.DOWN * 4.9 * tt * tt, 0.0, life, life)
+		tw0.tween_callback(dr.queue_free)
 	var tw = mi.create_tween()
 	tw.tween_property(mi, "scale", Vector3(s, s * hs, s), float(o.get("t", 0.16))).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tw.tween_property(mi, "scale", Vector3(s * 1.35, s * hs * 0.05, s * 1.35), fall).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tw.parallel().tween_method(func(v: float): mi.set_instance_shader_parameter("fade", v), 1.0, 0.0, fall)
+	# çöküş: taç yere yassılaşıp beyaz düz yay bırakıyordu (kart gibi) → yarı boya inip hızla söner
+	tw.tween_property(mi, "scale", Vector3(s * 1.15, s * hs * 0.45, s * 1.15), fall).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.parallel().tween_method(func(v: float): mi.set_instance_shader_parameter("fade", v), 1.0, 0.0, fall * 0.6)
 	tw.tween_callback(mi.queue_free)
 	return mi
 
 
 ## Yerde açılan köpük halkası
 static func ripple(h: Node, pos: Vector3, r0: float, r1: float, t: float, o := {}) -> MeshInstance3D:
-	var mi = wmi(ring_mesh(), {"foam": o.get("foam", 1.0), "alpha": o.get("alpha", 0.7), "pal": o.get("pal", 0.0), "line": 0.0, "flat": 1.0})
+	# köpük/alfa yarıya: düz beyaz halka kart gibi duruyordu (kullanıcı 2026-11-24)
+	var mi = wmi(ring_mesh(), {"foam": float(o.get("foam", 1.0)) * 0.4, "alpha": float(o.get("alpha", 0.7)) * 0.6, "pal": o.get("pal", 0.0), "line": 0.0, "flat": 1.0})
 	put(h, mi, ground(pos) + Vector3.UP * 0.05)
 	mi.scale = Vector3(r0, 1.0, r0)
 	var tw = mi.create_tween().set_parallel(true)

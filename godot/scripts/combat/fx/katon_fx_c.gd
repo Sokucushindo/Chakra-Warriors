@@ -1091,8 +1091,17 @@ static func gamayu_endan(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		pj.anim(c, "push", 1.3)
 		# kullanıcının üflediği alev yağa değer
 		var mo = pj._mouth_pos(c)
-		for k in 6:
-			KatonLib.tongue(pj, mo + d * 0.3, 2.4, 1.0, 0.3, d, d * 9.0, 0.0, 4, 1.0)
+		# kaynak (anime): üflenen alev yağa değince ağızdan ileriye kabararak büyüyen DEV alev seli (kullanıcı: "aşırı sönük")
+		var fl_side = side
+		pj.every(1.2, 0.03, func(i, _k):
+			var reach = minf(28.0, (i + 1) * 0.03 * 70.0)
+			for q in 7:
+				var u = pow(randf(), 0.7)
+				var sz = lerpf(0.5, 3.4, u)
+				var bp = mo + dd * (u * reach) + fl_side * randf_range(-0.6, 0.6) * sz + Vector3.UP * (randf_range(-0.2, 0.5) * sz + u * 1.2)
+				KatonLib.fire_puff(pj, bp, sz * 0.45, sz, 0.42, dd * 10.0 + Vector3.UP * 1.4, KatonLib.PAL_FIRE, 1.15, 0.55), func():
+			KatonLib.fire_burst(pj, mo + dd * 28.0 + Vector3.UP * 1.5, 2.0, 5.0, 1.2, 14, KatonLib.PAL_FIRE)
+			KatonLib.storm_smoke(pj, mo + dd * 26.0 + Vector3.UP * 3.0, 3.0, 1.4, KatonLib.PAL_FIRE))
 		for om in oils:
 			if is_instance_valid(om):
 				var itw = om.create_tween()
@@ -1110,12 +1119,13 @@ static func gamayu_endan(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 				KatonLib.tongue(pj, KatonLib.floor_at(bp), randf_range(1.8, 3.6) * (0.6 + u * 0.6), randf_range(1.2, 2.0), 0.5, Vector3.UP + d * 0.4, d * 3.0, 0.0, 6, 0.95)
 			if i % 3 == 0:
 				var u2 = randf() * lim
-				KatonLib.mass(pj, pts[clampi(int(u2 * 23.0), 0, 23)] + Vector3.UP * 0.7, 0.5, 1.3, 0.6, d * 6.0 + Vector3.UP * 1.5, 0.0, 1.0, 1.6, 0.75))
+				KatonLib.fire_puff(pj, pts[clampi(int(u2 * 23.0), 0, 23)] + Vector3.UP * 0.7, 0.5, 1.4, 0.6, d * 6.0 + Vector3.UP * 1.5, KatonLib.PAL_FIRE, 1.15, 0.6))
 		KatonLib.light(pj, c.global_position + d * 14.0 + Vector3.UP * 4.0, FIRE_L, 7.0, 36.0, 1.6)
 		Combat.hit_zone(c, c.global_position, d, 30.0, 34.0, 5.0, pj.inf(c, "gamayu_endan", 2.4, {"knock": 14.0, "kind": "heavy", "element": "katon", "burn": 5.0}))
 		for k in 3:
 			GroundFX.add(c.global_position + d * (8.0 + k * 7.0), "burning", 5.5, 6.0, c)
 			KatonLib.burn_patch(pj, c.global_position + d * (8.0 + k * 7.0), 3.5, 6.0, 0.0, 0.14, 1.6)
+			KatonLib.scorch(pj, c.global_position + d * (8.0 + k * 7.0), 5.0, 18.0)
 		pj.shake(1.2)
 		Sfx.play("fire", c.global_position, 0.5))
 	pj.after(2.2, func():

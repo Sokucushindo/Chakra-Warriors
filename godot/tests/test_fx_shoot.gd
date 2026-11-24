@@ -89,7 +89,11 @@ func _ready() -> void:
 		for an in times:
 			while (Time.get_ticks_msec() - t0) / 1000.0 < an:
 				await get_tree().process_frame
-			for cv in [["yan", mid + Vector3(8, 2.5, 1.5) * (3.0 if OS.get_environment("LOOKUP") != "" else 1.0)], ["arka", pl.global_position + Vector3(1.0, 2.6, 5.0)]]:
+			var cams = [["yan", mid + Vector3(8, 2.5, 1.5) * (3.0 if OS.get_environment("LOOKUP") != "" else 1.0)], ["arka", pl.global_position + Vector3(1.0, 2.6, 5.0)]]
+			if OS.get_environment("CAMOFF") != "":   # geniş kamera (Susanoo vb.): oyuncuya göre konum
+				var co = OS.get_environment("CAMOFF").split(",")
+				cams[0] = ["yan", pl.global_position + Vector3(float(co[0]), float(co[1]), float(co[2]))]
+			for cv in cams:
 				cam.global_position = cv[1]
 				cam.look_at(mid, Vector3.UP)
 				cam.current = true
