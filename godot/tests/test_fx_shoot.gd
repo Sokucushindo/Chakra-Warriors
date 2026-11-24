@@ -28,6 +28,8 @@ func _ready() -> void:
 	var cam = Camera3D.new()
 	cam.fov = 50.0
 	main.add_child(cam)
+	if OS.get_environment("AMA") != "":
+		Engine.set_meta("ama_style", OS.get_environment("AMA"))
 	if OS.get_environment("SUS") != "":   # Susanoo teknikleri: EMS + Susanoo açık
 		var prs = Game.profile
 		Gear.grant(prs, "goz_ems", "sag_goz", null, null, {"lvl": 3, "origin": "dogustan"})

@@ -1018,25 +1018,99 @@ static func _explosion(pos: Vector3, s := 1.0, col := Color(1.0, 0.55, 0.15)) ->
 
 ## Amaterasu kara alevi: hedefi saran, yukarı yalayan sivri alev dilleri (iç siyah, kenar koyu mor)
 static func black_flames(size := 1.0) -> Node3D:
-	# Amaterasu (anime): bedeni saran, net, opak kara alev dilleri yukarı yalar ve titrer; kenarlarda koyu mor kontur.
-	# 2026-11-24: Katon'un opak alev yapısıyla (kara palet): dil kartları + tabanda kara alev topakları + kopup yükselen kara alev
-	# topakları (eski ortak ateş malzemesi ve duman dokulu parçacıklar kaldırıldı)
+	# 2026-11-24 seçim aşaması: "A" = 3B kaynayan kara alev dilleri (tüp gövde + ateş topu malzemesi), "B" = v0.490 orijinali
+	if String(Engine.get_meta("ama_style", "B")) == "B":   # kullanıcı 2026-11-24 B seçti (orijinal + iyileştirme)
+		return _black_flames_v490(size)
 	var root = Node3D.new()
-	# kullanıcı 2026-11-24: "bizim ateş efektini siyah yap koy" — yanan zemindeki normal ateşin aynısı (sürekli doğup büyüyen,
-	# kızarıp kopan, sönen alev dilleri), kara paletle (zifiri gövde, mor kenar). Diller hedefin o anki yerinde doğar: iz bırakmaz.
 	var tw = Game.safe_loops(root.create_tween(), 2000)
-	tw.tween_interval(0.05)
+	tw.tween_interval(0.06)
 	tw.tween_callback(func():
 		if not root.is_inside_tree():
 			return
 		var sc = root.get_tree().current_scene
-		for q in 3:
-			var a = randf() * TAU
-			var y = pow(randf(), 1.6) * 1.3 * size
-			var rr = randf_range(0.05, 0.3) * size
-			var p = root.global_position + Vector3(cos(a) * rr, y, sin(a) * rr)
-			var hh = randf_range(0.6, 1.3) * size * (1.0 - y / (2.2 * size))
-			KatonLib.tongue(sc, p, hh, randf_range(0.35, 0.55) * size, randf_range(0.4, 0.6), Vector3(cos(a) * 0.15, 1, sin(a) * 0.15), Vector3.UP * 0.6, KatonLib.PAL_BLACK, randi_range(3, 5), 1.1))
+		for q in 2:
+			_black_tongue3d(sc, root.global_position, size)
+	)
+	return root
+
+
+## Tek 3B kara alev dili: S kıvrımlı tüp (gerçek hacim, kart değil), yüzeyi ateş topu malzemesiyle kaynar (kara palet, mor kenar);
+## doğar, uzar, kıvrılarak yükselir, incelip söner
+static func _black_tongue3d(sc: Node, base: Vector3, size: float) -> void:
+	var mi = MeshInstance3D.new()
+	mi.mesh = _tongue_mesh(randi() % 3)
+	mi.material_override = KatonLib._mat("fireball", KatonLib.FIREBALL_SHADER)
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	for kv in [["swirl", 0.15], ["lump", 1.0], ["seed", randf() * 10.0], ["heat", 1.1], ["pal", KatonLib.PAL_BLACK], ["spin", 1.0], ["fade", 1.0]]:
+		mi.set_instance_shader_parameter(kv[0], kv[1])
+	sc.add_child(mi)
+	var a = randf() * TAU
+	var rr = randf_range(0.05, 0.32) * size
+	var y = pow(randf(), 1.8) * 0.9 * size
+	var p0 = base + Vector3(cos(a) * rr, y, sin(a) * rr)
+	mi.global_position = p0
+	mi.rotation = Vector3(randf_range(-0.2, 0.2), randf() * TAU, randf_range(-0.2, 0.2))
+	var h = randf_range(0.8, 1.6) * size * (1.0 - y / (2.0 * size))
+	var w = randf_range(0.35, 0.55) * size
+	var life = randf_range(0.45, 0.7)
+	mi.scale = Vector3(w * 0.6, h * 0.2, w * 0.6)
+	var tw = mi.create_tween().set_parallel()
+	tw.tween_property(mi, "scale", Vector3(w, h, w), life * 0.35).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tw.tween_property(mi, "global_position", p0 + Vector3.UP * 0.5 * size, life)
+	tw.tween_property(mi, "rotation:y", mi.rotation.y + randf_range(-1.2, 1.2), life)
+	tw.chain().tween_property(mi, "scale", Vector3(w * 0.3, h * 1.15, w * 0.3), life * 0.65).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.chain().tween_callback(mi.queue_free)
+
+
+static func _black_flames_v490(size := 1.0) -> Node3D:
+	# Amaterasu (anime): bedeni saran, net konturlu, opak kara alev dilleri yukarı yalar ve titrer; kenarlarda koyu mor çizgi.
+	# (eskiden yalnız ince parçacık çizgileriydi: duman tütüyor gibiydi, ateş gibi değil)
+	var root = Node3D.new()
+	var fm = mat_fire("black", 3.0, 2.0, 0.44, 1.0, 0.34, Vector3.UP)
+	var n = 16   # daha sık (kullanıcı seçimi: B + iyileştir)
+	for k in n + 1:
+		var core = k == n
+		var tongue = _mi(_tongue_mesh(k % 3), fm)
+		tongue.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		var a = TAU * k / n + randf_range(-0.25, 0.25)
+		var rr = 0.0 if core else randf_range(0.26, 0.4) * size
+		tongue.position = Vector3(cos(a) * rr, -0.05 * size, sin(a) * rr)
+		tongue.rotation.y = a + PI * 0.5 + randf_range(-0.4, 0.4)
+		if not core:   # dış diller dışa doğru açılır (yelpaze gibi yalayan alev)
+			tongue.rotate(Vector3(-sin(a), 0, cos(a)).normalized(), randf_range(0.12, 0.32))
+		var h = (2.2 if core else randf_range(0.9, 2.0)) * size
+		var w = (0.7 if core else randf_range(0.38, 0.58)) * size
+		tongue.scale = Vector3(w, h, w)
+		root.add_child(tongue)
+		# titreme: boy uzayıp kısalır, uç yana savrulur (her dil kendi ritminde)
+		var per = randf_range(0.22, 0.4)
+		var tw = Game.safe_loops(tongue.create_tween())
+		tw.tween_property(tongue, "scale", Vector3(w * 0.9, h * 1.12, w * 0.9), per).set_trans(Tween.TRANS_SINE)
+		tw.tween_property(tongue, "scale", Vector3(w * 1.05, h * 0.86, w * 1.05), per).set_trans(Tween.TRANS_SINE)
+	# kopup yükselen kara alevler: aynı 3B kıvrımlı tüp dillerden, gövdeden ayrılıp uzayarak yükselir ve incelip söner
+	# (eskiden ortak duman dokulu parçacıklardı)
+	var sp = Game.safe_loops(root.create_tween(), 2000)
+	sp.tween_interval(0.09)
+	sp.tween_callback(func():
+		if not root.is_inside_tree():
+			return
+		var sc = root.get_tree().current_scene
+		var mi = _mi(_tongue_mesh(randi() % 3), fm)
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		sc.add_child(mi)
+		var a = randf() * TAU
+		var p0 = root.global_position + Vector3(cos(a) * randf_range(0.1, 0.3) * size, randf_range(0.5, 1.1) * size, sin(a) * randf_range(0.1, 0.3) * size)
+		mi.global_position = p0
+		mi.rotation.y = randf() * TAU
+		var w = randf_range(0.13, 0.2) * size
+		var h = randf_range(0.35, 0.6) * size
+		mi.scale = Vector3(w, h * 0.3, w)
+		var t2 = mi.create_tween().set_parallel()
+		t2.tween_property(mi, "scale", Vector3(w, h, w), 0.18).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		t2.tween_property(mi, "global_position", p0 + Vector3.UP * 0.4 * size, 0.35)
+		t2.chain().tween_property(mi, "scale", Vector3(w * 0.1, h * 1.1, w * 0.1), 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		t2.chain().tween_callback(mi.queue_free))
+	_black_fire_particles(root, size * 0.7, 0.35 * size, 0.4)
 	return root
 
 
