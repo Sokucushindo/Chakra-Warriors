@@ -290,13 +290,17 @@ static func enton_kagutsuchi_no_tsurugi(_pj_unused, c: Node3D, t: Node3D) -> voi
 		m.position = Vector3(0, 0, z)
 		m.scale = Vector3(w, w * 1.6, L / 8.0 * 0.75)
 		blade.add_child(m)
-		for q in 2:
-			var tgm = KatonFXC._black_tongue_mi(lerpf(0.9, 0.4, u) * S * randf_range(0.8, 1.2), 0.22 * S, Vector3(0, 1.0, 0.45 + q * 0.3).normalized(), 1.1)
-			tgm.position = Vector3(0, w * 0.6, z + q * 0.1 * S)
-			blade.add_child(tgm)
-	var tip = KatonFXC._black_tongue_mi(0.9 * S, 0.22 * S, Vector3(0, 0.15, -1.0).normalized(), 1.15)
-	tip.position = Vector3(0, 0, -L)
-	blade.add_child(tip)
+	# kılıç boyunca sürekli kopup yükselen kara alev parçaları (Amaterasu'nun kendi alevi; kart dil yok)
+	var btw = Game.safe_loops(blade.create_tween(), 200)
+	btw.tween_interval(0.04)
+	btw.tween_callback(func():
+		if not (is_instance_valid(blade) and blade.visible and blade.is_inside_tree()):
+			return
+		for q in 4:
+			var u = randf()
+			var lp = blade.global_transform * Vector3(randf_range(-0.1, 0.1) * S, randf_range(0.0, 0.15) * S, -u * L)
+			var rr = lerpf(0.22, 0.1, u) * S
+			KatonLib.tongue(host, lp, rr * 3.2, rr * 1.8, randf_range(0.3, 0.45), Vector3.UP, Vector3.UP * 1.2 * sqrt(S), KatonLib.PAL_BLACK, 3, 1.1))   # Amaterasu ile aynı kara alev dili
 	var bdir = func() -> Vector3:
 		var fa = sn.hand(true) - sn.bone_at("RightLowerArm")
 		return fa.normalized() if fa.length() > 0.01 else d

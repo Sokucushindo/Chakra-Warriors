@@ -803,37 +803,123 @@ static func gather(h: Node, at: Vector3, r := 1.0, n := 10, t := 0.3, s := 0.25,
 
 
 ## Taç sıçraması: dilleri yükselir, dışa açılıp çöker. o: h (boy çarpanı), t (yükseliş), fall, foam, alpha, pal
-static func crown(h: Node, pos: Vector3, s := 1.0, o := {}) -> MeshInstance3D:
-	var mi = wmi(liquid_crown_mesh(randi() % 4), {"foam": o.get("foam", 0.2), "alpha": o.get("alpha", 0.85), "pal": o.get("pal", 0.0), "wob": 0.9, "line": 0.12, "flow": 2.5})
-	put(h, mi, pos)
-	mi.rotation.y = randf() * TAU
-	var hs = float(o.get("h", 1.0)) * 0.6   # kullanıcı 2026-11-24: sıçrama "png gibi" — taç alçak, asıl sıçramayı damlalar yapar
-	var fall = float(o.get("fall", 0.45)) * 0.8
-	mi.scale = Vector3(s * 0.5, 0.05, s * 0.5)
-	# taçtan kopup kavisle düşen kalın su damlaları (3B, gölgeli, yere düşünce küçük halka)
-	var pal = o.get("pal", 0.0)
-	for k in clampi(int(8 + s * 6.0), 8, 22):
-		var a = randf() * TAU
-		var out = Vector3(cos(a), 0, sin(a))
-		var v0 = out * randf_range(1.5, 3.5) * sqrt(s) + Vector3.UP * randf_range(3.0, 6.0) * sqrt(s)
-		var dr = wmi(sphere_mesh(), {"foam": 0.15, "alpha": 0.9, "pal": pal, "wob": 0.4, "line": 0.12, "flow": 1.0})
-		var p0 = pos + out * 0.4 * s + Vector3.UP * 0.2
-		put(h, dr, p0)
-		var r = randf_range(0.07, 0.16) * sqrt(s)
-		dr.scale = Vector3(r, r * 1.3, r)
-		var life = clampf((v0.y * 2.0) / 9.8, 0.45, 1.3)
-		var tw0 = dr.create_tween()
-		tw0.tween_method(func(tt: float) -> void:
-			if is_instance_valid(dr):
-				dr.global_position = p0 + v0 * tt + Vector3.DOWN * 4.9 * tt * tt, 0.0, life, life)
-		tw0.tween_callback(dr.queue_free)
-	var tw = mi.create_tween()
-	tw.tween_property(mi, "scale", Vector3(s, s * hs, s), float(o.get("t", 0.16))).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	# çöküş: taç yere yassılaşıp beyaz düz yay bırakıyordu (kart gibi) → yarı boya inip hızla söner
-	tw.tween_property(mi, "scale", Vector3(s * 1.15, s * hs * 0.45, s * 1.15), fall).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tw.parallel().tween_method(func(v: float): mi.set_instance_shader_parameter("fade", v), 1.0, 0.0, fall * 0.6)
-	tw.tween_callback(mi.queue_free)
+## Sıçrama suyu: opak, çizgisiz (mürekkep kontur yok), yüzeyi kaynar gibi oynayan, kenarı köpüklü-yırtık su topağı.
+## Üst üste binen topaklar ayrı balon değil tek su kütlesi gibi birleşir (kullanıcı 2026-11-24: "balon / png gibi").
+const SPLASH_SHADER := """
+shader_type spatial;
+render_mode unshaded, cull_back, depth_draw_opaque, shadows_disabled;
+instance uniform float seed = 0.0;
+instance uniform float fade = 1.0;
+instance uniform vec3 c_deep = vec3(0.05, 0.3, 0.72);
+instance uniform vec3 c_shal = vec3(0.45, 0.85, 1.0);
+varying vec3 lp;
+float sh(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
+float sn(vec3 p) {
+	vec3 i = floor(p); vec3 f = fract(p); f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(mix(sh(i), sh(i + vec3(1.0, 0.0, 0.0)), f.x), mix(sh(i + vec3(0.0, 1.0, 0.0)), sh(i + vec3(1.0, 1.0, 0.0)), f.x), f.y),
+		mix(mix(sh(i + vec3(0.0, 0.0, 1.0)), sh(i + vec3(1.0, 0.0, 1.0)), f.x), mix(sh(i + vec3(0.0, 1.0, 1.0)), sh(i + vec3(1.0, 1.0, 1.0)), f.x), f.y), f.z);
+}
+void vertex() {
+	lp = VERTEX;
+	float n = sn(VERTEX * 3.0 + vec3(seed, seed * 1.7, TIME * 2.5));
+	VERTEX += NORMAL * (n - 0.5) * 0.3;
+}
+void fragment() {
+	float fv = clamp(dot(NORMAL, VIEW), 0.0, 1.0);
+	float n = sn(lp * 4.5 + vec3(seed, TIME * 3.0, seed));
+	float n2 = sn(lp * 9.0 + vec3(TIME * 4.0, seed, 0.0));
+	if (fv < 0.22 + (n - 0.5) * 0.35) { discard; }   // yırtık köpük kenarı (düz daire silueti yok)
+	vec3 col = mix(c_deep, c_shal, smoothstep(0.25, 0.9, fv * 0.7 + n * 0.4));
+	float foam = smoothstep(0.62, 0.7, n2 * 0.6 + (1.0 - fv) * 0.55);
+	col = mix(col, vec3(0.95, 0.99, 1.0), foam);
+	float spec = smoothstep(0.9, 0.97, dot(NORMAL, normalize(vec3(0.3, 0.8, 0.5))) + (n - 0.5) * 0.1);
+	col = mix(col, vec3(1.0), spec * 0.8);
+	ALBEDO = pow(col, vec3(2.2));
+	ALPHA = fade;
+	ALPHA_SCISSOR_THRESHOLD = 0.5;
+	ROUGHNESS = 0.02;
+}
+"""
+
+
+static func splash_mi(o := {}) -> MeshInstance3D:
+	var mi = MeshInstance3D.new()
+	if not _cache.has("splash_sph"):
+		var sm = SphereMesh.new()
+		sm.radius = 1.0
+		sm.height = 2.0
+		sm.radial_segments = 28
+		sm.rings = 14
+		_cache["splash_sph"] = sm
+	mi.mesh = _cache["splash_sph"]   # yumuşak siluet (köşeli buz parçası gibi durmasın)
+	mi.material_override = _mat("splash", SPLASH_SHADER)
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mi.set_instance_shader_parameter("seed", randf() * 10.0)
+	if o.has("deep"):
+		mi.set_instance_shader_parameter("c_deep", o["deep"])
+		mi.set_instance_shader_parameter("c_shal", o["shal"])
 	return mi
+
+
+static func crown(h: Node, pos: Vector3, s := 1.0, o := {}) -> MeshInstance3D:
+	# 2026-11-24 baştan (kullanıcı: "splash png gibi, kare kare çizim belli oluyor"): yassı taç kartı yok. Hepsi 3B gölgeli su:
+	#  · orta sütun: yukarı fırlayıp tepede dağılan, kavisle düşen iri su topakları
+	#  · taban halkası: yere değip dışa açılan, yassılaşarak sönen alçak su topakları
+	#  · ince damlalar: her yöne saçılıp düşen küçük damlalar
+	var pal = o.get("pal", 0.0)
+	var hs = float(o.get("h", 1.0))
+	s *= 1.35   # kullanıcı: biraz büyüt
+	var g = ground(pos)
+	var base = Vector3(pos.x, maxf(pos.y, g.y), pos.z)
+	var wo = {"foam": 0.25, "alpha": 1.0, "pal": pal, "wob": 0.6, "line": 0.0, "flow": 1.5}   # opak + çizgisiz: üst üste binen topaklar tek su kütlesi gibi birleşir (ayrı baloncuk görünmesin)
+	var first: MeshInstance3D = null
+	var blob = func(p0: Vector3, v0: Vector3, r: float, life: float, squash := false) -> MeshInstance3D:
+		var dr = splash_mi() if float(pal) < 0.5 else wmi(sphere_mesh(), wo)
+		put(h, dr, p0)
+		dr.scale = Vector3(r, r, r) * 0.4
+		var tw = dr.create_tween()
+		tw.tween_method(func(tt: float) -> void:
+			if not is_instance_valid(dr):
+				return
+			var k = tt / life
+			var pp = p0 + v0 * tt + Vector3.DOWN * 4.9 * tt * tt
+			if pp.y < g.y + r * 0.3:
+				pp.y = g.y + r * 0.3
+			dr.global_position = pp
+			var grow = minf(1.0, k * 4.0)
+			var sv = v0 + Vector3.DOWN * 9.8 * tt
+			var st = clampf(sv.length() / 10.0, 0.0, 0.8)   # hızlıyken hareket yönünde uzar (damla gibi)
+			var rr = r * (0.4 + 0.6 * grow) * (1.0 - k * 0.55) * (1.0 - smoothstep(0.75, 1.0, k) * 0.6)   # düşerken incelir
+			if squash:
+				dr.scale = Vector3(rr * (1.0 + k * 1.2), rr * (1.0 - k * 0.75), rr * (1.0 + k * 1.2))
+			else:
+				dr.scale = Vector3(rr * (1.0 - st * 0.4), rr * (1.0 + st), rr * (1.0 - st * 0.4))
+				if sv.length() > 0.5:
+					dr.look_at(pp + sv, Vector3.FORWARD if absf(sv.normalized().y) > 0.98 else Vector3.UP)
+					dr.rotate_object_local(Vector3.RIGHT, PI * 0.5)
+			dr.set_instance_shader_parameter("fade", 1.0 - smoothstep(0.75, 1.0, k)), 0.0, life, life)
+		tw.tween_callback(dr.queue_free)
+		return dr
+	# orta sütun
+	for k in clampi(int(12 + s * 6.0), 12, 26):
+		var a = randf() * TAU
+		var spread = randf_range(0.1, 0.75)
+		var v0 = Vector3(cos(a), 0, sin(a)) * spread * 2.4 * sqrt(s) + Vector3.UP * randf_range(4.5, 7.5) * sqrt(s * hs)
+		var r = randf_range(0.18, 0.32) * s * (1.2 - spread * 0.5)
+		var b = blob.call(base + Vector3(cos(a), 0, sin(a)) * 0.15 * s, v0, r, clampf(v0.y * 2.0 / 9.8, 0.5, 1.4))
+		if first == null:
+			first = b
+	# taban halkası: dışa açılan alçak su
+	for k in clampi(int(8 + s * 5.0), 8, 20):
+		var a = k * TAU / clampi(int(8 + s * 5.0), 8, 20) + randf_range(-0.2, 0.2)
+		var out = Vector3(cos(a), 0, sin(a))
+		blob.call(base + out * 0.35 * s + Vector3.UP * 0.1, out * randf_range(1.6, 2.6) * sqrt(s) + Vector3.UP * randf_range(2.6, 3.8) * sqrt(s), randf_range(0.24, 0.38) * s, randf_range(0.55, 0.75))   # alçak taç duvarı (yassı disk değil)
+	# ince damlalar
+	for k in clampi(int(10 + s * 8.0), 10, 28):
+		var a = randf() * TAU
+		var v0 = Vector3(cos(a), 0, sin(a)) * randf_range(1.5, 4.0) * sqrt(s) + Vector3.UP * randf_range(3.0, 6.5) * sqrt(s)
+		blob.call(base + Vector3.UP * 0.2, v0, randf_range(0.05, 0.11) * sqrt(s), clampf(v0.y * 2.0 / 9.8, 0.45, 1.3))
+	return first
 
 
 ## Yerde açılan köpük halkası

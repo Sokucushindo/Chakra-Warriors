@@ -1022,26 +1022,21 @@ static func black_flames(size := 1.0) -> Node3D:
 	# 2026-11-24: Katon'un opak alev yapısıyla (kara palet): dil kartları + tabanda kara alev topakları + kopup yükselen kara alev
 	# topakları (eski ortak ateş malzemesi ve duman dokulu parçacıklar kaldırıldı)
 	var root = Node3D.new()
-	# kaynak (anime): sık dizilmiş, ince, uzun, dalgalı kara alev dilleri (saç teli gibi yukarı yalar); topak yok
-	var n = 16
-	for k in n:
-		var a = TAU * k / n + randf_range(-0.2, 0.2)
-		var rr = randf_range(0.12, 0.38) * size
-		var out = Vector3(cos(a), 0, sin(a))
-		var h = randf_range(1.1, 2.3) * size
-		var w = randf_range(0.2, 0.32) * size
-		var tg = KatonLib.tongue_mi(h, w, (Vector3.UP + out * 0.18).normalized(), KatonLib.PAL_BLACK, 2, randf_range(-0.3, 0.3), 1.15)
-		tg.position = out * rr - Vector3.UP * 0.05 * size
-		root.add_child(tg)
-	# kopup yükselen ince kara alev dilleri (yerinde yanar; düğüm silinince durur)
-	var tw = Game.safe_loops(root.create_tween(), 400)
-	tw.tween_interval(0.12)
+	# kullanıcı 2026-11-24: "bizim ateş efektini siyah yap koy" — yanan zemindeki normal ateşin aynısı (sürekli doğup büyüyen,
+	# kızarıp kopan, sönen alev dilleri), kara paletle (zifiri gövde, mor kenar). Diller hedefin o anki yerinde doğar: iz bırakmaz.
+	var tw = Game.safe_loops(root.create_tween(), 2000)
+	tw.tween_interval(0.05)
 	tw.tween_callback(func():
 		if not root.is_inside_tree():
 			return
 		var sc = root.get_tree().current_scene
-		var p = root.global_position + Vector3(randf_range(-0.35, 0.35) * size, randf_range(0.2, 1.0) * size, randf_range(-0.35, 0.35) * size)
-		KatonLib.tongue(sc, p, randf_range(0.8, 1.4) * size, 0.22 * size, 0.45, Vector3.UP, Vector3.UP * 2.0 * size, KatonLib.PAL_BLACK, 2, 1.15))
+		for q in 3:
+			var a = randf() * TAU
+			var y = pow(randf(), 1.6) * 1.3 * size
+			var rr = randf_range(0.05, 0.3) * size
+			var p = root.global_position + Vector3(cos(a) * rr, y, sin(a) * rr)
+			var hh = randf_range(0.6, 1.3) * size * (1.0 - y / (2.2 * size))
+			KatonLib.tongue(sc, p, hh, randf_range(0.35, 0.55) * size, randf_range(0.4, 0.6), Vector3(cos(a) * 0.15, 1, sin(a) * 0.15), Vector3.UP * 0.6, KatonLib.PAL_BLACK, randi_range(3, 5), 1.1))
 	return root
 
 

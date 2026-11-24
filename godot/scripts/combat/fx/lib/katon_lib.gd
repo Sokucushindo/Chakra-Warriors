@@ -90,11 +90,11 @@ void kpal(float p, out vec3 c0, out vec3 c1, out vec3 c2, out vec3 c3, out vec3 
 		c4 = vec3(1.0, 0.62, 0.22);
 	} else {
 		// Amaterasu kara alevi (anime): gövde zifiri kara, kenara doğru koyu mor-bordo kontur
-		c0 = vec3(0.0, 0.0, 0.01);
-		c1 = vec3(0.015, 0.0, 0.025);
-		c2 = vec3(0.04, 0.008, 0.06);
-		c3 = vec3(0.2, 0.04, 0.26);
-		c4 = vec3(0.34, 0.07, 0.4);
+		c0 = vec3(0.0, 0.0, 0.0);
+		c1 = vec3(0.012, 0.004, 0.02);
+		c2 = vec3(0.05, 0.015, 0.075);
+		c3 = vec3(0.16, 0.05, 0.22);
+		c4 = vec3(0.3, 0.09, 0.38);
 	}
 }
 
