@@ -49,7 +49,15 @@ static func open(t := "") -> void:
 		"koy":
 			_tab_village(v)
 		"diplomasi":
-			_tab_diplo(v)
+			# küçük köylerle birlikte kartlar ekrana sığmaz: kaydırılır
+			var sc = ScrollContainer.new()
+			sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+			sc.size_flags_vertical = Control.SIZE_EXPAND_FILL
+			v.add_child(sc)
+			var dv = UI.vbox(12)
+			dv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			sc.add_child(dv)
+			_tab_diplo(dv)
 		"olay":
 			_tab_events(v)
 		"kayit":
@@ -181,23 +189,33 @@ static func _tab_village(v: VBoxContainer) -> void:
 static func _tab_diplo(v: VBoxContainer) -> void:
 	var k = Kage.st()
 	v.add_child(UI.header("DİPLOMASİ", 18))
-	v.add_child(UI.label("İlişki −40'ın altına düşerse o köyün sınır muhafızları düşmanlaşır ve istila riski doğar. 30+ ticaret, 70+ (ve Zirve sonrası) ittifak.", 14, UI.MUTED))
-	for vid in k["rel"]:
+	v.add_child(UI.label("İlişki −40'ın altına düşerse o köyün sınır muhafızları düşmanlaşır ve istila riski doğar. 30+ ticaret, 70+ (ve Zirve sonrası) ittifak. Köyler kendi aralarında da anlaşır, çatışır, savaşır.", 14, UI.MUTED))
+	for vid in Array((k["rel"] as Dictionary).keys()) + WorldRelations.MINOR:
+		if Game.village(vid).is_empty():
+			continue
 		var rel = Kage.relation(vid)
 		var vn = String(Game.village(vid).get("name", vid))
 		var card = UI.card(UI.GOOD if rel >= 30 else (UI.BAD if rel <= -40 else UI.LINE))
 		var cv = UI.vbox(6)
 		card.add_child(cv)
 		var h = UI.hbox(10)
-		h.add_child(UI.label("%s  —  %s" % [vn, Progress.kage_title(vid)], 18, UI.CREAM, HORIZONTAL_ALIGNMENT_LEFT, true))
+		h.add_child(UI.label("%s  —  %s" % [vn, Progress.kage_title(vid)] if vid in WorldRelations.GREAT else vn, 18, UI.CREAM, HORIZONTAL_ALIGNMENT_LEFT, true))
 		h.add_child(UI.spacer())
 		var tags = []
 		if k["trade"].get(vid, false):
 			tags.append("Ticaret")
 		if k["alliance"].get(vid, false):
 			tags.append("İttifak")
-		if rel <= -40:
+		if WorldRelations.at_war(Progress.home(), vid):
+			var w: Dictionary = WorldRelations.D()["war"][WorldRelations.key(Progress.home(), vid)]
+			tags.append(Lang.t("SAVAŞ (cephe: %s, kayıp %d / %d)") % [WorldRelations.vn(String(w.get("front", ""))), int(w["dead"].get(Progress.home(), 0)), int(w["dead"].get(vid, 0))])
+		elif rel <= -40:
 			tags.append("GERGİN")
+		if vid in WorldRelations.MINOR:
+			var sw = WorldRelations.sway_of(vid)
+			tags.append(Lang.t("Küçük köy") if sw == "" else (Lang.t("Himayemizde") if sw == Progress.home() else Lang.t("%s hakimiyetinde") % WorldRelations.vn(sw)))
+		var la = WorldRelations.leader(vid)
+		tags.append(Lang.t("Atılgan" if la.x > 0.2 else ("Temkinli" if la.x < -0.2 else "Ölçülü")) + ", " + Lang.t("sıcak" if la.y > 0.2 else ("soğuk" if la.y < -0.2 else "mesafeli")))
 		h.add_child(UI.label(" • ".join(tags), 14, UI.ACCENT))
 		cv.add_child(h)
 		var bar = UI.bar(UI.GOOD if rel >= 0 else UI.BAD, 700, 12)
@@ -209,7 +227,12 @@ static func _tab_diplo(v: VBoxContainer) -> void:
 		bh.add_child(UI.label("%+d" % rel, 16, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true))
 		cv.add_child(bh)
 		var row = UI.hbox(8)
-		for a in [["hediye", "Hediye gönder (8.000)"], ["ticaret", "Ticaret anlaşması"], ["ittifak", "İttifak teklif et"], ["tatbikat", "Sınır tatbikatı"]]:
+		var acts = [["hediye", "Hediye gönder (8.000)"], ["ticaret", "Ticaret anlaşması"], ["ittifak", "İttifak teklif et" if vid in WorldRelations.GREAT else "Himaye teklif et"], ["tatbikat", "Sınır tatbikatı"]]
+		if WorldRelations.at_war(Progress.home(), vid):
+			acts = [["hediye", "Hediye gönder (8.000)"], ["baris", "Barış teklif et (20.000)"]]
+		elif rel <= -40:
+			acts.append(["savas", "Savaş ilan et"])
+		for a in acts:
 			var act = a[0]
 			var target = vid
 			row.add_child(UI.button(a[1], func():
@@ -219,6 +242,30 @@ static func _tab_diplo(v: VBoxContainer) -> void:
 				open(), 200))
 		cv.add_child(row)
 		v.add_child(card)
+	# dünyada olanlar: öbür köylerin kendi arası
+	var wc = UI.card(UI.LINE)
+	var wv = UI.vbox(4)
+	wc.add_child(wv)
+	wv.add_child(UI.label("DÜNYADA", 16, UI.GOLD))
+	var G: Array = WorldRelations.GREAT
+	for i in G.size():
+		for j in range(i + 1, G.size()):
+			var a2 = String(G[i])
+			var b2 = String(G[j])
+			if Progress.home() in [a2, b2]:
+				continue
+			var stt = WorldRelations.state(a2, b2)
+			wv.add_child(UI.label("%s – %s: %s (%+d)" % [WorldRelations.vn(a2), WorldRelations.vn(b2), Lang.t(stt), WorldRelations.rel(a2, b2)], 14, UI.BAD if stt in ["SAVAŞ", "Düşmanca"] else (UI.GOOD if stt in ["İttifak", "Dostane"] else UI.TEXT)))
+	var sw_l = []
+	for m in WorldRelations.D()["sway"]:
+		sw_l.append(Lang.t("%s → %s") % [WorldRelations.vn(String(m)), WorldRelations.vn(WorldRelations.sway_of(String(m)))])
+	if not sw_l.is_empty():
+		wv.add_child(UI.label(Lang.t("Hakimiyet: ") + ", ".join(sw_l), 14, UI.ACCENT))
+	for hx in WorldRelations.recent().slice(0, 6):
+		var hl = UI.label("• " + Lang.t(String(hx)), 13, UI.MUTED)
+		hl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		wv.add_child(hl)
+	v.add_child(wc)
 
 
 static func _tab_events(v: VBoxContainer) -> void:

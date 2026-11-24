@@ -1056,7 +1056,7 @@ static func _tab_relations(main: Node, body: Control) -> void:
 		var r = int(rep.get(vid, 0))
 		var rel = Kage.relation(vid) if vid != Progress.home() else 100
 		var rt = "Kahraman" if r >= 150 else ("Saygın" if r >= 50 else ("Tanınmıyor" if r >= 0 else ("Kötü şöhretli" if r > -50 else "Aranıyor")))
-		var dt = "Kendi köyün" if vid == Progress.home() else ("Müttefik" if rel >= 40 else ("Barışçıl" if rel >= 0 else ("Gergin" if rel > -40 else "SAVAŞ")))
+		var dt = "Kendi köyün" if vid == Progress.home() else WorldRelations.state(Progress.home(), vid)
 		vv.add_child(UI.label("%s  •  %s" % [Game.village(vid).get("name", vid), Kage.kage_name(vid)], 15, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true))
 		vv.add_child(UI.label("İtibarın: %d (%s)   •   Köyünle ilişkisi: %s" % [r, rt, dt], 13, Color(1, 0.45, 0.4) if rel <= -40 or r < 0 else UI.MUTED))
 		var bar = UI.bar(Color(1, 0.4, 0.35) if rel < 0 else Color(0.55, 1.0, 0.7), 500, 6)
@@ -1064,7 +1064,24 @@ static func _tab_relations(main: Node, body: Control) -> void:
 		bar.max_value = 100
 		bar.value = rel
 		vv.add_child(bar)
-	var note = UI.label("İtibarın tanıştığın ninjaların sana ilk bakışını belirler; köylerin arası açılırsa sınırlarda ve köyünde baskınlar başlar.", 12, UI.MUTED)
+	var wars = []
+	for wk in WorldRelations.D()["war"]:
+		var ab = String(wk).split("|")
+		wars.append("%s – %s" % [WorldRelations.vn(ab[0]), WorldRelations.vn(ab[1])])
+	var minors = []
+	for m in WorldRelations.MINOR:
+		if Game.village(m).is_empty():
+			continue
+		var sw = WorldRelations.sway_of(m)
+		minors.append("%s: %s%s" % [WorldRelations.vn(m), Lang.t(WorldRelations.state(Progress.home(), m)), (" (" + Lang.t("%s hakimiyetinde") % WorldRelations.vn(sw) + ")") if sw != "" else ""])
+	if not minors.is_empty():
+		var ml = UI.label(Lang.t("Küçük köyler — ") + ", ".join(minors), 13, UI.MUTED)
+		ml.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		ml.custom_minimum_size = Vector2(520, 0)
+		vv.add_child(ml)
+	if not wars.is_empty():
+		vv.add_child(UI.label(Lang.t("Süren savaşlar: ") + ", ".join(wars), 13, Color(1, 0.5, 0.45), HORIZONTAL_ALIGNMENT_LEFT, true))
+	var note = UI.label("İtibarın tanıştığın ninjaların sana ilk bakışını belirler; köylerin arası açılırsa sınırlarda ve köyünde baskınlar başlar. Köyler kendi aralarında da anlaşır ve savaşır; köyün işin içindeyse görev panosuna ilan düşer.", 12, UI.MUTED)
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	note.custom_minimum_size = Vector2(520, 0)
 	vv.add_child(note)

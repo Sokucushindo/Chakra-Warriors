@@ -9,7 +9,8 @@ extends RefCounted
 ## Her olayın süresi var: sen almazsan köyün başka bir takımı (gerçek insanlar) gider; sonucu haber olur, hayatlarına yazılır.
 ## Kayıt: Game.profile["world_news"] = {"seq", "list": [olay], "news": [son haberler]}
 
-const LIFE := {"missing": 1500.0, "robbed": 1800.0, "deserter": 900.0, "band": 2400.0, "fire": 480.0}
+const LIFE := {"missing": 1500.0, "robbed": 1800.0, "deserter": 900.0, "band": 2400.0, "fire": 480.0,
+	"border": 900.0, "kidnap": 720.0, "envoy": 1200.0, "front": 1200.0, "ally": 1200.0, "spy": 1500.0}   # köyler arası (WorldRelations)
 const MAX_OPEN := 3      # köy başına açık olay
 const RANK_OF_PERSON := ["C", "B", "A", "A"]
 
@@ -187,6 +188,58 @@ static func _resolve(inc: Dictionary) -> void:
 			var q = WorldPeople.get_p(String(inc.get("kin", "")))
 			if not q.is_empty() and WorldPeople.alive(q):
 				WorldPeople.log_event(q, "%s bandı hiç bulunamadı" % sfx(String(p.get("name", "Yakını")), "in"))
+		"border", "kidnap", "envoy", "front", "ally", "spy":
+			_resolve_rel(inc, p, team)
+
+
+## Köyler arası ilan (WorldRelations) sen almadan / başaramadan kapandı: köyün takımı gider, sonuç dünyaya yazılır
+static func _resolve_rel(inc: Dictionary, p: Dictionary, team: Array) -> void:
+	var vid = String(inc["vid"])
+	var foe = String(inc.get("foe", ""))
+	var W = WorldRelations
+	match String(inc["kind"]):
+		"border":
+			W._border_clash(vid, foe, false)
+		"kidnap":
+			var kp = WorldPeople.get_p(String(inc.get("kidnapper", "")))
+			if p.is_empty() or not WorldPeople.alive(p) or String(p["village"]) != vid:
+				return
+			if not kp.is_empty() and WorldPeople.alive(kp) and randf() < 0.45:
+				WorldPeople._die(kp, "%s kaçırırken %s tarafından yakalanıp öldürüldü" % [sfx(String(p["name"]), "i"), _team_text(team)])
+				WorldPeople.log_event(p, "Kaçırıldı; %s onu sınırda kurtardı" % _team_text(team))
+				W.change(vid, foe, -10)
+				W._news("%s: kaçırılan %s sınırda %s tarafından kurtarıldı. %s her şeyi inkâr ediyor." % [WorldPeople.vname(vid), String(p["name"]), _team_text(team), WorldPeople.vname(foe)], Color(0.8, 1.0, 0.75))
+			else:
+				W.taken(p, foe, String(kp.get("name", "bir %s ninjası" % WorldPeople.vname(foe))))
+				W.change(vid, foe, -25)
+		"envoy":
+			if p.is_empty() or not WorldPeople.alive(p):
+				return
+			if randf() < 0.55:
+				W.change(vid, foe, 12)
+				WorldPeople.log_event(p, "%s ile barış görüşmesine gitti; görüşme olumlu geçti" % WorldPeople.vname(foe))
+				W._news("%s elçisi %s, %s ile görüşmeden eli dolu döndü: iki köy arasında yumuşama." % [WorldPeople.vname(vid), String(p["name"]), WorldPeople.vname(foe)], Color(0.75, 0.95, 1.0))
+			else:
+				WorldPeople._die(p, "%s ile barış görüşmesine giderken pusuya düşürüldü" % WorldPeople.vname(foe))
+				W.change(vid, foe, -12)
+				W._news("%s elçisi %s, %s yolunda pusuya düşürülüp öldürüldü." % [WorldPeople.vname(vid), String(p["name"]), WorldPeople.vname(foe)], Color(1, 0.6, 0.5))
+		"front":
+			W.battle(vid, foe)
+		"ally":
+			W.battle(String(inc.get("ally", "")), foe)
+		"spy":
+			var spies = W._people(vid, 1)
+			if spies.is_empty():
+				return
+			var sp: Dictionary = spies.pick_random()
+			if randf() < 0.5:
+				WorldPeople._die(sp, "%s topraklarına casus olarak sızdı; yakalanıp idam edildi" % WorldPeople.vname(foe))
+				W.change(vid, foe, -8)
+				W._news("%s, topraklarında yakaladığı %s casusu %s idam etti." % [WorldPeople.vname(foe), WorldPeople.vname(vid), sfx(String(sp["name"]), "i")], Color(1, 0.6, 0.5))
+			else:
+				WorldPeople.log_event(sp, "%s topraklarına sızıp gizli belgeleri getirdi" % WorldPeople.vname(foe))
+				if W.at_war(vid, foe):
+					W.D()["war"][W.key(vid, foe)]["intel"] = vid
 
 
 ## Görev bitti (Missions kancası "WorldNews.mission_done")
@@ -222,6 +275,45 @@ func mission_done(m: Dictionary, ok: bool) -> void:
 				WorldPeople.log_event(q, "%s alın bandı %s tarafından geri getirildi" % [sfx(String(p.get("name", "Yakını")), "in"), me])
 		"fire":
 			headline("%s: yangın %s sayesinde büyümeden söndürüldü." % [vn, me], Color(0.7, 1.0, 0.7))
+		"border", "kidnap", "envoy", "front", "ally", "spy":
+			_done_rel(inc, p, me)
+
+
+## Köyler arası görev başarıldı
+static func _done_rel(inc: Dictionary, p: Dictionary, me: String) -> void:
+	var vid = String(inc["vid"])
+	var foe = String(inc.get("foe", ""))
+	var W = WorldRelations
+	var vn = WorldPeople.vname(vid)
+	match String(inc["kind"]):
+		"border":
+			W.change(vid, foe, -4)   # kan döküldü; ama karakol tutuldu
+			if W.at_war(vid, foe):
+				W.player_battle(foe, true)
+			W._news("%s: sınır karakoluna saldıran %s ninjaları %s tarafından geri püskürtüldü." % [vn, WorldPeople.vname(foe), me], Color(0.75, 1.0, 0.7))
+		"kidnap":
+			W.change(vid, foe, -10)
+			if not p.is_empty() and WorldPeople.alive(p):
+				WorldPeople.log_event(p, "Kaçırıldı; %s onu sınırda kurtardı" % me)
+			W._news("%s: kaçırılan %s, %s tarafından sınırda kurtarıldı. %s her şeyi inkâr ediyor." % [vn, String(p.get("name", "?")), me, WorldPeople.vname(foe)], Color(0.75, 1.0, 0.7))
+		"envoy":
+			W.change(vid, foe, 18)
+			if not p.is_empty() and WorldPeople.alive(p):
+				WorldPeople.log_event(p, "%s ile barış görüşmesine gitti; %s yolda onu korudu" % [WorldPeople.vname(foe), me])
+			W._news("%s elçisi %s, %s ile görüştü: iki köy arasında yumuşama." % [vn, String(p.get("name", "?")), WorldPeople.vname(foe)], Color(0.75, 0.95, 1.0))
+		"front":
+			W.player_battle(foe, true)
+			W._news("%s cephesinde %s ninjaları %s önünde geri çekildi." % [WorldPeople.vname(String(inc.get("front", ""))), WorldPeople.vname(foe), me], Color(0.75, 1.0, 0.7))
+		"ally":
+			W.player_battle(foe, true, String(inc.get("ally", "")))
+			W._news("%s, müttefiki %s yanında %s ile savaştı; %s cephesi tutuldu." % [me, WorldPeople.vname(String(inc.get("ally", ""))), WorldPeople.vname(foe), WorldPeople.vname(String(inc.get("front", "")))], Color(0.75, 1.0, 0.7))
+		"spy":
+			if W.at_war(vid, foe):
+				W.D()["war"][W.key(vid, foe)]["intel"] = vid
+				Hud.msg("Çalınan savaş planları: köyün bir sonraki muharebede üstün olacak.", Color(0.8, 1.0, 0.8), 6.0)
+			else:
+				Kage._raid_t += 1200.0   # baskın hazırlığı önceden öğrenildi
+				Hud.msg("Çalınan belgeler: %s baskın planları önceden öğrenildi." % WorldPeople.vname(foe), Color(0.8, 1.0, 0.8), 6.0)
 
 
 # ====================================================================== olaydan görev
@@ -234,11 +326,29 @@ static func rank_of(inc: Dictionary) -> String:
 			return WorldPeople.rank_letter(int(p.get("level", 40))) if not p.is_empty() else "B"
 		"band":
 			return "C"
+		"border", "envoy":
+			return "B"
+		"kidnap":
+			return WorldPeople.rank_letter(int(WorldPeople.get_p(String(inc.get("kidnapper", ""))).get("level", 90)))
+		"front", "ally", "spy":
+			return "A"
 	return "D"
 
 
 static func _title(inc: Dictionary) -> String:
 	var p = WorldPeople.get_p(String(inc["who"]))
+	var foe = String(inc.get("foe", ""))
+	match String(inc["kind"]):
+		"border":
+			return "Sınır Karakolu: %s Saldırısı" % WorldPeople.vname(foe)
+		"envoy":
+			return "Barış Elçisi: %s" % WorldPeople.vname(foe)
+		"front":
+			return "Cephe: %s" % WorldPeople.vname(String(inc.get("front", "")))
+		"ally":
+			return "Müttefik Çağrısı: %s" % WorldPeople.vname(String(inc.get("ally", "")))
+		"spy":
+			return "Casusluk: %s" % WorldPeople.vname(foe)
 	if p.is_empty():
 		return ""
 	match String(inc["kind"]):
@@ -252,6 +362,8 @@ static func _title(inc: Dictionary) -> String:
 			return "Son Yadigâr: %s" % String(p["name"])
 		"fire":
 			return "Yangın!"
+		"kidnap":
+			return "Kaçırılan Varis: %s" % String(p["name"])
 	return ""
 
 
@@ -388,6 +500,8 @@ static func mission_for(inc: Dictionary) -> Dictionary:
 					{"kind": "talk", "at": house, "npc": kid, "text": "İçeride kalan çocuğu çıkar.", "say": "Öhö, öhö... Kapı açılmadı, çok korktum!", "then": "follow"},
 					{"kind": "talk", "at": house, "npc": owner, "followers": true, "reunion": "icerdeki", "reunion_say": ["Anne!", "Yavrum! Sağsın, sağsın..."], "pay": "pouch", "text": "Çocuğu annesine götür.", "say": "Evim yandı ama çocuğum sağ. Bunun karşılığı olmaz; yine de al."}]}
 	if q.is_empty():
+		q = _rel_mission(inc, p, vid, vn)
+	if q.is_empty():
 		return {}
 	q["village"] = vid
 	q["type"] = "quest"
@@ -396,3 +510,93 @@ static func mission_for(inc: Dictionary) -> Dictionary:
 	q["dyn"] = true
 	q["hook"] = "WorldNews.mission_done"
 	return q
+
+
+## Köyler arası ilan görevleri (WorldRelations): karşındakiler o köyün gerçek ninjalarıdır (düşerlerse dünyada da ölürler)
+static func _rel_mission(inc: Dictionary, p: Dictionary, vid: String, vn: String) -> Dictionary:
+	var M = Missions
+	var W = WorldRelations
+	var foe = String(inc.get("foe", ""))
+	if not foe in W.GREAT:
+		return {}
+	var fn = WorldPeople.vname(foe)
+	match String(inc["kind"]):
+		"border":
+			var post = M._spot(vid, 250, 600)
+			var gl = W._people(vid, 1)
+			var guard = _person_npc("nobetci", gl.pick_random(), "Nöbetçi") if not gl.is_empty() else M._npc("nobetci", "Karakol Nöbetçisi", "ninja")
+			return {"title": _title(inc), "rank": "B",
+				"brief": "%s ninjaları gece yarısı köyün sınır karakoluna saldırdı. Nöbetçiler geri çekilmek üzere. Karakolu tut; karşındakiler %s köyünün kendi ninjaları, düşen her biri iki köy arasındaki hesabı ağırlaştırır." % [fn, fn],
+				"steps": [
+					{"kind": "talk", "at": M._near_spot(post, 25, 40), "npc": guard, "text": "Karakoldaki yaralı nöbetçiyle konuş.",
+						"say": "%s bandı taşıyorlar! Gece geldiler, karakolu ateşe verdiler. Bir dalga daha gelirse karakol düşer. Yanımda dur!" % fn},
+					{"kind": "defend", "at": post, "enemy": foe, "waves": [3, 3, 4], "barricade": true, "text": "Karakolu %s ninjalarına karşı tut." % fn},
+					{"kind": "goto", "at": M._inside(vid, 0.0, 0.2), "r": 18.0, "name": "Köy", "text": "Köye dön ve rapor ver."}]}
+		"kidnap":
+			var kp = WorldPeople.get_p(String(inc.get("kidnapper", "")))
+			if p.is_empty() or kp.is_empty() or not WorldPeople.alive(p) or not WorldPeople.alive(kp) or String(p["village"]) != vid:
+				return {}
+			var start = M._spot(vid, 20, 80)
+			var hide = M._spot(vid, 500, 900)   # köyün dışında, sınıra giden yolda
+			var rel = _kin(p)
+			var kin = _person_npc("yakin", rel[0]) if not rel.is_empty() else M._npc("yakin", "%s Klanı Büyüğü" % ClanWorld.clan_name(String(p["clan"])), "elder")
+			var blood = ClanWorld.clan_name(String(p["clan"])) if String(p["clan"]) != "" else "kan soyu"
+			var fp = _first(String(p["name"]))
+			return {"title": _title(inc), "rank": rank_of(inc),
+				"brief": "%s gece odasından alındı. Yalnız %s kanını taşıdığı için: %s onun gözünü ve kanını istiyor. Kaçıran %s bandı taşıyordu. Sınırı geçmeden yetiş; geçerse %s artık %s için savaşır." % [String(p["name"]), blood, fn, fn, fp, fn],
+				"steps": [
+					{"kind": "talk", "at": start, "npc": kin, "text": "Kapı dışında bekleyen %s ile konuş." % String(kin["name"]),
+						"say": "Uyandığımda yatağı boştu... Pencerenin dibinde %s bandından kopmuş bir parça buldum. %s sırtına alıp şu yöne koşmuş. Lütfen, sınıra varmadan!" % [fn, fp]},
+					{"kind": "track", "from": start, "to": hide, "text": "Kaçıranın izini takip et."},
+					{"kind": "kill", "at": hide, "enemy": foe, "n": 1, "boss": {"name": String(kp["name"]), "person": String(kp["id"])}, "hostage": _person_npc("rehine", p),
+						"text": "Kaçıranı durdur: %s." % String(kp["name"])},
+					{"kind": "talk", "npc_id": "rehine", "text": "Rehinenin iplerini çöz: %s." % fp, "say": "Geldin... Beni %s topraklarına götürecekti. Gözlerimi istediklerini söyledi." % fn, "then": "follow"},
+					{"kind": "talk", "at": M._inside(vid, 0.0, 0.3), "npc": kin, "followers": true, "reunion": "rehine", "reunion_say": ["Döndüm!", "%s! Bir daha seni gözümün önünden ayırmayacağım." % fp], "pay": "pouch",
+						"text": "Kurtarılanı köyde bekleyen %s ile buluştur (%s seni takip ediyor)." % [String(kin["name"]), fp], "say": "Onu geri getirdin. Klanımız bunu unutmaz."}]}
+		"envoy":
+			if p.is_empty() or not WorldPeople.alive(p):
+				return {}
+			var start = M._spot(vid, 10, 40)
+			var dest = M._poi(["inn", "hamlet", "town", "settlement"], start, 2500.0)
+			if dest == null or Vector2(dest[0], dest[1]).distance_to(Vector2(start[0], start[1])) < 300:
+				dest = M._near_spot(start, 700, 1200)
+			var fl = W._people(foe, 2)
+			var other = _person_npc("karsi", fl.pick_random(), "%s Elçisi" % fn.trim_suffix("gakure")) if not fl.is_empty() else M._npc("karsi", "%s Elçisi" % fn.trim_suffix("gakure"), "ninja")
+			return {"title": _title(inc), "rank": "B",
+				"brief": "%s ile aramız gergin. Kage, tarafsız bir handa görüşme ayarladı; köyü elçi %s temsil edecek, karşısında %s elçisi olacak. İki köyde de bu barışı istemeyenler var; elçiyi yolda koru." % [fn, String(p["name"]), fn],
+				"steps": [
+					{"kind": "talk", "at": start, "npc": _person_npc("eskort", p, "Elçi"), "text": "Kapıda elçi %s ile buluş." % String(p["name"]),
+						"say": "Mühürlü mektup bende. Önden yürü; %s'de bu görüşmeyi istemeyenler var, bizde de... Benden ayrılma." % fn},
+					{"kind": "escort", "npc_id": "eskort", "from": start, "to": dest, "ambush": [[0.4, foe, 2], [0.8, foe, 3]], "text": "Elçiyi buluşma yerine kadar koru."},
+					{"kind": "talk", "at": M._near_spot(dest, 6, 12), "npc": other, "text": "%s elçisiyle görüşmeyi tamamla." % fn,
+						"say": "Pusuyu bizimkiler kurdu, utanıyorum. Ama elçiniz sağ geldi; Kage'me barış istediğinizi söyleyeceğim."}]}
+		"front", "ally":
+			var fr = String(inc.get("front", ""))
+			if fr == "" or Game.village(fr).is_empty():
+				return {}
+			var ally = String(inc.get("ally", vid))
+			var side = vid if String(inc["kind"]) == "front" else ally
+			if not W.at_war(side, foe):
+				return {}
+			var spot = M._spot(fr, 300, 700)
+			var cl = W._people(side, 2)
+			var cmd = _person_npc("komutan", cl.pick_random(), "Komutan") if not cl.is_empty() else M._npc("komutan", "Cephe Komutanı", "ninja")
+			var an = WorldPeople.vname(ally)
+			var br = ("%s ile savaştayız. Cephe %s topraklarında; %s ileri karakol kurdu ve bizimkileri sıkıştırıyor. Karakolu düşür." % [fn, WorldPeople.vname(fr), fn]) if String(inc["kind"]) == "front" \
+				else ("Müttefikimiz %s, %s ile savaşta ve yardım istiyor. Cephe %s topraklarında. İttifakın sözünü tut: %s karakolunu düşür." % [an, fn, WorldPeople.vname(fr), fn])
+			return {"title": _title(inc), "rank": "A", "brief": br,
+				"steps": [
+					{"kind": "talk", "at": M._near_spot(spot, 60, 90), "npc": cmd, "text": "Cephedeki komutan %s ile buluş." % String(cmd["name"]),
+						"say": "Geldin demek. %s karakolu şu tepenin ardında; üç gündür oradan saldırıyorlar. Düşürürsen cephe bizim olur." % fn},
+					{"kind": "kill", "at": spot, "enemy": foe, "n": 5, "camp": true, "text": "%s ileri karakolunu düşür." % fn},
+					{"kind": "talk", "npc_id": "komutan", "pay": "pouch", "text": "Komutana rapor ver.", "say": "Karakol düştü! Bunu bütün %s duyacak." % (WorldPeople.vname(vid) if String(inc["kind"]) == "front" else an)}]}
+		"spy":
+			var camp = M._spot(foe, 300, 700)
+			var war = W.at_war(vid, foe)
+			return {"title": _title(inc), "rank": "A",
+				"brief": ("%s ile savaştayız. Sınırdaki karargâhlarında savaş planları var. Fark edilmeden sız, planları al. Yakalanırsan köyün seni tanımaz." if war \
+					else "%s baskın hazırlığında olabilir. Sınırdaki karargâhlarına fark edilmeden sız, planlarını al. Yakalanırsan köyün seni tanımaz.") % fn,
+				"steps": [
+					{"kind": "stealth", "at": camp, "enemy": foe, "n": 4, "goal": "Savaş planları" if war else "Baskın planları", "text": "Fark edilmeden planları al [F] (kırmızı görüş alanlarından uzak dur)."},
+					{"kind": "goto", "at": M._inside(vid, 0.0, 0.2), "r": 18.0, "name": "Köy", "text": "Planları köye getir."}]}
+	return {}

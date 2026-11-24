@@ -105,13 +105,13 @@ static func archetype(kind: String, i := 0) -> Dictionary:
 			var oel: String = ["katon", "suiton", "fuuton", "doton", "raiton"].pick_random()   # 5 doğa eşit
 			base.merge({"hp": 110.0, "level": 10, "power": 1.5, "element": oel, "jutsu": [], "name": "Ses Ninjası", "xp": 80, "ryo": 50, "guard": 0.25, "sub": 0.1}, true)
 			base["jutsu"] = {"katon": ["katon_goukakyuu", "katon_housenka"], "fuuton": ["fuuton_shinkuu", "fuuton_daitoppa"], "suiton": ["suiton_suiryuudan", "suiton_suikoudan"], "doton": ["doton_doryuusou", "doton_doryuheki"], "raiton": ["raiton_chidori", "raiton_nagashi"]}[oel]
-		"kumo", "kiri", "iwa", "suna":
-			var vc = {"kumo": [Color(0.85, 0.85, 0.82), Color(0.3, 0.35, 0.4)], "kiri": [Color(0.4, 0.5, 0.45), Color(0.3, 0.38, 0.45)],
+		"kumo", "kiri", "iwa", "suna", "konoha":
+			var vc = {"konoha": [Color(0.32, 0.4, 0.26), Color(0.16, 0.2, 0.3)], "kumo": [Color(0.85, 0.85, 0.82), Color(0.3, 0.35, 0.4)], "kiri": [Color(0.4, 0.5, 0.45), Color(0.3, 0.38, 0.45)],
 				"iwa": [Color(0.55, 0.25, 0.2), Color(0.4, 0.35, 0.3)], "suna": [Color(0.75, 0.65, 0.45), Color(0.5, 0.45, 0.35)]}[kind]
 			L.merge({"vest": vc[0], "top": vc[1], "top2": vc[1], "pants": vc[1], "village": kind, "band": Color(0.25, 0.25, 0.3)}, true)
 			var el: String = ["katon", "suiton", "fuuton", "doton", "raiton"].pick_random()   # 5 doğa eşit (eskiden köye kilitli: Kumo hep raiton...)
 			base.merge({"hp": 150.0, "level": 15, "power": 1.8, "element": el, "aggr": 0.65, "xp": 120, "ryo": 90, "guard": 0.35, "sub": 0.2,
-				"name": {"kumo": "Kumo Chunin", "kiri": "Kiri Chunin", "iwa": "Iwa Chunin", "suna": "Suna Chunin"}[kind]}, true)
+				"name": {"kumo": "Kumo Chunin", "kiri": "Kiri Chunin", "iwa": "Iwa Chunin", "suna": "Suna Chunin", "konoha": "Konoha Chunin"}[kind]}, true)
 			base["jutsu"] = {"katon": ["katon_goukakyuu", "katon_housenka"], "fuuton": ["fuuton_shinkuu", "fuuton_daitoppa"], "suiton": ["suiton_suiryuudan", "suiton_suikoudan"], "doton": ["doton_doryuusou", "doton_doryuheki"], "raiton": ["raiton_chidori", "raiton_nagashi"]}[el]
 		"samurai":
 			L.merge({"top": Color(0.3, 0.32, 0.36), "top2": Color(0.5, 0.52, 0.55), "pants": Color(0.25, 0.26, 0.3), "band": null, "vest": Color(0.55, 0.57, 0.6)}, true)

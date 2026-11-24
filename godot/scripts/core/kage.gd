@@ -489,10 +489,11 @@ func st() -> Dictionary:
 	return p()["kage"]
 
 
+## Senin köyünle o köy arası (dünyanın ilişki tablosu: WorldRelations)
 func relation(vid: String) -> int:
 	if Game.profile.is_empty():
 		return 0
-	return int(st()["rel"].get(vid, 0))
+	return WorldRelations.rel(Progress.home(), vid)
 
 
 ## Gerilimli köy: sınır muhafızları düşmanca davranır (diğer sistemler sorabilir)
@@ -503,7 +504,7 @@ func hostile_to(vid: String) -> bool:
 func change_relation(vid: String, n: int) -> void:
 	if vid == Progress.home() or Game.profile.is_empty():
 		return
-	st()["rel"][vid] = clampi(relation(vid) + n, -100, 100)
+	WorldRelations.change(Progress.home(), vid, n)
 	relations_changed.emit()
 
 
@@ -769,14 +770,48 @@ func diplomacy(vid: String, action: String) -> String:
 			if relation(vid) < 30:
 				return "%s ile ilişkiler ticaret anlaşması için yeterli değil (30 gerekli)." % vn
 			k["trade"][vid] = true
+			if WorldRelations.pact(Progress.home(), vid) == "":
+				WorldRelations.set_pact(Progress.home(), vid, "ticaret")
 			add_log("%s ile ticaret anlaşması imzalandı (+3.500 Ryō/gün)." % vn)
 			return "Ticaret anlaşması imzalandı."
 		"ittifak":
+			if vid in WorldRelations.MINOR:
+				if relation(vid) < 60:
+					return "%s himayene girmek için 60 ilişki ister." % vn
+				WorldRelations.set_pact(Progress.home(), vid, "ittifak")
+				WorldRelations.D()["sway"][vid] = Progress.home()
+				add_log("%s köyümüzün himayesine girdi." % vn)
+				return "%s artık himayende." % vn
 			if relation(vid) < 70 or String(k.get("summit", "none")) != "done":
 				return "İttifak için 70 ilişki ve Beş Kage Zirvesi gerekir."
 			k["alliance"][vid] = true
+			WorldRelations.set_pact(Progress.home(), vid, "ittifak")
 			add_log("%s ile resmi ittifak kuruldu." % vn)
 			return "İttifak kuruldu!"
+		"baris":
+			if not WorldRelations.at_war(Progress.home(), vid):
+				return "%s ile savaşta değilsin." % vn
+			if int(k["funds"]) < 20000:
+				return "Barış teklifi için 20.000 Ryō tazminat gerekir."
+			k["funds"] = int(k["funds"]) - 20000
+			# karşı Kage'nin mizacı: temkinli / sıcak olan kabule yatkın; savaşta kayıpları ağır olan da
+			var lt = WorldRelations.leader(vid)
+			var w: Dictionary = WorldRelations.D()["war"].get(WorldRelations.key(Progress.home(), vid), {})
+			var hurt = float(int((w.get("dead", {}) as Dictionary).get(vid, 0))) / WorldRelations.WAR_DEAD
+			if randf() < 0.35 - lt.x * 0.2 + lt.y * 0.2 + hurt * 0.4:
+				WorldRelations._end_war(WorldRelations.key(Progress.home(), vid), "%s barış teklifini kabul etti." % kage_name(vid), Progress.home())
+				add_log("%s ile ateşkes imzalandı (−20.000 Ryō tazminat)." % vn)
+				return "Ateşkes imzalandı!"
+			add_log("%s barış teklifini reddetti (−20.000 Ryō)." % vn)
+			return "%s teklifi reddetti. Savaş sürüyor." % kage_name(vid)
+		"savas":
+			if WorldRelations.at_war(Progress.home(), vid):
+				return "%s ile zaten savaştasın." % vn
+			if relation(vid) > -40:
+				return "Savaş ilanı için ilişki −40'ın altında olmalı (konsey onaylamaz)."
+			WorldRelations.declare_war(Progress.home(), vid)
+			add_log("Savaş ilan edildi: %s." % vn)
+			return "Savaş ilan edildi!"
 		"tatbikat":
 			change_relation(vid, -15)
 			k["upg"]["savunma"] = int(k["upg"].get("savunma", 0))
@@ -1070,8 +1105,5 @@ func _process(dt: float) -> void:
 		_gen_requests()
 		if randf() < 0.45 and (k["events"] as Array).size() < 4:
 			_gen_event()
-		# gerilim yavaşça normale döner
-		for v in k["rel"]:
-			k["rel"][v] = int(k["rel"][v]) - signi(int(k["rel"][v])) if absi(int(k["rel"][v])) > 50 else int(k["rel"][v])
 		if summit_ready():
 			Hud.msg("Demir Ülkesi'nden davet: Beş Kage Zirvesi! (Kage masası > Olaylar)", Color(1, 0.8, 0.4))

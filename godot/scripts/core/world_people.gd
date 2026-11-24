@@ -61,6 +61,7 @@ func _process(dt: float) -> void:
 	WorldNews.tick(dt)
 	WorldDay.tick(dt)
 	WorldAmbition.tick(dt)
+	WorldRelations.tick(dt)   # köyler arası ilişki, savaş, ittifak
 	_t -= dt
 	if _t > 0.0:
 		return
@@ -282,9 +283,9 @@ func world_tick() -> void:
 	for id in ids.slice(0, EVENTS_PER_TICK):
 		_life(all()[id])
 	# nüfus azalırsa köyde yeni nesil yetişir (akademiden mezun genin)
-	for vid in MAJOR:
+	for vid in MAJOR + MINOR:
 		var n = all().values().filter(func(p): return String(p["village"]) == vid and alive(p) and not is_rogue(p)).size()
-		if n < PER_MAJOR - 4 and not Game.village(vid).is_empty():
+		if n < (PER_MAJOR - 4 if vid in MAJOR else PER_MINOR - 3) and not Game.village(vid).is_empty():
 			var np = new_person(vid, 0)
 			log_event(np, "Akademiden mezun oldu")
 	clan_floor()
@@ -730,7 +731,7 @@ static func team_people(vid: String, chunin: bool, used: Dictionary) -> Array:
 # ------------------------------------------------------------------ her düşman kaynağı (yol, görev, köy, örgüt...) dünyadan gerçek biri
 ## Enemy.setup başında: adı özelleştirilmemiş sıradan kaçak / köy ninjası kalıbı, dünyada uygun Güç'teki gerçek birine dönüşür
 ## (kimliği, klanı, gözü, element(ler)i, kendi jutsuları). Kalıbın Güç'ü ve canı korunur (görev zorluğu bozulmaz).
-const GENERIC_NAMES := ["Kaçak Ninja", "Ses Ninjası", "Kumo Chunin", "Kiri Chunin", "Iwa Chunin", "Suna Chunin"]
+const GENERIC_NAMES := ["Kaçak Ninja", "Ses Ninjası", "Kumo Chunin", "Kiri Chunin", "Iwa Chunin", "Suna Chunin", "Konoha Chunin"]
 const FILL_P := 0.8
 static var _active := {}   # kişi -> sahadaki düşman (aynı kişi aynı anda iki yerde olmasın)
 
