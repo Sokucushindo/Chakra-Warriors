@@ -91,6 +91,7 @@ static func _pond_falls(b: Builder, decor: Node3D, x: float, n: float, G: Callab
 	# gölet: koyu taban + su yüzeyi + kıyı taşları + nilüferler
 	b.box(Vector3(x, g + 0.01, n), Vector3(r * 2.1, 0.02, r * 1.7), Color(0.22, 0.3, 0.32), 0, false)
 	_water_plane(b, decor, Vector3(x, g + 0.06, n), Vector2(r * 2.0, r * 1.6))
+	b._grass_clear(b.w(Vector3(x, 0, n)), Vector3(r * 2.2, 0.1, r * 1.8), 0.0)   # suyun içinden çimen çıkmasın (taban kutusu ölçütü tutmuyordu)
 	var ns = 30
 	for i in ns:
 		var a = TAU * i / ns

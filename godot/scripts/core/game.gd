@@ -522,6 +522,22 @@ func road_dist(x: float, z: float) -> float:
 	return best
 
 
+## Yolun GÖRÜNEN kenarına uzaklık (negatif = yolun içinde). RoadMap şerit yarı genişliği (road 8, street 9, path 2.6)
+## x 0.9: arazi gölgelendiricisinde toprak yolun görünen kenarı (kenar gürültüsü dahil)
+func road_edge_dist(x: float, z: float) -> float:
+	var m := Vector2(x, -z)
+	var lst = _road_grid.get(Vector2i(floori(m.x / ROAD_CELL), floori(m.y / ROAD_CELL)))
+	if lst == null:
+		return 1e9
+	var best := 1e9
+	for e in lst:
+		var rl: Dictionary = roads[e[0]]
+		var pts: PackedVector2Array = rl["pts"]
+		var half = {"road": 8.0, "street": 9.0, "path": 2.6}.get(rl["kind"], 8.0) * 0.9
+		best = minf(best, Geometry2D.get_closest_point_to_segment(m, pts[e[1]], pts[e[1] + 1]).distance_to(m) - half)
+	return best
+
+
 ## Merkez çevresindeki yol parçaları: [Vector2i(yol idx, parça idx)]
 func road_segments_near(m: Vector2, radius: float) -> Array:
 	var out := {}

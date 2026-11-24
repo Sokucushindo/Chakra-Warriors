@@ -692,11 +692,15 @@ static func cap_ranges(n: Node, dist: float) -> void:
 ## Bina arazinin üstüne oturur: taban = ayak izindeki en yüksek nokta, alçak taraf taş temelle doldurulur
 ## Evin taban alanı (merkez, köşeler, kenar ortaları) bir yolun / caddenin üstüne taşıyor mu? (cadde yarı genişliği ~4.5 m)
 func footprint_on_road(x: float, n: float, wdt: float, dep: float, yaw: float, half_road := 5.0) -> bool:
-	for u in [-0.5, 0.0, 0.5]:
-		for v in [-0.5, 0.0, 0.5]:
-			var o = rot(u * (wdt + 1.0), v * (dep + 1.0), yaw)
+	# 2026-11-25 (kullanıcı: evler yolun ortasında): yolun GÖRÜNEN genişliğine göre (eskiden orta çizgiye 5 m: sokak 8 m'ye
+	# kadar çizildiği için evler yola taşıyordu); ayak izi kenarları ~3 m aralıkla örneklenir (köşe arası ince yol kaçmasın)
+	var nu = maxi(2, ceili((wdt + 1.0) / 3.0))
+	var nv = maxi(2, ceili((dep + 1.0) / 3.0))
+	for i in nu + 1:
+		for j in nv + 1:
+			var o = rot((float(i) / nu - 0.5) * (wdt + 1.0), (float(j) / nv - 0.5) * (dep + 1.0), yaw)
 			var wp = w(Vector3(x + o.x, 0, n + o.y))
-			if Game.road_dist(wp.x, wp.z) < half_road:
+			if Game.road_dist(wp.x, wp.z) < half_road or Game.road_edge_dist(wp.x, wp.z) < 0.3:
 				return true
 	return false
 
@@ -788,6 +792,9 @@ func house(x: float, n: float, wdt: float, dep: float, floors: int, yaw: float, 
 				n += best.y
 				found = true
 				break
+		if not found:
+			house_ti = -1
+			return   # yoldan çıkacak yer yok: yolun ortasına kurma
 		placed_xn = Vector2(x, n)
 	var g = _ground_off(x, n, maxf(wdt, dep) * 0.6)
 	if g.y - g.x > 0.25:

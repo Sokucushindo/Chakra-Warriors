@@ -57,8 +57,24 @@ static func shop_building(b: Builder, x: float, nc: float, w: float, d: float, d
 	# kat saçakları (her katın üstünde kiremit etek) + ana çatı
 	for f in range(1, floors):
 		b.box(Vector3(x, 0.5 + f * fh + 0.2, fz.call(0.9)), Vector3(w + 1.2, 0.2, 2.0), roof_c, yaw, false, Vector3(-14 * dn, 0, 0))
-	b.roof(Vector3(x, 0.5 + H + 1.4, nc), Vector3(w + 2.4, 2.8, d + 2.4), roof_c, yaw)
-	b.box(Vector3(x, 0.5 + H + 2.85, nc), Vector3(w + 1.4, 0.35, 0.5), roof_c.darkened(0.2), yaw, false)   # mahya
+	# Builder.roof yüksekliğin yarısını kendisi ekler: taban = duvar tepesi (eskiden 1.4 m havadaydı)
+	b.roof(Vector3(x, 0.5 + H - 0.05, nc), Vector3(w + 1.6, 2.8, d + 1.6), roof_c, yaw)
+	b.box(Vector3(x, 0.5 + H + 2.8, nc), Vector3(0.5, 0.35, d + 1.7), roof_c.darkened(0.2), yaw, false)   # mahya (sırt prizma boyunca)
+	# arka ve yan cepheler: her katta pencereler (arkadan / yandan bakınca düz duvar kalmasın)
+	for f in floors:
+		var wy = 0.5 + f * fh + fh * 0.55
+		var nbk = maxi(1, int(w / 3.4))
+		for k in nbk:
+			var wx = x - w * 0.5 + (k + 0.5) * w / nbk
+			b.box(Vector3(wx, wy, nc - dn * (d * 0.5 + 0.04)), Vector3(1.5, 1.35, 0.12), wood, yaw, false)
+			b.box(Vector3(wx, wy, nc - dn * (d * 0.5 + 0.09)), Vector3(1.25, 1.1, 0.06), Color(0.95, 0.93, 0.86) if (k + f) % 2 == 0 else Color(0.55, 0.7, 0.82), yaw, false)
+			b.box(Vector3(wx, wy, nc - dn * (d * 0.5 + 0.12)), Vector3(0.06, 1.1, 0.04), wood, yaw, false)
+		var nsd = maxi(1, int(d / 3.6))
+		for sx in [-1.0, 1.0]:
+			for k in nsd:
+				var wz = nc - d * 0.5 + (k + 0.5) * d / nsd
+				b.box(Vector3(x + sx * (w * 0.5 + 0.04), wy, wz), Vector3(0.12, 1.35, 1.5), wood, yaw, false)
+				b.box(Vector3(x + sx * (w * 0.5 + 0.09), wy, wz), Vector3(0.06, 1.1, 1.25), Color(0.95, 0.93, 0.86), yaw, false)
 	# cephe: türe göre
 	var y1 = 0.5 + fh   # 1. kat tabanı
 	match kind:
@@ -83,7 +99,7 @@ static func shop_building(b: Builder, x: float, nc: float, w: float, d: float, d
 					b.box(Vector3(shx, yb + fh * 0.5, fz.call(0.04)), Vector3(w / nsh - 0.25, fh * 0.65, 0.08), Color(0.96, 0.94, 0.86), yaw, false)
 					b.box(Vector3(shx, yb + fh * 0.5, fz.call(0.08)), Vector3(0.06, fh * 0.65, 0.06), wood, yaw, false)
 			if kind == "inn":   # han: girişte büyük saçaklı kapı çatısı + uzun kağıt fenerler
-				b.roof(Vector3(x, y1 - 0.6, fz.call(2.0)), Vector3(6.0, 1.4, 3.2), roof_c, yaw)
+				b.roof(Vector3(x, y1 - 1.3, fz.call(2.0)), Vector3(6.0, 1.4, 3.2), roof_c, yaw)
 				for sx in [-1.0, 1.0]:
 					b.box(Vector3(x + sx * 2.6, (y1 - 1.2) * 0.5, fz.call(3.3)), Vector3(0.3, y1 - 1.2, 0.3), wood, yaw)
 		"weapon_shop":

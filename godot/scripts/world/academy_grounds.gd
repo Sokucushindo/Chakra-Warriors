@@ -377,6 +377,7 @@ static func dress(b: Builder, cx: float, front_n: float, half_w: float, depth: f
 ## Oval gölet suyu (yassı silindir)
 static var _water_mat: StandardMaterial3D
 static func _oval_water(b: Builder, p: Vector3, wdt: float, dep: float) -> void:
+	b._grass_clear(b.w(Vector3(p.x, 0, p.z)), Vector3(wdt + 0.6, 0.1, dep + 0.6), 0.0)   # sudan çimen çıkmasın
 	if _water_mat == null:
 		_water_mat = StandardMaterial3D.new()
 		_water_mat.albedo_color = Color(0.22, 0.48, 0.58, 0.85)

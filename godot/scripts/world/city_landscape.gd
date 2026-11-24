@@ -99,6 +99,34 @@ static func mesh(name: String) -> Mesh:
 			for i in 2:
 				b.add_grad("sphere", Vector3(-0.4 + i * 0.8, 0.86, 0), Vector3(0.95, 0.36, 0.78), Color(1.08, 1.08, 1.08), Color(0.8, 0.82, 0.8), Vector3.ZERO, 8)
 			leafy = true
+		"azumaya":  # park çardağı (azumaya): taş zemin, 4 ahşap dikme, oturaklar, kırma çatı + tepe süsü; ön +z
+			b.add_grad("box", Vector3(0, 0.15, 0), Vector3(4.6, 0.3, 4.6), STONE.lightened(0.05), STONE_D)
+			for sx in [-1.0, 1.0]:
+				for sz in [-1.0, 1.0]:
+					b.add("box", Vector3(sx * 1.9, 1.55, sz * 1.9), Vector3(0.2, 2.5, 0.2), WOOD_D)
+			for sx in [-1.0, 1.0]:
+				b.add("box", Vector3(sx * 1.75, 0.65, 0), Vector3(0.45, 0.08, 3.4), WOOD)
+				b.add("box", Vector3(sx * 1.75, 0.45, 0), Vector3(0.3, 0.3, 3.2), WOOD_D)
+			b.add("box", Vector3(0, 0.62, -1.75), Vector3(3.4, 0.08, 0.45), WOOD)
+			b.add("box", Vector3(0, 2.75, 0), Vector3(4.2, 0.18, 4.2), WOOD_D)
+			b.add("cone", Vector3(0, 3.55, 0), Vector3(7.4, 1.6, 7.4), Color(0.3, 0.3, 0.33), Vector3(0, 45, 0), 4)
+			b.add("cyl", Vector3(0, 4.45, 0), Vector3(0.3, 0.4, 0.3), Color(0.25, 0.22, 0.2), Vector3.ZERO, 6)
+			b.add("sphere", Vector3(0, 4.75, 0), Vector3(0.35, 0.35, 0.35), Color(0.75, 0.6, 0.25), Vector3.ZERO, 6)
+		"hokora":  # küçük yol sunağı: taş kaide, minik ahşap tapınak, kırmızı kumaş, iki tilki heykeli; ön +z
+			b.add_grad("box", Vector3(0, 0.3, 0), Vector3(1.6, 0.6, 1.3), STONE.lightened(0.05), STONE_D)
+			b.add("box", Vector3(0, 1.0, 0), Vector3(1.0, 0.8, 0.8), WOOD)
+			b.add("prism", Vector3(0, 1.65, 0), Vector3(1.5, 0.5, 1.2), Color(0.28, 0.27, 0.3))
+			b.add("box", Vector3(0, 1.0, 0.41), Vector3(0.6, 0.55, 0.02), Color(0.15, 0.12, 0.1))
+			b.add("box", Vector3(0, 1.32, 0.43), Vector3(0.9, 0.06, 0.04), Color(0.95, 0.92, 0.85))
+			for sx in [-0.62, 0.62]:
+				b.add("box", Vector3(sx, 0.72, 0.5), Vector3(0.2, 0.25, 0.28), STONE.lightened(0.15))
+				b.add("sphere", Vector3(sx, 0.95, 0.52), Vector3(0.2, 0.24, 0.2), STONE.lightened(0.15), Vector3.ZERO, 6)
+				b.add("box", Vector3(sx, 0.82, 0.62), Vector3(0.16, 0.07, 0.04), Color(0.8, 0.18, 0.15))
+			# önünde küçük kırmızı torii
+			for sx in [-0.55, 0.55]:
+				b.add("cyl", Vector3(sx, 0.75, 1.35), Vector3(0.1, 1.5, 0.1), Color(0.78, 0.2, 0.15), Vector3.ZERO, 6)
+			b.add("box", Vector3(0, 1.5, 1.35), Vector3(1.5, 0.1, 0.14), Color(0.78, 0.2, 0.15))
+			b.add("box", Vector3(0, 1.3, 1.35), Vector3(1.2, 0.07, 0.1), Color(0.78, 0.2, 0.15))
 		"step":  # basamak taşı
 			b.add_grad("cyl", Vector3(0, 0.04, 0), Vector3(0.95, 0.14, 0.8), STONE.lightened(0.08), STONE_D, Vector3.ZERO, 7)
 		"well":  # taş kuyu + ahşap çatı + kova
@@ -1003,6 +1031,16 @@ static func _street_trees(c: Ctx, rad: float) -> void:
 						c.put(mesh(pk), lx2, ln2, c.rng.randf() * 360.0, Vector3.ONE, 140.0)
 
 
+static var _az_roof: Shape3D = null
+## Çardak çatısının kendi şekli (kırma çatı, çatıya çıkılır)
+static func _azumaya_roof() -> Shape3D:
+	if _az_roof == null:
+		var m = MB.new()
+		m.add("cone", Vector3(0, 0.15, 0), Vector3(7.4, 1.6, 7.4), Color(1, 1, 1), Vector3(0, 45, 0), 4)
+		_az_roof = HouseKit._hull(m)
+	return _az_roof
+
+
 ## Büyük boş alanlara küçük parklar
 static func _parks(c: Ctx, rad: float) -> void:
 	var step = 22.0
@@ -1057,6 +1095,11 @@ static func _park(c: Ctx, px: float, pn: float, r: float) -> void:
 	var kit = c.kit
 	var pond = kit["pond"] and r >= 20.0 and rng.randf() < 0.7
 	var gy = c.ground(px, pn)
+	var RM = preload("res://scripts/world/road_map.gd")
+	var cw = c.wxz(px, pn)
+	# 2026-11-25 (kullanıcı: çimenler parktaki taşların içinden çıkıyor): meydan + yürüyüş halkası çimen maskesinde
+	var ch = r * 0.36 + 0.8   # şerit uçlarına yarı genişliğin yarısı eklenir: kare tam (2*ch) olsun
+	RM.add_lane(cw - Vector2(ch * 0.5, 0), cw + Vector2(ch * 0.5, 0), ch)
 	# orta: göl ya da çakıl meydan (kuyu / fener / kuru bahçe)
 	var inner = r * 0.36
 	if pond:
@@ -1082,8 +1125,23 @@ static func _park(c: Ctx, px: float, pn: float, r: float) -> void:
 		c.put(mesh(mid), px, pn, rng.randf() * 360.0, Vector3.ONE, 260.0, true)
 		if mid == "well":
 			c.solid_cyl(px, pn, 1.0, 1.0)
-	# basamak taşı yol halkası
+	# basamak taşı yol halkası: altında toprak patika (çimensiz), en yakın sokağa bağlanan giriş yolu
 	var path_r = inner + 2.4
+	var nseg = 20
+	for i in nseg:
+		var a0 = TAU * i / nseg; var a1 = TAU * (i + 1) / nseg
+		RM.add_lane(c.wxz(px + cos(a0) * path_r, pn + sin(a0) * path_r), c.wxz(px + cos(a1) * path_r, pn + sin(a1) * path_r), 1.1, true)
+	var best_a = -1.0; var best_d = 1e9
+	for k in 16:
+		var a = TAU * k / 16.0
+		for dd in [r * 0.8, r * 1.1, r * 1.5, r * 2.0]:
+			var q = c.wxz(px + cos(a) * dd, pn + sin(a) * dd)
+			if Game.road_dist(q.x, q.y) < 3.0:
+				if dd < best_d:
+					best_d = dd; best_a = a
+				break
+	if best_a >= 0.0:
+		RM.add_lane(c.wxz(px + cos(best_a) * path_r, pn + sin(best_a) * path_r), c.wxz(px + cos(best_a) * best_d, pn + sin(best_a) * best_d), 1.3, true)
 	var nsteps = int(TAU * path_r / 1.25)
 	for i in nsteps:
 		var a = TAU * i / nsteps
@@ -1114,6 +1172,30 @@ static func _park(c: Ctx, px: float, pn: float, r: float) -> void:
 		var yaw = rad_to_deg(atan2(-fd.x, -fd.y))
 		c.put(mesh("bench"), bx, bn, yaw, Vector3.ONE, 200.0)
 		benches.append([bx, bn, fd])
+	# büyük parkta çardak (dinlenme yeri), bazılarında küçük sunak (giriş yolunun karşısı)
+	if r >= 20.0 and c.climate != "desert":
+		var za = (best_a if best_a >= 0.0 else 0.0) + PI * 0.5
+		var zx = px + cos(za) * (r * 0.66); var zn = pn + sin(za) * (r * 0.66)
+		if c.open(zx, zn, 3.2, 3.0):
+			var fd2 = Vector2(px - zx, pn - zn)
+			var zyaw = rad_to_deg(atan2(-fd2.x, -fd2.y))
+			c.put(mesh("azumaya"), zx, zn, zyaw, Vector3.ONE, 500.0, true)
+			for sx in [-1.0, 1.0]:
+				for sz in [-1.0, 1.0]:
+					var o = Builder.rot(sx * 1.9, sz * 1.9, zyaw)
+					c.solid_cyl(zx + o.x, zn + o.y, 0.14, 2.8)
+			c.solid_box(zx, zn, Vector3(4.6, 0.3, 4.6), zyaw)
+			var ro = c.b.w(Vector3(zx, c.ground(zx, zn) + 3.4, zn))
+			c._shape(_azumaya_roof(), Transform3D(Basis(Vector3.UP, deg_to_rad(-zyaw)), ro))
+			c.b._grass_clear(c.b.w(Vector3(zx, c.ground(zx, zn), zn)), Vector3(4.8, 0.3, 4.8), -zyaw)
+	if rng.randf() < 0.5:
+		var ha = (best_a if best_a >= 0.0 else 0.0) + PI
+		var hx = px + cos(ha) * (path_r + 2.6); var hn = pn + sin(ha) * (path_r + 2.6)
+		if c.open(hx, hn, 1.6, 2.0):
+			var fd3 = Vector2(px - hx, pn - hn)
+			var hyaw = rad_to_deg(atan2(-fd3.x, -fd3.y))
+			c.put(mesh("hokora"), hx, hn, hyaw, Vector3.ONE, 260.0, true)
+			c.solid_box(hx, hn, Vector3(1.6, 2.0, 1.3), hyaw)
 	# çiçek tarhları (yalnız yeşil iklimlerde)
 	if c.climate in ["green", "mist"]:
 		for i in 2:

@@ -155,7 +155,8 @@ static func _hokage_compound_wall(b: Builder, tn: float) -> void:
 		b.box(Vector3(sx * (gate_half - 0.6), gy + 3.4, n0), Vector3(1.1, 6.8, 1.1), gred)
 		b.box(Vector3(sx * (gate_half - 0.6), gy + 0.3, n0), Vector3(1.8, 0.6, 1.8), base)
 	b.box(Vector3(0, gy + 6.6, n0), Vector3(gate_half * 2.0 + 1.0, 0.7, 1.2), gred)
-	b.roof(Vector3(0, gy + 7.6, n0), Vector3(gate_half * 2.0 + 4.0, 1.6, 3.4), cap)
+	b.roof(Vector3(0, gy + 6.9, n0), Vector3(3.6, 1.8, gate_half * 2.0 + 4.0), cap, 90.0)   # sırt kapı boyunca, kirişin üstüne oturur
+	b.box(Vector3(0, gy + 8.75, n0), Vector3(gate_half * 2.0 + 4.2, 0.35, 0.5), cap.darkened(0.2), 0, false)
 	b.box(Vector3(0, gy + 5.4, n0 - 0.7), Vector3(5.0, 1.8, 0.2), Color(0.95, 0.93, 0.86), 0, false)
 	b.kanji(Vector3(0, gy + 5.4, n0 - 0.85), "火", 1.4, gred, 0.0)
 
@@ -810,7 +811,7 @@ static func _street_houses(b: Builder, v: Dictionary, rng: RandomNumberGenerator
 					var td = float(HouseKit.templates[ti]["d"])
 					if t + tw > L - 4.0:
 						break
-					var off = 7.5 + row * 15.5 + td * 0.5
+					var off = 8.8 + row * 15.5 + td * 0.5   # ön sıra yolun görünen kenarının (sokak ~8.1 m) dışında
 					var q = a + dir * (t + tw * 0.5) + nrm * sd * off
 					var placed = false
 					var zq = _zone(q.x, q.y)
@@ -1036,18 +1037,18 @@ static func _pick_template(rng: RandomNumberGenerator, front: bool, low := false
 	if shop and rng.randf() < 0.8:   # çarşı / tören caddesi ön sırası: tabelalı, vitrinli, tenteli dükkân binası
 		for k in 30:
 			var ts = rng.randi() % n
-			if int(HouseKit.templates[ts].get("arch", 0)) == 3 and float(HouseKit.templates[ts]["d"]) <= 15.2:
+			if int(HouseKit.templates[ts].get("arch", 0)) == 3 and float(HouseKit.templates[ts]["d"]) <= 17.0:
 				return ts
 	if low:   # şehir dışı mahalle: alçak geleneksel ev (yuvarlak kule / kubbe / apartman yok — korunun ortasında tek kule rastgele duruyordu)
 		for k in 30:
 			var tl = rng.randi() % n
 			var tt: Dictionary = HouseKit.templates[tl]
-			if int(tt.get("arch", 0)) < 5 and float(tt["h"]) <= 10.5 and float(tt["d"]) <= 14.0:
+			if int(tt.get("arch", 0)) < 5 and float(tt["h"]) <= 10.5 and float(tt["d"]) <= 16.5:
 				return tl
 	for k in 6:
 		var ti = rng.randi() % n
 		var t: Dictionary = HouseKit.templates[ti]
-		if float(t["d"]) > 15.2:
+		if float(t["d"]) > 17.0:
 			continue
 		if int(t.get("arch", 0)) >= 5 and rng.randf() < 0.55:
 			continue   # yuvarlak kuleler simge gibi seyrek kalsın
