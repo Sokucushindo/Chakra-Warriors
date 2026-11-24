@@ -1254,6 +1254,11 @@ static func jurokuchu_shibari(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		pts.append(at + Vector3(cos(a), 0, sin(a)) * 4.5)
 	var tick = {"i": 0}
 	_sixteen_cage(at, pts, 3.0, tick)
+	# kanon: Katon: Suyaki bu kafesi fırına çevirir — açık kafesler dünyada kayıtlı
+	var cages: Array = Engine.get_meta("jurokuchu_cages", [])
+	cages = cages.filter(func(x): return float(x["until"]) > Time.get_ticks_msec() / 1000.0)
+	cages.append({"at": at, "r": 4.5, "until": Time.get_ticks_msec() / 1000.0 + 3.0})
+	Engine.set_meta("jurokuchu_cages", cages)
 	L.light(at + Vector3.UP * 2.0, RAI, 5.0, 10.0, 0.6)
 	pj.every(3.0, 0.12, func(i, _k):
 		tick["i"] = i

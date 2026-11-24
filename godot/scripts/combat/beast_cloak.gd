@@ -27,7 +27,7 @@ var t = 0.0
 var tech_cd := {}            # teknik anahtarı -> kalan bekleme
 const TECH_KEYS := ["throw", "tool_next", "charge"]
 const TECH_LABEL := ["R", "T", "C"]
-const TECH_NEED := [1, 3, 5, 6, 6]   # 4-5: Bijū Ōgi epik teknikler yalnız Tam Dönüşümde
+const TECH_NEED := [1, 3, 5, 6, 6, 6]   # 4-5: Bijū Ōgi epik teknikler yalnız Tam Dönüşümde; 6: canavara özgü ek (Byōen Hōka) yalnız Tam Dönüşümde
 
 
 func setup(combat: PlayerCombat) -> void:

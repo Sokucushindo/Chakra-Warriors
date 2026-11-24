@@ -1015,38 +1015,30 @@ static func _explosion(pos: Vector3, s := 1.0, col := Color(1.0, 0.55, 0.15)) ->
 
 ## Amaterasu kara alevi: hedefi saran, yukarı yalayan sivri alev dilleri (iç siyah, kenar koyu mor)
 static func black_flames(size := 1.0) -> Node3D:
-	# Amaterasu (anime): bedeni saran, net konturlu, opak kara alev dilleri yukarı yalar ve titrer; kenarlarda koyu mor çizgi.
-	# (eskiden yalnız ince parçacık çizgileriydi: duman tütüyor gibiydi, ateş gibi değil)
+	# Amaterasu (anime): bedeni saran, net, opak kara alev dilleri yukarı yalar ve titrer; kenarlarda koyu mor kontur.
+	# 2026-11-24: Katon'un opak alev yapısıyla (kara palet): dil kartları + tabanda kara alev topakları + kopup yükselen kara alev
+	# topakları (eski ortak ateş malzemesi ve duman dokulu parçacıklar kaldırıldı)
 	var root = Node3D.new()
-	var fm = mat_fire("black", 3.0, 2.0, 0.44, 1.0, 0.34, Vector3.UP)
-	var n = 12
-	for k in n + 1:
-		var core = k == n
-		var tongue = _mi(_tongue_mesh(k % 3), fm)
-		tongue.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		var a = TAU * k / n + randf_range(-0.25, 0.25)
-		var rr = 0.0 if core else randf_range(0.26, 0.4) * size
-		tongue.position = Vector3(cos(a) * rr, -0.05 * size, sin(a) * rr)
-		tongue.rotation.y = a + PI * 0.5 + randf_range(-0.4, 0.4)
-		if not core:   # dış diller dışa doğru açılır (yelpaze gibi yalayan alev)
-			tongue.rotate(Vector3(-sin(a), 0, cos(a)).normalized(), randf_range(0.12, 0.32))
-		var h = (2.2 if core else randf_range(0.9, 2.0)) * size
-		var w = (0.7 if core else randf_range(0.38, 0.58)) * size
-		tongue.scale = Vector3(w, h, w)
-		root.add_child(tongue)
-		# titreme: boy uzayıp kısalır, uç yana savrulur (her dil kendi ritminde)
-		var per = randf_range(0.22, 0.4)
-		var tw = Game.safe_loops(tongue.create_tween())
-		tw.tween_property(tongue, "scale", Vector3(w * 0.9, h * 1.12, w * 0.9), per).set_trans(Tween.TRANS_SINE)
-		tw.tween_property(tongue, "scale", Vector3(w * 1.05, h * 0.86, w * 1.05), per).set_trans(Tween.TRANS_SINE)
-	# kopup yükselen kara alev topakları (mor konturlu cel) + az kara duman
-	var q = FX.burst(Vector3.UP * 0.4 * size, {"parent": root, "local": true, "amount": 14, "life": 0.6, "tex": FX.tex_smoke, "add": false, "cel": true,
-		"size": 0.75 * size, "radius": 0.35 * size, "vmin": 1.5 * size, "vmax": 3.2 * size, "dir": Vector3.UP, "spread": 18.0, "gravity": Vector3(0, 2.5, 0), "explosive": 0.0,
-		"hot": 0.0, "glow": 0.0, "outline": 0.05, "rough": 0.25, "outline_col": Color(0.42, 0.08, 0.5), "scale_curve": [[0.0, 0.5], [0.3, 1.0], [1.0, 0.2]],
-		"colors": [Color(0.03, 0.0, 0.05, 1), Color(0.05, 0.01, 0.08, 1), Color(0.08, 0.02, 0.12, 0.0)]})
-	if q:
-		q.one_shot = false
-	_black_fire_particles(root, size * 0.7, 0.35 * size, 0.4)
+	# kaynak (anime): sık dizilmiş, ince, uzun, dalgalı kara alev dilleri (saç teli gibi yukarı yalar); topak yok
+	var n = 16
+	for k in n:
+		var a = TAU * k / n + randf_range(-0.2, 0.2)
+		var rr = randf_range(0.12, 0.38) * size
+		var out = Vector3(cos(a), 0, sin(a))
+		var h = randf_range(1.1, 2.3) * size
+		var w = randf_range(0.2, 0.32) * size
+		var tg = KatonLib.tongue_mi(h, w, (Vector3.UP + out * 0.18).normalized(), KatonLib.PAL_BLACK, 2, randf_range(-0.3, 0.3), 1.15)
+		tg.position = out * rr - Vector3.UP * 0.05 * size
+		root.add_child(tg)
+	# kopup yükselen ince kara alev dilleri (yerinde yanar; düğüm silinince durur)
+	var tw = Game.safe_loops(root.create_tween(), 400)
+	tw.tween_interval(0.12)
+	tw.tween_callback(func():
+		if not root.is_inside_tree():
+			return
+		var sc = root.get_tree().current_scene
+		var p = root.global_position + Vector3(randf_range(-0.35, 0.35) * size, randf_range(0.2, 1.0) * size, randf_range(-0.35, 0.35) * size)
+		KatonLib.tongue(sc, p, randf_range(0.8, 1.4) * size, 0.22 * size, 0.45, Vector3.UP, Vector3.UP * 2.0 * size, KatonLib.PAL_BLACK, 2, 1.15))
 	return root
 
 

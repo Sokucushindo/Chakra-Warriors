@@ -20,6 +20,7 @@ const TECHS := {
 		{"key": "kaen_breath", "name": "Kaen: Mavi Alev Nefesi", "desc": "Sürekli mavi alev akışı, yakar", "cd": 12.0, "cost": 28.0},
 		{"key": "aobi_rinkaku", "name": "Ao-bi Rinkaku", "desc": "Hedefin çevresine kaçış yolu bırakmayan mavi alev halkası; ortası patlar", "cd": 22.0, "cost": 55.0, "epic": true},
 		{"key": "bakeneko_rengeki", "name": "Bakeneko Rengeki", "desc": "Hedefe üç kez art arda mavi alevli sıçrayış, ardında alev izi", "cd": 16.0, "cost": 45.0, "epic": true},
+		{"key": "byoen_hoka", "name": "Byōen Hōka", "desc": "Ağızdan binayı yıkıp betonu eriten dev ateş topu (kanon: Yugito, Matatabi'ye dönüşmüşken)", "cd": 10.0, "cost": 30.0},
 	],
 	"isobu": [
 		{"key": "sango", "name": "Sango: Mercan Büyütme", "desc": "Yerden mercan fışkırır: hedefi hapseder, mercan duvar olarak kalır", "cd": 9.0, "cost": 22.0},
@@ -147,6 +148,7 @@ static func use(user: Node3D, id: String, key: String, ctx: Dictionary) -> void:
 		"suna_tate": _suna_tate(user, c)
 		"neko_pounce": _neko_pounce(user, c)
 		"aobi_dama": _aobi_dama(user, c)
+		"byoen_hoka": _byoen_hoka(user, c)
 		"kaen_breath": _kaen_breath(user, c)
 		"sango": _sango(user, c)
 		"shell_roll": _shell_roll(user, c)
@@ -824,6 +826,36 @@ static func _aobi_dama(user: Node3D, c: Dictionary) -> void:
 				BijuMatatabiFX.pop(pos, s)
 				_blue_patch(user, pos, s, dmg * 0.12)
 			_shot(user, from, vel, 0.7 * s, {"dmg": dmg * 0.45, "element": "katon", "burn": 3.0, "knock": 10.0, "launch": 3.0, "kind": "heavy"}, BijuMatatabiFX.fireball(0.8 * s), oh, g, 3.0))
+
+
+## Byōen Hōka (kanon: Yugito, Matatabi'ye tam dönüşmüşken): dev canavarın ağzından tek, dev ateş topu; Gōkakyū'nün ateş topu
+## dili (sarmal gövde + akan taç) ve Storm patlaması; binayı yıkacak güçte. Oyuncu ve düşman jinchūriki aynı yoldan kullanır.
+static func _byoen_hoka(user: Node3D, c: Dictionary) -> void:
+	var s: float = c["s"]
+	var from: Vector3 = c["from"]
+	var aim: Vector3 = c["aim"]
+	var dmg: float = c["dmg"]
+	var R = 2.6 * s
+	var dir = (aim - from).normalized()
+	Sfx.play("roar", from, 1.0)
+	Sfx.play("fire", from, 0.6)
+	KatonLib.flash_ball(user.get_tree().current_scene, from + dir * R, R * 1.2, KatonLib.PAL_FIRE)
+	var ball = KatonLib.fireball_node(R, KatonLib.PAL_FIRE, 1.0)
+	var host = user.get_tree().current_scene
+	var oh = func(pos: Vector3, _t: Node3D) -> void:
+		KatonLib.fireball_impact(host, pos, R * 1.2, KatonLib.PAL_FIRE)
+		KatonLib.scorch(host, KatonLib.floor_at(pos), R * 2.2, 8.0)
+		WorldDamage.impact(pos, R * 1.6, {"dmg": dmg, "element": "katon", "kind": "heavy"})
+		if Game.world:
+			Game.world.env.add_shake(0.9)
+	var pr = _shot(user, from + dir * R * 1.2, dir * 26.0 * maxf(0.6, sqrt(s)), R * 0.8, {"dmg": dmg * 1.1, "element": "katon", "burn": 3.0, "knock": 16.0, "launch": 6.0, "kind": "heavy"}, ball, oh, 0.0, 3.5)
+	var tst = {}
+	if pr:
+		var old_tick = pr.on_tick
+		pr.on_tick = func(pp: Projectile, dt: float) -> void:
+			if old_tick.is_valid():
+				old_tick.call(pp, dt)
+			KatonLib.fireball_tick(host, ball, pp.global_position, pp.vel, R, tst, dt, KatonLib.PAL_FIRE)
 
 
 static func _kaen_breath(user: Node3D, c: Dictionary) -> void:

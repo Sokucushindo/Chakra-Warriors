@@ -854,7 +854,12 @@ const PANIM := {
 	"iatsu_sharingan": {"base": "sense", "pre": 0.3, "post": 0.6, "wind": {"R": [Vector3(-0.85, -0.45, 0.1), Vector3(-0.9, -0.3, 0.2), Vector3(-0.9, -0.2, 0.3)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0]}, "rel": {"R": [Vector3(-0.85, -0.45, 0.1), Vector3(-0.9, -0.3, 0.2), Vector3(-0.9, -0.2, 0.3)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": -6.0, "neck": -14.0}},
 	"magen_shinkarasu": {"base": "seal", "pre": 0.4, "post": 0.6, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 4.0}},
 	"magen_kasegui_no_jutsu": {"base": "seal", "pre": 0.4, "post": 0.6, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.0, 1.5, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}},
-	"katon_goukakyuu": {"base": "breath", "pre": 0.55, "post": 0.9, "wind": {"R": [Vector3(-0.25, -0.55, 0.8), Vector3(0.75, 0.6, 0.25), Vector3(0.5, 0.8, 0.3)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.9, 1.4, 1.4, 1.4, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9], "spine": -22.0, "neck": -18.0}, "rel": {"R": [Vector3(-0.3, -0.5, 0.8), Vector3(0.6, 0.7, 0.35), Vector3(0.3, 0.9, 0.3)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [0.9, 1.4, 1.4, 1.4, 0.9], "fL": [0, 0, 0, 0, 0], "spine": 24.0, "neck": 14.0}},
+	# Storm 4 (Itachi/Obito Gōkakyū, _tmp/vs/stit*, stob*): yana dönüp sağ el halka yapıp ağza → derin geriye kavis (nefes) →
+	# bir anda öne atılıp üfler, ateş akarken öne eğik bekler
+	"katon_goukakyuu": {"base": "breath", "pre": 0.8, "post": 0.95,
+		"wind0": {"R": [Vector3(-0.3, -0.45, 0.85), Vector3(0.8, 0.55, 0.2), Vector3(0.45, 0.85, 0.3)], "fR": [0.85, 1.45, 1.45, 1.45, 0.95], "L": [Vector3(0.35, -0.85, -0.35), Vector3(0.15, -0.9, -0.4), Vector3(0.0, -1.0, -0.1)], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": -6.0, "neck": -4.0, "hips_yaw": 28.0},
+		"wind": {"R": [Vector3(-0.3, -0.35, 0.88), Vector3(0.8, 0.6, 0.05), Vector3(0.45, 0.85, 0.15)], "fR": [0.85, 1.45, 1.45, 1.45, 0.95], "L": [Vector3(0.45, -0.75, -0.5), Vector3(0.2, -0.8, -0.55), Vector3(0.0, -1.0, -0.2)], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": -32.0, "neck": -26.0, "hips_yaw": 22.0, "crouch": 0.18},
+		"rel": {"R": [Vector3(-0.3, -0.5, 0.82), Vector3(0.75, 0.6, 0.3), Vector3(0.4, 0.8, 0.45)], "fR": [0.85, 1.45, 1.45, 1.45, 0.95], "L": [Vector3(0.4, -0.8, -0.45), Vector3(0.2, -0.85, -0.5), Vector3(0.0, -1.0, -0.2)], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 14.0, "neck": -6.0, "hips_yaw": 10.0, "crouch": 0.22}},
 	"katon_housenka": {"base": "breath", "pre": 0.35, "post": 0.8, "wind": {"R": [Vector3(-0.25, -0.55, 0.8), Vector3(0.75, 0.6, 0.25), Vector3(0.5, 0.8, 0.3)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.9, 1.4, 1.4, 1.4, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9], "spine": -15.0}, "rel": {"R": [Vector3(-0.3, -0.5, 0.8), Vector3(0.6, 0.7, 0.35), Vector3(0.3, 0.9, 0.3)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [0.9, 1.4, 1.4, 1.4, 0.9], "fL": [0, 0, 0, 0, 0], "spine": 18.0, "hips_yaw": -15.0}},
 	"katon_karyuu": {"base": "breath", "pre": 0.5, "post": 1.0, "wind": {"R": [Vector3(-0.25, -0.55, 0.8), Vector3(0.75, 0.6, 0.25), Vector3(0.5, 0.8, 0.3)], "L": [Vector3(0.25, -0.55, 0.8), Vector3(-0.75, 0.6, 0.25), Vector3(-0.5, 0.8, 0.3)], "fR": [0.9, 1.4, 1.4, 1.4, 0.9], "fL": [0.9, 1.4, 1.4, 1.4, 0.9], "spine": -20.0, "neck": -15.0}, "rel": {"R": [Vector3(-0.9, 0.4, 0.15), Vector3(-0.9, 0.35, 0.2), Vector3(-0.9, 0.3, 0.2)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 26.0, "neck": 12.0}},
 	"suiton_suiryuudan": {"base": "seal", "pre": 0.7, "post": 1.0, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.2, 0.8, 0.55), Vector3(-0.1, 0.85, 0.5), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.2, 0.8, 0.55), Vector3(0.1, 0.85, 0.5), Vector3(-0.0, 0.9, 0.4)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -8.0}},
@@ -13816,22 +13821,7 @@ func p_katon_karura(c: Node3D, t: Node3D) -> void:
 
 
 func p_katon_hikakure(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.4)
-	var on_fire = GroundFX.kind_at(c.global_position) == "burning"
-	var dur = 9.0 if on_fire else 4.0
-	var h = Node3D.new()
-	scene_add(h, gp(c.global_position))
-	_fire_tongues(h, 0.8, 1.6, 0.6, 30)
-	fade_free(h, 1.2, 0.2)
-	if c is Player:
-		Buffs.add("katon_hikakure", dur, {"stealth": 1.0})
-	var m = c.get("model")
-	if m:
-		m.visible = false
-		after(dur, func():
-			if is_instance_valid(m):
-				m.visible = true)
-	Sfx.play("fire", c.global_position, 1.2)
+	KatonFXB.katon_hikakure(self, c, t)
 
 
 func p_gamayu_endan(c: Node3D, t: Node3D) -> void:
@@ -13859,25 +13849,7 @@ func p_katon_enryuheki(c: Node3D, t: Node3D) -> void:
 
 
 func p_katon_hobaku_en(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.6)
-	var tt = tg(c, t, 22.0)
-	if not tt:
-		return
-	var h = Node3D.new()
-	tt.add_child(h)
-	for i in 10:
-		var a = TAU * i / 10.0
-		var f = Node3D.new()
-		h.add_child(f)
-		f.position = Vector3(cos(a), 0.1, sin(a)) * 1.4
-		_fire_tongues(f, 0.2, 1.4, 2.0, 6)
-	fade_free(h, 2.4, 0.2)
-	if tt.has_method("apply_status"):
-		tt.apply_status("bind", 2.0)
-	every(2.0, 0.5, func(_i, _k):
-		if live(tt):
-			hit(c, tt.global_position + Vector3.UP, tt.radius + 0.3, inf(c, "katon_hobaku_en", 0.35, {"knock": 0.0, "kind": "light", "element": "katon", "burn": 1.5})), Callable())
-	Sfx.play("fire", tt.global_position, 0.9)
+	KatonFXB.katon_hobaku_en(self, c, t)
 
 
 func p_katon_enarare(c: Node3D, t: Node3D) -> void:

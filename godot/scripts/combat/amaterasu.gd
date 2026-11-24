@@ -49,8 +49,10 @@ static func ignite(owner: Node3D, target: Node3D, pos: Vector3, dur: float, info
 		spot["node"] = fl
 	VFX.black_smolder(pos, 1.8, minf(dur, 8.0))
 	# tutuşma anı: odakta kara alev patlar (mor konturlu kor)
-	VFX.puffs(pos + Vector3.UP, {"amount": 26, "life": 0.7, "size": 1.3, "vmin": 1, "vmax": 4, "gravity": Vector3(0, 3, 0), "glow": 1.0,
-		"outline_col": Color(0.4, 0.05, 0.45), "colors": [Color(0.12, 0.02, 0.15, 1), Color(0.05, 0.0, 0.08, 1), Color(0.02, 0.0, 0.03, 0)]})
+	var sc = _tree().current_scene
+	for k in 9:   # tutuşma anı: odakta ince kara alev dilleri fışkırır (topak değil: kaynakta kara alev hep tel tel dildir)
+		var a = randf() * TAU
+		KatonLib.tongue(sc, pos + Vector3(cos(a), 0, sin(a)) * randf_range(0.1, 0.5) + Vector3.UP * 0.2, randf_range(1.6, 2.6), 0.3, 0.55, Vector3(cos(a) * 0.2, 1, sin(a) * 0.2), Vector3.UP * 2.5, KatonLib.PAL_BLACK, 2, 1.15)
 	spots.append(spot)
 	_schedule(spot)
 	return spot
@@ -89,7 +91,7 @@ static func _tick(spot: Dictionary) -> void:
 					inf["dir"] = Vector3.UP
 					tg.take_hit(inf)
 				if randf() < 0.3:
-					VFX.embers(p + Vector3.UP, Color(0.5, 0.12, 0.6), 2, 2.5, 0.7)
+					KatonLib.embers(_tree().current_scene, p + Vector3.UP, 2, 0.3, KatonLib.PAL_BLACK, {"vmin": 1.0, "vmax": 2.5, "life": 0.7})
 	else:
 		# yerdeki alev: içine giren tutuşur (yayılır)
 		if _alive(owner):

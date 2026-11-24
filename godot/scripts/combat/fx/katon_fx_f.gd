@@ -334,7 +334,7 @@ static func susanoo_gokakyu(_pj_unused, c: Node3D, t: Node3D) -> void:
 	# toplanma: ağız önünde sarmal kor akışı ve küçük kabaran kütle
 	var mouth0 = sn.mouth(d)
 	KatonLib.spiral_in(host, mouth0, 0.0, 0.6, 12, 1.2 + S * 0.4)
-	KatonLib.mass(host, mouth0 + d * 0.4 * S, 0.2 * S, 0.7 * S, 0.65, Vector3.ZERO, 0.0, 1.1)
+	KatonLib.fire_puff(host, mouth0 + d * 0.4 * S, 0.2 * S, 0.7 * S, 0.65, Vector3.ZERO, KatonLib.PAL_FIRE, 1.15, 0.6)
 	Sfx.play("fire", c.global_position, 0.5, 0.6)
 	MsArts._later(0.65, func():
 		if not (is_instance_valid(c) and is_instance_valid(sn)):
@@ -343,22 +343,12 @@ static func susanoo_gokakyu(_pj_unused, c: Node3D, t: Node3D) -> void:
 		var from = sn.mouth(d)
 		var to: Vector3 = aim.call()
 		var R = 1.6 + S * 0.5
-		var ball = Node3D.new()
-		ball.add_child(KatonLib.sun_mi(R, 0.0, 1.05, 1.4))
-		for k in 10:
-			var a = k * TAU / 10.0
-			var ax = Vector3(cos(a), sin(a) * 0.6 + 0.3, sin(a)).normalized()
-			var tgm = KatonLib.tongue_mi(R * 0.9, R * 0.55, ax, 0.0, 5, 0.0, 1.0)
-			tgm.position = ax * R * 0.75
-			ball.add_child(tgm)
+		var ball = KatonLib.fireball_node(R, KatonLib.PAL_FIRE, 1.0)   # Gōkakyū'nün ateş topu dili (sarmal gövde + taç)
+		KatonLib.flash_ball(host, from, R * 0.9, KatonLib.PAL_FIRE)
 		var inf = Jutsu._inf(c, "susanoo_gokakyu", 3.0, {"knock": 18.0, "launch": 8.0, "kind": "heavy", "element": "katon", "burn": 5.0})
 		var pr = MsArts._pj().shot(c, from, (to - from).normalized(), 20.0 + S, ball, inf, tg, false, 3.0, func(p, _h):
 			# yassı dev alev çiçeği: yere yatık halka diller + basık kütleler + kavruk iz
-			for k in 12:
-				var a = k * TAU / 12.0
-				var ax = Vector3(cos(a), 0.45, sin(a)).normalized()
-				KatonLib.tongue(host, p, randf_range(2.5, 3.6) * (1.0 + S * 0.2), 1.6, 0.7, ax, ax * 2.0)
-			KatonLib.mass(host, p, 0.6, 2.4 + S * 0.4, 0.8, Vector3.UP * 1.5, 0.0, 1.2, 1.0, 0.6)
+			KatonLib.fireball_impact(host, p, R * 1.1, KatonLib.PAL_FIRE)
 			KatonLib.scorch(host, KatonLib.floor_at(p) + Vector3.UP * 0.05, 4.0 + S * 0.5, 6.0)
 			KatonLib.light(host, p, Color(1.0, 0.6, 0.2), 8.0, 24.0, 0.5)
 			KatonFXC._blast_marks(p, 2.0 + S * 0.3)
@@ -366,6 +356,9 @@ static func susanoo_gokakyu(_pj_unused, c: Node3D, t: Node3D) -> void:
 			MsArts._shake(1.4))
 		pr.radius = 1.5 + S * 0.35
 		pr.homing_turn = 1.0
+		var fst = {}
+		pr.on_tick = func(pp: Projectile, dt: float) -> void:
+			KatonLib.fireball_tick(host, ball, pp.global_position, pp.vel, R, fst, dt, KatonLib.PAL_FIRE)
 		ball.scale = Vector3.ONE * 0.2
 		ball.create_tween().tween_property(ball, "scale", Vector3.ONE, 0.25).set_trans(Tween.TRANS_BACK)
 		Sfx.play("fire", from, 0.4))

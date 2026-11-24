@@ -132,7 +132,7 @@ const LEGENDS := [
 	{"key": "byakuren", "name": "Hyūga Byakuren", "alias": "Ak Göz", "v": "konoha", "clan": "hyuga", "el": "", "minlv": 35, "lv": 58, "wander": false,
 		"eye": 2, "j": [], "hair": "yele", "hc": Color(0.1, 0.09, 0.09), "top": Color(0.85, 0.82, 0.75), "f": true, "crime": "Kafes Kuş Mühürü'nü kırıp yan aileden kaçtı"},
 	{"key": "nekome", "name": "Mikazuki Nekome", "alias": "Kedi Alevi", "v": "kusa", "el": "katon", "minlv": 25, "lv": 40, "wander": true,
-		"j": ["byoen_hoka", "nezumi_kedama", "katon_goukakyuu"], "hair": "topuz", "hc": Color(0.55, 0.55, 0.6), "top": Color(0.45, 0.25, 0.4), "f": true,
+		"j": ["katon_housenka", "nezumi_kedama", "katon_goukakyuu"], "hair": "topuz", "hc": Color(0.55, 0.55, 0.6), "top": Color(0.45, 0.25, 0.4), "f": true,
 		"crime": "Daimyo sarayından kedi parşömenini kaçırdı"},
 	{"key": "jinkai", "name": "Ōkabe Jinkai", "alias": "Toz Hükümdarı", "v": "iwa", "el": "doton", "minlv": 55, "lv": 80, "wander": false,
 		"j": ["doton_kajugan_no_jutsu", "doton_chokajugan_no_jutsu"], "nat": ["jinton"], "hair": "kel", "hc": Color(0.8, 0.8, 0.8),

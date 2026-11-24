@@ -1056,6 +1056,8 @@ func _max_tokens() -> int:
 func _beast_tech(d: float) -> void:
 	var bid: String = arch["beast"]
 	var key = BijuuArts.pick_key(bid, d, 1.0)
+	if key == "byoen_hoka":
+		return   # kanon: Byōen Hōka yalnız Matatabi'ye tam dönüşmüşken (insan hâlindeki kaftanlı jinchūriki atamaz)
 	if key == "" or target == null:
 		return
 	state = "recover"

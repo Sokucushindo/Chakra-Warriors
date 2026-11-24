@@ -2190,9 +2190,17 @@ func j_amaterasu(c: Node3D, t: Node3D) -> void:
 
 
 ## Kara alevden bir şekil (mızrak/kılıç/magatama): kara alev malzemesiyle yanan geometri
-func _black_mat() -> ShaderMaterial:
-	var m = VFX.mat_fire("black", 3.0, 2.6, 0.55, 1.0, 0.2, Vector3.UP, true)
-	m.set_shader_parameter("tongue", 0.5)
+func _black_mat() -> Material:
+	# Enton biçimlendirmesi: katılaşmış kara alev — zifiri gövde, kenarda koyu mor parıltı (ortak ateş malzemesi değil)
+	var m = StandardMaterial3D.new()
+	m.albedo_color = Color(0.015, 0.005, 0.025)
+	m.roughness = 0.5
+	m.rim_enabled = true
+	m.rim = 1.0
+	m.rim_tint = 0.0
+	m.emission_enabled = true
+	m.emission = Color(0.22, 0.04, 0.3)
+	m.emission_energy_multiplier = 0.35
 	return m
 
 
@@ -2231,7 +2239,7 @@ func j_enton_kagutsuchi(c: Node3D, t: Node3D) -> void:
 					var near = Combat.nearest_enemy(c, 40.0)
 					tgt = near if near else foe
 				var aim: Vector3 = (tgt.global_position + Vector3.UP * float(tgt.height) * 0.5) if tgt and is_instance_valid(tgt) else from + c.face_dir() * 10.0
-				_kagutsuchi_spear(c, from + Vector3(randf_range(-0.6, 0.6), randf_range(0.0, 0.8), randf_range(-0.6, 0.6)), aim, 0.25 + k * 0.12, inf, tick_inf)
+				_kagutsuchi_spear(c, from + Vector3(randf_range(-0.6, 0.6), randf_range(0.0, 0.8), randf_range(-0.6, 0.6)), aim, 0.25 + k * 0.12, inf, tick_inf, tgt)
 		if c is Player:
 			Hud.msg("Kagutsuchi: kara alevler şekil aldı", Color(0.75, 0.5, 0.9), 1.2)
 		return
@@ -2269,7 +2277,7 @@ func j_enton_kagutsuchi(c: Node3D, t: Node3D) -> void:
 			return
 		for n in get_tree().current_scene.get_children():
 			if n is Projectile and not n.dead and n.shooter != c and Combat.hostile(c, n.shooter) and n.global_position.distance_to(center + Vector3.UP * 1.2) < 3.0:
-				VFX.embers(n.global_position, Color(0.6, 0.15, 0.7), 10, 4.0, 0.6)
+				KatonLib.embers(get_tree().current_scene if is_inside_tree() else Game.world, n.global_position, 10, 0.4, KatonLib.PAL_BLACK, {"vmin": 4.0 * 0.4, "vmax": 4.0, "life": 0.6})
 				n.block()
 		if i % 3 == 0:
 			for h in Combat.hit_sphere(c, center + Vector3.UP * 1.0 + d * 0.8, 2.6, inf):
@@ -2281,7 +2289,7 @@ func j_enton_kagutsuchi(c: Node3D, t: Node3D) -> void:
 
 
 ## Kara alev mızrağı: alevden biçimlenir, kısa bekler, hedefe fırlar; değdiği yerde Amaterasu tutuşur
-func _kagutsuchi_spear(c: Node3D, from: Vector3, aim: Vector3, delay: float, inf: Dictionary, tick_inf: Dictionary) -> void:
+func _kagutsuchi_spear(c: Node3D, from: Vector3, aim: Vector3, delay: float, inf: Dictionary, tick_inf: Dictionary, tgt: Node3D = null) -> void:
 	var mb = MB.new()
 	mb.add("cone", Vector3(0, 0, -1.1), Vector3(0.16, 1.6, 0.16), Color.WHITE, Vector3(-90, 0, 0), 8)
 	mb.add("cyl", Vector3(0, 0, 0.6), Vector3(0.09, 2.2, 0.09), Color.WHITE, Vector3(90, 0, 0), 8)
@@ -2296,16 +2304,28 @@ func _kagutsuchi_spear(c: Node3D, from: Vector3, aim: Vector3, delay: float, inf
 	sp.scale = Vector3.ONE * 0.05
 	if from.distance_to(aim) > 0.1:
 		sp.look_at(aim, Vector3.UP if absf((aim - from).normalized().y) < 0.95 else Vector3.RIGHT)
-	var end = aim + Vector3(randf_range(-0.5, 0.5), randf_range(-0.3, 0.3), randf_range(-0.5, 0.5))
+	var off = Vector3(randf_range(-0.4, 0.4), randf_range(-0.3, 0.3), randf_range(-0.4, 0.4))
+	var st = {"end": aim + off}
+	var live_end = func() -> Vector3:   # fırlarken hedefin ŞİMDİKİ yerine gider (eskiden eski konuma gidip ıskalıyordu)
+		if tgt != null and is_instance_valid(tgt) and not tgt.is_dead():
+			st["end"] = tgt.global_position + Vector3.UP * float(tgt.get("height") if tgt.get("height") != null else 1.8) * 0.5 + off * 0.5
+		return st["end"]
 	var tw = sp.create_tween()
 	tw.tween_property(sp, "scale", Vector3.ONE, 0.2).set_trans(Tween.TRANS_BACK)
 	tw.tween_interval(delay)
-	tw.tween_property(sp, "global_position", end, clampf(from.distance_to(end) / 55.0, 0.08, 0.9))
+	tw.tween_method(func(u: float) -> void:
+		if not is_instance_valid(sp):
+			return
+		var e: Vector3 = live_end.call()
+		sp.global_position = from.lerp(e, u)
+		if from.distance_to(e) > 0.2:
+			sp.look_at(e, Vector3.UP if absf((e - from).normalized().y) < 0.95 else Vector3.RIGHT), 0.0, 1.0, clampf(from.distance_to(aim) / 55.0, 0.08, 0.9))
 	tw.tween_callback(func():
+		var end: Vector3 = st["end"]
 		if is_instance_valid(c):
 			for h in Combat.hit_sphere(c, end, 1.5, inf):
 				Amaterasu.ignite(c, h, h.global_position, 6.0, tick_inf)
-		VFX.embers(end, Color(0.6, 0.15, 0.7), 10, 4.0, 0.8))
+		KatonLib.embers(get_tree().current_scene if is_inside_tree() else Game.world, end, 10, 0.4, KatonLib.PAL_BLACK, {"vmin": 4.0 * 0.4, "vmax": 4.0, "life": 0.8}))
 	tw.tween_property(sp, "scale", Vector3.ONE * 0.01, 0.25)
 	tw.tween_callback(sp.queue_free)
 
@@ -2356,7 +2376,7 @@ func j_enton_yasaka_no_magatama(c: Node3D, t: Node3D) -> void:
 					_ignite(h, 7.0)
 				VFX.shockwave(tgt, Color(0.2, 0.0, 0.25), 4.0, 0.5, false)
 				VFX.black_smolder(_ground(tgt), 2.0, 6.0)
-				VFX.embers(tgt, Color(0.6, 0.15, 0.7), 14, 5.0, 0.9)
+				KatonLib.embers(get_tree().current_scene if is_inside_tree() else Game.world, tgt, 14, 0.4, KatonLib.PAL_BLACK, {"vmin": 5.0 * 0.4, "vmax": 5.0, "life": 0.9})
 				mi.queue_free()))
 	get_tree().create_timer(2.0).timeout.connect(holder.queue_free)
 
@@ -2380,8 +2400,10 @@ func j_amaterasu_entenka(c: Node3D, t: Node3D) -> void:
 		fl.scale = Vector3.ONE * 0.05
 		fl.create_tween().tween_property(fl, "scale", Vector3.ONE, 0.35).set_trans(Tween.TRANS_BACK)
 		flames.append(fl)
-	VFX.puffs(c.global_position + Vector3.UP * sn.h() * 0.4, {"amount": 30, "life": 0.7, "size": 1.0 + sn.h() * 0.05, "radius": sn.h() * 0.2, "vmin": 1, "vmax": 4,
-		"gravity": Vector3(0, 3, 0), "glow": 1.0, "outline_col": Color(0.4, 0.05, 0.45), "colors": [Color(0.12, 0.02, 0.15, 1), Color(0.05, 0.0, 0.08, 1), Color(0.02, 0.0, 0.03, 0)]})
+	for k in 10:   # tutuşma: Susanoo'nun gövdesinden kara alev dilleri fışkırır
+		var a = randf() * TAU
+		var p = c.global_position + Vector3(cos(a), 0, sin(a)) * sn.h() * 0.18 + Vector3.UP * sn.h() * randf_range(0.2, 0.6)
+		KatonLib.tongue(get_tree().current_scene, p, randf_range(1.5, 2.6) + sn.h() * 0.05, 0.4, 0.6, Vector3.UP, Vector3.UP * 3.0, KatonLib.PAL_BLACK, 2, 1.15)
 	if c is Player:
 		Buffs.add("entenka", DUR, {"_name": "Amaterasu: Entenka", "_desc": "Susanoo kara alevle kaplı: ek kalkan, yaklaşan tutuşur"})
 	elif c.has_method("add_buff"):

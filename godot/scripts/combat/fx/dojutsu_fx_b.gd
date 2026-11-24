@@ -2692,8 +2692,16 @@ static func _tensha_burst(c: Node3D, m: Node3D) -> void:
 	var dl = to.length()
 	for k in 3:
 		var d = (to.normalized() + Vector3(randf_range(-0.08, 0.08), randf_range(-0.05, 0.08), randf_range(-0.08, 0.08))).normalized()
-		_flame_tongue(host, eye + fd * 0.2, 0.35, minf(dl, 6.0) * randf_range(0.6, 1.0), 0.45,
-			Color(0.02, 0.0, 0.02), Color(0.1, 0.0, 0.06), Color(0.65, 0.05, 0.3), d)
+		# gözden hedefe uzanan opak kara alev dili (Amaterasu kara paleti)
+		var L = minf(dl, 6.0) * randf_range(0.6, 1.0)
+		var tg = KatonLib.tongue_mi(L * 0.2, 0.3, d, KatonLib.PAL_BLACK, 2, 0.0, 1.15)
+		_put(host, tg, eye + fd * 0.2)
+		var b0 = tg.basis
+		var tw2 = tg.create_tween()
+		tw2.tween_property(tg, "basis", KatonLib.axis_basis(d) * Basis.from_scale(Vector3(0.36, L, 0.36)), 0.12).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		tw2.tween_method(KatonLib.pf(tg, "heat"), 1.15, 0.0, 0.35)
+		tw2.tween_callback(tg.queue_free)
+		var _u = b0
 
 
 # ================================================================== Magen: Kyō Tenchi-ten

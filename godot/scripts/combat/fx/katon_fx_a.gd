@@ -109,14 +109,11 @@ static func katon_housenka(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		var vis = _housenka_body()
 		pr.add_child(vis)
 		var star: Node3D = vis.get_node("star")
-		var cnt = {"n": i}
+		var tst = {}
 		pr.on_tick = func(p: Projectile, dt: float) -> void:
 			if is_instance_valid(star):
 				star.rotate_object_local(Vector3.FORWARD, dt * 28.0)
-			cnt["n"] += 1
-			if cnt["n"] % 3 == 0:
-				var back = -p.vel.normalized()
-				KatonLib.tongue(pj, p.global_position + back * 0.4, randf_range(0.7, 1.0), 0.45, 0.22, (back + Vector3.UP * 0.25).normalized(), back * 2.0, KatonLib.PAL_FIRE, 3, 1.0)
+			KatonLib.fireball_tick(pj, vis, p.global_position, p.vel, 0.42, tst, dt, KatonLib.PAL_FIRE)
 		pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
 			_housenka_pop(pj, pos, pr.vel, pr.epic)
 		pj.get_tree().current_scene.add_child(pr)
@@ -125,19 +122,8 @@ static func katon_housenka(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 
 ## Uzamış küçük alev topu (-Z ileri): önde yoğun çekirdek, arkaya uzanan kuyruk kütlesi ve diller; içinde dönen şuriken
 static func _housenka_body() -> Node3D:
-	var root = Node3D.new()
-	var core = KatonLib.mass_mi(0.36, KatonLib.PAL_FIRE, 1.35, 1.8)
-	core.position = Vector3(0, 0, -0.05)
-	root.add_child(core)
-	var tail = KatonLib.mass_mi(0.3, KatonLib.PAL_FIRE, 1.0, 2.2)
-	tail.scale = Vector3(0.28, 0.28, 0.6)
-	tail.position = Vector3(0, 0.03, 0.45)
-	root.add_child(tail)
-	for k in 3:
-		var a = k * TAU / 3.0
-		var tg = KatonLib.tongue_mi(1.1, 0.42, Vector3(cos(a) * 0.3, sin(a) * 0.3, 1.0), KatonLib.PAL_FIRE, 3, 0.0, 1.05)
-		tg.position = Vector3(cos(a) * 0.12, sin(a) * 0.12, 0.15)
-		root.add_child(tg)
+	# Gōkakyū dili: küçük sarmal gövdeli ateş topu + akan taç (dışa açılan düz kart yok); içinde gizli şuriken
+	var root = KatonLib.fireball_node(0.42, KatonLib.PAL_FIRE, 0.7)
 	var star = Node3D.new()
 	star.name = "star"
 	star.position = Vector3(0, 0, -0.1)
@@ -157,12 +143,7 @@ static func _housenka_body() -> Node3D:
 static func _housenka_pop(pj: PathJutsu, pos: Vector3, vel: Vector3, ep: float) -> void:
 	var s = 0.45 * ep
 	var fwd = vel.normalized() if vel.length() > 0.1 else Vector3.FORWARD
-	KatonLib.mass(pj, pos, 0.3, 1.2 * s + 0.4, 0.4, Vector3.UP * 0.8, KatonLib.PAL_FIRE, 1.3, 2.0)
-	for k in 6:
-		var dv = (Vector3(randf_range(-1, 1), randf_range(-0.1, 1.0), randf_range(-1, 1)) + fwd * 0.6).normalized()
-		KatonLib.tongue(pj, pos, randf_range(0.8, 1.3) * (0.6 + s), 0.5, 0.35, dv, dv * 2.5, KatonLib.PAL_FIRE, 3)
-	KatonLib.embers(pj, pos, 14, 0.3, KatonLib.PAL_FIRE, {"vmin": 2.0, "vmax": 6.0, "spread": 120.0, "life": 0.9})
-	KatonLib.light(pj, pos, FIRE_L, 4.0, 6.0, 0.35)
+	KatonLib.fireball_impact(pj, pos, 0.5 + s * 0.6, KatonLib.PAL_FIRE)
 	var g = KatonLib.floor_at(pos)
 	if pos.y - g.y < 1.5:
 		KatonLib.scorch(pj, g, 0.9 + s, 3.0)
@@ -189,21 +170,14 @@ static func katon_endan(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 				# hazırlık: ağız önünde alev kabarır (yanaktan şişen sıcak)
 				KatonLib.mass(pj, from, 0.15, 0.45 + size * 0.3, 0.16, c.face_dir() * 1.5, KatonLib.PAL_FIRE, 1.4, 2.5)
 				var cnt = {"n": 0}
+				# Gōkakyū dili: sarmal gövdeli ateş topu + akan taç; arkasından soğuyup dumana dönen alev parçaları
+				var br = 0.5 + size * 0.5
 				var body_fn = func() -> Node3D:
-					var root = Node3D.new()
-					root.add_child(KatonLib.mass_mi(0.45 + size * 0.45, KatonLib.PAL_FIRE, 1.3, 2.4))
-					for q in 5:
-						var a = q * TAU / 5.0
-						var tg = KatonLib.tongue_mi((1.6 + randf() * 0.8) * size * 1.4, 0.9 * size, Vector3(cos(a) * 0.45, sin(a) * 0.45 + 0.2, 1.0), KatonLib.PAL_FIRE, 5, 0.15, 1.1)
-						tg.position = Vector3(cos(a), sin(a), 0.6) * 0.3 * size
-						root.add_child(tg)
+					var root = KatonLib.fireball_node(br, KatonLib.PAL_FIRE, 0.8)
+					cnt["node"] = root
 					return root
-				var tick_fn = func(p: Projectile, _dt: float) -> void:
-					cnt["n"] += 1
-					if cnt["n"] % 2 == 0:
-						var back = -p.vel.normalized()
-						var jit = Vector3(randf_range(-1, 1), randf_range(-1, 1), randf_range(-1, 1)) * 0.25 * size
-						KatonLib.mass(pj, p.global_position + back * 0.6 * size + jit, 0.3 * size, (0.8 + randf() * 0.3) * size, 0.42, back * 2.5 + Vector3.UP * 0.8, KatonLib.PAL_FIRE, 1.05, 1.6)
+				var tick_fn = func(p: Projectile, dt: float) -> void:
+					KatonLib.fireball_tick(pj, cnt.get("node"), p.global_position, p.vel, br, cnt, dt, KatonLib.PAL_FIRE)
 				var boom_fn = func(p: Vector3, ep: float) -> void:
 					_endan_splash(pj, p, (1.0 - k * 0.2) * ep)
 				_bolt(pj, c, "katon_endan", tt, from, size, 30.0, 0.35, {"burn": 2.5}, 1.0 - k * 0.2, 0.1, body_fn, tick_fn, boom_fn))
@@ -212,14 +186,7 @@ static func katon_endan(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 
 ## Yassı alev sıçraması: çarptığı yüzeye yayılan geniş diller + açılan kütle + kor + ısı dalgası + kavruk iz
 static func _endan_splash(pj: PathJutsu, p: Vector3, s: float) -> void:
-	KatonLib.mass(pj, p, 0.4 * s, 1.9 * s, 0.55, Vector3.UP * 1.2, KatonLib.PAL_FIRE, 1.35, 1.6)
-	for k in 10:
-		var a = k * TAU / 10.0 + randf() * 0.3
-		var dv = Vector3(cos(a), randf_range(0.1, 0.5), sin(a)).normalized()
-		KatonLib.tongue(pj, p, randf_range(1.2, 2.0) * s, 0.8 * s, 0.5, (dv + Vector3.UP * 0.6).normalized(), dv * 4.0 * s, KatonLib.PAL_FIRE, 5)
-	KatonLib.embers(pj, p, int(24 * s) + 6, 0.5 * s, KatonLib.PAL_FIRE, {"vmin": 3.0, "vmax": 8.0, "spread": 150.0})
-	KatonLib.shimmer(pj, p + Vector3.UP * 1.2 * s, 2.6 * s, 2.6 * s, 1.2)
-	KatonLib.light(pj, p, FIRE_L, 6.0 * s, 10.0 * s, 0.5)
+	KatonLib.fireball_impact(pj, p, 0.9 * s, KatonLib.PAL_FIRE)
 	var g = KatonLib.floor_at(p)
 	if p.y - g.y < 2.5:
 		KatonLib.scorch(pj, g, 2.0 * s, 5.0)
@@ -237,11 +204,7 @@ static func katon_enshodan(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			if not pj.live(c):
 				return
 			var from = pj._mouth_pos(c)
-			var b = Node3D.new()
-			b.add_child(KatonLib.mass_mi(0.26, KatonLib.PAL_FIRE, 1.6, 1.2))
-			var crown = KatonLib.tongue_mi(0.75, 0.42, Vector3(0, 0.6, 1.0), KatonLib.PAL_FIRE, 3, 0.0, 1.15)
-			b.add_child(crown)
-			b.add_child(KatonLib.glow_mi(KatonLib.pal_col(KatonLib.PAL_FIRE, 2), 1.3))
+			var b = KatonLib.fireball_node(0.32, KatonLib.PAL_FIRE, 0.6)   # Gōkakyū dili: akkor küçük ateş topu
 			var dir = (pj.aim_at(c, tt, from) + Vector3.UP * 0.9 + c.face_dir().cross(Vector3.UP) * (k - 1.5) * 0.3).normalized()
 			# kıvrılan iz şeridi: son konumların sarmal kaydırılmış dizisi (her iki karede yeniden kurulur)
 			var rib = KatonLib.ribbon_mi(PackedVector3Array([from, from + Vector3.UP * 0.01]), 0.16, KatonLib.PAL_FIRE, {"flow": 4.0, "tiles": 3.0, "rag": 0.45})
@@ -254,6 +217,10 @@ static func katon_enshodan(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 				_enshodan_pop(pj, p, rib)
 				_blast_marks(p, 0.7 * ep)
 			pr.on_tick = func(p: Projectile, _dt: float) -> void:
+				hist["t"] = float(hist.get("t", 0.0)) + _dt
+				if hist["t"] > 0.22:
+					p.homing_turn = 10.0   # yükselişten sonra hedefin üstüne dalar (eskiden üstünden geçip ıskalıyordu)
+				KatonLib.fireball_tick(pj, b, p.global_position, p.vel, 0.32, hist, _dt, KatonLib.PAL_FIRE)
 				var arr: Array = hist["pts"]
 				hist["n"] += 1
 				var ph = hist["n"] * 0.45
@@ -276,7 +243,7 @@ static func _enshodan_pop(pj: PathJutsu, p: Vector3, rib: MeshInstance3D) -> voi
 		var tw = rib.create_tween()
 		tw.tween_method(KatonLib.pf(rib, "heat"), 1.1, 0.0, 0.35)
 		tw.tween_callback(rib.queue_free)
-	KatonLib.mass(pj, p, 0.2, 0.95, 0.4, Vector3.UP, KatonLib.PAL_FIRE, 1.4, 2.2)
+	KatonLib.fireball_impact(pj, p, 0.45, KatonLib.PAL_FIRE)
 	KatonLib.light(pj, p, FIRE_L, 3.5, 6.0, 0.3)
 	for k in 6:
 		var a = k * TAU / 6.0 + randf() * 0.5
@@ -459,31 +426,44 @@ static func _fur_mat() -> ShaderMaterial:
 static func nezumi_kedama(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	pj.busy(c, 0.8)
 	var tt = pj.tg(c, t, 24.0)
-	for k in 5:
-		pj.after(k * 0.1, func():
+	for k in 3:
+		pj.after(k * 0.14, func():
 			if pj.live(c):
 				var from = pj._mouth_pos(c)
-				# hazırlık: dudakta mavi alev parlar
+				# hazırlık: dudakta mavi alev parlar (tükürük alevli kıl yumağına döner)
 				KatonLib.tongue(pj, from + c.face_dir() * 0.15, 0.5, 0.3, 0.2, (c.face_dir() + Vector3.UP * 0.3).normalized(), Vector3.ZERO, KatonLib.PAL_BLUE, 3)
-				var cnt = {"n": k}
-				var body_fn = func() -> Node3D:
-					return _rat()
-				var tick_fn = func(p: Projectile, _dt: float) -> void:
-					cnt["n"] += 1
-					var r: Node3D = p.get_child(0) if p.get_child_count() > 0 else null
-					if r and is_instance_valid(r):
-						# koşma: gövde zıplar, kuyruk kıvrılır
-						r.position.y = absf(sin(cnt["n"] * 0.55)) * 0.12
-						var tl = r.get_node_or_null("tail")
-						if tl:
-							tl.rotation.y = sin(cnt["n"] * 0.7) * 0.5
-					if cnt["n"] % 3 == 0:
-						var back = -p.vel.normalized()
-						KatonLib.tongue(pj, p.global_position + back * 0.5, randf_range(0.5, 0.8), 0.35, 0.25, (back + Vector3.UP * 0.3).normalized(), back * 1.5, KatonLib.PAL_BLUE, 3, 1.0)
-				var boom_fn = func(p: Vector3, ep: float) -> void:
-					_nezumi_burst(pj, p, 0.6 * ep)
-				_bolt(pj, c, "nezumi_kedama", tt, from, 0.6, 32.0, 0.25, {"burn": 1.5}, 0.6, 0.04, body_fn, tick_fn, boom_fn))
+				_nezumi_rat(pj, c, tt, from, 0))
 	Sfx.play("fire", c.global_position, 1.3)
+
+
+## Kanon: alevli kıl yumağı fare hedefi kovalar ve yolda durmadan ikiye bölünür (gen 0 → 2 → 4); çarpınca patlar
+static func _nezumi_rat(pj: PathJutsu, c: Node3D, tt: Node3D, from: Vector3, gen: int) -> void:
+	var sc = [1.0, 0.75, 0.55][gen]
+	var cnt = {"n": 0, "split": false}
+	var body_fn = func() -> Node3D:
+		var r = _rat()
+		r.scale = Vector3.ONE * 1.6 * sc
+		return r
+	var tick_fn = func(p: Projectile, _dt: float) -> void:
+		cnt["n"] += 1
+		var r: Node3D = p.get_child(0) if p.get_child_count() > 0 else null
+		if r and is_instance_valid(r):
+			# koşma: gövde zıplar, kuyruk kıvrılır
+			r.position.y = absf(sin(cnt["n"] * 0.55)) * 0.15 * sc
+			var tl = r.get_node_or_null("tail")
+			if tl:
+				tl.rotation.y = sin(cnt["n"] * 0.7) * 0.5
+		if gen < 2 and not cnt["split"] and cnt["n"] >= 9 + gen * 3:
+			cnt["split"] = true
+			KatonLib.tongue(pj, p.global_position, 0.8 * sc, 0.5 * sc, 0.25, Vector3.UP, Vector3.ZERO, KatonLib.PAL_BLUE, 3, 1.1)
+			for s2 in 2:
+				_nezumi_rat(pj, c, tt, p.global_position + p.vel.normalized().cross(Vector3.UP) * (s2 * 2 - 1) * 0.5, gen + 1)
+		if cnt["n"] % 3 == 0:
+			var back = -p.vel.normalized()
+			KatonLib.tongue(pj, p.global_position + back * 0.6 * sc, randf_range(0.5, 0.8) * sc, 0.35 * sc, 0.25, (back + Vector3.UP * 0.3).normalized(), back * 1.5, KatonLib.PAL_BLUE, 3, 1.0)
+	var boom_fn = func(p: Vector3, ep: float) -> void:
+		_nezumi_burst(pj, p, 0.6 * ep * sc)
+	_bolt(pj, c, "nezumi_kedama", tt, from, 0.5 * sc + 0.1, 30.0, [0.25, 0.14, 0.08][gen], {"burn": 1.5}, 0.6 * sc, 0.0, body_fn, tick_fn, boom_fn)
 
 
 ## Fare (-Z ileri): kara tüy gövde / baş / kulak / burun, ince kuyruk; çevresinde arkaya akan mavi alev kılıfı ve soluk mavi hale
@@ -491,8 +471,8 @@ static func _rat() -> Node3D:
 	var root = Node3D.new()
 	var b = MB.new()
 	var w = Color.WHITE
-	b.add("sphere", Vector3(0, 0, 0.08), Vector3(0.44, 0.36, 0.66), w, Vector3.ZERO, 12)
-	b.add("sphere", Vector3(0, 0.04, -0.34), Vector3(0.3, 0.27, 0.34), w, Vector3.ZERO, 10)
+	b.add("sphere", Vector3(0, 0, 0.08), Vector3(0.62, 0.52, 0.8), w, Vector3.ZERO, 12)   # kanon: tombul kıl yumağı
+	b.add("sphere", Vector3(0, 0.06, -0.36), Vector3(0.4, 0.36, 0.42), w, Vector3.ZERO, 10)
 	b.add("cone", Vector3(0, 0.02, -0.56), Vector3(0.14, 0.18, 0.14), w, Vector3(-90, 0, 0), 6)
 	for sx in [-1.0, 1.0]:
 		b.add("sphere", Vector3(sx * 0.12, 0.2, -0.28), Vector3(0.15, 0.17, 0.05), w, Vector3(0, 0, sx * 20.0), 8)
@@ -516,13 +496,16 @@ static func _rat() -> Node3D:
 	tail.add_child(tm)
 	root.add_child(tail)
 	# mavi alev kılıfı: üst, yanlar ve alt boyunca arkaya akan diller (kara gövde içinde görünür kalır)
-	for k in 6:
-		var a = k * TAU / 6.0 + 0.3
-		var ax = Vector3(cos(a) * 0.35, sin(a) * 0.35 + 0.15, 1.0)
-		var tg = KatonLib.tongue_mi(1.3, 0.55, ax, KatonLib.PAL_BLUE, 4, 0.1, 1.05)
-		tg.position = Vector3(cos(a) * 0.24, sin(a) * 0.2, -0.25)
-		root.add_child(tg)
-	var hl = KatonLib.glow_mi(Color(0.25, 0.45, 1.0), 1.6)
+	# mavi alev kılıfı: kara yumağın sırtından ve arkasından kabaran mavi alev topakları (kaynak: yumuşak mavi alev arkaya akar)
+	for k in 5:
+		var a = k * TAU / 5.0 + 0.6
+		var lm = KatonLib.lump_mi(randf_range(0.17, 0.24), KatonLib.PAL_BLUE, 1.1)
+		lm.position = Vector3(cos(a) * 0.26, sin(a) * 0.2 + 0.08, 0.3 + randf() * 0.2)
+		root.add_child(lm)
+	var lb = KatonLib.lump_mi(0.3, KatonLib.PAL_BLUE, 1.05)
+	lb.position = Vector3(0, 0.08, 0.6)
+	root.add_child(lb)
+	var hl = KatonLib.glow_mi(Color(0.25, 0.45, 1.0) * 0.45, 1.3)
 	hl.position = Vector3(0, 0, 0.2)
 	root.add_child(hl)
 	return root
@@ -530,10 +513,14 @@ static func _rat() -> Node3D:
 
 ## Mavi alev çarpması: fare dağılır — mavi diller saçılır, kara tüy kıvılcımları, mavi kızgın damarlı küçük iz
 static func _nezumi_burst(pj: PathJutsu, p: Vector3, s: float) -> void:
-	KatonLib.mass(pj, p, 0.2, 0.7 + s, 0.4, Vector3.UP * 0.6, KatonLib.PAL_BLUE, 1.3, 2.0)
-	for k in 8:
-		var dv = Vector3(randf_range(-1, 1), randf_range(0.0, 1.0), randf_range(-1, 1)).normalized()
-		KatonLib.tongue(pj, p, randf_range(0.7, 1.2), 0.45, 0.4, dv, dv * 2.5, KatonLib.PAL_BLUE, 3)
+	# kıl yumağı patlar: mavi alev topakları kabarıp söner, kara tüy kıvılcımları saçılır
+	KatonLib.flash_ball(pj, p, 0.25 + s * 0.35, KatonLib.PAL_BLUE)
+	for k in 6:   # mavi alev topakları: mavi kalır, kurum dumanına dönmez
+		var dv = Vector3(randf_range(-1, 1), randf_range(0.1, 1.0), randf_range(-1, 1)).normalized()
+		KatonLib.fire_puff(pj, p + dv * 0.2, 0.15, 0.3 + s * 0.3, 0.5, dv * 1.6 + Vector3.UP * 0.6, KatonLib.PAL_BLUE, 1.15, 0.75)
+	for k in 5:
+		var dv = Vector3(randf_range(-1, 1), randf_range(0.2, 1.0), randf_range(-1, 1)).normalized()
+		KatonLib.tongue(pj, p, randf_range(0.6, 1.0), 0.4, 0.35, dv, dv * 2.5, KatonLib.PAL_BLUE, 3)
 	KatonLib.embers(pj, p, 18, 0.3, KatonLib.PAL_BLUE, {"vmin": 2.0, "vmax": 6.0, "spread": 150.0, "life": 0.9})
 	KatonLib.light(pj, p, BLUE_L, 4.0, 7.0, 0.4)
 	var g = KatonLib.floor_at(p)
@@ -682,11 +669,10 @@ static func _karyuu_dome(host: Node, pos: Vector3, ep: float) -> void:
 	var base = g if pos.y - g.y < 3.0 else pos
 	# kubbe genişliği korunur, yüksekliği sınırlı (yassı kubbe ~4 m): arkadaki kamera kubbenin içinde kalmasın;
 	# kameraya yakın kısım shader'da incelir
-	KatonLib.mass(host, base + Vector3.UP * 0.3 * s, 1.2 * s, 4.2 * s, 0.9, Vector3.UP * 0.4, KatonLib.PAL_FIRE, 1.4, 1.2, minf(0.55, 4.0 / (4.2 * s)))
-	for k in 6:
-		var a = k * TAU / 6.0
-		var off = Vector3(cos(a), 0, sin(a)) * 2.2 * s
-		KatonLib.mass(host, base + off + Vector3.UP * 0.5, 0.6 * s, 2.0 * s, 0.75, off * 0.8 + Vector3.UP * 0.4, KatonLib.PAL_FIRE, 1.25, 1.4, 0.6)
+	# Storm patlaması: parlama + yere yayılan / yükselen alev mantarı + kömür dumanı
+	KatonLib.flash_ball(host, base + Vector3.UP * 1.2 * s, 3.0 * s, KatonLib.PAL_FIRE)
+	KatonLib.fire_burst(host, base + Vector3.UP * 0.6 * s, 1.3 * s, 3.2 * s, 1.3, 14, KatonLib.PAL_FIRE)
+	KatonLib.storm_smoke(host, base + Vector3.UP * 1.5 * s, 1.8 * s, 1.3, KatonLib.PAL_FIRE)
 	for k in 16:
 		var a = k * TAU / 16.0 + randf() * 0.2
 		var dv = Vector3(cos(a), 0, sin(a))
@@ -838,34 +824,33 @@ static func katon_homuranagase(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	var tt = pj.tg(c, t, 28.0)
 	var at = pj.gp(tt.global_position if tt else c.global_position + pj.fwd(c, t) * 14.0)
 	for k in 3:
-		var fb = Node3D.new()
-		fb.add_child(KatonLib.mass_mi(0.55, KatonLib.PAL_FIRE, 1.35, 2.0))
-		var tg = KatonLib.tongue_mi(2.2, 0.8, Vector3.DOWN, KatonLib.PAL_FIRE, 4, 0.0, 1.1)
-		fb.add_child(tg)
+		var fb = KatonLib.fireball_node(0.6, KatonLib.PAL_FIRE, 1.0)
 		KatonLib.put(pj, fb, pj._mouth_pos(c))
 		var tw = fb.create_tween()
 		var sky = c.global_position + Vector3.UP * 14.0 + Vector3(randf_range(-2, 2), 0, randf_range(-2, 2))
 		tw.tween_property(fb, "global_position", sky, 0.4)
 		tw.tween_callback(func():
-			KatonLib.glow(pj, sky, 3.0, KatonLib.pal_col(KatonLib.PAL_FIRE, 1), 0.4)
-			KatonLib.mass(pj, sky, 0.5, 1.6, 0.4, Vector3.ZERO, KatonLib.PAL_FIRE, 1.3, 2.0)
+			KatonLib.flash_ball(pj, sky, 1.6, KatonLib.PAL_FIRE)
+			KatonLib.fire_burst(pj, sky, 0.6, 1.8, 0.8, 7, KatonLib.PAL_FIRE)
 			fb.queue_free())
 	for k in 9:
 		pj.after(0.6 + k * 0.12, func():
 			var q = at + Vector3(randf_range(-5, 5), 0, randf_range(-5, 5))
-			var fb = _meteor()
+			var fb = KatonLib.fireball_node(0.95, KatonLib.PAL_FIRE, 0.8)
 			var start = q + Vector3(randf_range(-4, 4), 16.0, randf_range(-4, 4))
 			var end = pj.gp(q) + Vector3.UP * 0.5
 			KatonLib.put(pj, fb, start)
-			KatonLib.look(fb, end - start)
+			var st = {}
+			var lp = {"p": start}
 			var tw = fb.create_tween()
 			tw.tween_method(func(u: float) -> void:
 				if not is_instance_valid(fb):
 					return
 				var p = start.lerp(end, u)
-				fb.global_position = p
-				if randf() < 0.45:
-					KatonLib.mass(pj, p - (end - start).normalized() * 0.8, 0.4, 1.0, 0.45, Vector3.UP * 0.5, KatonLib.PAL_FIRE, 1.0, 1.4), 0.0, 1.0, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+				var dt = maxf(fb.get_process_delta_time(), 0.001)
+				KatonLib.fireball_tick(pj, fb, p, (p - lp["p"]) / dt, 0.95, st, dt, KatonLib.PAL_FIRE)
+				lp["p"] = p
+				fb.global_position = p, 0.0, 1.0, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 			tw.tween_callback(func():
 				_meteor_crater(pj, pj.gp(q) + Vector3.UP * 0.5)
 				_bolt_marks(pj, pj.gp(q) + Vector3.UP * 0.5, 1.2, 1.0)
@@ -896,7 +881,7 @@ static func _meteor() -> Node3D:
 ## Göktaşı çukuru: yukarı fışkıran alev sütunu, açılan kütle, savrulan kızgın kaya parçaları, kavruk krater
 static func _meteor_crater(pj: PathJutsu, p: Vector3) -> void:
 	var g = KatonLib.floor_at(p)
-	KatonLib.mass(pj, p, 0.5, 1.8, 0.5, Vector3.UP * 1.5, KatonLib.PAL_FIRE, 1.35, 1.6)
+	KatonLib.fireball_impact(pj, p, 1.3, KatonLib.PAL_FIRE)
 	for k in 6:
 		var dv = Vector3(randf_range(-0.3, 0.3), 1.0, randf_range(-0.3, 0.3)).normalized()
 		KatonLib.tongue(pj, g + Vector3(randf_range(-0.6, 0.6), 0, randf_range(-0.6, 0.6)), randf_range(2.0, 3.2), 1.0, 0.6, dv, Vector3.UP * 1.5, KatonLib.PAL_FIRE, 5)
@@ -1075,7 +1060,7 @@ static func katon_kaen_senpu(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	KatonLib.put(pj, root, pj.gp(at))
 	var spin = Node3D.new()
 	root.add_child(spin)
-	for h in 3:
+	for h in 0:   # şerit hortum kaldırıldı (plastik boru gibi): gövde vortex_tick topaklarından
 		var pts = PackedVector3Array()
 		var wid = PackedFloat32Array()
 		var a0 = h * TAU / 3.0
@@ -1085,7 +1070,7 @@ static func katon_kaen_senpu(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			var r = lerpf(0.7, R, u)
 			pts.append(Vector3(cos(a) * r, 0.2 + u * H, sin(a) * r))
 			wid.append(0.5 + u * 1.2)
-		spin.add_child(KatonLib.ribbon_mi(pts, 0.55, KatonLib.PAL_FIRE, {"flow": 4.0, "tiles": 6.0, "rag": 0.5, "widths": wid}))
+		spin.add_child(KatonLib.ribbon_mi(pts, 0.16, KatonLib.PAL_FIRE, {"flow": 4.0, "tiles": 6.0, "rag": 0.5, "widths": wid}))   # ince yön çizgisi; gövde topaklardan
 	root.scale = Vector3(0.3, 0.15, 0.3)
 	var tw = root.create_tween()
 	tw.tween_property(root, "scale", Vector3.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
@@ -1100,8 +1085,10 @@ static func katon_kaen_senpu(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		if is_instance_valid(root):
 			root.global_position = base
 			spin.rotate_y(0.05 * 9.0)
+		# hortum gövdesi: huni yüzeyinde dönerek yükselen alev topakları
+		KatonLib.vortex_tick(pj, base, 0.6, R, H * minf(1.0, st0["t"] / 0.3), 6, KatonLib.PAL_FIRE, 1.0)
 		# huni yüzeyinden teğet savrulan diller
-		for q in 2:
+		for q in 1:
 			var hk = randf()
 			var a = randf() * TAU
 			var r = R * (0.3 + 0.7 * hk)
@@ -1135,11 +1122,100 @@ static func katon_kaen_senpu(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 				var a = k * TAU / 14.0
 				var dv = Vector3(cos(a), 0.15, sin(a)).normalized()
 				KatonLib.tongue(pj, cp + dv * 0.6, randf_range(1.6, 2.4), 1.0, 0.45, dv, dv * 8.0, KatonLib.PAL_FIRE, 5)
-			KatonLib.mass(pj, cp, 0.6, 2.2, 0.5, Vector3.UP, KatonLib.PAL_FIRE, 1.3, 1.6)
+			KatonLib.fire_burst(pj, cp, 0.8, 2.4, 0.8, 10, KatonLib.PAL_FIRE)
 			KatonLib.embers(pj, cp, 30, 1.0, KatonLib.PAL_FIRE, {"vmin": 6.0, "vmax": 11.0, "spread": 180.0, "life": 0.9})
 			pj.hit(c, c.global_position + Vector3.UP, 4.0, pj.inf(c, "katon_kaen_senpu", 0.9, {"knock": 14.0, "launch": 5.0, "kind": "heavy", "element": "katon", "burn": 2.0})))
 	Sfx.play("fire", at, 0.6)
 
+
+
+## Fırın (kafesin içinde): sütunların üstüne kubbe şeklinde gri pişmiş kil kapanır, ortasındaki yarıktan alev ışığı ve diller taşar,
+## tepedeki delikten kara duman çıkar; içi kavrulur. Sonunda kubbe çatlar, tepeden alev mantarı fışkırır.
+static func _suyaki_oven(pj: PathJutsu, c: Node3D, at: Vector3, r: float) -> void:
+	var dur = 2.6
+	var H = 3.6
+	var kiln = Node3D.new()
+	pj.scene_add(kiln, at)
+	var clay = Color(0.42, 0.46, 0.52)
+	var cm = StandardMaterial3D.new()   # pişmiş kil: gölgeli (düz boya değil), mat
+	cm.vertex_color_use_as_albedo = true
+	cm.roughness = 0.9
+	var b = MB.new()
+	b.add("sphere", Vector3.ZERO, Vector3(r * 2.1, H * 2.0, r * 2.1), clay, Vector3.ZERO, 24)
+	b.add("sphere", Vector3(0, H * 0.98, 0), Vector3(1.0, 0.4, 1.0), clay.darkened(0.5), Vector3.ZERO, 10)   # tepe deliği
+	var dome = MeshInstance3D.new()
+	dome.mesh = b.build(cm)
+	kiln.add_child(dome)
+	# on altı sütunun izi: kubbe yüzünde meridyen nervürleri (kafesin sütunları kilin içinde kalır; kaynaktaki dikey ek yerleri)
+	var rm = StandardMaterial3D.new()
+	rm.albedo_color = clay.darkened(0.45)
+	rm.roughness = 0.9
+	rm.cull_mode = BaseMaterial3D.CULL_DISABLED
+	for k in 16:
+		var a = k * TAU / 16.0
+		var pts = PackedVector3Array()
+		for q in 12:
+			var v = q / 11.0 * 1.42
+			pts.append(Vector3(cos(a) * cos(v) * r * 1.07, sin(v) * H * 1.02, sin(a) * cos(v) * r * 1.07))
+		var rb = MeshInstance3D.new()
+		rb.mesh = KatonLib.strip(pts, 0.12, Vector3(cos(a), 0, sin(a)), false)
+		rb.material_override = rm
+		kiln.add_child(rb)
+	# yarık pencereler: kubbe eğrisine oturan kızgın kavisli bant (dört pencere)
+	var gm = StandardMaterial3D.new()   # içerideki ateşin ışığı: gölgesiz, parlak
+	gm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	gm.vertex_color_use_as_albedo = true
+	gm.vertex_color_use_as_albedo = false
+	gm.albedo_color = Color(1.0, 0.42, 0.04)
+	gm.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var vv = 0.62
+	for w in 4:
+		var a0 = w * TAU / 4.0 + 0.4
+		var pts = PackedVector3Array()
+		for q in 9:
+			var a = a0 + (q - 4) * 0.075
+			pts.append(Vector3(cos(a) * cos(vv) * r * 1.075, sin(vv) * H * 1.02, sin(a) * cos(vv) * r * 1.075))
+		var smi = MeshInstance3D.new()
+		smi.mesh = KatonLib.strip(pts, 0.32, Vector3(cos(a0) * cos(vv), sin(vv), sin(a0) * cos(vv)), false)
+		smi.material_override = gm
+		smi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		kiln.add_child(smi)
+	kiln.scale = Vector3(1.0, 0.02, 1.0)
+	var tw = kiln.create_tween()
+	tw.tween_property(kiln, "scale", Vector3.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(dur)
+	tw.tween_callback(func():
+		var top = at + Vector3.UP * H
+		KatonLib.flash_ball(pj, top, 2.4, KatonLib.PAL_FIRE)
+		KatonLib.fire_burst(pj, top, 1.2, 3.2, 1.0, 12, KatonLib.PAL_FIRE)
+		KatonLib.storm_smoke(pj, top + Vector3.UP, 2.4, 1.2, KatonLib.PAL_FIRE)
+		for k in 8:
+			var rb = MB.new()
+			rb.add("boulder", Vector3.ZERO, Vector3.ONE * randf_range(0.3, 0.6), clay, Vector3.ZERO, randi_range(1, 6))
+			var a = randf() * TAU
+			KatonLib.toss(pj, _flat(rb), at + Vector3(cos(a) * r * 0.7, H * 0.6, sin(a) * r * 0.7), Vector3(cos(a) * randf_range(4, 8), randf_range(5, 9), sin(a) * randf_range(4, 8)), 1.4, 18.0)
+		pj.shake(0.6))
+	tw.tween_property(kiln, "scale", Vector3(1.05, 0.02, 1.05), 0.3)
+	tw.tween_callback(kiln.queue_free)
+	KatonLib.scorch(pj, at, r * 1.2, 8.0)
+	KatonLib.light(pj, at + Vector3.UP * H * 0.6, FIRE_L, 7.0, r * 4.0, dur + 0.4)
+	pj.every(dur, 0.1, func(i, _k):
+		if not is_instance_valid(kiln) or kiln.scale.y < 0.5:
+			return
+		# yarıklardan taşan diller + tepe deliğinden duman
+		var a = (i % 4) * TAU / 4.0 + 0.4 + randf_range(-0.2, 0.2)
+		var sp = at + Vector3(cos(a) * cos(0.62) * r * 1.1, sin(0.62) * H, sin(a) * cos(0.62) * r * 1.1)
+		var ov = Vector3(cos(a), 0.6, sin(a)).normalized()
+		KatonLib.fire_puff(pj, sp, 0.25, 0.6, 0.45, ov * 2.5, KatonLib.PAL_FIRE, 1.15, 0.5)
+		if i % 3 == 0:
+			KatonLib.fire_puff(pj, at + Vector3.UP * (H + 0.3), 0.4, 1.1, 0.8, Vector3.UP * 3.0, KatonLib.PAL_FIRE, 0.45, 0.0)
+		if i % 3 == 0:
+			for e in pj.enemies_near(c, at, r + 0.3):
+				if pj.live(e):
+					if e.has_method("apply_status"):
+						e.apply_status("bind", 0.6 if not (e.has_method("has_status") and e.has_status("mud")) else 2.0)
+					pj.hit(c, e.global_position + Vector3.UP, e.radius + 0.3, pj.inf(c, "katon_suyaki", 0.3, {"knock": 0.0, "kind": "light", "element": "katon", "burn": 3.0})), Callable())
+	Sfx.play("fire", at, 0.6)
 
 # ================================================================== 14) Beni Jigumo: kızıl alev örümcek ağı
 ## Ellerden çıkan kızıl alev ipliği önde yere çakılır, oradan zemine kızıl alev ağı örülür (sekiz ışın + dört sarkık halka),
@@ -1263,6 +1339,12 @@ static func katon_suyaki(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	pj.busy(c, 0.8)
 	var tt = pj.tg(c, t, 22.0)
 	var at = pj.gp(tt.global_position if tt else c.global_position + pj.fwd(c, t) * 9.0)
+	# kanon (Zō): Raiton Jūroku Chūshibari'nin on altı sütunlu kafesi dev bir fırına döner, içindeki pişer; çamur kaplı beden sertleşip kilitlenir
+	var now = Time.get_ticks_msec() / 1000.0
+	for cg in Engine.get_meta("jurokuchu_cages", []):
+		if float(cg["until"]) > now and Vector2(at.x - cg["at"].x, at.z - cg["at"].z).length() < float(cg["r"]) + 1.0:
+			_suyaki_oven(pj, c, cg["at"], float(cg["r"]))
+			return
 	# ısınma: kızgın damarlı zemin hızla yayılır, birkaç dil önden fırlar
 	KatonLib.scorch(pj, at, 3.2, 6.0, 0.0, KatonLib.PAL_FIRE, 0.35)
 	for k in 5:
@@ -1280,5 +1362,7 @@ static func katon_suyaki(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			if pj.live(e):
 				if e.has_method("apply_status"):
 					e.apply_status("slow", 0.8)
+					if e.has_method("has_status") and e.has_status("mud"):
+						e.apply_status("bind", 1.2)   # kanon: üstündeki çamur pişip sertleşir
 				pj.hit(c, e.global_position + Vector3.UP, e.radius + 0.3, pj.inf(c, "katon_suyaki", 0.3, {"knock": 0.0, "kind": "light", "element": "katon", "burn": 2.0})), Callable())
 	Sfx.play("fire", at, 0.7)

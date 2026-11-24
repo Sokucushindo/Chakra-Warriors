@@ -1529,6 +1529,39 @@ static func _bakuen_burst(pj: PathJutsu, at: Vector3) -> void:
 # ================================================================== 3) Uzusenpuhi no Jutsu
 ## ref: yerden yükselen göz kamaştırıcı alev perdesi (beyaz-sarı göbek, kızıl kenarlı diller), rüzgâr yumruğuyla
 ## öne savrulup genişleyen alev fırtınasına döner; arkada kavrulmuş toprak kalır
+## Ateş teknikleri (Uzusenpūhi, Kaenbu, Ryūka) Katon'un kendi kütüphanesini kullanır: opak alev dili / alev topağı / kor
+static func _kt(host: Node, p: Vector3, h: float, w: float, life: float, ax := Vector3.UP, vel := Vector3.ZERO, heat0 := 1.15, _oily := false) -> MeshInstance3D:
+	return KatonLib.tongue(host, p, h, w, life, ax, vel, KatonLib.PAL_FIRE, 4, minf(heat0, 1.2))
+
+
+static func _kb(host: Node, p: Vector3, r0: float, r1: float, life: float, vel := Vector3.ZERO, _x := false, _h := 1.25) -> MeshInstance3D:
+	return KatonLib.fire_puff(host, p, r0, r1, life, vel, KatonLib.PAL_FIRE, 1.15, 0.6)
+
+
+static func _ke(host: Node, p: Vector3, n: int, spread_r: float, up := 3.0) -> void:
+	KatonLib.embers(host, p, n, spread_r, KatonLib.PAL_FIRE, {"vmin": up * 0.5, "vmax": up * 1.3, "life": 0.9})
+
+
+## Ağızdan fışkıran alev akımı (Katon kütüphanesiyle): yol boyunca hızla öne akan, büyüyüp kabaran alev topakları; eski ortak
+## alev akımı yerine (yağlı ateş tekniklerinin akımı)
+static func _kstream(pj: PathJutsu, c: Node3D, from: Vector3, d: Vector3, L: float, W: float, dur: float, _oily := false) -> void:
+	var side = d.cross(Vector3.UP).normalized()
+	var spd = L / 0.3
+	pj.every(dur, 0.035, func(i, _k):
+		var src = KatonLib_src(pj, c, from)
+		var reach = minf(L, (i + 1) * 0.035 * spd)
+		# akım: ağızdan uca kadar yol boyunca dağılan, uca doğru büyüyüp kabaran alev topakları (kopuk top değil, kesintisiz sel)
+		for q in 6:
+			var u = pow(randf(), 0.8)
+			var sz = lerpf(0.35, W * 0.42, u)
+			var p = src + d * (u * reach) + side * randf_range(-0.5, 0.5) * sz + Vector3.UP * randf_range(-0.3, 0.3) * sz
+			KatonLib.fire_puff(pj, p, sz * 0.45, sz, 0.32, d * 9.0 + Vector3.UP * 0.8, KatonLib.PAL_FIRE, 1.15, 0.6), Callable())
+
+
+static func KatonLib_src(pj: PathJutsu, c: Node3D, from: Vector3) -> Vector3:
+	return _mouth(c) if pj.live(c) else from
+
+
 static func uzusenpuhi_no_jutsu(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	pj.busy(c, 1.5)
 	var id = "uzusenpuhi_no_jutsu"
@@ -1546,16 +1579,20 @@ static func uzusenpuhi_no_jutsu(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	# 1) alev duvarı: yerden yükselen alev perdesi
 	var wall = func(i, k):
 		var hgt = 3.4 * minf(1.0, k * 3.0)
-		for j in 3:
+		for j in 1:
 			var p = wc + side * randf_range(-3.2, 3.2)
 			p.y = Game.jutsu_floor_at(p).y
-			tongue(pj, p, maxf(0.8, hgt * randf_range(0.75, 1.15)), randf_range(1.1, 1.7), 0.5, Vector3.UP, Vector3.UP * 0.8, 1.2)
+			_kt(pj, p, maxf(0.8, hgt * randf_range(0.6, 0.9)), randf_range(0.9, 1.3), 0.5, Vector3.UP, Vector3.UP * 0.8, 1.2)
+		for j in 2:   # perde gövdesi: yükselen alev topakları (dik kart dizisi düz görünüyordu)
+			var bp2 = wc + side * randf_range(-3.0, 3.0)
+			bp2.y = Game.jutsu_floor_at(bp2).y + randf_range(0.3, maxf(0.4, hgt * 0.8))
+			_kb(pj, bp2, 0.3, randf_range(0.7, 1.0), 0.5, Vector3.UP * 2.8)
 		if i % 2 == 0:
 			var bp = wc + side * randf_range(-2.8, 2.8)
 			bp.y = Game.jutsu_floor_at(bp).y + randf_range(0.5, maxf(0.6, hgt * 0.7))
-			fire_blob(pj, bp, 0.3, 0.9, 0.45, Vector3.UP * 2.5)
+			_kb(pj, bp, 0.3, 0.9, 0.45, Vector3.UP * 2.5)
 		if i % 4 == 0:
-			embers(pj, wc + Vector3.UP * 1.5, 8, 3.0, 5.0)
+			_ke(pj, wc + Vector3.UP * 1.5, 8, 3.0, 5.0)
 		var cc = cw.get_ref()
 		if cc != null and pj.live(cc) and i % 5 == 0:
 			for e in pj.enemies_near(cc, wc, 3.6):
@@ -1574,22 +1611,24 @@ static func uzusenpuhi_no_jutsu(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			var o = side * randf_range(-2.5, 2.5) + Vector3.UP * randf_range(-0.8, 1.6)
 			var pts = _path(func(u: float) -> Vector3: return from + o * u + d * (u * 16.0), 8)
 			streak(pj, pts, 0.12, Color(1.0, 0.97, 0.92, 0.85), 0.4, false, {"rag": 0.4, "core": 0.0, "delay": q * 0.012})
-		shock_ring(pj, from + d * 0.5, 0.4, 2.5, 0.3, Color(1, 1, 1, 0.8), 0.25, d)
 		Sfx.play("wind", from, 0.7)
 		Sfx.play("fire", wc, 0.5)
 		pj.shake(0.7)
 		var storm = func(i, k):
 			var front = 3.0 + k * 14.0
-			for j in 4:
+			for j in 1:
 				var u = randf()
 				var p = wc + d * (u * front) + side * randf_range(-1.0, 1.0) * (2.0 + u * front * 0.22)
 				p.y = Game.jutsu_floor_at(p).y
-				tongue(pj, p, randf_range(2.4, 4.2), randf_range(1.6, 2.4), 0.45, (d * 1.1 + Vector3.UP).normalized(), d * 12.0, 1.25)
+				_kt(pj, p, randf_range(2.4, 4.2), randf_range(1.6, 2.4), 0.45, (d * 1.1 + Vector3.UP).normalized(), d * 12.0, 1.25)
 			var bp = wc + d * front * randf_range(0.5, 1.0) + side * randf_range(-1.5, 1.5) * (1.0 + front * 0.15)
 			bp.y = Game.jutsu_floor_at(bp).y + 1.2
-			fire_blob(pj, bp, 0.6, 2.0, 0.4, d * 14.0 + Vector3.UP * 2.0)
+			for j2 in 3:   # ateş fırtınası gövdesi: öne savrulan kabaran alev topakları
+				var bp3 = wc + d * front * randf_range(0.2, 1.0) + side * randf_range(-1.5, 1.5) * (1.0 + front * 0.15)
+				bp3.y = Game.jutsu_floor_at(bp3).y + randf_range(0.6, 2.0)
+				_kb(pj, bp3, 0.6, randf_range(1.6, 2.4), 0.5, d * 12.0 + Vector3.UP * 1.5)
 			if i % 3 == 0:
-				embers(pj, wc + d * front * 0.6 + Vector3.UP, 10, 3.0, 9.0)
+				_ke(pj, wc + d * front * 0.6 + Vector3.UP, 10, 3.0, 9.0)
 			var c2 = cw.get_ref()
 			if c2 != null and pj.live(c2) and i % 4 == 1:
 				Combat.hit_zone(c2, wc - d * 0.5, d, front + 2.0, 24.0, 4.0, pj.inf(c2, id, 0.5, {"knock": 6.0, "kind": "heavy", "element": "katon", "burn": 3.0, "hitstop": 0.02}))
@@ -1611,7 +1650,7 @@ static func katon_kaenbu(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	light(pj, at + Vector3.UP * 1.2, Color(1.0, 0.55, 0.2), 4.0, 9.0, 3.2)
 	var rig = Node3D.new()
 	_put(pj, rig, at)
-	for q in 3:
+	for q in 0:   # şerit kurdele kaldırıldı (düz boru gibi): dans eden alev = vortex_tick topakları (aşağıda)
 		var ph = q * TAU / 3.0
 		var pts = _path(func(u: float) -> Vector3:
 			var a = ph + u * TAU * 1.2
@@ -1625,19 +1664,22 @@ static func katon_kaenbu(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	var tr = rig.create_tween()
 	tr.tween_property(rig, "rotation:y", TAU * 2.5, 3.0)
 	tr.tween_callback(rig.queue_free)
-	pj.every(3.0, 0.2, func(_i, _k):
-		for q in 4:
+	pj.every(3.0, 0.1, func(_i, _k):
+		KatonLib.vortex_tick(pj, at, 1.4, 4.0, 2.6, 4, KatonLib.PAL_FIRE, 1.0, 0.55)
+		if _i % 2 == 1:
+			return
+		for q in 2:
 			var a = randf() * TAU
 			var r = randf_range(1.2, 4.0)
 			var p = at + Vector3(cos(a), 0, sin(a)) * r
 			p.y = Game.jutsu_floor_at(p).y
 			var tg_v = Vector3(-sin(a), 0, cos(a))
-			tongue(pj, p, randf_range(1.2, 2.4), 0.9, 0.6, (tg_v * 0.7 + Vector3.UP).normalized(), tg_v * 4.0)
+			_kt(pj, p, randf_range(1.2, 2.4), 0.9, 0.6, (tg_v * 0.7 + Vector3.UP).normalized(), tg_v * 4.0)
 		for q in 2:   # alevli sis: düşük ısılı, yarı saydam kızıl-turuncu alev kütleleri teğet savrulur
 			var a2 = randf() * TAU
 			var r2 = randf_range(1.5, 4.0)
 			var tg2 = Vector3(-sin(a2), 0, cos(a2))
-			fire_blob(pj, at + Vector3(cos(a2), 0, sin(a2)) * r2 + Vector3.UP * randf_range(0.5, 1.6), 0.5, randf_range(1.0, 1.5), 1.1,
+			_kb(pj, at + Vector3(cos(a2), 0, sin(a2)) * r2 + Vector3.UP * randf_range(0.5, 1.6), 0.5, randf_range(1.0, 1.5), 1.1,
 				tg2 * 2.5 + Vector3.UP * 0.6, false, 0.62)
 		sparks(pj, at + Vector3.UP * 0.8, {"n": 10, "life": 1.4, "r": 3.5, "dir": Vector3.UP, "spread": 60.0, "vmin": 0.8, "vmax": 2.2,
 			"g": Vector3(0, 0.6, 0), "size": 0.1, "burst": 0.3, "add": false,
@@ -1692,10 +1734,10 @@ static func katon_ryuka(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		for q in 2:
 			var w2 = clampf(u - randf() * 0.12, 0.0, 1.0)
 			var p = mo.lerp(mid, w2).lerp(mid.lerp(end, w2), w2)
-			tongue(pj, p, randf_range(0.5, 0.9), 0.4, 0.32, Vector3.UP, Vector3.UP * 0.8)
-		fire_blob(pj, mo.lerp(mid, u).lerp(mid.lerp(end, u), u), 0.22, 0.45, 0.14)
+			_kt(pj, p, randf_range(0.5, 0.9), 0.4, 0.32, Vector3.UP, Vector3.UP * 0.8)
+		_kb(pj, mo.lerp(mid, u).lerp(mid.lerp(end, u), u), 0.22, 0.45, 0.14)
 		if _i % 5 == 0:
-			embers(pj, mo.lerp(end, u), 5, 0.3, 2.0)
+			_ke(pj, mo.lerp(end, u), 5, 0.3, 2.0)
 		if u >= 1.0:
 			st0["done"] = true
 			_ryuka_burst(pj, end)
@@ -1710,13 +1752,13 @@ static func katon_ryuka(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 
 
 static func _ryuka_burst(pj: PathJutsu, p: Vector3) -> void:
-	fire_blob(pj, p, 0.4, 2.2, 0.55)
+	_kb(pj, p, 0.4, 2.2, 0.55)
 	for k in 9:
 		var a = k * TAU / 9.0
 		var o = Vector3(cos(a), 0, sin(a))
-		tongue(pj, p - Vector3.UP * 0.6 + o * 0.6, 1.6, 0.9, 0.5, (o + Vector3.UP * 1.2).normalized(), o * 3.0)
-	star(pj, p, 2.5, Color(1.0, 0.8, 0.45), 0.25, 6.0)
-	embers(pj, p, 16, 1.0, 4.0)
+		_kt(pj, p - Vector3.UP * 0.6 + o * 0.6, 1.6, 0.9, 0.5, (o + Vector3.UP * 1.2).normalized(), o * 3.0)
+	KatonLib.fireball_impact(pj, p, 1.0, KatonLib.PAL_FIRE)
+	_ke(pj, p, 16, 1.0, 4.0)
 	light(pj, p, Color(1.0, 0.55, 0.2), 5.0, 8.0, 0.6)
 	if p.y - Game.jutsu_floor_at(p).y < 2.5:
 		ground_mark(pj, p, 1.8, 1.8, randf() * TAU, 0.0, 4.0)
@@ -1755,10 +1797,10 @@ static func futon_gamayu_endan(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			var base = c.global_position + Vector3.UP * 1.2
 			streak(pj, _path(func(u: float) -> Vector3: return base + o * u + d * (u * 32.0), 10), 0.14, Color(1.0, 0.93, 0.78, 0.85), 0.5, false,
 				{"rag": 0.45, "core": 0.0, "delay": q * 0.02})
-		flame_stream(pj, c, mo, d, 32.0, 6.5, 0.7, true)
+		_kstream(pj, c, mo, d, 32.0, 6.5, 0.7, true)
 		pj.after(0.45, func():
-			fire_blob(pj, mo + d * 32.0, 1.0, 4.0, 0.7, Vector3.ZERO, true)
-			embers(pj, mo + d * 32.0, 30, 3.0, 6.0)
+			_kb(pj, mo + d * 32.0, 1.0, 4.0, 0.7, Vector3.ZERO, true)
+			_ke(pj, mo + d * 32.0, 30, 3.0, 6.0)
 			Combat.hit_zone(c, c.global_position, d, 32.0, 20.0, 4.0 * 1.5, pj.inf(c, id, 3.0, {"knock": 8.0, "kind": "heavy", "element": "katon", "burn": 3.0, "dir": d})))
 		for k in 4:
 			GroundFX.add(c.global_position + d * (8.0 + k * 6.0), "burning", 5.0, 5.0, c)
@@ -1791,11 +1833,11 @@ static func _burning_oil(pj: PathJutsu, p: Vector3, r: float, dur: float) -> voi
 	pj.every(dur, 0.25, func(i, _k):
 		var q = at + Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)) * r * 0.7
 		q.y = Game.jutsu_floor_at(q).y
-		tongue(pj, q, randf_range(1.0, 2.0), randf_range(0.7, 1.1), 0.6, Vector3.UP, Vector3.UP * 0.6, 1.1, true)
+		_kt(pj, q, randf_range(1.0, 2.0), randf_range(0.7, 1.1), 0.6, Vector3.UP, Vector3.UP * 0.6, 1.1, true)
 		if i % 2 == 0:
 			bubble(pj, q + Vector3.UP * 0.05)
 		if i % 5 == 0:
-			embers(pj, at + Vector3.UP * 0.5, 6, r * 0.6, 3.0), Callable())
+			_ke(pj, at + Vector3.UP * 0.5, 6, r * 0.6, 3.0), Callable())
 
 
 ## Kaynar yağ sırtı: yassı, topaklı amber kütle yerden kabarır, ileri yuvarlanır, sıcak parlayıp yere çöker
@@ -1854,7 +1896,7 @@ static func senpo_goemon(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		# kaynar yağ + rüzgâr + ateş: kurbağaların yağ yayları, alev akımı, beyaz rüzgâr şeritleri
 		for sx in [-1.0, 1.0]:
 			_oil_arc(pj, c.global_position + Vector3.UP * 1.6 + side * sx * 0.3, d, 0.5)
-		flame_stream(pj, c, o, d, 20.0, 4.5, 0.9)
+		_kstream(pj, c, o, d, 20.0, 4.5, 0.9)
 		for q in 8:
 			var off = side * randf_range(-1.6, 1.6) + Vector3.UP * randf_range(-0.6, 0.8)
 			streak(pj, _path(func(u: float) -> Vector3: return o + off * u + d * (u * 20.0), 10), 0.13, Color(1.0, 0.95, 0.85, 0.85), 0.5, false,
@@ -1865,10 +1907,10 @@ static func senpo_goemon(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 				ground_mark(pj, p, 2.6, 2.6, randf() * TAU, 2.0, 4.5, 0.15)
 				for q in 3:   # kabarıp çöken yağ sırtı: yassı, topaklı amber yağ kütleleri
 					oil_crest(pj, p + side * randf_range(-2.0, 2.0), randf_range(0.6, 1.0), d)
-				tongue(pj, p + side * randf_range(-1.5, 1.5), 1.6, 1.0, 0.5, (d * 0.4 + Vector3.UP).normalized(), d * 2.0, 1.1, true)
+				_kt(pj, p + side * randf_range(-1.5, 1.5), 1.6, 1.0, 0.5, (d * 0.4 + Vector3.UP).normalized(), d * 2.0, 1.1, true)
 				bubble(pj, p + side * randf_range(-1.5, 1.5), 0.35)
 				if k % 3 == 0:
-					embers(pj, p + Vector3.UP * 0.5, 8, 1.5, 3.0))
+					_ke(pj, p + Vector3.UP * 0.5, 8, 1.5, 3.0))
 		_oil_pool(pj, c, c.global_position + d * 10.0, 4.5, 4.0)
 		GroundFX.add(c.global_position + d * 10.0, "burning", 4.5, 4.0, c)
 		Combat.hit_zone(c, c.global_position, d, 20.0, 18.0, 3.0, pj.inf(c, "senpo_goemon", 1.8, {"knock": 14.0, "kind": "heavy", "element": "katon", "burn": 5.0}))

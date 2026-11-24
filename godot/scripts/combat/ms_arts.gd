@@ -533,7 +533,7 @@ static func _fire_kagutsuchi(c: Node3D, sn: Susanoo, arrow: Node3D, from: Vector
 		_later(4.0, func(): if is_instance_valid(fl): fl.queue_free())
 		VFX.shockwave(to, Color(0.22, 0.0, 0.3), 5.0 + H * 0.2, 0.5)
 		VFX.black_smolder(g, 3.0 + H * 0.06, 7.0)
-		VFX.embers(to, Color(0.6, 0.15, 0.7), 30, 8.0, 1.1)
+		KatonLib.embers(Game.world, to, 30, 0.4, KatonLib.PAL_BLACK, {"vmin": 8.0 * 0.4, "vmax": 8.0, "life": 1.1})
 		_shake(0.8))
 
 

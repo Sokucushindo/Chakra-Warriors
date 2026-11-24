@@ -267,12 +267,8 @@ static func _sphere_mesh() -> SphereMesh:
 # ================================================================== yapı taşları: kara alev
 ## Kalıcı kara alev dili (düğüme iliştirmek için)
 static func _black_tongue_mi(h: float, w: float, ax: Vector3, heat := 1.0) -> MeshInstance3D:
-	var mi = KatonLib.gi(KatonLib._quad_base(), _mat("bfire", BLACKFIRE_SHADER))
-	mi.set_instance_shader_parameter("seed", randf() * 10.0)
-	mi.set_instance_shader_parameter("heat", heat)
-	mi.set_instance_shader_parameter("fade", 1.0)
-	mi.basis = KatonLib.axis_basis(ax) * Basis.from_scale(Vector3(w, h, w))
-	return mi
+	# 2026-11-24: opak alev dili, kara palet (zifiri gövde, mor-bordo kenar) — Katon ateşleriyle aynı yapı
+	return KatonLib.tongue_mi(h, w, ax, KatonLib.PAL_BLACK, 3, 0.0, heat)
 
 
 ## Sahnede yaşayan kara alev dili: doğar, ağır ağır kabarır, ısısı düşüp kısalır, söner
@@ -289,39 +285,35 @@ static func _black_tongue(host: Node, p: Vector3, h: float, w: float, life: floa
 
 
 ## Kara alev kütlesi örneği (küre): yarıçap r
-static func _black_mass_mi(r: float, wob := 0.3) -> MeshInstance3D:
-	var mi = KatonLib.gi(_sphere_mesh(), _mat("bmass", BLACKMASS_SHADER))
-	mi.set_instance_shader_parameter("seed", randf() * 10.0)
-	mi.set_instance_shader_parameter("heat", 1.0)
-	mi.set_instance_shader_parameter("fade", 1.0)
-	mi.set_instance_shader_parameter("wob", wob)
-	mi.scale = Vector3.ONE * r
-	return mi
+static func _black_mass_mi(r: float, _wob := 0.3) -> MeshInstance3D:
+	# opak kabaran kara alev kütlesi (ateş topu malzemesi, kara palet)
+	return KatonLib.lump_mi(r, KatonLib.PAL_BLACK, 1.1)
 
 
 ## Kara alev küresi: kütle + tepesinden kalkan üç ağır kara dil (çocuk düğüm, birlikte ölçeklenir)
 static func _black_orb(r: float) -> Node3D:
+	# kara alev küresi: küçük zifiri çekirdek + çevresinden yukarı yalayan ince kara alev dilleri (topak mürekkep lekesi gibi duruyordu)
 	var root = Node3D.new()
-	root.add_child(_black_mass_mi(r, 0.28))
-	for k in 3:
-		var a = k * TAU / 3.0 + randf() * 0.5
-		var tg = _black_tongue_mi(r * 2.2, r * 1.6, Vector3(cos(a) * 0.35, 1.0, sin(a) * 0.35), 1.0)
-		tg.position = Vector3(cos(a) * r * 0.3, r * 0.35, sin(a) * r * 0.3)
+	root.add_child(_black_mass_mi(r * 0.55, 0.28))
+	for k in 8:
+		var a = k * TAU / 8.0 + randf() * 0.4
+		var tg = _black_tongue_mi(r * randf_range(1.6, 2.6), r * 0.55, Vector3(cos(a) * 0.3, 1.0, sin(a) * 0.3), 1.1)
+		tg.position = Vector3(cos(a) * r * 0.4, -r * 0.3, sin(a) * r * 0.4)
 		root.add_child(tg)
 	return root
 
 
 ## Kara alev patlaması: dışa / yukarı savrulan ağır kara diller + yere çöken koyu leke (ışık yok)
 static func _black_burst(host: Node, p: Vector3, s: float) -> void:
-	for k in 7:
-		var a = k * TAU / 7.0 + randf() * 0.4
+	for k in 12:
+		var a = k * TAU / 12.0 + randf() * 0.4
 		var ax = Vector3(cos(a), randf_range(0.6, 1.4), sin(a)).normalized()
 		_black_tongue(host, p, randf_range(1.2, 2.0) * s, randf_range(0.8, 1.2) * s, randf_range(0.45, 0.7), ax, ax * 1.5 * s)
-	var core = _black_mass_mi(0.3 * s, 0.4)
+	var core = _black_mass_mi(0.12 * s, 0.4)   # küçük çekirdek: dev kara küre mürekkep lekesi gibi duruyordu
 	KatonLib.put(host, core, p)
 	var tw = core.create_tween().set_parallel()
-	tw.tween_property(core, "scale", Vector3.ONE * 1.1 * s, 0.25).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tw.tween_method(KatonLib.pf(core, "heat"), 1.0, 0.0, 0.6).set_delay(0.1)
+	tw.tween_property(core, "scale", Vector3.ONE * 0.35 * s, 0.2).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tw.tween_method(KatonLib.pf(core, "fade"), 1.0, 0.0, 0.25).set_delay(0.2)   # kara alev kül/duman bırakmaz: söner
 	tw.chain().tween_callback(core.queue_free)
 
 
@@ -561,15 +553,15 @@ static func katon_goka_mekkyaku(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	# cephe: 3 sıra alev dili (arka sıra yüksek-koyu, orta en parlak, ön alçak) + gövdeyi oluşturan kabaran alev topakları
 	var ROWS = [[20, 0.0, 1.0, 0.2], [24, 2.5, 1.15, 0.0], [18, 5.0, 0.7, 0.08]]   # [dil sayısı, geri kayma, boy çarpanı, renk]
 	var front: Array = []
-	for r in ROWS.size():
+	for r in 0:   # dik alev kartı cephesi kaldırıldı (çubuk / hap gibi okunuyordu); cephe ateş topu malzemesi topaklardan
 		for n in int(ROWS[r][0]):
 			var tm = KatonLib.tongue_mi(1.0, 1.0, Vector3.UP, float(ROWS[r][3]), 7, 0.0, 1.2 if r == 1 else 1.0)
 			tm.visible = false
 			root.add_child(tm)
 			front.append([tm, r, float(n) / (int(ROWS[r][0]) - 1) - 0.5, randf() * TAU])
 	var billows: Array = []
-	for n in 26:
-		var bm = KatonLib.mass_mi(1.0, randf_range(0.0, 0.08), 1.45, 1.4)   # sarı çekirdekli parlak gövde (ref), kızıla dönmez
+	for n in 40:
+		var bm = KatonLib.fireball_mi(1.0, 0.0, randf_range(1.0, 1.2), randf_range(0.6, 1.4), 0.15)   # Gōkakyū dili: kabarık, sarmal ışıltılı alev topağı
 		bm.visible = false
 		root.add_child(bm)
 		billows.append([bm, randf_range(-0.5, 0.5), randf_range(0.25, 0.75), randf() * TAU])
@@ -615,11 +607,11 @@ static func katon_goka_mekkyaku(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		for q in 4:
 			var uq = randf_range(-0.45, 0.45)
 			var gpq = root.to_global(Vector3(uq * w, h * 0.18, -reach + absf(uq) * w * 0.28 + 1.0))
-			KatonLib.mass(pj, gpq, h * 0.12, h * 0.26, 0.45, d * 9.0 + Vector3.UP * 2.0, 0.0, 1.9, 2.0, 0.8)   # kısa ömürlü, sıcak: soğuyup kızıl bant / gri topak bırakmaz
+			KatonLib.fire_puff(pj, gpq, h * 0.12, h * 0.26, 0.5, d * 9.0 + Vector3.UP * 2.0, 0.0, 1.15)
 		# tepeden kopup yükselen alev parçaları
 		if i % 2 == 1:
 			var ut = randf_range(-0.3, 0.3)
-			KatonLib.mass(pj, root.to_global(Vector3(ut * w, h * 0.95, -reach + 3.0)), h * 0.08, h * 0.16, 0.5, Vector3.UP * 6.0 + d * 3.0, 0.05, 1.9, 1.5, 1.0)   # gri duman değil: kopan alev
+			KatonLib.fire_puff(pj, root.to_global(Vector3(ut * w, h * 0.95, -reach + 3.0)), h * 0.08, h * 0.16, 0.7, Vector3.UP * 6.0 + d * 3.0, 0.0, 1.0)   # kopan alev, yükselirken soğuyup dumana döner
 		# arkadaki alev denizi
 		if i % 2 == 0:
 			for q in 5:
@@ -843,7 +835,7 @@ static func katon_hosenka_tsumabeni(pj: PathJutsu, c: Node3D, t: Node3D) -> void
 static func uchiha_kaenjin(pj: PathJutsu, c: Node3D, _t: Node3D) -> void:
 	_eyes(pj, c, 2.0)
 	var r = 4.6
-	var H = 6.5
+	var H = 13.0   # anime: göğe yükselen kızıl perde
 	var DUR = 7.0
 	var PAL = KatonLib.PAL_CRIMSON
 	pj.busy(c, 1.0)
@@ -877,9 +869,14 @@ static func uchiha_kaenjin(pj: PathJutsu, c: Node3D, _t: Node3D) -> void:
 				var rr = float(ring[1]) + randf_range(-0.25, 0.2)
 				var h = H * float(ring[2]) * (randf_range(0.6, 1.05) if k % 4 != 0 else randf_range(1.0, 1.25))
 				var w = randf_range(1.0, 1.5)
+				# dört köşeli perde (kanon: kare bariyer): çevre üzerinde eşit aralıklı nokta, köşeler dahil
+				var u = float(k) / N * 4.0
+				var sd = int(u) % 4
+				var f = (u - floor(u)) * 2.0 - 1.0
+				var sq = [Vector2(f, -1), Vector2(1, f), Vector2(-f, 1), Vector2(-1, -f)][sd] * rr
 				var tg = KatonLib.tongue_mi(1.0, 1.0, Vector3(randf_range(-0.08, 0.08), 1.0, randf_range(-0.08, 0.08)), PAL, int(ring[3]), randf_range(-0.15, 0.15), 1.0)
 				root.add_child(tg)
-				tg.position = Vector3(cos(a) * rr, -0.1, sin(a) * rr)
+				tg.position = Vector3(sq.x, -0.1, sq.y)
 				var bs = tg.basis.orthonormalized()
 				tg.basis = bs * Basis.from_scale(Vector3(w, 0.05, w))
 				tongues.append(tg)
@@ -922,27 +919,33 @@ static func uchiha_kaenjin(pj: PathJutsu, c: Node3D, _t: Node3D) -> void:
 				var a = randf() * TAU
 				if Vector3(cos(a), 0, sin(a)).dot(cdir) > 0.2:
 					a += PI
-				KatonLib.tongue(pj, center + Vector3(cos(a) * r, H * randf_range(0.8, 1.0), sin(a) * r), randf_range(1.2, 2.0), 0.9, 0.5, Vector3.UP, Vector3.UP * 3.0, PAL, 3, 0.95)
+				var ed = Vector2(cos(a), sin(a))
+				ed = ed / maxf(absf(ed.x), absf(ed.y)) * r   # kare kenarına
+				KatonLib.tongue(pj, center + Vector3(ed.x, H * randf_range(0.8, 1.0), ed.y), randf_range(1.2, 2.0), 0.9, 0.5, Vector3.UP, Vector3.UP * 3.0, PAL, 3, 0.95)
 			if i % 5 == 0:
 				KatonLib.embers(pj, center + Vector3.UP * H * 0.6, 8, r, PAL, {"vmin": 1.0, "vmax": 3.0, "life": 1.2, "spread": 40.0})
 			# dışarıdan gelen mermiler duvarda yanar
 			for n in pj.get_tree().current_scene.get_children():
 				if n is Projectile and not n.dead and n.shooter != c and Combat.hostile(c, n.shooter):
 					var v = n.global_position - center
-					var hd = Vector2(v.x, v.z).length()
+					var hd = maxf(absf(v.x), absf(v.z))   # kare perde
 					if hd > r - 1.2 and hd < r + 1.2 and v.y < H + 1.0:
 						KatonLib.glow(pj, n.global_position, 1.6, CRIM_L, 0.3)
 						KatonLib.embers(pj, n.global_position, 12, 0.3, PAL, {"vmin": 2.0, "vmax": 5.0, "life": 0.6})
 						n.block()
 			# duvara değen ya da içeri giren düşman tutuşur ve dışarı savrulur
-			for e in pj.enemies_near(c, center, r + 1.3):
+			for e in pj.enemies_near(c, center, (r + 1.3) * 1.42):
 				var v = e.global_position - center
 				v.y = 0.0
+				if maxf(absf(v.x), absf(v.z)) > r + 1.3:
+					continue   # kare perdenin dışında
 				if v.length() < 0.1:
 					v = Vector3.FORWARD
 				pj.hit(c, e.global_position + Vector3.UP, 0.8, pj.inf(c, "uchiha_kaenjin", 0.25, {"knock": 14.0, "launch": 3.0, "kind": "heavy", "element": "katon", "burn": 3.0, "dir": v.normalized()}))
-				e.global_position = pj.gp(center + v.normalized() * (r + 2.2))
-				var vp = center + v.normalized() * r + Vector3.UP * 1.2
+				var vn = v.normalized()
+				var out_d = (r + 2.2) / maxf(absf(vn.x), absf(vn.z))
+				e.global_position = pj.gp(center + vn * out_d)
+				var vp = center + vn * (r / maxf(absf(vn.x), absf(vn.z))) + Vector3.UP * 1.2
 				for q in 3:
 					KatonLib.tongue(pj, vp, 1.4, 0.8, 0.35, v.normalized() + Vector3.UP * randf_range(0.2, 0.8), v.normalized() * 4.0, PAL, 3, 1.05)
 		, func():

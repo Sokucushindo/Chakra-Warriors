@@ -221,6 +221,15 @@ static func play(fighter: Node3D, id: String, fit := -1.0) -> CastAnim:
 			if k != "base":
 				st2[k] = cust[k]
 		a.st = st2
+	# ağızdan ateş: hepsi Gōkakyū'nün Storm 4 hareketi (yana dön + el halka ağızda → geriye kavis → öne üfle);
+	# tekniğin kendi ritmi (dönme, akış süresi) korunur (kullanıcı 2026-11-24: "ateşlerin hepsini buna göre")
+	if a.style == "breath" and String(a.j.get("element", "")) in ["katon", "enton", "yoton", "futton"] and id != "katon_goukakyuu" and PathJutsu.PANIM.has("katon_goukakyuu"):
+		var gk: Dictionary = PathJutsu.PANIM["katon_goukakyuu"]
+		var st3: Dictionary = a.st.duplicate(true)
+		for k in ["wind0", "wind", "rel"]:
+			st3[k] = gk[k]
+		st3["pre"] = maxf(float(st3.get("pre", 0.3)), 0.7)
+		a.st = st3
 	a.seals = (a.j.get("seals", []) as Array).duplicate()
 	a.is_player = fighter is Player
 	a._plan(fit)
@@ -315,7 +324,14 @@ func _process(dt: float) -> void:
 		if t - dt < seal_end or (seals.is_empty() and _last_seal == -1):
 			_last_seal = 99
 			model.play(st.get("wclip", "idle"), 0.12)
-		pose = _blend(from, _style_pose("wind"), minf(1.0, k * 2.0))
+		if st.has("wind0"):
+			# iki aşamalı hazırlık (ör. Gōkakyū: önce el ağza, sonra nefes kavisi) — Storm 4 kaynağındaki gibi iki ayrı vuruş
+			if k < 0.45:
+				pose = _blend(from, _style_pose("wind0"), minf(1.0, k / 0.3))
+			else:
+				pose = _blend(_style_pose("wind0"), _style_pose("wind"), clampf((k - 0.45) / 0.4, 0.0, 1.0))
+		else:
+			pose = _blend(from, _style_pose("wind"), minf(1.0, k * 2.0))
 		if st.has("spin"):
 			pose["hips_yaw"] = float(st["spin"]) * k
 		_charge_fx(dt)

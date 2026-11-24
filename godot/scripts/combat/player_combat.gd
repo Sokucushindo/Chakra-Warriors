@@ -1422,6 +1422,9 @@ func begin_cast(jid: String) -> void:
 			var bn = String(BeastModels.INFO.get(bid, {}).get("name", bid)).split(" —")[0]
 			Hud.msg("%s sadece %s jinchūriki'si olarak, canavar modundayken atılabilir." % [String(j["name"]), bn], Color(1, 0.55, 0.3))
 			return
+	if jid == "byoen_hoka" and (modes == null or modes.cloak == null or modes.cloak.level < 6):   # kanon: yalnız Matatabi'ye tam dönüşmüşken
+		Hud.msg("%s yalnız İki Kuyruk'a (Matatabi) tam dönüşmüşken atılabilir." % String(j["name"]), Color(0.45, 0.65, 1.0))
+		return
 	if PlayerModes.GATE_NEED.has(jid) and int(modes.gates) < int(PlayerModes.GATE_NEED[jid]) and not Game.has_meta("sandbox"):
 		var gn = int(PlayerModes.GATE_NEED[jid])
 		Hud.msg("%s için %d. kapı%s açık olmalı [B]." % [String(j["name"]), gn, " (Ölüm Kapısı)" if gn == 8 else ""], Color(0.5, 1.0, 0.5))
