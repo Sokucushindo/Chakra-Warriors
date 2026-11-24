@@ -521,6 +521,8 @@ static func _house_infill(c, houses: Array) -> void:
 			n += step
 			if Vector2(px, pn).length() > lim:
 				continue
+			if b.key == "konoha" and BuildKonoha._zone(px, pn) != 0:
+				continue   # Konoha: dolgu evi yalnız çekirdek şehirde (dışarısı koru / tarla; tek tük serpilmiş kulübe yapıyordu)
 			var in_site = false
 			for st in site:   # önemli yapıların her biri: [x, n, yarıçap]
 				if Vector2(px - float(st[0]), pn - float(st[1])).length() < float(st[2]) + 12.0:
@@ -813,6 +815,8 @@ static func _trunk_piece(c: Ctx, pa: Vector2, pb: Vector2, wd: float, col: Color
 
 
 static func _trunk_ok(c: Ctx, p: Vector2, wd: float) -> bool:
+	if c.vid == "konoha" and BuildKonoha._zone(p.x, p.y) != 0:
+		return false   # Konoha: ara sokak ızgarası yalnız çekirdekte (dış halkada dama tahtası patikalar çiziyordu)
 	var w = c.wxz(p.x, p.y)
 	var near: Dictionary = c.get_meta("near")
 	var ci = Vector2i(floori(w.x / 24.0), floori(w.y / 24.0))

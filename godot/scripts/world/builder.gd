@@ -863,9 +863,28 @@ func _house_body(x: float, n: float, wdt: float, dep: float, floors: int, yaw: f
 	var wcol: Color = walls[rng.randi() % walls.size()]
 	var rcol: Color = roofs[rng.randi() % roofs.size()]
 	if style == "konoha":
-		var kr = [Color(0.93, 0.56, 0.2), Color(0.95, 0.62, 0.25), Color(0.88, 0.48, 0.18), Color(0.9, 0.66, 0.3), Color(0.82, 0.32, 0.2),
-			Color(0.93, 0.56, 0.2), Color(0.35, 0.62, 0.58), Color(0.4, 0.6, 0.85), Color(0.42, 0.66, 0.42), Color(0.95, 0.62, 0.25)]
-		rcol = kr[rng.randi() % kr.size()]
+		# 2026-11-24 mahalle renk kimliği (kaynak: anime Konoha kuşbakışı — çatılar bölge bölge kümelenmiş turuncu/kırmızı/mavi/yeşil,
+		# duvarlar krem ağırlıklı ama pastel tonlu): 150 m'lik mahalle hücresi bir palet seçer, evlerin %75'i o paletten
+		var dist = absi(hash(Vector2i(floori(x / 150.0), floori(n / 150.0)))) % 5
+		var pal_r = [
+			[Color(0.93, 0.56, 0.2), Color(0.95, 0.62, 0.25), Color(0.88, 0.48, 0.18), Color(0.82, 0.32, 0.2)],   # sıcak turuncu
+			[Color(0.4, 0.6, 0.85), Color(0.33, 0.52, 0.78), Color(0.35, 0.62, 0.58), Color(0.93, 0.56, 0.2)],   # mavi-camgöbeği
+			[Color(0.42, 0.66, 0.42), Color(0.36, 0.58, 0.4), Color(0.95, 0.62, 0.25), Color(0.35, 0.62, 0.58)],   # yeşil
+			[Color(0.82, 0.3, 0.22), Color(0.72, 0.22, 0.2), Color(0.93, 0.56, 0.2), Color(0.4, 0.6, 0.85)],   # kızıl
+			[Color(0.95, 0.62, 0.25), Color(0.4, 0.6, 0.85), Color(0.42, 0.66, 0.42), Color(0.82, 0.32, 0.2), Color(0.3, 0.58, 0.62)],   # karışık
+		]
+		var pal_w = [
+			[Color(0.9, 0.84, 0.72), Color(0.92, 0.8, 0.68), Color(0.88, 0.78, 0.64)],   # krem / şeftali
+			[Color(0.84, 0.86, 0.86), Color(0.8, 0.85, 0.9), Color(0.88, 0.86, 0.8)],   # kırık beyaz / açık mavi-gri
+			[Color(0.84, 0.88, 0.76), Color(0.88, 0.86, 0.72), Color(0.8, 0.84, 0.74)],   # açık yeşil / saman
+			[Color(0.9, 0.8, 0.76), Color(0.88, 0.84, 0.76), Color(0.86, 0.76, 0.72)],   # pembemsi / krem
+			[Color(0.9, 0.86, 0.74), Color(0.85, 0.82, 0.86), Color(0.86, 0.88, 0.8)],
+		]
+		var own = rng.randf() < 0.75
+		var pr: Array = pal_r[dist] if own else pal_r[rng.randi() % pal_r.size()]
+		var pw: Array = pal_w[dist] if own else pal_w[rng.randi() % pal_w.size()]
+		rcol = pr[rng.randi() % pr.size()]
+		wcol = pw[rng.randi() % pw.size()]
 	if style == "wood":
 		wcol = Color(0.62, 0.47, 0.32).darkened(rng.randf_range(0, 0.2))
 	elif style == "snow":

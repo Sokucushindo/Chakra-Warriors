@@ -26,7 +26,7 @@ func _ready() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path("res://../_tmp/kons"))
 	await get_tree().process_frame
 	main.creator_state = {"slot": 3, "name": "Test", "gender": "m", "clan": "none", "village": "konoha", "element": "katon", "hair_style": "diken", "hair": Color(0.85, 0.3, 0.12), "top": Color(0.9, 0.45, 0.12), "eye": Color(0.2, 0.4, 0.9), "skin": Color(0.96, 0.8, 0.66)}
-	main._start_new_game()
+	await main._start_new_game()
 	await _w(3.0)
 	Hud.close_dialog()
 	Hud.show_game_hud(false)

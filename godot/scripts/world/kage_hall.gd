@@ -410,6 +410,18 @@ static func konoha_tower(b: Builder, decor: Node3D, tn: float) -> float:
 			var wx = ex - 25.0 + i * 6.25
 			b.box(Vector3(wx, y, enn - 20.15), Vector3(3.6, 3.2, 0.3), dark, 0, false)
 			b.box(Vector3(wx, y, enn - 20.3), Vector3(3.1, 2.7, 0.2), glass, 0, false)
+	# arka ve yan cepheler (2026-11-24: arka duvar bomboştu): pencere sıraları + kat saçakları
+	for fl in 3:
+		var y2 = 4.5 + fl * 8.0
+		b.box(Vector3(ex, y2 + 3.8, enn + 20.4), Vector3(60.4, 0.35, 1.2), red.darkened(0.15), 0, false)
+		for i in 9:
+			var wx2 = ex - 25.0 + i * 6.25
+			b.box(Vector3(wx2, y2, enn + 20.15), Vector3(3.6, 3.2, 0.3), dark, 0, false)
+			b.box(Vector3(wx2, y2, enn + 20.3), Vector3(3.1, 2.7, 0.2), glass, 0, false)
+		for i in 5:
+			var wz = enn - 15.0 + i * 7.5
+			b.box(Vector3(ex + 30.15, y2, wz), Vector3(0.3, 3.2, 3.6), dark, 0, false)
+			b.box(Vector3(ex + 30.3, y2, wz), Vector3(0.2, 2.7, 3.1), glass, 0, false)
 	for t in 3:
 		var tx = ex - 18.0 + t * 16.0
 		b.cyl(Vector3(tx, 30.0, enn + 6.0), 5.0, 4.6, Color(0.82, 0.84, 0.86), true, 14)
@@ -429,6 +441,15 @@ static func konoha_tower(b: Builder, decor: Node3D, tn: float) -> float:
 			var px = wx0 - 17.5 + i * 7.0
 			b.box(Vector3(px, 5.0 + fl * 7.5, enn - 16.15), Vector3(3.2, 3.4, 0.3), dark, 0, false)
 			b.box(Vector3(px, 5.0 + fl * 7.5, enn - 16.3), Vector3(2.7, 2.9, 0.2), Color(0.95, 0.92, 0.8), 0, false)
+	for fl in 2:   # arşivin arka ve batı cephesi
+		for i in 6:
+			var px2 = wx0 - 17.5 + i * 7.0
+			b.box(Vector3(px2, 5.0 + fl * 7.5, enn + 16.15), Vector3(3.2, 3.4, 0.3), dark, 0, false)
+			b.box(Vector3(px2, 5.0 + fl * 7.5, enn + 16.3), Vector3(2.7, 2.9, 0.2), Color(0.95, 0.92, 0.8), 0, false)
+		for i in 4:
+			var pz = enn - 10.5 + i * 7.0
+			b.box(Vector3(wx0 - 22.15, 5.0 + fl * 7.5, pz), Vector3(0.3, 3.4, 3.2), dark, 0, false)
+			b.box(Vector3(wx0 - 22.3, 5.0 + fl * 7.5, pz), Vector3(0.2, 2.9, 2.7), Color(0.95, 0.92, 0.8), 0, false)
 	b.disc(Vector3(wx0, 14.0, enn - 16.3), 5.0, 0.3, red, 0.0, 20)
 	b.kanji(Vector3(wx0, 14.0, enn - 16.55), "書", 3.6, Color(0.98, 0.95, 0.9), 0.0)
 	# gövdelerle kule arasında kapalı köprüler

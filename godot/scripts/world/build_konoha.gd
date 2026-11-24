@@ -57,6 +57,115 @@ static func _face(dx: float, dn: float) -> float:
 	return atan2(-dx, dn)
 
 
+## Bölgeler (2026-11-24, kaynak: anime Konoha haritası — kayanın önünde sık çekirdek şehir, aralarda korular, dış halkada tarla):
+## 0 çekirdek şehir (bitişik nizam, sık), 1 orta halka (korular + küçük mahalle kümeleri), 2 dış halka (tarla, çiftlik, orman)
+const CORE_C := Vector2(0.0, 300.0)
+const CORE_RX := 780.0
+const CORE_RN := 720.0
+static func _zone(x: float, n: float) -> int:
+	var dx = (x - CORE_C.x) / CORE_RX
+	var dn = (n - CORE_C.y) / CORE_RN
+	var e = sqrt(dx * dx + dn * dn) + (sin(x * 0.006 + 1.3) * 0.05 + sin(n * 0.008 - 0.7) * 0.05)   # kenar kıvrımlı (cetvel çizgisi değil)
+	if e < 1.0:
+		return 0
+	if Vector2(x, n).length() < 1000.0:
+		return 1
+	return 2
+
+
+## Koru yoğunluğu (orta halka): büyük yumuşak lekeler — korular ile açıklıklar
+static func _grove(x: float, n: float) -> float:
+	return sin(x * 0.0085 + 0.6) * sin(n * 0.0072 + 2.2) + 0.45 * sin(x * 0.019 - n * 0.015 + 1.0)
+
+
+## Dış halka tarla kuşağı: sokak boylarında, yolun iki yanında çeltik ve sebze parselleri; birkaç parselde bir çiftlik evi
+static func _farm_belt(b: Builder, rng: RandomNumberGenerator, occupied: Array, cliff_n: float) -> int:
+	var c = Vector2(b.origin.x, -b.origin.z)   # köy merkezi (harita)
+	var made = 0
+	for rd in Game.roads:
+		if rd["kind"] != "street":
+			continue
+		var pts: PackedVector2Array = rd["pts"]
+		for i in range(pts.size() - 1):
+			var a: Vector2 = pts[i] - c
+			var e: Vector2 = pts[i + 1] - c
+			var L = a.distance_to(e)
+			if L < 30.0:
+				continue
+			var dir = (e - a) / L
+			var nrm = Vector2(-dir.y, dir.x)
+			var t = 18.0
+			while t < L - 18.0 and made < 140:
+				var base = a + dir * t
+				t += rng.randf_range(34.0, 48.0)
+				if _zone(base.x, base.y) != 2 or base.length() > R - 60.0 or base.y > cliff_n - 80.0:
+					continue
+				for sd in [-1.0, 1.0]:
+					var paddy = rng.randf() < 0.65
+					var wd = rng.randf_range(16.0, 24.0) if paddy else rng.randf_range(10.0, 14.0)
+					var dp = rng.randf_range(22.0, 30.0) if paddy else rng.randf_range(12.0, 18.0)
+					var q = base + nrm * sd * (12.0 + dp * 0.5)
+					if not _free(q.x, q.y, occupied, maxf(wd, dp) * 0.5 + 2.0) or _on_road(b, q.x, q.y, maxf(wd, dp) * 0.5 + 1.0):
+						continue
+					var yaw = rad_to_deg(atan2(dir.x, dir.y))
+					if paddy:
+						load("res://scripts/world/farm_kit.gd").paddy(b, q.x, q.y, yaw, wd, dp, rng)
+					else:
+						load("res://scripts/world/farm_kit.gd").veg(b, q.x, q.y, yaw, wd, dp, rng)
+					occupied.append([q.x, q.y, wd * 0.5 + 1.0, dp * 0.5 + 1.0])
+					made += 1
+					if made % 3 == 0:   # çiftlik evi: parselin yola bakan köşesinde
+						var hq = base + nrm * sd * 9.0 + dir * (wd * 0.5 + 6.0)
+						if _free(hq.x, hq.y, occupied, 6.0) and not _on_road(b, hq.x, hq.y, 5.0):
+							b.house_ti = _pick_template(rng, true, true)
+							b.house(hq.x, hq.y, 8.0, 7.0, 1, rad_to_deg(atan2(-(-nrm * sd).x, -(-nrm * sd).y)), "konoha", rng)
+							occupied.append([hq.x, hq.y, 5.0, 5.0])
+	return made
+
+
+## Hokage yerleşkesinin avlu duvarı (anime: Hokage binası ve idari binalar duvarla çevrili, önde tören kapısı): beyaz sıva,
+## taş taban, koyu kiremit başlık; önde tören caddesine açılan geniş kapı (iki kızıl direk + çatılı kiriş + 火 levhası)
+static func _hokage_compound_wall(b: Builder, tn: float) -> void:
+	var x0 = -120.0; var x1 = 120.0
+	var n0 = tn - 120.0; var n1 = tn + 48.0
+	var plaster = Color(0.92, 0.9, 0.84)
+	var cap = Color(0.3, 0.28, 0.3)
+	var base = Color(0.6, 0.57, 0.52)
+	var gate_half = 15.0
+	var segs = [[Vector2(x0, n1), Vector2(x1, n1)], [Vector2(x0, n0), Vector2(x0, n1)], [Vector2(x1, n0), Vector2(x1, n1)],
+		[Vector2(x0, n0), Vector2(-gate_half, n0)], [Vector2(gate_half, n0), Vector2(x1, n0)]]
+	for sg in segs:
+		var a: Vector2 = sg[0]
+		var e: Vector2 = sg[1]
+		var L = a.distance_to(e)
+		var k = maxi(1, int(L / 8.0))
+		var yaw = 0.0 if absf(e.y - a.y) < 0.1 else 90.0
+		for i in k:
+			var m = a.lerp(e, (i + 0.5) / k)
+			var seg = L / k + 0.05
+			var g = _gy(b, m.x, m.y)
+			b.box(Vector3(m.x, g + 0.35, m.y), Vector3(seg, 0.9, 1.3), base, yaw)
+			b.box(Vector3(m.x, g + 2.0, m.y), Vector3(seg, 2.6, 0.8), plaster, yaw)
+			b.box(Vector3(m.x, g + 3.42, m.y), Vector3(seg + 0.06, 0.3, 1.7), cap, yaw)   # kesintisiz kiremit başlık (prizmalar testere dişi gibiydi)
+			b.box(Vector3(m.x, g + 3.66, m.y), Vector3(seg + 0.06, 0.22, 0.9), cap.lightened(0.08), yaw, false)
+	# tören kapısı
+	var gy = _gy(b, 0.0, n0)
+	var gred = Color(0.72, 0.18, 0.15)
+	for sx in [-1.0, 1.0]:
+		b.box(Vector3(sx * (gate_half - 0.6), gy + 3.4, n0), Vector3(1.1, 6.8, 1.1), gred)
+		b.box(Vector3(sx * (gate_half - 0.6), gy + 0.3, n0), Vector3(1.8, 0.6, 1.8), base)
+	b.box(Vector3(0, gy + 6.6, n0), Vector3(gate_half * 2.0 + 1.0, 0.7, 1.2), gred)
+	b.roof(Vector3(0, gy + 7.6, n0), Vector3(gate_half * 2.0 + 4.0, 1.6, 3.4), cap)
+	b.box(Vector3(0, gy + 5.4, n0 - 0.7), Vector3(5.0, 1.8, 0.2), Color(0.95, 0.93, 0.86), 0, false)
+	b.kanji(Vector3(0, gy + 5.4, n0 - 0.85), "火", 1.4, gred, 0.0)
+
+
+## Orta halkada küçük mahalle kümeleri (yerleşim adaları): yumuşak gürültü eşiği
+static func _hamlet(x: float, n: float) -> bool:
+	var v = sin(x * 0.011 + 2.1) * sin(n * 0.013 - 0.4) + 0.5 * sin((x + n) * 0.007 + 5.0)
+	return v > 0.95   # az ama toplu mahalle (tek tük serpilmiş ev değil)
+
+
 static func _on_road(b: Builder, x: float, n: float, clear: float) -> bool:
 	var wp = b.w(Vector3(x, 0, n))
 	return Game.road_dist(wp.x, wp.z) < clear
@@ -86,7 +195,32 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	# kuzey: uçurum duvarın yerini alır
 	var cliff_ang = rad_to_deg(acos(clampf(cliff_n / R, -1.0, 1.0)))
 	gaps.append([0.0, cliff_ang * 2.0 + 6.0])
+	# su yolları (2026-11-24, kaynak: anime Konoha haritası — kayadan inen nehir şehrin içinden kıvrılır, kollar surdan çıkar):
+	# Naka Nehri kayadaki şelaleden doğar, Akademi'nin batısından şehrin batı kesimine girer, parkın doğusundan güneybatıya
+	# kıvrılıp su kapısından surdan çıkar. Doğu deresi 3. Antrenman Alanı'nın göletinden doğar, korular ve tarlalar arasından
+	# güneye akıp kendi su kapısından çıkar (eskiden gölet çıkışında 60 m sonra bitiyordu).
+	var naka_ctrl = [Vector2(-640, cliff_n - 14.0), Vector2(-700, 960), Vector2(-705, 790), Vector2(-655, 640), Vector2(-600, 470),
+		Vector2(-520, 330), Vector2(-430, 170), Vector2(-380, 0), Vector2(-380, -180), Vector2(-405, -360), Vector2(-520, -520),
+		Vector2(-680, -700), Vector2(-770, -900), Vector2(-860, -1080), Vector2(-900, -1150).normalized() * (R + 8.0)]
+	var east_ctrl = [Vector2(1124, 500), Vector2(1135, 380), Vector2(1090, 220), Vector2(1000, 40), Vector2(930, -180), Vector2(900, -420),
+		Vector2(840, -620), Vector2(800, -850), Vector2(760, -1060), Vector2(720, -1270).normalized() * (R + 8.0)]
+	var water_gates: Array = []
+	for wc in [naka_ctrl, east_ctrl]:
+		var ex: Vector2 = wc[wc.size() - 1]
+		var wa = rad_to_deg(atan2(ex.x, ex.y))
+		gaps.append([wa, 2.4])
+		water_gates.append(wa)
 	b.wall_ring(R, WALL_H, 5.0, wall_c, gaps, 1.2)
+	for wa in water_gates:   # su kapısı: suyun üstünde surla aynı renk kemer kirişi + kızıl başlık (sur kesintisiz okunur)
+		var war = deg_to_rad(float(wa))
+		var gp0 = Vector2(R * sin(war), R * cos(war))
+		var gyw = _gy(b, gp0.x, gp0.y)
+		var chord = 2.0 * PI * R * 2.4 / 360.0 + 3.0
+		b.box(Vector3(gp0.x, gyw + WALL_H * 0.72, gp0.y), Vector3(chord, WALL_H * 0.56, 5.4), wall_c, float(wa))
+		b.box(Vector3(gp0.x, gyw + WALL_H + 0.4, gp0.y), Vector3(chord, 0.8, 6.2), Color(0.5, 0.2, 0.15), float(wa), true)
+		for sx in [-1.0, 1.0]:   # kemer ayakları
+			var off = Vector2(cos(war), -sin(war)) * (chord * 0.5 - 0.8) * sx
+			b.box(Vector3(gp0.x + off.x, gyw + WALL_H * 0.5, gp0.y + off.y), Vector3(1.6, WALL_H, 6.0), wall_c.darkened(0.08), float(wa))
 	for ga in gate_angles:
 		if absf(float(ga) - 180.0) < 1.0:
 			_aun_gate(b, decor)
@@ -106,6 +240,10 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	KageHall.plaza(b, {"vid": "konoha", "front": tfront, "hw": 58.0, "depth": 74.0, "climate": "green", "stone": Color(0.8, 0.74, 0.64),
 		"trim": Color(0.6, 0.52, 0.44), "acc": Color(0.72, 0.18, 0.15), "gate": Color(0.72, 0.18, 0.15), "kanji": "火", "terrace_h": 0.9, "terrace_w": 34.0, "decor": decor})
 	occupied.append([0, tn - 18, 116, 98, 25.0])
+	_hokage_compound_wall(b, tn)
+	# Konoha Kütüphanesi: yerleşkenin güneydoğu köşesinde, tören caddesine yakın (kaynak: anime kütüphane cephesi)
+	SpecialBuildings.library(b, 168.0, tn - 140.0, -1.0)
+	occupied.append([168.0, tn - 140.0, 14.0, 10.0])
 
 	# ---- Ninja Akademisi (kulenin batısı) + avlu
 	var ax = -540.0; var an = 610.0
@@ -225,20 +363,53 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	for sh in shops:
 		var face_south = sh[1] > 0.0  # caddenin kuzeyindekiler güneye (caddeye) bakar
 		var yaw = 0.0 if face_south else 180.0
-		b.house_ti = HouseKit.rect_template(rng, sh[6] + 4.0, 14.0)   # köşeli dükkân binası (yuvarlak kule / kubbe değil)
-		b.shift_off_road = true
-		b.house(sh[0], sh[1], sh[6] + 4.0, 14.0, 2, yaw, "konoha", rng)
-		b.shift_off_road = false
-		sh = sh.duplicate()
-		sh[0] = b.placed_xn.x   # bina caddeden kaydırıldıysa vitrin/kapı/afiş onunla gelir
-		sh[1] = b.placed_xn.y
+		# her dükkânın kendi binası (SpecialBuildings.shop_building: türüne özgü silüet, malzeme, cephe)
 		var dn = -1.0 if face_south else 1.0
-		var hd = float(b.last_house.get("d", 11.0))
+		var hd = 14.0
+		sh = sh.duplicate()
+		SpecialBuildings.shop_building(b, sh[0], sh[1], sh[6] + 4.0, hd, dn, sh[2])
+		var _unused_yaw = yaw
 		SpecialBuildings.shop_front(b, decor, sh[0], sh[1] + dn * hd * 0.5, dn, sh[2], sh[4], sh[6])
 		_door(b, sh[0], sh[1] + dn * (hd * 0.5 + 1.2), 3.0, sh[2], sh[3], sh[5])
 		CityDecor.banner(decor, _gp(b, sh[0] + 5.0, sh[1] + dn * (hd * 0.5 + 2.4)), 0.0, sh[4], Color(0.98, 0.95, 0.9))
 		occupied.append([sh[0], sh[1], sh[6] * 0.5 + 3, 9])
 	_site(b, "bar", -95, 22)
+	# çarşı cephe sıraları (2026-11-24: cadde boyu boş çimen + ağaçtı): adı olan dükkânların arasını caddeye bakan, tabelalı,
+	# vitrinli, perdeli bitişik dükkân binaları doldurur; 5-6 binada bir ara sokak
+	var shop_tis: Array = []
+	for ti0 in HouseKit.templates.size():
+		var tt0: Dictionary = HouseKit.templates[ti0]
+		if int(tt0.get("arch", 0)) == 3 and float(tt0["d"]) <= 15.2 and float(tt0["w"]) <= 22.0:
+			shop_tis.append(ti0)
+	if not shop_tis.is_empty():
+		for sd2 in [-1.0, 1.0]:
+			var mx = -305.0
+			var run2 = 0
+			while mx < 305.0:
+				var ti2: int = shop_tis[rng.randi() % shop_tis.size()]
+				var tw2 = float(HouseKit.templates[ti2]["w"])
+				var td2 = float(HouseKit.templates[ti2]["d"])
+				var cxm = mx + tw2 * 0.5
+				var cnm = sd2 * (15.0 + td2 * 0.5)
+				var named = false
+				for sh in shops:
+					if absf(float(sh[0]) - cxm) < (float(sh[6]) + 4.0 + tw2) * 0.5 + 1.0 and signf(float(sh[1])) == sd2:
+						named = true
+				if sd2 < 0.0 and absf(cxm - 70.0) < tw2 * 0.5 + 9.0:
+					named = true   # Ichiraku tezgâhının yeri
+				if named or absf(cxm) < 26.0 or _on_road(b, cxm, cnm - sd2 * td2 * 0.3, 1.0):
+					mx += 6.0
+					continue
+				b.house_ti = ti2
+				b.house(cxm, cnm, tw2 + 0.1, td2 + 0.1, 2, 0.0 if sd2 > 0.0 else 180.0, "konoha", rng)
+				if b.house_ok:
+					occupied.append([cxm, cnm, tw2 * 0.5, td2 * 0.5])
+					VL.doors["konoha"].append(_gp(b, cxm, cnm - sd2 * (td2 * 0.5 + 1.0)))
+				mx += tw2 + 0.6
+				run2 += 1
+				if run2 >= 5 + rng.randi() % 2:   # ara sokak
+					mx += 5.0
+					run2 = 0
 
 	# ---- Ichiraku tarzı ramen tezgâhı (caddeye açık)
 	var ix = 70.0; var inn = -30.0
@@ -283,6 +454,9 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	HouseKit.ensure()
 	print("SURE sablon ", Time.get_ticks_msec() - _tu, " ms")
 	b.wall_ring_at(ux, un, 125.0, 5.0, Color(0.9, 0.88, 0.84), [[45.0, 10.0]])
+	# Konoha Askerî Polis Birliği binası: Uchiha Bölgesi kapısının dışında, kapıya giden caddeye bakar
+	SpecialBuildings.police_hq(b, ux + 160.0, un + 82.0, 1.0)
+	occupied.append([ux + 160.0, un + 82.0, 17.0, 13.0])
 	for ring in [[95.0, 22], [62.0, 14]]:
 		for k in ring[1]:
 			var a = k * 360.0 / ring[1]
@@ -505,8 +679,7 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	# ---- Naka Nehri: Hokage Kayası'nın batısındaki şelaleden doğar, Akademi'nin batısından, Hyūga ile park arasından,
 	# Uchiha Bölgesi'nin kıyısından geçip güneybatıda surdan çıkar (evlerden önce: evler kanalın üstüne konmaz)
 	var naka: Array = []
-	var ctrl = [Vector2(-640, cliff_n - 14.0), Vector2(-690, 960), Vector2(-760, 720), Vector2(-805, 470), Vector2(-830, 200),
-		Vector2(-845, -60), Vector2(-865, -330), Vector2(-875, -540), Vector2(-930, -820), Vector2(-1010, -1000), Vector2(-1060, R * -0.74 - 20.0)]
+	var ctrl = naka_ctrl
 	for i in ctrl.size() - 1:   # Catmull-Rom: yumuşak kıvrım
 		var p0: Vector2 = ctrl[maxi(0, i - 1)]
 		var p1: Vector2 = ctrl[i]
@@ -518,7 +691,19 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	naka.append(ctrl[ctrl.size() - 1])
 	var crng = RandomNumberGenerator.new()
 	crng.seed = 777
-	Canal.build(b, naka, 9.0, func(x, n): return _on_road(b, x, n, 0.5), crng)
+	Canal.build(b, naka, 12.0, func(x, n): return _on_road(b, x, n, 0.5), crng)
+	# doğu deresi (Antrenman Alanı göletinden)
+	var east: Array = []
+	for i2 in east_ctrl.size() - 1:
+		var q0: Vector2 = east_ctrl[maxi(0, i2 - 1)]
+		var q1: Vector2 = east_ctrl[i2]
+		var q2: Vector2 = east_ctrl[i2 + 1]
+		var q3: Vector2 = east_ctrl[mini(east_ctrl.size() - 1, i2 + 2)]
+		for k in 8:
+			var t = k / 8.0
+			east.append(0.5 * ((2.0 * q1) + (-q0 + q2) * t + (2.0 * q0 - 5.0 * q1 + 4.0 * q2 - q3) * t * t + (-q0 + 3.0 * q1 - 3.0 * q2 + q3) * t * t * t))
+	east.append(east_ctrl[east_ctrl.size() - 1])
+	Canal.build(b, east, 6.0, func(x, n): return _on_road(b, x, n, 0.5), crng)
 	_naka_falls(b, decor, ctrl[0], cliff_n)
 
 	# ---- evler: sokak boylarına dizili (merkezde 3 sıra, dışarıda 1-2 sıra), her biri sokağa bakar
@@ -527,17 +712,29 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	var count = _street_houses(b, v, rng, occupied, decor, cliff_n)
 	var street_n = count
 	count += _fill_blocks(b, rng, occupied, cliff_n)
-	print("Konoha evleri: cadde ", street_n, ", blok içi ", count - street_n)
+	# _fb_print()   # hata ayıklama haritası (yerleşim nedenleri)
+	print("Konoha evleri: cadde ", street_n, ", blok içi ", count - street_n, " blok nedenleri ", _fb_why)
 	_house_paths(b, c0_paths(v))
-	# dış mahalleler: sokaklardan uzak boşluklara ağaç kümeleri (orman köyü hissi)
+	# dış halka: tarla ve çiftlik kuşağı (kaynak: anime Konoha haritasının güneyindeki tarlalar)
+	var fields = _farm_belt(b, rng, occupied, cliff_n)
+	# orta halka: korular (yoğun ağaç kümeleri, aralarında açıklık); dış halka: tarla kenarı ağaç sıraları
 	var trees = 0
-	for k in 2400:   # orman köyü: dış mahallelerde uzun ağaç (2026-11-14: sayı yarıya indi, aralarında en az 9 m: düzenli yayılım)
+	for k in 34000:
+		if trees >= 4200:
+			break   # orman köyü: dış mahallelerde uzun ağaç (2026-11-14: sayı yarıya indi, aralarında en az 9 m: düzenli yayılım)
 		var a = rng.randf() * TAU
 		var rr = sqrt(rng.randf()) * (R - 50.0)   # sura yaslanmasın
 		var tx2 = sin(a) * rr; var tn2 = cos(a) * rr
 		if tn2 > cliff_n - 30.0 or rr < 250.0:
 			continue
-		if _on_road(b, tx2, tn2, 26.0) or not _free(tx2, tn2, occupied, 9.0):
+		var zt = _zone(tx2, tn2)
+		if zt == 0:
+			continue   # çekirdek: ağaç blok avlularında
+		if zt == 1 and _grove(tx2, tn2) < 0.2:
+			continue   # orta halka: yalnız koru kümelerinde (aralar açıklık); korular sık orman
+		if zt == 2 and rng.randf() < 0.75:
+			continue   # dış halka: seyrek
+		if _on_road(b, tx2, tn2, 14.0) or not _free(tx2, tn2, occupied, 4.5 if zt == 1 else 9.0):
 			continue
 		b.tree(tx2, tn2, rng.randf_range(1.6, 2.9), rng, _gy(b, tx2, tn2))
 		occupied.append([tx2, tn2, 4.0, 4.0])
@@ -554,7 +751,7 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 			b.pack_mesh(_veg_cache[vt], Vector3(bx2, _gy(b, bx2, bn2), bn2), rng.randf() * 360.0, rng.randf_range(0.7, 1.3) * (0.5 if vt == 4 else 1.0), 0.5)
 	b.finish()
 	_merge_house_cells(b.root)
-	print("Konoha: ", count, " ev, ", trees, " ağaç  toplam ", Time.get_ticks_msec() - _t0, " ms")
+	print("Konoha: ", count, " ev, ", trees, " ağaç, ", fields, " tarla  toplam ", Time.get_ticks_msec() - _t0, " ms")
 
 
 ## Sokak boyunca ev dizileri. Çakışma: dolu alanlar, başka sokaklar, önceki evler.
@@ -593,21 +790,22 @@ static func _street_houses(b: Builder, v: Dictionary, rng: RandomNumberGenerator
 		while lt < L - 8.0 and dc0 < 1150.0:
 			var lp = a + dir * lt
 			lt += 32.0
-			if lp.length() > R - 40.0 or lp.y > cliff_n - 45.0:
+			if lp.length() > R - 40.0 or lp.y > cliff_n - 45.0 or _zone(lp.x, lp.y) != 0:
 				continue
 			CityDecor.lantern_string(decor, _gp(b, lp.x + nrm.x * 8.5, lp.y + nrm.y * 8.5), _gp(b, lp.x - nrm.x * 8.5, lp.y - nrm.y * 8.5), 6,
 				[Color(0.95, 0.3, 0.25), Color(1.0, 0.92, 0.75), Color(0.95, 0.3, 0.25)])
 			Lights.add(_gp(b, lp.x, lp.y) + Vector3.UP * 5.6)
-		var rows = 2 if dc0 > 1100.0 else (3 if dc0 > 650.0 else 4)
-		if thin:   # yarı yoğunluk: cadde boyu ön sıra kalır (sokak dokusu), arka sıralar seyrelir: dışta 1, ortada 1-2, merkezde 2 sıra
-			rows = 2 if dc0 < 650.0 else 1
+		var zmid = (a + e) * 0.5
+		var zc = _zone(zmid.x, zmid.y)
+		var rows = 4 if zc == 0 else 2
 		for sd in [-1.0, 1.0]:
 			for row in rows:
 				var t = 9.0 + rng.randf_range(0.0, 4.0) * row
 				var run = 0
 				var alley_at = rng.randi_range(4, 6)
 				while t < L - 8.0:
-					var ti = _pick_template(rng, row == 0)
+					var shop_row = row == 0 and zc == 0 and (absf(zmid.y) < 45.0 or absf(zmid.x) < 45.0 or rng.randf() < 0.25)
+					var ti = _pick_template(rng, row == 0, zc != 0, shop_row)
 					var tw = float(HouseKit.templates[ti]["w"])
 					var td = float(HouseKit.templates[ti]["d"])
 					if t + tw > L - 4.0:
@@ -615,7 +813,9 @@ static func _street_houses(b: Builder, v: Dictionary, rng: RandomNumberGenerator
 					var off = 7.5 + row * 15.5 + td * 0.5
 					var q = a + dir * (t + tw * 0.5) + nrm * sd * off
 					var placed = false
-					if q.length() < R - 35.0 and q.y < cliff_n - 45.0 and _free(q.x, q.y, occupied, 2.0) and not _on_road(b, q.x, q.y, td * 0.5 + 1.0) \
+					var zq = _zone(q.x, q.y)
+					var zone_ok = zq == 0 or (zq == 1 and _hamlet(q.x, q.y))   # dış halka tarla/orman; orta halkada yalnız mahalle kümeleri
+					if zone_ok and q.length() < R - 35.0 and q.y < cliff_n - 45.0 and _free(q.x, q.y, occupied, 2.0) and not _on_road(b, q.x, q.y, td * 0.5 + 1.0) \
 							and _lot_free(b, q, dir, tw, td):
 						var fd = -nrm * sd
 						var yaw = rad_to_deg(atan2(-fd.x, -fd.y))
@@ -636,7 +836,7 @@ static func _street_houses(b: Builder, v: Dictionary, rng: RandomNumberGenerator
 								var gy = b._ground_off(q.x, q.y, 6.0).y
 								lantern_xf.append(Transform3D(Basis(Vector3.UP, deg_to_rad(-yaw)), b.w(Vector3(q.x + lo.x, gy + 2.55, q.y + lo.y))))
 						count += 1
-					t += tw + rng.randf_range(1.8, 3.0) if placed else 4.0   # evler arası dar geçit (dip dibe değil)
+					t += tw + (rng.randf_range(0.4, 1.2) if zq == 0 else rng.randf_range(1.0, 2.0)) if placed else 4.0   # çekirdekte bitişik nizam, dışarıda dar geçit
 					run += 1
 					if run >= alley_at:   # dar ara sokak
 						t += rng.randf_range(2.8, 4.0)
@@ -831,8 +1031,19 @@ static func _house_paths(b: Builder, vc: Vector2) -> void:
 
 
 ## Bitişik dizilim için şablon: cadde önünde dükkân / kasaba evi ağırlıklı, arkada apartman ağırlıklı
-static func _pick_template(rng: RandomNumberGenerator, front: bool) -> int:
+static func _pick_template(rng: RandomNumberGenerator, front: bool, low := false, shop := false) -> int:
 	var n = HouseKit.templates.size()
+	if shop and rng.randf() < 0.8:   # çarşı / tören caddesi ön sırası: tabelalı, vitrinli, tenteli dükkân binası
+		for k in 30:
+			var ts = rng.randi() % n
+			if int(HouseKit.templates[ts].get("arch", 0)) == 3 and float(HouseKit.templates[ts]["d"]) <= 15.2:
+				return ts
+	if low:   # şehir dışı mahalle: alçak geleneksel ev (yuvarlak kule / kubbe / apartman yok — korunun ortasında tek kule rastgele duruyordu)
+		for k in 30:
+			var tl = rng.randi() % n
+			var tt: Dictionary = HouseKit.templates[tl]
+			if int(tt.get("arch", 0)) < 5 and float(tt["h"]) <= 10.5 and float(tt["d"]) <= 14.0:
+				return tl
 	for k in 6:
 		var ti = rng.randi() % n
 		var t: Dictionary = HouseKit.templates[ti]
@@ -867,8 +1078,31 @@ static func _lot_free(b: Builder, q: Vector2, dir: Vector2, tw: float, td: float
 
 ## Sokak araları (bloklar): cadde sıralarının arkasında kalan iç alan, 16 m ızgarada sırt sırta evlerle dolar;
 ## her 4. sıra ara sokak olarak boş kalır. Ev en yakın sokağa bakar.
+static var _fb_why := {}
+static var _fb_grid := {}
+static func _fb_map(x: float, n: float, k: String) -> void:
+	var key = Vector2i(int(floor(x / 100.0)), int(floor(n / 100.0)))
+	if not _fb_grid.has(key):
+		_fb_grid[key] = {}
+	_fb_grid[key][k] = int(_fb_grid[key].get(k, 0)) + 1
+static func _fb_print() -> void:
+	for nn in range(11, -9, -1):
+		var row = "FB n=%5d " % (nn * 100)
+		for xx in range(-9, 9):
+			var g = _fb_grid.get(Vector2i(xx, nn), {})
+			if g.is_empty():
+				row += "  .  "
+				continue
+			var best = ""
+			var bv = -1
+			for k in g:
+				if int(g[k]) > bv:
+					bv = int(g[k]); best = k
+			row += " %s%3d" % [best, int(g.get("H", 0))]
+		print(row)
 static func _fill_blocks(b: Builder, rng: RandomNumberGenerator, occupied: Array, cliff_n: float) -> int:
 	var count = 0
+	_fb_why = {"roll": 0, "occ_road": 0, "tpl": 0, "lot": 0, "ok": 0, "fail": 0}
 	var step = 16.0
 	var gx = -R
 	var ix = 0
@@ -881,10 +1115,12 @@ static func _fill_blocks(b: Builder, rng: RandomNumberGenerator, occupied: Array
 			var x = gx
 			var n = gn
 			gn += step
-			if ix % 4 == 0 or iz % 5 == 0:
-				continue  # ara sokak
+			if ix % 6 == 0 or iz % 6 == 0:
+				continue  # ara sokak (çekirdek sık: 6 hücrede bir)
 			var d = Vector2(x, n).length()
-			var prob = 0.8 if d < 700.0 else (0.72 if d < 1100.0 else 0.55)
+			if _zone(x, n) != 0:
+				continue   # blok dolgusu yalnız çekirdek şehirde (orta halka koru, dış halka tarla)
+			var prob = 0.94
 			if d > R - 40.0:
 				continue
 			var roll = rng.randf()
@@ -902,9 +1138,12 @@ static func _fill_blocks(b: Builder, rng: RandomNumberGenerator, occupied: Array
 							var fn = n + rng.randf_range(-6.0, 6.0)
 							b.pack_mesh(CityLandscape._flower(rng.randi() % Props.FLOWER_KINDS), Vector3(fx, _gy(b, fx, fn), fn), rng.randf() * 360.0, rng.randf_range(0.8, 1.2), 0.4)
 				continue
-			if roll > prob * Builder.house_density() * 0.42:
-				continue   # yarı yoğunluk: bu hücre boş avlu kalır (ağaç kümesi sayısı eskisi gibi)
+			if false:
+				_fb_why["roll"] += 1
+				continue   # çekirdek hep sık (dış halkalar boşaldığı için toplam ev sayısı artmaz)
 			if not _free(x, n, occupied, 3.0) or _on_road(b, x, n, 10.0):
+				_fb_why["occ_road"] += 1
+				_fb_map(x, n, "R")
 				continue
 			var ti = -1
 			for k in 8:
@@ -929,10 +1168,14 @@ static func _fill_blocks(b: Builder, rng: RandomNumberGenerator, occupied: Array
 					best = dv
 			var side = Vector2(-best.y, best.x)
 			if not _lot_free(b, Vector2(x, n), side, tw, td):
+				_fb_why["lot"] += 1
+				_fb_map(x, n, "L")
 				continue
 			var yaw = rad_to_deg(atan2(-best.x, -best.y))
 			b.house_ti = ti
 			b.house(x, n, tw + 0.1, td + 0.1, 3, yaw, "konoha", rng)
+			_fb_why["ok" if b.house_ok else "fail"] += 1
+			_fb_map(x, n, "H" if b.house_ok else "F")
 			if b.house_ok:
 				var fo2 = Builder.rot(0, -td * 0.5 - 1.0, yaw)
 				_path_doors.append(_gp(b, b.placed_xn.x + fo2.x, b.placed_xn.y + fo2.y))

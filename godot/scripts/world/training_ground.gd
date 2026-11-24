@@ -151,14 +151,13 @@ static func _stream(b: Builder, decor: Node3D, cx: float, cn: float, G: Callable
 		var mid = (a + e) * 0.5
 		var L = a.distance_to(e)
 		var yaw = rad_to_deg(atan2(e.x - a.x, e.y - a.y))
-		var g = G.call(mid.x, mid.y)
-		b.box(Vector3(mid.x, g + 0.01, mid.y), Vector3(4.4, 0.02, L + 1.0), Color(0.24, 0.3, 0.3), yaw, false)
-		_water_plane(b, decor, Vector3(mid.x, g + 0.05, mid.y), Vector2(3.6, L + 1.0), yaw)
 		for k in 4:   # kıyı çakılları
 			var t = (k + rng.randf()) / 4.0
 			var q = a.lerp(e, t)
 			var side = Vector2(e.y - a.y, -(e.x - a.x)).normalized() * (2.4 if k % 2 == 0 else -2.4)
 			b.boulder(Vector3(q.x + side.x, G.call(q.x, q.y) + 0.15, q.y + side.y), Vector3(0.8, 0.4, 0.7) * rng.randf_range(0.7, 1.3), STONE, k + i * 4, false)
+	# su: köyün Naka / doğu deresiyle aynı taş setli kanal (2026-11-24: ayrı koyu şerit, devamındaki kanalla uyuşmuyordu)
+	Canal.build(b, pts, 4.4, func(x, n): return road_check.is_valid() and road_check.call(x, n), rng)
 	# kırmızı kemerli köprü (3. ve 4. nokta arası)
 	var bp: Vector2 = (pts[2] + pts[3]) * 0.5
 	var dirv: Vector2 = (pts[3] - pts[2]).normalized()

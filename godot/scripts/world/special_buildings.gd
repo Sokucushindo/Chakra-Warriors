@@ -9,6 +9,246 @@ static func _g(b: Builder, x: float, n: float) -> float:
 
 
 ## Dükkân cephesi. nf: cephe düzlemi (yerel n), dn: caddeye doğru yön (+1 kuzey / -1 güney), w: cephe genişliği
+## Çarşının adı olan dükkânlarının KENDİ binaları (2026-11-25, kullanıcı: "çeşitlilik çok az, özel binalarda elini korkak alıştırma"):
+## her dükkân türü ayrı silüet, malzeme ve cephe: çayevi alçak ahşap kafes cepheli machiya, han kat kat balkonlu ryokan,
+## silahçı taş kaideli koyu ahşap, parşömenci beyaz sıvalı kara kaideli kura ambarı, terzi sarkan kumaşlı, mangal evi koyu kızıl
+## tuğla + baca, eczane yeşil sıvalı ot kurutmalı. x, nc: bina merkezi; dn: caddeye yön (-1 güney); w, d: taban.
+static func shop_building(b: Builder, x: float, nc: float, w: float, d: float, dn: float, kind: String) -> float:
+	var yo = b.yoff
+	b.yoff = _g(b, x, nc)
+	var yaw = 0.0 if dn < 0.0 else 180.0
+	var front = nc + dn * d * 0.5
+	var fz = func(o: float) -> float: return front + dn * o   # cepheden dışarı o metre
+	var wood = Color(0.36, 0.23, 0.14)
+	var wood_l = Color(0.55, 0.38, 0.24)
+	var plaster = Color(0.93, 0.9, 0.82)
+	var tile = Color(0.3, 0.31, 0.35)
+	var stone = Color(0.55, 0.53, 0.5)
+	var floors = 2
+	var fh = 3.8
+	var body = plaster
+	var low = plaster
+	var roof_c = tile
+	match kind:
+		"teahouse":
+			floors = 2; body = Color(0.92, 0.88, 0.78); low = wood; roof_c = Color(0.28, 0.3, 0.33)
+		"inn":
+			floors = 3; body = Color(0.9, 0.85, 0.74); low = wood_l; roof_c = Color(0.25, 0.36, 0.5)
+		"weapon_shop":
+			floors = 2; body = Color(0.42, 0.3, 0.2); low = stone; roof_c = Color(0.22, 0.23, 0.26)
+		"scrolls":
+			floors = 2; body = Color(0.96, 0.95, 0.92); low = Color(0.14, 0.14, 0.16); roof_c = Color(0.2, 0.2, 0.22)
+		"tailor":
+			floors = 3; body = Color(0.92, 0.86, 0.9); low = plaster; roof_c = Color(0.42, 0.28, 0.5)
+		"bbq":
+			floors = 2; body = Color(0.6, 0.24, 0.18); low = Color(0.45, 0.18, 0.14); roof_c = Color(0.14, 0.13, 0.13)
+		"pharmacy":
+			floors = 2; body = Color(0.8, 0.9, 0.8); low = Color(0.88, 0.92, 0.86); roof_c = Color(0.28, 0.5, 0.35)
+	var H = floors * fh
+	# taban + gövde (zemin katı ayrı malzeme), kat kirişleri, köşe dikmeleri
+	b.box(Vector3(x, 0.25, nc), Vector3(w + 0.5, 0.5, d + 0.5), stone, yaw)
+	b.box(Vector3(x, 0.5 + fh * 0.5, nc), Vector3(w, fh, d), low, yaw)
+	b.box(Vector3(x, 0.5 + fh + (H - fh) * 0.5, nc), Vector3(w - 0.3, H - fh, d - 0.3), body, yaw)
+	for f in floors:
+		b.box(Vector3(x, 0.5 + (f + 1) * fh - 0.12, nc), Vector3(w + 0.25, 0.26, d + 0.25), wood, yaw, false)
+	for sx in [-1.0, 1.0]:
+		for sz in [-1.0, 1.0]:
+			b.box(Vector3(x + sx * w * 0.5, 0.5 + H * 0.5, nc + sz * d * 0.5), Vector3(0.3, H, 0.3), wood, yaw, false)
+	# kat saçakları (her katın üstünde kiremit etek) + ana çatı
+	for f in range(1, floors):
+		b.box(Vector3(x, 0.5 + f * fh + 0.2, fz.call(0.9)), Vector3(w + 1.2, 0.2, 2.0), roof_c, yaw, false, Vector3(-14 * dn, 0, 0))
+	b.roof(Vector3(x, 0.5 + H + 1.4, nc), Vector3(w + 2.4, 2.8, d + 2.4), roof_c, yaw)
+	b.box(Vector3(x, 0.5 + H + 2.85, nc), Vector3(w + 1.4, 0.35, 0.5), roof_c.darkened(0.2), yaw, false)   # mahya
+	# cephe: türe göre
+	var y1 = 0.5 + fh   # 1. kat tabanı
+	match kind:
+		"teahouse", "inn":
+			# zemin katı ahşap kafes (koshi): sık dikey çıtalar
+			var nsl = int(w / 0.32)
+			for k in nsl:
+				var sx2 = x - w * 0.5 + (k + 0.5) * w / nsl
+				if absf(sx2 - x) < 1.4:
+					continue   # kapı
+				b.box(Vector3(sx2, 0.5 + fh * 0.45, fz.call(0.05)), Vector3(0.09, fh * 0.8, 0.12), wood, yaw, false)
+			for f in range(1, floors):   # üst katlar: tam boy ahşap balkon + korkuluk + shoji
+				var yb = 0.5 + f * fh
+				b.box(Vector3(x, yb + 0.1, fz.call(0.9)), Vector3(w - 0.4, 0.18, 1.8), wood_l, yaw)
+				b.box(Vector3(x, yb + 1.0, fz.call(1.75)), Vector3(w - 0.4, 0.12, 0.12), wood, yaw, false)
+				var np = int(w / 1.6)
+				for k in np + 1:
+					b.box(Vector3(x - (w - 0.4) * 0.5 + k * (w - 0.4) / np, yb + 0.55, fz.call(1.75)), Vector3(0.1, 0.9, 0.1), wood, yaw, false)
+				var nsh = int(w / 2.2)
+				for k in nsh:
+					var shx = x - w * 0.5 + (k + 0.5) * w / nsh
+					b.box(Vector3(shx, yb + fh * 0.5, fz.call(0.04)), Vector3(w / nsh - 0.25, fh * 0.65, 0.08), Color(0.96, 0.94, 0.86), yaw, false)
+					b.box(Vector3(shx, yb + fh * 0.5, fz.call(0.08)), Vector3(0.06, fh * 0.65, 0.06), wood, yaw, false)
+			if kind == "inn":   # han: girişte büyük saçaklı kapı çatısı + uzun kağıt fenerler
+				b.roof(Vector3(x, y1 - 0.6, fz.call(2.0)), Vector3(6.0, 1.4, 3.2), roof_c, yaw)
+				for sx in [-1.0, 1.0]:
+					b.box(Vector3(x + sx * 2.6, (y1 - 1.2) * 0.5, fz.call(3.3)), Vector3(0.3, y1 - 1.2, 0.3), wood, yaw)
+		"weapon_shop":
+			# taş zemin katı: iri blok derzleri; üst kat koyu ahşap kaplama + dar pencereler; çatıda çapraz dev kılıç levhası
+			for k in 4:
+				b.box(Vector3(x, 0.5 + 0.9 + k * 0.9, fz.call(0.03)), Vector3(w + 0.02, 0.06, 0.06), stone.darkened(0.25), yaw, false)
+			var nw = int(w / 3.0)
+			for k in nw:
+				var wx = x - w * 0.5 + (k + 0.5) * w / nw
+				b.box(Vector3(wx, y1 + fh * 0.55, fz.call(0.05)), Vector3(0.8, 2.0, 0.1), Color(0.12, 0.1, 0.1), yaw, false)
+			var ry = 0.5 + H + 4.2
+			for a in [-35.0, 35.0]:
+				b.box(Vector3(x, ry, nc), Vector3(0.5, 6.0, 0.18), Color(0.72, 0.75, 0.8), yaw, false, Vector3(0, 0, a))
+				b.box(Vector3(x, ry - 2.0, nc), Vector3(1.6, 0.25, 0.3), Color(0.2, 0.18, 0.16), yaw, false, Vector3(0, 0, a))
+		"scrolls":
+			# kura ambarı: kara kaidede açık gri ızgara derz (namako), üstte küçük kepenkli pencereler, kalın kenar bantları
+			for k in int(w / 0.9) + 1:
+				b.box(Vector3(x - w * 0.5 + k * 0.9, 0.5 + fh * 0.5, fz.call(0.03)), Vector3(0.07, fh, 0.05), Color(0.82, 0.82, 0.8), yaw, false)
+			for k in 4:
+				b.box(Vector3(x, 0.5 + 0.9 * (k + 0.5), fz.call(0.03)), Vector3(w, 0.07, 0.05), Color(0.82, 0.82, 0.8), yaw, false)
+			for k in 3:
+				var wx = x - w * 0.3 + k * w * 0.3
+				b.box(Vector3(wx, y1 + fh * 0.55, fz.call(0.08)), Vector3(1.3, 1.3, 0.2), Color(0.15, 0.15, 0.17), yaw, false)
+				b.box(Vector3(wx, y1 + fh * 0.55, fz.call(0.16)), Vector3(1.0, 1.0, 0.08), Color(0.55, 0.5, 0.42), yaw, false)
+		"tailor":
+			# üst kattan sarkan uzun renkli kumaş topları (boyacı / terzi vitrini)
+			var cl = [Color(0.85, 0.3, 0.3), Color(0.25, 0.4, 0.75), Color(0.95, 0.8, 0.35), Color(0.4, 0.65, 0.4), Color(0.6, 0.35, 0.65)]
+			var nb = int(w / 2.4)
+			for k in nb:
+				var bx = x - w * 0.5 + (k + 0.5) * w / nb
+				var ln = 3.0 + (k % 3) * 0.8
+				b.box(Vector3(bx, 0.5 + H - 0.3 - ln * 0.5, fz.call(0.25)), Vector3(1.4, ln, 0.05), cl[k % cl.size()], yaw, false)
+				b.box(Vector3(bx, 0.5 + H - 0.25, fz.call(0.3)), Vector3(1.6, 0.12, 0.12), wood, yaw, false)
+			for f in range(1, floors):
+				for k in int(w / 3.0):
+					b.box(Vector3(x - w * 0.5 + (k + 0.5) * w / int(w / 3.0), 0.5 + f * fh + fh * 0.55, fz.call(0.02)), Vector3(1.6, 1.8, 0.08), Color(0.5, 0.68, 0.82), yaw, false)
+		"bbq":
+			# tuğla derzleri, iki iri baca, saçak boyu kırmızı fener dizisi
+			for k in int(H / 0.6):
+				b.box(Vector3(x, 0.5 + 0.3 + k * 0.6, fz.call(0.02)), Vector3(w, 0.04, 0.04), Color(0.35, 0.12, 0.1), yaw, false)
+			for sx in [-0.3, 0.3]:
+				b.box(Vector3(x + sx * w, 0.5 + H + 3.0, nc - dn * d * 0.2), Vector3(1.2, 4.0, 1.2), Color(0.3, 0.28, 0.27), yaw)
+				b.box(Vector3(x + sx * w, 0.5 + H + 5.1, nc - dn * d * 0.2), Vector3(1.6, 0.3, 1.6), Color(0.15, 0.14, 0.14), yaw, false)
+			for k in int(w / 1.5):
+				var lx = x - w * 0.5 + (k + 0.5) * w / int(w / 1.5)
+				b.sphere(Vector3(lx, y1 - 0.5, fz.call(0.9)), Vector3(0.6, 0.75, 0.6), Color(0.92, 0.2, 0.15), 8)
+		"pharmacy":
+			# ot kurutma rafları (cephe boyunca çapraz direklerde demetler) + yeşil kanatlı pencereler
+			for k in int(w / 1.2):
+				var hx = x - w * 0.5 + (k + 0.5) * w / int(w / 1.2)
+				b.box(Vector3(hx, y1 + 0.8, fz.call(0.4)), Vector3(0.35, 0.9, 0.35), [Color(0.45, 0.62, 0.3), Color(0.62, 0.55, 0.3), Color(0.35, 0.5, 0.3)][k % 3], yaw, false)
+			b.box(Vector3(x, y1 + 1.3, fz.call(0.4)), Vector3(w - 0.6, 0.08, 0.08), wood, yaw, false)
+			for k in int(w / 3.0):
+				var wx = x - w * 0.5 + (k + 0.5) * w / int(w / 3.0)
+				b.box(Vector3(wx, y1 + fh * 0.55, fz.call(0.03)), Vector3(1.6, 1.8, 0.08), Color(0.5, 0.68, 0.82), yaw, false)
+				b.box(Vector3(wx, y1 + fh * 0.55, fz.call(0.06)), Vector3(1.9, 0.12, 0.1), Color(0.25, 0.5, 0.32), yaw, false)
+	b.yoff = yo
+	return H
+
+
+## Konoha Askerî Polis Birliği binası (kaynak: refs/konoha/Konoha_Military_Police_Force.png): koyu sarı gövde, öne doğru
+## çeyrek daire kavisle inen üst cephe, ortada amblemli dar kule (uzun ızgara pencere), kavisin iki yanında yuvarlak lomboz,
+## tuğla rengi eğik saçak, verandada silindir sütunlar, alt bantta mor-mavi kaplama, mavi camlı kapılar, geniş basamaklar.
+## dn: caddeye yön (+1 kuzey, -1 güney)
+static func police_hq(b: Builder, x: float, nc: float, dn: float) -> void:
+	var yo = b.yoff
+	b.yoff = _g(b, x, nc)
+	var yaw = 0.0 if dn < 0.0 else 180.0
+	var W = 28.0; var D = 16.0
+	var ochre = Color(0.86, 0.68, 0.45)
+	var ochre_l = Color(0.93, 0.8, 0.58)
+	var brick = Color(0.58, 0.32, 0.27)
+	var violet = Color(0.48, 0.48, 0.78)
+	var glass = Color(0.45, 0.62, 0.78)
+	var front = nc + dn * D * 0.5
+	var fz = func(o: float) -> float: return front + dn * o
+	# kaide + ön basamaklar
+	b.box(Vector3(x, 0.3, nc), Vector3(W + 1.0, 0.6, D + 1.0), Color(0.72, 0.72, 0.74), yaw)
+	for k in 3:
+		b.box(Vector3(x, 0.1 + k * 0.2, fz.call(3.6 - k * 0.6)), Vector3(W - 2.0, 0.2, 1.0 + k * 0.6), Color(0.78, 0.78, 0.8), yaw)
+	# zemin kat gövdesi + mor-mavi alt bant
+	b.box(Vector3(x, 0.6 + 2.6, nc), Vector3(W, 5.2, D), ochre, yaw)
+	b.box(Vector3(x, 0.6 + 0.8, fz.call(0.04)), Vector3(W, 1.6, 0.1), violet, yaw, false)
+	for k in int(W / 0.5):   # kaplama çıtaları
+		b.box(Vector3(x - W * 0.5 + k * 0.5, 0.6 + 0.8, fz.call(0.1)), Vector3(0.05, 1.6, 0.05), violet.darkened(0.2), yaw, false)
+	# kapılar ve vitrin
+	for sx in [-0.3, 0.12]:
+		b.box(Vector3(x + sx * W, 0.6 + 1.9, fz.call(0.06)), Vector3(4.2, 3.6, 0.12), glass, yaw, false)
+		b.box(Vector3(x + sx * W, 0.6 + 1.9, fz.call(0.1)), Vector3(0.1, 3.6, 0.1), Color(0.3, 0.35, 0.45), yaw, false)
+	b.box(Vector3(x + 0.33 * W, 0.6 + 2.6, fz.call(0.06)), Vector3(4.4, 1.6, 0.12), glass, yaw, false)
+	b.box(Vector3(x + 0.33 * W, 0.6 + 3.6, fz.call(0.5)), Vector3(4.8, 0.12, 1.0), brick, yaw, false, Vector3(-16 * dn, 0, 0))
+	# veranda: eğik tuğla saçak + silindir sütunlar
+	b.box(Vector3(x, 0.6 + 5.0, fz.call(1.6)), Vector3(W + 1.0, 0.22, 3.6), brick, yaw, false, Vector3(-14 * dn, 0, 0))
+	for k in 4:
+		var cx = x - W * 0.38 + k * W * 0.253
+		b.cyl(Vector3(cx, 0.6 + 2.4, fz.call(3.0)), 0.9, 4.8, ochre_l, true, 12)
+	# üst kat: geride kalan kütle + öne kavisle inen çeyrek daire cephe (eğik dilimler)
+	b.box(Vector3(x, 5.8 + 2.0, nc - dn * 2.5), Vector3(W - 2.0, 4.0, D - 5.0), ochre, yaw)
+	var R = 5.5
+	for k in 8:
+		var a0 = (k + 0.5) / 8.0 * PI * 0.5
+		var py = 5.8 + sin(a0) * R
+		var pz = nc + dn * (D * 0.5 - 5.0 + cos(a0) * R * 0.95)
+		b.box(Vector3(x, py - 0.45, pz - dn * 0.3), Vector3(W - 1.0, 1.5, R * PI * 0.5 / 8.0 + 0.7), ochre_l if k % 2 == 0 else ochre, yaw, k < 2, Vector3(-(90.0 - rad_to_deg(a0)), 0, 0))
+	b.box(Vector3(x, 5.6, fz.call(0.2)), Vector3(W + 1.2, 0.5, 1.2), brick, yaw, false)   # kavis altı kiremit bandı
+	# yuvarlak lomboz pencereler (kavisin iki yanında)
+	for sx in [-1.0, 1.0]:
+		var lp = Vector3(x + sx * W * 0.28, 8.4, nc + dn * (D * 0.5 - 5.0 + 4.95))   # kavis yüzeyinin önünde
+		b.disc(lp, 3.0, 0.4, Color(0.4, 0.3, 0.22), yaw, 20)
+		b.disc(lp + Vector3(0, 0, dn * 0.15), 2.5, 0.3, Color(0.5, 0.6, 0.66), yaw, 20)
+	# orta kule: uzun ızgara pencere + tepede amblem
+	b.box(Vector3(x, 8.0, nc + dn * (D * 0.5 - 3.5)), Vector3(5.0, 15.0, 4.0), ochre_l, yaw)
+	b.box(Vector3(x, 15.7, nc + dn * (D * 0.5 - 3.5)), Vector3(5.4, 0.4, 4.4), brick, yaw, false)
+	var tf = nc + dn * (D * 0.5 - 1.45)
+	b.box(Vector3(x, 8.6, tf), Vector3(2.2, 7.5, 0.12), glass, yaw, false)
+	for k in 6:
+		b.box(Vector3(x, 5.4 + k * 1.3, tf + dn * 0.05), Vector3(2.3, 0.1, 0.08), Color(0.92, 0.88, 0.7), yaw, false)
+	b.box(Vector3(x, 8.6, tf + dn * 0.05), Vector3(0.1, 7.5, 0.08), Color(0.92, 0.88, 0.7), yaw, false)
+	var ep = Vector3(x, 13.8, tf + dn * 0.1)
+	b.disc(ep, 2.6, 0.2, Color(0.95, 0.95, 0.92), yaw, 20)
+	for k in 4:   # şuriken amblemi
+		b.box(ep + Vector3(0, 0, dn * 0.12), Vector3(0.55, 2.0, 0.06), Color(0.15, 0.45, 0.5), yaw, false, Vector3(0, 0, 45.0 + k * 45.0))
+	b.disc(ep + Vector3(0, 0, dn * 0.2), 0.8, 0.1, Color(0.82, 0.18, 0.15), yaw, 14)   # Uchiha yelpazesi
+	b.kanji(Vector3(x, 12.2, tf + dn * 0.12), "警務部隊", 0.55, Color(0.2, 0.15, 0.12), yaw)
+	b.yoff = yo
+
+
+## Konoha Kütüphanesi (kaynak: anime "Konoha Library" — pembe sıva, alt kısmı dikey ahşap kaplama, mavi çerçeveli pencereler,
+## kapı yanında dikey 図書 levhalı silindir direk) + üst katta "木ノ葉図書館" tabelası
+static func library(b: Builder, x: float, nc: float, dn: float) -> void:
+	var yo = b.yoff
+	b.yoff = _g(b, x, nc)
+	var yaw = 0.0 if dn < 0.0 else 180.0
+	var W = 24.0; var D = 15.0; var H = 9.0
+	var pink = Color(0.92, 0.78, 0.8)
+	var plank = Color(0.55, 0.36, 0.3)
+	var frame = Color(0.3, 0.45, 0.6)
+	var front = nc + dn * D * 0.5
+	var fz = func(o: float) -> float: return front + dn * o
+	b.box(Vector3(x, 0.25, nc), Vector3(W + 0.6, 0.5, D + 0.6), Color(0.7, 0.68, 0.66), yaw)
+	b.box(Vector3(x, 0.5 + H * 0.5, nc), Vector3(W, H, D), pink, yaw)
+	b.box(Vector3(x, 0.5 + H + 0.3, nc), Vector3(W + 0.8, 0.6, D + 0.8), Color(0.62, 0.45, 0.42), yaw)
+	for k in int(W / 0.45):   # dikey ahşap kaplama (alt 2 m)
+		b.box(Vector3(x - W * 0.5 + (k + 0.5) * 0.45, 1.5, fz.call(0.05)), Vector3(0.4, 2.0, 0.08), plank.darkened(0.06 * (k % 2)), yaw, false)
+	for f in 2:   # pencereler
+		for k in 5:
+			var wx = x - W * 0.4 + k * W * 0.2
+			if f == 0 and absf(wx - x) < 3.0:
+				continue
+			b.box(Vector3(wx, 3.4 + f * 3.6, fz.call(0.06)), Vector3(2.4, 2.0, 0.1), frame, yaw, false)
+			b.box(Vector3(wx, 3.4 + f * 3.6, fz.call(0.1)), Vector3(2.1, 1.7, 0.08), Color(0.62, 0.74, 0.82), yaw, false)
+	b.box(Vector3(x, 2.0, fz.call(0.06)), Vector3(2.6, 3.0, 0.12), frame, yaw, false)   # kapı
+	b.box(Vector3(x, 2.0, fz.call(0.1)), Vector3(2.2, 2.7, 0.08), Color(0.55, 0.68, 0.78), yaw, false)
+	# dikey silindir levha direği
+	var sp = Vector3(x + 2.6, 2.2, fz.call(0.6))
+	b.cyl(sp, 1.0, 3.6, plank, true, 14)
+	b.cyl(sp + Vector3(0, 2.0, 0), 1.1, 0.4, Color(0.25, 0.25, 0.27), false, 14)
+	b.box(sp + Vector3(0, 0, dn * 0.5), Vector3(0.8, 3.2, 0.06), Color(0.95, 0.93, 0.86), yaw, false)
+	b.kanji(sp + Vector3(0, 0.6, dn * 0.55), "図", 0.6, Color(0.15, 0.12, 0.1), yaw)
+	b.kanji(sp + Vector3(0, -0.4, dn * 0.55), "書", 0.6, Color(0.15, 0.12, 0.1), yaw)
+	b.box(Vector3(x, 0.5 + H - 0.9, fz.call(0.12)), Vector3(9.0, 1.4, 0.15), Color(0.7, 0.5, 0.3), yaw, false)
+	b.kanji(Vector3(x, 0.5 + H - 0.9, fz.call(0.22)), "木ノ葉図書館", 0.9, Color(0.15, 0.1, 0.08), yaw)
+	b.yoff = yo
+
+
 static func shop_front(b: Builder, decor: Node3D, x: float, nf: float, dn: float, kind: String, col: Color, w: float) -> void:
 	var yo = b.yoff
 	b.yoff = _g(b, x, nf + dn * 2.0)

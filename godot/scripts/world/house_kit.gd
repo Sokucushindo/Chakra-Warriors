@@ -64,8 +64,11 @@ static func ensure(count := 70) -> void:
 		return
 	var rng = RandomNumberGenerator.new()
 	rng.seed = 4242
+	# 2026-11-25: ilk 50 şablon 50 ayrı ev türü (house_variety.gd: plan + çatı + cephe + ekler); kalanlar eski türler
+	# (yuvarlak kule, kubbe, apartman bloğu, dükkân binası — simge evler ve dükkân seçicisi bunlara dayanır)
+	var hv = load("res://scripts/world/house_variety.gd")
 	for i in count:
-		templates.append(_make(rng, i))
+		templates.append(hv.make(rng, i) if i < 50 else _make(rng, i))
 
 
 ## Şablon türleri (Konoha şehir dokusu): 0-1 kasaba evi (2-4 kat), 2 apartman bloğu (4-6 kat, balkon sıraları, dış merdiven,
