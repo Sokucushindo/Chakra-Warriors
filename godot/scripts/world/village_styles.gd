@@ -392,16 +392,12 @@ static func light_shafts(b: Builder, pts: Array, length: float, width: float, rn
 
 
 ## ---------------------------------------------------------------- basit su yüzeyi (göl/kanal), yarı saydam
-static var _water_mat: StandardMaterial3D
+static var _water_mat: Material
 static func water(b: Builder, p: Vector3, size: Vector2, yaw := 0.0) -> void:
 	if not is_instance_valid(b.root):
 		return
 	if _water_mat == null:
-		_water_mat = StandardMaterial3D.new()
-		_water_mat.albedo_color = Color(0.22, 0.5, 0.62, 0.82)
-		_water_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		_water_mat.roughness = 0.08
-		_water_mat.metallic_specular = 0.9
+		_water_mat = WaterWaves.flat_water_mat(Color(0.22, 0.5, 0.62, 0.82))   # jutsu / adım dalgaları derede de görünür
 	var mi = MeshInstance3D.new()
 	var pm = PlaneMesh.new()
 	pm.size = size

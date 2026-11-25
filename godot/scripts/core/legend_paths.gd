@@ -1016,7 +1016,7 @@ static func _teach(pid: String, jid: String, from_quest: bool) -> void:
 		Hud.msg("Nanatō artık senin: yedi kılıcı kuşan, Akurobatto ile dövüş.", Color(1, 0.4, 0.4), 5.0)
 	if pid == "kapi" and not "gates" in pr().get("skills", []):
 		pr()["skills"].append("gates")   # Sekiz Kapı modu (B) bu yolla açılır
-		Hud.msg("Sekiz Kapı açıldı: B tuşuyla kapıları zorla.", Color(0.5, 1, 0.5))
+		Hud.msg(Lang.t("Sekiz Kapı açıldı: %s tuşuyla kapıları zorla.") % Keys.name("gates"), Color(0.5, 1, 0.5))
 	var dark = int(P["dark"].get(jid, 0))
 	if dark > 0:
 		Missions._rep(Progress.home(), -dark)

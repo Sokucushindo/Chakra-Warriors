@@ -230,7 +230,7 @@ func _draw() -> void:
 	_bar_frame(XP_R)
 	_ticks(XP_R)
 	_leaf(Vector2(COL_X + 11, XP_R.get_center().y), 22.0)
-	_t(self, cf, Vector2(COL_X + 28, XP_R.get_center().y + 6), "EXP", 17, Color(0.98, 0.7, 0.38), 4)
+	_t(self, cf, Vector2(COL_X + 28, XP_R.get_center().y + 6), Lang.t("GÜÇ"), 17, Color(0.98, 0.7, 0.38), 4)
 	# Ryō + kütük satırı: kısa mürekkep oluk üstünde
 	draw_style_box(UI.brush(Color(0.02, 0.018, 0.016, 0.72), "a", 0), Rect2(BX - 10, 182, 250, 32))
 	draw_style_box(UI.brush(Color(0.02, 0.018, 0.016, 0.72), "s", 0), Rect2(408, 182, 130, 32))
@@ -405,7 +405,7 @@ static func _poly_line(c: Control, pts: PackedVector2Array, col: Color, w: float
 	c.draw_polyline(q, col, w, true)
 
 
-## Yaprak simgesi (EXP)
+## Yaprak simgesi (Güç çubuğu: sıradaki Güç puanına ilerleme)
 func _leaf(c: Vector2, s: float) -> void:
 	var pts := PackedVector2Array()
 	var rot := -0.65

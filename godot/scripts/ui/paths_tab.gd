@@ -19,8 +19,6 @@ static func build(main: Node, body: Control) -> void:
 	col.add_child(intro)
 	for pid in LegendPaths.PATHS:
 		col.add_child(_card(main, pid))
-	var more = UI.label("Daha fazla yol keşfedilmeyi bekliyor: kurbağa bilgesi, kil sanatçısı, kukla ustası, ışınlanma mührü...", 13, UI.MUTED)
-	col.add_child(more)
 
 
 static func _card(main: Node, pid: String) -> Control:

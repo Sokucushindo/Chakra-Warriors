@@ -29,7 +29,7 @@ func _process(dt: float) -> void:
 	vis.position.y = 0.1 + sin(t * 3.0) * 0.08
 	if Game.player and Game.player.global_position.distance_to(global_position) < 1.8:
 		var inv: Dictionary = Game.profile["inventory"]
-		inv[item] = int(inv.get(item, 0)) + 1
+		inv[item] = 1 if Stats.unlimited(item) else int(inv.get(item, 0)) + 1
 		Hud.float_text("+1 %s" % Data.items.get(item, {"name": item})["name"], Color(0.6, 1, 0.6))
 		Sfx.play("coin", global_position, 1.3)
 		Missions.on_pickup(item)

@@ -153,10 +153,10 @@ static func _tab_beasts(main: Node, body: Control) -> void:
 	var held: Array = TailedBeasts.held()
 	var jar: Array = TailedBeasts.jarred()
 	if held.is_empty() and jar.is_empty():
-		v.add_child(UI.label("Hiç kuyruklu canavarın yok. Bir canavarı yenip [F] ile mühürle: içine (Jinchūriki) ya da mühür kabına.", 17, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
+		v.add_child(UI.label(Lang.t("Hiç kuyruklu canavarın yok. Bir canavarı yenip [%s] ile mühürle: içine (Jinchūriki) ya da mühür kabına.") % Keys.name("interact"), 17, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
 		return
 	var act = TailedBeasts.player_jinchuriki()
-	v.add_child(UI.label("İÇİNDEKİLER  (aktif olan: X pelerin / dönüşüm / zihin dünyası)", 18, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
+	v.add_child(UI.label(Lang.t("İÇİNDEKİLER  (aktif olan: %s pelerin / dönüşüm / zihin dünyası)") % Keys.name("beast"), 18, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
 	for id in held:
 		v.add_child(_beast_row(main, id, "held", id == act))
 	if not jar.is_empty():
@@ -221,7 +221,7 @@ static func _tab_summons(main: Node, body: Control) -> void:
 			if not cur_pick in bound:
 				pr["beast_ms_pick"] = String(bound[0])
 			mv.add_child(_arrow_row("Çağrılacak", names, pi, func(i: int): pr["beast_ms_pick"] = String(bound[i])))
-		var mtip = UI.label("Mühür kabındaki canavarları da Mangekyō'nla dışarı çağırıp yönetebilirsin; boyun eğdirmek için canavarı dövüşte diz çöktürüp mühürleme penceresinde «Sharingan ile boyun eğdir» seç. Jutsular (K) ekranından «Bijū Kuchiyose»yi bir yuvaya koy; Mangekyō açıkken çağırırsın (40 sn, 120 chakra). Kontrol ettiğin canavarın gözleri Sharingan olur.", 14, UI.MUTED)
+		var mtip = UI.label(Lang.t("Mühür kabındaki canavarları da Mangekyō'nla dışarı çağırıp yönetebilirsin; boyun eğdirmek için canavarı dövüşte diz çöktürüp mühürleme penceresinde «Sharingan ile boyun eğdir» seç. Jutsular (%s) ekranından «Bijū Kuchiyose»yi bir yuvaya koy; Mangekyō açıkken çağırırsın (40 sn, 120 chakra). Kontrol ettiğin canavarın gözleri Sharingan olur.") % Keys.name("skills"), 14, UI.MUTED)
 		mtip.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		mv.add_child(mtip)
 	var cs: Dictionary = pr.get("contracts", {})
@@ -278,7 +278,7 @@ static func _tab_eyes(main: Node, body: Control) -> void:
 	strip.add_theme_constant_override("h_separation", 22)
 	strip.add_theme_constant_override("v_separation", 6)
 	outer.add_child(strip)
-	for k in [["V", "Gözleri aç / kapat"], ["K", "Göz teknikleri jutsu yuvalarına"], ["V (basılı)", "Susanoo (iki göz Mangekyō)"], ["F", "Düşmüş dōjutsu sahibinin gözlerini al"]]:
+	for k in [[Keys.name("dojutsu"), "Gözleri aç → Mangekyō (varsa) → kapat"], [Keys.name("skills"), "Göz teknikleri jutsu yuvalarına"], [Lang.t("%s (basılı)") % Keys.name("dojutsu"), "Susanoo (iki göz Mangekyō)"], [Keys.name("interact"), "Düşmüş dōjutsu sahibinin gözlerini al"]]:
 		var r = UI.hbox(8)
 		r.add_child(UI.key_badge(k[0], 13))
 		r.add_child(UI.label(k[1], 14, UI.TEXT))
@@ -370,17 +370,24 @@ static func _eye_panel(main: Node, dv: VBoxContainer, pr: Dictionary) -> void:
 		dv.add_child(UI.label("Kavanozunda göz yok. Yendiğin dōjutsu sahiplerinin gözlerini alabilirsin.", 14, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
 	var slot_here = _eq_slot
 	for g in jars:
-		var gname = "%s%s" % [Gear.item(g["id"])["name"], ("  (%d tomoe)" % int(g.get("lvl", 3))) if g["id"] == "goz_sharingan" else ""]
+		var gname = EyeSurgery.eye_label(g)
 		var own = String(g.get("origin", "dogustan")) == "dogustan" and bool(g.get("own", false))
 		var row = UI.hbox(8)
 		row.add_child(UI.label("• " + gname, 14, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true))
 		dv.add_child(row)
+		var uid = int(g["uid"])
 		if own:
 			# kendi çıkardığın gözü geri takmak nakil gerektirmez
-			var uid = int(g["uid"])
 			dv.add_child(UI.button("Bu göze geri tak", func():
 				_eye_insert(pr, uid, slot_here)
 				ninja_menu(main, "eyes"), 300, "eye"))
+		else:
+			# başkasının gözü: tıbbi nakil (kanon şartı tutmuyorsa nedeni yazılır, düğme yok)
+			var why = EyeSurgery.block_reason(pr, g)
+			if why == "":
+				dv.add_child(UI.button("Bu göze nakil yap", func(): EyeSurgery.menu_offer(uid, slot_here), 300, "eye"))
+			else:
+				dv.add_child(UI.label("Takılamaz: " + why, 13, Color(1, 0.6, 0.5), HORIZONTAL_ALIGNMENT_LEFT, true))
 		var juid = int(g["uid"])
 		dv.add_child(UI.button("Yok et", func():
 			Hud.dialog("Gözü Yok Et", "%s kavanozdan atılıp yok edilecek. Emin misin?" % gname, [
@@ -388,12 +395,8 @@ static func _eye_panel(main: Node, dv: VBoxContainer, pr: Dictionary) -> void:
 					_eye_destroy(pr, juid)
 					ninja_menu(main, "eyes")},
 				{"label": "Vazgeç", "cb": func(): ninja_menu(main, "eyes")}]), 200, "close"))
-	if not EyeSurgery.options("self").is_empty():
-		if EyeSurgery.can_self(pr):
-			dv.add_child(UI.button("Kendi tıbbi ninjutsunla nakil yap (tutma %%%d)" % int(round(EyeSurgery.self_chance(pr) * 100.0)), func():
-				Hud.dialog("Kendi Ameliyatın", "Düşman yokken oturup gözünü kendin değiştireceksin. Beden ağır yıpranır; tutmazsa göz bozulur.", EyeSurgery.options("self")), 420, "eye"))
-		else:
-			dv.add_child(UI.label("Kendi naklini yapmak için Shōsen (tıbbi ninjutsu) ve en az 50 Iryō (tıbbi) ustalığı gerekir. Tutma şansı tıbbi ustalığınla artar.", 13, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
+	if not jars.is_empty() and not EyeSurgery.can_self(pr):
+		dv.add_child(UI.label("Kendi naklini yapmak için Shōsen (tıbbi ninjutsu) ve en az 50 Iryō (tıbbi) ustalığı gerekir. Tutma şansı tıbbi ustalığınla artar.", 13, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
 	dv.add_child(UI.label("Başkasından alınan gözü köy hastanesi takmaz (kanon: klan gözü klanın malıdır). Nakli takımındaki tıbbi ninja sahada yapar (Rin–Kakashi), kendi tıbbi ninjutsunla yaparsın ya da yeraltındaki Kara Cerrah gizlice takar.", 13, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
 	# uzun açıklamalar tek satır kalınca paneli genişletip sol göz kutusunu ekranın dışına itiyordu (her çözünürlükte): satırları kaydır
 	for l in dv.get_children():
@@ -1425,9 +1428,9 @@ static func controls(back: Callable, keep := false) -> void:
 				keys_list.append(kb)
 				h.add_child(kb)
 	# değişmeyen tuşlar ve tuş birleşimleri (atanan tuşla yazılır)
-	var fixed = [["Fare", "Kamera"], ["Esc", "Menü / geri"], ["%s + 1-9, 0, -, =" % Keys.name("seal_mode"), "Mühür ör"],
+	var fixed = [["Fare", "Kamera"], ["Fare tekerleği", "Kamera uzaklığı"], ["Esc", "Menü / geri"], ["%s + 1-9, 0, -, =" % Keys.name("seal_mode"), "Mühür ör"],
 		["Duvarda %s" % Keys.name("leap"), "Duvar atılımı (chakra)"],
-		["Havada %s" % Keys.name("attack"), "Dalış tekmesi"]]
+		["Havada %s" % Keys.name("attack"), "Hava kombosu (rakip yakınsa) / dalış tekmesi"]]
 	var fs = _set_section(colv[ncol - 1], "lock", "Sabit")
 	for f in fixed:
 		var h = _set_row(fs, f[1], 120, 16, 46)
@@ -1651,7 +1654,6 @@ const SET_DESC := {
 	"FPS sınırı": "Saniyedeki en çok kare. Isınmayı ve fan sesini azaltır.",
 	"FPS göster": "Köşede saniyedeki kare sayısını gösterir.",
 	"Ana ses": "Bütün seslerin düzeyi.",
-	"Müzik": "Müzik düzeyi.",
 	"Efektler": "Dövüş, jutsu ve dünya sesleri.",
 	"Arayüz sesleri": "Menülerdeki tık sesleri.",
 	"Oyun arka plandayken sesi kapat": "Başka pencereye geçince oyunun sesini kapatır.",
@@ -2200,7 +2202,7 @@ static func settings(back: Callable) -> void:
 		"sound":
 			var a = _set_section(body, "sound", "Ses Düzeyi")
 			slider.call(a, "Ana ses", "master", 0.0, 1.0, 0.05, true)
-			slider.call(a, "Müzik", "music", 0.0, 1.0, 0.05, true)
+			# oyunda müzik yok (2026-11-21 tüm müzikler kaldırıldı): etkisiz Müzik kaydırıcısı gösterilmez
 			slider.call(a, "Efektler", "sfx", 0.0, 1.0, 0.05, true)
 			slider.call(a, "Arayüz sesleri", "ui_vol", 0.0, 1.0, 0.05, true)
 			toggle.call(a, "Oyun arka plandayken sesi kapat", "bg_mute", false)
@@ -2365,7 +2367,7 @@ static func ninja_menu(main: Node, tab := "inv", picked := "") -> void:
 	foot.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
 	foot.position = Vector2(150, -42)
 	bg.add_child(foot)
-	for k in [["Tab", "menüyü kapat"], ["I", "envanter"], ["K", "jutsular"], ["M", "harita"]]:
+	for k in [[Keys.name("menu"), "menüyü kapat"], [Keys.name("inventory"), "envanter"], [Keys.name("skills"), "jutsular"], [Keys.name("map"), "harita"]]:
 		foot.add_child(UI.key_badge(k[0], 12))
 		foot.add_child(UI.label(k[1] + "    ", 13, UI.MUTED))
 
@@ -2406,7 +2408,7 @@ static func _tab_inventory(main: Node, body: Control) -> void:
 		var it: Dictionary = Data.items.get(id, {"name": id, "desc": "", "kind": "misc"})
 		var kind = String(it.get("kind", "misc"))
 		if _inv_filter in ["all", kind]:
-			entries.append({"type": "item", "id": id, "name": it["name"], "count": int(inv[id]), "kind": kind, "desc": it.get("desc", "")})
+			entries.append({"type": "item", "id": id, "name": it["name"], "count": int(inv[id]), "kind": kind, "desc": it.get("desc", ""), "unlimited": Stats.unlimited(id)})
 	if _inv_filter in ["all", "gear"]:
 		Gear.ensure(pr)
 		var counts = {}
@@ -2427,7 +2429,7 @@ static func _tab_inventory(main: Node, body: Control) -> void:
 		var acc = UI.RARITY[UI.rarity_of_gear(e["id"])] if e["type"] == "gear" else UI.RARITY[0]
 		grid.add_child(_tile(view, e["name"], acc, e["id"] == _inv_sel, func():
 			_inv_sel = e["id"]
-			ninja_menu(main, "inv"), 104, "x%d" % e["count"] if e["count"] > 1 else ""))
+			ninja_menu(main, "inv"), 104, "∞" if e.get("unlimited", false) else ("x%d" % e["count"] if e["count"] > 1 else "")))
 		if e["id"] == _inv_sel:
 			sel = e
 	if entries.is_empty():
@@ -2457,7 +2459,7 @@ static func _tab_inventory(main: Node, body: Control) -> void:
 			if rs != "":
 				var why = Gear.req_text(sel["id"], pr)
 				tv.add_child(UI.icon_label("lock" if why != "" else "check", rs + ("  —  henüz takamazsın" if why != "" else ""), 14, UI.BAD if why != "" else UI.GOOD))
-		tv.add_child(UI.label("Adet: %d" % sel["count"], 14, UI.MUTED))
+		tv.add_child(UI.label("Adet: sınırsız" if sel.get("unlimited", false) else "Adet: %d" % sel["count"], 14, UI.MUTED))
 		top.add_child(tv)
 		dv.add_child(top)
 		var d = UI.label(sel["desc"], 15, UI.MUTED)
@@ -2466,7 +2468,7 @@ static func _tab_inventory(main: Node, body: Control) -> void:
 		dv.add_child(d)
 		if sel["kind"] == "throw":
 			var on: bool = pr["throw_sel"] == sel["id"]
-			var b = UI.primary("Kuşanıldı" if on else "Kuşan [R]", func():
+			var b = UI.primary("Kuşanıldı" if on else Lang.t("Kuşan [%s]") % Keys.name("throw"), func():
 				pr["throw_sel"] = sel["id"]
 				ninja_menu(main, "inv"), 380, "check" if on else "kunai")
 			b.disabled = on
@@ -2478,7 +2480,7 @@ static func _tab_inventory(main: Node, body: Control) -> void:
 		elif sel["type"] == "gear":
 			dv.add_child(UI.button("Ekipmanda göster", func():
 				var gs = String(Gear.item(sel["id"]).get("slot", "govde"))
-				_eq_slot = "sag" if gs == "el" else gs
+				_eq_slot = {"el": "sag", "yuz": "kafa"}.get(gs, gs)   # yüz eşyaları Kafa yuvasında, silahlar tek Silah yuvasında
 				ninja_menu(main, "wardrobe"), 380, "armor"))
 	# durum kartı
 	var st = UI.card()
@@ -2501,7 +2503,7 @@ static func _tab_inventory(main: Node, body: Control) -> void:
 	stat_row.call("leaf", "Klan", Data.clans.get(pr["clan"], {}).get("name", "Klansız"))
 	if KgPaths.SOY.has(String(pr.get("soy", ""))):
 		stat_row.call("leaf", "Kan Soyu", KgPaths.SOY[String(pr["soy"])]["name"])
-	stat_row.call(UI.ELEMENT_ICONS.get(String(pr["elements"][0]) if not pr["elements"].is_empty() else "", "chakra"), "Chakra doğası", ", ".join(pr["elements"]).capitalize())
+	stat_row.call(UI.ELEMENT_ICONS.get(String(pr["elements"][0]) if not pr["elements"].is_empty() else "", "chakra"), "Chakra doğası", ", ".join((pr["elements"] as Array).map(func(e): return _el_name(String(e)))) if not pr["elements"].is_empty() else "—")
 	var md: Dictionary = pr["missions_done"]
 	stat_row.call("mission", "Görevler", "D%d  C%d  B%d  A%d  S%d" % [md.get("D", 0), md.get("C", 0), md.get("B", 0), md.get("A", 0), md.get("S", 0)])
 
@@ -2511,6 +2513,9 @@ static var _eq_slot := "set"
 # gözler ekipman değil (Gözler sekmesinde)
 const DOLL_LEFT := ["kafa", "set"]
 const DOLL_RIGHT := ["sirt", "sag"]
+## Silah dövüş tarzının oyuncuya görünen adı (iç kimlik yazılmaz)
+const WEAPON_STYLE_NAMES := {"fist": "Yumruk", "blade": "Kısa bıçak", "dual": "Çift el", "claw": "Pençe", "sickle": "Orak", "sword": "Kılıç",
+	"heavy": "Ağır silah", "staff": "Uzun saplı", "chain": "Zincirli", "fan": "Yelpaze"}
 
 
 static func _slot_name(sl: String) -> String:
@@ -2568,7 +2573,7 @@ static func _tab_wardrobe(main: Node, body: Control) -> void:
 		var item_name = ""
 		if sl == "sac":
 			view = Icons.view("hair", 44, Color(pr["look"].get("hair", UI.TEXT)).lightened(0.2))
-			item_name = String(pr["look"].get("hair_style", "")).capitalize()
+			item_name = String(CharacterModel.HAIR_STYLES.get(String(pr["look"].get("hair_style", "")), ""))
 		elif sl == "susanoo":
 			view = Icons.view("susanoo", 44, Color(0.7, 0.55, 1.0))
 			item_name = "Kademe %d" % Susanoo.cur_tier(pr)
@@ -2603,7 +2608,8 @@ static func _tab_wardrobe(main: Node, body: Control) -> void:
 		var v = Gear.stat(pr, k[0])
 		if v != 0.0:
 			tot.append(("%s %+d%%" % [Lang.t(k[1]), int(round(v * 100))]) if k[2] else ("%s %+d" % [Lang.t(k[1]), int(v)]))
-	tot.append(Lang.t("Silah %.1f hasar") % float(Gear.weapon(pr).get("hit", 4.2)))
+	if Gear.weapon(pr).has("hit"):   # silahsızken yumruk verisi "silah" diye yazılmasın
+		tot.append(Lang.t("Silah %.1f hasar") % float(Gear.weapon(pr)["hit"]))
 	var tl = UI.label("  •  ".join(tot), 13, UI.MUTED, HORIZONTAL_ALIGNMENT_CENTER)
 	tl.position = Vector2(220, -26)
 	tl.size = Vector2(420, 20)
@@ -2692,7 +2698,8 @@ static func _tab_wardrobe(main: Node, body: Control) -> void:
 				sr.add_child(UI.label(dtxt, 14, UI.GOOD if diff > 0 else UI.BAD, HORIZONTAL_ALIGNMENT_LEFT, true))
 			detail_v.add_child(sr)
 		if it.has("weapon"):
-			detail_v.add_child(UI.label("Vuruş hasarı %.1f   •   Menzil +%.1f m   •   %s" % [float(it["weapon"].get("hit", 4.2)), it["weapon"]["reach"], String(it["weapon"].get("style", "")).capitalize()], 14, UI.GOLD))
+			var wst = String(it["weapon"].get("style", ""))
+			detail_v.add_child(UI.label("Vuruş hasarı %.1f   •   Menzil +%.1f m   •   %s%s" % [float(it["weapon"].get("hit", 4.2)), it["weapon"]["reach"], Lang.t(String(WEAPON_STYLE_NAMES.get(wst, "Silah"))), ("   •   " + Lang.t("Uzun menzil")) if it["weapon"].get("ranged", false) else ""], 14, UI.GOLD))
 		var d = UI.label(it.get("desc", ""), 14, UI.MUTED)
 		d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		d.custom_minimum_size = Vector2(460, 0)
@@ -2727,7 +2734,7 @@ static func _tab_wardrobe(main: Node, body: Control) -> void:
 				show_detail.call(g)
 				return
 			if used_other:
-				Hud.msg("Bu eşya diğer elde takılı.", Color(1, 0.8, 0.5))
+				Hud.msg("Bu eşya başka bir yuvada takılı.", Color(1, 0.8, 0.5))
 				return
 			pr["equip"][_eq_slot] = int(g["uid"])
 			refresh.call(), 92, "✓" if on else ("◐" if used_other else ("Kilitli" if why != "" else "")))
@@ -3058,6 +3065,14 @@ const JUTSU_ELEMS := [["", "Tüm elementler"], ["katon", "Katon"], ["suiton", "S
 	["shakuton", "Shakuton"], ["jiton", "Jiton"], ["shoton", "Shōton"], ["koton", "Kōton"], ["taiton", "Taiton"], ["meiton", "Meiton"], ["jinton_swift", "Jinton (Hız)"], ["deiton", "Deiton"]]
 
 
+## Doğanın romaji adı (Katon, Fūton, Hyōton...): iç kimlik oyuncuya yazılmaz
+static func _el_name(e: String) -> String:
+	for r in JUTSU_ELEMS:
+		if r[0] == e and e != "":
+			return r[1]
+	return String(Elements.NAMES.get(e, e.capitalize()))
+
+
 static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 	var pr = Game.profile
 	var h = UI.hbox(26)
@@ -3252,33 +3267,48 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 	var ec: Color = UI.ELEMENT_COLORS.get(el, UI.GOLD)
 	if not picked in learned:
 		var why = Progress.can_learn(picked) if Progress.has_method("can_learn") else ""
-		var how = {"academy": "Akademide öğrenilir", "scroll": "Silah dükkânında parşömeni satılır", "clan": "Klan tekniği", "kinjutsu": "Yasak teknik — hikâye ile",
-			"element": "Element başlangıç tekniği"}
+		var how = {"academy": "Akademide öğrenilir", "scroll": "Köydeki Parşömenci'den parşömeni alınır (doğana uygunsa)", "clan": "Klan tekniği",
+			"kinjutsu": "Yasak teknik: Yeraltı Simsarı'ndan parşömenin izini al, saklandığı yerden çıkar", "element": "Element başlangıç tekniği",
+			"shrine:uzumaki": "Uzushio harabesindeki Uzumaki maske tapınağında (Uzumaki klanı ya da Kage)"}
 		var lp = String(j.get("learn", ""))
 		var txt = how.get(lp, "")
 		if lp.begins_with("trainer"):
-			txt = "Hocadan öğrenilir (%s)" % lp.trim_prefix("trainer").trim_prefix(":")
+			var tk = lp.trim_prefix("trainer").trim_prefix(":")
+			if tk in Progress.SCROLL_TRAINERS:
+				txt = Lang.t("%s köy eğitmeni öğretir; parşömeni Parşömenci'de de çıkar") % WorldPeople.vname(tk)
+			elif tk == "hospital":
+				txt = Lang.t("Köy hastanesindeki tıbbi ninja eğitmeni öğretir")
+			elif tk in ["jonin", "fuin", "konoha_jonin"]:
+				txt = Lang.t("Köy eğitmeni öğretir (Chūnin ve üstü)")
+			else:
+				txt = Lang.t("Köy eğitmeni ya da Akademi yardımcı hocası öğretir")
+		elif lp.begins_with("quest:"):
+			txt = Lang.t("Özel görevle öğrenilir")
+		elif lp.begins_with("path:"):
+			txt = Lang.t("Efsane Yolu: %s ustası öğretir") % Lang.t(String(LegendPaths.PATHS.get(lp.substr(5), {}).get("name", "bir yolun")))
+		elif lp.begins_with("locked:"):
+			txt = Lang.t("Şu an öğrenilemez")
 		elif lp.begins_with("clan:"):
-			txt = "%s klan tekniği — klan üyeleri Güç %d'de kendiliğinden öğrenir" % [Data.clans.get(lp.substr(5), {}).get("name", lp.substr(5)), int(j.get("level", 1))]
+			txt = Lang.t("%s klan tekniği — klan üyeleri Güç %d'de kendiliğinden öğrenir") % [Data.clans.get(lp.substr(5), {}).get("name", lp.substr(5)), int(j.get("level", 1))]
 		elif lp == "element":
-			txt = "İlk element tekniği: mezuniyetten sonra Antrenman Alanı'nda hocanın chakra kâğıdı testiyle öğrenilir (o doğa sende olmalı)"
+			txt = Lang.t("İlk element tekniği: mezuniyetten sonra Antrenman Alanı'nda hocanın chakra kâğıdı testiyle öğrenilir (o doğa sende olmalı)")
 		elif lp.begins_with("kg"):
-			txt = "Kekkei genkai gerekir (%s)" % lp.trim_prefix("kg:")
+			txt = Lang.t("Kekkei genkai gerekir (%s)") % _el_name(lp.trim_prefix("kg:"))
 		elif lp.begins_with("eye"):
-			txt = "Göz tekniği gerekir"
+			txt = Lang.t("%s gözü gerekir") % Progress.eye_name(lp.trim_prefix("eye:"))
 		elif lp.begins_with("sage"):
-			txt = "Sennin eğitimi gerekir (%s)" % lp.trim_prefix("sage:")
+			txt = Lang.t("Sennin modu gerekir (bir sözleşme diyarında doğa enerjisi eğitimi)")
 		elif lp.begins_with("weapon:"):
-			txt = "%s ele geçirilince öğrenilir" % String(Gear.item(lp.substr(7)).get("name", lp.substr(7)))
+			txt = Lang.t("%s ele geçirilince öğrenilir") % String(Gear.item(lp.substr(7)).get("name", lp.substr(7)))
 		elif lp.begins_with("beast:"):
-			txt = "%s jinchūriki'si olunca canavar öğretir (Güç %d)" % [String(BeastModels.INFO.get(lp.substr(6), {}).get("name", lp.substr(6))).split(" —")[0], int(j.get("level", 1))]
+			txt = Lang.t("%s jinchūriki'si olunca canavar öğretir (Güç %d)") % [String(BeastModels.INFO.get(lp.substr(6), {}).get("name", lp.substr(6))).split(" —")[0], int(j.get("level", 1))]
 		elif lp.begins_with("contract:"):
-			txt = "%s imzalanınca bilge öğretir (Güç %d)" % [String(Contracts.DEFS.get(lp.substr(9), {}).get("name", "Çağırma sözleşmesi")), int(j.get("level", 1))]
+			txt = Lang.t("%s imzalanınca bilge öğretir (Güç %d)") % [String(Contracts.DEFS.get(lp.substr(9), {}).get("name", "Çağırma sözleşmesi")), int(j.get("level", 1))]
 		elif lp.begins_with("special") or lp == "signature":
-			txt = "Özel görev ile açılır"
+			txt = Lang.t("Özel görev ile açılır")
 		if picked in Data.clans.get(String(Game.profile.get("clan", "")), {}).get("family_arts", []):
-			txt = "Aile öğretisi: Güç %d olunca ailen öğretir (rütbe gerekmez)" % int(j.get("level", 1))
-		rv.add_child(UI.label("🔒 Öğrenilmedi — " + (txt if txt != "" else lp) + ((".  " + why) if why != "" else ""), 14, Color(1, 0.75, 0.45), HORIZONTAL_ALIGNMENT_LEFT, true))
+			txt = Lang.t("Aile öğretisi: Güç %d olunca ailen öğretir (rütbe gerekmez)") % int(j.get("level", 1))
+		rv.add_child(UI.label(Lang.t("🔒 Öğrenilmedi — ") + Lang.t(txt if txt != "" else lp) + ((".  " + Lang.t(why)) if why != "" and not Lang.t(txt).contains(Lang.t(why)) else ""), 14, Color(1, 0.75, 0.45), HORIZONTAL_ALIGNMENT_LEFT, true))
 	var top = UI.hbox(14)
 	var badge = Panel.new()
 	badge.custom_minimum_size = Vector2(76, 76)
@@ -3292,11 +3322,11 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 	nm.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	nm.custom_minimum_size = Vector2(300, 0)
 	tv.add_child(nm)
-	tv.add_child(UI.label("%s-rank   •   %s" % [j.get("canon_rank", "?"), el.capitalize() if el != "" else "Doğasız"], 14, ec, HORIZONTAL_ALIGNMENT_LEFT, true))
+	tv.add_child(UI.label("%s-rank   •   %s" % [j.get("canon_rank", "?"), _el_name(el) if el != "" else "Doğasız"], 14, ec, HORIZONTAL_ALIGNMENT_LEFT, true))
 	top.add_child(tv)
 	rv.add_child(top)
 	var stats = UI.hbox(22)
-	stats.add_child(UI.icon_label("chakra", "%d chakra" % int(PlayerCombat.jutsu_cost(j)), 15, Color(0.55, 0.78, 1.0)))
+	stats.add_child(UI.icon_label("chakra", _cost_text(j), 15, Color(1.0, 0.75, 0.4) if Stats.is_taijutsu(j) else Color(0.55, 0.78, 1.0)))
 	stats.add_child(UI.icon_label("hourglass", "%.1f sn" % Combat.jutsu_cd(j), 15, UI.MUTED))
 	rv.add_child(stats)
 	var seals: Array = j.get("seals", [])
@@ -3333,25 +3363,28 @@ static func _jutsu_effects(jid: String, j: Dictionary) -> String:
 	var t = int(j.get("tier", 2))
 	var dmg = _jutsu_dmg(j)
 	if dmg > 0:
-		parts.append("Hasar ≈ %d" % dmg)
+		parts.append(Lang.t("Hasar ≈ %d") % dmg)
 	var el = String(j.get("element", ""))
 	if el in ["katon", "yoton"]:
-		parts.append("Yakar (%.1f sn)" % (1.5 + t * 0.4))
+		parts.append(Lang.t("Yakar (%.1f sn)") % (1.5 + t * 0.4))
 	if el == "shakuton":
-		parts.append("Beden suyunu buharlaştırır: yavaşlatır (%.1f sn)" % (1.0 + t * 0.3))
+		parts.append(Lang.t("Beden suyunu buharlaştırır: yavaşlatır (%.1f sn)") % (1.0 + t * 0.3))
 	if el in ["raiton", "ranton"] and t >= 2:
-		parts.append("Sersemletir (%.1f sn)" % (0.3 + t * 0.12))
-	if el in ["suiton", "hyoton"]:
-		parts.append("Ateşi söndürür, Raiton'a karşı zayıf")
+		parts.append(Lang.t("Sersemletir (%.1f sn)") % (0.3 + t * 0.12))
+	# doğa döngüsü (Elements.BEATS: Katon > Fūton > Raiton > Doton > Suiton > Katon)
+	if Elements.BEATS.has(el):
+		parts.append(Lang.t("%s karşısında üstün, %s karşısında zayıf") % [_el_name(String(Elements.BEATS[el])), _el_name(String(Elements.BEATS.find_key(el)))])
+	elif el == "hyoton":
+		parts.append(Lang.t("Suyu dondurur, Katon karşısında zayıf"))
 	if t >= 3:
-		parts.append("Ağır vuruş: geri savurur")
+		parts.append(Lang.t("Ağır vuruş: geri savurur"))
 	match shp:
 		"buff", "transform":
-			parts.append("Güçlendirme — etkisi kullanınca sol üstte yazar")
+			parts.append(Lang.t("Güçlendirme — etkisi kullanınca sol üstte yazar"))
 		"heal":
-			parts.append("İyileştirir")
+			parts.append(Lang.t("İyileştirir"))
 		"bind", "genjutsu_stun":
-			parts.append("Hareketsiz bırakır")
+			parts.append(Lang.t("Hareketsiz bırakır"))
 	return "  •  ".join(parts)
 
 
@@ -3398,7 +3431,7 @@ static func _jutsu_card(jid: String, selected: bool, cb: Callable) -> Button:
 	nm.size = Vector2(222, 22)
 	nm.clip_text = true
 	b.add_child(nm)
-	var sub = UI.label("%s-rank  •  %d chakra  •  %d mühür" % [j.get("canon_rank", "?"), int(PlayerCombat.jutsu_cost(j)), (j.get("seals", []) as Array).size()], 12, UI.MUTED)
+	var sub = UI.label("%s-rank  •  %s  •  %d mühür" % [j.get("canon_rank", "?"), _cost_text(j), (j.get("seals", []) as Array).size()], 12, UI.MUTED)
 	sub.position = Vector2(66, 46)
 	sub.size = Vector2(222, 18)
 	b.add_child(sub)
@@ -3415,12 +3448,19 @@ static func _jutsu_card(jid: String, selected: bool, cb: Callable) -> Button:
 
 " + fx.replace("  •  ", "
 ") if fx != "" else "") + "
-Chakra: %d   •   Bekleme: %.1f sn" % [int(PlayerCombat.jutsu_cost(j)), Combat.jutsu_cd(j)]
+%s   •   Bekleme: %.1f sn" % [_cost_text(j), Combat.jutsu_cd(j)]
 	b.pressed.connect(func():
 		Sfx.play("click")
 		cb.call())
 	UI.hover_anim(b, 1.02)
 	return b
+
+
+## Jutsunun bedeli: taijutsu chakra değil stamina harcar (PlayerCombat ile aynı hesap)
+static func _cost_text(j: Dictionary) -> String:
+	if Stats.is_taijutsu(j):
+		return Lang.t("%d stamina") % int(Stats.tai_stamina_cost(j))
+	return Lang.t("%d chakra") % int(PlayerCombat.jutsu_cost(j))
 
 
 ## Jutsunun yaklaşık hasarı (hasarsız teknikler: 0)
@@ -3459,7 +3499,9 @@ static func _tab_skills(_main: Node, body: Control) -> void:
 	v.add_child(sdl)
 	var how = {"ninjutsu": "Jutsu attıkça (mühür bozulsa da biraz). Yüksek rütbe teknikler için gerekli; mühür hızı.",
 		"taijutsu": "Yumrukla vurdukça; antrenman kuklası 2 kat.", "kenjutsu": "Silahla vurdukça; antrenman kuklası 2 kat.",
-		"chakra": "Jutsu attıkça, [C] meditasyon, duvar/ağaç tırmanma, su üstünde yürüme.", "dayaniklilik": "Hasar aldıkça.", "hiz": "Koştukça.",
+		"chakra": Lang.t("Jutsu attıkça, %s ile meditasyon, duvar/ağaç tırmanma, su üstünde yürüme. Chakra havuzu ve toplama hızı.") % Keys.name("charge"),
+		"dayaniklilik": "Hasar aldıkça, taijutsu tekniği yaptıkça, asılı kütükle (Tsuri Maruta) ve kaya tırmanarak. Can ve stamina.",
+		"hiz": Lang.t("Ninja koşusunda (%s) koştukça. Hareket hızı.") % Keys.name("dash"),
 		"genjutsu": "Genjutsu yaptıkça. Genjutsu gücü + sana atılan genjutsunun etkisi azalır.", "fuinjutsu": "Mühürleme teknikleri yaptıkça. Fūinjutsu gücü.", "iryo": "Tıbbi teknikler yaptıkça (Shōsen...). İyileştirme gücü.",
 		"senjutsu": "Senjutsu teknikleri yaptıkça. Senjutsu gücü + Sage Modu güçlenir.", "kuchiyose": "Çağırma teknikleri yaptıkça. Çağrının canı ve hasarı artar.", "shurikenjutsu": "Kunai, shuriken, senbon attıkça. Atış hasarı + alet bekleme süresi kısalır."}
 	# 12 dal: iki sütun + kaydırma (tek sütunda alttakiler ekranın dışına taşıyordu)
@@ -3497,9 +3539,11 @@ static func _tab_skills(_main: Node, body: Control) -> void:
 		hl.custom_minimum_size = Vector2(600, 0)
 		cell.add_child(hl)
 	var opened = []
-	for f in Stats.UNLOCK_AT:
+	# yalnız oyunda gerçekten işleyen açılımlar, oyuncunun anlayacağı adla (eskiden iç kimlikler ve etkisiz bayraklar yazıyordu)
+	var unlock_names = {"kai": Lang.t("Kai: sersemlik / genjutsu çözme (%s)") % Keys.name("substitute"), "sensor": Lang.t("Algılama: uzaktaki düşmanlar mini haritada"), "multi_throw": Lang.t("Çoklu atış (kunai, shuriken)")}
+	for f in unlock_names:
 		var u = Stats.UNLOCK_AT[f]
-		opened.append("%s %s (%s %d)" % ["✓" if Stats.has_unlock(pr, f) else "·", f, Lang.t(String(Mastery.NAMES[u[0]])), int(u[1])])
+		opened.append("%s %s (%s %d)" % ["✓" if Stats.has_unlock(pr, f) else "·", unlock_names[f], Lang.t(String(Mastery.NAMES[u[0]])), int(u[1])])
 	var ol = UI.label(Lang.t("Ustalıkla açılanlar:") + "  " + "   ".join(opened), 13, UI.MUTED)
 	ol.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	ol.custom_minimum_size = Vector2(1240, 0)
@@ -3611,7 +3655,7 @@ static func _tab_missions(main: Node, body: Control) -> void:
 				pr["track"] = ""
 			ninja_menu(main, "missions"), 240, "close"))
 		tv2.get_child(tv2.get_child_count() - 1).size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	tv2.add_child(UI.label("Oyun içinde L tuşu: aktif hedefler arasında geç. Yeni yer seçmek için: Harita > Yakındaki Yerler.", 13, UI.MUTED))
+	tv2.add_child(UI.label(Lang.t("Oyun içinde %s tuşu: aktif hedefler arasında geç. Yeni yer seçmek için: Harita > Yakındaki Yerler.") % Keys.name("track_next"), 13, UI.MUTED))
 	var acts = UI.hbox(12)
 	left.add_child(acts)
 	acts.add_child(UI.button("Haritada göster", func(): world_map(main), 240, "map"))
@@ -4134,7 +4178,7 @@ static var _shop_sel := ""
 
 
 ## entries: [{id, name, price, desc, stats, locked, lock_text, owned, view: Callable->Control, rarity}], buy: Callable(id)
-static func shop_screen(title: String, entries: Array, buy: Callable) -> void:
+static func shop_screen(title: String, entries: Array, buy: Callable, sell := Callable()) -> void:
 	Game.ui_open = true
 	# aynı dükkân yeniden kurulurken (eşya seçince/alınca) liste en üste dönmesin
 	var keep = _scroll_positions() if title == _last_shop else []
@@ -4148,6 +4192,11 @@ static func shop_screen(title: String, entries: Array, buy: Callable) -> void:
 	ryo.anchor_left = 1.0; ryo.anchor_right = 1.0
 	ryo.offset_left = -300; ryo.offset_top = 52
 	bg.add_child(ryo)
+	if sell.is_valid():   # tezgâha eşya sat (bu dükkânın aldığı mallar)
+		var sb = UI.button("Eşya sat", sell, 200, "coin")
+		sb.anchor_left = 1.0; sb.anchor_right = 1.0
+		sb.offset_left = -540; sb.offset_right = -340; sb.offset_top = 40
+		bg.add_child(sb)
 	_close_button(bg, func(): Hud.close_dialog())
 	var h = UI.hbox(28)
 	h.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -4172,7 +4221,7 @@ static func shop_screen(title: String, entries: Array, buy: Callable) -> void:
 		var acc: Color = UI.RARITY[int(e.get("rarity", 0))]
 		var t = _tile(e["view"].call(), "%s — %d" % [e["name"], int(e["price"])], acc if not e.get("locked", false) else Color(1, 1, 1, 0.12), e["id"] == _shop_sel, func():
 			_shop_sel = e["id"]
-			shop_screen(title, entries, buy), 132, "x%d" % int(e["owned"]) if int(e.get("owned", 0)) > 0 else "")
+			shop_screen(title, entries, buy), 132, ("∞" if e.get("unlimited", false) else "x%d" % int(e["owned"])) if int(e.get("owned", 0)) > 0 else "")
 		if e.get("locked", false):
 			t.modulate = Color(1, 1, 1, 0.55)
 		grid.add_child(t)
@@ -4215,7 +4264,7 @@ static func shop_screen(title: String, entries: Array, buy: Callable) -> void:
 	d.custom_minimum_size = Vector2(400, 0)
 	rv.add_child(d)
 	if int(sel.get("owned", 0)) > 0:
-		rv.add_child(UI.label("Sende: %d" % int(sel["owned"]), 14, UI.MUTED))
+		rv.add_child(UI.label("Sende: sınırsız" if sel.get("unlimited", false) else "Sende: %d" % int(sel["owned"]), 14, UI.MUTED))
 	if sel.get("locked", false):
 		rv.add_child(UI.icon_label("lock", String(sel.get("lock_text", "Kilitli")), 16, UI.BAD))
 	else:
@@ -4226,6 +4275,129 @@ static func shop_screen(title: String, entries: Array, buy: Callable) -> void:
 		rv.add_child(b)
 		if not afford:
 			rv.add_child(UI.label("Yeterli Ryō yok.", 14, UI.BAD))
+
+
+## Dükkâna satış: bu tezgâhın aldığı mallar (SHOP_SELL.entries); adet ◀ ▶ ile seçilir. back: alış ekranına dön
+const SHOP_SELL := preload("res://scripts/core/shop_sell.gd")
+static var _sell_sel := ""
+static var _sell_qty := 1
+
+
+static func sell_screen(title: String, buyer: String, back: Callable) -> void:
+	Game.ui_open = true
+	var keep = _scroll_positions() if title == _last_shop else []
+	_last_shop = title
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	var pr = Game.profile
+	var entries = SHOP_SELL.entries(pr, buyer)
+	var bg = _full(0.55)
+	var head = UI.label(Lang.upper(Lang.t(title)) + "  —  " + Lang.upper(Lang.t("Satış")), 34, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true)
+	head.position = Vector2(110, 40)
+	bg.add_child(head)
+	var ryo = UI.icon_label("coin", "%d Ryō" % int(pr.get("ryo", 0)), 20, UI.GOLD)
+	ryo.anchor_left = 1.0; ryo.anchor_right = 1.0
+	ryo.offset_left = -300; ryo.offset_top = 52
+	bg.add_child(ryo)
+	var bb = UI.button("Satın al", back, 200, "coin")
+	bb.anchor_left = 1.0; bb.anchor_right = 1.0
+	bb.offset_left = -540; bb.offset_right = -340; bb.offset_top = 40
+	bg.add_child(bb)
+	_close_button(bg, func(): Hud.close_dialog())
+	var h = UI.hbox(28)
+	h.set_anchors_preset(Control.PRESET_FULL_RECT)
+	h.offset_left = 110; h.offset_top = 110; h.offset_right = -60; h.offset_bottom = -60
+	bg.add_child(h)
+	var lv = UI.vbox(10)
+	lv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	h.add_child(lv)
+	lv.add_child(UI.label(SHOP_SELL.buyer_text(buyer), 15, UI.MUTED))
+	var sc = ScrollContainer.new()
+	sc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sc.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	lv.add_child(sc)
+	var grid = HFlowContainer.new()
+	grid.add_theme_constant_override("h_separation", 14)
+	grid.add_theme_constant_override("v_separation", 14)
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sc.add_child(grid)
+	if not keep.is_empty():
+		Engine.get_main_loop().process_frame.connect(_restore_scroll.bind(keep), CONNECT_ONE_SHOT)
+	var key = func(e): return "%s:%s" % [e["type"], e["id"]]
+	if not _sell_sel in entries.map(key) and not entries.is_empty():
+		_sell_sel = key.call(entries[0])
+		_sell_qty = 1
+	var sel = {}
+	for e in entries:
+		var k = key.call(e)
+		var view = Thumbs.gear_view(e["id"], 96) if e["type"] == "gear" else Thumbs.item_view(e["id"], 96)
+		var acc: Color = UI.RARITY[int(e.get("rarity", 0))]
+		var badge = "∞" if e.get("unlimited", false) else ("x%d" % int(e["owned"]) if int(e["owned"]) > 1 else "")
+		var t = _tile(view, "%s — %d" % [e["name"], int(e["price"])], acc if e["reason"] == "" else Color(1, 1, 1, 0.12), k == _sell_sel, func():
+			if _sell_sel != k:
+				_sell_qty = 1
+			_sell_sel = k
+			sell_screen(title, buyer, back), 132, badge)
+		if e["reason"] != "":
+			t.modulate = Color(1, 1, 1, 0.55)
+		grid.add_child(t)
+		if k == _sell_sel:
+			sel = e
+	var right = UI.card()
+	right.custom_minimum_size = Vector2(440, 0)
+	right.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	h.add_child(right)
+	var rv = UI.vbox(12)
+	right.add_child(rv)
+	if sel.is_empty():
+		rv.add_child(UI.label("Bu tezgâha satabileceğin bir şeyin yok.", 16, UI.MUTED))
+		return
+	var top = UI.hbox(16)
+	var big = Thumbs.gear_view(sel["id"], 110) if sel["type"] == "gear" else Thumbs.item_view(sel["id"], 110)
+	big.custom_minimum_size = Vector2(110, 110)
+	top.add_child(big)
+	var tv = UI.vbox(4)
+	var nm = UI.label(sel["name"], 22, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true)
+	nm.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	nm.custom_minimum_size = Vector2(280, 0)
+	tv.add_child(nm)
+	var r = int(sel.get("rarity", 0))
+	tv.add_child(UI.label(UI.RARITY_NAMES[r], 13, UI.RARITY[r], HORIZONTAL_ALIGNMENT_LEFT, true))
+	tv.add_child(UI.label("Sende: sınırsız" if sel.get("unlimited", false) else "Sende: %d" % int(sel["owned"]), 14, UI.MUTED))
+	if int(sel.get("equipped", 0)) > 0:
+		tv.add_child(UI.label("Üstünde: %d" % int(sel["equipped"]), 14, UI.MUTED))
+	top.add_child(tv)
+	rv.add_child(top)
+	var d = UI.label(String(sel.get("desc", "")), 15, UI.MUTED)
+	d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	d.custom_minimum_size = Vector2(400, 0)
+	rv.add_child(d)
+	if sel["reason"] != "":
+		var why = UI.icon_label("lock", String(sel["reason"]), 16, UI.BAD)
+		rv.add_child(why)
+		return
+	var n = int(sel["count"])
+	_sell_qty = clampi(_sell_qty, 1, n)
+	rv.add_child(UI.label("Tanesi: %d Ryō" % int(sel["price"]), 15, UI.GOLD))
+	var b = UI.primary("Sat — %d Ryō" % (int(sel["price"]) * _sell_qty), func(): pass, 400, "coin")
+	if n > 1:   # adet: ◀ ▶ seçici
+		var labels = []
+		for i in n:
+			labels.append(str(i + 1))
+		rv.add_child(_arrow_row("Adet", labels, _sell_qty - 1, func(i: int):
+			_sell_qty = i + 1
+			if is_instance_valid(b):
+				b.text = Lang.t("Sat — %d Ryō") % (int(sel["price"]) * _sell_qty)))
+	b.pressed.connect(func():
+		var cnt = _sell_qty
+		var gain = SHOP_SELL.sell(Game.profile, sel, cnt)
+		if gain > 0:
+			Sfx.play("coin")
+			Hud.float_text("+%d Ryō" % gain, Color(1, 0.85, 0.4))
+			Hud.msg(Lang.t("%s x%d satıldı: +%d Ryō") % [Lang.t(String(sel["name"])), cnt, gain], Color(0.6, 1, 0.6))
+		_sell_qty = 1
+		sell_screen(title, buyer, back))
+	rv.add_child(b)
 
 
 # ================================================================== dünya haritası + hızlı seyahat

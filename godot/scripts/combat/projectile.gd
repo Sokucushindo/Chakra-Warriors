@@ -53,10 +53,25 @@ func _physics_process(dt: float) -> void:
 		for an in get_tree().get_nodes_in_group("ambient_team"):
 			if is_instance_valid(an) and not an.dead and Combat.capsule_hit(to, an, radius + 0.3):
 				Combat.provoke(an)
+	# aday savaşçılar karede bir kez (alt adım başına grup + düşmanlık taraması 60 iğnelik yağmurda kareyi düşürüyordu);
+	# bu adımda erişilemeyecek kadar uzaktakiler (kapsül boyu + yarıçap + adım) baştan elenir — isabet sonucu aynı
+	var reach = step.length() + radius
+	var cands: Array = []
+	for f in get_tree().get_nodes_in_group("fighters"):
+		if not f.has_method("hit_test"):
+			var fh = f.get("height")
+			var fr = f.get("radius")
+			if fh != null and fr != null and from.distance_to(f.global_position) > reach + float(fh) + float(fr):
+				continue
+		if f in hit_list or not Combat.hostile(shooter, f) or f.is_dead():
+			continue
+		cands.append(f)
 	for i in n:
+		if cands.is_empty():
+			break
 		var pt = from.lerp(to, float(i + 1) / n)
-		for f in get_tree().get_nodes_in_group("fighters"):
-			if f in hit_list or not Combat.hostile(shooter, f) or f.is_dead():
+		for f in cands:
+			if not is_instance_valid(f) or f in hit_list or f.is_dead():
 				continue
 			if Combat.capsule_hit(pt, f, radius):
 				var inf = info.duplicate()

@@ -665,6 +665,8 @@ static func shockwave(pos: Vector3, col: Color, size := 6.0, dur := 0.4, flat :=
 ## Zemin çatlağı / yanık izi
 static func cracks(pos: Vector3, size := 4.0, col := Color(0.12, 0.09, 0.07, 0.9), dur := 6.0, zone := true) -> void:
 	size *= epic
+	if WaterWaves.ground_on_water(pos, size * 0.5, "decal"):   # suda yarık olmaz: yüzey halkalanır
+		return
 	if zone and size >= 1.5:   # yarık zemin: üstünden geçen yavaşlar (3-5 sn)
 		GroundFX.add(pos, "cracked", size * 0.6, clampf(dur, 3.0, 5.0))
 	if busy():

@@ -502,7 +502,7 @@ func _update_side(pl: Node, pr: Dictionary) -> void:
 	var tool: String = pr.get("throw_sel", "kunai")
 	var tcd = float(pl.combat.tool_cd.get(tool, 0.0)) if pl.combat else 0.0
 	var tn = int(inv.get(tool, 0))
-	_set_side(0, Lang.t(String(Data.items.get(tool, {"name": tool})["name"])), TOOL_ICONS.get(tool, "kunai"), Color(0.85, 0.88, 0.95), tcd, tn > 0, str(tn))
+	_set_side(0, Lang.t(String(Data.items.get(tool, {"name": tool})["name"])), TOOL_ICONS.get(tool, "kunai"), Color(0.85, 0.88, 0.95), tcd, tn > 0, ("∞" if Stats.unlimited(tool) else str(tn)) if tn > 0 else "0")
 	_set_side(1, Lang.t("Alet değiştir"), "swap", Color(0.62, 0.65, 0.72), 0.0, true, "")
 	var scd = float(scene.salve_cooldown()) if scene.has_method("salve_cooldown") else 0.0
 	var sn_ = int(inv.get("salve", 0))
@@ -511,9 +511,8 @@ func _update_side(pl: Node, pr: Dictionary) -> void:
 	var pcd = float(scene.pill_cooldown()) if scene.has_method("pill_cooldown") else 0.0
 	if psel != "pill":
 		pcd = ClanMech.aki_pill_left(psel)
-	var pn = int(inv.get("pill", 0))
 	var many = ClanMech.pill_list().size() > 1
-	_set_side(3, Lang.t(String(ClanMech.AKI_PILL_NAMES.get(psel, "Asker Hapı"))).split("(")[0].strip_edges(), "pill", PILL_COLS.get(psel, PILL_COLS["pill"]), pcd, psel != "pill" or pn > 0, str(pn) if psel == "pill" else "", Keys.name("pill_next") if many else "")
+	_set_side(3, Lang.t(String(ClanMech.AKI_PILL_NAMES.get(psel, "Asker Hapı"))).split("(")[0].strip_edges(), "pill", PILL_COLS.get(psel, PILL_COLS["pill"]), pcd, true, "∞" if psel == "pill" else "", Keys.name("pill_next") if many else "")
 
 
 ## Yan yuvayı güncelle; görünüm değiştiyse yeniden çizdirir
@@ -1093,18 +1092,29 @@ func shop(title: String, items: Array) -> void:
 			var j: Dictionary = Data.jutsu.get(it.get("jutsu", ""), {})
 			if String(j.get("element", "")) != "" and not j["element"] in Game.profile["elements"]:
 				locked = true
-				lock_text = "Bu parşömen %s doğası olanlar için." % String(j["element"]).capitalize()
+				lock_text = "Bu parşömen %s doğası olanlar için." % Menus._el_name(String(j["element"]))
 			elif int(Game.profile["level"]) < int(j.get("level", 1)):
 				locked = true
-				lock_text = "Ustalık gücü %d gerekli." % int(j.get("level", 1))
+				lock_text = "Güç %d gerekli." % int(j.get("level", 1))
 			elif it.get("jutsu", "") in Game.profile["learned"]:
 				locked = true
 				lock_text = "Bunu zaten biliyorsun."
 		var iid = id
 		entries.append({"id": id, "name": it["name"], "price": Stats.price(int(it["price"])), "desc": it.get("desc", ""), "stats": "",
-			"locked": locked, "lock_text": lock_text, "owned": int(Game.profile["inventory"].get(id, 0)), "rarity": 1 if it.get("kind", "") == "scroll" else 0,
+			"locked": locked, "lock_text": lock_text, "owned": int(Game.profile["inventory"].get(id, 0)), "unlimited": Stats.unlimited(id), "rarity": 1 if it.get("kind", "") == "scroll" else 0,
 			"view": func(): return Thumbs.item_view(iid, 96)})
-	Menus.shop_screen(title, entries, func(id): _buy(id, title, items))
+	Menus.shop_screen(title, entries, func(id): _buy(id, title, items), _sell_cb(title, func(): shop(title, items)))
+
+
+const SHOP_SELL := preload("res://scripts/core/shop_sell.gd")
+
+
+## Dükkânın "Eşya sat" düğmesi: bu tezgâh mal alıyorsa satış ekranını açar (back: alış ekranına dön); almıyorsa boş
+func _sell_cb(title: String, back: Callable) -> Callable:
+	var buyer = SHOP_SELL.buyer_of(title)
+	if buyer == "":
+		return Callable()
+	return func(): Menus.sell_screen(title, buyer, back)
 
 
 ## Ekipman dükkânı: silah ve kıyafetler (alınca Tab > Ekipman'dan giyilir)
@@ -1140,7 +1150,7 @@ func gear_shop(title: String, ids: Array) -> void:
 				ids = ids.filter(func(x): return x != id)
 			Sfx.play("coin")
 			msg("%s alındı! Giymek için: Tab > Ekipman" % it["name"], Color(0.6, 1, 0.6))
-		gear_shop(title, ids))
+		gear_shop(title, ids), _sell_cb(title, func(): gear_shop(title, ids)))
 
 
 func _buy(id: String, title: String, items: Array) -> void:
@@ -1165,8 +1175,12 @@ func _buy(id: String, title: String, items: Array) -> void:
 				return
 			Progress.add_ryo(-Stats.price(int(it["price"])))
 			Progress.learn(jid)
-		elif it["kind"] == "throw":
-			# aletler bir kez alınır, sonra sınırsız (her birinin 30 sn bekleme süresi var)
+		elif Stats.unlimited(id):
+			# aletler bir kez alınır, sonra sınırsız (her birinin 30 sn bekleme süresi var); Asker Hapı zaten bitmez
+			if id == "pill":
+				msg("Asker Hapı bitmez: bekleme süresiyle kullanılır.", Color(1, 0.85, 0.5))
+				shop(title, items)
+				return
 			if int(Game.profile["inventory"].get(id, 0)) > 0:
 				msg("%s zaten sende (sınırsız, 30 sn bekleme)." % it["name"], Color(1, 0.85, 0.5))
 				shop(title, items)
@@ -1266,7 +1280,7 @@ func _process(dt: float) -> void:
 	var combat = pl.combat
 	vit.set_state({"name": String(pr.get("name", "")), "rank_txt": Lang.t("%s  •  Güç %d") % [Lang.upper(Lang.t(rname)), int(pr.get("level", 1))],
 		"hp": pl.hp, "hp_max": pl.max_hp, "hp_col": hcol, "trail": hp_trail_v, "ck": pl.chakra, "ck_max": pl.max_chakra,
-		"sta": pl.stamina, "sta_max": pl.max_stamina, "xp": Mastery.total(pr) / 600.0, "ryo": int(pr.get("ryo", 0)),
+		"sta": pl.stamina, "sta_max": pl.max_stamina, "xp": Mastery.power_progress(pr), "ryo": int(pr.get("ryo", 0)),
 		"subs": combat.sub_bars if combat else 0, "rk": int(pr.get("rank", 0)), "clan": clan})
 	var comb = pl.combat
 	(vignette.material as ShaderMaterial).set_shader_parameter("amount", clampf(1.0 - pl.hp / pl.max_hp * 2.5, 0.0, 0.8))

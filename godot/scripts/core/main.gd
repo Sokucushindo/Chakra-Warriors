@@ -177,7 +177,7 @@ func start_creator(slot: int) -> void:
 		"top_style": "ceket", "pants_style": "ninja",
 		"skin": Color(0.96, 0.8, 0.66), "eye": Color(0.25, 0.45, 0.8)}
 	_update_preview()
-	Menus.creator(self, creator_state, _update_preview, _start_new_game)
+	Menus.creator(self, creator_state, _update_preview, _start_new_game.bind(true))
 
 
 func _creator_look() -> Dictionary:
@@ -299,7 +299,8 @@ func _frame_creator_cam(snap := false) -> void:
 	tw.tween_property(menu_cam, "h_offset", hoff, 0.45)
 
 
-func _start_new_game() -> void:
+## from_creator: yalnız karakter yaratıcısından başlayan yeni oyun (arena / deneme alanı / soy devri değil)
+func _start_new_game(from_creator := false) -> void:
 	var s = creator_state
 	if String(s["name"]).strip_edges() == "":
 		s["name"] = ["Kaito", "Hiro", "Ren", "Sora", "Aki", "Yuki"].pick_random()
@@ -311,6 +312,10 @@ func _start_new_game() -> void:
 	await _begin_game(Progress.home_spawn())
 	var vname = String(Game.village(Progress.home()).get("name", "Konoha"))
 	Hud.banner(vname.to_upper(), "Akademi öğrencisi %s'nin hikâyesi başlıyor" % s["name"], UI.ACCENT)
+	# %1 doğuştan jinchūriki (serbest bir canavar bebekken içine mühürlenmiş); afiş köy afişinden sonra
+	var jb = TailedBeasts.roll_birth_jinchuriki() if from_creator else ""
+	if jb != "":
+		get_tree().create_timer(4.0).timeout.connect(TailedBeasts.birth_banner.bind(jb))
 
 
 func load_slot(slot: int) -> void:
@@ -396,6 +401,7 @@ func _begin_game(pos: Vector3) -> void:
 		sl.append("")
 	Game.profile["slots"] = sl
 	Gear.ensure(Game.profile)
+	Stats.normalize_unlimited(Game.profile)   # sınırsız aletler / Asker Hapı sayı taşımaz
 	ClanMech.ensure(Game.profile)
 	Progress.ensure_rank_outfit()   # terfi edip rütbe kıyafeti almamış eski kayıtlar
 	Progress.clan_starter_kit(Game.profile)   # eski Shiranui kayıtlarına bir kez senbon
@@ -412,6 +418,14 @@ func _begin_game(pos: Vector3) -> void:
 	mode = "game"
 	Hud.show_game_hud(true)
 	Hud.objective_changed()
+	if Game.profile.has("_legacy_sold"):   # eski kayıt: tek parça kıyafetler (pantolon, ayakkabı...) satıldı
+		var ls: Array = Game.profile["_legacy_sold"]
+		Game.profile.erase("_legacy_sold")
+		get_tree().create_timer(2.0).timeout.connect(func(): Hud.msg("Eski tek parça kıyafetlerin (%d adet) artık giyilmiyor: %d Ryō'ya satıldı. Kıyafetler yalnız set olarak giyilir." % [int(ls[0]), int(ls[1])], Color(1, 0.85, 0.4)))
+	if Game.profile.has("_removed_sold"):   # kaldırılan plaj / mayo setleri satıldı
+		var rs: Array = Game.profile["_removed_sold"]
+		Game.profile.erase("_removed_sold")
+		get_tree().create_timer(2.5).timeout.connect(func(): Hud.msg("Plaj kıyafetleri oyundan kaldırıldı: çantandaki %d set %d Ryō'ya satıldı." % [int(rs[0]), int(rs[1])], Color(1, 0.85, 0.4)))
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	Sfx.music("muz_koy")
 	if not Game.profile.get("active_mission", {}).is_empty():

@@ -79,6 +79,16 @@ g_night={
 "value": 0.0
 }
 
+g_ripples={
+"type": "sampler2D",
+"value": ""
+}
+
+g_ripple_n={
+"type": "float",
+"value": 0.0
+}
+
 [debug]
 
 file_logging/enable_file_logging=true

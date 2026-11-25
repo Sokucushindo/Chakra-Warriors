@@ -81,7 +81,7 @@ func _unlock(pr: Dictionary) -> void:
 		if not have.has(gid):
 			Gear.grant(pr, gid, "", null, null, {"lvl": 3, "origin": "dogustan"})
 	for iid in Data.items:
-		pr["inventory"][iid] = maxi(int(pr["inventory"].get(iid, 0)), 20)
+		pr["inventory"][iid] = 1 if Stats.unlimited(iid) else maxi(int(pr["inventory"].get(iid, 0)), 20)
 	Progress.clan_unlocks(false)
 	SpecialSlots.refresh(pr)
 

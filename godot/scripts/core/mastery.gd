@@ -114,6 +114,14 @@ static func power(p: Dictionary) -> int:
 	return maxi(1, int(round(100.0 * pow(avg / 100.0, 0.7))))   # üst sınır yok
 
 
+## Sıradaki Güç puanına ilerleme (0..1): HUD'daki Güç çubuğu (eskiden toplam ustalık / 600 — "EXP" diye anlamsız doluyordu)
+static func power_progress(p: Dictionary) -> float:
+	var fight = maxf(get_v(p, "taijutsu"), get_v(p, "kenjutsu"))
+	var avg = (get_v(p, "ninjutsu") + fight + get_v(p, "chakra") + get_v(p, "dayaniklilik")) / 4.0
+	var pc = 100.0 * pow(maxf(avg, 0.0) / 100.0, 0.7) + 0.5   # power() round() ile yuvarlar
+	return pc - floorf(pc)
+
+
 static func refresh_level(p: Dictionary) -> void:
 	var old_lv = int(p.get("level", 1))
 	p["level"] = power(p)

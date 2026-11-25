@@ -32,7 +32,7 @@ static func _bare_torso(k, b: Dictionary, y1: float, male: bool) -> Array:
 	var H: float = k.H
 	var nk: Vector3 = b["nk"]
 	var ch: Vector3 = b["ch"]
-	var keys := [P._kp(nk, N + 0.06, 0.004, 0.006), P._kp(nk, N + 0.02, 0.005), [N - 0.05, ch.x * 0.84, ch.y * 0.82, ch.z * 0.9], P._kp(ch, C - 0.03, 0.003)]
+	var keys := P._neck_keys(k, nk, 0.008) + [[N - 0.05, ch.x * 0.84, ch.y * 0.82, ch.z * 0.9], P._kp(ch, C - 0.03, 0.003)]
 	for y in [C - 0.12, H + 0.12, H + 0.04]:
 		if y > y1 + 0.02:
 			keys.append(P._kp(k.M(y, k.UA), y, 0.003))

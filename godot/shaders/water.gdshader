@@ -6,6 +6,8 @@ uniform vec4 shallow : source_color = vec4(0.22, 0.62, 0.72, 1.0);
 uniform sampler2D depth_tex : hint_depth_texture, filter_linear;
 uniform float murk = 0.12;
 
+#include "res://shaders/water_ripples.gdshaderinc"
+
 varying vec3 wpos;
 
 void vertex() {
@@ -21,6 +23,8 @@ void fragment() {
 		sin(p.x * 0.35 + t * 1.3) * 0.08 + sin(p.x * 1.1 - p.y * 0.7 + t * 2.1) * 0.05 + sin((p.x + p.y) * 2.3 + t * 3.0) * 0.025,
 		1.0,
 		cos(p.y * 0.31 + t * 1.1) * 0.08 + sin(p.y * 1.3 + p.x * 0.5 - t * 1.7) * 0.05 + cos((p.x - p.y) * 2.1 - t * 2.6) * 0.025));
+	vec4 rf = ripple_field(p);   // jutsu / beden dalgaları (WaterWaves)
+	n = normalize(n + vec3(-rf.y, 0.0, -rf.z));
 	NORMAL = (VIEW_MATRIX * vec4(n, 0.0)).xyz;
 	// derinliğe göre renk ve kıyıda köpük
 	float d = texture(depth_tex, SCREEN_UV).r;
@@ -31,8 +35,8 @@ void fragment() {
 	vec3 c = mix(shallow.rgb, deep.rgb, thick);
 	float foam = 1.0 - smoothstep(0.0, 0.08, thick);
 	foam *= 0.6 + 0.4 * sin(p.x * 3.0 + t * 4.0) * sin(p.y * 2.7 - t * 3.0);
-	ALBEDO = c + foam * 0.7;
-	ALPHA = mix(0.55, 0.92, thick) + foam * 0.3;
+	ALBEDO = mix(c + foam * 0.7, vec3(0.95, 0.99, 1.0), rf.w * 0.85);
+	ALPHA = clamp(mix(0.55, 0.92, thick) + foam * 0.3 + rf.w * 0.5, 0.0, 1.0);
 	ROUGHNESS = 0.06;
 	METALLIC = 0.0;
 	SPECULAR = 0.8;

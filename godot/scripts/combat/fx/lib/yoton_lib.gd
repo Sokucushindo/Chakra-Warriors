@@ -516,7 +516,7 @@ static func look(n: Node3D, dirv: Vector3) -> void:
 
 ## Eski zemin çatlağının oyun tarafı: büyük yarık üstünden geçeni yavaşlatır (3-5 sn)
 static func crack_zone(pos: Vector3, size: float, dur := 6.0) -> void:
-	if size >= 1.5:
+	if size >= 1.5 and is_nan(WaterWaves.surface_at(pos, 1.5)):
 		GroundFX.add(floor_at(pos), "cracked", size * 0.6, clampf(dur, 3.0, 5.0))
 
 
@@ -758,6 +758,8 @@ static func vapor(host: Node, p: Vector3, s: float, life: float, vel := Vector3(
 ## Kızgın zemin çatlağı: merkezden grow_t'de açılır, heat0'dan soğur, sonra söner
 static func cracks(host: Node, p: Vector3, R: float, dur: float, heat0 := 1.0, grow_t := 0.25, dens := 3.2) -> MeshInstance3D:
 	var mi = gi(_plane(), crack_mat())
+	if WaterWaves.ground_on_water(p, R, "fire"):   # lav suya değince çatlak değil buhar + halka
+		mi.visible = false
 	mi.set_instance_shader_parameter("seed", randf() * 20.0)
 	mi.set_instance_shader_parameter("heat", heat0)
 	mi.set_instance_shader_parameter("grow", 0.0)

@@ -54,7 +54,7 @@ func _ready() -> void:
 			Gear.grant(pr, gid, "", null, null, {"lvl": 3, "origin": "dogustan"})
 	# bütün kullanılabilir eşyalar (hap, merhem, parşömen, klan eşyaları...)
 	for iid in Data.items:
-		pr["inventory"][iid] = maxi(int(pr["inventory"].get(iid, 0)), 20)
+		pr["inventory"][iid] = 1 if Stats.unlimited(iid) else maxi(int(pr["inventory"].get(iid, 0)), 20)
 	Susanoo.config(pr)["mastery"] = 9999.0
 	# sözleşmeler ve sennin
 	Contracts.ensure()

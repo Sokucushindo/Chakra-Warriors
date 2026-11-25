@@ -1097,8 +1097,8 @@ static func mods(id: String, i: int) -> Dictionary:
 			# Sasuke tarzı hızlı kılıç: uçma/uzama YOK (Orochimaru tekniği değil). Shunshin saplama, Chidori Nagashi, iai geçişi.
 			var m = {"lunge_mul": 0.9}
 			match i:
-				2: m.merge({"lunge_mul": 2.6, "knock": 6.0, "stun": 0.4})
-				3: m.merge({"launch": 9.0, "knock": 2.0})
+				2: m.merge({"lunge_mul": 2.6, "knock": 6.0, "stun": 0.4})   # Chidori-gatana Shunshin saplama
+				3: m.merge({"knock": 3.0, "lunge_mul": 1.2})                # Jōdan tepeden iniş (kaldırmaz: aşağı kesik)
 				4: m.merge({"lunge_mul": 0.0, "knock": 0.5})
 				5: m.merge({"lunge_mul": 0.0, "knock": 0.0})
 			return m
@@ -1779,20 +1779,23 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 		"kusanagi":
 			var bl = Color(0.55, 0.8, 1.0)
 			var wn = _weapon_node(who)
-			var tip: Vector3 = wn.to_global(Vector3(0, 0, 0.9)) if wn != null else who.global_position + Vector3.UP * 1.2 + f * 1.2
+			var root: Vector3 = wn.to_global(Vector3(0, 0, 0.22)) if wn != null else who.global_position + Vector3.UP * 1.1 + f * 0.4
+			var tip: Vector3 = wn.to_global(Vector3(0, 0, 1.05)) if wn != null else who.global_position + Vector3.UP * 1.2 + f * 1.2
 			match i:
-				0, 1:   # ağızda kısa Chidori kıvılcımı
-					VFX.bolt(tip - f * 0.6, tip, bl, 0.12, 0.12, 2)
-				2:   # Shunshin Tsuki: ani atılma + saplama, arkada şimşek izi
+				0, 1, 3:   # ağız boyunca kısa Chidori kıvılcımı (kökten uca)
+					VFX.bolt(root, tip, bl, 0.12, 0.12, 2)
+				2:   # Chidori-gatana Shunshin Tsuki: ani atılma + saplama, arkada şimşek izi, ağız boyu akım
 					VFX.bolt(who.global_position + Vector3.UP - f * 2.4, who.global_position + Vector3.UP, bl, 0.18, 0.2, 3)
-				4:   # Chidori Nagashi: kılıç yere saplanır, akım çevreye yayılır, çevredekiler uyuşur
-					var c = who.global_position + f * 1.0
-					c.y = Game.ground_height(c.x, c.z) + 0.1
+					VFX.bolt(root, tip + f * 0.5, bl, 0.16, 0.18, 3)
+				4:   # Chidori Nagashi (B 1:28): akım GÖVDEDEN her yöne boşalır (ağızdan da), çevredekiler uyuşur
+					var c = who.global_position + Vector3.UP * 0.9
 					for k in 8:
 						var a2 = TAU * k / 8.0
-						VFX.bolt(c, c + Vector3(cos(a2), 0.05, sin(a2)) * 3.2, bl, 0.2, 0.3, 2)
-					VFX.cracks(c, 1.6)
-					Combat.hit_sphere(who, c + Vector3.UP * 0.5, 3.4, {"dmg": dmg * 0.6, "knock": 3.0, "stun": 0.8, "kind": "light", "hitstop": 0.06, "melee": false})
+						var e = c + Vector3(cos(a2), 0.0, sin(a2)) * 3.0
+						e.y = Game.ground_height(e.x, e.z) + 0.15
+						VFX.bolt(c, e, bl, 0.2, 0.3, 2)
+					VFX.bolt(root, tip, bl, 0.16, 0.3, 3)
+					Combat.hit_sphere(who, c, 3.4, {"dmg": dmg * 0.6, "knock": 3.0, "stun": 0.8, "kind": "light", "hitstop": 0.06, "melee": false})
 					Sfx.play("zap", c, 1.2, 0.7)
 				5:   # Iai Senkō: hedefin içinden şimşek gibi geçer; kılıç kına girerken kesik gecikmeli açılır
 					_kusa_iai(who, dmg)

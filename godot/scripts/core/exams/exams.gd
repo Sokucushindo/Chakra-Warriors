@@ -388,8 +388,8 @@ func academy_targets() -> void:
 		await get_tree().create_timer(0.4).timeout
 	# kanon (akademi atış dersi): hedefler yalnız kunai/shuriken atışıyla düşer; alet çantasına alıştırma kunaileri
 	var inv: Dictionary = p()["inventory"]
-	inv["kunai"] = maxi(int(inv.get("kunai", 0)), 20)
-	inv["shuriken"] = maxi(int(inv.get("shuriken", 0)), 20)
+	inv["kunai"] = 1   # sınırsız aletler: sahip olmak yeter
+	inv["shuriken"] = 1
 	cur = "academy_targets"
 	data["t"] = 90.0   # atış bekleme süresi yüzünden 60 sn yetmiyordu
 	data["broken"] = 0

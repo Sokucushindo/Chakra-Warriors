@@ -760,7 +760,9 @@ static func _sea_bridges(pts: PackedVector2Array) -> void:
 		var p1: Vector2 = samples[j0][0]
 		var run := 6.0 * float(j0 - i0)
 		var mid := (p0 + p1) * 0.5
-		if run >= 18.0 and not (run < 150.0 and _bridge_near(mid, 90.0)):
+		# aynı izi paylaşan yollar (ör. Konoha -> Valley of the End / Ölüm Ormanı / Yu) uzun su geçişinde üst üste köprü kuruyordu:
+		# uzun geçişte de denetle, yarıçap köprü boyuyla büyür
+		if run >= 18.0 and not _bridge_near(mid, maxf(90.0, run * 0.5)):
 			_bridges.append(mid)
 			var h0 := maxf(_g(p0.x, p0.y), 0.6) + 0.15
 			var h1 := maxf(_g(p1.x, p1.y), 0.6) + 0.15

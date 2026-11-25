@@ -42,13 +42,13 @@ static func refresh(pr: Dictionary) -> Array:
 			var t: Dictionary = tl[i]
 			Data.jutsu[id] = {"name": String(t["name"]), "cost": int(t.get("cost", 0)), "cd": float(t.get("cd", 6.0)), "element": "",
 				"category": "bijuu", "canon_rank": "S", "seals": [], "virtual": "bijuu:%d" % i,
-				"desc": "%s tekniği. Jinchūriki pelerini (X) en az %s iken slottan kullanılır." % [String(BeastModels.INFO.get(bid, {}).get("name", bid)).split(" — ")[0], BeastCloak.level_name(BeastCloak.tech_need(i, BeastCloak.beast_tails(bid)))]}
+				"desc": "%s tekniği. Jinchūriki pelerini (%s) en az %s iken slottan kullanılır." % [String(BeastModels.INFO.get(bid, {}).get("name", bid)).split(" — ")[0], Keys.name("beast"), BeastCloak.level_name(BeastCloak.tech_need(i, BeastCloak.beast_tails(bid)))]}
 			out.append(id)
 		else:
 			Data.jutsu.erase(id)
 	if not TailedBeasts.ms_pool().is_empty():
 		Data.jutsu[MS_BIJUU_ID] = {"name": "Bijū Kuchiyose (Mangekyō)", "cost": 120, "cd": 60.0, "element": "", "category": "dojutsu", "canon_rank": "S",
-			"seals": [], "virtual": "msbijuu", "desc": "Sharingan'la boyun eğdirdiğin ya da mühür kabında tuttuğun kuyruklu canavarı 40 sn savaşa çağırır; gözleri Sharingan olur, emrine girer (Mangekyō açık olmalı). Hangisinin geleceğini Çağrılar sekmesinden seçersin."}
+			"seals": [], "virtual": "msbijuu", "desc": "Sharingan'la boyun eğdirdiğin ya da mühür kabında tuttuğun kuyruklu canavarı 40 sn savaşa çağırır; gözleri Sharingan olur, emrine girer (Mangekyō açık olmalı). Hangisinin geleceğini Kuchiyose sekmesinden seçersin."}
 		out.append(MS_BIJUU_ID)
 	else:
 		Data.jutsu.erase(MS_BIJUU_ID)

@@ -1772,6 +1772,12 @@ func catch() -> void:
 	var inv: Dictionary = pr["inventory"]
 	for k in ["salve", "pill", "kunai", "shuriken"]:
 		if l.has(k):
+			if Stats.unlimited(k):   # sınırsız eşya (kunai, shuriken, Asker Hapı): sayılmaz; yoksa bir kez sahip olunur
+				if int(inv.get(k, 0)) > 0:
+					continue
+				inv[k] = 1
+				got.append({"pill": "Asker Hapı", "kunai": "Kunai", "shuriken": "Shuriken"}[k])
+				continue
 			inv[k] = int(inv.get(k, 0)) + int(l[k])
 			got.append("%s ×%d" % [{"salve": "Merhem", "pill": "Asker Hapı", "kunai": "Kunai", "shuriken": "Shuriken"}[k], int(l[k])])
 	if l.has("scroll"):

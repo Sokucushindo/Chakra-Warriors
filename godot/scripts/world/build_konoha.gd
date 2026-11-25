@@ -39,6 +39,31 @@ static func _site(b: Builder, type: String, x: float, n: float, extra := {}) -> 
 	VL.sites["konoha"].append(d)
 
 
+## Tarla iş yeri (VillagerJobs): parsel merkezi + satır eksenleri (dünya): u satırlar arası, v satır boyu. crop 0 pirinç, 1 sebze, 2 buğday
+static func _farm_site(b: Builder, x: float, n: float, yaw: float, wd: float, dp: float, crop: int) -> void:
+	var a = deg_to_rad(yaw)
+	_site(b, "farm", x, n, {"u": Vector3(cos(a), 0, sin(a)), "v": Vector3(sin(a), 0, -cos(a)), "w": wd, "d": dp, "crop": crop})
+
+
+## Nehir kıyısında balıkçı yerleri (kıyı setinin arkası, suya bakar): köprülerden uzak, aralıklı, çekirdek şehir + orta halka
+static func _fish_sites(b: Builder, pts: Array, half: float) -> void:
+	var last := Vector2(1e9, 1e9)
+	var sd := 1.0
+	for i in range(4, pts.size() - 4, 3):
+		var p: Vector2 = pts[i]
+		if p.distance_to(last) < 140.0 or _zone(p.x, p.y) == 2 or _on_road(b, p.x, p.y, 16.0):
+			continue
+		var dir2 = ((pts[i + 1] as Vector2) - p).normalized()
+		var nr = Vector2(-dir2.y, dir2.x) * sd
+		var q = p + nr * (half + 1.6)
+		if _on_road(b, q.x, q.y, 3.0):
+			continue
+		last = p
+		sd = -sd
+		var wq = _gp(b, p.x, p.y)
+		_site(b, "fish", q.x, q.y, {"face": _face(-nr.x, -nr.y), "water_y": wq.y + 0.35})   # Canal: su yüzü zeminin 0.35 m üstünde
+
+
 ## Yerel (x, n) noktasını araziye oturan Godot konumuna çevirir
 static func _gp(b: Builder, x: float, n: float) -> Vector3:
 	var wp = b.w(Vector3(x, 0, n))
@@ -114,6 +139,7 @@ static func _farm_belt(b: Builder, rng: RandomNumberGenerator, occupied: Array, 
 						load("res://scripts/world/farm_kit.gd").paddy(b, q.x, q.y, yaw, wd, dp, rng)
 					else:
 						load("res://scripts/world/farm_kit.gd").veg(b, q.x, q.y, yaw, wd, dp, rng)
+					_farm_site(b, q.x, q.y, yaw, wd, dp, 0 if paddy else 1)
 					occupied.append([q.x, q.y, wd * 0.5 + 1.0, dp * 0.5 + 1.0])
 					made += 1
 					if made % 3 == 0:   # çiftlik evi: parselin yola bakan köşesinde
@@ -188,14 +214,52 @@ static func _market_stall(b: Builder, decor: Node3D, x: float, n: float, side: f
 					var dz = n - 0.32 + q * 0.16
 					for t in 3:
 						b.sphere(Vector3(gx - 0.2 + t * 0.2, 1.1, dz), Vector3(0.15, 0.15, 0.15), [Color(1.0, 0.7, 0.75), Color(0.97, 0.95, 0.9), Color(0.55, 0.8, 0.45)][t], 6)
-		3:   # çömlekler + direkte asılı festival maskeleri
-			for k in 5:
-				var gx = x - 2.0 + k * 1.0
-				var hh = 0.3 + (k % 3) * 0.12
-				b.cyl(Vector3(gx, 1.0 + hh * 0.5, n), 0.42 - (k % 2) * 0.08, hh, [Color(0.55, 0.35, 0.25), Color(0.3, 0.38, 0.45), Color(0.75, 0.68, 0.55)][k % 3], false, 10)
-			for k in 5:
-				var mp = Vector3(x - 2.0 + k * 1.0, 2.0, n - side * 0.95)
-				b.disc(mp, 0.42, 0.06, [Color(0.95, 0.93, 0.88), Color(0.9, 0.3, 0.2), Color(0.95, 0.8, 0.3)][k % 3], 0.0 if side < 0.0 else 180.0, 10)
+		3:   # çömlekçi: göbekli vazo, ağızlı küp, üst üste kâseler, demlik (sırlı) + ön çubukta asılı tilki maskeleri
+			# (2026-11-25, kullanıcı: "sattıkları şeyler hala silindir ve şekilsiz")
+			var glaze = [Color(0.25, 0.36, 0.48), Color(0.58, 0.33, 0.22), Color(0.82, 0.78, 0.66), Color(0.3, 0.42, 0.3)]
+			# 1 vazo: göbek + boyun + ağız halkası
+			var vx = x - 1.8
+			b.sphere(Vector3(vx, 1.22, n), Vector3(0.36, 0.42, 0.36), glaze[0], 12)
+			b.cyl(Vector3(vx, 1.5, n), 0.13, 0.18, glaze[0].darkened(0.1), false, 10)
+			b.cyl(Vector3(vx, 1.6, n), 0.19, 0.04, glaze[0].lightened(0.15), false, 10)
+			# 2 küp: geniş göbek, kısa boyun, kapak
+			var kx = x - 0.85
+			b.sphere(Vector3(kx, 1.2, n + 0.05), Vector3(0.5, 0.38, 0.5), glaze[1], 12)
+			b.cyl(Vector3(kx, 1.4, n + 0.05), 0.26, 0.08, glaze[1].darkened(0.15), false, 12)
+			b.sphere(Vector3(kx, 1.45, n + 0.05), Vector3(0.28, 0.08, 0.28), Color(0.4, 0.28, 0.18), 10)
+			# 3 üst üste kâseler (yassı, kenarı açık renk)
+			var bx3 = x + 0.1
+			for q in 4:
+				b.sphere(Vector3(bx3, 1.05 + q * 0.07, n), Vector3(0.44 - q * 0.02, 0.1, 0.44 - q * 0.02), glaze[2] if q % 2 == 0 else glaze[3], 12)
+			# 4 demlik: göbek + kapak düğmesi + emzik + kulp
+			var tx = x + 1.0
+			b.sphere(Vector3(tx, 1.16, n), Vector3(0.32, 0.26, 0.32), glaze[3], 12)
+			b.sphere(Vector3(tx, 1.31, n), Vector3(0.06, 0.05, 0.06), glaze[3].darkened(0.2), 8)
+			b.cone(Vector3(tx + 0.2, 1.18, n), 0.07, 0.18, glaze[3], 8)
+			b.cyl(Vector3(tx - 0.16, 1.2, n), 0.03, 0.18, Color(0.3, 0.22, 0.14), false, 6)
+			# 5 küçük sake şişeleri
+			for q in 3:
+				var sbx = x + 1.65 + q * 0.18
+				b.sphere(Vector3(sbx, 1.1, n - 0.2 + q * 0.2), Vector3(0.14, 0.18, 0.14), Color(0.92, 0.9, 0.84), 8)
+				b.cyl(Vector3(sbx, 1.24, n - 0.2 + q * 0.2), 0.05, 0.1, Color(0.92, 0.9, 0.84), false, 8)
+			# tilki maskeleri: tezgâhın müşteri kenarı üstünde yatay çubuk, maskeler müşteriye bakar
+			var my = 1.85
+			var mn = n - side * 1.0
+			b.box(Vector3(x, my + 0.22, mn), Vector3(4.6, 0.05, 0.05), wood_d, 0, false)
+			var fyaw = 0.0 if side > 0.0 else 180.0
+			for k in 4:
+				var mx = x - 1.65 + k * 1.1
+				var fc = [Color(0.96, 0.95, 0.9), Color(0.96, 0.95, 0.9), Color(0.9, 0.3, 0.22), Color(0.95, 0.82, 0.35)][k]
+				var accent = Color(0.82, 0.12, 0.1) if k != 2 else Color(0.98, 0.95, 0.88)
+				var fz = -side * 0.05
+				b.box(Vector3(mx, my + 0.12, mn), Vector3(0.015, 0.2, 0.015), Color(0.3, 0.22, 0.14), 0, false)   # ip
+				b.sphere(Vector3(mx, my - 0.12, mn), Vector3(0.24, 0.3, 0.1), fc, 10)                           # yüz
+				b.sphere(Vector3(mx, my - 0.2, mn + fz * 1.4), Vector3(0.1, 0.12, 0.12), fc, 8)                   # burun çıkıntısı
+				for sx in [-1.0, 1.0]:
+					b.cone(Vector3(mx + sx * 0.09, my + 0.06, mn), 0.08, 0.14, fc, 6)                             # kulak
+					b.box(Vector3(mx + sx * 0.06, my - 0.08, mn + fz * 1.2), Vector3(0.07, 0.016, 0.02), Color(0.1, 0.08, 0.08), fyaw + sx * 15.0, false)   # göz yarığı
+					b.box(Vector3(mx + sx * 0.08, my - 0.16, mn + fz * 1.2), Vector3(0.012, 0.08, 0.02), accent, fyaw, false)   # yanak çizgisi
+				b.box(Vector3(mx, my - 0.01, mn + fz * 1.2), Vector3(0.03, 0.06, 0.02), accent, fyaw, false)   # alın işareti
 	# satıcının yanında sandık + çuval
 	b.box(Vector3(x - 1.9, 0.3, n + side * 1.8), Vector3(0.8, 0.6, 0.6), wood, 0)
 	b.sphere(Vector3(x + 1.9, 0.35, n + side * 1.8), Vector3(0.7, 0.7, 0.6), Color(0.78, 0.7, 0.52), 8)
@@ -309,6 +373,7 @@ static func _field_patch(b: Builder, rng: RandomNumberGenerator, occupied: Array
 						continue
 					var r = rng.randf()
 					FK.field_lite(b, q.x, q.y, yaw, colw - 1.0, rowd - 1.0, rng, 0 if r < 0.35 else (1 if r < 0.75 else 2))
+					_farm_site(b, q.x, q.y, yaw, colw - 1.0, rowd - 1.0, 0 if r < 0.35 else (1 if r < 0.75 else 2))
 					occupied.append([q.x, q.y, ex, ez])
 					# sol kenar boyunca toprak tarla yolu (komşu parseller ortak kullanır)
 					var e0 = q - dirv * (colw * 0.5 + 1.5) - nrv * (rowd * 0.5 + 1.5)
@@ -538,6 +603,7 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 		_door(b, sh[0], sh[1] + dn * (hd * 0.5 + 1.2), 3.0, sh[2], sh[3], sh[5])
 		CityDecor.banner(decor, _gp(b, sh[0] + 5.0, sh[1] + dn * (hd * 0.5 + 2.4)), 0.0, sh[4], Color(0.98, 0.95, 0.9))
 		occupied.append([sh[0], sh[1], sh[6] * 0.5 + 3, 9])
+		_site(b, "sweep", sh[0] - 3.0, sh[1] + dn * (hd * 0.5 + 3.2), {"face": _face(0, dn)})   # dükkâncı kapı önünü süpürür
 	_site(b, "bar", -95, 22)
 	# çarşı cephe sıraları (2026-11-24: cadde boyu boş çimen + ağaçtı): adı olan dükkânların arasını caddeye bakan, tabelalı,
 	# vitrinli, perdeli bitişik dükkân binaları doldurur; 5-6 binada bir ara sokak
@@ -603,6 +669,10 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	_door(b, hpx, hpn - 27.5, 5.0, "hospital", "[F] Gir: Konoha Hastanesi", "hospital")
 	hospital_door = _gp(b, hpx, hpn - 33.0)
 	occupied.append([hpx + 12, hpn - 26, 64, 58, 25.0])
+	# ön avlu iş yeri: tıbbi ninjalar (hasta kâğıdı, malzeme taşıyan, sedye, bankta hastaya bakan) — SpecialBuildings.hospital ölçüleri
+	var hfn = hpn - 21.0
+	_site(b, "hospital", hpx, hfn - 24.0, {"door": _gp(b, hpx, hfn - 12.5), "gate": _gp(b, hpx, hfn - 41.0), "face_out": _face(0, -1),
+		"side": Vector3.RIGHT, "benches": [[_gp(b, hpx - 12.5, hfn - 19.0), _face(0, -1)], [_gp(b, hpx + 12.5, hfn - 19.0), _face(0, -1)]]})
 
 	# ---- Chunin Sınavı stadyumu (güneydoğu)
 	var sx0 = 1050.0; var sn0 = -700.0
@@ -622,6 +692,9 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	# Konoha Askerî Polis Birliği binası: Uchiha Bölgesi kapısının dışında, kapıya giden caddeye bakar
 	SpecialBuildings.police_hq(b, ux + 160.0, un + 82.0, 1.0)
 	occupied.append([ux + 160.0, un + 82.0, 17.0, 13.0])
+	var pox = ux + 160.0; var pon = un + 82.0 + 8.0   # ön cephe (kuzeye bakar)
+	_site(b, "police", pox, pon + 5.0, {"guards": [[_gp(b, pox - 6.0, pon + 4.6), _face(0, 1)], [_gp(b, pox + 6.0, pon + 4.6), _face(0, 1)]],
+		"ring": [_gp(b, pox - 22.0, pon + 9.0), _gp(b, pox + 22.0, pon + 9.0), _gp(b, pox + 22.0, pon + 16.0), _gp(b, pox - 22.0, pon + 16.0)]})
 	for ring in [[95.0, 22], [62.0, 14]]:
 		for k in ring[1]:
 			var a = k * 360.0 / ring[1]
@@ -775,12 +848,28 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	b.yoff = 0.0
 	_act(b, yx, yn - 56, 6, "hyuga", "[F] Hyuga Konağı")
 	occupied.append([yx, yn, 80, 60, 25.0])
+	# dōjō avlusu: Hyūga'lar eşli Jūken çalışır, vuruş kütüklerine avuç vurur (kütükler avlunun güney kenarında)
+	var hposts: Array = []
+	for k in 4:
+		hposts.append([_gp(b, yx - 46.0 + k * 4.0, yn - 44.2), _face(0, -1)])
+	_site(b, "dojo", yx - 25.0, yn - 28.0, {"clan": "hyuga", "pairs": [_gp(b, yx - 30.0, yn - 26.0), _gp(b, yx - 16.0, yn - 30.0)], "posts": hposts})
 
 	# ---- ANBU karargâhı (uçurumun dibinde, karanlık)
 	var anx = -480.0; var ann = cliff_n - 110.0
 	SpecialBuildings.anbu(b, decor, anx, ann)
 	b.interact(Vector3(anx, _gy(b, anx, ann - 22), ann - 22), 4.0, "enter", "[F] Gir: Anbu Karargâhı", {"room": "secret_hq", "vid": "konoha", "alias": "anbu", "out": _gp(b, anx, ann - 22)})
 	occupied.append([anx, ann + 2, 40, 30, 25.0])
+	# ANBU: kapıda iki nöbetçi, surun çevresinde eşli devriye, avluda tek devriye + kütüğe vuran + hedefe kunai atan
+	# (SpecialBuildings.anbu ölçüleri: sur 72 x 52, merkez n+2; kapı n-24; avlu kütükleri n-16, hedefler n-8)
+	var agn = ann - 24.0
+	var aposts: Array = []
+	for k in 4:
+		aposts.append([_gp(b, anx - 20.0 + k * 3.0, ann - 17.3), _face(0, 1)])
+	_site(b, "anbu", anx, agn - 6.0, {"guards": [[_gp(b, anx - 5.5, agn - 4.0), _face(0, -1)], [_gp(b, anx + 5.5, agn - 4.0), _face(0, -1)]],
+		"ring": [_gp(b, anx - 14.0, agn - 8.0), _gp(b, anx - 41.0, agn - 7.0), _gp(b, anx - 41.0, ann + 31.0), _gp(b, anx + 41.0, ann + 31.0),
+			_gp(b, anx + 41.0, agn - 7.0), _gp(b, anx + 14.0, agn - 8.0)],
+		"inner": [_gp(b, anx - 28.0, ann - 20.0), _gp(b, anx + 8.0, ann - 20.5), _gp(b, anx + 28.0, ann - 12.0), _gp(b, anx - 4.0, ann - 9.0)],
+		"posts": aposts, "throw": [_gp(b, anx + 18.0, ann - 18.0), _face(0, 1), _gp(b, anx + 18.0, ann - 8.1) + Vector3(0, 1.6, 0)]})
 
 	# ---- Antrenman Alanı 3 (TrainingGround: çan kütükleri, Anıt Taşı, şelaleli gölet, dere + köprü, hedefler, parkur, sakura...)
 	var tgx = 1050.0; var tgn = 560.0
@@ -850,6 +939,7 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	var crng = RandomNumberGenerator.new()
 	crng.seed = 777
 	Canal.build(b, naka, 12.0, func(x, n): return _on_road(b, x, n, 0.5), crng)
+	_fish_sites(b, naka, 6.0)
 	# doğu deresi (Antrenman Alanı göletinden)
 	var east: Array = []
 	for i2 in east_ctrl.size() - 1:

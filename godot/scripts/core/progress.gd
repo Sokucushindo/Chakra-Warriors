@@ -141,7 +141,7 @@ func new_profile(opts: Dictionary) -> Dictionary:
 		"slot": opts.get("slot", 1), "name": opts.get("name", "İsimsiz"), "gender": opts.get("gender", "m"),
 		"clan": opts.get("clan", "none"), "soy": opts.get("soy", ""), "elements": [opts.get("element", "katon")], "element_known": false,
 		"look": opts.get("look", {}), "level": 1, "xp": 0, "rank": 0, "ryo": 150, "sp": 0, "skills": [],
-		"learned": [], "slots": ["", "", "", "", "", "", "", "", ""], "inventory": {"kunai": 12, "shuriken": 6, "salve": 2},
+		"learned": [], "slots": ["", "", "", "", "", "", "", "", ""], "inventory": {"kunai": 1, "shuriken": 1, "salve": 2, "pill": 1},
 		"throw_sel": "kunai", "summon": "kurbağa", "story": 0, "seed": randi(), "journal": [], "goals": [], "flags": {}, "missions_done": {"D": 0, "C": 0, "B": 0, "A": 0, "S": 0},
 		"active_mission": {}, "visited": ["konoha", "suna", "kiri", "kumo", "iwa"], "stats": {"kills": 0}, "time": 0.32,
 		"village": opts.get("village", "konoha"), "rep": {}, "bingo": {"list": [], "next": 1, "refresh": 900.0},
@@ -328,6 +328,12 @@ func has_eye(kind: String) -> bool:
 
 
 ## Bir jutsuyu şu an öğrenebilir mi? "" = evet, değilse sebep
+## Göz kimliğinin oyuncuya görünen adı (jutsu şartlarında)
+func eye_name(id: String) -> String:
+	return String({"sharingan": "Sharingan", "mangekyo": "Mangekyō Sharingan", "ems": "Ebedi Mangekyō Sharingan", "rinnegan": "Rinnegan",
+		"byakugan": "Byakugan", "tenseigan": "Tenseigan", "jogan": "Jōgan"}.get(id, id.capitalize()))
+
+
 func can_learn(jid: String) -> String:
 	var pr = p()
 	var j: Dictionary = Data.jutsu.get(jid, {})
@@ -337,7 +343,7 @@ func can_learn(jid: String) -> String:
 		return "Zaten biliyorsun"
 	var creq = LegendPaths.canon_req(jid)   # kanon şartı (jinchūriki vb.) — hocalar da öğretemez
 	if creq != "":
-		return creq.capitalize()
+		return creq.left(1).to_upper() + creq.substr(1)
 	if Eyes.ms_tracked(jid) and not Eyes.ms_allowed(pr, jid):
 		for st in Eyes.MS_STYLES:
 			if jid in Eyes.MS_STYLES[st]["eyes"]:
@@ -349,7 +355,7 @@ func can_learn(jid: String) -> String:
 	if jc != "" and jc != String(pr.get("clan", "")) and (String(j.get("learn", "")) == "clan" or String(j.get("category", "")) == "hiden"):
 		return "Klan tekniği (%s)" % String(Data.clans.get(jc, {}).get("name", jc.capitalize()))
 	if int(pr["level"]) < int(j.get("level", 1)):
-		return "Ustalık gücü %d gerekli (ninjutsu, dövüş, chakra, dayanıklılık)" % int(j.get("level", 1))
+		return "Güç %d gerekli" % int(j.get("level", 1))
 	if Gear.eff_rank(pr) < int(j.get("rank", 0)):
 		return "%s rütbesi gerekli" % Data.RANKS[int(j.get("rank", 0))]
 	for el in j.get("elements", []):
@@ -357,9 +363,9 @@ func can_learn(jid: String) -> String:
 			return "%s doğası gerekli" % Elements.NAMES.get(el, el)
 	var lp = String(j.get("learn", ""))
 	if lp.begins_with("kg:") and not has_nature(lp.substr(3)):
-		return "Kekkei genkai gerekli: %s" % lp.substr(3)
+		return "Kekkei genkai gerekli: %s" % Menus._el_name(lp.substr(3))
 	if lp.begins_with("eye:") and not has_eye(lp.substr(4)):
-		return "Göz gerekli: %s" % lp.substr(4)
+		return "%s gözü gerekir" % eye_name(lp.substr(4))
 	if lp.begins_with("clan:") and lp.substr(5) != pr.get("clan", ""):
 		return "Klan tekniği"
 	if lp == "sage:any" and not "sage" in pr.get("skills", []):
@@ -374,8 +380,10 @@ func can_learn(jid: String) -> String:
 		return "Yasak teknik: Yeraltı Simsarı'ndan parşömenin izini al, saklandığı yerden çıkar"
 	if lp == "shrine:uzumaki":
 		return "Uzushio harabesindeki Uzumaki maske tapınağı (Uzumaki klanı ya da Kage)"
-	if lp in ["quest:signature", "quest:hiden", "quest:contract"]:
+	if lp.begins_with("quest:"):
 		return "Özel görevle öğrenilir"
+	if lp.begins_with("locked:"):
+		return "Şu an öğrenilemez"
 	if lp.begins_with("path:"):
 		return "Efsane Yolu: %s ustası öğretir" % LegendPaths.PATHS.get(lp.substr(5), {}).get("name", "bir yolun")
 	return ""
@@ -430,8 +438,27 @@ static func scroll_sellable(jid: String) -> bool:
 	return true
 
 
+## Parşömeni olmayan genel element teknikleri (yalnız köy eğitmeni öğretiyordu; dükkânda hiç çıkmıyordu: Katon'da 44 teknikten
+## yalnız 4'ünün parşömeni vardı). Göz / sennin / bijū / sözleşme / yol / yasak teknikler buraya girmez, kendi yollarıyla öğrenilir.
+const SCROLL_TRAINERS := ["konoha", "kiri", "suna", "iwa", "kumo"]
+func _ensure_scroll_items() -> void:
+	var have = {}
+	for iid in Data.items:
+		if Data.items[iid] is Dictionary and not Data.items[iid].has("_auto") and Data.items[iid].get("kind", "") == "scroll":
+			have[String(Data.items[iid].get("jutsu", ""))] = true
+	for jid in Data.jutsu.keys():
+		if jid.begins_with("_") or have.has(jid) or Data.items.has("scroll_" + jid) and not Data.items["scroll_" + jid].has("_auto"):
+			continue
+		var j: Dictionary = Data.jutsu[jid]
+		var lp = String(j.get("learn", ""))
+		if (lp == "scroll" or lp.begins_with("trainer:") and lp.substr(8) in SCROLL_TRAINERS) and scroll_sellable(jid):
+			Data.items["scroll_" + jid] = {"name": Lang.t("Parşömen: %s" % String(j["name"])), "kind": "scroll", "jutsu": jid, "_auto": true,
+				"price": [200, 200, 400, 800, 1600, 3000][clampi(int(j.get("tier", 2)), 0, 5)], "desc": String(j.get("desc", ""))}
+
+
 ## Dükkânda gösterilecek jutsu parşömenleri: oyuncunun doğasına uygun, seviyesine yakın
 func scroll_shop_items(max_n := 10, extra_lv := 0) -> Array:
+	_ensure_scroll_items()
 	var pr = p()
 	var out = []
 	for iid in Data.items.keys():
@@ -441,6 +468,9 @@ func scroll_shop_items(max_n := 10, extra_lv := 0) -> Array:
 		var jid = String(it.get("jutsu", ""))
 		var j: Dictionary = Data.jutsu.get(jid, {})
 		if not scroll_sellable(jid) or jid in pr["learned"] or int(j.get("level", 1)) > int(pr["level"]) + 4 + extra_lv:
+			continue
+		# eğitmen tekniği: eğitmenin uyguladığı rütbe ve kanon şartı parşömende de geçerli
+		if String(j.get("learn", "")).begins_with("trainer:") and (Gear.eff_rank(pr) < int(j.get("rank", 0)) or LegendPaths.canon_req(jid) != ""):
 			continue
 		var natured = true
 		for el in j.get("elements", []):
@@ -922,15 +952,15 @@ Tıbbi ninja kavanozuna bakıp başını salladı: \"Başkasının gözünü bur
 		"shop_weapons":
 			Hud.dialog("Silah Dükkânı", Talk.keeper("weapon"), [
 				{"label": "Ninja aletleri", "cb": func(): Hud.shop("Silah Dükkânı", ["kunai", "shuriken", "mushu_dokugiri", "kosho_mimikazari", "hiko_tsubasa", "yuki_ita", "toge_dama", "kemuri_fuda", "chusha_bari", "senbon", "tag", "makibishi", "smoke", "kemuri_senkodan", "okarina", "agiz_kozu", "aobiko", "inochi_kare", "hikaridama", "togarashi_dama", "doku", "gedokuyaku", "kibaku_dama", "hyodama", "raizutsu", "suzu", "boenkyo", "bakusaidama", "kibaku_fuda", "kosen", "sode_kunai", "nuno_maki", "fuin_fuda", "kekkai_fuda"])},
-				{"label": "Silahlar (sağ el / sol el) — stok yarım saatte bir değişir", "cb": func(): Hud.gear_shop("Silahçı", Gear.shop_stock("w", String(it.get("village", home()))))},
-				{"label": "Kıyafetler ve zırhlar", "cb": func(): Hud.gear_shop("Terzi", Gear.shop_stock("c", String(it.get("village", home()))))},
+				{"label": "Silahlar — stok yarım saatte bir değişir", "cb": func(): Hud.gear_shop("Silahçı", Gear.shop_stock("w", String(it.get("village", home()))))},
+				{"label": "Kıyafet setleri", "cb": func(): Hud.gear_shop("Terzi", Gear.shop_stock("c", String(it.get("village", home()))))},
 			])
 		"shop_weapons_old":
 			Hud.shop("Silah Dükkânı", ["kunai", "shuriken", "tag", "smoke", "scroll_katon_housenka", "scroll_suiton_suijinheki", "scroll_fuuton_daitoppa", "scroll_doton_doryuheki"])
 		"shop_items":
-			Hud.shop("Eczane", ["salve", "pill", "zoketsugan", "smoke"])
+			Hud.shop("Eczane", ["salve", "zoketsugan", "smoke"])
 		"shop_scrolls":
-			var sc = scroll_shop_items(14)
+			var sc = scroll_shop_items(999)   # liste kayar: doğana uygun tüm parşömenler
 			if sc.is_empty():
 				Hud.dialog("Parşömenci", "Şu an doğana uygun yeni bir element parşömenim yok. Gücün arttıkça ya da yeni bir doğa uyandırdıkça tekrar gel.", [])
 			else:

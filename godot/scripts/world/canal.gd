@@ -77,10 +77,8 @@ static func build(b: Builder, pts: Array, width: float, road_fn: Callable, rng: 
 			b.add_solid(b.w(Vector3(m.x, 0, m.y)), half + 0.9, L * 0.5 + 0.2, deg_to_rad(-yaw))
 		else:
 			b.box(Vector3(m.x, (y0 + y1) * 0.5 + 0.15, m.y), Vector3(width + 2.4, 0.35, L + 0.1), CAP.darkened(0.08), yaw, true)
-			if not on_road[i]:
-				for sd in [-1.0, 1.0]:
-					var e2 = m + nr * (half + 0.45) * sd
-					b.box(Vector3(e2.x, gy.call(e2) + 0.45, e2.y), Vector3(0.9, 1.5, L + 0.12), STONE, yaw, true)
+			# köprü bölgesinde kıyı seti duvarı YOK (2026-11-25, kullanıcı: "yol kapalı köprüye çıkış yok": set duvarları tabliyenin
+			# girişini kesiyordu); kıyıdan tabliyeye rampa _rails yanında kurulur
 	# köprü korkulukları: her köprü bölgesinin (yol kesişimi) iki ucunda kırmızı lake korkuluk
 	var i0 = -1
 	for i in smp.size():
@@ -89,6 +87,7 @@ static func build(b: Builder, pts: Array, width: float, road_fn: Callable, rng: 
 			i0 = i
 		elif not inb and i0 >= 0:
 			_rails(b, smp, i0, i, half, gy)
+			_ramps(b, smp, i0, i, half, gy)
 			i0 = -1
 	var mi = MeshInstance3D.new()
 	mi.mesh = st.commit()
@@ -144,6 +143,29 @@ static func _rails(b: Builder, smp: Array, i0: int, i1: int, half: float, gy: Ca
 		b.box(Vector3(m.x, dy + 0.95, m.y), Vector3(0.16, 0.12, half * 2.0 + 1.4), RAIL, ryaw, false)
 		b.box(Vector3(m.x, dy + 0.45, m.y), Vector3(0.1, 0.08, half * 2.0 + 1.2), RAIL.darkened(0.08), ryaw, false)
 
+## Köprü rampaları: kanal suyu zeminden yüksekte, tabliye üstü ~0.67 m -> iki kıyıda tabliyeden zemine inen taş rampa
+## (eğim ~15°, köprü bölgesi boyunca geniş), oyuncu ve köylüler basamaksız çıkar
+static func _ramps(b: Builder, smp: Array, i0: int, i1: int, half: float, gy: Callable) -> void:
+	var a: Vector2 = smp[maxi(0, i0 - 2)]
+	var c: Vector2 = smp[mini(smp.size() - 1, i1 + 1)]
+	var dir = (c - a).normalized()
+	var nr = Vector2(-dir.y, dir.x)
+	var m = (a + c) * 0.5
+	var span = a.distance_to(c) + 0.5
+	var yaw = rad_to_deg(atan2(dir.x, dir.y))
+	for sd in [-1.0, 1.0]:
+		var edge = m + nr * sd * (half + 1.2)           # tabliyenin kıyı kenarı
+		var top = gy.call(m) + 0.67
+		var g_out = gy.call(edge + nr * sd * 3.0)
+		var rise = maxf(0.05, top - g_out)
+		var run = clampf(rise / 0.27, 1.2, 4.0)          # ~15°
+		var ln = sqrt(run * run + rise * rise)
+		var ang = rad_to_deg(atan2(rise, run))
+		var cpos = edge + nr * sd * run * 0.5
+		var cy = (top + g_out) * 0.5 - 0.12
+		b.box(Vector3(cpos.x, cy, cpos.y), Vector3(ln, 0.3, span), CAP.darkened(0.08), yaw, true, Vector3(0, 0, ang * sd))
+
+
 
 static func _water() -> ShaderMaterial:
 	if _mat == null:
@@ -153,6 +175,9 @@ static func _water() -> ShaderMaterial:
 shader_type spatial;
 render_mode cull_disabled, specular_schlick_ggx;
 // kanal suyu: akış yönünde kayan dalga çizgileri, kenarlarda açık köpük, hafif saydam
+#include "res://shaders/water_ripples.gdshaderinc"
+varying vec3 wpos;
+void vertex() { wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float vn(vec2 p) { vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
 	return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y); }
@@ -166,6 +191,9 @@ void fragment() {
 	vec3 shallow = vec3(0.13, 0.36, 0.42);
 	vec3 c = mix(deep, shallow, n * 0.6 + edge * 0.4);
 	c = mix(c, vec3(0.8, 0.92, 0.98), streak * 0.45 + edge * 0.18);
+	vec4 rf = ripple_field(wpos.xz);   // jutsu / adım dalgaları (WaterWaves)
+	NORMAL = normalize(NORMAL + (VIEW_MATRIX * vec4(-rf.y, 0.0, -rf.z, 0.0)).xyz);
+	c = mix(c, vec3(0.92, 0.98, 1.0), rf.w * 0.8);
 	ALBEDO = c;
 	ROUGHNESS = 0.08;
 	METALLIC = 0.0;

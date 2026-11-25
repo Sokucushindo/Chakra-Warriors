@@ -34,6 +34,7 @@ const CALLS := {
 	"worker": ["Kaldır!", "Dikkat!"],
 }
 
+const VillagerJobs = preload("res://scripts/actors/villager_jobs.gd")
 var role := "walker"
 var home := Vector3.ZERO
 var goal := Vector3.ZERO
@@ -59,6 +60,8 @@ var fixed_face := false
 var going_home := false
 var work_anims: Array = []
 var work_points: Array = []
+var job := ""                # rol "job": işin türü (VillagerJobs: çapa, pirinç dikme, sedye, devriye...)
+var jd := {}                 # işin durumu (satır, nokta sırası, eş, aletler)
 var night := false
 var anim_t := 0.0
 var greet_cd := 0.0
@@ -133,6 +136,8 @@ func plan_look() -> void:
 		"worker":
 			lk.merge({"top_style": "tisort", "top": Color(0.55, 0.42, 0.3), "pants": Color(0.3, 0.27, 0.24), "age": "adult", "band": Color(0.85, 0.85, 0.85), "band_style": "head"}, true)
 			display = "İnşaat İşçisi"
+		"job":
+			VillagerJobs.base_look(self, lk)
 		"drunk":
 			lk.merge({"age": "adult", "top": Color(0.6, 0.35, 0.3), "beard": true}, true)
 			speed = 1.3
@@ -151,6 +156,8 @@ func plan_look() -> void:
 	# rol kıyafet seti (özel görünüm verilmişse — Kage, ANBU... — dokunma)
 	if look_extra.is_empty():
 		lk.merge(Outfits.roll(_outfit_arch(), Outfits.village_near()), true)
+		if role == "job":
+			lk = VillagerJobs.finish_look(self, lk)
 	if look_extra.get("whole", false):
 		lk = {}   # gerçek kişi (dünya ninjası): rol kalıbından hiçbir şey sızmaz
 	lk.merge(look_extra, true)
@@ -329,6 +336,8 @@ func _bubble_base() -> float:
 func _exit_tree() -> void:
 	_speakers.erase(self)
 	_all.erase(self)
+	if not jd.is_empty():
+		VillagerJobs.release(self)
 	if _my_claim != null and int(_claims.get(_my_claim, 0)) == get_instance_id():
 		_claims.erase(_my_claim)
 
@@ -738,6 +747,9 @@ func _physics_process(dt: float) -> void:
 		"worker":
 			_work(dt)
 			return
+		"job":
+			VillagerJobs.tick(self, dt, dist)
+			return
 		"shopper":
 			_shop(dt)
 			return
@@ -1012,9 +1024,11 @@ func _work(dt: float) -> void:
 			wait -= dt
 			step_move(Vector3.ZERO, dt)
 			model.play("pickup", 0.2)
+			VillagerJobs.carry_plank(self, false)
 			return
 		step_move(v.normalized() * 1.6, dt)
 		model.play("b/Walk_Carry", 0.2)
+		VillagerJobs.carry_plank(self, true)
 		return
 	step_move(Vector3.ZERO, dt, false)
 	_hold_face(dt)
@@ -1221,6 +1235,8 @@ func _outfit_arch() -> String:
 			return "medic"
 		"worker":
 			return "worker"
+		"job":
+			return VillagerJobs.arch(self)
 		"drunk":
 			return ["civ", "traveler"].pick_random()
 	var r = randf()

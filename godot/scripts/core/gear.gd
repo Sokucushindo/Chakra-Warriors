@@ -478,9 +478,9 @@ const ITEMS := {
 	"anbu_kaplan": {"name": "ANBU Maskesi: Kaplan", "slot": "yuz", "price": 900, "rank": 4, "desc": "Çizgili kaplan maskesi: saldırganlık.", "stats": {"def": 5, "melee": 0.08}, "look": {"face_style": "anbu_kaplan"}, "c1": Color(0.95, 0.95, 0.95)},
 	"anbu_yilan": {"name": "ANBU Maskesi: Yılan", "slot": "yuz", "price": 900, "rank": 4, "desc": "Ortasından yeşil çizgi inen yılan maskesi: sinsilik.", "stats": {"def": 4, "speed": 0.06}, "look": {"face_style": "anbu_yilan"}, "c1": Color(0.95, 0.95, 0.95)},
 	"anbu_maymun": {"name": "ANBU Maskesi: Maymun", "slot": "yuz", "price": 900, "rank": 4, "desc": "Kulaklı maymun maskesi: çeviklik.", "stats": {"def": 4, "speed": 0.05, "melee": 0.03}, "look": {"face_style": "anbu_maymun"}, "c1": Color(0.95, 0.95, 0.95)},
-	"yuz_001": {"name": "ANBU Maskesi: Kurt", "slot": "yuz", "price": 120, "rank": 3, "desc": "ANBU Maskesi: Kurt — kimliğini gizler.", "stats": {"def": 2}, "look": {"face_style": "anbu_kurt"}, "c1": Color(0.95, 0.95, 0.92)},
+	"yuz_001": {"removed": true, "name": "ANBU Maskesi: Kurt", "slot": "yuz", "price": 120, "rank": 3, "desc": "ANBU Maskesi: Kurt — kimliğini gizler.", "stats": {"def": 2}, "look": {"face_style": "anbu_kurt"}, "c1": Color(0.95, 0.95, 0.92)},
 	"yuz_002": {"name": "ANBU Maskesi: Baykuş", "slot": "yuz", "price": 145, "rank": 3, "desc": "ANBU Maskesi: Baykuş — kimliğini gizler.", "stats": {"chakra": 15}, "look": {"face_style": "anbu_baykus"}, "c1": Color(0.95, 0.95, 0.92)},
-	"yuz_003": {"name": "ANBU Maskesi: Ayı", "slot": "yuz", "price": 170, "rank": 3, "desc": "ANBU Maskesi: Ayı — kimliğini gizler.", "stats": {"def": 1, "speed": 0.02}, "look": {"face_style": "anbu_ayi"}, "c1": Color(0.95, 0.95, 0.92)},
+	"yuz_003": {"removed": true, "name": "ANBU Maskesi: Ayı", "slot": "yuz", "price": 170, "rank": 3, "desc": "ANBU Maskesi: Ayı — kimliğini gizler.", "stats": {"def": 1, "speed": 0.02}, "look": {"face_style": "anbu_ayi"}, "c1": Color(0.95, 0.95, 0.92)},
 	"yuz_004": {"name": "ANBU Maskesi: Kartal", "slot": "yuz", "price": 195, "rank": 3, "desc": "ANBU Maskesi: Kartal — kimliğini gizler.", "stats": {"melee": 0.04}, "look": {"face_style": "anbu_kartal"}, "c1": Color(0.95, 0.95, 0.92)},
 	"yuz_005": {"name": "ANBU Maskesi: Tavşan", "slot": "yuz", "price": 220, "rank": 3, "desc": "ANBU Maskesi: Tavşan — kimliğini gizler.", "stats": {"hp": 15}, "look": {"face_style": "anbu_tavsan"}, "c1": Color(0.95, 0.95, 0.92)},
 	"yuz_006": {"name": "ANBU Maskesi: Geyik", "slot": "yuz", "price": 245, "rank": 3, "desc": "ANBU Maskesi: Geyik — kimliğini gizler.", "stats": {"def": 3}, "look": {"face_style": "anbu_geyik"}, "c1": Color(0.95, 0.95, 0.92)},
@@ -488,12 +488,12 @@ const ITEMS := {
 	"yuz_008": {"name": "ANBU Maskesi: Yarasa", "slot": "yuz", "price": 295, "rank": 3, "desc": "ANBU Maskesi: Yarasa — kimliğini gizler.", "stats": {"chakra": 15}, "look": {"face_style": "anbu_yarasa"}, "c1": Color(0.95, 0.95, 0.92)},
 	"yuz_009": {"name": "ANBU Maskesi: Kurbağa", "slot": "yuz", "price": 320, "rank": 3, "desc": "ANBU Maskesi: Kurbağa — kimliğini gizler.", "stats": {"def": 1, "speed": 0.02}, "look": {"face_style": "anbu_kurbaga"}, "c1": Color(0.95, 0.95, 0.92)},
 	"yuz_010": {"name": "ANBU Maskesi: Ejder", "slot": "yuz", "price": 345, "rank": 3, "desc": "ANBU Maskesi: Ejder — kimliğini gizler.", "stats": {"melee": 0.04}, "look": {"face_style": "anbu_ejder"}, "c1": Color(0.95, 0.95, 0.92)},
-	"yuz_011": {"name": "Oni Maskesi", "slot": "yuz", "price": 370, "rank": 0, "desc": "Oni Maskesi — kimliğini gizler.", "stats": {"hp": 15}, "look": {"face_style": "oni"}, "c1": Color(0.20, 0.20, 0.24)},
+	"yuz_011": {"removed": true, "name": "Oni Maskesi", "slot": "yuz", "price": 370, "rank": 0, "desc": "Oni Maskesi — kimliğini gizler.", "stats": {"hp": 15}, "look": {"face_style": "oni"}, "c1": Color(0.20, 0.20, 0.24)},
 	"yuz_012": {"name": "Hannya Maskesi", "slot": "yuz", "price": 395, "rank": 0, "desc": "Hannya Maskesi — kimliğini gizler.", "stats": {"def": 3}, "look": {"face_style": "hannya"}, "c1": Color(0.20, 0.20, 0.24)},
-	"yuz_013": {"name": "Tengu Maskesi", "slot": "yuz", "price": 420, "rank": 0, "desc": "Tengu Maskesi — kimliğini gizler.", "stats": {"def": 2}, "look": {"face_style": "tengu"}, "c1": Color(0.20, 0.20, 0.24)},
+	"yuz_013": {"removed": true, "name": "Tengu Maskesi", "slot": "yuz", "price": 420, "rank": 0, "desc": "Tengu Maskesi — kimliğini gizler.", "stats": {"def": 2}, "look": {"face_style": "tengu"}, "c1": Color(0.20, 0.20, 0.24)},
 	"yuz_014": {"name": "Festival Tilki Maskesi", "slot": "yuz", "price": 445, "rank": 0, "desc": "Festival Tilki Maskesi — kimliğini gizler.", "stats": {"chakra": 15}, "look": {"face_style": "kitsune_festival"}, "c1": Color(0.20, 0.20, 0.24)},
 	"yuz_015": {"name": "Okame Maskesi", "slot": "yuz", "price": 470, "rank": 0, "desc": "Okame Maskesi — kimliğini gizler.", "stats": {"def": 1, "speed": 0.02}, "look": {"face_style": "okame"}, "c1": Color(0.20, 0.20, 0.24)},
-	"yuz_016": {"name": "Kök Birliği Maskesi", "slot": "yuz", "price": 495, "rank": 0, "desc": "Kök Birliği Maskesi — kimliğini gizler.", "stats": {"melee": 0.04}, "look": {"face_style": "kok_maskesi"}, "c1": Color(0.20, 0.20, 0.24)},
+	"yuz_016": {"removed": true, "name": "Kök Birliği Maskesi", "slot": "yuz", "price": 495, "rank": 0, "desc": "Kök Birliği Maskesi — kimliğini gizler.", "stats": {"melee": 0.04}, "look": {"face_style": "kok_maskesi"}, "c1": Color(0.20, 0.20, 0.24)},
 	"yuz_017": {"name": "Sarmal Maske", "slot": "yuz", "price": 520, "rank": 0, "desc": "Sarmal Maske — kimliğini gizler.", "stats": {"hp": 15}, "look": {"face_style": "spiral_maske"}, "c1": Color(0.20, 0.20, 0.24)},
 	"yuz_018": {"name": "Sis Avcı Ninja Maskesi", "slot": "yuz", "price": 545, "rank": 0, "desc": "Sis Avcı Ninja Maskesi — kimliğini gizler.", "stats": {"def": 3}, "look": {"face_style": "avci_maske"}, "c1": Color(0.20, 0.20, 0.24)},
 	"yuz_019": {"name": "Yağmur Gaz Maskesi", "slot": "yuz", "price": 570, "rank": 0, "desc": "Yağmur Gaz Maskesi — kimliğini gizler.", "stats": {"def": 2}, "look": {"face_style": "gaz_maskesi"}, "c1": Color(0.20, 0.20, 0.24)},
@@ -1053,7 +1053,7 @@ const ITEMS := {
 	"pence": {"name": "Pençe", "slot": "el", "price": 400, "rank": 1, "desc": "İki ele takılan, el sırtı plakalı üç uzun bıçaklı pençe. Kombo sırasında bıçaklara chakra akar.", "stats": {"melee": 0.08}, "weapon": {"hit": 5, "dmg": 1.3, "reach": 0.45, "style": "claw"}, "c1": Color(0.6, 0.62, 0.66)},
 	"musta": {"name": "Muşta Bıçağı", "slot": "el", "price": 450, "rank": 1, "desc": "Parmak korumalı bıçak. Rüzgar chakrası akıtılabilir.", "stats": {"melee": 0.1}, "weapon": {"hit": 5, "dmg": 1.3, "reach": 0.25, "style": "blade"}, "c1": Color(0.55, 0.57, 0.6)},
 	"chakra_bicak": {"name": "Chakura Tō (Chakra Bıçakları)", "slot": "el", "price": 1100, "rank": 3, "desc": "Parmaklara geçirilen çift muşta bıçak (iki elde). Dört parmak deliği, serçe parmak ucundan kıvrılan bıçak; chakra akıtılabilir.", "stats": {"melee": 0.12, "chakra": 15}, "weapon": {"hit": 6, "dmg": 1.55, "reach": 0.3, "style": "dual"}, "c1": Color(0.55, 0.8, 1.0)},
-	"tonfa": {"name": "Tonfa", "slot": "el", "price": 220, "rank": 0, "desc": "Çift savunma sopası (iki elde): ön kol boyunca kalkan gibi tutulur, yumruk ve dirsek uçlarıyla ezer, sersemletir. Gelen hasarı azaltır.", "stats": {"def": 4}, "weapon": {"hit": 5, "dmg": 1.25, "reach": 0.35, "style": "dual"}, "c1": Color(0.35, 0.25, 0.15)},
+	"tonfa": {"name": "Tonfa", "slot": "el", "price": 220, "rank": 0, "desc": "Çift savunma sopası (iki elde): ön kol boyunca kalkan gibi tutulur, yumruk ve dirsek uçlarıyla ezer, sersemletir.", "stats": {"def": 4}, "weapon": {"hit": 5, "dmg": 1.25, "reach": 0.35, "style": "dual"}, "c1": Color(0.35, 0.25, 0.15)},
 	"wakizashi": {"name": "Wakizashi", "slot": "el", "price": 520, "rank": 1, "desc": "Orta boy yan kılıç. Çift kılıç tekniğine uygun.", "stats": {}, "weapon": {"hit": 5.5, "dmg": 1.45, "reach": 0.55, "style": "sword"}, "c1": Color(0.78, 0.8, 0.84)},
 	"katana": {"name": "Katana", "slot": "sag", "price": 900, "rank": 2, "desc": "Uzun kılıç. Geniş kesişler, yüksek hasar.", "stats": {"speed": -0.02}, "weapon": {"hit": 6.5, "dmg": 1.7, "reach": 0.9, "style": "sword"}, "c1": Color(0.78, 0.8, 0.84)},
 	"nodachi": {"name": "Nodachi", "slot": "sag", "price": 1500, "rank": 3, "desc": "İnsan boyunda dev kılıç. Yavaş ama yıkıcı.", "stats": {"speed": -0.05}, "weapon": {"hit": 7.5, "dmg": 2.1, "reach": 1.3, "style": "heavy"}, "c1": Color(0.75, 0.77, 0.8)},
@@ -1202,7 +1202,7 @@ const REWARD_POOL := ["kafa_bandaji", "gozluk", "kasa", "kapuson", "atki", "kol_
 
 ## Görev ödülü: rütbeye uygun rastgele parça (yoksa "")
 static func random_reward(rank: int) -> String:
-	var pool = REWARD_POOL.filter(func(id): return int(ITEMS[id].get("rank", 0)) <= rank)
+	var pool = REWARD_POOL.filter(func(id): return int(ITEMS[id].get("rank", 0)) <= rank and not is_legacy_piece(id))   # eski tek parça kıyafetler (pantolon, ayakkabı...) ödül olmaz
 	return pool.pick_random() if not pool.is_empty() else ""
 
 
@@ -1214,7 +1214,25 @@ static func base_id(id: String) -> String:
 	return id
 
 
+## Aynı karakterin aynı kıyafeti iki kez vardı (kanon set + Shinobi Striker kopyası): kopya kaldırıldı, eski kimlik kalan sete gider
+## (kayıtlardaki çanta / takılı eşya _migrate_sets ile çevrilir; NPC görünüşlerindeki eski set_id SetEl ve item() üstünden çözülür)
+const MERGED_SETS := {"ss_kopuk": "set_awa", "ss_yedi_kanat": "set_nanao", "ss_lav_zirh": "set_yogan", "ss_kedi_alev": "set_nekomata",
+	"ss_genjutsu_sargi": "set_genso", "ss_algi": "set_taka_kunoichi", "ss_onluk": "set_uzumaki_haha", "ss_demir_dovme": "set_kumo_uta",
+	"ss_buhar_zirh": "set_joki", "ss_anbu_kapuson": "set_anbu_byakue", "ss_bilge_palto": "set_sennin_shugyo", "ss_genc_canavar": "set_goken",
+	"ss_kaplumbaga": "set_kiri_atki"}
+## Oyundan kaldırılan setler (Striker plaj / mayo setleri, kullanıcı isteği 2026-11-25): kimlik -> satış fiyatı.
+## Kayıtta varsa yarı fiyatına satılır (_migrate_sets); eski NPC görünüşünde kalmışsa temel set (REMOVED_TO) gibi kurulur.
+const REMOVED_SETS := {"ss_sahil": 900, "ss_sahil_hibiskus": 900, "ss_sahil_denizci": 900, "ss_sahil_gok": 900, "ss_sahil_flamingo": 900}
+const REMOVED_TO := "set_shinobi"
+## Aynı adlı ve aynı görünüşlü yüz eşyası kopyaları (dükkândaki asılları kalır)
+const MERGED_ITEMS := {"yuz_001": "anbu_kurt", "yuz_003": "anbu_ayi", "yuz_011": "oni_maske", "yuz_013": "tengu_maske", "yuz_016": "kok_maskesi"}
+
+
 static func item(id: String) -> Dictionary:
+	if MERGED_SETS.has(id):
+		id = String(MERGED_SETS[id])
+	elif REMOVED_SETS.has(id):
+		id = REMOVED_TO
 	if ITEMS.has(id):
 		return ITEMS[id]
 	if SETS.has(id):
@@ -1354,6 +1372,12 @@ static func shop_stock(kind: String, vid: String) -> Array:
 	return out
 
 
+## Eski tek tek kıyafet yuvasının parçası mı (üst, pantolon, ayakkabı, yelek, dış giysi, kolluk): artık yalnız setlerin
+## iç parçası; envantere eşya olarak girmez (grant reddeder, eski kayıtlardakiler satılıp Ryō'ya çevrilir)
+static func is_legacy_piece(id: String) -> bool:
+	return String(item(id).get("slot", "")) in OLD_CLOTH_SLOTS
+
+
 static func fits(id: String, slot: String) -> bool:
 	var s: String = item(id).get("slot", "")
 	return s == slot or (s == "el" and slot == "sag") or (s == "goz" and slot in ["sag_goz", "sol_goz"]) or (s == "yuz" and slot == "kafa")
@@ -1366,7 +1390,7 @@ static func _hex(c) -> String:
 ## Envantere parça ekler, uid döner
 static func grant(p: Dictionary, id: String, equip_slot := "", c1 = null, c2 = null, extra := {}) -> int:
 	var it = item(id)
-	if it.is_empty():
+	if it.is_empty() or is_legacy_piece(id):
 		return -1
 	var uid = int(p.get("gear_uid", 0)) + 1
 	p["gear_uid"] = uid
@@ -1642,6 +1666,27 @@ static func _migrate_sets(p: Dictionary) -> bool:
 					break
 		else:
 			gl.remove_at(gi)
+	# birleştirilen kopya setler (MERGED_SETS): eski kimlik kalan sete çevrilir; ikisi birden varsa takılı olmayan kopya çantadan kalkar
+	var worn: Array = eq.values().map(func(u): return int(u))
+	for gi in range(gl.size() - 1, -1, -1):
+		var g: Dictionary = gl[gi]
+		var old_id := String(g.get("id", ""))
+		if not MERGED_SETS.has(old_id) and not MERGED_ITEMS.has(old_id):
+			continue
+		had = true
+		var new_id := String(MERGED_SETS.get(old_id, MERGED_ITEMS.get(old_id, old_id)))
+		var twin := -1
+		for gj in gl.size():
+			if gj != gi and String(gl[gj].get("id", "")) == new_id:
+				twin = gj
+				break
+		if twin < 0:
+			g["id"] = new_id
+		elif int(g.get("uid", -2)) in worn:
+			g["id"] = new_id
+			gl.remove_at(twin)
+		else:
+			gl.remove_at(gi)
 	if eq.has("yuz"):   # yüz yuvası kaldırıldı: kafa boşsa oraya taşınır
 		if not eq.has("kafa"):
 			eq["kafa"] = eq["yuz"]
@@ -1651,6 +1696,35 @@ static func _migrate_sets(p: Dictionary) -> bool:
 		if eq.has(sl):
 			eq.erase(sl)
 			had = true
+	# çantada kalan eski tek parça kıyafetler (pantolon, ayakkabı, eldiven...) yarı fiyatına satılır; bir kez haber verilir
+	var sold := 0
+	var ryo := 0
+	for gi in range(gl.size() - 1, -1, -1):
+		var gid = String(gl[gi].get("id", ""))
+		if is_legacy_piece(gid):
+			ryo += int(int(item(gid).get("price", 0)) * 0.5)
+			sold += 1
+			gl.remove_at(gi)
+	if sold > 0:
+		p["ryo"] = int(p.get("ryo", 0)) + ryo
+		p["_legacy_sold"] = [sold, ryo]   # main.gd oyuna girince mesajı gösterip siler
+		had = true
+	# kaldırılan setler (plaj / mayo): yarı fiyatına satılır, takılıysa çıkarılır (aşağıda başlangıç seti giydirilir); bir kez haber verilir
+	var rs := 0
+	var rr := 0
+	for gi in range(gl.size() - 1, -1, -1):
+		var gid := String(gl[gi].get("id", ""))
+		if not REMOVED_SETS.has(gid):
+			continue
+		if int(eq.get("set", -1)) == int(gl[gi].get("uid", -2)):
+			eq.erase("set")
+		rr += int(int(REMOVED_SETS[gid]) * 0.5)
+		rs += 1
+		gl.remove_at(gi)
+	if rs > 0:
+		p["ryo"] = int(p.get("ryo", 0)) + rr
+		p["_removed_sold"] = [rs, rr]   # main.gd oyuna girince mesajı gösterip siler
+		had = true
 	if not eq.has("set"):
 		var L: Dictionary = p.get("look", {})
 		grant(p, _starter_set(p), "set", L.get("top", null), L.get("top2", null))
@@ -1979,8 +2053,8 @@ static func stats_text(id: String) -> String:
 	var parts = []
 	var names = {"def": "Savunma", "hp": "Can", "chakra": "Chakra", "speed": "Hız", "melee": "Yakın dövüş"}
 	for k in it.get("stats", {}):
-		if k == "def":
-			continue   # savunma (alınan hasar indirimi) kaldırıldı — kullanıcı 2026-11-16
+		if k == "def" or not names.has(k):
+			continue   # savunma (alınan hasar indirimi) kaldırıldı — kullanıcı 2026-11-16; eski yuvaların etkisiz statları (throw_dmg) yazılmaz
 		var v = float(it["stats"][k])
 		if k in ["speed", "melee"]:
 			parts.append("%s %+d%%" % [Lang.t(names[k]), int(round(v * 100))])

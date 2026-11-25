@@ -26,12 +26,22 @@ static func _kp(m: Vector3, y: float, p: float, pz := -1.0) -> Array:
 	return [y, m.x + p, m.y + q, m.z - q]
 
 
+## Boyun halkaları (N+0.06 .. N): üst ikisi gerçek boyundan (b["nk"] trapez kasını da ölçüyor: boyun iki kat geniş kare kutu oluyordu),
+## N+0.012'de yaka ağzında trapez üstünü örten kat (lp: yan / arka pay; altındaki gövde boyası görünmesin), N'de boyun dibi (önü gerçek gırtlaktan)
+static func _neck_keys(k, nk: Vector3, lp := 0.024, top := 0.06) -> Array:
+	var N: float = k.N
+	var n0: Vector3 = k.M(N + 0.06, 0.09)
+	var n1: Vector3 = k.M(N + 0.03, n0.x * 1.3)
+	var n2: Vector3 = k.M(N, 0.09)
+	return [_kp(n0, N + top, 0.004, 0.005), _kp(n1, N + 0.03, 0.005), [N + 0.012, nk.x + lp, nk.y + 0.016, nk.z - lp], [N, nk.x + lp - 0.002, maxf(n2.y + 0.006, nk.y + 0.016), nk.z - lp + 0.002]]
+
+
 ## Kapalı astar: boyundan kalçaya
-static func _inner(k, b: Dictionary, colf: Callable, pad := 0.01, y1 := -99.0) -> Array:
+static func _inner(k, b: Dictionary, colf: Callable, pad := 0.01, y1 := -99.0, ny := 26) -> Array:
 	var nk: Vector3 = b["nk"]
 	var ch: Vector3 = b["ch"]
-	var keys := [_kp(nk, k.N + 0.06, 0.008, 0.01), _kp(nk, k.N + 0.02, 0.016), [k.N - 0.05, ch.x * 0.82, ch.y * 0.8, ch.z * 0.9], _kp(ch, k.C - 0.03, pad), _kp(b["wa"], k.H + 0.12, pad), _kp(b["hp"], y1 if y1 > -9.0 else k.H - 0.09, pad)]
-	SE.body_layer(k, keys, 26, 44, colf)
+	var keys := _neck_keys(k, nk) + [[k.N - 0.05, ch.x * 0.82, ch.y * 0.8, ch.z * 0.9], _kp(ch, k.C - 0.03, pad), _kp(b["wa"], k.H + 0.12, pad), _kp(b["hp"], y1 if y1 > -9.0 else k.H - 0.09, pad)]
+	SE.body_layer(k, keys, ny, 44, colf)
 	return keys
 
 

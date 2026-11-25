@@ -13719,6 +13719,9 @@ func _key_blade() -> void:
 		if w.has("key_pos0") and is_instance_valid(w["node"]):
 			(w["node"] as Node3D).position = w["key_pos0"]
 			w.erase("key_pos0")
+			if w.has("key_basis0"):   # dönüş de geri: kınlı kılıçlar kombo sonrası ters / dik kalıyordu (Kurosawa olayı)
+				(w["node"] as Node3D).transform.basis = w["key_basis0"]
+				w.erase("key_basis0")
 		if w.has("trail"):
 			if is_instance_valid(w["trail"]):
 				w["trail"].active = false
@@ -13749,6 +13752,8 @@ func _key_blade_sk(sk: Skeleton3D, blade: Vector3) -> void:
 		var sc: Vector3 = n.transform.basis.get_scale()
 		if not w.has("key_pos0"):
 			w["key_pos0"] = GRIP_OFF.get(w["id"], Vector3.ZERO)   # bekleme tutuş kaydırması anahtar animasyona taşınmasın
+			if not w.has("key_basis0"):
+				w["key_basis0"] = n.transform.basis
 		if not w.has("trail") and is_inside_tree() and not w["id"] in ["ei_yumi", "igne_tufegi", "jidanda", "katoringu", "nunoboko", "flail", "kusari_fubo", "cift_tirpan", "nester", "hono_ken", "fujaku", "chakra_oltasi", "kurosawa", "kokuto", "yumi", "arbalet", "fukiya", "sapan", "kunai_hasshaki"]:   # Kokutō: yansımasız kara ağız — parlak iz yok (KokutoFX koyu gölge çizer)
 			var tr = SwordTrail.new()
 			tr.node = n

@@ -84,7 +84,6 @@ static func tips() -> Array:
 		["Chakra şarjı", "%s tuşunu basılı tutarak chakra toplarsın. Jutsu attıkça ve meditasyon yaptıkça chakra kontrolün de gelişir." % k.call("charge")],
 		["Mühür modu", "%s ile mühür moduna geç; 1-9, 0, - ve = tuşlarıyla mühürleri örerek jutsu yaparsın." % k.call("seal_mode")],
 		["Duvar atılımı", "Duvardayken %s ile chakra harcayıp atılırsın. Duvar ve ağaç tırmanmak chakra kontrolünü geliştirir." % k.call("leap")],
-		["İpli kunai", "Havadayken %s ile ipli kunai fırlatıp nişangâha tutunursun." % k.call("substitute")],
 		["Ustalık", "Yaptıkça gelişirsin: yumrukla vurdukça taijutsu, silahla vurdukça kenjutsu ilerler. Antrenman kuklasına vurmak iki kat sayılır."],
 		["Klan teknikleri", "Klanının gizli teknikleri Güç'ün arttıkça kendiliğinden öğrenilir. Doğana uymayan teknikler, o doğayı ikinci doğa olarak alınca açılır."],
 		["Görev masası", "Köyündeki görev masasından görev alırsın. Takip ettiğin hedefi %s ile değiştirebilirsin; ok ve ışık sütunu yolu gösterir." % k.call("track_next")],

@@ -215,8 +215,18 @@ static func _awaken_ms(p: Dictionary) -> bool:
 
 
 ## Ebedi Mangekyō: başka bir Mangekyō sahibinin gözleri (kanon: Madara - Izuna, Sasuke - Itachi)
+## Oyuncuyla aynı kural (Eyes.transplant): herhangi bir Mangekyō sahibinin gözü Ebedi yapar (2026-11-25 kullanıcı: "sınır olmasın");
+## akrabalar önce gelir (yakındaki fırsat), yoksa dünyadaki herhangi bir Mangekyō sahibi
 static func _take_ems(p: Dictionary) -> bool:
-	var vs = WorldPeople.all().values().filter(func(q): return q != p and WorldPeople.alive(q) and int((q.get("eye", [0, 0]) as Array)[0]) in [4, 5])
+	var vs = []
+	for r in WorldKin.relatives(p):
+		var q: Dictionary = r[0]
+		if String(r[1]) != "eşi" and WorldPeople.alive(q) and int((q.get("eye", [0, 0]) as Array)[0]) in [4, 5]:
+			vs.append(q)
+	if vs.is_empty():
+		for q2 in WorldPeople.all().values():
+			if q2 != p and WorldPeople.alive(q2) and int((q2.get("eye", [0, 0]) as Array)[0]) in [4, 5]:
+				vs.append(q2)
 	if vs.is_empty():
 		if Progress.has_eye("mangekyo"):
 			p["amb"]["want"] = "player_eyes"
@@ -258,7 +268,10 @@ static func _take_cells(p: Dictionary) -> bool:
 
 ## Gözü olmayan başkasının gözünü çalıp nakleder (kanon: Danzō, Ao)
 static func _steal_eye(p: Dictionary) -> bool:
-	var vs = WorldPeople.all().values().filter(func(q): return q != p and WorldPeople.alive(q) and String(q.get("kage", "")) == "" and not q.has("amb") and ((int(q["eye"][0]) == 1 and int(q["eye"][1]) >= 3) or int(q["eye"][0]) == 2) and float(q["level"]) < float(p["level"]) * 1.1)
+	# oyuncuyla aynı kanon nakil şartı (EyeSurgery.canon_block): Rinnegan / Tenseigan / Jōgan her bedene tutmaz
+	var pc = String(p.get("clan", ""))
+	var pdna = pc == "senju" or bool(p.get("senju_cells", false))
+	var vs = WorldPeople.all().values().filter(func(q): return q != p and WorldPeople.alive(q) and String(q.get("kage", "")) == "" and not q.has("amb") and ((int(q["eye"][0]) == 1 and int(q["eye"][1]) >= 3) or int(q["eye"][0]) in [2, 3, 6, 7, 8]) and EyeSurgery.canon_block(int(q["eye"][0]), pc, pdna) == "" and float(q["level"]) < float(p["level"]) * 1.1)
 	if vs.is_empty():
 		return false
 	var v: Dictionary = vs.pick_random()
@@ -266,7 +279,7 @@ static func _steal_eye(p: Dictionary) -> bool:
 	var ek = int(v["eye"][0])
 	p["eye"] = [ek, int(v["eye"][1])]
 	p["amb"]["implant"] = true
-	var en = "Sharingan" if ek == 1 else "Byakugan"
+	var en = String(Eyes.KINDS.get(ek, "Göz"))
 	if randf() < 0.5:
 		WorldPeople._die(v, "%s'ı için %s tarafından öldürüldü" % [en, String(p["name"])])
 	else:

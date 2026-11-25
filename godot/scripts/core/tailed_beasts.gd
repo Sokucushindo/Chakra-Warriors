@@ -296,7 +296,57 @@ func teach_beast_arts() -> void:
 		Hud.msg("%s sana öğretti: %s" % [_bname(lp.substr(6)), String(j.get("name", jid))], BeastModels.INFO.get(lp.substr(6), {}).get("chakra", Color(1, 0.6, 0.3)))
 
 
-func make_jinchuriki(id: String) -> void:
+## Doğuştan jinchūriki: yeni karakterin %1 ihtimalle bebekken içine bir canavar mühürlenmiştir (kanon: Naruto, Gaara, Yugito).
+## Yalnız dünyada gerçekten serbest olan canavar (inde, taşıyıcısı / kabı / örgütü yok); köyünün geleneksel canavarı daha olası.
+## force: test / ortam FORCE_JIN=1 (rastgele serbest canavar) ya da FORCE_JIN=<canavar id>
+const BIRTH_CHANCE := 0.01
+
+
+func free_beasts() -> Array:
+	var bs = beasts()
+	var out = []
+	for id in LAIRS:
+		var st = String(bs.get(id, {}).get("state", "wild"))
+		if st in ["wild", "free"] and not (spawned.has(id) and is_instance_valid(spawned[id])):
+			out.append(String(id))
+	return out
+
+
+func roll_birth_jinchuriki(force := "") -> String:
+	if Game.profile.is_empty() or player_jinchuriki() != "":
+		return ""
+	if force == "":
+		force = OS.get_environment("FORCE_JIN")
+	if force == "" and randf() >= BIRTH_CHANCE:
+		return ""
+	var free = free_beasts()
+	if free.is_empty():
+		return ""
+	var id = ""
+	if force in free:
+		id = force
+	else:
+		var home = String(Game.profile.get("village", "konoha"))
+		var pool = []
+		for b in free:
+			for i in (4 if String(HOME_VILLAGE.get(b, "")) == home else 1):
+				pool.append(b)
+		id = String(pool.pick_random())
+	make_jinchuriki(id, true)
+	Game.profile["jin_birth"] = id
+	return id
+
+
+## Oyun başında, köy afişinden sonra
+func birth_banner(id: String) -> void:
+	if Game.profile.is_empty() or not id in held():
+		return
+	Sfx.play("seal", null, 0.6)
+	Hud.banner("JİNCHŪRİKİ OLARAK DOĞDUN!", "Doğduğun gece %s içine mühürlendi. Köylüler sana uzaktan bakıyor." % BeastModels.INFO[id]["name"], BeastModels.INFO[id]["chakra"])
+	Hud.msg("[X] chakra pelerini • [X] basılı: zihin dünyası", BeastModels.INFO[id]["chakra"], 6.0)
+
+
+func make_jinchuriki(id: String, quiet := false) -> void:
 	var pr = Game.profile
 	# birden çok canavar taşınabilir: eskisi serbest kalmaz, yeni gelen aktif olur
 	if not id in held():
@@ -306,7 +356,8 @@ func make_jinchuriki(id: String) -> void:
 	if not "jinchuriki" in pr["skills"]:
 		pr["skills"].append("jinchuriki")
 	teach_beast_arts()
-	Hud.banner("JİNCHŪRİKİ", "%s artık içinde mühürlü. [X] chakra pelerini • [X] basılı: zihin dünyası%s" % [BeastModels.INFO[id]["name"].split(" — ")[0], "  •  Tab > Kuyruklu Canavarlar: aktif olanı seç" if held().size() > 1 else ""], BeastModels.INFO[id]["chakra"])
+	if not quiet:
+		Hud.banner("JİNCHŪRİKİ", "%s artık içinde mühürlü. [X] chakra pelerini • [X] basılı: zihin dünyası%s" % [BeastModels.INFO[id]["name"].split(" — ")[0], "  •  Tab > Kuyruklu Canavarlar: aktif olanı seç" if held().size() > 1 else ""], BeastModels.INFO[id]["chakra"])
 	jinchuriki_changed.emit(id)
 	Game.save_game()
 

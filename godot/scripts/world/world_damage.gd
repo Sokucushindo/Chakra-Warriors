@@ -53,6 +53,8 @@ func fire_el(el: String) -> bool:
 func impact(pos: Vector3, radius: float, info: Dictionary, normal := Vector3.ZERO) -> void:
 	if Game.world == null or Game.player == null:
 		return
+	if pos.distance_to(Game.player.global_position) < 300.0:
+		WaterWaves.impact(pos, radius, info)   # suya değen çarpma: boyuna göre halka dalga + sıçrama / buhar
 	var el: String = info.get("element", "")
 	var dmg: float = float(info.get("dmg", 0.0))
 	var heavy: bool = info.get("kind", "") == "heavy"

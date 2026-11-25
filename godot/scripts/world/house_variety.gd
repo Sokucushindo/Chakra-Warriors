@@ -440,7 +440,7 @@ static func _facade(det: MB, face: String, cx: float, cz: float, w: float, d: fl
 			if main and f == 0 and absf(x - cx) < 1.8:
 				continue
 			HouseKit._window(det, Vector3(x, y0 + fh * 0.55, cz - d * 0.5), 0.0, rng)
-			if rng.randf() < 0.6:
+			if rng.randf() < 2.0:   # arka cephe hep pencereli (2026-11-25: arkası düz kutu kalan evler "bu ne?")
 				HouseKit._window(det, Vector3(x, y0 + fh * 0.55, cz + d * 0.5), 180.0, rng)
 		for sx in [-1.0, 1.0]:
 			if rng.randf() < 0.7:

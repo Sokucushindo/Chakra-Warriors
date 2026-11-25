@@ -1115,6 +1115,8 @@ static func pi_set(mi, key: String) -> Callable:
 static func dust(host: Node, p: Vector3, s: float, life_t: float, o := {}) -> MeshInstance3D:
 	if near_cam(host, p, s * 0.8 + 3.0):
 		return null
+	if WaterWaves.ground_on_water(p, s, "dust"):   # suda toz kalkmaz
+		return null
 	var mi = MeshInstance3D.new()
 	mi.mesh = _ball()
 	mi.material_override = dust_mat()
@@ -1150,6 +1152,8 @@ static func dust_ring(host: Node, c: Vector3, r: float, n: int, s: float, life_t
 ## Zemin izi. o: soil, glow (Color), lines, pit, rings, t_open, y (sabit yükseklik), parent
 static func scar(host: Node, p: Vector3, r: float, life_t: float, o := {}) -> MeshInstance3D:
 	var mi = MeshInstance3D.new()
+	if o.get("parent", null) == null and WaterWaves.ground_on_water(p, r, "decal"):   # suda zemin izi yok: yüzey halkalanır
+		mi.visible = false
 	mi.mesh = _plane()
 	mi.material_override = scar_mat()
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

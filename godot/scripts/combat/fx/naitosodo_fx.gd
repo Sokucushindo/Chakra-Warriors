@@ -93,31 +93,71 @@ static func _guard(b: MB, gold: Color, gold_d: Color) -> void:
 			var nrm := Vector2(-sin(ph) * 0.11, cos(ph) * 0.13).normalized()
 			outer.append(p - nrm * half)
 			inner.append(p + nrm * half)
+		# 2026-11-25 (kullanıcı: "transparan texture, kabzada boşluk"): kanat tek çokgen olarak üçgenlenince çatal ucu kenarı
+		# kendini kesiyordu -> Geometry2D boş dönüyor, yalnız kenar şeridi çiziliyordu (içi boş saydam çerçeve). Artık kesintisiz şerit
+		# (_wing_strip), uçta ayrı çatal dişleri.
 		var tipc: Vector2 = (outer[12] + inner[12]) * 0.5
 		var tdir: Vector2 = (tipc - (outer[11] + inner[11]) * 0.5).normalized()
-		for q in outer:
-			o.append(q)
-		o.append(outer[12] + tdir * 0.022)                   # çatalın dış dişi
-		o.append(tipc + tdir * 0.006)                         # çatal oyuğu
-		o.append(inner[12] + tdir * 0.016)                    # iç diş
-		for k in range(12, -1, -1):
-			o.append(inner[k])
-		for i in o.size():
-			o[i] = Vector2(o[i].x * sy, o[i].y)
-		b.add_slab(o, 0.026, gold, Transform3D.IDENTITY, func(q: Vector2) -> float: return lerpf(0.026, 0.012, clampf((absf(q.x) - 0.04) / 0.14, 0.0, 1.0)), gold_d)
-		# kanadın ortasında kabartma sırt (daha dar levha, biraz kalın)
-		var rib := PackedVector2Array()
+		var fl = func(v: Vector2) -> Vector2: return Vector2(v.x * sy, v.y)
+		_wing_strip(b, outer, inner, fl, 0.026, 0.012, gold, gold_d)
+		# ortada kabartma sırt: aynı şerit, %36 en, biraz kalın
+		var r_out := []
+		var r_in := []
 		for k in range(1, 12):
-			rib.append(Vector2(((outer[k] + inner[k]) * 0.5).x * sy, ((outer[k] + inner[k]) * 0.5).y) + ((outer[k] - inner[k]) * 0.18) * Vector2(sy, 1))
-		for k in range(11, 0, -1):
-			rib.append(Vector2(((outer[k] + inner[k]) * 0.5).x * sy, ((outer[k] + inner[k]) * 0.5).y) - ((outer[k] - inner[k]) * 0.18) * Vector2(sy, 1))
-		b.add_slab(rib, 0.034, gold.lightened(0.1), Transform3D.IDENTITY, func(q: Vector2) -> float: return lerpf(0.034, 0.016, clampf((absf(q.x) - 0.04) / 0.14, 0.0, 1.0)), gold_d)
+			var m: Vector2 = (outer[k] + inner[k]) * 0.5
+			var h: Vector2 = (outer[k] - inner[k]) * 0.18
+			r_out.append(m + h)
+			r_in.append(m - h)
+		_wing_strip(b, r_out, r_in, fl, 0.034, 0.016, gold.lightened(0.1), gold_d)
+		# uçta çatal: iki diş (ayrı üçgen levhalar)
+		var t_out := PackedVector2Array([fl.call(outer[12]), fl.call(outer[12] + tdir * 0.022), fl.call(tipc + tdir * 0.006), fl.call(tipc)])
+		var t_in := PackedVector2Array([fl.call(tipc), fl.call(tipc + tdir * 0.006), fl.call(inner[12] + tdir * 0.016), fl.call(inner[12])])
+		for tp in [t_out, t_in]:
+			b.add_slab(tp, 0.012, gold, Transform3D.IDENTITY, Callable(), gold_d)
 	# taş: iki yüzde altın yuva halkası + kırmızı oval kabaşon + parlama
 	for sx in [-1.0, 1.0]:
 		b.add("torus", Vector3(sx * 0.021, 0, zc), Vector3(0.062, 0.03, 0.046), gold_d, Vector3(0, 0, 90), 20)
 		b.add("sphere", Vector3(sx * 0.02, 0, zc), Vector3(0.022, 0.052, 0.037), Color(0.68, 0.06, 0.07), Vector3.ZERO, 16)
 		b.add("sphere", Vector3(sx * 0.027, 0.004, zc + 0.003), Vector3(0.012, 0.03, 0.022), Color(0.9, 0.22, 0.2), Vector3.ZERO, 12)
 		b.add("sphere", Vector3(sx * 0.0305, 0.012, zc + 0.01), Vector3(0.004, 0.008, 0.007), Color(1.0, 0.9, 0.88), Vector3.ZERO, 8)
+
+## Kanat şeridi: dış ve iç kenar noktaları (y-z profili) arasında kesintisiz ön (+X) / arka (-X) yüz + dış, iç ve uç kenar duvarları.
+## Kalınlık kökten uca t0 -> t1. (Tek çokgen üçgenleme çatal ucunda kendini kesip boş dönüyordu.)
+static func _wing_strip(b: MB, outer: Array, inner: Array, fl: Callable, t0: float, t1: float, col: Color, side: Color) -> void:
+	var n := outer.size()
+	var P := func(v: Vector2, x: float) -> Vector3:
+		var f: Vector2 = fl.call(v)
+		return Vector3(x, f.x, f.y)
+	for sgn in [1.0, -1.0]:
+		var base := b.verts.size()
+		for k in n:
+			var hx: float = lerpf(t0, t1, float(k) / float(n - 1)) * 0.5 * sgn
+			for v in [outer[k], inner[k]]:
+				b.verts.append(P.call(v, hx))
+				b.normals.append(Vector3(sgn, 0, 0))
+				b.colors.append(col)
+				b.uvs.append(v)
+		for k in n - 1:
+			var a := base + k * 2
+			# iki yönlü (ayna kanatta sıra tersine döner; tek yön arkadan saydam görünürdü)
+			b.idx.append_array(PackedInt32Array([a, a + 2, a + 1, a + 1, a + 2, a + 3, a, a + 1, a + 2, a + 1, a + 3, a + 2]))
+	# kenar duvarları: dış, iç, kök ve uç
+	var wall = func(pa: Vector2, pb: Vector2, ta: float, tb: float) -> void:
+		var A0: Vector3 = P.call(pa, ta * 0.5); var A1: Vector3 = P.call(pa, -ta * 0.5)
+		var B0: Vector3 = P.call(pb, tb * 0.5); var B1: Vector3 = P.call(pb, -tb * 0.5)
+		var nm := (B0 - A0).cross(A1 - A0).normalized()
+		var base := b.verts.size()
+		for q in [A0, A1, B0, B1]:
+			b.verts.append(q); b.normals.append(nm); b.colors.append(side); b.uvs.append(Vector2.ZERO)
+		b.idx.append_array(PackedInt32Array([base, base + 1, base + 2, base + 1, base + 3, base + 2, base, base + 2, base + 1, base + 1, base + 2, base + 3]))
+	for k in n - 1:
+		var ta := lerpf(t0, t1, float(k) / float(n - 1))
+		var tb := lerpf(t0, t1, float(k + 1) / float(n - 1))
+		wall.call(outer[k], outer[k + 1], ta, tb)
+		wall.call(inner[k], inner[k + 1], ta, tb)
+	wall.call(outer[0], inner[0], t0, t0)
+	wall.call(outer[n - 1], inner[n - 1], t1, t1)
+
 
 
 static func _ellipse(ry: float, rz: float, zc: float, n: int) -> PackedVector2Array:

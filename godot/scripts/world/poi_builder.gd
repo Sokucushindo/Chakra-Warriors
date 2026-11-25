@@ -129,23 +129,6 @@ static func _fence(b: Builder, cx: float, cn: float, w: float, d: float, rng: Ra
 		b.box(Vector3(mx, gy2 + 0.9, mn), Vector3(L if side % 2 == 0 else 0.1, 0.1, 0.1 if side % 2 == 0 else L), wood, 0, false)
 
 
-static func _tent(b: Builder, x: float, n: float, yaw: float, col: Color) -> void:
-	var gy = _ground(b, x, n)
-	b.roof(Vector3(x, gy, n), Vector3(4.2, 2.6, 5.0), col, yaw)
-	b.box(Vector3(x, gy + 0.05, n), Vector3(4.0, 0.1, 4.8), col.darkened(0.4), yaw, false)
-
-
-static func _campfire(b: Builder, x: float, n: float) -> void:
-	var gy = _ground(b, x, n)
-	for k in 7:
-		var a = TAU * k / 7
-		b.sphere(Vector3(x + cos(a) * 1.0, gy + 0.15, n + sin(a) * 1.0), Vector3(0.45, 0.3, 0.45), Color(0.45, 0.43, 0.4), 5)
-	for k in 3:
-		b.box(Vector3(x, gy + 0.25, n), Vector3(1.4, 0.18, 0.18), Color(0.35, 0.22, 0.12), k * 60.0, false)
-	b.cone(Vector3(x, gy + 0.75, n), 0.9, 1.1, Color(1.0, 0.55, 0.15))
-	b.cone(Vector3(x, gy + 0.65, n), 0.55, 0.8, Color(1.0, 0.85, 0.35))
-
-
 # ------------------------------------------------------------------ mezra: birkaç ev, tarla, çit, kuyu, köylüler
 ## Mezra ev konumları (Roadside patikaları da aynı noktaları kullanır: ayrı, deterministik tohum)
 static func hamlet_spots(p: Dictionary) -> Array:
@@ -254,16 +237,8 @@ static func _cart(b: Builder, x: float, n: float, yaw: float) -> void:
 
 # ------------------------------------------------------------------ haydut kampı: çit, çadırlar, ateş, sandıklar, düşmanlar
 static func _camp(b: Builder, node: Node3D, p: Dictionary, rng: RandomNumberGenerator) -> void:
-	var r = 22.0
-	b.wall_ring_at(0, 0, r, 3.2, Color(0.45, 0.32, 0.2), [[rng.randf_range(0, 360), 30.0]], 8.0)
-	for i in 5:
-		var a = TAU * i / 5 + 0.3
-		_tent(b, cos(a) * 12, sin(a) * 12, rad_to_deg(-a), [Color(0.55, 0.45, 0.32), Color(0.4, 0.35, 0.3), Color(0.5, 0.2, 0.18)][i % 3])
-	_campfire(b, 0, 0)
-	for k in 4:
-		var a = rng.randf() * TAU
-		var cx = cos(a) * 6; var cn = sin(a) * 6
-		b.box(Vector3(cx, _ground(b, cx, cn) + 0.5, cn), Vector3(1.0, 1.0, 1.0), Color(0.55, 0.42, 0.25), rng.randf() * 90)
+	# kazık çitli kamp: kapı + gözcü kuleleri, bez çadırlar, ateş, ganimet, silah sehpaları (Haritadaki Haydut Kampı ile aynı kurucu)
+	load("res://scripts/world/bandit_camp.gd").build_poi(b, p)
 	# uzaklığa göre güç: Konoha'dan uzak kamplar kaçak ninjalarla dolu
 	var kv = Game.village("konoha")
 	var far = Vector2(float(p["x"]), float(p["y"])).distance_to(Vector2(kv["x"], kv["y"]))

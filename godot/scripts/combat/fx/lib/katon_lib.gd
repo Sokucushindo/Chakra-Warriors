@@ -802,6 +802,8 @@ static func flash_ball(host: Node, p: Vector3, r: float, pal := 0.0) -> void:
 ## Yerden dışa hızla yayılan gri toz halkası (alçak, opak, düz tonlu)
 static func dust_ring(host: Node, p: Vector3, r: float, n := 12) -> void:
 	var g = floor_at(p)
+	if WaterWaves.ground_on_water(g, r, "fire"):   # suda toz yerine buhar + dalga
+		return
 	for k in n:
 		var a = k * TAU / n + randf_range(-0.25, 0.25)
 		var dv = Vector3(cos(a), 0.0, sin(a))
@@ -1009,6 +1011,12 @@ static func tongue_mi(h: float, w: float, ax: Vector3, pal := 0.0, count := 6, l
 
 ## Sahnede yaşayan alev dili: taban p, eksen ax; doğar, büyür, ısısı düşüp kızarır, uçlar kopar, söner
 static func tongue(host: Node, p: Vector3, h: float, w: float, life: float, ax := Vector3.UP, vel := Vector3.ZERO, pal := 0.0, count := 6, heat0 := 1.15, lean := 0.0) -> MeshInstance3D:
+	if not is_nan(WaterWaves.surface_at(p, 0.4)) and WaterWaves.ground_on_water(p, w * 1.5, "fire"):   # suyun üstünde yer ateşi yanmaz: buhar + halka
+		var dummy = MeshInstance3D.new()
+		dummy.visible = false
+		put(host, dummy, p)
+		host.get_tree().create_timer(life + 0.1).timeout.connect(dummy.queue_free)
+		return dummy
 	if OPAQUE_BODY and STYLE >= 2:
 		if ax.normalized().dot(Vector3.UP) < 0.5:
 			ax = (ax.normalized() + Vector3.UP * 1.3).normalized()   # alev ışın gibi aşağı / yana fışkırmaz, yukarı kıvrılır
@@ -1238,6 +1246,8 @@ static func shimmer(host: Node, p: Vector3, w: float, h: float, life: float) -> 
 ## Kavrulmuş zemin izi: r yarıçap, kızgın damarlar life boyunca soğur, sonra söner. kind 1 = sarmal (girdap)
 static func scorch(host: Node, p: Vector3, r: float, life: float, kind := 0.0, pal := 0.0, grow_t := 0.3) -> MeshInstance3D:
 	var mi = gi(_plane(), scorch_mat())
+	if WaterWaves.ground_on_water(p, r, "fire"):   # su yanmaz: yanık izi yerine buhar tütsüsü + halka
+		mi.visible = false
 	mi.set_instance_shader_parameter("kind", kind)
 	mi.set_instance_shader_parameter("pal", pal)
 	mi.set_instance_shader_parameter("seed", randf() * 10.0)
@@ -1560,6 +1570,8 @@ static func light(host: Node, p: Vector3, col: Color, energy: float, rng: float,
 
 ## Yanan zemin: r yarıçaplı alanda dur boyunca rastgele noktalarda kısa diller yükselir, yer kavrulur, kor uçuşur
 static func burn_patch(host: Node, p: Vector3, r: float, dur: float, pal := 0.0, rate := 0.12, hmax := 1.4) -> void:
+	if WaterWaves.ground_on_water(floor_at(p), r, "fire"):   # su yanmaz: yanan zemin yamağı yerine buhar + halka
+		return
 	var root = Node3D.new()
 	put(host, root, floor_at(p))
 	scorch(host, p, r * 1.15, dur + 2.0, 0.0, pal)

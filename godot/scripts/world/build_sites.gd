@@ -1941,16 +1941,9 @@ static func hideout(parent: Node3D, l: Dictionary) -> void:
 	b.finish()
 
 
+## Haydut kampı: sivri kazık çit, kapı + gözcü kuleleri, bez çadırlar, ateş, ganimet (scripts/world/bandit_camp.gd)
 static func camp(parent: Node3D, l: Dictionary, kind: String) -> void:
-	var b = Builder.new(parent, l["x"], l["y"], l["base"], "Kamp")
-	var rng = _rng(21)
-	for k in 9:
-		var a = k * 40.0
-		var o = Builder.rot(0, 30, a)
-		b.roof(Vector3(o.x, 0, o.y), Vector3(7, 4, 8), Color(0.55, 0.45, 0.32).darkened(rng.randf() * 0.2), a)
-	b.cyl(Vector3(0, 0.3, 0), 3, 0.6, Color(0.3, 0.25, 0.2), false, 8)
-	Spawner.camp(b.w(Vector3.ZERO), kind, 6)
-	b.finish()
+	load("res://scripts/world/bandit_camp.gd").build(parent, l, kind)
 
 
 static func outpost(parent: Node3D, l: Dictionary) -> void:

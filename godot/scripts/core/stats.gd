@@ -142,6 +142,31 @@ static func sense_radius(p: Dictionary) -> float:
 	return 70.0 * (1.0 + skill(p, "sense") * 4.0)
 
 
+## Tek kullanımlık aletler (kanon: Kahraman Suyu, Inochi no Karē, Bijūgan): alet yuvasında ama her kullanımda biri düşer
+const SINGLE_USE_TOOLS := ["eiyu_mizu", "inochi_kare", "bijugan"]
+
+
+## Sınırsız eşya: pazardan bir kez alınan fırlatma aletleri / tuzaklar (yalnız bekleme süresi var) ve bitmeyen Asker Hapı.
+## Bunlar sayılmaz, düşmez, istif sınırı yoktur; sahiplik = envanterde 1.
+static func unlimited(id: String) -> bool:
+	if id == "pill":
+		return true
+	return String(Data.items.get(id, {}).get("kind", "")) == "throw" and not id in SINGLE_USE_TOOLS
+
+
+## Envanterdeki sınırsız eşyaların sayısını 1'e indirir (eski kayıtlar 12 kunai / 20 hap gibi sayı taşıyordu)
+static func normalize_unlimited(p: Dictionary) -> void:
+	var inv: Dictionary = p.get("inventory", {})
+	for k in inv.keys():
+		if unlimited(String(k)):
+			if int(inv[k]) > 0:
+				inv[k] = 1
+			else:
+				inv.erase(k)
+	if not inv.has("pill"):
+		inv["pill"] = 1   # Asker Hapı bitmez (bekleme süresiyle)
+
+
 ## Sarf malzemesi istif sınırı: merhem/hap 10, atılabilir 40; "carry" ile artar
 static func carry_cap(p: Dictionary, id: String) -> int:
 	var base = 40 if id in ["kunai", "shuriken", "senbon"] else (20 if id in ["tag", "smoke", "hikaridama", "togarashi_dama", "kibaku_fuda"] else 10)

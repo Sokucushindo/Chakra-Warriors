@@ -124,6 +124,9 @@ uniform float flow = 0.5;       // akış hızı
 uniform float foam_start = 0.0; // UV.y'nin şelaleye yakın ucu (0 ya da 1)
 uniform float dir = 1.0;        // akış UV.y artan (1) ya da azalan (-1) yönde
 uniform float base_alpha = 0.0; // >0: kendi su yüzeyi (altında su yoksa: üst nehir)
+#include "res://shaders/water_ripples.gdshaderinc"
+varying vec3 wpos;
+void vertex() { wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float vn(vec2 p) { vec2 i = floor(p), f = fract(p); vec2 u = f*f*(3.0-2.0*f);
 	return mix(mix(hash(i), hash(i+vec2(1,0)), u.x), mix(hash(i+vec2(0,1)), hash(i+vec2(1,1)), u.x), u.y); }
@@ -140,6 +143,9 @@ void fragment() {
 	float far = 1.0 - smoothstep(0.85, 1.0, near);
 	float a = max(max(line * 0.55, glint * 0.5), churn * 0.85) * side * far;
 	float foam = max(max(line, glint), churn);
+	float rw = ripple_field(wpos.xz).w;   // jutsu / adım dalgalarının köpüğü (WaterWaves)
+	foam = max(foam, rw);
+	a = max(a, rw * 0.8 * side);
 	// kendi yüzeyi: koyu turkuaz -> akıntı bantları, kenara (şelaleye) yaklaştıkça açılır
 	vec3 water = mix(vec3(0.08, 0.42, 0.72), vec3(0.2, 0.62, 0.9), (1.0 - smoothstep(0.0, 0.4, near)) * 0.8 + l2 * 0.2);
 	ALBEDO = base_alpha > 0.0 ? mix(water, vec3(0.9, 0.98, 1.0), foam * 0.85) : mix(vec3(0.75, 0.95, 1.0), vec3(1.0), churn);

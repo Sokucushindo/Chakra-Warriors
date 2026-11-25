@@ -291,6 +291,8 @@ static func plaza(b: Builder, o: Dictionary) -> void:
 		_site(vid, {"type": "guard", "pos": _gp(b, cx + sx * (minf(tw - 6.0, 16.0) * 0.5 + 1.0), front - td - 4.5), "face": PI})   # fenerin önünde, meydan tarafında (arkasında kalıyordu)
 		_site(vid, {"type": "guard", "pos": _gp(b, cx + sx * (gw - 2.0), n0 + 0.5), "face": PI})
 	_site(vid, {"type": "pigeons", "pos": _gp(b, cx + 12, nm - 8)})
+	# haberci chūnin'ler: meydan kapısı ile kule terası arasında parşömenle koşar (VillagerJobs "messenger")
+	_site(vid, {"type": "messenger", "pos": _gp(b, cx + 4.0, nm), "pts": [_gp(b, cx + 4.0, n0 + 3.0), _gp(b, cx + 4.0, front - td - 3.5)]})
 	b.yoff = yo
 
 

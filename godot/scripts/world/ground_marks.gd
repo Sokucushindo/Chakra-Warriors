@@ -48,6 +48,7 @@ static func step(who: Node3D, on_water: bool, water_y := 0.0) -> void:
 
 ## Su halkası: ince açık mavi-beyaz halka genişleyip söner + birkaç küçük damla
 static func ripple(at: Vector3, s := 1.0) -> void:
+	WaterWaves.add(at, 0.22 * s)   # yüzeyin kendisi de halkalanır (su gölgelendiricisi)
 	FX.ring(at, Color(0.85, 0.95, 1.0, 0.55), 1.3 * s, 0.7)
 	FX.burst(at, {"amount": 5, "life": 0.35, "tex": FX.tex_soft, "size": 0.08 * s, "radius": 0.15, "vmin": 1.0, "vmax": 2.2,
 		"dir": Vector3.UP, "spread": 35.0, "gravity": Vector3(0, -9.0, 0), "colors": [Color(0.9, 0.97, 1.0, 0.85), Color(0.8, 0.92, 1.0, 0.0)]})

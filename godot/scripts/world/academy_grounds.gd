@@ -211,6 +211,18 @@ static func dress(b: Builder, cx: float, front_n: float, half_w: float, depth: f
 		Spawner.dummy(b.w(Vector3(x, g.call(x, n), n)))
 	site.call("spar", tcx, tcn - 4.0)
 	site.call("academy_yard", tcx, tcn)
+	# atış dersi (VillagerJobs "drill"): öğrenciler atış çizgisinden hedef tahtalarına kunai atar, biri kütüğe vurur, hoca arkada dolaşır
+	var dtg: Array = []
+	for i in nt:
+		var tw = b.w(Vector3(tx0 + (i + 0.5) * (tx1 - tx0) / nt, 0, tn1 - 2.6))
+		tw.y = Game.terrain_height(tw.x, tw.z) + 1.9
+		dtg.append(tw)
+	var dposts: Array = []
+	for i in 3:
+		var pw = b.w(Vector3(tx0 + 6.0 + i * 3.2, 0, tn0 + 4.8))
+		pw.y = Game.terrain_height(pw.x, pw.z)
+		dposts.append([pw, 0.0])
+	site.call("drill", tcx, tn1 - 9.0, {"targets": dtg, "posts": dposts, "face": 0.0, "u": Vector3.RIGHT})
 
 	# ---- doğu yarısı: gölet, basamak taşları, banklar, çiçek tarhları
 	var px = cx + W * 0.5; var pn = n0 + depth * 0.42
@@ -375,15 +387,11 @@ static func dress(b: Builder, cx: float, front_n: float, half_w: float, depth: f
 
 
 ## Oval gölet suyu (yassı silindir)
-static var _water_mat: StandardMaterial3D
+static var _water_mat: Material
 static func _oval_water(b: Builder, p: Vector3, wdt: float, dep: float) -> void:
 	b._grass_clear(b.w(Vector3(p.x, 0, p.z)), Vector3(wdt + 0.6, 0.1, dep + 0.6), 0.0)   # sudan çimen çıkmasın
 	if _water_mat == null:
-		_water_mat = StandardMaterial3D.new()
-		_water_mat.albedo_color = Color(0.22, 0.48, 0.58, 0.85)
-		_water_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		_water_mat.roughness = 0.08
-		_water_mat.metallic_specular = 0.9
+		_water_mat = WaterWaves.flat_water_mat(Color(0.22, 0.48, 0.58, 0.85))   # jutsu / adım dalgaları gölette de görünür
 	var cm = CylinderMesh.new()
 	cm.top_radius = 0.5
 	cm.bottom_radius = 0.5

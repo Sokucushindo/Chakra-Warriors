@@ -252,7 +252,10 @@ render_mode cull_disabled, specular_schlick_ggx;
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float vn(vec2 p) { vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
 	return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y); }
+#include "res://shaders/water_ripples.gdshaderinc"
+varying vec3 wpos;
 void vertex() {
+	wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	float r = length(UV);
 	float boil = smoothstep(0.5, 0.0, r);
 	VERTEX.y += boil * (0.15 + 0.6 * vn(UV * 9.0 + vec2(TIME * 1.7, -TIME * 1.3)));
@@ -270,6 +273,9 @@ void fragment() {
 	vec3 foam = vec3(0.93, 0.97, 1.0);
 	vec3 c = mix(deep, shallow, pt * 0.6);
 	c = mix(c, foam, clamp(churn + trail * 0.8, 0.0, 1.0));
+	vec4 rf = ripple_field(wpos.xz);   // jutsu / adım dalgaları (WaterWaves)
+	NORMAL = normalize(NORMAL + (VIEW_MATRIX * vec4(-rf.y, 0.0, -rf.z, 0.0)).xyz);
+	c = mix(c, foam, rf.w * 0.8);
 	ALBEDO = c;
 	EMISSION = foam * churn * 0.1;
 	ROUGHNESS = mix(0.08, 0.6, churn);

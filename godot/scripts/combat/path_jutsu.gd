@@ -9683,8 +9683,7 @@ static func kawa_trap(c: Node3D, at: Vector3) -> void:
 	var has_tag := false
 	if c is Player:
 		var inv: Dictionary = Game.profile.get("inventory", {})
-		if int(inv.get("tag", 0)) > 0:
-			inv["tag"] = int(inv["tag"]) - 1
+		if int(inv.get("tag", 0)) > 0:   # etiketli kunai sınırsız alet: sahip olmak yeter, adet düşmez (düşüyordu: 0'a inip fırlatmayı kilitliyordu)
 			has_tag = true
 	elif c.get("arch") is Dictionary:
 		# düşman: alet taşıyan usta (0.5+) ninja kütüğe etiket bağlar

@@ -825,6 +825,8 @@ static func converge(center, radius: float, dur: float, col := RAI, n := 10, w :
 static func scorch(g: Vector3, r: float, col := RAI, life := 5.0, heat_t := 1.0) -> MeshInstance3D:
 	var m = mat("scorch", {"glow": col, "heat": 1.0, "fade": 1.0, "sd": randf() * 50.0})
 	var mi = mi_of(plane_mesh(), m)
+	if WaterWaves.ground_on_water(g, r, "decal"):   # suda yanık izi yok: yüzey halkalanır
+		mi.visible = false
 	root().add_child(mi)
 	mi.global_position = g + Vector3.UP * 0.04
 	mi.rotation.y = randf() * TAU
@@ -945,6 +947,7 @@ static func speed_lines(c: Node3D, dir: Vector3, dur: float, col := PALE, n := 9
 ## Toz halkası: zeminde dışa açılan, kenarı düzensiz toz şeridi (duman bulutu değil)
 static func dust_ring(g: Vector3, r0: float, r1: float, dur: float, col := Color(0.62, 0.56, 0.47)) -> Pulse:
 	var m = dust_mat(col)
+	var wet = WaterWaves.ground_on_water(g, r1, "rock")   # suda toz halkası yerine sıçrama + dalga
 	var nseg = 40
 	var wob = []
 	for i in nseg + 1:
@@ -953,6 +956,8 @@ static func dust_ring(g: Vector3, r0: float, r1: float, dur: float, col := Color
 	return host(func(im, _n, _dt, age) -> bool:
 		if age > dur:
 			return false
+		if wet:
+			return true
 		var f = age / dur
 		var r = lerpf(r0, r1, 1.0 - pow(1.0 - f, 3.0))
 		var line = []

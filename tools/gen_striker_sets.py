@@ -247,6 +247,12 @@ out = ['extends RefCounted', '## OTOMATİK ÜRETİLDİ: tools/gen_striker_sets.p
        '## Mevcut kıyafet parçalarından setler; "sex": "f"/"m" yalnız o cinsiyete satılır/seçilir, boş = herkes.', '', 'const SETS := {']
 start, shop = [], []
 seen = set()
+# kanon set_* ile aynı karakterin kopyası olan Striker setleri (2026-11-25 birleştirildi; Gear.MERGED_SETS eskiyi yenisine taşır)
+MERGED = {"ss_kopuk", "ss_yedi_kanat", "ss_lav_zirh", "ss_kedi_alev", "ss_genjutsu_sargi", "ss_algi", "ss_onluk", "ss_demir_dovme",
+          "ss_buhar_zirh", "ss_anbu_kapuson", "ss_bilge_palto", "ss_genc_canavar", "ss_kaplumbaga"}
+# oyundan kaldırılan Striker setleri (plaj / mayo, 2026-11-25; Gear.REMOVED_SETS kayıttakileri satar)
+REMOVED = {"ss_sahil", "ss_sahil_hibiskus", "ss_sahil_denizci", "ss_sahil_gok", "ss_sahil_flamingo"}
+D = [d for d in D if d[1] not in MERGED and d[1] not in REMOVED]
 for (i, sid, name, desc, fl, parts) in D:
     sex, rk, page = lst[i] if i >= 0 else ('U', 'A', '')
     sex = SEX_FIX.get(i, sex)   # wiki sayfa metni kategoriden farklıysa (Rock Striker: yalnız erkek)

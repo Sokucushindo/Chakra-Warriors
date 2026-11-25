@@ -487,8 +487,8 @@ func rogue_shop(kind: String) -> void:
 			Hud.gear_shop("Kara Terzi", Gear.shop_stock("c", tag))
 		"rogue_weapons":
 			Hud.dialog("Kara Silahçı", "Ucuz değil, ama kimse nereden aldığını sormaz.", [
-				{"label": "Ninja aletleri", "cb": func(): Hud.shop("Kara Silahçı", ["kunai", "shuriken", "mushu_dokugiri", "kosho_mimikazari", "hiko_tsubasa", "yuki_ita", "toge_dama", "kemuri_fuda", "chusha_bari", "senbon", "tag", "makibishi", "smoke", "kemuri_senkodan", "okarina", "agiz_kozu", "aobiko", "inochi_kare", "genjutsu_kosui", "genjutsu_yaku", "hikaridama", "togarashi_dama", "doku", "gedokuyaku", "kibaku_dama", "hyodama", "raizutsu", "suzu", "boenkyo", "bakusaidama", "kibaku_fuda", "kosen", "sode_kunai", "nuno_maki", "fuin_fuda", "kekkai_fuda", "salve", "pill"])},
-				{"label": "Silahlar (sağ el / sol el)", "cb": func(): Hud.gear_shop("Kara Silahçı", Gear.shop_stock("w", tag))}])
+				{"label": "Ninja aletleri", "cb": func(): Hud.shop("Kara Silahçı", ["kunai", "shuriken", "mushu_dokugiri", "kosho_mimikazari", "hiko_tsubasa", "yuki_ita", "toge_dama", "kemuri_fuda", "chusha_bari", "senbon", "tag", "makibishi", "smoke", "kemuri_senkodan", "okarina", "agiz_kozu", "aobiko", "inochi_kare", "genjutsu_kosui", "genjutsu_yaku", "hikaridama", "togarashi_dama", "doku", "gedokuyaku", "kibaku_dama", "hyodama", "raizutsu", "suzu", "boenkyo", "bakusaidama", "kibaku_fuda", "kosen", "sode_kunai", "nuno_maki", "fuin_fuda", "kekkai_fuda", "salve"])},
+				{"label": "Silahlar", "cb": func(): Hud.gear_shop("Kara Silahçı", Gear.shop_stock("w", tag))}])
 		"rogue_scrolls":
 			var r = rogue_rank()
 			var sc = Progress.scroll_shop_items(10 + r * 3, 2 + r * 3)

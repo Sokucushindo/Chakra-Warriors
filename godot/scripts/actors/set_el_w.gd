@@ -798,7 +798,7 @@ static func _hashi_genc(k) -> void:
 	var nt := Color(0.36, 0.2, 0.18)
 	var skc: Color = Q._skc(k)
 	var tsk := func(p): return k.torso_skin(p.y)
-	var ik: Array = P._inner(k, b, func(_i, _j, p): return skc if p.y > C - 0.02 else nv.darkened(0.3), 0.004)
+	var ik: Array = P._inner(k, b, func(_i, _j, p): return skc if p.y > C - 0.02 else nv.darkened(0.3), 0.004, -99.0, 72)   # 72 sıra: boyun ve yaka ağzı katı görünür (V yaka)
 	P._net_patch(k, ik, func(a, y): return absf(float(a)) < 0.62, -0.62, 0.62, C - 0.03, N + 0.05, 0.013, 0.0011, 0.0025, nt)
 	K._seat(k, b, nv.darkened(0.08))
 	for lk in ["Left", "Right"]:

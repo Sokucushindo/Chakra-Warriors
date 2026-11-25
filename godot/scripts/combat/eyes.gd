@@ -831,6 +831,11 @@ func _steal(f: Node3D) -> void:
 	var id = {1: "goz_sharingan", 2: "goz_byakugan", 3: "goz_ketsuryugan", 4: "goz_mangekyo", 5: "goz_ems", 6: "goz_rinnegan", 7: "goz_tenseigan", 8: "goz_jogan"}.get(int(e["kind"]), "goz_sharingan")
 	var n_eyes = 1 if f.has_meta("eye_share") else 2
 	var extra = {"lvl": int(e.get("lvl", 3)), "origin": "nakil"}
+	var ffid = String(f.get_meta("friend_id", ""))
+	if ffid != "":
+		var fr: Dictionary = Friends.all().get(ffid, {})
+		if fr.has("kin") or bool(fr.get("child", false)):
+			extra["kin"] = true   # kan akrabanın gözü (kanon: Ebedi Mangekyō yalnız kardeş / yakın kan gözüyle)
 	if id in ["goz_mangekyo", "goz_ems"]:
 		extra["ms_style"] = MS_STYLES.keys()[randi() % MS_STYLES.size()]   # sahibinin tarzı: iki göz aynı, kişiden kişiye rastgele
 	for i in n_eyes:
@@ -940,6 +945,8 @@ func _process(dt: float) -> void:
 	steal_target = null
 	for f in get_tree().get_nodes_in_group("dojutsu_bearers"):
 		if f != p and f.has_meta("eyes") and not f.has_meta("eyes_taken") and f.is_dead() and f.global_position.distance_to(p.global_position) < 4.5:
+			if not _salvage_ok(f, "eye_roll", EYE_SALVAGE, "Gözler savaşta zarar görmüş — alınamaz", Color(1, 0.6, 0.5)):
+				continue
 			steal_target = f
 			if not f.has_meta("eye_prompt"):
 				f.set_meta("eye_prompt", true)
@@ -949,11 +956,25 @@ func _process(dt: float) -> void:
 	if steal_target == null:
 		for f in get_tree().get_nodes_in_group("senju_bearers"):
 			if f != p and not f.has_meta("cells_taken") and f.has_method("is_dead") and f.is_dead() and f.global_position.distance_to(p.global_position) < 4.5:
+				if not _salvage_ok(f, "cell_roll", CELL_SALVAGE, "Senju hücreleri kullanılamaz durumda", Color(0.75, 0.85, 0.6)):
+					continue
 				cell_target = f
 				if not f.has_meta("cell_prompt"):
 					f.set_meta("cell_prompt", true)
 					Combat.popup_text(f.global_position + Vector3.UP * 1.5, "[F] Senju hücresi al", Color(0.55, 0.9, 0.5))
 				break
+
+
+## Ölen dōjutsu sahibinin gözü / Senju hücresi her zaman alınamaz (2026-11-25, kullanıcı: "kesin düşüyor, %20 yap"):
+## ceset başına bir kez zar atılır; tutmazsa yaklaşınca bir kez nedeni yazar ve o cesetten alınamaz.
+const EYE_SALVAGE := 0.2
+const CELL_SALVAGE := 0.2
+func _salvage_ok(f: Node, key: String, chance: float, fail_msg: String, col: Color) -> bool:
+	if not f.has_meta(key):
+		f.set_meta(key, randf() < chance)
+		if not bool(f.get_meta(key)) and f is Node3D:
+			Combat.popup_text((f as Node3D).global_position + Vector3.UP * 1.5, fail_msg, col)
+	return bool(f.get_meta(key))
 
 
 # ------------------------------------------------------------------ uyanış ve gelişim (gözler eşya değil)
@@ -1048,8 +1069,11 @@ static func transplant(pr: Dictionary, uid: int, slot: String) -> void:
 		return
 	# Mangekyō sahibine başka bir Mangekyō nakli = Ebedi Mangekyō
 	var cur = Gear.equipped(pr, slot)
-	# kanon (Sasuke–Itachi): kendi uyandırdığın Mangekyō'nun yerine başka bir Uchiha'nın Mangekyō'su; nakil MS üstüne nakil MS olmaz
-	if not cur.is_empty() and cur["id"] == "goz_mangekyo" and g["id"] == "goz_mangekyo" and String(cur.get("origin", "dogustan")) == "dogustan" and String(g.get("origin", "nakil")) == "nakil":
+	# kanon (Sasuke–Itachi, Madara–Izuna): kendi uyandırdığın Mangekyō'nun yerine KAN AKRABANIN Mangekyō'su; nakil MS üstüne nakil MS
+	# olmaz, yabancı Uchiha'nın Mangekyō'su Ebedi yapmaz (yalnız Mangekyō olarak takılır)
+	if not cur.is_empty() and String(cur.get("origin", "dogustan")) == "dogustan":
+		cur["own"] = true   # yerinden çıkan kendi gözün kavanoza: menüden geri takılabilir
+	if not cur.is_empty() and cur["id"] == "goz_mangekyo" and g["id"] == "goz_mangekyo":   # 2026-11-25 kullanıcı: "mangekyō + mangekyō sınır olmasın" — kaynağı/akrabalığı ne olursa olsun iki Mangekyō = Ebedi
 		g["id"] = "goz_ems"
 		g["origin"] = "dogustan"
 		# Ebedi'ye geçişte göz kendi Mangekyō'nun tarzını ve desenini korur (nakledilen gözünkine dönmez)

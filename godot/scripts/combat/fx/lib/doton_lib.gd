@@ -981,6 +981,11 @@ static func mud_blob(s: float, col: Color, ow := 0.03) -> MeshInstance3D:
 ## Yerden fırlayıp (t_up) bekleyen (hold) ve geri gömülen (t_down) kütle; depth: başlangıç gömülme derinliği
 static func rise(host: Node, mi: Node3D, p: Vector3, depth: float, t_up: float, hold: float, t_down: float, delay := 0.0) -> void:
 	put(host, mi, p - Vector3.UP * depth)
+	if not is_nan(WaterWaves.surface_at(p, 1.5)):   # sudan (dipten) yükselen toprak: yüzeyi yarar, üstünden su dökülür
+		var aabb_r = clampf(depth * 0.6, 0.6, 12.0)
+		host.get_tree().create_timer(delay + t_up * 0.3).timeout.connect(func():
+			if is_instance_valid(mi):
+				WaterWaves.ground_on_water(mi.global_position, aabb_r, "rock"))
 	var tw = mi.create_tween()
 	if delay > 0.0:
 		tw.tween_interval(delay)
@@ -1005,6 +1010,7 @@ static func toss(host: Node, mi: Node3D, p0: Vector3, v: Vector3, life: float, g
 		if pos.y < fy and tm > 0.06 and v.y - g * tm < 0.0:
 			pos.y = fy
 			stt["land"] = true
+			WaterWaves.ground_on_water(pos, 0.8 + mi.scale.x, "rock")   # suya düşen taş sıçratır
 		mi.global_position = pos
 		mi.rotation = r0 + spin * tm, 0.0, life, life)
 	tw.tween_callback(func():
@@ -1028,6 +1034,8 @@ static func burst_chunks(host: Node, p: Vector3, n: int, s: float, spd: float, c
 ## Tek toz topu: s son çap, life ömür, vel sürüklenme (yavaşlayarak)
 static func dust(host: Node, p: Vector3, s: float, life: float, vel := Vector3.ZERO, col := Color(0.86, 0.77, 0.6)) -> MeshInstance3D:
 	s *= 0.6   # okunurluk: toz efekti örtmesin
+	if WaterWaves.ground_on_water(p, s, "dust"):   # suda toz kalkmaz: serpinti + halka
+		return null
 	var cam = host.get_viewport().get_camera_3d() if host.is_inside_tree() else null
 	if cam and cam.global_position.distance_to(p) < 2.5 + s * 0.5:
 		return null
@@ -1047,6 +1055,8 @@ static func dust(host: Node, p: Vector3, s: float, life: float, vel := Vector3.Z
 
 ## Dışa yayılan toz halkası (yer seviyesi): r0 → r1 yarıçap, n top
 static func dust_ring(host: Node, c: Vector3, r0: float, r1: float, n: int, s: float, life: float, col: Color) -> void:
+	if WaterWaves.ground_on_water(floor_at(c), r1, "rock"):   # suda toz halkası yerine sıçrama + dalga
+		return
 	var cam = host.get_viewport().get_camera_3d() if host.is_inside_tree() else null
 	var tc = flat(cam.global_position - c) if cam else Vector3.ZERO
 	for i in n:
@@ -1092,6 +1102,8 @@ static func grit(host: Node, p: Vector3, n: int, col: Color, o := {}) -> GPUPart
 # ================================================================== yapı taşları: zemin izi
 static func _decal(host: Node, p: Vector3, r: float, mode: float, sl: Color) -> MeshInstance3D:
 	var mi = gi(_plane(), ground_mat())
+	if WaterWaves.ground_on_water(p, r, "decal"):   # suda çatlak / çukur / çamur izi yok: yüzey halkalanır (iz görünmez, çağıranın tween'i çalışır)
+		mi.visible = false
 	mi.set_instance_shader_parameter("gmode", mode)
 	mi.set_instance_shader_parameter("seed", randf() * 10.0)
 	mi.set_instance_shader_parameter("grow", 0.0)

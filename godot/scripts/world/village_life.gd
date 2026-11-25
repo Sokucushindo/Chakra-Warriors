@@ -6,6 +6,7 @@ extends Node3D
 
 ## köy id -> [{type, pos, face(rad), ...}]
 static var sites := {}
+const VillagerJobs = preload("res://scripts/actors/villager_jobs.gd")
 static var doors := {}  # köy id -> [kapı önü noktaları] (akşam eve girenler)
 
 const PHASE_ROLES := {
@@ -96,6 +97,12 @@ var main_pts := {}     # ana cadde noktaları (anahtar: _wkey)
 var _w_cache := {}
 var _ref_cache := {}   # köy -> [nokta sayısı, tam pencerede beklenen nokta]
 const BUSY_SITES := ["stall", "ramen", "crowd", "bar", "pigeons", "academy_yard"]
+## İş yerleri (VillagerJobs): tarla, hastane önü, ANBU karargâhı, polis binası, Kage meydanı haberciler, akademi atış alanı,
+## klan dōjō'su, dükkân önü, nehir kıyısı. Oyuncunun yakınındaki işçi sayısı JOB_CAP ile sınırlı (en yakın yerler önce);
+## sokak kalabalığı işçi kadar azalır (toplam kişi sayısı artmaz, boştaki yürüyenler işe geçmiş olur).
+const JOB_SITES := ["farm", "hospital", "anbu", "police", "messenger", "drill", "dojo", "sweep", "fish"]
+const NIGHT_ROSTER := ["hospital", "anbu", "police"]   # gece vardiyası: kadro değişir (akşam yeniden kurulur)
+const JOB_CAP := 18
 
 
 static func _wkey(q: Vector3) -> Vector3i:
@@ -305,6 +312,7 @@ func _process(dt: float) -> void:
 	# kalabalık, çevredeki gerçek sokak miktarıyla orantılı
 	var fill = clampf(float(near_far.size()) / maxf(1.0, _ref_points(v, streets)), 0.2, 1.0)
 	target = maxi(2, int(round(target * fill)))
+	target = maxi(2, target - int(_job_count() * 0.6))   # işe geçenler sokaktan eksilir (toplam kişi sayısı aynı kalır)
 	for n in far:
 		if is_instance_valid(n) and not _recycle(n, near_r, roofs, p, true):
 			n.queue_free()
@@ -720,6 +728,10 @@ func _site_ok(s: Dictionary) -> bool:
 	match s["type"]:
 		"stall", "work", "bench", "spar", "ball", "repair":
 			return phase != "gece"
+		"farm", "fish", "messenger", "dojo":
+			return phase != "gece"
+		"drill", "sweep":
+			return phase == "sabah" or phase == "oglen"
 		"bar":
 			return phase == "gece" or phase == "aksam"
 		"academy_yard", "crowd", "pigeons":
@@ -732,22 +744,197 @@ func _update_sites(v: Dictionary, p: Vector3) -> void:
 	for key in active_sites.keys():
 		var info: Dictionary = active_sites[key]
 		var s: Dictionary = info["site"]
-		if v.is_empty() or s["pos"].distance_to(p) > 150.0 or not _site_ok(s):
+		var far = v.is_empty() or s["pos"].distance_to(p) > 150.0
+		var shift = String(s["type"]) in NIGHT_ROSTER and bool(info.get("night", false)) != (phase == "gece")
+		if far or not _site_ok(s) or shift:
+			var job = String(s["type"]) in JOB_SITES and not far
 			for n in info["nodes"]:
-				if is_instance_valid(n):
+				if not is_instance_valid(n):
+					continue
+				if job and n is Villager and not n.fading and n.global_position.distance_to(p) < 120.0:
+					_job_leave(n)   # iş bitti / vardiya değişti: gözünün önünde kaybolmaz, kapıya yürür
+				else:
 					n.queue_free()
 			active_sites.erase(key)
 	if v.is_empty():
 		return
 	var list: Array = sites.get(v["id"], [])
+	var jobs: Array = []
 	for i in list.size():
 		var s: Dictionary = list[i]
 		var key = "%s_%d" % [v["id"], i]
 		if active_sites.has(key) or not _site_ok(s):
 			continue
 		if s["pos"].distance_to(p) < 110.0:
-			active_sites[key] = {"site": s, "nodes": []}
-			_open_site(key, s)
+			if String(s["type"]) in JOB_SITES:
+				jobs.append([s["pos"].distance_to(p), key, s])
+			else:
+				active_sites[key] = {"site": s, "nodes": []}
+				_open_site(key, s)
+	if jobs.is_empty() or Missions.quiet():
+		return   # görev / sınav / antrenman sürerken yeni kimse sahneye girmez
+	# iş yerleri: en yakından, sınır dolana kadar
+	jobs.sort_custom(func(a, b): return a[0] < b[0])
+	var have = _job_count()
+	for j in jobs:
+		if have >= JOB_CAP:
+			break
+		var s2: Dictionary = j[2]
+		if String(s2["type"]) == "farm" and not _staffed(s2):
+			continue
+		active_sites[j[1]] = {"site": s2, "nodes": [], "night": phase == "gece"}
+		have += _open_job(j[1], s2)
+
+
+## Yakındaki iş yerlerinde çalışan (ya da sırada bekleyen) kişi sayısı
+func _job_count() -> int:
+	var c = 0
+	for key in active_sites:
+		var info: Dictionary = active_sites[key]
+		if String(info["site"]["type"]) in JOB_SITES:
+			c += int(info.get("planned", 0))
+	return c
+
+
+## Tarlaların hepsinde biri olmaz: yerine göre sabit (aynı tarla her gün aynı; dünya verisinden, rastgele değil)
+func _staffed(s: Dictionary) -> bool:
+	var q: Vector3 = s["pos"]
+	return absi(hash(Vector2i(roundi(q.x), roundi(q.z)))) % 100 < 42
+
+
+func _job_leave(n: Villager) -> void:
+	var ds: Array = doors.get(current, [])
+	var best: Vector3 = n.global_position + Vector3(randf_range(-30, 30), 0, randf_range(-30, 30))
+	if not ds.is_empty():
+		var bd = 1e9
+		for k in 14:
+			var q: Vector3 = ds.pick_random()
+			var d = q.distance_to(n.global_position)
+			if d < bd:
+				bd = d; best = q
+	VillagerJobs.leave(n, best)
+	npcs.append(n)   # artık sokak kişisi: köyden çıkınca / eve varınca silinir
+
+
+## İş yerinin kadrosunu sıraya koyar; kaç kişi geleceğini döndürür
+func _open_job(key: String, s: Dictionary) -> int:
+	var pos: Vector3 = s["pos"]
+	var night = phase == "gece"
+	var reqs: Array = []   # [rol, veri]
+	var J = func(job: String, at: Vector3, face: float, jd: Dictionary, more := {}) -> void:
+		var d = {"pos": at, "face": face, "fixed_face": true, "job": job, "jd": jd}
+		d.merge(more, true)
+		reqs.append(["job", d])
+	match String(s["type"]):
+		"farm":
+			var u: Vector3 = s["u"]
+			var vv: Vector3 = s["v"]
+			var w: float = s["w"]
+			var dp: float = s["d"]
+			var crop = int(s.get("crop", 1))
+			var hsh = absi(hash(Vector2i(roundi(pos.x), roundi(pos.z))))
+			var kinds: Array = [["plant", "plant"], ["hoe", "water", "harvest"], ["harvest", "hoe"]][clampi(crop, 0, 2)]
+			var n = 1 + (1 if hsh % 3 != 0 else 0)
+			for k in n:
+				var job: String = kinds[(hsh / 7 + k) % kinds.size()]
+				var row = randf_range(-w * 0.5 + 1.2, w * 0.5 - 1.2)
+				var sv = randf_range(-dp * 0.5 + 1.5, dp * 0.5 - 1.5)
+				var edge = pos + u * (w * 0.5 + 1.4) + vv * randf_range(-dp * 0.3, dp * 0.3)
+				var jd = {"c": pos, "u": u, "v": vv, "w": w, "d": dp, "row": row, "s": sv, "dir": 1.0 if randf() < 0.5 else -1.0, "edge": edge}
+				var at = pos + u * row + vv * sv
+				J.call(job, at, atan2(-vv.x, -vv.z), jd)
+			if crop != 0 and hsh % 4 == 0:
+				# hasat sepetini tarla kenarından yol tarafına taşıyan
+				var e0 = pos + u * (w * 0.5 + 1.5)
+				var e1 = pos + u * (w * 0.5 + 1.5) + vv * (dp * 0.5 + 4.0)
+				J.call("basket", e0, 0.0, {"pts": [e1, e0]})
+		"hospital":
+			var door: Vector3 = s["door"]
+			var gate: Vector3 = s["gate"]
+			var fo: float = s.get("face_out", PI)
+			var side: Vector3 = s.get("side", Vector3.RIGHT)
+			J.call("chart", door + side * 4.5, fo, {"face0": fo})
+			J.call("supply", door - side * 2.5, fo, {"pts": [gate - side * 2.5, door - side * 2.5]})
+			if not night:
+				var bs: Array = s.get("benches", [])
+				if not bs.is_empty():
+					var be: Array = bs[randi() % bs.size()]
+					var bp: Vector3 = be[0]
+					var bf: float = be[1]
+					var bfd = Vector3(-sin(bf), 0, -cos(bf))
+					reqs.append(["patient", {"pos": bp, "face": bf, "fixed_face": true, "lines_override": VillagerJobs.PATIENT_LINES, "display_override": "Hasta"}])
+					J.call("heal", bp + bfd * 1.05, bf + PI, {})
+				var sp = side * 6.5
+				J.call("stretcher", door + sp, fo, {"pts": [gate + sp, door + sp], "lead": true, "pair": "st"})
+				J.call("stretcher", door + sp - Vector3(-sin(fo), 0, -cos(fo)) * 2.3, fo, {"lead": false, "pair": "st"})
+		"anbu", "police":
+			var anbu = String(s["type"]) == "anbu"
+			var pre = "anbu_" if anbu else "police_"
+			var gs: Array = s.get("guards", [])
+			for k in gs.size():
+				if night and not anbu and k > 0:
+					break
+				J.call(pre + "guard", gs[k][0], gs[k][1], {"lantern": not anbu and night})
+			var ring: Array = s.get("ring", [])
+			if ring.size() >= 2:
+				var r0: Vector3 = ring[0]
+				J.call(pre + "patrol", r0, 0.0, {"pts": ring.slice(1) + [r0], "lead": true, "pair": "pt", "lantern": night})
+				J.call(pre + "patrol", r0 + Vector3(1.2, 0, 0), 0.0, {"lead": false, "pair": "pt"})
+			var inner: Array = s.get("inner", [])
+			if inner.size() >= 2:
+				J.call(pre + "patrol", inner[0], 0.0, {"pts": inner, "lead": true, "lantern": night and not anbu})
+			if not night and anbu:
+				var posts: Array = s.get("posts", [])
+				if not posts.is_empty():
+					var pe: Array = posts[randi() % posts.size()]
+					J.call("anbu_strike", pe[0], pe[1], {})
+				var th: Array = s.get("throw", [])
+				if th.size() >= 3:
+					J.call("anbu_throw", th[0], th[1], {"target": th[2]})
+		"messenger":
+			var pts: Array = s["pts"]
+			J.call("messenger", pts[0], 0.0, {"pts": [pts[1], pts[0]]})
+			if absi(hash(Vector2i(roundi(pos.x), roundi(pos.z)))) % 2 == 0:
+				J.call("messenger", pts[1], 0.0, {"pts": [pts[0], pts[1]], "t": 6.0})
+		"drill":
+			var tg: Array = s.get("targets", [])
+			var f: float = s.get("face", 0.0)
+			var rv: Vector3 = s.get("u", Vector3.RIGHT)
+			var fd = Vector3(-sin(f), 0, -cos(f))
+			for k in mini(3, tg.size()):
+				var t3: Vector3 = tg[(k * 2) % tg.size()]
+				var at = Vector3(t3.x, pos.y, t3.z) - fd * 6.5 + rv * randf_range(-0.6, 0.6)
+				J.call("drill_throw", at, f, {"target": t3})
+			var ps: Array = s.get("posts", [])
+			if not ps.is_empty():
+				J.call("drill_strike", ps[0][0], ps[0][1], {})
+			J.call("drill_teacher", pos - fd * 3.0 - rv * 8.0, f, {"pts": [pos - fd * 3.0 + rv * 8.0, pos - fd * 3.0 - rv * 8.0]})
+		"dojo":
+			var cl = String(s.get("clan", "hyuga"))
+			var vid = String(current)
+			for pr in s.get("pairs", []).slice(0, 1):
+				var pp: Vector3 = pr
+				for sd in [-1.0, 1.0]:
+					var fem = randf() < 0.4
+					var lk = ClanWorld.clan_look(cl, "chunin", vid, fem, ["adult", "young", "teen"].pick_random())
+					reqs.append(["spar", {"pos": pp + Vector3(1.1 * sd, 0, 0), "pair": "a" if sd < 0 else "b", "look_extra": lk,
+						"display_override": ClanWorld.person_name(cl, fem), "lines_override": VillagerJobs.LINES["hyuga"]}])
+			var dp2: Array = s.get("posts", [])
+			for k in mini(2, dp2.size()):
+				J.call("dojo_strike", dp2[k * 2 % dp2.size()][0], dp2[k * 2 % dp2.size()][1], {})
+		"sweep":
+			J.call("sweep", pos, s.get("face", 0.0), {})
+		"fish":
+			J.call("fish", pos, s.get("face", 0.0), {"water_y": float(s.get("water_y", pos.y - 0.4))})
+	# iş yeri kadrosu sıranın önüne (sokak kalabalığı onlardan sonra dolar): yaklaşırken yer boş görünmesin
+	for ri in range(reqs.size() - 1, -1, -1):
+		var r: Array = reqs[ri]
+		var d: Dictionary = r[1]
+		if r[0] == "job":
+			d["lines_override"] = VillagerJobs.LINES.get(VillagerJobs.KIND.get(d["job"], "farmer"), [])
+		queue.push_front(["site", key, r[0], d])
+	active_sites[key]["planned"] = reqs.size()
+	return reqs.size()
 
 
 func _open_site(key: String, s: Dictionary) -> void:
@@ -811,7 +998,7 @@ func _spawn_site_actor(key: String, role: String, d: Dictionary) -> void:
 	if not active_sites.has(key):
 		return
 	var extra = {}
-	for k in ["fixed_face", "work_anims", "work_points", "display_override", "lines_override", "eat_mode", "wander_r"]:
+	for k in ["fixed_face", "work_anims", "work_points", "display_override", "lines_override", "eat_mode", "wander_r", "job", "jd", "look_extra"]:
 		if d.has(k):
 			extra[k] = d[k]
 	# bu yerde tanıştığın biri varsa o gelir (adı, görünüşü); yoksa sıradan biri
@@ -822,7 +1009,7 @@ func _spawn_site_actor(key: String, role: String, d: Dictionary) -> void:
 		extra["look_extra"] = Friends.look_of(f)
 		extra["display_override"] = String(f["name"])
 	var at: Vector3 = d["pos"]
-	if not role in ["sitter", "vendor", "eat", "bench"]:
+	if not role in ["sitter", "vendor", "eat", "bench", "patient"] and not String(d.get("job", "")) in ["hoe", "harvest", "water", "plant", "fish"]:
 		at = _free_spot(at)   # fener / sandık / duvarın içine ya da arkasına düşen nöbetçi vb. yakındaki boş noktaya
 	var vg = _villager(role, at, [], extra, skey, fid)
 	if vg == null:
@@ -841,6 +1028,16 @@ func _spawn_site_actor(key: String, role: String, d: Dictionary) -> void:
 				WorldDay.paired(n, vg)
 	if role == "ball" and d.has("game") and is_instance_valid(d["game"]):
 		d["game"].kids.append(vg)
+	if role == "job":
+		vg.jd = (vg.jd as Dictionary).duplicate(true)   # kayıttaki veri paylaşılmasın (her kişinin kendi durumu)
+		var pr = String(vg.jd.get("pair", ""))
+		if pr != "":
+			# eşli iş (sedye, çift devriye): aynı yerin eşiyle bağlanır
+			for n in active_sites[key]["nodes"]:
+				if n != vg and n is Villager and n.role == "job" and n.job == vg.job and String(n.jd.get("pair", "")) == pr and not n.jd.has("mate"):
+					n.jd["mate"] = vg
+					vg.jd["mate"] = n
+					break
 
 
 ## Ayakta duracak NPC için boş nokta: konumda katı bir şey varsa çevresinde halka halka boşluk ara
