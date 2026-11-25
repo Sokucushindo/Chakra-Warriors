@@ -1,5 +1,6 @@
 class_name KageHall
 extends RefCounted
+const FacadeKit = preload("res://scripts/world/facade_kit.gd")
 ## Kage binaları ve önlerindeki tören meydanları. Yerel koordinat (Builder): x doğu, n kuzey, bina önü güneye (-n) bakar.
 ## plaza(): taş döşeli meydan (derz çizgileri, sınır bandı, orta yol + kakma), amblemli çeşme, teras + rampalı merdiven,
 ## köy kapısı (iki direk + kanji plakası), fener sıraları, banklar, çit gibi budanmış çalılı taş saksılar + iklime göre ağaçlar,
@@ -460,6 +461,15 @@ static func konoha_tower(b: Builder, decor: Node3D, tn: float) -> float:
 			b.box(Vector3(wx0 - 22.3, 5.0 + fl * 7.5, pz), Vector3(0.2, 2.9, 2.7), Color(0.95, 0.92, 0.8), 0, false)
 	b.disc(Vector3(wx0, 14.0, enn - 16.3), 5.0, 0.3, red, 0.0, 20)
 	b.kanji(Vector3(wx0, 14.0, enn - 16.55), "書", 3.6, Color(0.98, 0.95, 0.9), 0.0)
+	# arka avlu tarafı (2026-11-25): kanatların arka kapıları, yağmur boruları, sandıklar; kuleye bakan yan cepheler de pencereli
+	FacadeKit.dress(b, ex, enn + 20.0, 0.0, 60.0, 0.0, 26.0, {"windows": false, "pipes": dark.lightened(0.1), "door": 14.0,
+		"door_w": 2.4, "door_h": 3.0, "awning": red, "frame": dark, "props": "service", "seed": 31})
+	FacadeKit.dress(b, ex - 30.0, enn, 270.0, 40.0, 0.0, 24.0, {"floors": 3, "fh": 8.0, "win_y": 4.5, "win": Vector2(3.1, 2.7),
+		"pitch": 7.5, "frame": dark, "glass": glass, "skip": [[-5.0, 5.0]], "sill": false, "seed": 32})
+	FacadeKit.dress(b, wx0, enn + 16.0, 0.0, 44.0, 0.0, 18.0, {"windows": false, "pipes": dark.lightened(0.1), "door": -12.0,
+		"door_w": 2.2, "door_h": 2.8, "awning": red, "frame": dark, "props": "service", "seed": 33})
+	FacadeKit.dress(b, wx0 + 22.0, enn, 90.0, 32.0, 0.0, 16.0, {"floors": 2, "fh": 7.5, "win_y": 5.0, "win": Vector2(2.7, 2.9),
+		"pitch": 7.0, "frame": dark, "glass": Color(0.95, 0.92, 0.8), "skip": [[-4.5, 4.5]], "sill": false, "seed": 34})
 	# gövdelerle kule arasında kapalı köprüler
 	for sx in [-1.0, 1.0]:
 		var bx0 = sx * 38.0

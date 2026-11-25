@@ -13769,5 +13769,11 @@
 "Sat — %d Ryō": "Sell — %d Ryō",
 "Adet": "Quantity",
 "%s x%d satıldı: +%d Ryō": "Sold %s x%d: +%d Ryō",
-"Mangekyō + Mangekyō: Ebedi Mangekyō olur, körlük biter.": "Mangekyō + Mangekyō: becomes the Eternal Mangekyō, the blindness ends."
+"Mangekyō + Mangekyō: Ebedi Mangekyō olur, körlük biter.": "Mangekyō + Mangekyō: becomes the Eternal Mangekyō, the blindness ends.",
+"Ekipman %%%d": "Equipment %d%%",
+"Uchiha'nın kopyalayan gözü: önünde yapılan tekniği kopyalar, hareketleri önceden okur (tomoe başına %4 kaçınma), göz temasıyla genjutsu yapar ve genjutsuya direnir.": "The Uchiha's copying eye: copies techniques performed in front of it, reads movements in advance (4% evasion per tomoe), casts genjutsu through eye contact and resists genjutsu.",
+"Büyük acıyla uyanan kaleydoskop göz: kendi göz teknikleri ve Susanoo, %20 kaçınma. Açık kaldıkça gözü karartır, sonunda kör eder.": "A kaleidoscope eye awakened through great pain: its own eye techniques and Susanoo, 20% evasion. The longer it stays open the darker your sight grows, until it blinds you.",
+"İki Mangekyō'nun birleşmesiyle doğan, ışığı sönmeyen göz: körlük yok, %28 kaçınma, ağır saldırıları da okur, daha güçlü Susanoo.": "Born from two Mangekyō fused together, an eye whose light never fades: no blindness, 28% evasion, reads even heavy attacks, a stronger Susanoo.",
+"Hyūga'nın her yönü gören beyaz gözü: 360° görüş, düşmanın chakrası görünür, Jūken yakın dövüş +%25.": "The Hyūga's all-seeing white eye: 360° vision, enemies' chakra becomes visible, Gentle Fist close combat +25%.",
+"ağır saldırıları da okursun": "you read even heavy attacks"
 }

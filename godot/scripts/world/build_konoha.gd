@@ -1,5 +1,6 @@
 class_name BuildKonoha
 extends RefCounted
+const FacadeKit = preload("res://scripts/world/facade_kit.gd")
 ## Konohagakure: Ateş Ülkesi'nin gizli yaprak köyü. Yerel (x=doğu, n=kuzey), merkez (0,0), yarıçap ~1500 m (plato).
 ## Sokak ağı dünya verisinden (roads.json, kind "street") gelir; evler sokak boylarına dizilir (merkez sık, dış mahalleler seyrek).
 ## Kuzeyde arazi uçurumu (Hokage Kayası, n≈1170) — yüzler uçuruma oyulur. Girilebilir binalar ("enter" -> Interiors),
@@ -265,6 +266,97 @@ static func _market_stall(b: Builder, decor: Node3D, x: float, n: float, side: f
 	b.sphere(Vector3(x + 1.9, 0.35, n + side * 1.8), Vector3(0.7, 0.7, 0.6), Color(0.78, 0.7, 0.52), 8)
 	b.yoff = 0.0
 
+
+## Yaya köprüleri (2026-11-25, kullanıcı: "köprü lazım buraya"): kanal köprüleri yalnız caddelerde kuruluyordu; ev / tarla patikaları
+## (RoadMap toprak şeritleri) kanalı kestiği yerde karşıya geçiş yoktu. Patika x kanal kesişimine kemerli ahşap köprü (taiko-bashi):
+## kanal setlerinin üstünden geçecek kadar yüksek, iki ucunda yere inen rampa, iki yanda kızıl korkuluk. Caddeye yakın yerler atlanır.
+static func _footbridges(b: Builder, canals: Array) -> int:
+	var RMc = preload("res://scripts/world/road_map.gd")
+	var placed: Array = []   # dünya xz
+	var made = 0
+	var wood = Color(0.52, 0.36, 0.22)
+	var rail = Color(0.72, 0.18, 0.15)
+	for cn in canals:
+		var pts: Array = cn[0]
+		var half: float = float(cn[1]) * 0.5
+		# patikalar kanala kadar gelip duruyor (kesişim yok): yerleşim içinde kanal boyunca ~140 m'de bir yaya köprüsü,
+		# cadde köprüsüne 100 m'den yakın yere değil
+		var since = 1e9
+		for i in pts.size() - 1:
+			var a: Vector2 = pts[i]
+			var e: Vector2 = pts[i + 1]
+			var wa = b.w(Vector3(a.x, 0, a.y))
+			since += a.distance_to(e)
+			if Game.road_dist(wa.x, wa.z) < 14.0:
+				since = 40.0   # cadde köprüsü burada: sonraki yaya köprüsü en az ~100 m ötede
+				placed.append(Vector2(wa.x, wa.z))
+				continue
+			if since < 140.0:
+				continue
+			var zq = _zone(a.x, a.y)
+			if not (zq == 0 or _hamlet(a.x, a.y)) or a.length() > R - 40.0:
+				continue
+			if made >= 60:
+				break
+			var hp = Vector2(wa.x, wa.z)
+			var close = false
+			for q in placed:
+				if (q as Vector2).distance_to(hp) < 45.0:
+					close = true
+					break
+			if close or Game.road_dist(wa.x, wa.z) < 30.0:
+				continue   # cadde köprüsünün / başka yaya köprüsünün dibinde olmasın (kanal noktaları seyrek: cadde 30 m içindeyse taş köprü yakındır)
+			since = 0.0
+			placed.append(hp)
+			if true:
+				var m: Vector2 = a.lerp(e, 0.5)
+				var dir: Vector2 = (e - a).normalized()
+				var nr = Vector2(-dir.y, dir.x)
+				var yaw = rad_to_deg(atan2(nr.x, nr.y))   # kutu z ekseni köprü boyunca (nr)
+				var g0 = _gy(b, m.x, m.y)
+				var top = 1.75   # kanal seti başlığı ~1.35: üstünden geçer
+				var span = half + 1.2
+				var ramp = 4.2
+				var total = span + ramp
+				var nseg = 14
+				var hfun = func(u: float) -> float:
+					var au = absf(u)
+					if au <= span:
+						return top + 0.25 * (1.0 - (au / span) * (au / span))
+					return top * (1.0 - (au - span) / ramp)
+				for k in nseg:
+					var u0 = -total + (2.0 * total) * k / nseg
+					var u1 = -total + (2.0 * total) * (k + 1) / nseg
+					var p0 = m + nr * u0
+					var p1 = m + nr * u1
+					var y0 = maxf(_gy(b, p0.x, p0.y), g0 - 0.5) + float(hfun.call(u0))
+					var y1 = maxf(_gy(b, p1.x, p1.y), g0 - 0.5) + float(hfun.call(u1))
+					if absf(u0) > span:
+						y0 = _gy(b, p0.x, p0.y) + float(hfun.call(u0))
+					if absf(u1) > span:
+						y1 = _gy(b, p1.x, p1.y) + float(hfun.call(u1))
+					var pm = (p0 + p1) * 0.5
+					var run = p0.distance_to(p1)
+					var ang = rad_to_deg(atan2(y1 - y0, run))
+					b.box(Vector3(pm.x, (y0 + y1) * 0.5 - 0.1, pm.y), Vector3(2.6, 0.2, sqrt(run * run + (y1 - y0) * (y1 - y0)) + 0.05), wood.darkened(0.04 * (k % 2)), yaw, true, Vector3(ang, 0, 0))
+					# korkuluk: iki yanda dikme + üst kiriş
+					for sd in [-1.0, 1.0]:
+						var pp = p0 + dir * sd * 1.25
+						b.box(Vector3(pp.x, y0 + 0.5, pp.y), Vector3(0.12, 1.0, 0.12), rail.darkened(0.15), yaw, false)
+						var pr = pm + dir * sd * 1.25
+						b.box(Vector3(pr.x, (y0 + y1) * 0.5 + 0.95, pr.y), Vector3(0.1, 0.1, sqrt(run * run + (y1 - y0) * (y1 - y0)) + 0.05), rail, yaw, false, Vector3(ang, 0, 0))
+				# kanal içinde iki taşıyıcı ayak
+				for sd2 in [-1.0, 1.0]:
+					var lp = m + nr * sd2 * (half - 0.8)
+					var gl = _gy(b, lp.x, lp.y)
+					for sx in [-1.0, 1.0]:
+						var q2 = lp + dir * sx * 1.0
+						b.box(Vector3(q2.x, gl + top * 0.5, q2.y), Vector3(0.3, top + 0.4, 0.3), wood.darkened(0.25), yaw, true)
+				if made < 6:
+					print("FBPOS %.1f,%.1f dir %.2f,%.2f" % [m.x, m.y, dir.x, dir.y])
+				made += 1
+	return made
+
 ## Hokage yerleşkesinin avlu duvarı (anime: Hokage binası ve idari binalar duvarla çevrili, önde tören kapısı): beyaz sıva,
 ## taş taban, koyu kiremit başlık; önde tören caddesine açılan geniş kapı (iki kızıl direk + çatılı kiriş + 火 levhası)
 static func _hokage_compound_wall(b: Builder, tn: float) -> void:
@@ -310,6 +402,122 @@ static func _hokage_compound_wall(b: Builder, tn: float) -> void:
 const HAMLETS := [[-1040.0, 250.0, 200.0], [-800.0, -500.0, 120.0], [900.0, -560.0, 130.0], [860.0, 470.0, 110.0],
 	[-1130.0, -200.0, 140.0], [1130.0, -200.0, 140.0], [-380.0, -830.0, 120.0], [220.0, -880.0, 120.0], [590.0, -700.0, 110.0],
 	[190.0, -1120.0, 100.0], [-560.0, -1060.0, 100.0], [-900.0, 700.0, 110.0], [760.0, 860.0, 110.0]]
+## Akademinin arka ve yan cepheleri (2026-11-25, kullanıcı: "önden çok güzel, arkası bomboş"): arka kanatta ön cepheyle aynı
+## ahşap çerçeveli pencere sıraları + kat kirişi, iki arka kapı (kiremit saçaklı), yağmur boruları, yanlarda pencere + alınlık
+## menfezi, silindirin arka yarısında beyaz çerçeveli pencereler; arka avluda kiremit çatılı alet kulübesi, odun yığını,
+## okul bostanı (çitli sebze sıraları), sandıklar.
+static func _academy_back(b: Builder, ax: float, an: float, mcx: float, mcn: float, tan: Color, tile: Color, red: Color, white: Color, wood: Color) -> void:
+	if not FacadeKit.on():
+		return
+	var glass = Color(0.5, 0.68, 0.82)
+	var pipe = Color(0.55, 0.42, 0.3)
+	var skip_cyl = [[mcx - ax - 9.5, mcx - ax + 9.5], [29.6, 34.4]]
+	FacadeKit.dress(b, ax, an + 17.0, 0.0, 100.0, 0.0, 14.0, {"floors": 2, "fh": 7.0, "win": Vector2(2.4, 2.0), "pitch": 6.55,
+		"frame": wood, "glass": glass, "band": wood, "skip": skip_cyl, "door": -30.0, "door_w": 2.4, "door_h": 3.0,
+		"awning": tile, "pipes": pipe, "props": "service", "seed": 71, "flower": 0.0})
+	FacadeKit.back_door(b, ax, an + 17.0, 0.0, 32.0, 0.0, {"door_w": 2.0, "door_h": 2.8, "frame": wood, "awning": tile, "lamp": false})
+	for sx in [-1.0, 1.0]:
+		var fc = 90.0 if sx > 0.0 else 270.0
+		var xw = ax + sx * 50.0
+		# ön kanat (tek kat, 9 m) + arka kanat (iki kat, 14 m); u yüzün sağ eli: 90'da güney, 270'te kuzey
+		FacadeKit.dress(b, xw, an - 8.5, fc, 17.0, 0.0, 9.0, {"floors": 1, "win": Vector2(2.1, 1.7), "pitch": 5.5, "frame": wood,
+			"glass": glass, "band": wood, "vents": wood, "margin": 2.6, "seed": 72 + int(sx)})
+		FacadeKit.dress(b, xw, an + 8.5, fc, 17.0, 0.0, 14.0, {"floors": 2, "fh": 7.0, "win": Vector2(2.1, 1.7), "pitch": 5.5,
+			"frame": wood, "glass": glass, "band": wood, "vents": wood, "pipes": pipe, "margin": 2.6, "seed": 74 + int(sx),
+			"props": "service" if sx < 0.0 else ""})
+	# kırmızı silindirin arka yarısı (arka kanat çatısının üstünden görünür): ön yüzdeki beyaz çerçeveli pencerelerin devamı
+	for k in 7:
+		var wa = deg_to_rad(110.0 + k * 23.3)
+		var wpn = Vector3(mcx + sin(wa) * 17.05, 21.5, mcn - cos(wa) * 17.05)
+		b.box(wpn, Vector3(2.4, 2.8, 0.5), white, rad_to_deg(wa), false)
+		b.box(wpn + Vector3(sin(wa), 0, -cos(wa)) * 0.12, Vector3(1.8, 2.2, 0.5), Color(0.22, 0.26, 0.34), rad_to_deg(wa), false)
+	# arka avlu: alet kulübesi (katı), yanında odun yığını
+	var shx = ax - 38.0; var shn = an + 28.0
+	var g = FacadeKit.ground(b, shx, shn)
+	b.box(Vector3(shx, g + 1.4, shn), Vector3(7.0, 2.8, 4.6), tan.darkened(0.1), 0.0, true)
+	b.roof(Vector3(shx, g + 2.8, shn), Vector3(8.2, 1.6, 5.8), tile.darkened(0.08), 0.0)
+	b.box(Vector3(shx + 1.2, g + 1.1, shn - 2.34), Vector3(1.6, 2.2, 0.1), wood, 0.0, false)
+	b.box(Vector3(shx - 1.9, g + 1.7, shn - 2.34), Vector3(1.4, 0.9, 0.1), wood, 0.0, false)
+	b.box(Vector3(shx - 1.9, g + 1.7, shn - 2.4), Vector3(1.1, 0.65, 0.06), glass, 0.0, false)
+	for k in 4:   # kulübe duvarında dikey tahta derzleri
+		b.box(Vector3(shx + 3.52, g + 1.4, shn - 1.7 + k * 1.15), Vector3(0.06, 2.8, 0.08), wood, 0.0, false)
+	FacadeKit.props(b, shx, shn + 2.3, 0.0, 7.0, g, "home", RandomNumberGenerator.new(), [])
+	# okul bostanı: alçak çitle çevrili toprak, sebze sıraları, köşede kova
+	var gx = ax + 34.0; var gn = an + 29.0
+	var gg = FacadeKit.ground(b, gx, gn)
+	b.box(Vector3(gx, gg + 0.06, gn), Vector3(16.0, 0.12, 8.0), Color(0.42, 0.3, 0.2), 0.0, false)
+	for k in 6:
+		for j in 9:
+			b.sphere(Vector3(gx - 7.0 + j * 1.75, gg + 0.3, gn - 3.0 + k * 1.2), Vector3(0.7, 0.5, 0.6), Color(0.32, 0.56, 0.26).lightened((k % 3) * 0.06), 6)
+	for side in [[0.0, -4.3, 16.6, 0.1], [0.0, 4.3, 16.6, 0.1], [-8.3, 0.0, 0.1, 8.6], [8.3, 0.0, 0.1, 8.6]]:
+		b.box(Vector3(gx + side[0], gg + 0.55, gn + side[1]), Vector3(maxf(side[2], 0.08), 0.08, maxf(side[3], 0.08)), wood.lightened(0.15), 0.0, false)
+		b.box(Vector3(gx + side[0], gg + 0.3, gn + side[1]), Vector3(maxf(side[2], 0.08), 0.08, maxf(side[3], 0.08)), wood.lightened(0.15), 0.0, false)
+	for k in 10:   # çit direkleri (katı)
+		var t = k / 9.0
+		for sz in [-4.3, 4.3]:
+			b.box(Vector3(gx - 8.3 + t * 16.6, gg + 0.45, gn + sz), Vector3(0.14, 0.9, 0.14), wood, 0.0, true)
+
+
+## Naka Tapınağı arka / yan yüzleri: ön cephenin koyu kırmızı çatkısı (dikme + kiriş) çepeçevre, kafesli pencereler,
+## kanatların arkasında kafes bant, arkada odun yığını / kova (2026-11-25)
+static func _naka_back(b: Builder, ux: float, un: float, wood: Color, cream: Color, lat: Color) -> void:
+	if not FacadeKit.on():
+		return
+	FacadeKit.timber(b, ux, un + 6.0, 0.0, 18.0, 1.0, 8.0, 4.5, [0.3, 4.2, 7.8], wood)
+	FacadeKit.dress(b, ux, un + 6.0, 0.0, 18.0, 1.0, 8.0, {"floors": 1, "kind": "lattice", "win": Vector2(2.6, 2.4), "win_y": 3.3,
+		"pitch": 4.5, "margin": 2.25, "frame": wood, "glass": lat.lightened(0.35), "sill": false, "props": "shrine", "seed": 81, "skip": [[-1.5, 1.5]]})
+	for sx in [-1.0, 1.0]:
+		var fc = 90.0 if sx > 0.0 else 270.0
+		FacadeKit.timber(b, ux + sx * 9.0, un, fc, 12.0, 5.4, 3.6, 4.0, [2.4, 3.4], wood)   # salonun kanat çatısı üstünde kalan yan yüzü
+		var wxk = ux + sx * 19.0
+		FacadeKit.timber(b, wxk, un + 5.5, 0.0, 20.0, 1.0, 4.4, 5.0, [0.3, 1.7, 4.2], wood)
+		FacadeKit.dress(b, wxk, un + 5.5, 0.0, 20.0, 1.0, 4.4, {"floors": 1, "kind": "lattice", "win": Vector2(3.6, 1.6), "win_y": 3.0,
+			"pitch": 5.0, "margin": 2.5, "frame": wood, "glass": lat.lightened(0.35), "sill": false, "seed": 82 + int(sx)})
+		FacadeKit.timber(b, ux + sx * 29.0, un + 1.0, fc, 9.0, 1.0, 4.4, 4.5, [0.3, 1.7, 4.2], wood)
+		FacadeKit.dress(b, ux + sx * 29.0, un + 1.0, fc, 9.0, 1.0, 4.4, {"floors": 1, "kind": "lattice", "win": Vector2(3.0, 1.6),
+			"win_y": 3.0, "pitch": 4.5, "margin": 2.25, "frame": wood, "glass": lat.lightened(0.35), "sill": false, "seed": 84 + int(sx)})
+
+
+## Hyūga konağının arka / yan yüzleri: önle aynı çatkı + shōji sürgü kapılar, arka engawa (yükseltilmiş zemin zaten 3 m taşıyor)
+## direkleri ve saçağı, yanlarda shōji pencereler + çatı altı menfez, yan evin arka / yan yüzleri; arkada odun, çamaşır, kovalar
+static func _hyuga_back(b: Builder, yx: float, yn: float, wall: Color, wood: Color, roof: Color, floor: Color) -> void:
+	if not FacadeKit.on():
+		return
+	FacadeKit.timber(b, yx, yn + 30.0, 0.0, 78.0, 1.2, 8.0, 6.0, [0.1, 4.8, 7.9], wood)
+	FacadeKit.dress(b, yx, yn + 30.0, 0.0, 78.0, 1.2, 8.0, {"floors": 1, "kind": "shoji", "win": Vector2(4.6, 4.4), "win_y": 3.6,
+		"pitch": 6.0, "margin": 3.0, "frame": wood, "sill": false, "skip": [[-9.5, -2.5], [14.5, 21.5]], "seed": 91})
+	for k in 9:   # arka engawa direkleri + eğik saçak
+		b.box(Vector3(yx - 42.0 + k * 10.5, 3.7, yn + 32.6), Vector3(0.5, 5.0, 0.5), wood)
+	b.box(Vector3(yx, 6.3, yn + 33.5), Vector3(90, 0.4, 7.0), roof.darkened(0.1), 0, false, Vector3(-8.0, 0, 0))
+	b.box(Vector3(yx, 1.25, yn + 32.95), Vector3(88.0, 0.12, 0.12), wood, 0, false)   # engawa kenar kirişi
+	FacadeKit.back_door(b, yx - 6.0, yn + 30.0, 0.0, 0.0, 1.2, {"door_w": 3.0, "door_h": 4.0, "frame": wood, "door_col": wood.lightened(0.1), "lamp": false, "steps": false})
+	FacadeKit.back_door(b, yx + 18.0, yn + 30.0, 0.0, 0.0, 1.2, {"door_w": 3.0, "door_h": 4.0, "frame": wood, "door_col": wood.lightened(0.1), "lamp": false, "steps": false})
+	for k in 2:   # engawadan bahçeye taş basamak (kutsunugi-ishi)
+		b.box(Vector3(yx - 6.0 + k * 24.0, 0.3, yn + 34.0), Vector3(2.6, 0.6, 1.4), Color(0.6, 0.6, 0.58))
+	for sx in [-1.0, 1.0]:
+		var fc = 90.0 if sx > 0.0 else 270.0
+		FacadeKit.timber(b, yx + sx * 39.0, yn + 15.0, fc, 30.0, 1.2, 8.0, 6.0, [0.1, 4.8, 7.9], wood)
+		FacadeKit.dress(b, yx + sx * 39.0, yn + 15.0, fc, 30.0, 1.2, 8.0, {"floors": 1, "kind": "shoji", "win": Vector2(3.0, 2.2),
+			"win_y": 5.0, "pitch": 6.0, "margin": 3.0, "frame": wood, "sill": false, "vents": wood, "seed": 92 + int(sx)})
+		FacadeKit.dress(b, yx + sx * 20.0, yn + 15.0, fc, 14.0, 12.8, 3.0, {"floors": 1, "kind": "lattice", "win": Vector2(2.4, 1.2),
+			"win_y": 14.3, "pitch": 4.0, "frame": wood, "glass": Color(0.86, 0.84, 0.76), "sill": false, "seed": 94 + int(sx)})
+	FacadeKit.dress(b, yx, yn + 22.0, 0.0, 40.0, 12.8, 3.0, {"floors": 1, "kind": "lattice", "win": Vector2(2.4, 1.2), "win_y": 14.3,
+		"pitch": 4.0, "frame": wood, "glass": Color(0.86, 0.84, 0.76), "sill": false, "seed": 96})
+	# arka bahçe eşyası (engawanın ötesinde)
+	FacadeKit.props(b, yx - 20.0, yn + 36.0, 0.0, 30.0, 0.0, "home", RandomNumberGenerator.new(), [])
+	FacadeKit.props(b, yx + 30.0, yn + 36.0, 0.0, 16.0, 0.0, "shrine", RandomNumberGenerator.new(), [])
+	# yan ev: arka (kuzey) + iki yan yüz
+	FacadeKit.timber(b, yx + 48.0, yn - 12.0, 0.0, 28.0, 0.5, 7.0, 5.6, [0.5, 4.1, 6.8], wood)
+	FacadeKit.dress(b, yx + 48.0, yn - 12.0, 0.0, 28.0, 0.5, 7.0, {"floors": 1, "kind": "shoji", "win": Vector2(2.8, 2.0), "win_y": 4.2,
+		"pitch": 5.6, "margin": 2.8, "frame": wood, "sill": false, "door": 0.0, "door_w": 2.4, "door_h": 3.2, "door_col": wood.lightened(0.1),
+		"awning": roof, "lamp": false, "seed": 97})
+	for sx in [-1.0, 1.0]:
+		var fc2 = 90.0 if sx > 0.0 else 270.0
+		FacadeKit.timber(b, yx + 48.0 + sx * 14.0, yn - 22.0, fc2, 20.0, 0.5, 7.0, 5.0, [0.5, 4.1, 6.8], wood)
+		FacadeKit.dress(b, yx + 48.0 + sx * 14.0, yn - 22.0, fc2, 20.0, 0.5, 7.0, {"floors": 1, "kind": "shoji", "win": Vector2(2.8, 2.0),
+			"win_y": 4.2, "pitch": 5.0, "margin": 2.5, "frame": wood, "sill": false, "seed": 98 + int(sx)})
+
+
 static func _hamlet(x: float, n: float) -> bool:
 	for h in HAMLETS:
 		var d = Vector2(x - h[0], n - h[1]).length()
@@ -541,6 +749,7 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	b.sphere(Vector3(tx, 38.2, ttn), Vector3(5.4, 5.4, 5.4), Color(0.78, 0.8, 0.84))
 	for k in 5:   # sol ön köşede havalandırma boruları
 		b.cyl(Vector3(ax - 48.0 + k * 1.9, 9.8 + (k % 2) * 0.7, an - 12.0), 1.3, 2.4 + (k % 2) * 1.4, a_white, false, 10)
+	_academy_back(b, ax, an, mcx, mcn, a_tan, a_tile, a_red, a_white, a_wood)
 	b.yoff = 0.0
 	# avlu: duvar + kapı, taş yol, fenerler, antrenman alanı, gölet, salıncak ağacı, oyun parkı, sundurma
 	var arng = RandomNumberGenerator.new()
@@ -762,6 +971,7 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 				b.box(Vector3(wxk, yy, un - 3.6), Vector3(20.2, 0.3, 0.3), n_wood, 0, false)
 			b.roof(Vector3(wxk, 5.4, un + 1.0), Vector3(23, 3.0, 13), n_roof.darkened(0.04))
 			b.lantern(ux + sxk * 6.2, un - 10.5, 3.2 + 1.0)
+		_naka_back(b, ux, un, n_wood, n_cream, n_lat)
 		# torii
 		var tn0 = un - 19.0
 		for sxk in [-1.0, 1.0]:
@@ -808,6 +1018,7 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	b.roof(Vector3(yx, 15.8, yn + 15), Vector3(48, 5.5, 22), h_roof.darkened(0.05))
 	b.box(Vector3(yx, 21.4, yn + 15), Vector3(44, 0.7, 1.2), h_roof.darkened(0.3), 0, false)
 	b.box(Vector3(yx, 0.3, yn - 8.5), Vector3(8.0, 0.6, 2.0), Color(0.66, 0.66, 0.64))   # veranda basamağı
+	_hyuga_back(b, yx, yn, h_wall, h_wood, h_roof, h_floor)
 	# yan ev (misafir / yan kol): aynı dil
 	b.box(Vector3(yx + 48, 4.0, yn - 22), Vector3(28, 7, 20), h_wall)
 	for i in 6:
@@ -966,6 +1177,8 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	# dış halka: tarla ve çiftlik kuşağı (kaynak: anime Konoha haritasının güneyindeki tarlalar)
 	var fields = _farm_belt(b, rng, occupied, cliff_n)
 	var patch = _field_patch(b, rng, occupied, cliff_n)
+	var fbn = _footbridges(b, [[naka, 12.0], [east, 6.0]])
+	print("Konoha yaya köprüsü: ", fbn)
 	print("Konoha tarla dokusu: ", patch, " parsel")
 	# orta halka: korular (yoğun ağaç kümeleri, aralarında açıklık); dış halka: tarla kenarı ağaç sıraları
 	var trees = 0
@@ -1837,6 +2050,18 @@ static func _ichiraku_boxes(b: Builder, ix: float, inn: float) -> void:
 		b.cyl(Vector3(sxp, RAMEN_STOOL_H * 0.5 - 0.04, inn + RAMEN_SEAT_N), 0.14, RAMEN_STOOL_H - 0.08, Color(0.3, 0.3, 0.32), false, 8)
 		b.cyl(Vector3(sxp, 0.03, inn + RAMEN_SEAT_N), 0.5, 0.06, Color(0.3, 0.3, 0.32), false, 10)
 		b.cyl(Vector3(sxp, RAMEN_STOOL_H - 0.04, inn + RAMEN_SEAT_N), 0.52, 0.08, Color(0.78, 0.16, 0.12), false, 14)
+	# arka (mutfak) yüzü (2026-11-25): tahta derzleri, mutfak kapısı + küçük saçak, kafesli mutfak penceresi, duvardan çıkıp
+	# çatıyı aşan ocak bacası, dipte odun yığını / fıçılar / kasalar (ramen dükkânının arka sokağı)
+	if FacadeKit.on():
+		var bn = inn - 5.4
+		for k in 7:
+			b.box(Vector3(ix - 4.2 + k * 1.4, 1.9, bn - 0.02), Vector3(0.08, 3.8, 0.04), wood.darkened(0.2), 0, false)
+		FacadeKit.dress(b, ix, bn, 180.0, 9.4, 0.0, 3.8, {"floors": 1, "kind": "lattice", "win": Vector2(1.6, 0.9), "win_y": 2.3,
+			"pitch": 3.0, "margin": 1.8, "frame": dark, "glass": Color(0.9, 0.86, 0.72), "skip": [[-4.8, 0.2]], "door": -1.6, "door_w": 1.2,
+			"door_h": 2.2, "door_col": wood.darkened(0.1), "awning": Color(0.48, 0.36, 0.26), "pipes": dark, "props": "kitchen", "seed": 111})
+		b.cyl(Vector3(ix + 3.6, 3.4, bn - 0.45), 0.55, 6.8, Color(0.32, 0.3, 0.3), false, 10)   # ocak bacası
+		b.cyl(Vector3(ix + 3.6, 6.95, bn - 0.45), 0.85, 0.25, Color(0.2, 0.2, 0.2), false, 10)
+		b.box(Vector3(ix + 3.6, 2.0, bn - 0.25), Vector3(0.9, 0.9, 0.5), Color(0.3, 0.28, 0.27), 0, false)
 
 
 ## Uçurum yüzeyi: verilen yükseklikte kuzeye doğru arazinin bu yüksekliği geçtiği ilk n

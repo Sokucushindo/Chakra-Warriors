@@ -1,5 +1,6 @@
 class_name BuildVillageStory
 extends RefCounted
+const FacadeKit = preload("res://scripts/world/facade_kit.gd")
 ## Hikâyenin her büyük köyde oynanabilmesi için: Akademi, antrenman alanı, gözetleme kulesi, hastane, ANBU binası
 ## (Konoha dışındaki büyük köylerde, köyün hemen dışında bir yerleşke) + her büyük köyde Aranıyor Panosu (Bingo Kitabı).
 ## Konumlar köy merkezine göredir; dünya ölçeği değişse de çalışır.
@@ -137,6 +138,17 @@ static func _compound(parent: Node3D, v: Dictionary, sty: Dictionary) -> void:
 	b.disc(Vector3(0, ay + 9.0, -6.7), 3.2, 0.3, acc)
 	for i in 6:
 		b.box(Vector3(-11 + i * 4.4, ay + 7.5, -6.6), Vector3(2.0, 1.6, 0.3), Color(0.55, 0.72, 0.85), 0.0, false)
+	# arka + yan yüzler (2026-11-25: düz duvardı): ön cepheyle aynı pencereler + ahşap çerçeve, arka kapı + saçak, kat kuşağı,
+	# yağmur boruları, dipte sandık / fıçı / odun
+	var ao = {"floors": 1, "win_y": ay + 7.5, "win": Vector2(2.0, 1.6), "pitch": 4.4, "frame": Color(0.3, 0.22, 0.15),
+		"glass": Color(0.55, 0.72, 0.85), "band": roof.darkened(0.2), "pipes": roof.darkened(0.25), "margin": 2.0}
+	var ab = ao.duplicate()
+	ab.merge({"door": -7.0, "door_w": 2.2, "door_h": 3.2, "awning": roof, "props": "service", "seed": hash(v["id"]) % 1000})
+	FacadeKit.dress(b, 0.0, 6.5, 0.0, 28.0, ay + 4.0, 7.0, ab)
+	for sx in [-1.0, 1.0]:
+		var asd = ao.duplicate()
+		asd.merge({"seed": hash(v["id"]) % 1000 + 3 + int(sx), "margin": 2.6})
+		FacadeKit.dress(b, sx * 14.0, 0.0, 90.0 if sx > 0.0 else 270.0, 13.0, ay + 4.0, 7.0, asd)
 	b.interact(Vector3(0, ay, -8.0), 4, "enter", "[F] Gir: %s Ninja Akademisi" % vn, {"room": "academy", "alias": "academy", "vid": v["id"], "out": b.w(Vector3(0, ay, -9.5))})
 	var arng = RandomNumberGenerator.new()
 	arng.seed = hash(v["id"] + "_akademi")
@@ -177,6 +189,16 @@ static func _compound(parent: Node3D, v: Dictionary, sty: Dictionary) -> void:
 	b.box(Vector3(0, 4.5, 0), Vector3(17, 7, 11), Color(0.92, 0.92, 0.9))
 	b.roof(Vector3(0, 8.0, 0), Vector3(19, 3.0, 13), Color(0.75, 0.2, 0.2))
 	b.disc(Vector3(0, 5.5, -5.6), 2.4, 0.3, Color(0.85, 0.15, 0.15))
+	var ho = {"floors": 1, "win_y": 4.6, "win": Vector2(1.8, 1.6), "pitch": 3.6, "frame": Color(0.75, 0.2, 0.2),
+		"glass": Color(0.62, 0.8, 0.86), "pipes": Color(0.6, 0.62, 0.66), "margin": 1.8}
+	var hb = ho.duplicate()
+	hb.merge({"door": 4.5, "door_w": 2.0, "door_h": 2.8, "door_col": Color(0.85, 0.88, 0.9), "awning": Color(0.75, 0.2, 0.2), "props": "clinic",
+		"seed": hash(v["id"]) % 1000 + 10})
+	FacadeKit.dress(b, 0.0, 5.5, 0.0, 17.0, 2.0, 6.0, hb)
+	for sx in [-1.0, 1.0]:
+		var hs = ho.duplicate()
+		hs.merge({"seed": hash(v["id"]) % 1000 + 12 + int(sx)})
+		FacadeKit.dress(b, sx * 8.5, 0.0, 90.0 if sx > 0.0 else 270.0, 11.0, 2.0, 6.0, hs)
 	b.box(Vector3(0, 2.4, -5.6), Vector3(3.0, 4.4, 0.4), Color(0.3, 0.22, 0.15), 0.0, false)   # kapı
 	b.interact(Vector3(0, 0, -7.0), 4, "enter", "[F] Gir: %s Hastanesi" % vn, {"room": "hospital", "vid": v["id"], "out": b.w(Vector3(0, 0, -9.0))})
 	for i in 3:

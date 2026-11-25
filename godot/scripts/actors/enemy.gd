@@ -1483,6 +1483,22 @@ func take_hit(info: Dictionary) -> void:
 		return
 	if not dead and Combat.speed_dodge(self, info):   # Jinton: Mikiri — bulanık yan adım (oyuncuyla aynı)
 		return
+	# göz okuması (oyuncuyla aynı tablo: Eyes.dodge_for): Sharingan / Mangekyō / Ebedi sahibi düşman hafif darbeyi okuyup yana kayar;
+	# ağır darbeyi yalnız Ebedi yarı şansla okur. Yakalanmış (sersem / havada / bağlı) düşman okuyamaz.
+	if not dead and has_meta("eyes") and not info.get("sure", false):
+		var em = get_meta("eyes")
+		var ek = int(em.get("kind", 0)) if em is Dictionary else 0
+		if ek in [1, 4, 5]:
+			var ech = Eyes.dodge_for(ek, int(em.get("lvl", 3)))
+			if info.get("kind", "light") == "heavy":
+				ech = ech * 0.5 if ek == 5 else 0.0
+			var eatk = info.get("attacker")
+			if ech > 0.0 and randf() < ech and not Combat.caught(self, eatk):
+				global_position += global_transform.basis.x * (1.0 if randf() < 0.5 else -1.0) * 1.6
+				global_position.y = maxf(global_position.y, _floor_y(global_position.x, global_position.z))
+				Combat.popup_text(global_position + Vector3.UP * 2.2, "Okundu!", Color(1, 0.4, 0.4))
+				sub_inv = 0.3
+				return
 	if not dead and NunoFX.block(self, info):   # oyuncuyla aynı
 		return
 	if not dead and KusariFundoFX.parry(self, info):   # oyuncuyla aynı

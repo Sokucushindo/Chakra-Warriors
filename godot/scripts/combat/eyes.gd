@@ -455,8 +455,10 @@ func _eye_buff() -> void:
 	var desc = []
 	if r in [1, 4, 5] or l in [1, 4, 5]:
 		mods["jutsu"] = 1.0 + 0.015 * maxi(_lvl("sag"), _lvl("sol")) + (0.05 if (r >= 4 and r <= 5) or (l >= 4 and l <= 5) else 0.0)
-		desc.append("Kaçınma %%%d" % int(dodge_chance() * 100.0))
+		desc.append(Lang.t("Kaçınma %%%d" % int(dodge_chance() * 100.0)))   # birleşik açıklama parça parça çevrilirken "%15" kalıbı bölünüyordu: kaynağında çevir
 		desc.append("dünya yavaşlar (hareketleri okursun)")
+		if r == 5 or l == 5:
+			desc.append("ağır saldırıları da okursun")
 	if r == 2 or l == 2:
 		mods["melee"] = 1.0   # Jūken bonusu melee_bonus() ile uygulanır; açıklamada yazılır
 		desc.append("Jūken yakın dövüş +%25, 360° görüş, düşman chakrası görünür")
@@ -1098,8 +1100,23 @@ func dodge_chance() -> float:
 	for s in ["sag", "sol"]:
 		var k = _kind(s)
 		if k in [1, 4, 5]:
-			best = maxf(best, 0.035 * _lvl(s) + (0.05 if k >= 4 else 0.0) + Stats.skill(Game.profile, "eye_dodge") * 0.5)
+			best = maxf(best, dodge_for(k, _lvl(s)) + Stats.skill(Game.profile, "eye_dodge") * 0.5)
 	return best
+
+
+## Göz okuması ile kaçma şansı (oyuncu + düşman aynı tablo). 2026-11-25 kullanıcı: "animede EMS baya kaçıyor, 15 az":
+## Sharingan tomoe başına %4, Mangekyō %20, Ebedi %28 (eskiden Mangekyō ile Ebedi aynıydı ~%15).
+static func dodge_for(kind: int, lvl: int) -> float:
+	match kind:
+		1: return 0.04 * clampi(lvl, 1, 3)
+		4: return 0.20
+		5: return 0.28
+	return 0.0
+
+
+## Ağır saldırıyı okuyabilir mi: yalnız Ebedi Mangekyō (yarı şansla); diğerleri yalnız öngörü anında
+func heavy_read() -> bool:
+	return active and (_kind("sag") == 5 or _kind("sol") == 5)
 
 
 ## Byakugan yakın dövüş (Jūken) bonusu

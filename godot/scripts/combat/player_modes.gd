@@ -697,7 +697,8 @@ func on_player_hit(info: Dictionary) -> bool:
 		c.invuln = 0.25
 		return true
 	var predict = eyes != null and eyes.predict_t > 0.0
-	if eyes and (info.get("kind", "light") != "heavy" or predict) and randf() < (0.6 if predict else eyes.dodge_chance()):
+	var heavy_hit = info.get("kind", "light") == "heavy"
+	if eyes and (not heavy_hit or predict or eyes.heavy_read()) and randf() < (0.6 if predict else eyes.dodge_chance() * (0.5 if heavy_hit else 1.0)):
 		var side = p.global_transform.basis.x * (1.0 if randf() < 0.5 else -1.0)
 		p.global_position += side * 1.6
 		Combat.popup_text(p.global_position + Vector3.UP * 2.2, "Okundu!", Color(1, 0.4, 0.4))

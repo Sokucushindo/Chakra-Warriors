@@ -138,7 +138,8 @@ void fragment() {
 	float line = smoothstep(0.66, 0.8, l1 * 0.6 + l2 * 0.4);
 	float glint = smoothstep(0.82, 0.9, vn(vec2(UV.x * 12.0, UV.y * 30.0 - t * 5.0)));
 	float near = abs(foam_start - UV.y);
-	float churn = (1.0 - smoothstep(0.0, 0.25, near)) * smoothstep(0.35, 0.6, l1);
+	// kaynama kuşağı: alt nehirde 150 m; üst nehir 900 m olduğundan aynı oran kenardan 225 m'yi beyaza boyuyordu -> yalnız ~30 m
+	float churn = (1.0 - smoothstep(0.0, base_alpha > 0.0 ? 0.035 : 0.25, near)) * smoothstep(0.35, 0.6, l1);
 	float side = smoothstep(0.0, 0.08, UV.x) * smoothstep(1.0, 0.92, UV.x);
 	float far = 1.0 - smoothstep(0.85, 1.0, near);
 	float a = max(max(line * 0.55, glint * 0.5), churn * 0.85) * side * far;
@@ -148,7 +149,9 @@ void fragment() {
 	a = max(a, rw * 0.8 * side);
 	// kendi yüzeyi: koyu turkuaz -> akıntı bantları, kenara (şelaleye) yaklaştıkça açılır
 	vec3 water = mix(vec3(0.08, 0.42, 0.72), vec3(0.2, 0.62, 0.9), (1.0 - smoothstep(0.0, 0.4, near)) * 0.8 + l2 * 0.2);
-	ALBEDO = base_alpha > 0.0 ? mix(water, vec3(0.9, 0.98, 1.0), foam * 0.85) : mix(vec3(0.75, 0.95, 1.0), vec3(1.0), churn);
+	// üst nehir (kendi yüzeyi): uzun köpük şeritleri hafif (900 m'lik yatak beyaz ışın demetine dönüyordu); kenar kaynaması ve dalga köpüğü tam
+	float foam_u = max(max(line * 0.3, glint * 0.4), max(churn, rw));
+	ALBEDO = base_alpha > 0.0 ? mix(water, vec3(0.9, 0.98, 1.0), foam_u * 0.85) : mix(vec3(0.75, 0.95, 1.0), vec3(1.0), churn);
 	ALPHA = base_alpha > 0.0 ? base_alpha * smoothstep(0.0, 0.03, UV.x) * smoothstep(1.0, 0.97, UV.x) * (1.0 - smoothstep(0.75, 1.0, near)) : a;
 }
 """

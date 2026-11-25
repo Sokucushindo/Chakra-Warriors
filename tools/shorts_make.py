@@ -82,7 +82,15 @@ def main():
                 vf += ",drawtext=fontfile='%s':text='%s':fontsize=44:fontcolor=0xffd36a:borderw=4:bordercolor=black:x=(w-tw)/2:y=1420" % (FONT, txt(s['t2']))
             ff(['-i', s['raw'], '-filter_complex', vf + '[v]', '-map', '[v]', '-af', af, '-map', '0:a'] + ENC + [p])
         else:
-            vf = 'trim=start_frame=%d:end_frame=%d,setpts=PTS-STARTPTS,scale=%d:%d:flags=lanczos' % (a, b, W, H) + extra_txt
+            vf = 'trim=start_frame=%d:end_frame=%d,setpts=PTS-STARTPTS,scale=%d:%d:flags=lanczos' % (a, b, W, H)
+            lb = int(plan.get('letterbox', 0))   # sinema şeridi: üst / alt siyah bant (yazılar bandın içine yazılabilir)
+            if lb > 0:
+                vf += ',drawbox=x=0:y=0:w=iw:h=%d:color=black:t=fill,drawbox=x=0:y=ih-%d:w=iw:h=%d:color=black:t=fill' % (lb, lb, lb)
+            if s.get('fade_in'):
+                vf += ',fade=t=in:st=0:d=%.2f' % float(s['fade_in'])
+            if s.get('fade_out'):
+                vf += ',fade=t=out:st=%.2f:d=%.2f' % (max(0.0, (b - a) / FPS - float(s['fade_out'])), float(s['fade_out']))
+            vf += extra_txt
             if s.get('disclaimer'):
                 y1 = 700 if land else 780
                 vf += (",drawtext=fontfile='%s':text='Unofficial fan game':fontsize=42:fontcolor=white:borderw=4:bordercolor=black:x=(w-tw)/2:y=%d"
@@ -97,6 +105,11 @@ def main():
     dur = float(d[2]) + 60 * int(d[1])
     fo = max(0.0, dur - 2.0)
     # müzik: tek dosya ya da [{"file", "start", "len"}] listesi (aralarda 1.5 sn yumuşak geçiş)
+    if isinstance(plan.get('music'), list) and not plan['music']:   # müziksiz: yalnız oyun sesi (müzik sonra eklenecek)
+        ff(['-i', 'parts/sessiz.mp4', '-filter_complex', '[0:a]volume=%.2f,afade=t=out:st=%.2f:d=2.0,alimiter=limit=0.95[a]' % (plan.get('game_vol', 1.0), max(0.0, dur - 2.0)),
+            '-map', '0:v', '-map', '[a]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-movflags', '+faststart', plan['out']])
+        print('OK', plan['out'], round(dur, 1), 'sn (muziksiz)')
+        return
     mus = plan['music'] if isinstance(plan['music'], list) else [{"file": plan['music'], "start": plan.get('music_start', 0.0), "len": dur + 5}]
     for k, m in enumerate(mus):   # bölüme bağlı parça: süresi bölüm süresi (+ geçiş payı)
         if 'sec' in m:

@@ -1,5 +1,6 @@
 class_name Stadium
 extends RefCounted
+const FacadeKit = preload("res://scripts/world/facade_kit.gd")
 ## Chūnin Sınavı final stadyumu (referans: Konoha stadyumu): eğimli, dikey nervürlü yüksek dış duvar (köy rengi), içte tribün
 ## basamakları ve gri iç duvar, kenarı ağaçlı çim/kum saha; bir yanda katlı çatılı ana bina + Kage locası, karşısında giriş kapısı.
 ## Builder ile kurulur (Konoha köy kurulumunda; diğer köylerde final günü çalışma anında).
@@ -70,9 +71,24 @@ static func build(b: Builder, cx: float, cn: float, gy: float, sty: Dictionary, 
 		var wh = 30.0 if side == 0.0 else 26.0
 		var o2 = Builder.rot(side * 25.0, side * side * -3.0, yaw_b)
 		b.box(Vector3(hx + o2.x, gy + wh * 0.5, hn + o2.y), Vector3(wing_w, wh, 20.0), wallc, yaw_b)
-		for k in 5:   # pencere sırası (sahaya bakan yüz)
-			var o = Builder.rot(side * 25.0 - wing_w * 0.35 + k * wing_w * 0.175, -10.1 + side * side * -3.0, yaw_b)
-			b.box(Vector3(hx + o.x, gy + wh - 6.0, hn + o.y), Vector3(2.6, 2.4, 0.2), Color(0.32, 0.28, 0.24), yaw_b, false)
+		if not FacadeKit.on():
+			for k in 5:   # pencere sırası (dışa bakan yüz)
+				var o = Builder.rot(side * 25.0 - wing_w * 0.35 + k * wing_w * 0.175, -10.1 + side * side * -3.0, yaw_b)
+				b.box(Vector3(hx + o.x, gy + wh - 6.0, hn + o.y), Vector3(2.6, 2.4, 0.2), Color(0.32, 0.28, 0.24), yaw_b, false)
+		else:
+			# dışa bakan (sokaktan görünen) yüz: kat kat pencere, nervür renginde kat bantları, orta kanatta saçaklı giriş,
+			# köşe boruları; dış yan yüzler de pencereli (2026-11-25: yalnız tek sıra 5 pencere vardı, gerisi düz duvar)
+			var of = Builder.rot(side * 25.0, -10.0 + side * side * -3.0, yaw_b)
+			var fo = {"floors": int(wh / 5.0), "fh": 5.0, "win": Vector2(2.2, 2.2), "pitch": 4.4, "frame": Color(0.32, 0.28, 0.24),
+				"glass": Color(0.5, 0.62, 0.7), "band": rib, "base": rib.darkened(0.2), "pipes": rib.darkened(0.15), "seed": 101 + int(side)}
+			if side == 0.0:
+				fo.merge({"door": 0.0, "door_w": 4.2, "door_h": 4.0, "door_col": Color(0.3, 0.2, 0.14), "awning": roofc, "props": "service"})
+			FacadeKit.dress(b, hx + of.x, hn + of.y, kage_dir, wing_w, gy, wh, fo)
+			if side != 0.0:
+				var os = Builder.rot(side * (25.0 + wing_w * 0.5), side * side * -3.0, yaw_b)
+				var fs = fo.duplicate()
+				fs.merge({"seed": 105 + int(side), "props": "service"})
+				FacadeKit.dress(b, hx + os.x, hn + os.y, yaw_b + 90.0 * side, 20.0, gy, wh, fs)
 		b.roof(Vector3(hx + o2.x, gy + wh + 2.6, hn + o2.y), Vector3(wing_w + 5.0, 5.0, 25.0), roofc, yaw_b)   # geniş saçak
 	var o6 = Builder.rot(0.0, 0.0, yaw_b)
 	b.box(Vector3(hx + o6.x, gy + 37.0, hn + o6.y), Vector3(14.0, 6.0, 12.0), wallc, yaw_b)   # orta kanat ikinci kat

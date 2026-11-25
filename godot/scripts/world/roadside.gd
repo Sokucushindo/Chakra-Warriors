@@ -27,6 +27,19 @@ static func _bridge_near(p: Vector2, r: float) -> bool:
 	return false
 
 
+## Sonun Vadisi kanyonunda köprü yok (kanon: ninjalar suyun üstünde yürür; yol kıyıda biter)
+static var _valley_rect := Rect2()
+static func _in_valley(p: Vector2) -> bool:
+	if _valley_rect.size == Vector2.ZERO:
+		_valley_rect = Rect2(0, 0, 0.001, 0.001)
+		for l in Game.world_info.get("landmarks", []):
+			if l["id"] == "valley_end":
+				var sp: Dictionary = l.get("spec", {})
+				var hw = float(sp.get("half", 95.0)) + 80.0
+				_valley_rect = Rect2(float(l["x"]) - hw, float(l["y"]) - float(l["r"]) * 1.25, hw * 2.0, float(l["r"]) * 1.25 + float(sp.get("fall_dy", 520.0)) + 500.0)
+	return _valley_rect.has_point(p)
+
+
 static func _add_clear(x: float, y: float, r: float) -> void:
 	for cx in range(floori((x - r) / CLEAR_CELL), floori((x + r) / CLEAR_CELL) + 1):
 		for cy in range(floori((y - r) / CLEAR_CELL), floori((y + r) / CLEAR_CELL) + 1):
@@ -181,7 +194,7 @@ static func init() -> void:
 					var c1 := Vector2(rv[k][0], rv[k][1])
 					var c2 := Vector2(rv[k + 1][0], rv[k + 1][1])
 					var hit = Geometry2D.segment_intersects_segment(a, b, c1, c2)
-					if hit != null and Game.terrain_height(hit.x, -hit.y) < 0.8 and not _bridge_near(hit, 80.0):
+					if hit != null and Game.terrain_height(hit.x, -hit.y) < 0.8 and not _bridge_near(hit, 80.0) and not _in_valley(hit):
 						_bridges.append(hit)
 						_add_slot({"t": "bridge", "x": hit.x, "y": hit.y, "yaw": yaw, "dx": dir.x, "dy": dir.y, "seed": hash(Vector2i(hit))})
 			var t := 0.0
@@ -762,7 +775,7 @@ static func _sea_bridges(pts: PackedVector2Array) -> void:
 		var mid := (p0 + p1) * 0.5
 		# aynı izi paylaşan yollar (ör. Konoha -> Valley of the End / Ölüm Ormanı / Yu) uzun su geçişinde üst üste köprü kuruyordu:
 		# uzun geçişte de denetle, yarıçap köprü boyuyla büyür
-		if run >= 18.0 and not _bridge_near(mid, maxf(90.0, run * 0.5)):
+		if run >= 18.0 and not _bridge_near(mid, maxf(90.0, run * 0.5)) and not _in_valley(mid):
 			_bridges.append(mid)
 			var h0 := maxf(_g(p0.x, p0.y), 0.6) + 0.15
 			var h1 := maxf(_g(p1.x, p1.y), 0.6) + 0.15

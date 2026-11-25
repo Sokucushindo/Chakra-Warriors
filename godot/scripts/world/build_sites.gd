@@ -1,5 +1,6 @@
 class_name BuildSites
 extends RefCounted
+const FacadeKit = preload("res://scripts/world/facade_kit.gd")
 ## Konoha dışındaki köyler ve önemli yerler (anime ölçeği: köyler kilometrelerce, simge yapılar yüzlerce metre).
 ## Konoha ve hikâye yerleri yüklemede kurulur; diğer köyler oyuncu yaklaşınca akışla (birkaç karede) kurulur,
 ## uzaktan ise ucuz siluetleri (far_silhouette) görünür.
@@ -709,6 +710,17 @@ static func kiri(parent: Node3D, v: Dictionary) -> void:
 			var wa = -60.0 + k * 40.0 + 180.0
 			var wo = Builder.rot(0, 45.2, wa)
 			b.box(Vector3(wo.x, 12 + f * 9, wo.y), Vector3(2.4, 3.6, 0.3), Color(0.2, 0.18, 0.2), wa, false)
+	if FacadeKit.on():   # arka yarı (göl tarafı) da pencereli + arka servis kapısı (2026-11-25: arkası düz duvardı)
+		for k in 5:
+			for f in 3:
+				var wa2 = -80.0 + k * 40.0
+				var wo2 = Builder.rot(0, 45.2, wa2)
+				b.box(Vector3(wo2.x, 12 + f * 9, wo2.y), Vector3(2.4, 3.6, 0.3), Color(0.2, 0.18, 0.2), wa2, false)
+				var ws2 = Builder.rot(0, 45.35, wa2)
+				b.box(Vector3(ws2.x, 12 + f * 9 - 2.0, ws2.y), Vector3(3.0, 0.3, 0.5), kc.darkened(0.2), wa2, false)
+		var dq = Builder.rot(0, 45.0, 20.0)
+		FacadeKit.back_door(b, dq.x, dq.y, 20.0, 0.0, 0.0,
+			{"door_w": 2.6, "door_h": 3.4, "frame": crown.darkened(0.2), "door_col": Color(0.3, 0.24, 0.22), "awning": crown})
 	b.cyl(Vector3(0, 50.6, 0), 90, 0.6, Color(0.36, 0.42, 0.3), false, 36)   # bahçe toprağı
 	for k in 16:   # çatı bahçesi
 		var ga = rng.randf() * 360.0
@@ -1639,20 +1651,20 @@ static func valley_end(parent: Node3D, l: Dictionary) -> void:
 		Waterfalls.add_epic(b.w(Vector3(0, spec["river"], fall_n - 4.0)), float(spec["upper"]) - float(spec["river"]) + 2.0, 120.0,
 			{"throw": 16.0, "arch": 7.0, "back": 4.0, "river_len": 600.0, "river_w": float(spec["half"]) * 1.6, "upper_len": 900.0, "upper_w": 124.0,
 			"trickles": [[-72.0, 5.0, 0.75], [-86.0, 3.0, 0.45], [70.0, 4.0, 0.6], [84.0, 3.5, 0.85]]})
-	# kanyon: dikey katmanlı kaya sütunları; iki dev heykel şelalenin iki yanında, birbirine bakıyor (ref: refs/valley_end)
-	_valley_columns(b, spec)
+	# kanyon: organik katmanlı kaya yarları (ValleyCliffs: sütunlar + levhalar + yosun, kendi şeklinden çarpışma); iki dev heykel şelalenin iki yanında, birbirine bakıyor (ref: refs/valley_end)
+	preload("res://scripts/world/valley_cliffs.gd").build(b, spec)
 	_valley_statues(b, float(spec["half"]), fall_n - 75.0, float(spec["river"]))
 	b.interact(Vector3(0, spec["river"] + 0.5, fall_n - 160.0), 20, "valley", "[F] Sonun Vadisi'nde meditasyon yap")
 	b.finish()
 
 
-## Sonun Vadisi heykelleri (ref: refs/valley_end/Valley_of_the_End.png): oyunun kendi ninja modeli taşa oyulur, ~100 m.
+## Sonun Vadisi heykelleri (ref: refs/valley_end/Valley_of_the_End.png): oyunun kendi ninja modeli taşa oyulur, ~138 m.
 ## Sengoku zırhı, yere inen etek; bir el yüz hizasında iki parmak mührü (Tai no In), öbür el belde kılıç kabzasında.
 ## Yüzler kanon karakter değil: kendi iki kurucu ninjamız (biri sakin, biri öfkeli rakip). İkinci heykel aynadır.
-const VALLEY_H := 100.0
+const VALLEY_H := 138.0   # ref: heykel başları yar tepesinin üstünde (yar 133 m)
 const VALLEY_STATUE := [
-	{"gender": "m", "hair_style": "geriye", "face_id": 0, "band": Color.WHITE, "band_style": "head"},   # sakin kurucu
-	{"gender": "m", "hair_style": "diken", "face_id": 1, "band": null},                                 # öfkeli rakip
+	{"gender": "m", "hair_style": "uzun", "face_id": 0, "band": Color.WHITE, "band_style": "head"},     # sakin kurucu: ref'teki uzun düz saç
+	{"gender": "m", "hair_style": "yele", "face_id": 1, "band": null},                                 # öfkeli rakip: ref'teki kabarık diken yele
 ]
 ## [kemik, model uzayında yön (+Z önü, +X modelin solu)] — sağ el mühürde, sol el belde (ikinci heykelde x ve taraf aynalanır)
 const VALLEY_POSE := [
@@ -1778,33 +1790,6 @@ static func _fingers(sk: Skeleton3D, side: String, f: Array) -> void:
 		var bi = sk.find_bone(side + "Thumb" + seg)
 		if bi >= 0:
 			sk.set_bone_pose_rotation(bi, sk.get_bone_pose_rotation(bi) * Quaternion.from_euler(Vector3(f[4] * 0.4 * sgn, 0, -f[4] * 0.3)))
-
-
-## Kanyon duvarı: dikey katmanlı kaya sütunları (ref'teki çizgili, yosunlu sütunlar). Nehirden kenara, şelaleden aşağı akışa.
-static func _valley_columns(b: Builder, spec: Dictionary) -> void:
-	var river = float(spec["river"])
-	var upper = float(spec["upper"])
-	var rim = float(spec["rim"])
-	var half = float(spec["half"])
-	var fall_n = float(spec["fall_dy"])
-	var rng = RandomNumberGenerator.new()
-	rng.seed = 4417
-	var rock = Color(0.56, 0.6, 0.52)
-	# yerel n azaldıkça aşağı akış (şelale fall_n'de; altında nehir, üstünde yukarı nehir yatağı)
-	for sx in [-1.0, 1.0]:
-		var n = fall_n + 260.0
-		while n > fall_n - 430.0:
-			var d = rng.randf_range(18.0, 34.0)
-			var x = (half + 4.0 + d * 0.32 + rng.randf_range(-3.0, 6.0)) * sx   # iç yüzü duvar eteğinde, sırtı yamaca gömülü
-			var base = (upper if n > fall_n + 6.0 else river) - 4.0
-			var top = rim + rng.randf_range(-14.0, 18.0)
-			var col = rock.darkened(rng.randf_range(0.0, 0.2)).lerp(Color(0.4, 0.5, 0.35), rng.randf_range(0.0, 0.4))
-			# iki katman: alttaki kalın gövde, üstte biraz incelen ve kayan blok (ref'teki katmanlı sütunlar)
-			var split = lerpf(base, top, rng.randf_range(0.35, 0.65))
-			b.cyl(Vector3(x, (base + split) * 0.5, n), d, split - base, col, true, 7)
-			var d2 = d * rng.randf_range(0.8, 0.92)
-			b.cyl(Vector3(x + rng.randf_range(-2.0, 2.0), (split + top) * 0.5, n + rng.randf_range(-2.0, 2.0)), d2, top - split, col.lightened(0.04), true, 7)
-			n -= d * rng.randf_range(0.55, 0.78)
 
 
 ## 100 m'lik dev shinobi heykeli: kaide, hakama etekli bacaklar, zırhlı gövde, saç, mühür yapan el

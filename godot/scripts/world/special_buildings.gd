@@ -1,5 +1,6 @@
 class_name SpecialBuildings
 extends RefCounted
+const FacadeKit = preload("res://scripts/world/facade_kit.gd")
 ## Köyün özel binaları (Konoha): her biri kendi kimliğiyle — hastane (giriş kulesi, saçaklı kat bantları, kanopi, çatı korkuluğu,
 ## bahçe), ANBU karargâhı (karanlık sur, ağır kapı, meşaleler, maske arması), dükkân cepheleri (noren perde, kanji tabela,
 ## fenerler, sundurma ve dükkâna özel vitrin: ilaç kavanozları, silah rafı, manken, şemsiyeli çay bankı, mangal bacası, han kapısı).
@@ -66,6 +67,8 @@ static func shop_building(b: Builder, x: float, nc: float, w: float, d: float, d
 		var nbk = maxi(1, int(w / 3.4))
 		for k in nbk:
 			var wx = x - w * 0.5 + (k + 0.5) * w / nbk
+			if f == 0 and k == nbk - 1 and nbk > 1 and FacadeKit.on():
+				continue   # arka kapının yeri
 			b.box(Vector3(wx, wy, nc - dn * (d * 0.5 + 0.04)), Vector3(1.5, 1.35, 0.12), wood, yaw, false)
 			b.box(Vector3(wx, wy, nc - dn * (d * 0.5 + 0.09)), Vector3(1.25, 1.1, 0.06), Color(0.95, 0.93, 0.86) if (k + f) % 2 == 0 else Color(0.55, 0.7, 0.82), yaw, false)
 			b.box(Vector3(wx, wy, nc - dn * (d * 0.5 + 0.12)), Vector3(0.06, 1.1, 0.04), wood, yaw, false)
@@ -75,6 +78,15 @@ static func shop_building(b: Builder, x: float, nc: float, w: float, d: float, d
 				var wz = nc - d * 0.5 + (k + 0.5) * d / nsd
 				b.box(Vector3(x + sx * (w * 0.5 + 0.04), wy, wz), Vector3(0.12, 1.35, 1.5), wood, yaw, false)
 				b.box(Vector3(x + sx * (w * 0.5 + 0.09), wy, wz), Vector3(0.06, 1.1, 1.25), Color(0.95, 0.93, 0.86), yaw, false)
+	# arka kapı (son pencerenin yerinde) + saçak, yağmur boruları, türüne göre arka avlu eşyası (2026-11-25)
+	if FacadeKit.on():
+		var bf = 0.0 if dn < 0.0 else 180.0
+		var nbk0 = maxi(1, int(w / 3.4))
+		var dx = -w * 0.5 + (nbk0 - 0.5) * w / nbk0
+		var du = dx if bf == 0.0 else -dx
+		var pk = {"bbq": "kitchen", "teahouse": "kitchen", "inn": "home", "tailor": "home", "pharmacy": "home"}.get(kind, "service")
+		FacadeKit.dress(b, x, nc - dn * d * 0.5, bf, w, 0.5, H, {"windows": false, "pipes": wood.lightened(0.1), "door": du if nbk0 > 1 else null,
+			"door_w": 1.4, "door_h": 2.3, "frame": wood, "awning": roof_c, "props": pk, "seed": int(absf(x)) + 3})
 	# cephe: türe göre
 	var y1 = 0.5 + fh   # 1. kat tabanı
 	match kind:
@@ -224,6 +236,21 @@ static func police_hq(b: Builder, x: float, nc: float, dn: float) -> void:
 		b.box(ep + Vector3(0, 0, dn * 0.12), Vector3(0.55, 2.0, 0.06), Color(0.15, 0.45, 0.5), yaw, false, Vector3(0, 0, 45.0 + k * 45.0))
 	b.disc(ep + Vector3(0, 0, dn * 0.2), 0.8, 0.1, Color(0.82, 0.18, 0.15), yaw, 14)   # Uchiha yelpazesi
 	b.kanji(Vector3(x, 12.2, tf + dn * 0.12), "警務部隊", 0.55, Color(0.2, 0.15, 0.12), yaw)
+	# arka / yan cepheler (2026-11-25): iki kat mavi camlı pencere, tuğla kat bandı, mor-mavi taban kaplaması arkada da,
+	# arka kapı + saçak, yağmur boruları, düz çatıda su deposu
+	if FacadeKit.on():
+		var bf = 0.0 if dn < 0.0 else 180.0   # arka yüzün normali (önün tersi)
+		var wf = {"floors": 2, "fh": 4.6, "win_y": 3.0, "win": Vector2(2.6, 1.8), "pitch": 4.6, "frame": Color(0.3, 0.35, 0.45),
+			"glass": glass, "band": brick, "band_d": 0.3, "base": violet, "pipes": brick.darkened(0.2)}
+		var wb = wf.duplicate(); wb.merge({"door": -6.0, "door_w": 2.4, "door_h": 3.0, "door_col": glass.darkened(0.3), "awning": brick,
+			"props": "service", "seed": 61})
+		FacadeKit.dress(b, x, nc - dn * D * 0.5, bf, W, 0.6, 9.2, wb)
+		for sx in [-1.0, 1.0]:
+			var ws = wf.duplicate(); ws.merge({"floors": 1, "seed": 62 + int(sx)})
+			FacadeKit.dress(b, x + sx * W * 0.5, nc, 90.0 if sx > 0.0 else 270.0, D, 0.6, 5.2, ws)
+			var wu = {"floors": 1, "win_y": 7.8, "win": Vector2(2.2, 1.6), "pitch": 4.0, "frame": Color(0.3, 0.35, 0.45), "glass": glass, "seed": 64 + int(sx)}
+			FacadeKit.dress(b, x + sx * (W * 0.5 - 1.0), nc - dn * 2.5, 90.0 if sx > 0.0 else 270.0, D - 5.0, 5.8, 4.0, wu)
+		FacadeKit.roof_tank(b, x - W * 0.3, nc - dn * 5.0, 9.8, 2.8)
 	b.yoff = yo
 
 
@@ -262,6 +289,26 @@ static func library(b: Builder, x: float, nc: float, dn: float) -> void:
 	b.kanji(sp + Vector3(0, -0.4, dn * 0.55), "書", 0.6, Color(0.15, 0.12, 0.1), yaw)
 	b.box(Vector3(x, 0.5 + H - 0.9, fz.call(0.12)), Vector3(9.0, 1.4, 0.15), Color(0.7, 0.5, 0.3), yaw, false)
 	b.kanji(Vector3(x, 0.5 + H - 0.9, fz.call(0.22)), "木ノ葉図書館", 0.9, Color(0.15, 0.1, 0.08), yaw)
+	# arka / yan cepheler (2026-11-25): aynı mavi çerçeveli pencereler, alt 2 m dikey ahşap kaplama çepeçevre, arka kapı,
+	# yağmur boruları, düz çatıda su deposu, arkada kitap sandıkları
+	if FacadeKit.on():
+		var bf = 0.0 if dn < 0.0 else 180.0
+		var faces = [[x, nc - dn * D * 0.5, bf, W], [x + W * 0.5, nc, 90.0, D], [x - W * 0.5, nc, 270.0, D]]
+		for fi in faces.size():
+			var fc: Array = faces[fi]
+			var o = {"floors": 2, "fh": 3.6, "win_y": 3.4, "win": Vector2(2.1, 1.7), "pitch": 4.8, "frame": frame,
+				"glass": Color(0.62, 0.74, 0.82), "pipes": Color(0.62, 0.45, 0.42), "seed": 70 + fi, "margin": 2.4}
+			if fi == 0:
+				o.merge({"door": W * 0.3, "door_w": 2.0, "door_h": 2.7, "door_col": frame, "awning": Color(0.62, 0.45, 0.42), "props": "service"})
+			FacadeKit.dress(b, fc[0], fc[1], fc[2], fc[3], 0.5, H, o)
+			var fw: float = fc[3]
+			for k in int(fw / 0.45):   # dikey ahşap kaplama (alt 2 m) — ön cephedekinin devamı
+				var u = -fw * 0.5 + (k + 0.5) * 0.45
+				if fi == 0 and absf(u - W * 0.3) < 1.5:
+					continue
+				var f = deg_to_rad(float(fc[2]))
+				b.box(Vector3(float(fc[0]) + cos(f) * u + sin(f) * 0.05, 1.5, float(fc[1]) - sin(f) * u + cos(f) * 0.05), Vector3(0.4, 2.0, 0.08), plank.darkened(0.06 * (k % 2)), float(fc[2]), false)
+		FacadeKit.roof_tank(b, x + W * 0.28, nc - dn * 3.0, 0.5 + H + 0.6, 2.4, Color(0.78, 0.8, 0.82))
 	b.yoff = yo
 
 
@@ -472,6 +519,27 @@ static func hospital(b: Builder, decor: Node3D, hx: float, hn: float, rng: Rando
 			b.box(Vector3(hx + 45.5 + i * 9.0, 6.4 + fl * 8.0, hn - 11.25), Vector3(2.2, 2.6, 0.3), glass, 0, false)
 	for t in 2:
 		b.cyl(Vector3(hx + 45.0 + t * 10.0, 22.4, hn + 8.0), 5.6, 3.6, Color(0.88, 0.92, 0.96), true, 12)
+	# arka / yan cepheler (2026-11-25): servis girişi (mavi saçak, basamak), yağmur boruları, arka bahçede beyaz çarşaf kurutma
+	# ipleri ve sandıklar; mor kanadın doğu ve arka yüzünde pencere sıraları + turuncu kat bandı
+	if FacadeKit.on():
+		FacadeKit.dress(b, hx, hn + 21.0, 0.0, 76.0, 0.0, 24.0, {"windows": false, "pipes": Color(0.62, 0.66, 0.72), "door": 0.0,
+			"door_w": 2.8, "door_h": 3.0, "door_col": Color(0.5, 0.74, 0.88), "frame": Color(0.42, 0.66, 0.62), "awning": blue,
+			"props": "clinic", "seed": 41})
+		FacadeKit.dress(b, hx - 38.0, hn, 270.0, 42.0, 0.0, 24.0, {"windows": false, "pipes": Color(0.62, 0.66, 0.72), "props": "service", "seed": 42})
+		var lw = Color(0.3, 0.56, 0.52)
+		FacadeKit.dress(b, hx + 61.0, hn + 4.0, 90.0, 30.0, 0.0, 20.0, {"floors": 2, "fh": 8.0, "win_y": 6.4, "win": Vector2(2.2, 2.6),
+			"pitch": 6.0, "frame": lw, "glass": glass, "band": orange, "band_d": 0.6, "base": lilac.darkened(0.2), "pipes": lilac.darkened(0.3), "seed": 43})
+		FacadeKit.dress(b, hx + 50.0, hn + 19.0, 0.0, 22.0, 0.0, 20.0, {"floors": 2, "fh": 8.0, "win_y": 6.4, "win": Vector2(2.2, 2.6),
+			"pitch": 6.0, "frame": lw, "glass": glass, "band": orange, "band_d": 0.6, "base": lilac.darkened(0.2), "props": "clinic", "seed": 44})
+		for k in 2:   # arka bahçe: iki sıra beyaz çarşaf kurutma ipi
+			FacadeKit.props(b, hx - 22.0 + k * 16.0, hn + 25.0, 0.0, 8.0, 0.0, "clinic", RandomNumberGenerator.new(), [])
+			var lq = Vector2(hx - 22.0 + k * 16.0, hn + 27.0)
+			var lg = FacadeKit.ground(b, lq.x, lq.y)
+			for sx in [-1.0, 1.0]:
+				b.box(Vector3(lq.x + sx * 3.2, lg + 1.2, lq.y), Vector3(0.14, 2.4, 0.14), Color(0.45, 0.45, 0.48), 0, true)
+			b.box(Vector3(lq.x, lg + 2.25, lq.y), Vector3(6.4, 0.03, 0.03), Color(0.85, 0.85, 0.85), 0, false)
+			for j in 5:
+				b.box(Vector3(lq.x - 2.6 + j * 1.3, lg + 1.7, lq.y), Vector3(1.1, 1.1, 0.03), Color(0.97, 0.97, 0.96), 0, false)
 	# bahçe kapısı direkleri (tepesinde taş top)
 	for sx in [-1.0, 1.0]:
 		b.box(Vector3(hx + sx * 7.5, 2.6, fn - 43.0), Vector3(2.0, 5.2, 2.0), Color(0.62, 0.74, 0.76))
@@ -552,6 +620,20 @@ static func anbu(b: Builder, decor: Node3D, ax: float, an: float) -> void:
 	b.roof(Vector3(tx, 21.0, tn), Vector3(9, 3, 9), tile)
 	for sx in [-1.0, 1.0]:
 		b.box(Vector3(tx + sx * 3.6, 19.8, tn), Vector3(0.25, 1.6, 7.6), dark, 0, false)
+	# arka / yan cepheler (2026-11-25): dar yarık pencereler + taş lentolar, arka kapı, üst katta da yarıklar; sur içi arka
+	# avluda kilitli sandıklar ve odun
+	if FacadeKit.on():
+		var slit = {"kind": "slit", "win": Vector2(2.2, 2.6), "frame": dark, "sill": false, "pitch": 5.0, "seed": 51}
+		var lo = slit.duplicate(); lo.merge({"floors": 1, "win_y": 5.0, "door": 8.0, "door_w": 2.6, "door_h": 4.0,
+			"door_col": Color(0.1, 0.1, 0.11), "awning": tile, "lamp": false, "props": "service"})
+		FacadeKit.dress(b, ax, an + 20.0, 0.0, 40.0, 0.0, 10.0, lo)
+		var up = slit.duplicate(); up.merge({"floors": 1, "win_y": 14.0, "win": Vector2(1.8, 2.0)})
+		FacadeKit.dress(b, ax, an + 18.0, 0.0, 30.0, 0.0, 17.5, up)
+		for sx in [-1.0, 1.0]:
+			var sl = slit.duplicate(); sl.merge({"floors": 1, "win_y": 5.0, "seed": 52 + int(sx)})
+			FacadeKit.dress(b, ax + sx * 20.0, an + 8.0, 90.0 if sx > 0.0 else 270.0, 24.0, 0.0, 10.0, sl)
+			var su = slit.duplicate(); su.merge({"floors": 1, "win_y": 14.0, "win": Vector2(1.8, 2.0), "seed": 54 + int(sx)})
+			FacadeKit.dress(b, ax + sx * 15.0, an + 10.0, 90.0 if sx > 0.0 else 270.0, 16.0, 0.0, 17.5, su)
 	# avlu: çakıl zemin, antrenman kütükleri, hedef tahtaları
 	b.box(Vector3(ax, 0.05, an - 13.0), Vector3(60, 0.1, 16), Color(0.5, 0.5, 0.52), 0, false)
 	for k in 4:
