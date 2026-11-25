@@ -118,8 +118,10 @@ static func _jp(b: Builder, at: Callable, yaw: float, rng: RandomNumberGenerator
 static func jp_template(det: MB, fz: float, y0: float, shop: bool, rng: RandomNumberGenerator) -> void:
 	var at = func(lx: float, yy: float, out: float) -> Vector3: return Vector3(lx, y0 + yy, fz - out)
 	var shoji = shop or rng.randf() < 0.55
-	det.add("box", at.call(0, -0.12, 0.8), Vector3(2.8, 0.24, 1.3), STONE)
-	det.add("box", at.call(0, -0.32, 1.5), Vector3(2.2, 0.2, 0.7), STONE.darkened(0.08))
+	# basamaklar yere kadar iner (eğimli arazide alt basamak havada kalıyordu): üstleri aynı, gövdeleri toprağın içine uzanır
+	det.add("box", at.call(0, -1.0, 0.8), Vector3(2.8, 2.0, 1.3), STONE)
+	det.add("box", at.call(0, -1.12, 1.6), Vector3(2.4, 1.8, 0.7), STONE.darkened(0.08))
+	det.add("box", at.call(0, -1.24, 2.25), Vector3(2.0, 1.6, 0.6), STONE.darkened(0.14))
 	for sx in [-1.0, 1.0]:
 		det.add("box", at.call(sx * 1.22, 1.3, 0.1), Vector3(0.22, 2.6, 0.22), WOOD)
 	det.add("box", at.call(0, 2.68, 0.1), Vector3(2.9, 0.24, 0.26), WOOD)

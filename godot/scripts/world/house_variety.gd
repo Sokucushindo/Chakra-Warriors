@@ -119,12 +119,25 @@ static func make(rng: RandomNumberGenerator, i: int) -> Dictionary:
 			HouseKit._window(det, Vector3(w * 0.5 + 0.2, 0.5 + f * fh + fh * 0.55, -d * 0.5 - tr - 0.02), 0.0, rng)
 		roof_prims.append(["cyl", Vector3(w * 0.5, th * 0.5, -d * 0.5), Vector3(tr * 2.0, th, tr * 2.0), Vector3.ZERO, 12])   # kule: kendi silindiri
 	if plan == "court":   # önde avlu duvarı + kapı (yarı açık)
+		# duvarlar toprağın içine iner (eğimde havada kalmasın); üstleri 2.2 m
 		for sx in [-1.0, 1.0]:
-			det.add("box", Vector3(sx * (w * 0.5 + 0.1), 1.1, -d * 0.5 - 1.8), Vector3(0.4, 2.2, 3.6), STONE_L)
-			det.add("box", Vector3(sx * (w * 0.3 + 1.0), 1.1, -d * 0.5 - 3.6), Vector3(w * 0.4 - 1.6, 2.2, 0.4), STONE_L)
+			det.add("box", Vector3(sx * (w * 0.5 + 0.1), 0.6, -d * 0.5 - 1.8), Vector3(0.4, 3.2, 3.6), STONE_L)
+			det.add("box", Vector3(sx * (w * 0.3 + 1.0), 0.6, -d * 0.5 - 3.6), Vector3(w * 0.4 - 1.6, 3.2, 0.4), STONE_L)
+			det.add("box", Vector3(sx * (w * 0.3 + 1.0), 2.25, -d * 0.5 - 3.6), Vector3(w * 0.4 - 1.5, 0.12, 0.6), DARK)   # duvar başlığı
 			cols.append([Vector3(sx * (w * 0.5 + 0.1), 1.1, -d * 0.5 - 1.8), Vector3(0.4, 2.2, 3.6), 0.0])
 			cols.append([Vector3(sx * (w * 0.3 + 1.0), 1.1, -d * 0.5 - 3.6), Vector3(w * 0.4 - 1.6, 2.2, 0.4), 0.0])
-		det.add("box", Vector3(0, 2.6, -d * 0.5 - 3.6), Vector3(3.6, 0.3, 1.0), DARK)   # kapı saçağı
+		# avlu kapısı (2026-11-25, kullanıcı: "bina girişi uçuyor" — saçak 6 m'lik boşluğun ortasında direksiz asılıydı):
+		# boşluğun iki ucunda direk, üstte kiriş + kiremit kapı çatısı; duvar uçlarına oturur
+		var gh = w * 0.1 + 1.8
+		var gz = -d * 0.5 - 3.6
+		for sx in [-1.0, 1.0]:
+			det.add("box", Vector3(sx * (gh - 0.15), 1.0, gz), Vector3(0.36, 3.6, 0.36), WOOD)
+			cols.append([Vector3(sx * (gh - 0.15), 1.4, gz), Vector3(0.36, 2.8, 0.36), 0.0])
+		det.add("box", Vector3(0, 2.75, gz), Vector3(gh * 2.0 + 0.3, 0.28, 0.3), WOOD)
+		det.add("box", Vector3(0, 2.35, gz), Vector3(gh * 2.0 - 0.3, 0.14, 0.2), WOOD)
+		roof.add("prism", Vector3(0, 3.24, gz), Vector3(1.8, 0.7, gh * 2.0 + 1.2), Color(1, 1, 1), Vector3(0, 90, 0), 4)   # sırt kapı boyunca
+		roof_prims.append(["prism", Vector3(0, 3.24, gz), Vector3(1.8, 0.7, gh * 2.0 + 1.2), Vector3(0, 90, 0), 4])
+		det.add("box", Vector3(0, 3.62, gz), Vector3(gh * 2.0 + 1.3, 0.16, 0.24), DARK)   # mahya
 	# --- ana çatı + cephe
 	var top = h if plan != "setback" else h
 	var tz = d * 0.15 if plan == "setback" else (-0.4 if plan == "overhang" else 0.0)
@@ -216,10 +229,49 @@ static func make(rng: RandomNumberGenerator, i: int) -> Dictionary:
 		det.add_grad("cyl", Vector3(txp, h + 2.6, d * 0.15), Vector3(2.6, 2.2, 2.6), Color(0.7, 0.74, 0.78), Color(0.5, 0.53, 0.58), Vector3.ZERO, 14)
 		cols.append([Vector3(txp, h + 2.2, d * 0.15), Vector3(2.7, 3.6, 2.7), 0.0])
 	if "g" in ext and roof_t == "flat":   # çatı bahçesi: saksı ağaçları + çit
+		# 2026-11-25 (kullanıcı: "süsler çok basic"): kutu + tek top yerine kenar başlıklı ahşap saksı, toprak, farklı tonlarda
+		# yaprak kümeleri / gövdeli küçük ağaç / çiçek öbeği, saksıların arasında taş fener ve alçak bank
+		var leaf = [Color(0.3, 0.55, 0.28), Color(0.24, 0.47, 0.25), Color(0.38, 0.62, 0.3)]
+		var fl_c = [Color(0.95, 0.55, 0.65), Color(0.98, 0.95, 0.85), Color(0.95, 0.8, 0.3), Color(0.75, 0.45, 0.8)]
 		for k in 4:
 			var gx = -w * 0.35 + k * w * 0.23
-			det.add("box", Vector3(gx, h + 0.75, d * 0.3), Vector3(1.4, 0.6, 1.4), Color(0.5, 0.35, 0.25))
-			det.add("sphere", Vector3(gx, h + 1.7, d * 0.3), Vector3(1.5, 1.4, 1.5), Color(0.32, 0.58, 0.3), Vector3.ZERO, 8)
+			var gz = d * 0.3
+			var py = h + 0.5
+			det.add("box", Vector3(gx, py + 0.3, gz), Vector3(1.5, 0.6, 1.5), Color(0.46, 0.31, 0.2))
+			for e in 3:   # yatay tahta derzleri
+				det.add("box", Vector3(gx, py + 0.12 + e * 0.2, gz - 0.76), Vector3(1.5, 0.03, 0.03), Color(0.32, 0.21, 0.13))
+			det.add("box", Vector3(gx, py + 0.63, gz), Vector3(1.66, 0.08, 1.66), Color(0.36, 0.24, 0.15))   # kenar başlığı
+			det.add("box", Vector3(gx, py + 0.6, gz), Vector3(1.3, 0.04, 1.3), Color(0.3, 0.22, 0.15))   # toprak
+			for sx in [-1.0, 1.0]:   # ayaklar
+				for sz in [-1.0, 1.0]:
+					det.add("box", Vector3(gx + sx * 0.62, py + 0.04, gz + sz * 0.62), Vector3(0.2, 0.1, 0.2), Color(0.3, 0.2, 0.12))
+			var kind = (i + k) % 3
+			if kind == 0:   # yuvarlak budanmış çalı: farklı boy ve tonda 4 küme
+				for q in 4:
+					var a = q * 1.7 + float(i)
+					var r = 0.0 if q == 0 else 0.38
+					var sc = 1.0 if q == 0 else 0.7
+					det.add("sphere", Vector3(gx + cos(a) * r, py + 1.15 + (0.2 if q == 0 else -0.05), gz + sin(a) * r), Vector3(1.0, 0.85, 1.0) * sc, leaf[(q + k) % 3], Vector3.ZERO, 8)
+			elif kind == 1:   # gövdeli küçük ağaç (taç 3 küme)
+				det.add("cyl", Vector3(gx, py + 1.2, gz), Vector3(0.14, 1.2, 0.14), Color(0.4, 0.28, 0.18), Vector3.ZERO, 6)
+				for q in 3:
+					var a2 = q * 2.1 + float(k)
+					det.add("sphere", Vector3(gx + cos(a2) * 0.32, py + 2.0 + q * 0.12, gz + sin(a2) * 0.32), Vector3(0.95, 0.75, 0.95), leaf[q], Vector3.ZERO, 8)
+			else:   # çiçek öbeği: alçak yeşillik + renkli çiçek başları
+				det.add("sphere", Vector3(gx, py + 0.8, gz), Vector3(1.2, 0.5, 1.2), leaf[1], Vector3.ZERO, 8)
+				for q in 7:
+					var a3 = q * 0.9 + float(i)
+					var r3 = 0.15 + (q % 3) * 0.17
+					det.add("sphere", Vector3(gx + cos(a3) * r3, py + 1.0 + (q % 2) * 0.06, gz + sin(a3) * r3), Vector3(0.18, 0.14, 0.18), fl_c[(q + k) % 4], Vector3.ZERO, 6)
+		# taş fener (ortadaki iki saksının arası) + alçak bank (önde)
+		var lx = -w * 0.35 + 1.5 * w * 0.23
+		det.add("box", Vector3(lx, h + 0.6, d * 0.3), Vector3(0.5, 0.2, 0.5), Color(0.6, 0.6, 0.58))
+		det.add("box", Vector3(lx, h + 0.95, d * 0.3), Vector3(0.2, 0.5, 0.2), Color(0.62, 0.62, 0.6))
+		det.add("box", Vector3(lx, h + 1.32, d * 0.3), Vector3(0.42, 0.3, 0.42), Color(0.95, 0.88, 0.62))
+		det.add("cone", Vector3(lx, h + 1.6, d * 0.3), Vector3(0.75, 0.28, 0.75), Color(0.58, 0.58, 0.56), Vector3.ZERO, 6)
+		det.add("box", Vector3(0, h + 0.95, -d * 0.05), Vector3(2.4, 0.1, 0.5), Color(0.5, 0.35, 0.22))
+		for sx in [-1.0, 1.0]:
+			det.add("box", Vector3(sx * 1.0, h + 0.72, -d * 0.05), Vector3(0.12, 0.45, 0.45), Color(0.36, 0.24, 0.15))
 	if plan not in ["T", "terrace", "overhang", "court"]:
 		HouseKit._front_decor(det, w, d, 0, rng)
 	# yerleşim ayak izi: bütün görünen parçaların gerçek kapladığı alan (kanat, veranda, avlu duvarı, saçak, merdiven);

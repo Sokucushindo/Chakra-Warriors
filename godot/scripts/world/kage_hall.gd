@@ -334,7 +334,7 @@ static func konoha_tower(b: Builder, decor: Node3D, tn: float) -> float:
 	var wall = Color(0.74, 0.22, 0.17)
 	var tile = Color(0.86, 0.52, 0.24)
 	# kaide
-	b.cyl(Vector3(0, 0.3, tn), 82, 1.2, stone, true, 40)
+	b.cyl(Vector3(0, -1.2, tn), 82, 4.2, stone, true, 40)   # 3.3 m gömülü: zemin eğiminde kaide havada kalmasın
 	b.cyl(Vector3(0, 0.93, tn), 83, 0.08, stone.lightened(0.12), false, 40)
 	# ana gövde + kat bantları
 	b.cyl(Vector3(0, 24.9, tn), 70, 48, wall, true, 40)
@@ -358,6 +358,10 @@ static func konoha_tower(b: Builder, decor: Node3D, tn: float) -> float:
 	# kırmızı saçak etek + alt kiriş
 	b.cone(Vector3(0, 53.0, tn), 86, 9.0, tile, 40)
 	b.cyl(Vector3(0, 48.6, tn), 85.5, 0.5, dark, false, 40)
+	# balkonu taşıyan kırmızı kat (r 31): saçak konisi (yüzeyi y = 57.5 - 9 r / 43) balkonun altında açık kalıp
+	# tepeye doğru üçgen gibi yükseliyordu, balkon koninin üstünde havada duruyordu
+	b.cyl(Vector3(0, 53.525, tn), 62, 5.85, wall, true, 40)
+	b.cyl(Vector3(0, 56.15, tn), 63, 0.5, dark, false, 40)   # balkon altı kirişi
 	# balkon zemini + korkuluk (yürünebilir)
 	b.cyl(Vector3(0, 56.8, tn), 66, 0.6, stone.lightened(0.05), true, 40)
 	for k in 48:
@@ -367,20 +371,21 @@ static func konoha_tower(b: Builder, decor: Node3D, tn: float) -> float:
 		var q2 = Builder.rot(0, 32.6, a + 3.75)
 		b.box(Vector3(q2.x, 58.55, tn + q2.y), Vector3(4.35, 0.16, 0.26), red.darkened(0.2), a + 3.75, false)
 	# üst gövde
-	b.cyl(Vector3(0, 62.0, tn), 52, 11, wall, true, 32)
+	b.cyl(Vector3(0, 62.2, tn), 52, 10.6, wall, true, 32)   # taban 56.9: balkon altıyla (56.5) aynı düzlemde kırmızı-gri titreşim yapıyordu
 	for k in 12:
 		var a = k * 30.0 + 15.0
 		var q = Builder.rot(0, 26.1, a)
 		b.disc(Vector3(q.x, 61.5, tn + q.y), 2.6, 0.3, dark, a, 14)
 		b.disc(Vector3(q.x * 1.004, 61.5, tn + q.y * 1.004), 2.1, 0.3, glass.lightened(0.1), a, 14)
 	# 火 plakası (üst gövdenin önünde, balkonun üstünde)
-	b.disc(Vector3(0, 63.0, tn - 26.4), 9.6, 0.5, Color(0.97, 0.95, 0.9), 0.0, 28)
-	b.disc(Vector3(0, 63.0, tn - 26.2), 10.4, 0.4, red, 0.0, 28)
-	b.kanji(Vector3(0, 63.0, tn - 26.75), "火", 7.6, red.darkened(0.05), 0.0)
+	# (tepesi 68.2'ye çıkıp çatı kirişine / çatı altına giriyordu: 57.5..67.1 arasına sığdı)
+	b.disc(Vector3(0, 62.3, tn - 26.4), 8.8, 0.5, Color(0.97, 0.95, 0.9), 0.0, 28)
+	b.disc(Vector3(0, 62.3, tn - 26.2), 9.6, 0.4, red, 0.0, 28)
+	b.kanji(Vector3(0, 62.3, tn - 26.75), "火", 7.0, red.darkened(0.05), 0.0)
 	# çatı: kiriş bandı, büyük kırmızı koni, ikinci kademe, tepe süsü
 	b.cyl(Vector3(0, 67.7, tn), 54, 0.8, dark, false, 32)
 	b.cone(Vector3(0, 73.5, tn), 68, 12.0, tile, 32, true)
-	b.cyl(Vector3(0, 79.0, tn), 18, 2.2, wall, false, 20)
+	b.cyl(Vector3(0, 77.95, tn), 18, 4.3, wall, false, 20)   # koninin r 9'daki yüzeyine (76.3) oturur: eskiden 1.6 m havadaydı
 	b.cone(Vector3(0, 82.6, tn), 24, 5.6, tile.darkened(0.05), 20)
 	b.cyl(Vector3(0, 86.6, tn), 0.6, 3.0, dark, false, 8)
 	b.sphere(Vector3(0, 88.3, tn), Vector3(1.1, 1.1, 1.1), Color(0.85, 0.68, 0.3), 10)
@@ -391,12 +396,13 @@ static func konoha_tower(b: Builder, decor: Node3D, tn: float) -> float:
 		b.box(Vector3(sx * 5.6, 0.8, en - 6.0), Vector3(1.8, 0.4, 1.8), stone.darkened(0.1), 0, false)
 	b.box(Vector3(0, 7.7, en - 3.2), Vector3(14.0, 0.8, 7.2), dark, 0, false)
 	b.roof(Vector3(0, 8.1, en - 3.2), Vector3(16.0, 2.6, 8.4), red)
-	b.box(Vector3(0, 4.1, en + 0.15), Vector3(7.4, 6.4, 0.6), dark, 0, false)   # kapı terasın üstünde (alt yarısı terasa gömülüyordu)
+	# kapı gövdenin dibindeki 2 m'lik koyu kırmızı kuşağın (r 35.6) ÖNÜNDE: eskiden kuşağın arkasında kalıp alt yarısı görünmüyordu
+	b.box(Vector3(0, 4.1, en - 0.85), Vector3(7.4, 6.4, 0.5), dark, 0, false)
 	for sx in [-1.0, 1.0]:
-		b.box(Vector3(sx * 1.75, 3.75, en - 0.2), Vector3(3.3, 5.5, 0.2), Color(0.45, 0.28, 0.16), 0, false)
-		b.box(Vector3(sx * 0.4, 3.75, en - 0.32), Vector3(0.12, 0.8, 0.08), Color(0.85, 0.68, 0.3), 0, false)
+		b.box(Vector3(sx * 1.75, 3.75, en - 1.15), Vector3(3.3, 5.5, 0.2), Color(0.45, 0.28, 0.16), 0, false)
+		b.box(Vector3(sx * 0.4, 3.75, en - 1.27), Vector3(0.12, 0.8, 0.08), Color(0.85, 0.68, 0.3), 0, false)
 	for k in 4:
-		b.box(Vector3(-2.7 + k * 1.8, 5.6, en - 0.5), Vector3(1.7, 1.6, 0.06), red, 0, false)
+		b.box(Vector3(-2.7 + k * 1.8, 5.6, en - 1.42), Vector3(1.7, 1.6, 0.06), red, 0, false)
 	b.box(Vector3(0, 9.6, en - 6.85), Vector3(4.2, 1.6, 0.2), Color(0.96, 0.94, 0.88), 0, false)
 	b.kanji(Vector3(0, 9.6, en - 7.0), "火影", 1.3, red.darkened(0.2), 0.0)
 	# doğu: idari kanat (pencere sıraları, kat saçakları, çatıda su depoları)

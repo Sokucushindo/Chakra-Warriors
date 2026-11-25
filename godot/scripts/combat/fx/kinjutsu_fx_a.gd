@@ -1264,6 +1264,9 @@ static func _gate_burst(pj: PathJutsu, c: Node3D, g: int) -> void:
 ## karesi + yön halkası), son yumrukta iki sarmal şerit dönerek iner, zeminde göçük + çatlak + üç şok halkası + kaya.
 static func ura_renge(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	var tt = pj.tg(c, t, 14.0)
+	if tt == null:   # yakında rakip yok: teknik başlamaz, kapı bedeli ödenmez (eskiden sessizce boşa gidiyordu)
+		pj.lotus_no_target(c, "Ura Renge")
+		return
 	_gate_pay(pj, c, 0.1)
 	pj.busy(c, 1.8)
 	if tt == null or not pj._lotus_open(c, tt):   # Arka Lotus da havaya kaldırılmış rakibe (Ön Lotus ile aynı şart)

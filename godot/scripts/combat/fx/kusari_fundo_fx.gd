@@ -20,13 +20,15 @@ class Chain extends MultiMeshInstance3D:
 	var mid := Vector3.ZERO
 	var vel := Vector3.ZERO
 	var init := false
-	const N := 14
+	const N := 90       # en çok halka; görünen sayı zincir boyundan (halka aralığı PITCH)
+	const PITCH := 0.048
 
 	func setup(link: Mesh, mat: Material) -> void:
 		var mm = MultiMesh.new()
 		mm.transform_format = MultiMesh.TRANSFORM_3D
 		mm.mesh = link
 		mm.instance_count = N
+		mm.visible_instance_count = 14
 		multimesh = mm
 		material_override = mat
 		cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -43,7 +45,9 @@ class Chain extends MultiMeshInstance3D:
 			visible = false
 			return
 		visible = a.is_visible_in_tree() or b.is_visible_in_tree()
-		global_transform = Transform3D.IDENTITY
+		# düğüm sol elin konumunda: custom_aabb (+-30 m) düğüme göre; eskiden dünya merkezindeydi -> haritada merkezden 30 m ötede
+		# zincir görüş alanı dışı sayılıp hiç çizilmiyordu (saldırıda uçan ağırlığın zinciri görünmüyordu)
+		global_transform = Transform3D(Basis.IDENTITY, A)
 		var B: Vector3 = b.global_position
 		var L = A.distance_to(B)
 		var want = (A + B) * 0.5 + Vector3.DOWN * maxf(0.02, slack - L * 0.28)   # eller açılınca zincir gerilir
@@ -54,17 +58,21 @@ class Chain extends MultiMeshInstance3D:
 		vel += (want - mid) * 110.0 * d
 		vel *= exp(-8.0 * d)
 		mid += vel * d
-		var stretch = maxf(1.3, (L / N) / 0.05)
+		# halka sayısı zincir boyuna göre (eskiden 14 halka 3 m'ye gerilip kesik kesik çizgi gibi görünüyordu)
+		var arc = A.distance_to(mid) + mid.distance_to(B)
+		var n = clampi(int(ceil(arc / PITCH)), 8, N)
+		multimesh.visible_instance_count = n
+		var stretch = clampf((arc / n) / 0.04, 1.2, 1.6)
 		var prev = A
-		for i in N:
-			var u = (i + 0.5) / N
+		for i in n:
+			var u = (i + 0.5) / n
 			var p = A.lerp(mid, u).lerp(mid.lerp(B, u), u)
 			var dir = p - prev
 			dir = dir.normalized() if dir.length() > 0.001 else Vector3.UP
 			var x = dir.cross(Vector3.UP if absf(dir.y) < 0.9 else Vector3.RIGHT).normalized()
 			if i % 2 == 1:
 				x = x.rotated(dir, PI * 0.5)
-			multimesh.set_instance_transform(i, Transform3D(Basis(dir * stretch, x, dir.cross(x)), p))
+			multimesh.set_instance_transform(i, Transform3D(Basis(dir * stretch, x, dir.cross(x)), p - A))
 			prev = p
 
 

@@ -5,8 +5,8 @@ extends RefCounted
 ## hız çizgisi, kameraya dönük şerit (iplik, sargı, ruh akışı), zemin katmanı (dalga halkası / leke / ağ / mühür halkası),
 ## su-kristal küre (kenar bandı, parıltı, iç halkalar, içinde uzak görüntü), toon katı + mürekkep kontur, hayalet kopya.
 ## Kendi parçacık (MultiMesh) / yörünge / şerit / çatlak düzeneği (Ticker).
-##  · omote_renge: hız çizgileri, fırlatış tozu, arkada beliren kalıntı gölge, bedeni saran çizgili sargı bandı + ele bağlı
-##    sargı, sarmal hız çizgileriyle matkap dalışı, krater (çatlak, moloz, toz halkası, kalıcı çukur izi)
+##  · omote_renge: hız çizgileri, fırlatış tozu, arkada beliren kalıntı gölge, önkollardan çözülüp uçan iki yassı sargı bandı
+##    (kaotik halkalar → sıkı sarım, kolları bedene bağlar), arkadan kavrayıp başaşağı dönüş, sarmal hız çizgileriyle matkap dalışı, krater (çatlak, moloz, toz halkası, kalıcı çukur izi)
 ##  · izanami: hasar yok; kurbanın çevresinde dönen kuzgunlar, düşen kara tüyler, soğuk çivit gölge, geriye dönen üç tomoe,
 ##    her döngüde donmuş ak an kopyası; atanın gözü kapanır (kan izi). Döngü kırılınca kopyalar ak pul, kuzgunlar tüy olur
 ##  · gedo_rinne_tensei: zeminde Rinnegan halkaları, Cehennem Kralı toz bulutları arasında yerden yükselir, çenesi açılır,
@@ -1144,55 +1144,6 @@ static func _afterimage(pj: PathJutsu, c: Node3D) -> void:
 	_fade_ghost(pj, g, m, 0.05, 0.3)
 
 
-## Sargı bandı: bedeni 5 tur saran çizgili yassı sarmal (kenarı koyu çizgili), +Y boyunca
-static func _bandage_mesh(hgt: float) -> ArrayMesh:
-	var st = SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var N = 110
-	var turns = 5.0
-	var r = 0.3
-	var y0 = -0.45
-	var y1 = -0.45 + hgt * 0.62
-	var bh = (y1 - y0) / turns * 0.92
-	for i in N:
-		var a0 = TAU * turns * i / N
-		var a1 = TAU * turns * (i + 1) / N
-		var yy0 = lerpf(y0, y1, float(i) / N)
-		var yy1 = lerpf(y0, y1, float(i + 1) / N)
-		var o0 = Vector3(cos(a0), 0.0, sin(a0))
-		var o1 = Vector3(cos(a1), 0.0, sin(a1))
-		var shade = BAND.darkened(0.08 if (i / 11) % 2 == 1 else 0.0)
-		# bant
-		_quad_st(st, o0 * r + Vector3.UP * (yy0 - bh * 0.5), o1 * r + Vector3.UP * (yy1 - bh * 0.5), o1 * r + Vector3.UP * (yy1 + bh * 0.5), o0 * r + Vector3.UP * (yy0 + bh * 0.5), o0, o1, shade)
-		# üst kenar çizgisi (bandın üst sınırı, biraz dışarıda)
-		var re = r + 0.006
-		_quad_st(st, o0 * re + Vector3.UP * (yy0 + bh * 0.5 - 0.012), o1 * re + Vector3.UP * (yy1 + bh * 0.5 - 0.012), o1 * re + Vector3.UP * (yy1 + bh * 0.5), o0 * re + Vector3.UP * (yy0 + bh * 0.5), o0, o1, INK)
-	return st.commit()
-
-
-static func _quad_st(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, d: Vector3, n0: Vector3, n1: Vector3, col: Color) -> void:
-	for pair in [[a, n0], [b, n1], [c, n1], [a, n0], [c, n1], [d, n0]]:
-		st.set_color(col)
-		st.set_normal(pair[1])
-		st.add_vertex(pair[0])
-
-
-## Matkap dalışı: hedefin çevresinde dönen sarmal hız çizgileri (hedefi izler)
-static func _drill_lines(pj: PathJutsu, tt: Node3D, dur: float) -> void:
-	var mat = _stripm(Color(1, 1, 1, 0.85), Color(0.78, 0.82, 0.8, 0.5), 0.5)
-	var w = weakref(tt)
-	for k in 4:
-		var ph = TAU * k / 4.0
-		_ribbon(pj, func(u, age):
-			var x = w.get_ref()
-			if x == null or not is_instance_valid(x):
-				return null
-			var cen: Vector3 = x.global_position
-			var a = ph + u * TAU * 1.4 + age * 16.0
-			var r = 0.85 + 0.35 * u
-			return cen + Vector3(cos(a) * r, -0.3 + u * 3.0, sin(a) * r), dur, 0.04, mat, 20, {"taper": 1, "fin": 0.15})
-
-
 ## Krater: çatlak, moloz, yayılan toz halkası, toz şok halkası, kalıcı çukur izi
 static func _crater(pj: PathJutsu, p: Vector3, s := 1.0) -> void:
 	_cracks(pj, p, 3.4 * s, 9, 6.5)
@@ -1203,101 +1154,516 @@ static func _crater(pj: PathJutsu, p: Vector3, s := 1.0) -> void:
 	_ground(pj, p, 2.4 * s, 7.0, {"mode": 1, "tint": Color(0.22, 0.18, 0.15, 0.55), "tint2": Color(0.12, 0.1, 0.08, 0.7), "seed": randf() * 10.0}, 0.12)
 
 
-## Ön Lotus: hedefe atıl, çeneden yukarı tekmele, havada sargıyla sar ve başaşağı yere çak (ana ağaçtan: Lotus şartı + kapı bedeli)
+## Sargı bandı malzemesi: kirli beyaz pamuk bant — kenarda ince koyu çizgi, enine kırışık izleri, ince dokuma, toon ışık.
+## Saydamlık yerine titreşimli kesme: opak kalır, üst üste sarılan katmanlar sıralama hatası vermez (sönerken seyrelir)
+static func _band_mat() -> ShaderMaterial:
+	if not _cache.has("omote_band"):
+		var sh = Shader.new()
+		sh.code = """
+shader_type spatial;
+render_mode cull_disabled, unshaded;
+uniform vec3 base_col = vec3(0.93, 0.91, 0.85);
+uniform vec3 edge_col = vec3(0.5, 0.48, 0.46);
+varying vec3 wn;
+float hb(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+void vertex() { wn = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz); }
+void fragment() {
+	if (COLOR.a < 0.999 && hb(floor(FRAGCOORD.xy)) > COLOR.a) { discard; }
+	float e = min(UV.y, 1.0 - UV.y);
+	vec3 col = mix(edge_col, base_col, smoothstep(0.05, 0.12, e));
+	float k = abs(fract(UV.x * 0.23 + sin(UV.y * 2.7 + floor(UV.x * 0.23) * 1.7) * 0.25) - 0.5);
+	col *= mix(0.94, 1.0, smoothstep(0.0, 0.03, k));
+	col *= 0.965 + 0.035 * sin(UV.x * 55.0) * sin(UV.y * 40.0);
+	col *= mix(0.92, 1.0, smoothstep(0.0, 0.5, e));
+	// kendi iki tonlu cel ışığı (sahne ışığının mavi gök dolgusu bandı maviye boyuyordu): üstten aydınlık, altı gölge
+	float l = dot(FRONT_FACING ? wn : -wn, normalize(vec3(0.35, 1.0, 0.25)));
+	col *= mix(0.74, 1.0, smoothstep(-0.15, 0.1, l));
+	if (!FRONT_FACING) { col *= 0.9; }
+	ALBEDO = col;
+}
+"""
+		var m = ShaderMaterial.new()
+		m.shader = sh
+		_cache["omote_band"] = m
+	return _cache["omote_band"]
+
+
+## Yassı bant şeridi: p noktaları, wv yarım en vektörleri, nv yüzey normalleri; uv.x = boy / en (kırışık aralığı bant enine bağlı)
+static func _band_strip(im: ImmediateMesh, p: Array, wv: Array, nv: Array, al: float) -> void:
+	var n = p.size()
+	if n < 2:
+		return
+	im.surface_begin(Mesh.PRIMITIVE_TRIANGLE_STRIP, _band_mat())
+	var run = 0.0
+	for i in n:
+		if i > 0:
+			run += (p[i] as Vector3).distance_to(p[i - 1])
+		var w: Vector3 = wv[i]
+		var u = run / maxf(0.01, w.length() * 2.0)
+		for sd in [1.0, -1.0]:
+			im.surface_set_color(Color(1, 1, 1, al))
+			im.surface_set_normal(nv[i])
+			im.surface_set_uv(Vector2(u, 0.0 if sd > 0.0 else 1.0))
+			im.surface_add_vertex((p[i] as Vector3) + w * sd)
+	im.surface_end()
+
+
+## Serbest bant parçası (uçuşan / sarkan): noktalar boyunca kendi ekseninde burulan yassı çerçeve
+static func _band_free(im: ImmediateMesh, pts: Array, hw: float, ref: Vector3, twist: float, ph: float, al: float) -> void:
+	var n = pts.size()
+	var P = []
+	var W = []
+	var N = []
+	for i in n:
+		var tn: Vector3 = (pts[mini(i + 1, n - 1)] as Vector3) - (pts[maxi(i - 1, 0)] as Vector3)
+		tn = tn.normalized() if tn.length() > 1e-5 else Vector3.UP
+		var b0 = tn.cross(ref)
+		if b0.length() < 1e-3:
+			b0 = tn.cross(Vector3.RIGHT)
+		b0 = b0.normalized()
+		var b1 = tn.cross(b0)
+		var a = ph + twist * float(i) / maxf(1.0, n - 1)
+		var wd = b0 * cos(a) + b1 * sin(a)
+		P.append(pts[i])
+		W.append(wd * hw)
+		N.append(wd.cross(tn).normalized())
+	_band_strip(im, P, W, N, al)
+
+
+static func _bz(a: Vector3, b: Vector3, c: Vector3, d: Vector3, u: float) -> Vector3:
+	var v = 1.0 - u
+	return a * v * v * v + b * 3.0 * v * v * u + c * 3.0 * v * u * u + d * u * u * u
+
+
+## Matkap dalışı: dönerek inen bedenin çevresinde, arkasında (yukarıda) kalan sarmal hız çizgileri (anime: hortum izi)
+static func _drill_lines(pj: PathJutsu, S: Dictionary, dur: float) -> void:
+	var mat = _stripm(Color(1, 1, 1, 0.85), Color(0.78, 0.82, 0.8, 0.5), 0.5)
+	var hs: float = S["hs"]
+	for k in 4:
+		var ph = TAU * k / 4.0
+		_ribbon(pj, func(u, age):
+			if not S.has("ct") or S["slam"]:
+				return null
+			var cen: Vector3 = S["ct"]
+			var a = ph + u * TAU * 1.6 - age * 18.0
+			var r = (0.7 + 0.6 * u) * hs
+			return cen + Vector3(cos(a) * r, -0.6 * hs + u * 4.5, sin(a) * r), dur, 0.045, mat, 24, {"taper": 1, "fin": 0.15})
+
+
+# Ön Lotus zamanlaması (sn; anime sırası: çeneden tekme → arkada beliriş → sargı → arkadan kavrayış → başaşağı dönüş → çakılış)
+const LT_RISE := 0.7                    # tekmeyle tepeye (H ≈ 10 m): y = H(1-(1-u)^2) → ilk hız 2H/T ≈ 29 m/sn
+const LT_FLY := 0.45                    # sargılar önkollardan çözülüp uçar
+const LT_TOUCH := 0.75                  # sargı ucu bedene değer
+const LT_WRAP := 1.3                    # sarım tamam (iki bant × 7 tur)
+const LT_TIGHT := Vector2(1.05, 1.42)   # gevşek kaotik halkalar bedene sıkıca kapanır
+const LT_HUG := Vector2(1.3, 1.5)       # arkadan kavrayış
+const LT_FLIP := 1.75                   # ikisi birlikte başaşağı
+const LT_LET := 2.25                    # atan son anda bırakıp takla atarak sıçrar
+const LT_SLAM := 2.35                   # hedefin başı yere çakılır
+const LT_POST := 1.05                   # çakılıştan sonra sargının gevşeyip yere düşmesi
+
+# pozlar (model uzayı: +Z önü, +X sol yanı; kemik yönleri)
+const LP_KICK := {"arms": [["RightUpperLeg", Vector3(-0.05, 0.8, 0.6)], ["RightLowerLeg", Vector3(-0.05, 0.93, 0.36)],
+	["LeftUpperArm", Vector3(0.85, -0.35, -0.3)], ["LeftLowerArm", Vector3(0.8, -0.45, -0.25)],
+	["RightUpperArm", Vector3(-0.85, -0.35, -0.3)], ["RightLowerArm", Vector3(-0.8, -0.45, -0.25)]], "spine": -22.0, "neck": 12.0}
+const LP_FLING := {"arms": [["LeftUpperArm", Vector3(0.55, 0.15, 0.82)], ["LeftLowerArm", Vector3(0.35, 0.25, 0.9)],
+	["RightUpperArm", Vector3(-0.55, 0.15, 0.82)], ["RightLowerArm", Vector3(-0.35, 0.25, 0.9)],
+	["LeftUpperLeg", Vector3(0.08, -0.75, 0.65)], ["LeftLowerLeg", Vector3(0.05, -0.9, -0.4)],
+	["RightUpperLeg", Vector3(-0.08, -0.75, 0.65)], ["RightLowerLeg", Vector3(-0.05, -0.9, -0.4)]], "spine": 10.0}
+const LP_HUG := {"arms": [["LeftUpperArm", Vector3(0.3, -0.2, 0.93)], ["LeftLowerArm", Vector3(-0.75, -0.1, 0.65)], ["LeftHand", Vector3(-0.8, -0.1, 0.55)],
+	["RightUpperArm", Vector3(-0.3, -0.2, 0.93)], ["RightLowerArm", Vector3(0.75, -0.1, 0.65)], ["RightHand", Vector3(0.8, -0.1, 0.55)],
+	["LeftUpperLeg", Vector3(0.05, -0.97, -0.22)], ["LeftLowerLeg", Vector3(0.03, -0.95, -0.3)],
+	["RightUpperLeg", Vector3(-0.05, -0.97, -0.22)], ["RightLowerLeg", Vector3(-0.03, -0.95, -0.3)]],
+	"fL": [0.9, 0.9, 1.0, 1.0, 0.6], "fR": [0.9, 0.9, 1.0, 1.0, 0.6], "spine": 8.0, "neck": 18.0}
+const LP_TUCK := {"arms": [["LeftUpperArm", Vector3(0.4, -0.3, 0.86)], ["LeftLowerArm", Vector3(0.1, 0.6, 0.8)],
+	["RightUpperArm", Vector3(-0.4, -0.3, 0.86)], ["RightLowerArm", Vector3(-0.1, 0.6, 0.8)],
+	["LeftUpperLeg", Vector3(0.1, 0.2, 0.97)], ["LeftLowerLeg", Vector3(0.05, -0.95, 0.2)],
+	["RightUpperLeg", Vector3(-0.1, 0.2, 0.97)], ["RightLowerLeg", Vector3(-0.05, -0.95, 0.2)]], "spine": 30.0, "neck": 20.0}
+const LP_BOUND := {"arms": [["LeftUpperArm", Vector3(0.17, -0.98, 0.04)], ["LeftLowerArm", Vector3(0.08, -0.97, 0.22)],
+	["RightUpperArm", Vector3(-0.17, -0.98, 0.04)], ["RightLowerArm", Vector3(-0.08, -0.97, 0.22)],
+	["LeftUpperLeg", Vector3(0.04, -1.0, 0.0)], ["LeftLowerLeg", Vector3(0.02, -1.0, -0.05)],
+	["RightUpperLeg", Vector3(-0.04, -1.0, 0.0)], ["RightLowerLeg", Vector3(-0.02, -1.0, -0.05)]], "neck": -15.0}
+
+
+## Ön Lotus: hedefe atıl, çeneden yukarı tekmele, havada sargıyla sar, arkadan kavrayıp başaşağı döndür ve yere çak
+## (ana ağaçtan: Lotus şartı + kapı bedeli). Oyuncu ve düşman aynı işlev.
 static func omote_renge(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	var tt = pj.tg(c, t, 12.0)
+	if tt == null:   # yakında rakip yok: teknik başlamaz, kapı bedeli ödenmez
+		pj.lotus_no_target(c, "Omote Renge")
+		return
 	_gate_open(pj, c, 0.05)
-	pj.busy(c, 1.4)
 	if tt == null or not pj._lotus_open(c, tt):
+		pj.busy(c, 1.4)
 		pj.anim(c, "hook", 1.5)
 		# ıska: boşa savrulan tekmenin yay çizen hava kesiği
-		var fd = _flat_dir(c)
+		var fd0 = _flat_dir(c)
 		var base = c.global_position + Vector3.UP * 0.5
-		var sd = fd.cross(Vector3.UP).normalized()
+		var sd = fd0.cross(Vector3.UP).normalized()
 		var mat = _stripm(Color(1, 1, 1, 0.9), Color(0.8, 0.82, 0.85, 0.5), 0.5)
 		for k in 3:
 			var r = 1.1 + k * 0.18
-			_ribbon(pj, func(u, _age): return base + fd * cos(lerpf(-0.4, 1.9, u)) * r + Vector3.UP * sin(lerpf(-0.4, 1.9, u)) * r + sd * (k - 1) * 0.12,
+			_ribbon(pj, func(u, _age): return base + fd0 * cos(lerpf(-0.4, 1.9, u)) * r + Vector3.UP * sin(lerpf(-0.4, 1.9, u)) * r + sd * (k - 1) * 0.12,
 				0.28, 0.05, mat, 14, {"reveal": 0.1, "tail": 0.7, "taper": 1})
 		return
+	pj.busy(c, LT_LET + 0.5)
+	var fd = pj.fwd(c, tt)
 	var start = c.global_position
-	c.global_position = pj.gp(tt.global_position - pj.fwd(c, tt) * 1.0)
+	c.global_position = pj.gp(tt.global_position - fd * 1.0)
 	_dash_lines(pj, start, c.global_position)
-	pj.anim(c, "hook", 1.8)
 	Sfx.play("hit_heavy", c.global_position, 1.1)
 	tt.take_hit(pj.inf(c, "omote_renge", 0.3, {"launch": 14.0, "knock": 0.0, "kind": "heavy"}))
 	_launch_kick(pj, tt)
-	# anime: Kage Buyō — havadaki hedefin arkasında belirir; kol sargısı hedefin bedenine sarmal dolanır,
-	# sıkıca kavrayıp ikisi birlikte matkap gibi dönerek başaşağı yere iner
-	pj.after(0.3, func():
-		if not (pj.live(tt) and pj.live(c)):
-			return
-		c.global_position = tt.global_position - pj.fwd(c, tt) * 0.6 + Vector3.DOWN * 0.3   # gölge gibi arkasında
-		pj.anim(c, "air", 1.4)
-		_afterimage(pj, c))
-	pj.after(0.45, func():
-		if not pj.live(tt):
-			return
-		var hgt: float = float(tt.get("height")) if tt.get("height") != null else 1.8
-		var coil = _solid_mi(_bandage_mesh(hgt), 0.0)
-		var hip = _bone(tt, "Hips")   # bedene bağlı: düşerken/dönerken bedenle birlikte
-		if hip:
-			hip.add_child(coil)
+	if not pj.live(tt):
+		return
+	var hgt: float = float(tt.get("height")) if tt.get("height") != null else 1.8
+	var hgl: float = float(c.get("height")) if c.get("height") != null else 1.8
+	var hs = clampf(hgt / 1.8, 0.5, 8.0)   # hedef boyu: sargı yarıçapı / eni bedenle büyür
+	var cb = _bone(tt, "UpperChest")
+	if cb == null:
+		cb = _bone(tt, "Chest")
+	var S = {"c": c, "t": tt, "fd": fd, "hgt": hgt, "hgl": hgl, "hs": hs, "g0": pj.gp(tt.global_position),
+		"H": 10.0 + hgt * 0.3, "rad": 0.27 * hs, "turns": 7.0, "yaw": atan2(fd.x, fd.z), "yawL": atan2(-fd.x, -fd.z), "spin": 0.0,
+		"kick": c.global_position + Vector3.UP * hgl * 0.55, "tb": [_bone(tt, "Hips"), cb],
+		"lb": [[_bone(c, "LeftLowerArm"), _bone(c, "LeftHand")], [_bone(c, "RightLowerArm"), _bone(c, "RightHand")]],
+		"slam": false, "slam_age": LT_SLAM, "lee_done": false, "tgt_done": false, "fz": {}, "ev": {}}
+	var md = c.get("model")
+	if md and md.get("rig"):
+		md.rig.reach_arms = []   # avuç uzatma IK'si kavrayış pozuyla çakışmasın
+	# oyuncu gövdesi fizik karelerinden yumuşatılır (interpolasyon): sıra boyunca kapat, yoksa her karede yazılan
+	# dönüş / konum fizik adımının dik duruşuyla karışır (atan yan yatık görünüyordu); bitince eski hâline döner
+	for n in [c, tt]:
+		S["pim_%d" % n.get_instance_id()] = n.physics_interpolation_mode
+		n.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
+	var im = ImmediateMesh.new()
+	var mi = _mi(im, null)
+	mi.extra_cull_margin = 64.0
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	S["im"] = im
+	var tk = _tick(pj, Vector3.ZERO, func(_n, dt, age) -> bool: return _lotus_step(pj, S, dt, age))
+	tk.add_child(mi)
+	tk.name = "OmoteRenge"
+
+
+## Bedeni merkezinden yerleştir: model (pitch, yaw) ile döner, düğüm ayak tarafına düşer (başaşağıyken ayaklar üstte)
+static func _lotus_place(n: Node3D, ctr: Vector3, pitch: float, yaw: float, h: float) -> void:
+	var md = n.get("model")
+	var B = Basis.from_euler(Vector3(pitch, yaw, 0.0))
+	var mp = (md as Node3D).position if md else Vector3.ZERO
+	n.global_position = ctr - B * (Vector3.UP * h * 0.55) - mp
+	if md:
+		md.rotation = Vector3(pitch, yaw, 0.0)
+	if "velocity" in n:
+		n.velocity = Vector3.ZERO
+
+
+static func _lotus_pose(n: Node3D, pose: Dictionary) -> void:
+	if n == null or not is_instance_valid(n):
+		return
+	var md = n.get("model")
+	if md == null or md.get("overlay") == null:
+		return
+	md.overlay.cast_pose = pose
+	md.overlay.set_pose("cast", 0.0 if pose.is_empty() else 1.0)
+
+
+## Modeli dik konuma ve kendi pozuna geri ver
+static func _lotus_free(n: Node3D, S: Dictionary) -> void:
+	if n == null or not is_instance_valid(n):
+		return
+	_lotus_pose(n, {})
+	var md = n.get("model")
+	if md:
+		md.rotation.x = 0.0
+		md.rotation.z = 0.0
+	var key = "pim_%d" % n.get_instance_id()
+	if S.has(key):
+		n.physics_interpolation_mode = S[key]
+		S.erase(key)
+		n.reset_physics_interpolation()
+
+
+static func _lotus_hang(H: float, a: float) -> float:
+	return H + 0.12 * sin((a - LT_RISE) * 4.0)
+
+
+## Kare kare sıra: hedefin ve atanın gövdesini sürer, sargıyı çizer
+static func _lotus_step(pj: PathJutsu, S: Dictionary, dt: float, age: float) -> bool:
+	var c = S["c"]
+	var tt = S["t"]
+	var cl = is_instance_valid(c) and not c.is_dead()
+	var tl = is_instance_valid(tt) and not tt.is_dead()
+	var ev: Dictionary = S["ev"]
+	if not S["slam"] and not (cl and tl):
+		# biri öldü / silindi: tutuş çözülür, sargı olduğu yerde gevşeyip düşer
+		if tl:
+			S["fz"] = _lotus_frame(S)
+		S["slam"] = true
+		S["slam_age"] = age
+		_lotus_free(c if is_instance_valid(c) else null, S)
+		_lotus_free(tt if is_instance_valid(tt) else null, S)
+		S["lee_done"] = true
+		S["tgt_done"] = true
+	if not S["slam"]:
+		var hgt: float = S["hgt"]
+		var H: float = S["H"]
+		var c0: Vector3 = S["g0"] + Vector3.UP * hgt * 0.55
+		var pitch = 0.0
+		var ct: Vector3
+		if age < LT_RISE:
+			var u = age / LT_RISE
+			ct = c0 + Vector3.UP * H * (1.0 - (1.0 - u) * (1.0 - u))
+		elif age < LT_HUG.y:
+			ct = c0 + Vector3.UP * _lotus_hang(H, age)
+		elif age < LT_FLIP:
+			var u = (age - LT_HUG.y) / (LT_FLIP - LT_HUG.y)
+			ct = c0 + Vector3.UP * (_lotus_hang(H, LT_HUG.y) + 0.45 * (1.0 - (1.0 - u) * (1.0 - u)))
+			pitch = -PI * smoothstep(0.0, 1.0, u)
+			if not ev.has("flip"):
+				ev["flip"] = true
+				Sfx.play("whoosh", ct, 0.8)
 		else:
-			tt.add_child(coil)
-			coil.position = Vector3.UP * 0.9
-		coil.scale = Vector3(1.0, 0.05, 1.0)
-		coil.create_tween().tween_property(coil, "scale", Vector3.ONE, 0.18)
-		pj.after(1.0, func():
-			if is_instance_valid(coil):
-				coil.queue_free()
-			if hip and is_instance_valid(hip):
-				hip.queue_free())
-		# elden bedene gerili sargı
-		var band = _stripm(BAND, Color(0.55, 0.53, 0.5, 1.0), 0.72)
-		var cw = weakref(c)
-		var tw2 = weakref(tt)
-		_ribbon(pj, func(u, _age):
-			var x = cw.get_ref()
-			var y = tw2.get_ref()
-			if x == null or y == null or not is_instance_valid(x) or not is_instance_valid(y):
-				return null
-			var a: Vector3 = pj.hand_pos(x, true)
-			var b: Vector3 = (y as Node3D).global_position + Vector3.UP * hgt * 0.6
-			return a.lerp(b, u) + Vector3.DOWN * sin(u * PI) * 0.08, 0.5, 0.06, band, 8, {"taper": 0, "fin": 0.1})
-		_drill_lines(pj, tt, 0.55)
-		# dönerek dalış: hedef üstte değil — ikisi birlikte yere doğru, başaşağı, hızla dönerek
-		var top = tt.global_position
-		var ground = pj.gp(top)
-		var t0 = Game.now()
-		pj.every(0.5, 1.0 / 60.0, func(_i, _k):
-			if not (pj.live(tt) and pj.live(c)):
-				return
-			var u = clampf((Game.now() - t0) / 0.5, 0.0, 1.0)
-			var y = lerpf(top.y, ground.y + 0.3, u * u)
-			tt.global_position = Vector3(top.x, y, top.z)
-			c.global_position = tt.global_position + Vector3.UP * 1.0
-			for n in [c, tt]:
-				var md = n.get("model")
-				if md:
-					md.rotation.y += 0.55
-					md.rotation.x = PI * 0.85 * minf(1.0, u * 3.0), func():   # başaşağı
-			for n in [c, tt]:
-				if is_instance_valid(n):
-					var md = n.get("model")
-					if md:
-						md.rotation.x = 0.0))
-	pj.after(0.95, func():
-		if not pj.live(c):
-			return
-		var p = pj.gp(c.global_position)
-		c.global_position = p
-		if pj.live(tt):
-			tt.global_position = p
-		_crater(pj, p, 1.0)
-		pj.shake(0.9)
-		Sfx.play("boom", p, 0.8)
-		pj.hit(c, p + Vector3.UP * 0.6, 3.0, pj.inf(c, "omote_renge", 1.4, {"knock": 8.0, "kind": "heavy"})))
+			var u = clampf((age - LT_FLIP) / (LT_SLAM - LT_FLIP), 0.0, 1.0)
+			ct = c0 + Vector3.UP * lerpf(_lotus_hang(H, LT_HUG.y) + 0.45, -0.1 * hgt, u * u)
+			pitch = -PI
+			S["spin"] = float(S["spin"]) + lerpf(5.0, 30.0, u) * dt
+			if not ev.has("drill"):
+				ev["drill"] = true
+				_drill_lines(pj, S, LT_SLAM - LT_FLIP + 0.05)
+				Sfx.play("whoosh", ct, 0.6)
+		var yaw: float = float(S["yaw"]) + float(S["spin"])
+		S["ct"] = ct
+		_lotus_place(tt, ct, pitch, yaw, hgt)
+		if tt is Enemy:   # havada bağlıyken toparlanıp hamle yapamaz (kanon: sargıyla kolları bedene bağlı)
+			tt.state = "knockdown"
+			tt.state_t = 0.0
+		if age >= LT_TOUCH:
+			# sargıya girince gövde dik kalır: yere serilme klibi (sırtüstü yatış) kalçayı düşürüp bedeni sargıdan çıkarıyordu
+			var tm = tt.get("model")
+			if tm and tm.has_method("play") and tm.get("current") != "fall":
+				tm.play("fall", 0.12, 1.0, true)
+		if age >= LT_TIGHT.x:
+			_lotus_pose(tt, LP_BOUND)
+		# atan: tekme → gölge gibi arkasında (aşağıda) yükseliş → arkadan kavrayış → birlikte başaşağı
+		if age < LT_LET:
+			var B = Basis.from_euler(Vector3(pitch, yaw, 0.0))
+			var fd: Vector3 = S["fd"]
+			var lag = lerpf(1.7, 0.75, smoothstep(0.2, 0.75, age))
+			var follow = ct + fd * 0.85 - Vector3.UP * lag
+			var cp: Vector3
+			if age < 0.2:
+				cp = S["kick"]
+				_lotus_place(c, cp, 0.0, S["yawL"], S["hgl"])
+				_lotus_pose(c, LP_KICK)
+			elif age < LT_HUG.x:
+				var k = smoothstep(0.2, 0.45, age)
+				cp = (S["kick"] as Vector3).lerp(follow, k)
+				_lotus_place(c, cp, 0.0, lerp_angle(S["yawL"], S["yaw"], k), S["hgl"])
+				_lotus_pose(c, LP_FLING)
+				if not ev.has("air"):
+					ev["air"] = true
+					_afterimage(pj, c)   # Kage Buyō: yerdeki kalıntı gölge, beden hedefin ardında
+					pj.anim(c, "air", 1.4)
+			else:
+				var hug = ct + B * Vector3(0.0, -0.1, (float(S["rad"]) * 0.8 + 0.14))   # göğsü hedefin sırtında
+				cp = follow.lerp(hug, smoothstep(LT_HUG.x, LT_HUG.y, age))
+				_lotus_place(c, cp, pitch, yaw, S["hgl"])
+				_lotus_pose(c, LP_HUG)
+			S["lc"] = cp
+		if age >= LT_FLY and not ev.has("unspool"):
+			ev["unspool"] = true
+			Sfx.play("whoosh", S["lc"], 1.3)
+		if age >= LT_SLAM - 1.0 / 120.0:
+			_lotus_impact(pj, S, age)
+	# atan son anda bırakır: ileri takla atıp hedefin yanına iner
+	if age >= LT_LET and not S["lee_done"] and cl:
+		if not S.has("rel"):
+			S["rel"] = S["lc"]
+			S["rel_yaw"] = float(S["yaw"]) + float(S["spin"])
+			_lotus_pose(c, LP_TUCK)
+		var k = clampf((age - LT_LET) / 0.45, 0.0, 1.0)
+		var land = pj.gp((S["g0"] as Vector3) + (S["fd"] as Vector3) * 2.6) + Vector3.UP * float(S["hgl"]) * 0.55
+		var p = (S["rel"] as Vector3).lerp(land, k) + Vector3.UP * 1.1 * sin(k * PI)
+		_lotus_place(c, p, lerpf(-PI, -TAU, smoothstep(0.0, 1.0, k)), S["rel_yaw"], S["hgl"])
+		if k >= 1.0:
+			S["lee_done"] = true
+			_lotus_free(c, S)
+			pj.anim(c, "land", 1.4)
+	# çakılış sonrası: hedef kısa an başı gömülü kalır, sonra yere yığılır
+	if S["slam"] and not S["tgt_done"] and is_instance_valid(tt):
+		if tl and age < float(S["slam_age"]) + 0.2:
+			_lotus_place(tt, S["ct"], -PI, float(S["yaw"]) + float(S["spin"]), S["hgt"])
+		else:
+			S["tgt_done"] = true
+			_lotus_free(tt, S)
+			tt.global_position = pj.gp(S["ct"])
+	_lotus_band(S, age, cl)
+	if S["slam"] and age > float(S["slam_age"]) + LT_POST:
+		if not S["lee_done"] and cl:
+			return true   # atan hâlâ inişte
+		for b in S["tb"]:
+			if b != null and is_instance_valid(b):
+				b.queue_free()
+		for pr in S["lb"]:
+			for b in pr:
+				if b != null and is_instance_valid(b):
+					b.queue_free()
+		return false
+	return true
+
+
+## Çakılış: krater, sarsıntı, ağır hasar (hedef + çevresi)
+static func _lotus_impact(pj: PathJutsu, S: Dictionary, age: float) -> void:
+	S["fz"] = _lotus_frame(S)
+	S["slam"] = true
+	S["slam_age"] = age
+	var c = S["c"]
+	var p = pj.gp(S["ct"])
+	_crater(pj, p, maxf(1.0, float(S["hs"]) * 0.7))
+	pj.shake(0.9)
+	Sfx.play("boom", p, 0.8)
+	pj.hit(c, p + Vector3.UP * 0.6, 3.0 * maxf(1.0, float(S["hs"]) * 0.7), pj.inf(c, "omote_renge", 1.4, {"knock": 8.0, "kind": "heavy"}))
+
+
+## Sarılan bedenin çerçevesi (gerçek kemiklerden: kalça → üst göğüs; dönüşü ve ters dönüşü izler)
+static func _lotus_frame(S: Dictionary) -> Dictionary:
+	var tt: Node3D = S["t"]
+	var hs: float = S["hs"]
+	var md = tt.get("model")
+	var bas: Basis = (md as Node3D).global_basis.orthonormalized() if md else Basis()
+	var hip: Vector3
+	var chest: Vector3
+	var hb = S["tb"][0]
+	var cb = S["tb"][1]
+	if hb != null and is_instance_valid(hb) and cb != null and is_instance_valid(cb):
+		hip = hb.global_position
+		chest = cb.global_position
+	else:
+		var o: Vector3 = (md as Node3D).global_position if md else tt.global_position
+		hip = o + bas.y * float(S["hgt"]) * 0.5
+		chest = o + bas.y * float(S["hgt"]) * 0.74
+	var A = (chest - hip).normalized() if chest.distance_to(hip) > 0.01 else bas.y
+	var f = -bas.z
+	var R0 = f - A * A.dot(f)
+	R0 = R0.normalized() if R0.length() > 0.01 else A.cross(Vector3.RIGHT).normalized()
+	return {"lo": hip - A * 0.14 * hs, "hi": chest + A * 0.05 * hs, "A": A, "R0": R0, "R1": A.cross(R0)}
+
+
+## Sarmal üstündeki nokta: f 0..1 (yukarıdan aşağı tur tur); loose 1: animedeki geniş, eğik, kaotik halkalar → 0: sıkı sarım
+static func _coil_pt(fr: Dictionary, S: Dictionary, s: int, f: float, loose: float, age: float) -> Array:
+	var rad: float = S["rad"]
+	var turns: float = S["turns"]
+	var A: Vector3 = fr["A"]
+	var lo: Vector3 = fr["lo"]
+	var hi: Vector3 = fr["hi"]
+	var pitch = lo.distance_to(hi) / turns
+	var th = s * PI + f * turns * TAU
+	var sd = 1.7 + s * 2.3
+	var cen = hi.lerp(lo, f) - A * pitch * 0.5 * s
+	var r = rad + (s * 0.008 + f * 0.014) * float(S["hs"]) + loose * rad * (1.1 + 0.75 * sin(th * 0.43 + sd + age * 2.0))
+	var radial: Vector3 = (fr["R0"] as Vector3) * cos(th) + (fr["R1"] as Vector3) * sin(th)
+	var tilt = loose * rad * 1.3 * sin(th + sd + 1.8 * sin(th * 0.21 + sd))
+	return [cen + radial * r + A * tilt, radial]
+
+
+## Sargı: iki önkoldan çözülen iki bant — uçuş, bedene kaotik halkalar, sıkı sarım, atanın koluna gergin bağ,
+## serbest ucun rüzgârda çırpınması (ikincil hareket); çakılıştan sonra gevşeyip yere yığılır ve söner
+static func _lotus_band(S: Dictionary, age: float, cl: bool) -> void:
+	var im: ImmediateMesh = S["im"]
+	im.clear_surfaces()
+	if age < LT_FLY:
+		return
+	var tt = S["t"]
+	var post: bool = S["slam"]
+	var fr: Dictionary
+	if post:
+		fr = S["fz"]
+	elif is_instance_valid(tt):
+		fr = _lotus_frame(S)
+	if fr.is_empty():
+		return
+	var hs: float = S["hs"]
+	var hw = 0.045 * hs
+	var ur = clampf((age - float(S["slam_age"])) / LT_POST, 0.0, 1.0) if post else 0.0
+	var loose = ur * 1.4 if post else 1.0 - smoothstep(LT_TIGHT.x, LT_TIGHT.y, age)
+	var w = 1.0 if post else clampf((age - LT_TOUCH) / (LT_WRAP - LT_TOUCH), 0.0, 1.0)
+	w = 1.0 - (1.0 - w) * (1.0 - w)
+	var al = 1.0 - smoothstep(0.55, 1.0, ur)
+	var held = cl and not post and not S.has("rel")
+	var gy = (S["g0"] as Vector3).y
+	var lc: Vector3 = S.get("lc", fr["hi"])
+	for s in 2:
+		var anchor = Vector3.ZERO
+		var have_anchor = false
+		var lb: Array = S["lb"][s]
+		if held:
+			if lb[0] != null and is_instance_valid(lb[0]) and lb[1] != null and is_instance_valid(lb[1]):
+				anchor = (lb[0] as Node3D).global_position.lerp((lb[1] as Node3D).global_position, 0.55)
+			else:
+				anchor = lc + Vector3.UP * 0.3 + (S["fd"] as Vector3).cross(Vector3.UP) * (0.3 if s == 0 else -0.3)
+			have_anchor = true
+		var out = (anchor - lc).normalized() if have_anchor and anchor.distance_to(lc) > 0.01 else Vector3.UP
+		if age < LT_TOUCH:
+			if not have_anchor:
+				continue
+			# uçuş: bant ucu önkoldan geniş bir yay çizip bedenin yanına gelir, arkasında dalgalanan bant
+			var k = clampf((age - LT_FLY) / (LT_TOUCH - LT_FLY), 0.0, 1.0)
+			var e = k * k * (3.0 - 2.0 * k)
+			var c0 = _coil_pt(fr, S, s, 0.0, 1.0, age)
+			var cp: Vector3 = c0[0]
+			var tip = _bz(anchor, anchor + out * 1.3 + Vector3.UP * 0.5, cp + (c0[1] as Vector3) * 1.4 * hs + Vector3.UP * 0.4, cp, e)
+			var perp = (anchor - tip).cross(Vector3.UP)
+			perp = perp.normalized() if perp.length() > 0.01 else Vector3.RIGHT
+			var pts = []
+			for i in 19:
+				var u = i / 18.0
+				pts.append(_bz(tip, tip.lerp(anchor, 0.33) + perp * 0.5 * sin(age * 9.0 + s * 2.0), anchor + out * 0.6, anchor, u)
+					+ perp * 0.12 * sin(u * 9.0 - age * 16.0 + s) * (1.0 - u))
+			_band_free(im, pts, hw, Vector3.UP, 2.5, age * 6.0 + s, al)
+			continue
+		# sarmal
+		var M = int(ceil(float(S["turns"]) * 24.0 * w)) + 1
+		var cps = []
+		var rds = []
+		for i in M + 1:
+			var f = w * float(i) / M
+			var q = _coil_pt(fr, S, s, f, loose, age)
+			var p: Vector3 = q[0]
+			if post:   # gevşeyen halkalar yere yığılır
+				p.y = lerpf(p.y, maxf(gy + 0.03 + 0.02 * sin(i * 1.7), p.y - 6.0 * ur * ur), smoothstep(0.0, 0.8, ur))
+			cps.append(p)
+			rds.append(q[1])
+		var A: Vector3 = fr["A"]
+		var W = []
+		var N = []
+		for i in cps.size():
+			var tn: Vector3 = (cps[mini(i + 1, cps.size() - 1)] as Vector3) - (cps[maxi(i - 1, 0)] as Vector3)
+			tn = tn.normalized() if tn.length() > 1e-5 else Vector3.RIGHT
+			var wd = A - tn * A.dot(tn)
+			wd = wd.normalized() if wd.length() > 0.05 else tn.cross(rds[i]).normalized()
+			W.append(wd * hw)
+			N.append(rds[i])
+		_band_strip(im, cps, W, N, al)
+		# serbest uç: dalışta hava akımıyla yukarı, yoksa yerçekimiyle aşağı sarkıp çırpınır
+		var t0: Vector3 = ((cps[0] as Vector3) - (cps[1] as Vector3)).normalized() if cps.size() > 1 else Vector3.UP
+		var drag = Vector3.UP if (age > LT_FLIP and not post) else Vector3.DOWN
+		var tdir = (t0 * 0.45 + drag * 0.55).normalized()
+		var tb = tdir.cross(A)
+		tb = tb.normalized() if tb.length() > 0.01 else Vector3.RIGHT
+		var tail = []
+		for j in 8:
+			var v = j / 7.0
+			tail.append((cps[0] as Vector3) + tdir * v * 0.5 * hs + tb * 0.09 * hs * v * sin(age * 22.0 + j * 1.3 + s * 2.0))
+		_band_free(im, tail, hw, A, 0.8, 0.0, al)
+		# atanın önkoluna gergin bağ
+		if have_anchor:
+			var pe: Vector3 = cps[cps.size() - 1]
+			var te: Vector3 = (pe - (cps[maxi(0, cps.size() - 2)] as Vector3)).normalized()
+			var lead = []
+			for i in 15:
+				var u = i / 14.0
+				lead.append(_bz(pe, pe + te * 0.6 * hs, anchor + out * 0.4, anchor, u) + Vector3.UP * 0.05 * sin(u * PI) * sin(age * 12.0 + s))
+			_band_free(im, lead, hw, A, 1.2, 0.0, al)
 
 
 # ═════════════════════════════════════════ 2) Izanami ═════════════════════════════════════════

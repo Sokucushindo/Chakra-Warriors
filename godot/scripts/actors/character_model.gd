@@ -1432,13 +1432,10 @@ func _face_and_hair() -> void:
 			# uzun saç: kulak hizasının altında kalan kısım dilim zincirleriyle sallanır (sırta/omuza çarpar)
 			var vxf = hair_mi.transform
 			var vk = "%s|%s|%s|%s|%s" % [hd[0], hd[1], donor, look["gender"], look.get("age", "adult")]   # saç stili adı gereksizdi (aynı VRoid saçı tekrar hesaplanıyordu)
-			var vnow = Time.get_ticks_msec()
-			if not _vhair_dyn.has(vk) and look.get("npc", false) and (vnow - _hair_new_ms < 6000 or look.get("npc_strict", false)):
-				pass   # köylü: art arda yeni saç sallanma hesabı (~200 ms) yapma; bu köylünün saçı sabit kalır
-			elif not _vhair_dyn.has(vk):
-				if look.get("npc", false):
-					_hair_new_ms = vnow
-				_vhair_dyn[vk] = Dangle.sectors(hp["mesh"], head_rest * hair_mi.transform, skull_c, skull_c.y + skull_r.y * 0.2, {"fade": 0.09})   # alın hizasından aşağısı (perçemler, yanlar, ense) oynar
+			var vto = head_rest * hair_mi.transform
+			var vroot = skull_c.y + skull_r.y * 0.2   # alın hizasından aşağısı (perçemler, yanlar, ense) oynar
+			if not _vhair_dyn.has(vk) and not look.get("npc", false):
+				_vhair_dyn[vk] = Dangle.sectors(hp["mesh"], vto, skull_c, vroot, {"fade": 0.09})
 			var vd = Dangle.make(_vhair_dyn[vk]) if _vhair_dyn.has(vk) else null
 			if vd != null:
 				vd.transform = hair_mi.transform
@@ -1449,6 +1446,10 @@ func _face_and_hair() -> void:
 				hair_mi.name = "VHair"
 			else:
 				holder2.add_child(hair_mi)
+				if not _vhair_dyn.has(vk):
+					# köylü / düşman: sallanma paketi (~200 ms) arka planda hesaplanır, hazır olunca sabit saç onunla değişir.
+					# Eskiden bu kişilerin (düşmanlar hep) uzun saçı SABİT kalıyordu: kafaya çakılı saç sırtın / yeleğin içine giriyordu
+					_vh_wait = [vk, hp["mesh"], vto, skull_c, vroot, holder2, hair_mi]
 			for si in hp["mats"].size():
 				var mat: Material = hp["mats"][si]
 				var hm = ShaderMaterial.new()
@@ -10630,10 +10631,192 @@ var _dangles: Array = []
 var _dangle_acc := 0.0
 var _dangle_fr := randi() % 6   # karakterler arasında yük dağılsın
 var _dcol_bones := []   # [kemik, yarıçap, kemik uzayı ofseti]
+var _dcol_n := -1       # küreler kurulurken iskeletin çocuk sayısı (giysi / eşya eklenince yeniden kurulur)
 const DANGLE_RANGE := 24.0
+
+# ---- uzun VRoid saçının sallanma paketi arka planda (köylü / düşman)
+static var _vh_job := -1
+static var _vh_job_key := ""
+static var _vh_job_res: Array = []
+var _vh_wait: Array = []   # [anahtar, saç mesh'i, mesh -> model, kafa merkezi, kök y, tutucu, sabit saç]
+
+
+static func _vh_job_run(args: Array) -> void:
+	_vh_job_res = [Dangle.sectors(args[0], args[1], args[2], args[3], {"fade": 0.09}, args[4])]
+
+
+static func _vh_pump() -> void:
+	if _vh_job < 0 or not WorkerThreadPool.is_task_completed(_vh_job):
+		return
+	WorkerThreadPool.wait_for_task_completion(_vh_job)
+	_vh_job = -1
+	_vhair_dyn[_vh_job_key] = _vh_job_res[0] if _vh_job_res.size() == 1 and _vh_job_res[0] is Dictionary else {}
+	_vh_job_res = []
+
+
+## Sabit takılan uzun saç: paket hazırsa (bu ya da aynı saçlı başka kişi için) sallanan saçla değiştir, değilse işi başlat
+func _vh_poll() -> void:
+	_vh_pump()
+	var vk: String = _vh_wait[0]
+	if not _vhair_dyn.has(vk):
+		if _vh_job < 0:
+			var mesh: ArrayMesh = _vh_wait[1]
+			var arrs = []
+			for si in mesh.get_surface_count():
+				arrs.append(MeshArr.get_arrays(mesh, si))   # ana akışta (iş parçacığında geri okuma çöker)
+			_vh_job_key = vk
+			_vh_job_res = []
+			_vh_job = WorkerThreadPool.add_task(_vh_job_run.bind([mesh, _vh_wait[2], _vh_wait[3], _vh_wait[4], arrs]))
+		return
+	var w = _vh_wait
+	_vh_wait = []
+	var old = w[6]
+	var holder = w[5]
+	if not is_instance_valid(old) or not is_instance_valid(holder) or (old as Node).get_parent() != holder:
+		return
+	var vd = Dangle.make(_vhair_dyn[vk])
+	if vd == null:
+		return
+	var om: MeshInstance3D = old
+	vd.transform = om.transform
+	(holder as Node3D).add_child(vd)
+	_dangles.append(vd)
+	var nm: MeshInstance3D = vd.mi
+	for si in mini(om.mesh.get_surface_count(), nm.mesh.get_surface_count()):
+		nm.set_surface_override_material(si, om.get_surface_override_material(si))
+	nm.visible = om.visible   # başlık saçı gizlediyse gizli kalsın
+	nm.cast_shadow = om.cast_shadow
+	nm.visibility_range_end = om.visibility_range_end
+	nm.layers = om.layers
+	om.free()
+	nm.name = "VHair"
+
+
+# ---- giysi kalınlığı: kalın giysi (yelek, yaka, palto, zırh, sırt çantası / parşömen) sırtta çıplak gövde kürelerinin dışına
+# taşar; uzun saç yeleğin içinden geçiyordu. Gövdeye derili giysi katmanlarının (ve gövde kemiklerine takılı küçük sırt
+# eşyalarının) sırt yüzeyi kafeste ölçülür: giysinin gövdeden 3 cm'den çok taştığı ve gövde kürelerinin örtmediği her hücreye
+# dış yüzeye teğet küçük bir küre (yalnız sırt yüzeyinde: öne / yana sarkan saçı itmez).
+const GB_Y0 := 0.5
+const GB_DY := 0.04
+const GB_ROWS := 32          # 0.50 .. 1.74 m (model uzayı)
+const GB_XS := [-0.1, -0.05, 0.0, 0.05, 0.1]
+const GB_R := 0.06
+const GB_MIN := 0.03         # tişört / gömlek kabuğu 1-2.2 cm: bunlar zaten gövde kürelerinin içinde
+static var _gb_prof := {}    # mesh kimliği -> hücre başına en geri z (9 = boş)
+
+
+static func _gb_verts(m: Mesh, si: int) -> PackedVector3Array:
+	MeshArr._mx.lock()
+	var memo: Array = m.get_meta("_arr", []) if m.has_meta("_arr") else []
+	var v = null
+	if si < memo.size() and memo[si] is Array and (memo[si] as Array).size() > Mesh.ARRAY_VERTEX:
+		v = memo[si][Mesh.ARRAY_VERTEX]
+	MeshArr._mx.unlock()
+	if v is PackedVector3Array:
+		return v
+	var a = MeshArr.get_arrays(m, si)
+	return a[Mesh.ARRAY_VERTEX] if a.size() > Mesh.ARRAY_VERTEX and a[Mesh.ARRAY_VERTEX] is PackedVector3Array else PackedVector3Array()
+
+
+static func _gb_profile(m: Mesh) -> PackedFloat32Array:
+	var id = m.get_instance_id()
+	if _gb_prof.has(id):
+		return _gb_prof[id]
+	var nc = GB_XS.size()
+	var p = PackedFloat32Array()
+	p.resize(GB_ROWS * nc)
+	p.fill(9.0)
+	for si in m.get_surface_count():
+		for q in _gb_verts(m, si):
+			var r = int(floor((q.y - GB_Y0) / GB_DY + 0.5))
+			var c = int(floor((q.x - GB_XS[0]) / 0.05 + 0.5))
+			if r < 0 or r >= GB_ROWS or c < 0 or c >= nc:
+				continue
+			var k = r * nc + c
+			if q.z < p[k]:
+				p[k] = q.z
+	_gb_prof[id] = p
+	return p
+
+
+func _garment_back_cols(cover: Array) -> Array:
+	var out = []
+	if body_mesh == null or body_mesh.mesh == null:
+		return out
+	var nc = GB_XS.size()
+	var gp = PackedFloat32Array()
+	gp.resize(GB_ROWS * nc)
+	gp.fill(9.0)
+	var any = false
+	for c in skel.get_children():
+		if c is MeshInstance3D and c != body_mesh and (c as MeshInstance3D).skin != null and c.visible and (c as MeshInstance3D).mesh != null:
+			var p = _gb_profile((c as MeshInstance3D).mesh)
+			for k in p.size():
+				if p[k] < gp[k]:
+					gp[k] = p[k]
+			any = true
+		elif c is BoneAttachment3D and String((c as BoneAttachment3D).bone_name) in ["Hips", "Spine", "Chest", "UpperChest"] and c.is_inside_tree():
+			# sırt eşyası (çanta, parşömen, kese): küçük parçaların kutusu (uzun silah / kın değil)
+			var bx = _grest(skel.find_bone((c as BoneAttachment3D).bone_name))
+			var ginv = (c as Node3D).global_transform.affine_inverse()
+			for mi in c.find_children("*", "MeshInstance3D", true, false):
+				if mi.mesh == null or not mi.is_visible_in_tree():
+					continue
+				var ab: AABB = (bx * (ginv * mi.global_transform)) * mi.get_aabb()
+				if ab.size.x > 0.6 or ab.size.y > 0.6 or ab.size.z > 0.6:
+					continue
+				for r in GB_ROWS:
+					var y = GB_Y0 + r * GB_DY
+					if y < ab.position.y or y > ab.end.y:
+						continue
+					for ci in nc:
+						if GB_XS[ci] >= ab.position.x and GB_XS[ci] <= ab.end.x:
+							gp[r * nc + ci] = minf(gp[r * nc + ci], ab.position.z)
+							any = true
+	if not any:
+		return out
+	var bp = _gb_profile(body_mesh.mesh)
+	var hips = _bp("Hips").y
+	var neck = _bp("Neck").y
+	var ucy = _bp("UpperChest").y
+	var tb = []   # [kemik, dinlenme y] yukarıdan aşağı: hücre kendi hizasındaki gövde kemiğine bağlanır
+	for bn in ["UpperChest", "Chest", "Spine", "Hips"]:
+		var bi = skel.find_bone(bn)
+		if bi >= 0:
+			tb.append([bi, _grest(bi).origin.y])
+	if tb.is_empty():
+		return out
+	for r in GB_ROWS:
+		var y = GB_Y0 + r * GB_DY
+		if y < hips - 0.06 or y > neck + 0.04:   # yaka üstünden kalçanın altına
+			continue
+		for ci in nc:
+			var x: float = GB_XS[ci]
+			if y > ucy + 0.08 and absf(x) > 0.06:
+				continue   # boyun hizasında yalnız yaka (omuza düşen saçı itme)
+			var k = r * nc + ci
+			if bp[k] > 8.0 or gp[k] > 8.0 or bp[k] - gp[k] < GB_MIN:
+				continue
+			var P = Vector3(x, y, gp[k])
+			var covered = false
+			for cv in cover:
+				if (cv[0] as Vector3).distance_to(P) < float(cv[1]) - 0.005:
+					covered = true
+					break
+			if covered:
+				continue
+			var bi: int = tb[tb.size() - 1][0]
+			for e in tb:
+				if y >= float(e[1]) - 0.02:
+					bi = e[0]
+					break
+			out.append([bi, GB_R, _grest(bi).affine_inverse() * (P + Vector3(0, 0, GB_R)), false])
+	return out
 
 
 func _dangle_process(dt: float) -> void:
+	if not _vh_wait.is_empty() and skel != null:
+		_vh_poll()
 	if _dangles.is_empty() or skel == null:
 		return
 	var cam = get_viewport().get_camera_3d() if is_inside_tree() else null
@@ -10651,7 +10834,10 @@ func _dangle_process(dt: float) -> void:
 		return
 	dt = minf(_dangle_acc, 0.05)
 	_dangle_acc = 0.0
-	if _dcol_bones.is_empty():
+	if _dcol_bones.is_empty() or _dcol_n != skel.get_child_count():   # giysi / sırt eşyası sonradan eklendiyse (kademeli kurulum) yeniden
+		_dcol_n = skel.get_child_count()
+		_dcol_bones = []
+		var cover = []   # gövde küreleri (model uzayı merkez, yarıçap): giysi küresi bunların örttüğü yere eklenmez
 		# gövde küreleri (model uzayı): kafa, boyun, omurga boyunca göğüs/sırt, kürek kemikleri, omuz, kol, kalça, kaba et, uyluk
 		var hr = maxf(skull_r.x, skull_r.z)
 		var defs = [["Head", hr * 0.95, skull_c], ["Neck", 0.06, null], ["Chest", 0.135, null], ["UpperChest", 0.13, null], ["Hips", 0.14, null]]
@@ -10688,6 +10874,9 @@ func _dangle_process(dt: float) -> void:
 			if e[2] == null and e[0] in ["Spine", "Chest", "UpperChest"]:
 				at = g.origin + Vector3(0, 0.02, -0.015)
 			_dcol_bones.append([bi, e[1], g.affine_inverse() * at, e[0] in ["Head", "Neck"]])   # kafa/boyun yumuşak: kafa derisine yatık saçı itmez
+			if e[0] in ["Hips", "Spine", "Chest", "UpperChest"]:
+				cover.append([at, float(e[1])])
+		_dcol_bones.append_array(_garment_back_cols(cover))
 	var sxf = skel.global_transform
 	var sc = sxf.basis.get_scale().x
 	var cols = []
@@ -11000,6 +11189,8 @@ func _weapons() -> void:
 
 		if id == "kusanagi":
 			node.add_child(_kusa_ext())
+		if id == "homatsu_kiseru":   # pipet bağı (ikincil hareket)
+			dangle_strip("", Vector3(0.0, 0.0145, 0.032), Vector3(0.0, 1.0, 0.15), 0.13, 0.006, Color(0.42, 0.24, 0.12), 0.16, Vector3(1, 0, 0), 0.004, node)
 		if id == "kama":
 			for sx in [-1.0, 1.0]:   # halkaya bağlı kızıl kurdele (ikincil hareket)
 				dangle_strip("", Vector3(0.0, 0.0, -0.36), Vector3(0.2 * sx, -0.4, -1.0), 0.4, 0.07, Color(0.7, 0.07, 0.12), 0.16, Vector3(0, 1, 0), 0.004, node)
@@ -11243,11 +11434,14 @@ func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Nod
 		var lacq = Color(0.09, 0.08, 0.1)
 		var gold = Color(0.72, 0.58, 0.3)
 		var ln: float = s[1] - s[0]
-		m.add("cyl", Vector3(0, 0, s[0] + ln * 0.5), Vector3(s[2], ln, s[3]), lacq, Vector3(90, 0, 0), 10)
-		m.add("cyl", Vector3(0, 0, s[0] + 0.012), Vector3(s[2] * 1.15, 0.024, s[3] * 1.12), gold, Vector3(90, 0, 0), 10)
-		m.add("cyl", Vector3(0, 0, s[1] - 0.02), Vector3(s[2] * 1.12, 0.04, s[3] * 1.08), gold, Vector3(90, 0, 0), 10)
-		# sageo bağı (kına sarılı ip)
-		m.add("cyl", Vector3(0, 0, s[0] + ln * 0.14), Vector3(s[2] * 1.18, 0.03, s[3] * 1.16), Color(0.55, 0.1, 0.12), Vector3(90, 0, 0), 10)
+		if id == "kurosawa":   # namlunun eğrisini izleyen kına (düz silindirden namlu yandan taşıyordu)
+			load("res://scripts/combat/fx/kurosawa_fx.gd").build_saya(m)
+		else:
+			m.add("cyl", Vector3(0, 0, s[0] + ln * 0.5), Vector3(s[2], ln, s[3]), lacq, Vector3(90, 0, 0), 10)
+			m.add("cyl", Vector3(0, 0, s[0] + 0.012), Vector3(s[2] * 1.15, 0.024, s[3] * 1.12), gold, Vector3(90, 0, 0), 10)
+			m.add("cyl", Vector3(0, 0, s[1] - 0.02), Vector3(s[2] * 1.12, 0.04, s[3] * 1.08), gold, Vector3(90, 0, 0), 10)
+			# sageo bağı (kına sarılı ip)
+			m.add("cyl", Vector3(0, 0, s[0] + ln * 0.14), Vector3(s[2] * 1.18, 0.03, s[3] * 1.16), Color(0.55, 0.1, 0.12), Vector3(90, 0, 0), 10)
 		var smi = MeshInstance3D.new()
 		smi.mesh = m.build(Props.toon())
 		holder.add_child(smi)
@@ -12929,9 +13123,9 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 		"hiraishin_kunai":
 			_hiraishin_kunai(b)   # raijinbaba.png
 		"homatsu_kiseru":
-			_kiseru(b)   # utakatababa.png
+			load("res://scripts/combat/fx/kiseru_model.gd").build(b)   # 2026-11-25: anime boyutunda ince bambu pipet (ref utakata)
 		"kusanagi":
-			_kusanagi(b)   # orochikusanagi.png
+			load("res://scripts/combat/fx/kusanagi_model.gd").build(b)   # 2026-11-25: chokutō, namlu sapın içinden (ref Sasuke Kusanagi)
 		"uc_tirpan":
 			# üç bıçaklı kızıl tırpan (kaynak tirpan.png, ölçüler resimden metreye): tutuş z=0 (sağ yumruk sargının alt kısmında),
 			# pommel z=-0.16; beyaz bez sargı -> kırmızı sap -> siyah boğaz -> üç beyaz bilezik (arkalarında koyu kırmızı takoz),
@@ -13470,7 +13664,7 @@ func _update_shk(dt: float) -> void:
 
 
 ## anahtar animasyonlu silahlar: [tutuş kaydırma (yumruk sap boyunca ileri), iz başı z, iz ucu z, elden uca boy]
-const KEY_WEAPON := {"ryujin": [0.0, 0.14, 0.98, 1.0], "kuwa": [0.0, 0.8, 1.1, 1.13], "naitosodo": [0.0, 0.15, 0.7, 0.72], "hono_ken": [0.0, 0.2, 1.1, 1.17], "gariando": [0.0, 0.2, 1.0, 1.06], "kajiki_mori": [0.0, 0.95, 1.9, 1.95], "igne_tufegi": [0.0, 0.3, 0.45, 0.47], "dako": [0.0, 0.5, 1.3, 1.4], "jidanda": [0.0, 0.7, 1.6, 1.65], "kunai_hasshaki": [0.0, 0.2, 0.62, 0.66], "cift_tirpan": [0.0, 0.9, 1.5, 1.55], "katoringu": [0.0, 0.9, 1.3, 1.34], "nunoboko": [0.0, 0.5, 2.35, 2.45], "natato": [0.0, 0.3, 1.42, 1.45], "kunai_to": [0.0, 0.1, 1.02, 1.05], "kaeri_yari": [0.0, 0.5, 1.44, 1.46], "ono": [0.0, 0.5, 1.5, 1.55], "katar": [0.0, 0.1, 0.44, 0.44], "amagasa": [0.0, 0.5, 1.0, 1.05], "sasumata": [0.0, 1.25, 1.85, 1.9], "konbo": [0.0, 0.35, 0.95, 0.98], "kanabo": [0.0, 0.6, 1.36, 1.4], "fukiya": [0.1, 0.5, 0.72, 0.72], "shakujo": [0.0, 0.7, 1.2, 1.24], "temari_ogi": [0.0, 0.3, 1.4, 1.45], "kokuto": [0.0, 0.2, 0.8, 0.82], "shichiseiken": [0.0, 0.25, 1.3, 1.35], "johyo": [0.0, 0.05, 0.25, 0.26], "nunchaku": [0.0, 0.0, 0.28, 0.3], "mizrak": [0.0, 0.5, 1.45, 1.48], "kamci": [0.0, 0.0, 0.22, 0.24], "sansetsukon": [0.0, 0.0, 0.62, 0.64], "samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5], "uc_tirpan": [0.0, 1.1, 1.95, 1.92], "shibuki": [0.0, 0.45, 1.3, 1.45], "kabutowari": [0.0, 0.3, 0.82, 0.85], "ruzgar_bicak": [0.0, 0.1, 0.6, 0.62], "hiraishin_kunai": [0.0, 0.14, 0.47, 0.48], "homatsu_kiseru": [0.1, 0.5, 0.72, 0.72], "kusanagi": [0.0, 0.21, 1.08, 1.09], "kusarigama": [0.0, 0.3, 0.8, 0.85], "fuma_shuriken": [0.0, 0.05, 0.6, 0.62], "kyodai_shuriken": [0.0, 0.1, 1.3, 1.3], "fuma_makimono": [0.0, 0.05, 0.25, 0.26], "nuibari": [0.0, 0.1, 1.62, 1.62], "savas_cekici": [0.0, 1.1, 1.58, 1.58], "zincirli_kunai": [0.0, 0.06, 0.38, 0.38], "bashosen": [0.0, 0.55, 1.4, 1.45], "kubikiribocho": [0.0, 0.3, 1.9, 1.9], "yagura_sopa": [0.0, 0.87, 1.77, 1.8], "kongo_asa": [0.0, 0.6, 1.25, 1.26], "yelpaze": [0.0, 0.2, 0.6, 0.62], "kama": [0.0, 1.0, 1.62, 1.64], "pence": [0.0, 0.1, 0.48, 0.48], "senbon": [0.0, 0.05, 0.22, 0.22], "hiramekarei": [0.0, 0.3, 1.3, 1.33], "bo": [0.0, 0.4, 0.95, 0.95], "kiba": [0.0, 0.2, 1.11, 1.15]}   # uzunluklar silahın kendi ölçeğiyle çarpılır
+const KEY_WEAPON := {"ryujin": [0.0, 0.14, 0.98, 1.0], "kuwa": [0.0, 0.8, 1.1, 1.13], "naitosodo": [0.0, 0.15, 0.7, 0.72], "hono_ken": [0.0, 0.2, 1.1, 1.17], "gariando": [0.0, 0.2, 1.0, 1.06], "kajiki_mori": [0.0, 0.95, 1.9, 1.95], "igne_tufegi": [0.0, 0.3, 0.45, 0.47], "dako": [0.0, 0.5, 1.3, 1.4], "jidanda": [0.0, 0.7, 1.6, 1.65], "kunai_hasshaki": [0.0, 0.2, 0.62, 0.66], "cift_tirpan": [0.0, 0.9, 1.5, 1.55], "katoringu": [0.0, 0.9, 1.3, 1.34], "nunoboko": [0.0, 0.5, 2.35, 2.45], "natato": [0.0, 0.3, 1.42, 1.45], "kunai_to": [0.0, 0.1, 1.02, 1.05], "kaeri_yari": [0.0, 0.5, 1.44, 1.46], "ono": [0.0, 0.5, 1.5, 1.55], "katar": [0.0, 0.1, 0.44, 0.44], "amagasa": [0.0, 0.5, 1.0, 1.05], "sasumata": [0.0, 1.25, 1.85, 1.9], "konbo": [0.0, 0.35, 0.95, 0.98], "kanabo": [0.0, 0.6, 1.36, 1.4], "fukiya": [0.1, 0.5, 0.72, 0.72], "shakujo": [0.0, 0.7, 1.2, 1.24], "temari_ogi": [0.0, 0.3, 1.4, 1.45], "kokuto": [0.0, 0.2, 0.8, 0.82], "shichiseiken": [0.0, 0.25, 1.3, 1.35], "johyo": [0.0, 0.05, 0.25, 0.26], "nunchaku": [0.0, 0.0, 0.28, 0.3], "mizrak": [0.0, 0.5, 1.45, 1.48], "kamci": [0.0, 0.0, 0.22, 0.24], "sansetsukon": [0.0, 0.0, 0.62, 0.64], "samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5], "uc_tirpan": [0.0, 1.1, 1.95, 1.92], "shibuki": [0.0, 0.45, 1.3, 1.45], "kabutowari": [0.0, 0.3, 0.82, 0.85], "ruzgar_bicak": [0.0, 0.1, 0.6, 0.62], "hiraishin_kunai": [0.0, 0.14, 0.47, 0.48], "homatsu_kiseru": [0.1, 0.02, 0.13, 0.14], "kusanagi": [0.0, 0.21, 1.08, 1.09], "kusarigama": [0.0, 0.3, 0.8, 0.85], "fuma_shuriken": [0.0, 0.05, 0.6, 0.62], "kyodai_shuriken": [0.0, 0.1, 1.3, 1.3], "fuma_makimono": [0.0, 0.05, 0.25, 0.26], "nuibari": [0.0, 0.1, 1.62, 1.62], "savas_cekici": [0.0, 1.1, 1.58, 1.58], "zincirli_kunai": [0.0, 0.06, 0.38, 0.38], "bashosen": [0.0, 0.55, 1.4, 1.45], "kubikiribocho": [0.0, 0.3, 1.9, 1.9], "yagura_sopa": [0.0, 0.87, 1.77, 1.8], "kongo_asa": [0.0, 0.6, 1.25, 1.26], "yelpaze": [0.0, 0.2, 0.6, 0.62], "kama": [0.0, 1.0, 1.62, 1.64], "pence": [0.0, 0.1, 0.48, 0.48], "senbon": [0.0, 0.05, 0.22, 0.22], "hiramekarei": [0.0, 0.3, 1.3, 1.33], "bo": [0.0, 0.4, 0.95, 0.95], "kiba": [0.0, 0.2, 1.11, 1.15]}   # uzunluklar silahın kendi ölçeğiyle çarpılır
 
 
 static var _kp_cache := {}

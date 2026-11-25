@@ -194,3 +194,38 @@ static func _plant(m: MB, p: Vector3, kind: String, rng: RandomNumberGenerator) 
 				if rng.randf() < 0.3:
 					m.add("cyl", at + Vector3(cos(a) * 0.1, -0.09, sin(a) * 0.1), Vector3(0.016, 0.15, 0.016), Color(0.5, 0.72, 0.28), Vector3.ZERO, 4)
 				y += 0.13
+
+
+# ------------------------------------------------------------------ hafif parsel (tarla dokusu: uzaktan görünen geniş tarla alanları)
+## kind 0: pirinç (su + setler + seyrek öbek), 1: sebze sıraları (sürülmüş toprak + yeşil sırtlar), 2: buğday (altın sırtlar)
+static func field_lite(b: Builder, x: float, n: float, yaw: float, wd: float, dp: float, rng: RandomNumberGenerator, kind: int) -> void:
+	var cw: Vector3 = _at(b, x, n, yaw, 0.0, 0.0)
+	var soil: MB = b._cell(cw, 2)
+	var crop: MB = b._cell(cw, 1)
+	var hu = wd * 0.5
+	var hv = dp * 0.5
+	var C = [Vector2(-hu, -hv), Vector2(hu, -hv), Vector2(hu, hv), Vector2(-hu, hv)]
+	if kind == 0:
+		_sheet(soil, b, x, n, yaw, -hu + 0.2, hu - 0.2, -hv + 0.2, hv - 0.2, INF, 0.07, WATER, WATER_D, rng)
+		for e in 4:
+			_ridge(soil, b, x, n, yaw, C[e], C[(e + 1) % 4], 0.55, 0.42, BUND_G, BUND, rng)
+		var tint = rng.randf()
+		var u = -hu + 1.0
+		while u < hu - 0.8:
+			var v = -hv + 0.9
+			while v < hv - 0.8:
+				var p = _at(b, x, n, yaw, u + rng.randf_range(-0.1, 0.1), v + rng.randf_range(-0.1, 0.1))
+				p.y += 0.05
+				_tuft(crop, p, 3, rng.randf_range(0.55, 0.75), 0.03, 0.3, Color(0.27, 0.47, 0.2), Color(0.55, 0.72, 0.28).lerp(Color(0.78, 0.72, 0.32), tint * 0.6), rng)
+				v += 1.5
+			u += 1.6
+	else:
+		_sheet(soil, b, x, n, yaw, -hu, hu, -hv, hv, INF, 0.04, SOIL, SOIL_D, rng)
+		var top = Color(0.36, 0.56, 0.22).lerp(Color(0.5, 0.66, 0.26), rng.randf()) if kind == 1 else Color(0.8, 0.68, 0.3).lerp(Color(0.86, 0.76, 0.38), rng.randf())
+		var side = top.darkened(0.3)
+		var gap = 1.1 if kind == 1 else 0.9
+		var u = -hu + 0.6
+		while u < hu - 0.4:
+			_ridge(crop, b, x, n, yaw, Vector2(u, -hv + 0.5), Vector2(u, hv - 0.5), 0.6 if kind == 1 else 0.75, 0.32 if kind == 1 else 0.7, top, side, rng)
+			u += gap
+	b._grass_clear(_at(b, x, n, yaw, 0.0, 0.0), Vector3(wd + 1.0, 0.1, dp + 1.0), -yaw)

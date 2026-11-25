@@ -175,6 +175,8 @@ func _ready() -> void:
 		WorldFolk.on_stage(new_folk, self)
 	remove_from_group("fighters")
 	add_to_group("talkers")
+	if not _all.has(self):
+		_all.append(self)
 	collision_layer = 4
 	collision_mask = 1 | 2   # köylüler birbirine çarpmaz (üst üste doğan ikisi birbirini itip saniyede 40 m kayarak binalara giriyordu); yönlendirme birbirinden kaçırır
 	if model and look.get("age", "adult") != "adult":
@@ -249,53 +251,323 @@ func talk() -> void:
 	Hud.dialog(display, line, Friends.options_for(self) + (Friends.small_talk(self) if fid == "" else []) + extra + ([] if has_meta("jinchuriki_of") or not HomeLife.kid_of(self).is_empty() else Crime.attack_option(self)))
 
 
-## Kafanın üstünde kısa konuşma balonu
-func say(text: String, dur := 2.6) -> void:
+## Kafanın üstünde kısa konuşma balonu. important=false: ortam sözü (satıcı çağrısı, selam, top / antrenman nidası) —
+## 3 m içinde başka balon görünürken söylenmez. Önemli söz yakındaki ortam balonlarını kapatır, öbür önemli balonların
+## üstüne dizilir (iki kişinin sözü üst üste binip okunmaz hâle geliyordu). Balonun alt kenarı ad etiketinin üstündedir.
+static var _speakers: Array = []   # balonu görünen köylüler (yakın balon araması)
+const BUB_PX := 0.005
+const BUB_NEAR := 3.0
+var _bub_amb := false
+var _bub_h := 0.0
+
+
+func say(text: String, dur := 2.6, important := true) -> void:
+	var near: Array = []
+	for o in _speakers.duplicate():
+		if not is_instance_valid(o) or o.bubble == null or not o.bubble.visible:
+			_speakers.erase(o)
+			continue
+		if o == self:
+			continue
+		var d = o.global_position - global_position
+		if Vector2(d.x, d.z).length() < BUB_NEAR and absf(d.y) < 4.0:
+			if o.bubble.text == text:
+				return   # yanındaki aynı sözü zaten söylüyor (iki kişi aynı selamı üst üste veriyordu)
+			near.append(o)
+	if not important and (not near.is_empty() or (bubble != null and bubble.visible and not _bub_amb)):
+		return   # yakında biri konuşuyor / kendi önemli sözü sürüyor: ortam sözü bekler
 	if bubble == null:
 		bubble = Label3D.new()
 		bubble.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-		bubble.font_size = 56
-		bubble.pixel_size = 0.0075
-		bubble.outline_size = 12
+		bubble.pixel_size = BUB_PX
 		bubble.modulate = Color(1, 0.97, 0.88)
 		bubble.outline_modulate = Color(0.08, 0.06, 0.06)
+		bubble.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM   # konum = alt kenar (çok satırlı söz yukarı uzar)
+		bubble.visibility_range_end = 32.0
+		bubble.visibility_range_end_margin = 5.0
+		bubble.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 		add_child(bubble)
-	bubble.position = Vector3(0, 2.15 * (model.age_scale if model else 1.0), 0)
-	# uzun söz: satıra bölünür ve küçülür (tek satır ekrandan taşıyordu)
-	var long = text.length() > 26
-	bubble.font_size = 34 if long else 56
-	if long and name_tag != null:
-		bubble.position.y += 0.75   # ad etiketinin üstünde dursun
+	# uzun söz: satıra bölünür ve küçülür
+	var long = text.length() > 24
+	var fs = 30 if long else 38
+	bubble.font_size = fs
+	bubble.outline_size = 8 if long else 10
+	bubble.width = 460.0
 	bubble.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if long else TextServer.AUTOWRAP_OFF
-	bubble.width = 520.0
 	bubble.text = text
+	var lines = 1 if not long else maxi(1, ceili(text.length() * 0.56 * fs / 460.0))
+	_bub_h = lines * fs * 1.22 * BUB_PX
+	_bub_amb = not important
+	var y = _bubble_base()
+	if important:
+		for o in near:
+			if o._bub_amb:
+				o.bubble.visible = false   # önemli söz gelince yandakinin ortam nidası susar
+		# yakındaki önemli balonların üstüne diz (alttan yukarı)
+		near = near.filter(func(o): return o.bubble.visible)
+		near.sort_custom(func(a, b): return a.bubble.global_position.y < b.bubble.global_position.y)
+		for o in near:
+			var ob: float = o.bubble.global_position.y
+			var my = global_position.y + y
+			if my < ob + o._bub_h + 0.05 and my + _bub_h + 0.05 > ob:
+				y = ob + o._bub_h + 0.06 - global_position.y
+	bubble.position = Vector3(0, y, 0)
 	bubble.visible = true
 	bubble_t = dur
+	if not _speakers.has(self):
+		_speakers.append(self)
+
+
+## Balonun alt kenarı: ad etiketi varsa onun üst kenarının biraz üstü, yoksa başın üstü
+func _bubble_base() -> float:
+	if name_tag != null and name_tag.visible and name_tag.text != "":
+		var tl = name_tag.text.count("\n") + 1
+		return name_tag.position.y + tl * name_tag.font_size * name_tag.pixel_size * 1.22 * 0.5 + 0.06
+	return height + 0.35
+
+
+func _exit_tree() -> void:
+	_speakers.erase(self)
+	_all.erase(self)
+	if _my_claim != null and int(_claims.get(_my_claim, 0)) == get_instance_id():
+		_claims.erase(_my_claim)
+
+
+# ------------------------------------------------------------------ birbirinin içine girmeme
+## Köylüler fizikte birbirine çarpmaz (üst üste doğan ikisi birbirini itip binalara kayıyordu); yerine ucuz yerel ayrılma:
+## karede bir kez 2 m'lik ızgara kurulur, her kişi yalnız komşu hücrelere bakar, ~0.8 m'den yakınsa yavaşça uzaklaşır.
+static var _all: Array = []
+static var _grid := {}
+static var _grid_frame := -1
+const SEP_CELL := 2.0
+
+
+static func _grid_rebuild() -> void:
+	_grid_frame = Engine.get_physics_frames()
+	_grid.clear()
+	for n in _all:
+		if not is_instance_valid(n) or n.fading or n.role == "roof" or not n.is_inside_tree():
+			continue
+		var p: Vector3 = n.global_position
+		var c = Vector2i(floori(p.x / SEP_CELL), floori(p.z / SEP_CELL))
+		if _grid.has(c):
+			_grid[c].append(n)
+		else:
+			_grid[c] = [n]
+
+
+## Yakındaki köylülerden uzaklaştıran yatay itme (0..~1.5; çarpanla hıza eklenir)
+func _sep() -> Vector3:
+	if Engine.get_physics_frames() != _grid_frame:
+		_grid_rebuild()
+	var p := global_position
+	var c = Vector2i(floori(p.x / SEP_CELL), floori(p.z / SEP_CELL))
+	var push := Vector3.ZERO
+	for dx in [-1, 0, 1]:
+		for dz in [-1, 0, 1]:
+			var arr = _grid.get(c + Vector2i(dx, dz))
+			if arr == null:
+				continue
+			for o in arr:
+				if o == self:
+					continue
+				var d: Vector3 = p - o.global_position
+				if absf(d.y) > 1.6:
+					continue
+				d.y = 0.0
+				var want = clampf(float(radius) + float(o.radius) + 0.05, 0.55, 0.85)
+				if o == buddy:
+					want = 1.15   # sohbet / antrenman eşi: yüz yüze, ~1.2 m
+				var l = d.length()
+				if l >= want:
+					continue
+				if l < 0.02:
+					# tam üst üste: kimlik numarasına göre sabit bir yön (ikisi aynı yöne kaçmasın)
+					var a = float(get_instance_id() % 6283) * 0.001
+					d = Vector3(cos(a), 0, sin(a))
+					l = 0.02
+				push += d / l * ((want - l) / want)
+	if push.length() > 1.5:
+		push = push.normalized() * 1.5
+	return push
+
+
+## Hedef noktası paylaşılmaz: aynı ~1.6 m hücreye ikinci kişi yönelmez (hepsi aynı sokak noktasında toplanıp duruyordu)
+static var _claims := {}
+
+
+static func _ckey(q: Vector3) -> Vector2i:
+	return Vector2i(floori(q.x / 1.6), floori(q.z / 1.6))
+
+
+func _taken(q: Vector3) -> bool:
+	var id = int(_claims.get(_ckey(q), 0))
+	if id == 0 or id == get_instance_id():
+		return false
+	var o = instance_from_id(id)
+	return o != null and is_instance_valid(o) and o is Villager and not o.fading and _ckey(o.goal) == _ckey(q)
+
+
+var _my_claim = null
+
+
+func _claim(q: Vector3) -> void:
+	if _my_claim != null and int(_claims.get(_my_claim, 0)) == get_instance_id():
+		_claims.erase(_my_claim)
+	_my_claim = _ckey(q)
+	_claims[_my_claim] = get_instance_id()
 
 
 func _hold_lantern() -> void:
-	if model == null:
+	if model == null or model.skel == null or model.skel.find_bone("RightHand") < 0:
 		return
-	var b = MB.new()
-	b.add("box", Vector3(0, -0.12, 0), Vector3(0.02, 0.24, 0.02), Color(0.2, 0.15, 0.1))
-	b.add("cyl", Vector3(0, -0.42, 0), Vector3(0.22, 0.32, 0.22), Color(1.0, 0.85, 0.55), Vector3.ZERO, 8)
-	var m = StandardMaterial3D.new()
-	m.vertex_color_use_as_albedo = true
-	m.emission_enabled = true
-	m.emission = Color(1.0, 0.7, 0.35)
-	m.emission_energy_multiplier = 1.5
-	var hb = model.skel.find_bone("RightHand")
-	if hb < 0:
+	if lantern != null:
 		return
-	var hp = model.skel.get_bone_global_rest(hb).origin
-	var mi = model._mesh_on("RightHand", b.build(m), Transform3D(Basis.IDENTITY, hp + Vector3(-0.06, -0.03, 0.02)))
-	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	var l = OmniLight3D.new()
-	l.light_color = Color(1.0, 0.72, 0.4)
-	l.light_energy = 0.7
-	l.omni_range = 5.0
-	l.position = Vector3(0, -0.4, 0)
-	mi.add_child(l)
+	lantern = LanternRig.new()
+	lantern.v = self
+	add_child(lantern)
+
+
+## Gece feneri (chōchin): sağ elde kısa ahşap taşıma sopası, ucundan asılı kâğıt fener. Sopa elin gerçek kemiğini izler
+## (gövdenin baktığı yönde öne-aşağı uzanır); fener sopanın ucundan sarkar, her karede dik durur, yürürken hafifçe sallanır.
+## Eskiden fener el kemiğinin dinlenme yönüne yapışık düz bir kutuydu: el dönünce kalçadan yana çıkan bej bir levha gibi duruyordu.
+var lantern: LanternRig = null
+
+
+class LanternRig extends Node:
+	var v   # sahibi Villager
+	var stick: MeshInstance3D
+	var lamp: Node3D
+	var hb := -1
+	var sw := Vector3.ZERO      # fenerin sarkma sapması (yatay, m)
+	var sw_v := Vector3.ZERO
+	var prev_tip := Vector3.INF
+	var tip_v := Vector3.ZERO
+	var frame := 0
+	static var _stick_mesh: ArrayMesh
+	static var _frame_mesh: ArrayMesh
+	static var _paper := {}       # renk adı -> [mesh, material]
+	const STICK_L := 0.46
+	const BODY_Y := -0.27         # fener gövdesinin merkezi (asılma noktasına göre)
+
+	func _ready() -> void:
+		hb = v.model.skel.find_bone("RightHand")
+		if _stick_mesh == null:
+			var bs = MB.new()
+			var wood = Color(0.33, 0.22, 0.13)
+			bs.add("cyl", Vector3(0, STICK_L * 0.5, 0), Vector3(0.022, STICK_L, 0.022), wood, Vector3.ZERO, 6)
+			bs.add("cyl", Vector3(0, -0.02, 0), Vector3(0.03, 0.05, 0.03), wood.darkened(0.3), Vector3.ZERO, 6)   # sap ucu
+			bs.add("torus", Vector3(0, STICK_L - 0.015, 0), Vector3(0.05, 0.25, 0.05), Color(0.12, 0.1, 0.08), Vector3(90, 0, 0), 8)   # asma halkası
+			_stick_mesh = bs.build(Props.toon())
+			# fener iskeleti: tepe / dip ahşap kapaklar, asma ipi, kâğıdın üstündeki bambu kaburgalar
+			var bf = MB.new()
+			var cap = Color(0.16, 0.11, 0.07)
+			bf.add("cyl", Vector3(0, -0.035, 0), Vector3(0.006, 0.07, 0.006), Color(0.1, 0.08, 0.06), Vector3.ZERO, 4)   # ip
+			bf.add("cyl", Vector3(0, -0.085, 0), Vector3(0.15, 0.035, 0.15), cap, Vector3.ZERO, 12)
+			bf.add("cyl", Vector3(0, -0.068, 0), Vector3(0.09, 0.012, 0.09), cap.lightened(0.15), Vector3.ZERO, 10)
+			bf.add("cyl", Vector3(0, BODY_Y - 0.185, 0), Vector3(0.16, 0.04, 0.16), cap, Vector3.ZERO, 12)
+			var ry = 0.175
+			for k in 9:
+				var y = -ry + (k + 0.5) * (2.0 * ry / 9.0)
+				var r = 0.135 * sqrt(maxf(0.0, 1.0 - (y / ry) * (y / ry)))
+				bf.add("torus", Vector3(0, BODY_Y + y, 0), Vector3(r * 2.0 + 0.008, 0.12, r * 2.0 + 0.008), Color(0.25, 0.14, 0.08), Vector3.ZERO, 16)
+			_frame_mesh = bf.build(Props.toon())
+		var cname = "red" if randf() < 0.5 else "cream"
+		if not _paper.has(cname):
+			var col = Color(0.82, 0.16, 0.1) if cname == "red" else Color(1.0, 0.88, 0.66)
+			var bp = MB.new()
+			bp.add("sphere", Vector3(0, BODY_Y, 0), Vector3(0.27, 0.35, 0.27), col, Vector3.ZERO, 16)
+			var m = StandardMaterial3D.new()
+			m.vertex_color_use_as_albedo = true
+			m.emission_enabled = true
+			m.emission = Color(1.0, 0.45, 0.2) if cname == "red" else Color(1.0, 0.75, 0.4)
+			m.emission_energy_multiplier = 1.6
+			_paper[cname] = [bp.build(m), m]
+		stick = MeshInstance3D.new()
+		stick.mesh = _stick_mesh
+		stick.top_level = true
+		stick.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(stick)
+		lamp = Node3D.new()
+		lamp.top_level = true
+		add_child(lamp)
+		var paper = MeshInstance3D.new()
+		paper.mesh = _paper[cname][0]
+		paper.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		lamp.add_child(paper)
+		var fr = MeshInstance3D.new()
+		fr.mesh = _frame_mesh
+		fr.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		lamp.add_child(fr)
+		var l = OmniLight3D.new()
+		l.light_color = Color(1.0, 0.6, 0.35) if cname == "red" else Color(1.0, 0.72, 0.4)
+		l.light_energy = 0.8
+		l.omni_range = 5.0
+		l.position = Vector3(0, BODY_Y, 0)
+		lamp.add_child(l)
+		_update(1.0 / 60.0)
+
+	func _process(dt: float) -> void:
+		if not is_instance_valid(v) or v.model == null:
+			return
+		var on = not v.fading and v.visible
+		stick.visible = on
+		lamp.visible = on
+		if not on:
+			return
+		# uzaktaki / ekran dışındaki fener seyrek güncellenir (kalabalıkta ucuz kalsın)
+		frame += 1
+		var cam = v.get_viewport().get_camera_3d()
+		if cam != null:
+			var far = cam.global_position.distance_squared_to(v.global_position) > 70.0 * 70.0
+			var off = not cam.is_position_in_frustum(v.global_position + Vector3.UP)
+			if (far or off) and frame % 15 != 0:
+				return
+			if far or off:
+				dt *= 15.0
+		_update(dt)
+
+	func _update(dt: float) -> void:
+		var sk: Skeleton3D = v.model.skel
+		if sk == null or hb < 0:
+			return
+		var hx: Transform3D = sk.global_transform * sk.get_bone_global_pose(hb)
+		var sc: float = v.model.age_scale if "age_scale" in v.model else 1.0
+		var grip = hx.origin + hx.basis.y.normalized() * 0.075 * sc   # avuç: bilekten parmaklara doğru
+		var f: float = v.facing
+		var fwd = Vector3(-sin(f), 0, -cos(f))
+		var right = Vector3(cos(f), 0, -sin(f))
+		# sopa: avuçtan öne, hafif dışa ve yukarı (fener bacağa çarpmadan önde sallansın)
+		var dir = (fwd * 0.8 + right * 0.25 + Vector3.UP * 0.35).normalized()
+		var by = dir
+		var bx = by.cross(right).normalized()
+		if bx.length() < 0.1:
+			bx = fwd
+		var bz = bx.cross(by).normalized()
+		stick.global_transform = Transform3D(Basis(bx, by, bz).scaled(Vector3(sc, sc, sc)), grip - dir * 0.04 * sc)
+		var tip = grip + dir * (STICK_L - 0.06) * sc
+		# sarkaç: ucun hızı fenerin altını geride bırakır, yay geri getirir
+		dt = clampf(dt, 0.0, 0.25)
+		if prev_tip == Vector3.INF or dt <= 0.0:
+			prev_tip = tip
+		var tv = (tip - prev_tip) / maxf(dt, 0.001)
+		prev_tip = tip
+		tv.y = 0.0
+		tip_v = tip_v.lerp(tv, minf(1.0, dt * 12.0))
+		var target = -tip_v * 0.05
+		if target.length() > 0.18:
+			target = target.normalized() * 0.18
+		sw_v += (target - sw) * 40.0 * dt
+		sw_v *= exp(-3.5 * dt)
+		sw += sw_v * dt
+		if sw.length() > 0.22:
+			sw = sw.normalized() * 0.22
+		var up = (Vector3.UP - sw / 0.3).normalized()   # asılma noktasından fenere bakan yönün tersi
+		var lx = up.cross(fwd).normalized()
+		if lx.length() < 0.1:
+			lx = right
+		var lz = lx.cross(up).normalized()
+		lamp.global_transform = Transform3D(Basis(lx, up, lz).scaled(Vector3(sc, sc, sc)), tip)
 
 
 ## Eve girer gibi kaybol
@@ -447,7 +719,7 @@ func _physics_process(dt: float) -> void:
 				_seat_fix()
 			return
 		"chat":
-			step_move(Vector3.ZERO, dt, false)
+			step_move(_sep() * 1.2, dt, false)
 			if buddy and is_instance_valid(buddy):
 				_face(buddy.global_position - global_position, dt)
 			model.play("talk" if fmod(Time.get_ticks_msec() * 0.001 + home.z, 6.0) < 3.0 else "idle", 0.3)
@@ -480,7 +752,7 @@ func _physics_process(dt: float) -> void:
 		return
 	if wait > 0.0:
 		wait -= dt
-		step_move(Vector3.ZERO, dt)
+		step_move(_sep() * 1.5, dt, false)
 		model.play("idle", 0.3)
 		return
 	var v = goal - global_position
@@ -496,7 +768,7 @@ func _physics_process(dt: float) -> void:
 		var wob = sin(Time.get_ticks_msec() * 0.003 + home.x) * 0.9
 		mv = mv.rotated(Vector3.UP, wob)
 		_call(dt, dist)
-	step_move(mv * speed, dt)
+	step_move(mv * speed + _sep() * 1.8, dt)
 	model.play("run" if speed > 5.0 else "walk", 0.2, 0.75 if role == "drunk" else 1.0)
 	if NpcNav.stuck(self, goal, dt):
 		_unstick(dist)
@@ -512,10 +784,10 @@ func _follow(dt: float) -> void:
 	var tv = want - global_position
 	tv.y = 0
 	if tv.length() < 0.4:
-		step_move(Vector3.ZERO, dt)
+		step_move(_sep() * 1.5, dt, false)
 		model.play("idle", 0.3)
 		return
-	step_move(NpcNav.steer(self, tv.normalized(), dt) * minf(speed * 1.3, tv.length() * 2.5 + 0.6), dt)
+	step_move(NpcNav.steer(self, tv.normalized(), dt) * minf(speed * 1.3, tv.length() * 2.5 + 0.6) + _sep() * 1.8, dt)
 	model.play("walk", 0.2)
 
 
@@ -535,7 +807,7 @@ func _dest_goal() -> void:
 	for q in points:
 		var qp: Vector3 = q["front"] if q is Dictionary else q
 		var dq = qp.distance_to(global_position)
-		if dq > 10.0 and dq < 55.0 and qp.distance_to(dest) < left - 6.0:
+		if dq > 10.0 and dq < 55.0 and qp.distance_to(dest) < left - 6.0 and not _taken(qp):
 			near.append(qp)
 	near.sort_custom(func(a, b): return a.distance_to(dest) < b.distance_to(dest))
 	cands.append_array(near.slice(0, 6))
@@ -563,7 +835,7 @@ func _wander_small(dt: float) -> void:
 		return
 	if wait > 0.0:
 		wait -= dt
-		step_move(Vector3.ZERO, dt)
+		step_move(_sep() * 1.2, dt, false)
 		if role == "teacher":
 			_hold_face(dt)
 			_cycle(dt, ["talk", "talk", "yes", "interact"], 2.5)
@@ -576,7 +848,7 @@ func _wander_small(dt: float) -> void:
 		goal = home + Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)) * maxf(1.0, wander_r)
 		wait = randf_range(2.5, 6.0)
 		return
-	step_move(NpcNav.steer(self, tv.normalized(), dt) * 1.2, dt)
+	step_move(NpcNav.steer(self, tv.normalized(), dt) * 1.2 + _sep() * 1.2, dt)
 	model.play("walk", 0.2)
 	if NpcNav.stuck(self, goal, dt):
 		goal = home
@@ -617,7 +889,7 @@ func _social(dt: float, dist: float) -> void:
 	if dist < 4.5 and greet_cd <= 0.0 and role not in ["roof", "spar", "student"]:
 		greet_cd = randf_range(20.0, 40.0)
 		if randf() < 0.35:
-			say(_greeting())
+			say(_greeting(), 2.6, false)
 
 
 ## Sana tepki: söz + beden (eğilme / sırt çevirme)
@@ -685,7 +957,7 @@ func _call(dt: float, dist: float) -> void:
 	if call_cd <= 0.0:
 		call_cd = randf_range(6.0, 13.0)
 		if dist < 30.0 and CALLS.has(role):
-			say(CALLS[role].pick_random(), 2.0)
+			say(CALLS[role].pick_random(), 2.0, false)
 
 
 func _spar(dt: float, dist: float) -> void:
@@ -715,7 +987,7 @@ func _spar(dt: float, dist: float) -> void:
 	else:
 		model.play("block", 0.1, 1.0, true)
 	if randf() < 0.15:
-		say(CALLS["spar"].pick_random(), 1.2)
+		say(CALLS["spar"].pick_random(), 1.2, false)
 
 
 func _take_spar() -> void:
@@ -753,20 +1025,20 @@ func _work(dt: float) -> void:
 func _shop(dt: float) -> void:
 	if wait > 0.0:
 		wait -= dt
-		step_move(Vector3.ZERO, dt, false)
+		step_move(_sep() * 1.2, dt, false)
 		_hold_face(dt)
 		_cycle(dt, ["talk", "yes", "no", "interact", "idle", "talk"], 2.0)
 		if wait <= 0.0:
 			_pick_stall()
 		elif randf() < dt * 0.04:
-			say(LINES["shopper"].pick_random(), 2.2)
+			say(LINES["shopper"].pick_random(), 2.2, false)
 		return
 	var v = goal - global_position
 	v.y = 0
 	if v.length() < 0.9:
 		wait = randf_range(6.0, 14.0)
 		return
-	step_move(NpcNav.steer(self, v.normalized(), dt) * 2.4, dt)
+	step_move(NpcNav.steer(self, v.normalized(), dt) * 2.4 + _sep() * 1.8, dt)
 	model.play("walk", 0.2)
 	if NpcNav.stuck(self, goal, dt):
 		if int(nav.get("n", 0)) >= 3 and global_position.distance_to(Game.player.global_position) > 30.0:
@@ -779,12 +1051,16 @@ func _shop(dt: float) -> void:
 func _pick_stall() -> void:
 	if points.is_empty():
 		return
-	var s = points.pick_random()
-	if s is Dictionary:
-		goal = s["front"] + Vector3(randf_range(-0.8, 0.8), 0, randf_range(-0.4, 0.4))
-		stand_face = s["face"]
-	else:
-		goal = s
+	for k in 4:   # tezgâh önünde başka alışverişçinin durduğu yere değil
+		var s = points.pick_random()
+		if s is Dictionary:
+			goal = s["front"] + Vector3(randf_range(-0.8, 0.8), 0, randf_range(-0.4, 0.4))
+			stand_face = s["face"]
+		else:
+			goal = s
+		if not _taken(goal):
+			break
+	_claim(goal)
 
 
 func _ball(dt: float) -> void:
@@ -797,11 +1073,11 @@ func _ball(dt: float) -> void:
 			model.overlay.set_pose("kick", 0.0)
 		return
 	if v.length() < 0.6:
-		step_move(Vector3.ZERO, dt)
+		step_move(_sep() * 1.5, dt, false)
 		model.play("idle", 0.2)
 		return
 	_face(v, dt)
-	step_move(v.normalized() * minf(5.5, v.length() * 2.5), dt, false)
+	step_move(v.normalized() * minf(5.5, v.length() * 2.5) + _sep() * 2.0, dt, false)
 	model.play("jog" if v.length() > 1.5 else "walk", 0.15)
 
 
@@ -809,7 +1085,7 @@ func kick_ball() -> void:
 	model.overlay.set_pose("kick", 1.0)
 	kick_t = 0.3
 	if randf() < 0.3:
-		say(CALLS["ball"].pick_random(), 1.2)
+		say(CALLS["ball"].pick_random(), 1.2, false)
 
 
 func _new_goal() -> void:
@@ -841,7 +1117,7 @@ func _new_goal() -> void:
 					var q = points.pick_random()
 					var qp: Vector3 = q["front"] if q is Dictionary else q
 					var dq = qp.distance_to(global_position)
-					if dq > 8.0 and dq < 70.0:
+					if dq > 8.0 and dq < 70.0 and not _taken(qp):
 						cands.append(qp)
 					if cands.size() >= 5:
 						break
@@ -853,6 +1129,7 @@ func _new_goal() -> void:
 			else:
 				goal = home
 			wait = randf_range(0.5, 6.0) if role == "walker" else randf_range(0.0, 1.0)
+	_claim(goal)
 	NpcNav.reset(self)
 
 

@@ -59,6 +59,8 @@ static func _face(dx: float, dn: float) -> float:
 
 ## Bölgeler (2026-11-24, kaynak: anime Konoha haritası — kayanın önünde sık çekirdek şehir, aralarda korular, dış halkada tarla):
 ## 0 çekirdek şehir (bitişik nizam, sık), 1 orta halka (korular + küçük mahalle kümeleri), 2 dış halka (tarla, çiftlik, orman)
+## çarşının adı olan dükkânları + Ichiraku: [x, caddenin yanı (+kuzey / -güney)] — tezgâh / fener direği kapı önüne konmaz
+const NAMED_FRONTS := [[-170.0, -1.0], [170.0, -1.0], [-250.0, -1.0], [250.0, -1.0], [-110.0, 1.0], [230.0, 1.0], [-30.0, -1.0], [70.0, -1.0]]
 const CORE_C := Vector2(0.0, 300.0)
 const CORE_RX := 780.0
 const CORE_RN := 720.0
@@ -66,7 +68,7 @@ static func _zone(x: float, n: float) -> int:
 	var dx = (x - CORE_C.x) / CORE_RX
 	var dn = (n - CORE_C.y) / CORE_RN
 	var e = sqrt(dx * dx + dn * dn) + (sin(x * 0.006 + 1.3) * 0.05 + sin(n * 0.008 - 0.7) * 0.05)   # kenar kıvrımlı (cetvel çizgisi değil)
-	if e < 1.0:
+	if e < 1.0 or _gate_town(x, n):
 		return 0
 	if Vector2(x, n).length() < 1000.0:
 		return 1
@@ -123,6 +125,82 @@ static func _farm_belt(b: Builder, rng: RandomNumberGenerator, occupied: Array, 
 	return made
 
 
+
+## Çarşı tezgâhı (2026-11-25, kullanıcı: "kare kare çok çirkin"; eskiden düz kutu tezgâh + düz levha tente + üç renkli küp):
+## ahşap yatai — tezgâh tablası + kumaş önlük, dört direk, kenarı saçaklı beşik bez çatı, önde sarkan noren şeritleri,
+## köşede kâğıt fener, türüne göre mal (0 meyve-sebze sepetleri, 1 balık tablası, 2 dango / tatlı tepsileri, 3 çömlek + maske),
+## arkada satıcının yanında sandık. side: binaya (satıcı tarafı) yön (+1 kuzey).
+static func _market_stall(b: Builder, decor: Node3D, x: float, n: float, side: float, cloth: Color, kind: int, rng: RandomNumberGenerator) -> void:
+	b.yoff = _gy(b, x, n)
+	var wood = Color(0.5, 0.35, 0.22)
+	var wood_d = Color(0.34, 0.23, 0.15)
+	var cream = Color(0.97, 0.94, 0.86)
+	var fn = n - side * 0.7   # tezgâhın müşteri kenarı
+	# tezgâh: tabla + ön önlük (kumaş, beyaz şerit) + bacaklar
+	b.box(Vector3(x, 0.95, n), Vector3(5.0, 0.1, 1.5), wood, 0)
+	b.box(Vector3(x, 0.47, n), Vector3(4.8, 0.86, 1.3), wood_d, 0)   # gövde (çarpışma)
+	b.box(Vector3(x, 0.55, fn - side * 0.04), Vector3(4.9, 0.7, 0.04), cloth, 0, false)
+	b.box(Vector3(x, 0.84, fn - side * 0.06), Vector3(4.9, 0.08, 0.04), cream, 0, false)
+	# dört direk + üst çerçeve
+	for px in [-2.6, 2.6]:
+		for pn in [-0.95, 2.3]:
+			b.box(Vector3(x + px, 1.35, n + side * pn), Vector3(0.14, 2.7, 0.14), wood_d, 0, pn > 0.0)
+	for pn in [-0.95, 2.3]:
+		b.box(Vector3(x, 2.68, n + side * pn), Vector3(5.4, 0.12, 0.12), wood_d, 0, false)
+	# beşik bez çatı (sırt x boyunca) + mahya
+	var rc = n + side * 0.67
+	b.roof(Vector3(x, 2.74, rc), Vector3(4.0, 0.9, 6.2), cloth, 90.0)
+	b.box(Vector3(x, 3.66, rc), Vector3(6.3, 0.1, 0.16), cloth.darkened(0.3), 0, false)
+	# ön saçak: sarkan noren şeritleri (beyaz uçlu)
+	for k in 5:
+		var nx = x - 2.4 + k * 1.2
+		b.box(Vector3(nx, 2.38, n - side * 1.32), Vector3(1.1, 0.55, 0.03), cloth.lightened(0.08), 0, false)
+		b.box(Vector3(nx, 2.12, n - side * 1.32), Vector3(1.1, 0.06, 0.035), cream, 0, false)
+	# köşe feneri
+	var lp = Vector3(x + 2.75, 2.25, n - side * 1.1)
+	b.cyl(lp + Vector3(0, 0.33, 0), 0.04, 0.18, wood_d, false, 6)
+	b.sphere(lp, Vector3(0.45, 0.6, 0.45), Color(0.95, 0.3, 0.22) if kind % 2 == 0 else cream, 10)
+	Lights.add(b.w(lp))
+	# mallar (tabla üstü, y 1.0)
+	match kind:
+		0:   # sığ hasır sepetlerde meyve / sebze yığınları
+			for k in 4:
+				var gx = x - 1.8 + k * 1.2
+				b.cyl(Vector3(gx, 1.06, n), 0.95, 0.12, Color(0.72, 0.58, 0.36), false, 12)
+				var fc = [Color(0.92, 0.45, 0.15), Color(0.85, 0.15, 0.15), Color(0.55, 0.75, 0.25), Color(0.95, 0.82, 0.3)][k]
+				for q in 7:
+					var a = q * 0.9 + rng.randf() * 0.4
+					var rr = 0.0 if q == 0 else 0.26
+					b.sphere(Vector3(gx + cos(a) * rr, 1.2 + (0.12 if q == 0 else 0.0), n + sin(a) * rr), Vector3(0.2, 0.18, 0.2), fc.darkened(rng.randf() * 0.15), 6)
+		1:   # balık: buz tablası üstünde sıra sıra balık
+			b.box(Vector3(x, 1.04, n), Vector3(4.2, 0.08, 1.1), Color(0.82, 0.9, 0.95), 0, false)
+			for k in 7:
+				var gx = x - 1.8 + k * 0.6
+				for q in 2:
+					var fp = Vector3(gx, 1.13, n - 0.25 + q * 0.5)
+					b.sphere(fp, Vector3(0.18, 0.1, 0.42), Color(0.55, 0.6, 0.68).lerp(Color(0.8, 0.45, 0.35), float(k % 3) * 0.3), 6)
+					b.box(fp + Vector3(0, 0, 0.24), Vector3(0.14, 0.06, 0.1), Color(0.45, 0.5, 0.58), 0, false)
+		2:   # dango şişleri ve tatlı tepsileri
+			for k in 3:
+				var gx = x - 1.6 + k * 1.6
+				b.box(Vector3(gx, 1.03, n), Vector3(1.3, 0.05, 0.9), Color(0.25, 0.15, 0.1), 0, false)
+				for q in 5:
+					var dz = n - 0.32 + q * 0.16
+					for t in 3:
+						b.sphere(Vector3(gx - 0.2 + t * 0.2, 1.1, dz), Vector3(0.15, 0.15, 0.15), [Color(1.0, 0.7, 0.75), Color(0.97, 0.95, 0.9), Color(0.55, 0.8, 0.45)][t], 6)
+		3:   # çömlekler + direkte asılı festival maskeleri
+			for k in 5:
+				var gx = x - 2.0 + k * 1.0
+				var hh = 0.3 + (k % 3) * 0.12
+				b.cyl(Vector3(gx, 1.0 + hh * 0.5, n), 0.42 - (k % 2) * 0.08, hh, [Color(0.55, 0.35, 0.25), Color(0.3, 0.38, 0.45), Color(0.75, 0.68, 0.55)][k % 3], false, 10)
+			for k in 5:
+				var mp = Vector3(x - 2.0 + k * 1.0, 2.0, n - side * 0.95)
+				b.disc(mp, 0.42, 0.06, [Color(0.95, 0.93, 0.88), Color(0.9, 0.3, 0.2), Color(0.95, 0.8, 0.3)][k % 3], 0.0 if side < 0.0 else 180.0, 10)
+	# satıcının yanında sandık + çuval
+	b.box(Vector3(x - 1.9, 0.3, n + side * 1.8), Vector3(0.8, 0.6, 0.6), wood, 0)
+	b.sphere(Vector3(x + 1.9, 0.35, n + side * 1.8), Vector3(0.7, 0.7, 0.6), Color(0.78, 0.7, 0.52), 8)
+	b.yoff = 0.0
+
 ## Hokage yerleşkesinin avlu duvarı (anime: Hokage binası ve idari binalar duvarla çevrili, önde tören kapısı): beyaz sıva,
 ## taş taban, koyu kiremit başlık; önde tören caddesine açılan geniş kapı (iki kızıl direk + çatılı kiriş + 火 levhası)
 static func _hokage_compound_wall(b: Builder, tn: float) -> void:
@@ -162,9 +240,91 @@ static func _hokage_compound_wall(b: Builder, tn: float) -> void:
 
 
 ## Orta halkada küçük mahalle kümeleri (yerleşim adaları): yumuşak gürültü eşiği
+## 2026-11-25 harita yerleşimi: gürültü eşiği neredeyse hiç mahalle çıkarmıyordu (simge yapılar boş çayırda yalnızdı).
+## Mahalleler artık gerçek yerlerinde: klan konaklarının çevresi, stadyum / antrenman alanı yolu, batı ve doğu kapısı yolu,
+## güneydeki tarla köyleri. Kenarları kıvrımlı.
+const HAMLETS := [[-1040.0, 250.0, 200.0], [-800.0, -500.0, 120.0], [900.0, -560.0, 130.0], [860.0, 470.0, 110.0],
+	[-1130.0, -200.0, 140.0], [1130.0, -200.0, 140.0], [-380.0, -830.0, 120.0], [220.0, -880.0, 120.0], [590.0, -700.0, 110.0],
+	[190.0, -1120.0, 100.0], [-560.0, -1060.0, 100.0], [-900.0, 700.0, 110.0], [760.0, 860.0, 110.0]]
 static func _hamlet(x: float, n: float) -> bool:
-	var v = sin(x * 0.011 + 2.1) * sin(n * 0.013 - 0.4) + 0.5 * sin((x + n) * 0.007 + 5.0)
-	return v > 0.95   # az ama toplu mahalle (tek tük serpilmiş ev değil)
+	for h in HAMLETS:
+		var d = Vector2(x - h[0], n - h[1]).length()
+		if d < h[2] * (1.0 + 0.18 * sin(x * 0.031 + n * 0.017) + 0.1 * sin(n * 0.05 - x * 0.02)):
+			return true
+	return false
+
+
+## Kapı mahallesi: A-Un kapısından çekirdek şehre uzanan tören caddesinin iki yanı (anime: ana kapı doğrudan şehir sokaklarına açılır;
+## eskiden kapıdan sonra 1 km boş tarla vardı)
+static func _gate_town(x: float, n: float) -> bool:
+	if n > CORE_C.y or n < -R + 75.0:
+		return false
+	return absf(x) < 92.0 + sin(n * 0.011 + 0.4) * 22.0 + sin(n * 0.027) * 10.0
+
+
+## Dış halka orman kümeleri (seyrek tek tek ağaç serpintisi yerine yoğun orman lekeleri; aralar tarla / çayır)
+static func _forest(x: float, n: float) -> float:
+	return sin(x * 0.0062 + 1.1) * sin(n * 0.0055 - 0.3) + 0.5 * sin(x * 0.013 + n * 0.009 + 2.0)
+
+
+## Tarla dokusu (anime haritasının güney / dış halkası: parsel parsel tarlalar): 240 m bloklar, her blok kendi yönünde;
+## içinde pirinç / sebze / buğday parselleri, aralarında toprak tarla yolları. Uzaktan okunan hafif parsel (FarmKit.field_lite).
+static func _field_patch(b: Builder, rng: RandomNumberGenerator, occupied: Array, cliff_n: float) -> int:
+	var made = 0
+	var FK = load("res://scripts/world/farm_kit.gd")
+	var RMc = preload("res://scripts/world/road_map.gd")
+	var BS = 240.0
+	var bx = -R
+	while bx < R:
+		var bn = -R
+		while bn < cliff_n - 300.0:
+			var bc = Vector2(bx + BS * 0.5, bn + BS * 0.5)
+			bn += BS
+			if bc.length() > R + 60.0:
+				continue
+			var yaw = rng.randf_range(-28.0, 28.0)
+			var occ0 = occupied.size()   # blok öncesi engeller: aynı bloğun parselleri birbirini engellemez (dama tahtası boşlukları)
+			var dirv = Builder.rot(1.0, 0.0, yaw)   # parsel ekseni (u)
+			var nrv = Builder.rot(0.0, 1.0, yaw)    # (v)
+			var colw = rng.randf_range(22.0, 30.0)
+			var rowd = rng.randf_range(26.0, 36.0)
+			var u = -BS * 0.5
+			while u < BS * 0.5 - colw:
+				var v = -BS * 0.5
+				while v < BS * 0.5 - rowd:
+					var q = bc + dirv * (u + colw * 0.5) + nrv * (v + rowd * 0.5)
+					v += rowd + 3.0
+					if made >= 650 or _zone(q.x, q.y) != 2 or q.length() > R - 75.0 or q.y > cliff_n - 200.0:
+						continue
+					if _forest(q.x, q.y) > 0.2 or _hamlet(q.x, q.y):
+						continue
+					var hr = maxf(colw, rowd) * 0.5
+					var ca = absf(cos(deg_to_rad(yaw))); var sa = absf(sin(deg_to_rad(yaw)))
+					var ex = ca * colw * 0.5 + sa * rowd * 0.5
+					var ez = sa * colw * 0.5 + ca * rowd * 0.5
+					if not _free_rect(q.x, q.y, ex, ez, occupied, occ0) or _on_road(b, q.x, q.y, minf(colw, rowd) * 0.5 + 2.0):
+						continue
+					var wq = b.w(Vector3(q.x, 0, q.y))
+					if not b.area_free(Vector2(wq.x, wq.z), hr):
+						continue
+					var r = rng.randf()
+					FK.field_lite(b, q.x, q.y, yaw, colw - 1.0, rowd - 1.0, rng, 0 if r < 0.35 else (1 if r < 0.75 else 2))
+					occupied.append([q.x, q.y, ex, ez])
+					# sol kenar boyunca toprak tarla yolu (komşu parseller ortak kullanır)
+					var e0 = q - dirv * (colw * 0.5 + 1.5) - nrv * (rowd * 0.5 + 1.5)
+					var e1 = q - dirv * (colw * 0.5 + 1.5) + nrv * (rowd * 0.5 + 1.5)
+					var w0 = b.w(Vector3(e0.x, 0, e0.y)); var w1 = b.w(Vector3(e1.x, 0, e1.y))
+					RMc.add_lane(Vector2(w0.x, w0.z), Vector2(w1.x, w1.z), 1.0, true)
+					made += 1
+				u += colw + 3.0
+		bx += BS
+	return made
+
+
+## Fener / tel direği buraya konabilir mi: hiçbir yolun görünen yüzeyinin içinde değil (kavşakta yolun ortasında direk kalıyordu)
+static func _post_ok(b: Builder, x: float, n: float) -> bool:
+	var wp = b.w(Vector3(x, 0, n))
+	return Game.road_edge_dist(wp.x, wp.z) > -0.5
 
 
 static func _on_road(b: Builder, x: float, n: float, clear: float) -> bool:
@@ -231,7 +391,7 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 			_site(b, "guard", (R - 14) * sin(ga_r) + 8 * cos(ga_r), (R - 14) * cos(ga_r) - 8 * sin(ga_r), {"face": _face(sin(ga_r), cos(ga_r))})
 
 	# ---- Hokage Kayası: uçurum yüzüne oyulmuş beş yüz + tepede seyir yeri
-	_hokage_faces(b, rock, cliff_n, v)
+	load("res://scripts/world/hokage_monument.gd").build(b, rock, cliff_n, v)   # 2026-11-25: yontulmuş kabartma yüzler (eski balon kafalar)
 
 	# ---- merkez: Hokage Kulesi + tören meydanı (KageHall)
 	var tn = 600.0
@@ -333,22 +493,26 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 			continue
 		var side = 1.0 if i % 2 == 0 else -1.0
 		var cn = side * 12.0
+		var blocks_door = false   # tezgâh adı olan dükkânın / Ichiraku'nun kapısının önüne düşmesin (yakiniku kapısını kapatıyordu)
+		for dk in NAMED_FRONTS:
+			if signf(dk[1]) == side and absf(sx - dk[0]) < 12.0:
+				blocks_door = true
+		if blocks_door:
+			continue
 		var aw = [Color(0.85, 0.3, 0.25), Color(0.25, 0.5, 0.75), Color(0.95, 0.75, 0.3), Color(0.35, 0.6, 0.35)][i % 4]
-		b.yoff = _gy(b, sx, cn)
-		b.box(Vector3(sx, 0.6, cn), Vector3(5, 1.2, 2), Color(0.55, 0.4, 0.25))
-		b.box(Vector3(sx, 2.9, cn), Vector3(6, 0.15, 3.2), aw, 0, false, Vector3(-10 * side, 0, 0))
-		for sp in [-2.8, 2.8]:
-			b.box(Vector3(sx + sp, 1.5, cn + side * 1.2), Vector3(0.12, 3.0, 0.12), Color(0.35, 0.24, 0.16), 0, false)
-		for k in 3:
-			b.box(Vector3(sx - 1.6 + k * 1.6, 1.45, cn), Vector3(0.9, 0.5, 0.9), [Color(0.9, 0.5, 0.2), Color(0.85, 0.2, 0.3), Color(0.4, 0.75, 0.3)][k], 0, false)
-		b.yoff = 0.0
+		var srng = RandomNumberGenerator.new()
+		srng.seed = 900 + i   # ayrı tohum: köyün ana dizisi (ev yerleşimi) kaymasın
+		_market_stall(b, decor, sx, cn, side, aw, i % 4, srng)
 		_site(b, "stall", sx, cn, {"back": _gp(b, sx, cn + side * 1.7), "front": _gp(b, sx, cn - side * 1.9), "face": _face(0, side)})
 		if i % 3 == 0:
-			CityDecor.banner(decor, _gp(b, sx + 3.2, cn - side * 1.4), 0.0, aw, Color(0.98, 0.95, 0.88))
+			CityDecor.banner(decor, _gp(b, sx - 3.4, cn - side * 1.4), 0.0, aw, Color(0.98, 0.95, 0.88))
 	_site(b, "crowd", 0, 0)
 	_site(b, "pigeons", 40, 14)
 	for k in 13:
 		var lx = -300.0 + k * 50.0
+		for dk in NAMED_FRONTS:
+			if absf(lx - dk[0]) < 6.0:
+				lx += 8.0 if lx > dk[0] else -8.0   # direk kapının önüne düşmesin
 		if absf(lx) < 20:
 			continue
 		CityDecor.lantern_string(decor, _gp(b, lx, -14.5), _gp(b, lx, 14.5), 7, [Color(0.95, 0.3, 0.25), Color(1.0, 0.95, 0.85)])
@@ -657,24 +821,17 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 		_site(b, "bench", bx2, pkn - 30.4, {"face": _face(0, 1)})
 	occupied.append([pkx, pkn, 75, 75])
 
-	# ---- ana cadde (kuzey-güney, x=0): banklar, fener dizileri, sokak lambaları
-	for nb in range(-1400, -40, 70):
-		for sx in [-1.0, 1.0]:
-			var bxp = 14.0 * sx
-			var gyb = _gy(b, bxp, nb + 7)
-			b.box(Vector3(bxp, gyb + 0.45, nb + 7), Vector3(0.45, 0.08, 2.2), Color(0.5, 0.34, 0.2), 0, false)
-			for e in [-0.9, 0.9]:
-				b.box(Vector3(bxp, gyb + 0.22, nb + 7 + e), Vector3(0.38, 0.44, 0.1), Color(0.42, 0.28, 0.16), 0, false)
-			if rng.randf() < 0.4:
-				_site(b, "bench", bxp, nb + 6.6, {"face": _face(-sx, 0)})
+	# ---- ana cadde (kuzey-güney, x=0): kapı mahallesi evleri caddenin iki yanında; fenerler yol kenarında
 	for k in 18:
 		var ln = -1380.0 + k * 75.0
 		if ln > -40.0:
 			break
-		CityDecor.lantern_string(decor, _gp(b, -12.5, ln), _gp(b, 12.5, ln), 7, [Color(0.95, 0.3, 0.25), Color(1.0, 0.95, 0.85), Color(0.95, 0.3, 0.25)])
+		if not (_post_ok(b, -8.4, ln) and _post_ok(b, 8.4, ln)):
+			continue
+		CityDecor.lantern_string(decor, _gp(b, -8.4, ln), _gp(b, 8.4, ln), 7, [Color(0.95, 0.3, 0.25), Color(1.0, 0.95, 0.85), Color(0.95, 0.3, 0.25)])
 	for n in range(-1420, 560, 45):
-		for sx in [-11.0, 11.0]:
-			if not _on_road(b, sx * 3.0, n, 0.0):
+		for sx in [-8.4, 8.4]:
+			if _post_ok(b, sx, n):
 				b.lantern(sx, n, 3.2 + _gy(b, sx, n))
 
 	# ---- Naka Nehri: Hokage Kayası'nın batısındaki şelaleden doğar, Akademi'nin batısından, Hyūga ile park arasından,
@@ -705,7 +862,7 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 			east.append(0.5 * ((2.0 * q1) + (-q0 + q2) * t + (2.0 * q0 - 5.0 * q1 + 4.0 * q2 - q3) * t * t + (-q0 + 3.0 * q1 - 3.0 * q2 + q3) * t * t * t))
 	east.append(east_ctrl[east_ctrl.size() - 1])
 	Canal.build(b, east, 6.0, func(x, n): return _on_road(b, x, n, 0.5), crng)
-	_naka_falls(b, decor, ctrl[0], cliff_n)
+	load("res://scripts/world/naka_falls.gd").build(b, decor, ctrl[0], cliff_n)   # 2026-11-25: üst üste kutu şelale yerine kayayı izleyen akan su + köpüklü havuz
 
 	# ---- evler: sokak boylarına dizili (merkezde 3 sıra, dışarıda 1-2 sıra), her biri sokağa bakar
 	b.view_dist = 1500.0
@@ -718,6 +875,8 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	_house_paths(b, c0_paths(v))
 	# dış halka: tarla ve çiftlik kuşağı (kaynak: anime Konoha haritasının güneyindeki tarlalar)
 	var fields = _farm_belt(b, rng, occupied, cliff_n)
+	var patch = _field_patch(b, rng, occupied, cliff_n)
+	print("Konoha tarla dokusu: ", patch, " parsel")
 	# orta halka: korular (yoğun ağaç kümeleri, aralarında açıklık); dış halka: tarla kenarı ağaç sıraları
 	var trees = 0
 	for k in 34000:
@@ -733,9 +892,9 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 			continue   # çekirdek: ağaç blok avlularında
 		if zt == 1 and _grove(tx2, tn2) < 0.2:
 			continue   # orta halka: yalnız koru kümelerinde (aralar açıklık); korular sık orman
-		if zt == 2 and rng.randf() < 0.75:
-			continue   # dış halka: seyrek
-		if _on_road(b, tx2, tn2, 14.0) or not _free(tx2, tn2, occupied, 4.5 if zt == 1 else 9.0):
+		if zt == 2 and _forest(tx2, tn2) < 0.3 and rng.randf() < 0.97:
+			continue   # dış halka: yoğun orman kümeleri; aralar açık tarla / çayır (eşit serpinti yok)
+		if _on_road(b, tx2, tn2, 14.0) or not _free(tx2, tn2, occupied, 4.5):
 			continue
 		b.tree(tx2, tn2, rng.randf_range(1.6, 2.9), rng, _gy(b, tx2, tn2))
 		occupied.append([tx2, tn2, 4.0, 4.0])
@@ -788,11 +947,13 @@ static func _street_houses(b: Builder, v: Dictionary, rng: RandomNumberGenerator
 		var dc0 = ((a + e) * 0.5).length()
 		# cadde üstü fener dizileri (her ~32 m'de karşıdan karşıya) + gerçek ışık noktası
 		var lt = 16.0
-		while lt < L - 8.0 and dc0 < 1150.0:
+		while lt < L - 8.0 and dc0 < 1420.0:
 			var lp = a + dir * lt
 			lt += 32.0
 			if lp.length() > R - 40.0 or lp.y > cliff_n - 45.0 or _zone(lp.x, lp.y) != 0:
 				continue
+			if not (_post_ok(b, lp.x + nrm.x * 8.5, lp.y + nrm.y * 8.5) and _post_ok(b, lp.x - nrm.x * 8.5, lp.y - nrm.y * 8.5)):
+				continue   # direk kavşakta / başka yolun ortasında kalmasın
 			CityDecor.lantern_string(decor, _gp(b, lp.x + nrm.x * 8.5, lp.y + nrm.y * 8.5), _gp(b, lp.x - nrm.x * 8.5, lp.y - nrm.y * 8.5), 6,
 				[Color(0.95, 0.3, 0.25), Color(1.0, 0.92, 0.75), Color(0.95, 0.3, 0.25)])
 			Lights.add(_gp(b, lp.x, lp.y) + Vector3.UP * 5.6)
@@ -815,7 +976,7 @@ static func _street_houses(b: Builder, v: Dictionary, rng: RandomNumberGenerator
 					var q = a + dir * (t + tw * 0.5) + nrm * sd * off
 					var placed = false
 					var zq = _zone(q.x, q.y)
-					var zone_ok = zq == 0 or (zq == 1 and _hamlet(q.x, q.y))   # dış halka tarla/orman; orta halkada yalnız mahalle kümeleri
+					var zone_ok = zq == 0 or _hamlet(q.x, q.y)   # dış halka tarla/orman; orta halkada yalnız mahalle kümeleri
 					if zone_ok and q.length() < R - 35.0 and q.y < cliff_n - 45.0 and _free(q.x, q.y, occupied, 2.0) and not _on_road(b, q.x, q.y, td * 0.5 + 1.0) \
 							and _lot_free(b, q, dir, tw, td):
 						var fd = -nrm * sd
@@ -1656,6 +1817,16 @@ static func _naka_falls(b: Builder, decor: Node3D, at: Vector2, cliff_n: float) 
 		mi.global_position = b.w(Vector3(at.x, y, minf(n, cliff_n - 2.0)))
 	b.boulder(Vector3(at.x - 6.0, g, at.y + 1.0), Vector3(4.0, 3.0, 3.5), Color(0.5, 0.48, 0.45))
 	b.boulder(Vector3(at.x + 6.5, g, at.y + 2.0), Vector3(5.0, 3.6, 4.0), Color(0.46, 0.44, 0.42))
+
+
+## Dikdörtgen (yarı ex, ez) ilk 'limit' engelle çakışıyor mu
+static func _free_rect(x: float, n: float, ex: float, ez: float, occ: Array, limit: int) -> bool:
+	for i in limit:
+		var o = occ[i]
+		var extra = float(o[4]) if o.size() > 4 else 0.0
+		if absf(x - o[0]) < o[2] + ex + 1.0 + extra and absf(n - o[1]) < o[3] + ez + 1.0 + extra:
+			return false
+	return true
 
 
 static func _free(x: float, n: float, occ: Array, pad: float) -> bool:

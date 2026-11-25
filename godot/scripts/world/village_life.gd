@@ -75,7 +75,10 @@ func _streets(v: Dictionary) -> Array:
 			if q.distance_to(c) > r * 0.97:
 				continue
 			var side = (pb - pa).normalized().orthogonal() * randf_range(-4.0, 4.0)
-			pts.append(Game.from_map(q + side))
+			var wq = Game.from_map(q + side)
+			pts.append(wq)
+			if rd["kind"] == "road":
+				main_pts[_wkey(wq)] = true   # ana cadde: daha kalabalık
 	if pts.is_empty():
 		for i in 120:
 			var a2 = randf() * TAU
@@ -83,6 +86,72 @@ func _streets(v: Dictionary) -> Array:
 	VillageSpots.top_up(pts, v)
 	street_cache[v["id"]] = pts
 	return pts
+
+
+# ------------------------------------------------------------------ doğal dağılım
+## Yoğunluk dünyadan: ana cadde ve pazar / ramen / meyhane / meydan çevresi kalabalık, ara sokak birkaç kişi, park biraz.
+## Her ~15 m'lik çevrenin sığası var (yığılma olmaz); kalabalık sayısı oyuncunun çevresindeki gerçek sokak miktarıyla orantılı
+## (köy kenarında / kapıda dururken 36 kişi birkaç sokağa sıkışıyordu).
+var main_pts := {}     # ana cadde noktaları (anahtar: _wkey)
+var _w_cache := {}
+var _ref_cache := {}   # köy -> [nokta sayısı, tam pencerede beklenen nokta]
+const BUSY_SITES := ["stall", "ramen", "crowd", "bar", "pigeons", "academy_yard"]
+
+
+static func _wkey(q: Vector3) -> Vector3i:
+	return Vector3i(roundi(q.x), 0, roundi(q.z))
+
+
+func _spot_w(vid: String, q: Vector3) -> float:
+	var k = _wkey(q)
+	if _w_cache.has(k):
+		return _w_cache[k]
+	var w = 1.0
+	if main_pts.has(k):
+		w += 1.0
+	for st in sites.get(vid, []):
+		if String(st.get("type", "")) in BUSY_SITES and (st["pos"] as Vector3).distance_to(q) < 35.0:
+			w += 1.5
+			break
+	_w_cache[k] = w
+	return w
+
+
+## Adaylardan ağırlıklı, sığası dolmamış bir nokta (yoksa null). extra: aynı turda verilmiş yerler
+func _pick_spot(vid: String, near: Array, tries := 10):
+	var best = null
+	var bs = -1.0
+	for t2 in tries:
+		var cand: Vector3 = near.pick_random()
+		var w = _spot_w(vid, cand)
+		var cnt = 0
+		for nn in npcs:
+			if is_instance_valid(nn) and (nn as Node3D).global_position.distance_squared_to(cand) < 225.0:
+				cnt += 1
+		for qq in queue:
+			if qq.size() > 1 and qq[1] is Vector3 and (qq[1] as Vector3).distance_squared_to(cand) < 225.0:
+				cnt += 2 if qq[0] == "chat2" else 1
+		if cnt >= 1 + int(w * 1.5):
+			continue   # bu çevre dolu (ara sokak 2, cadde 4, pazar 4-6 kişi)
+		var sc = w * randf_range(0.4, 1.0) / (1.0 + cnt)
+		if sc > bs:
+			bs = sc
+			best = cand
+	return best
+
+
+## Tam bir pencerede (220 m) beklenen sokak noktası sayısı: köyün nokta yoğunluğu × pencere alanı
+func _ref_points(v: Dictionary, streets: Array) -> float:
+	var rc = _ref_cache.get(v["id"], [])
+	if not rc.is_empty() and int(rc[0]) == streets.size():
+		return float(rc[1])
+	var c = Game.from_map(Vector2(float(v["x"]), float(v["y"])))
+	var rmax = 1.0
+	for q in streets:
+		rmax = maxf(rmax, Vector2(q.x - c.x, q.z - c.z).length())
+	var ref = float(streets.size()) * minf(1.0, (220.0 * 220.0) / (rmax * rmax))
+	_ref_cache[v["id"]] = [streets.size(), ref]
+	return ref
 
 
 ## Büyük köylerin antrenman alanına eğitmen (etkileşim + NPC). Konoha kendi kurulumunda ekler.
@@ -233,6 +302,9 @@ func _process(dt: float) -> void:
 				near_spawn.append(q)
 			if dq < 140.0 and dq > 35.0:
 				near_r.append(q)
+	# kalabalık, çevredeki gerçek sokak miktarıyla orantılı
+	var fill = clampf(float(near_far.size()) / maxf(1.0, _ref_points(v, streets)), 0.2, 1.0)
+	target = maxi(2, int(round(target * fill)))
 	for n in far:
 		if is_instance_valid(n) and not _recycle(n, near_r, roofs, p, true):
 			n.queue_free()
@@ -261,21 +333,11 @@ func _process(dt: float) -> void:
 					near.append(q)
 		if near.is_empty():
 			break
-		# kümelenmesin: birkaç aday arasından mevcut kalabalığa en uzak olanı seç (sokaklara yayılsın)
-		var at: Vector3 = near.pick_random()
-		var best_d = -1.0
-		for tries in 8:
-			var cand: Vector3 = near.pick_random()
-			var md = 1e9
-			for nn in npcs:
-				if is_instance_valid(nn):
-					md = minf(md, cand.distance_to(nn.global_position))
-			for qq in queue:
-				if qq.size() > 1 and qq[1] is Vector3:
-					md = minf(md, cand.distance_to(qq[1]))
-			if md > best_d:
-				best_d = md
-				at = cand
+		# yer: bölgenin yoğunluğuna göre ağırlıklı, çevresi dolu olan atlanır (yığılma yok, ana cadde / pazar daha canlı)
+		var atv = _pick_spot(String(v["id"]), near)
+		if atv == null:
+			break   # yakındaki tüm çevreler dolu
+		var at: Vector3 = atv
 		match role:
 			"chat":
 				queue.append(["chat2", at, streets])
@@ -320,11 +382,15 @@ func _recycle(n: Node3D, streets: Array, roofs: Array, p: Vector3, prefiltered :
 	if near.is_empty():
 		return false
 	var cam = get_viewport().get_camera_3d()
+	var vid = current
 	var at: Vector3 = near.pick_random()
-	for k in 6:   # kamera önüne doğmasın
+	for k in 6:   # kamera önüne doğmasın; dolu çevreye taşınmasın
+		var pk = _pick_spot(vid, near, 6)
+		if pk == null:
+			return false
+		at = pk
 		if cam == null or not cam.is_position_in_frustum(at + Vector3(0, 1, 0)):
 			break
-		at = near.pick_random()
 	at.y = Game.ground_height(at.x, at.z)
 	n.global_position = at
 	if "velocity" in n:

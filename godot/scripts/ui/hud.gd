@@ -788,7 +788,11 @@ func banner(title: String, sub: String, col: Color) -> void:
 	for c in banner_box.get_children():
 		c.queue_free()
 	var root = Control.new()
-	root.set_anchors_preset(Control.PRESET_CENTER)
+	# ekranın üstünde, hedef okunun / etiketinin hemen altında ortalı (oyuncunun üstünü kapatmaz)
+	root.anchor_left = 0.5
+	root.anchor_right = 0.5
+	root.anchor_top = 0.13
+	root.anchor_bottom = 0.13
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	banner_box.add_child(root)
 	var shade = TextureRect.new()
@@ -803,24 +807,24 @@ func banner(title: String, sub: String, col: Color) -> void:
 	shade.texture = gt
 	shade.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	shade.stretch_mode = TextureRect.STRETCH_SCALE
-	shade.position = Vector2(-700, -70)
-	shade.size = Vector2(1400, 140)
+	shade.position = Vector2(-560, -12)
+	shade.size = Vector2(1120, 96)
 	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(shade)
-	for y in [-58.0, 56.0]:
+	for y in [0.0, 72.0]:
 		var ln = ColorRect.new()
 		ln.color = Color(col, 0.85)
-		ln.position = Vector2(-260, y)
-		ln.size = Vector2(520, 2)
+		ln.position = Vector2(-170, y)
+		ln.size = Vector2(340, 2)
 		ln.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		root.add_child(ln)
-	var t = UI.label(title, 52, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, true)
-	t.position = Vector2(-700, -50)
-	t.size = Vector2(1400, 64)
+	var t = UI.label(title, 30, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, true)
+	t.position = Vector2(-560, 5)
+	t.size = Vector2(1120, 38)
 	root.add_child(t)
-	var s2 = UI.label(sub, 19, col.lightened(0.25), HORIZONTAL_ALIGNMENT_CENTER, true)
-	s2.position = Vector2(-700, 18)
-	s2.size = Vector2(1400, 28)
+	var s2 = UI.label(sub, 14, col.lightened(0.25), HORIZONTAL_ALIGNMENT_CENTER, true)
+	s2.position = Vector2(-560, 46)
+	s2.size = Vector2(1120, 22)
 	root.add_child(s2)
 	root.modulate.a = 0.0
 	root.scale = Vector2(1.06, 1.06)

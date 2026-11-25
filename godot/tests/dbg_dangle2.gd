@@ -50,18 +50,26 @@ func _ready() -> void:
 				lk["outer_style"] = null if ou == "hakama" else ou
 				lk["outer"] = Color(0.12, 0.12, 0.16) if ou == "org_pelerin" else Color(0.75, 0.7, 0.6)
 				lk["hakama"] = ou == "hakama"
+			if OS.get_environment("VEST") != "":
+				lk["vest"] = Color(0.33, 0.4, 0.28)
+				lk["gender"] = OS.get_environment("SEX") if OS.get_environment("SEX") != "" else lk["gender"]
 			if OS.get_environment("HEAD") != "":
 				lk["head_style"] = OS.get_environment("HEAD")
 				lk["headgear"] = Color(0.7, 0.15, 0.15)
+			if OS.get_environment("NPC") != "":
+				lk["npc"] = true
+				lk["npc_strict"] = true   # düşman yolu: uzun saç önce sabit, sallanma paketi arka planda hazırlanınca değişir
 			m.setup(lk)
 			m.global_position = base + Vector3(0, 0, i * 1.0)
 			m.rotation.y = -PI * 0.5   # yüz +X
 			m.play("idle")
 			if i == 0:
 				m._dangles = []
+				m._vh_wait = []
 			ms.append(m)
 		_cam_side(Vector3(-0.3, 1.35, -2.8))
 		await get_tree().create_timer(1.0).timeout
+		print("D2 %s fizikli=%d (soldaki 0 olmalı) bekleyen=%s gövde+giysi küresi=%d" % [st, ms[1]._dangles.size(), not ms[1]._vh_wait.is_empty(), ms[1]._dcol_bones.size()])
 		await main.shot("d2_%s%s_1rest_back" % [st, ou])
 		for m in ms:
 			m.play("run")

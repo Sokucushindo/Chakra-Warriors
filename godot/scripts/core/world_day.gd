@@ -990,39 +990,29 @@ static func _show(run: Dictionary, leaving: bool) -> Array:
 	var gs = gates(vid)
 	if gs.is_empty():
 		return []
-	gs.sort_custom(func(a, b): return a.distance_to(pp) < b.distance_to(pp))
-	var gate: Vector3 = gs[0]
-	var to: Vector3 = gate if leaving else hall(vid)
-	# yolun OYUNCUYA YAKIN kesimi sahnelenir (uzaktaki köylü zaten donuk): görüş dışındaki bir sokak noktasından geçerler;
-	# dönüşte kapı yakınsa kapıdan girerler
-	var from = Vector3.INF
+	# takımın gerçek yolu: görev masası <-> kapı (kapı görevin kimliğine göre; oyuncuya en yakın kapı değil). Eskiden yol
+	# oyuncunun yanından geçecek şekilde oyuncunun 30-56 m çevresinden başlatılıyordu: her takım oyuncunun sokağına yığılıyordu.
+	var gate: Vector3 = gs[absi(String(run["id"]).hash()) % gs.size()]
+	var hv: Vector3 = hall(vid)
+	var to: Vector3 = gate if leaving else hv
+	var start: Vector3 = hv if leaving else gate
+	# yolun oyuncuya en yakın noktası; 120 m'den uzaksa takım başka yerden geçer (sahnelenmez, kayıtta sürer)
+	var seg = to - start
+	var sl = seg.length()
+	var u = clampf((pp - start).dot(seg) / maxf(1.0, sl * sl), 0.0, 1.0)
+	var close = start + seg * u
+	if Vector2(close.x - pp.x, close.z - pp.z).length() > 120.0:
+		return []
+	# yürüyüş yönünde biraz geriden başlarlar (yol üstünde, başlangıçtan önce değil); kameranın önünde birden belirmesinler
 	var cam = Game.player.get_viewport().get_camera_3d()
-	if not leaving and gate.distance_to(pp) > 22.0 and gate.distance_to(pp) < 62.0:
-		from = gate
-	else:
-		var pts: Array = vl._streets(Game.village(vid)).filter(func(q): return q.distance_to(pp) > 30.0 and q.distance_to(pp) < 56.0 and q.distance_to(to) > 40.0)
-		if pts.is_empty():
-			# yakında sokak noktası yok (meydan, park): çevredeki açık zemin
-			for k in 8:
-				var a = randf() * TAU
-				var q = Missions.open_ground(pp + Vector3(cos(a), 0, sin(a)) * randf_range(34.0, 50.0), 10.0)
-				if q.distance_to(pp) > 28.0 and q.distance_to(pp) < 58.0 and Game.terrain_height(q.x, q.z) > 0.3:
-					pts.append(q)
-		if pts.is_empty():
-			return []
-		# yolları oyuncunun yanından geçsin: oyuncu, çıkış noktasıyla hedefin arasında kalsın; mümkünse görüş dışında doğsunlar
-		var tw = func(q: Vector3) -> float:
-			var u = pp - q
-			var w = to - q
-			u.y = 0
-			w.y = 0
-			return u.normalized().dot(w.normalized())
-		pts.sort_custom(func(a, b): return tw.call(a) > tw.call(b))
-		from = pts[0]
-		for q in pts.slice(0, 8):
-			if cam == null or not cam.is_position_in_frustum(q + Vector3.UP):
-				from = q
-				break
+	var from = start + seg * maxf(0.0, u - 30.0 / maxf(1.0, sl))
+	for k in 4:
+		if cam == null or not cam.is_position_in_frustum(from + Vector3.UP) or from.distance_to(pp) > 60.0:
+			break
+		u = maxf(0.0, u - 25.0 / maxf(1.0, sl))
+		from = start + seg * u
+	from = Missions.open_ground(from, 8.0)
+	from.y = Game.ground_height(from.x, from.z)
 	var ids: Array = run["team"] if leaving else run.get("back", [])
 	var people = []
 	for id in ids:

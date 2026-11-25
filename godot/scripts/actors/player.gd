@@ -1318,6 +1318,9 @@ func _animate(sp: float, sprint: bool) -> void:
 		ov.set_pose("ninja_run", 0.0)
 
 
+var _cam_sq: PhysicsShapeQueryParameters3D = null
+
+
 func _update_camera(dt: float) -> void:
 	var target = get_global_transform_interpolated().origin + Vector3.UP * (1.6 * (model.age_scale if model else 1.0) + cam_lift)
 	cam_pivot.global_position = cam_pivot.global_position.lerp(target, minf(1.0, dt * 16.0))
@@ -1331,6 +1334,21 @@ func _update_camera(dt: float) -> void:
 	var hit = {} if cam_giant else space.intersect_ray(q)
 	if not hit.is_empty():
 		want = maxf(0.8, cam_pivot.global_position.distance_to(hit["position"]) - 0.3)
+	# kamera genişliğinde küre süpürmesi (2026-11-25, kullanıcı: "kamera binaların içine girebiliyor"): ince ışın direğin / duvar
+	# kenarının yanından geçince kameranın yakın düzlemi duvarın içinde kalıyordu. Başlangıçta zaten değiyorsa (alçak saçak) yok sayılır.
+	if not cam_giant:
+		if _cam_sq == null:
+			_cam_sq = PhysicsShapeQueryParameters3D.new()
+			var sph = SphereShape3D.new()
+			sph.radius = 0.3
+			_cam_sq.shape = sph
+			_cam_sq.collision_mask = 1
+		_cam_sq.transform = Transform3D(Basis.IDENTITY, cam_pivot.global_position)
+		_cam_sq.motion = back * cam_dist
+		_cam_sq.exclude = [get_rid()]
+		var cm = space.cast_motion(_cam_sq)
+		if cm.size() == 2 and cm[0] > 0.0 and cm[0] < 1.0:
+			want = minf(want, maxf(0.8, cam_dist * cm[0]))
 	for i in 8:
 		var t = want * (i + 1) / 8.0
 		var cp = cam_pivot.global_position + back * t

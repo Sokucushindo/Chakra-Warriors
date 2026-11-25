@@ -7,6 +7,7 @@ extends RefCounted
 const Kit = preload("res://scripts/combat/fx/alet_kit.gd")
 const U = preload("res://scripts/combat/fx/uzak_nisan.gd")
 const A = preload("res://scripts/combat/kurosawa_anim.gd")
+const BL = preload("res://scripts/actors/blade_loft.gd")
 
 const UKE_START := 0.1
 const UKE_END := 0.62
@@ -33,11 +34,48 @@ static func build(b: MB) -> void:
 	var gold = Color(0.82, 0.68, 0.34)
 	var teal = Color(0.16, 0.42, 0.46)
 	CharacterModel._w_tsuka(b, -0.31, 0.06, 0.018, Color(0.8, 0.79, 0.75))
-	CharacterModel._w_blade(b, 0.085, 1.04, 0.034, 0.14, steel)
+	CharacterModel._w_blade(b, BLADE_Z0, BLADE_L, 0.034, BLADE_CURVE, steel)
 	b.add("box", Vector3(0, 0, 0.072), Vector3(0.062, 0.088, 0.008), gold)      # dikdörtgen tsuba
 	b.add("box", Vector3(0, 0, 0.072), Vector3(0.05, 0.076, 0.0095), teal)
 	b.add("box", Vector3(0, 0, 0.072), Vector3(0.016, 0.03, 0.011), gold.darkened(0.25))
 	b.add("cyl", Vector3(0, 0, -0.315), Vector3(0.04, 0.018, 0.04), gold, Vector3(90, 0, 0), 10)
+
+
+## Ağzın eğrisi (build ile aynı: _w_blade(z0 0.085, L 1.04, curve 0.14)): z'deki merkez kayması (-Y yönünde sırt tarafına)
+const BLADE_Z0 := 0.085
+const BLADE_L := 1.04
+const BLADE_CURVE := 0.14
+
+
+static func bow_y(z: float) -> float:
+	var t := clampf((z - BLADE_Z0) / BLADE_L, 0.0, 1.2)
+	return -BLADE_CURVE * t * t
+
+
+## Kın (ref refs/kurosawa/Kurosawa.png: koyu mor lake kın, ağızda altın bilezik): ağzın eğrisini birebir izler — düz kında
+## kavisli ağız yarı yolda kının yanından dışarı çıkıyordu. Uç (kojiri) ağız ucunun 3 cm ötesinde, yuvarlak altın başlık.
+## Kesit oval (X 0.022 / Y 0.031 yarıçap: ağız 3.4 cm + pay). CharacterModel kın kurulumu bu işlevi çağırır.
+static func build_saya(m: MB) -> void:
+	var lacq = Color(0.13, 0.09, 0.2)
+	var gold = Color(0.82, 0.68, 0.34)
+	var z0 := BLADE_Z0
+	var z1 := BLADE_Z0 + BLADE_L + 0.035
+	var secs := []
+	var zs := []
+	var n := 16
+	for k in n + 1:
+		var z := lerpf(z0 + 0.03, z1 - 0.03, float(k) / n)
+		secs.append(BL.oval(0.022, 0.031, 14, 0.0, 0.0, bow_y(z)))
+		zs.append(z)
+	BL.loft(m, secs, zs, [lacq], false, false, false)
+	# koiguchi (ağız bileziği) ve kojiri (uç başlığı) altın; kurigata (ip düğmesi) ve kahve sageo bağı
+	BL.loft(m, [BL.oval(0.0235, 0.0325, 14, 0.0, 0.0, bow_y(z0)), BL.oval(0.0245, 0.0335, 14, 0.0, 0.0, bow_y(z0 + 0.01)), BL.oval(0.024, 0.033, 14, 0.0, 0.0, bow_y(z0 + 0.03))],
+		[z0, z0 + 0.008, z0 + 0.032], [gold], false, true, true)
+	BL.loft(m, [BL.oval(0.024, 0.033, 14, 0.0, 0.0, bow_y(z1 - 0.035)), BL.oval(0.0235, 0.0325, 14, 0.0, 0.0, bow_y(z1 - 0.012)), BL.oval(0.012, 0.018, 14, 0.0, 0.0, bow_y(z1))],
+		[z1 - 0.035, z1 - 0.012, z1], [gold], false, true, true)
+	var zk := z0 + 0.13
+	m.add("box", Vector3(0.0, bow_y(zk) - 0.034, zk), Vector3(0.012, 0.014, 0.03), lacq.darkened(0.3))
+	m.add("cyl", Vector3(0, bow_y(zk + 0.03), zk + 0.03), Vector3(0.05, 0.022, 0.068), Color(0.24, 0.17, 0.32), Vector3(90, 0, 0), 14)
 
 
 static func _entry(who: Node3D) -> Dictionary:
@@ -73,6 +111,28 @@ static func _state(who: Node3D, in_saya: bool) -> void:
 	var k = _kin(w)
 	if k != null:
 		k.visible = in_saya
+
+
+## anahtar animasyon son pozda bekleyip 0.18 sn'de bırakır; o sürerken bilek/kılıç her kare yeniden çevrilir -> bitmesini bekle
+static func _rest_when_free(who: Node3D, w: Dictionary, tok: int, tries: int) -> void:
+	if not is_instance_valid(who) or int(who.get_meta("kuro_tok", 0)) != tok:
+		return
+	var ov = who.model.get("overlay") if who.get("model") != null else null
+	if ov != null and float(ov.get("key_t")) >= 0.0 and tries > 0:
+		_later(who, 0.1, _rest_when_free.bind(who, w, tok, tries - 1))
+		return
+	_rest_basis(w)
+
+
+## Kombo bitince eldeki kılıcın duruşu: anahtar animasyon kılıcı bilekte kendi yönüne çeviriyor ve bitince yalnız konum geri
+## alınıyordu -> bekleme duruşunda kılıç son karedeki gibi dik, keskin ağız gövdeye dönük ("ters") kalıyordu. Elde normal kılıç
+## tutuşuna (CharacterModel._place_weapons ile aynı: ağız aşağı, uç biraz aşağı) döndür. Oyuncu ve düşman aynı.
+static func _rest_basis(w: Dictionary) -> void:
+	var n: Node3D = w["node"]
+	if not is_instance_valid(n) or n.get_parent() != w["hand"]:
+		return
+	var sc = n.transform.basis.get_scale()
+	n.transform.basis = (Basis(Vector3.BACK, PI * 0.5) * Basis(Vector3.RIGHT, deg_to_rad(CharacterModel.KATANA_TIP_DOWN))).scaled(sc)
 
 
 static func _later(who: Node3D, t: float, fn: Callable) -> void:
@@ -185,7 +245,8 @@ static func start(who: Node3D, i: int) -> void:
 			if not w.is_empty():
 				var kn = _kin(w)
 				if kn != null:
-					kn.visible = false)
+					kn.visible = false
+				_rest_when_free(who, w, tok, 30))
 	if k == 3:
 		_later(who, UKE_START, func():
 			who.set_meta("kuro_uke", Game.now() + UKE_END - UKE_START))

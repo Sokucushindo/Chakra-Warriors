@@ -128,21 +128,21 @@ static func _rails(b: Builder, smp: Array, i0: int, i1: int, half: float, gy: Ca
 	var dir = (c - a).normalized()
 	var nr = Vector2(-dir.y, dir.x)
 	var yaw = rad_to_deg(atan2(nr.x, nr.y))
-	# korkuluk kanala dik (yol yönünde) iki yanda: suyun kenar çizgisi boyunca
-	for sd in [-1.0, 1.0]:
-		for end in [a, c]:
-			var e: Vector2 = end + nr * 0.0
-			var p0 = e - nr * (half + 0.4)
-			var p1 = e + nr * (half + 0.4)
-			var m = (p0 + p1) * 0.5 + dir * 0.0
-			var g = gy.call(m)
-			if sd < 0:
-				b.box(Vector3(m.x, g + 1.05, m.y), Vector3(0.18, 0.12, half * 2.0 + 0.8), RAIL, rad_to_deg(atan2(dir.x, dir.y)) + 90.0, false)
-			else:
-				for k in 3:
-					var pp = p0.lerp(p1, k / 2.0)
-					b.box(Vector3(pp.x, g + 0.6, pp.y), Vector3(0.22, 0.95, 0.22), RAIL.darkened(0.15), 0.0, false)
-				b.box(Vector3(m.x, g + 0.95, m.y), Vector3(half * 2.0 + 1.0, 0.12, 0.12), RAIL, yaw, false)
+	# korkuluk kanala dik, köprü bölgesinin iki ucunda: kıyıdan kıyıya direkler + üst / alt kiriş, tabliye yüksekliğinde
+	# (2026-11-25, kullanıcı: "köprüde taşmış kırmızı çizgiler" — ikinci kiriş yanlış eksende kanal boyunca suya uzanıyordu)
+	var ryaw = rad_to_deg(atan2(nr.x, nr.y))   # kutunun z ekseni nr boyunca
+	for end in [a, c]:
+		var e: Vector2 = end
+		var p0 = e - nr * (half + 0.6)
+		var p1 = e + nr * (half + 0.6)
+		var m = (p0 + p1) * 0.5
+		var dy = gy.call(m) + 0.67   # tabliye üstü
+		for k in 4:
+			var pp = p0.lerp(p1, k / 3.0)
+			b.box(Vector3(pp.x, dy + 0.5, pp.y), Vector3(0.22, 1.0, 0.22), RAIL.darkened(0.15), ryaw, true)
+			b.box(Vector3(pp.x, dy + 1.06, pp.y), Vector3(0.3, 0.1, 0.3), RAIL.darkened(0.3), ryaw, false)   # direk başlığı
+		b.box(Vector3(m.x, dy + 0.95, m.y), Vector3(0.16, 0.12, half * 2.0 + 1.4), RAIL, ryaw, false)
+		b.box(Vector3(m.x, dy + 0.45, m.y), Vector3(0.1, 0.08, half * 2.0 + 1.2), RAIL.darkened(0.08), ryaw, false)
 
 
 static func _water() -> ShaderMaterial:

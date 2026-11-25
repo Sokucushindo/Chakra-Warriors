@@ -215,6 +215,7 @@ const ShinobigoteFX = preload("res://scripts/combat/fx/shinobigote_fx.gd")
 const JokiFX = preload("res://scripts/combat/fx/joki_no_yoroi_fx.gd")
 const TekkoFX = preload("res://scripts/combat/fx/tekko_fx.gd")
 const KurosawaFX = preload("res://scripts/combat/fx/kurosawa_fx.gd")
+const KiseruModel = preload("res://scripts/combat/fx/kiseru_model.gd")
 const KusariFundoFX = preload("res://scripts/combat/fx/kusari_fundo_fx.gd")
 const KaeriYariFX = preload("res://scripts/combat/fx/kaeri_yari_fx.gd")
 const KunaiToFX = preload("res://scripts/combat/fx/kunai_to_fx.gd")
@@ -2772,7 +2773,7 @@ static func _kiseru_bell(who: Node3D) -> Vector3:
 	var n = _weapon_node(who)
 	if n == null:
 		return who.global_position + Vector3.UP * 1.3
-	return n.to_global(Vector3(0, 0, 0.74))
+	return n.to_global(KiseruModel.bell())   # kısa boru (ref boyu): çan eklemden sonra aşağı kırık parçanın ucunda
 
 
 ## Tek kabarcık uçuşu: çandan, hafif yükselip dalgalanarak hedef noktaya (fn: anlık hedef) süzülür; varınca arrive(pos) çağrılır

@@ -56,7 +56,10 @@ def local_streets(R, gates):
         if abs((g - 180.0 + 180) % 360 - 180) < 1:
             continue
         gx, gn = _polar(g, R)
-        S.append(_line((gx, gn), (0.0, 0.0), int(g), 0.035, 16))
+        # iç çevre yolunda biter (eskiden merkeze (0,0) iniyordu: çarşının silahçı / eczane dükkânlarının tam içinden geçiyordu)
+        ex, en = _polar(g, 1.0)
+        ex, en = ex * 430.0, 40.0 + en * 380.0
+        S.append(_line((gx, gn), (ex, en), int(g), 0.035, 16))
     # 3) çarşı caddesi (doğu-batı, n=0)
     S.append([(-760.0, 0.0), (760.0, 0.0)])
     # 4) iç çevre yolu (merkez biraz kuzeyde, Hokage meydanının altından geçer)
@@ -154,6 +157,29 @@ def other_streets(v):
     return out
 
 
+def trim_center_roads(roads, v):
+    """Köyler arası yollar Konoha'nın tam merkezinden (0,0) başlıyordu: doğu / batı yolları çarşının silahçı ve eczane
+    dükkânlarının içinden geçiyordu. Merkez ucu iç çevre yolundaki karşılığına taşınır (güney yolu tören caddesiyle
+    aynı hatta olduğundan dokunulmaz)."""
+    n = 0
+    for r in roads:
+        if r.get('kind') == 'street':
+            continue
+        for end in (0, -1):
+            p = r['pts'][end]
+            lx, ln = p[0] - v['x'], p[1] - v['y']
+            if math.hypot(lx, ln) > 5.0:
+                continue
+            q = r['pts'][1 if end == 0 else -2]
+            dx, dn = q[0] - v['x'], q[1] - v['y']
+            if abs(dx) < 1.0:
+                continue   # güney: tören caddesi
+            a = math.atan2(dx, dn)
+            r['pts'][end] = [round(v['x'] + math.sin(a) * 430.0, 1), round(v['y'] + 40.0 + math.cos(a) * 380.0, 1)]
+            n += 1
+    return n
+
+
 if __name__ == '__main__':
     D = os.path.join(os.path.dirname(__file__), '..', 'godot', 'data', 'world')
     world = json.load(open(os.path.join(D, 'world.json'), encoding='utf-8'))
@@ -166,5 +192,6 @@ if __name__ == '__main__':
             for e in other_streets(ov):
                 e['extra'] = True
                 new.append(e)
+    print('merkezden kirpilan yol ucu:', trim_center_roads(keep, v))
     json.dump(keep + new, open(os.path.join(D, 'roads.json'), 'w', encoding='utf-8'))
     print('konoha caddeleri:', len(roads) - len(keep), '->', len(new))

@@ -1039,6 +1039,11 @@ func tree(x: float, n: float, s: float, rng: RandomNumberGenerator, y := 0.0) ->
 	var tm = _tree_meshes[vi]
 	if _underwater(x, n, y):
 		return   # su altında ağaç yok
+	var wpw = w(Vector3(x, y, n))
+	for o in [Vector2.ZERO, Vector2(2, 0), Vector2(-2, 0), Vector2(0, 2), Vector2(0, -2)]:   # kanal / gölet (kayıtlı su yüzeyi): gövde payıyla
+		var wl = Game.water_level(wpw.x + o.x, wpw.z + o.y)
+		if wl > -INF and wl > wpw.y - 1.5:
+			return
 	for gx in range(-1, 2):   # yalnız evler (32 m ızgara): tacı binanın içinden fışkırmasın; saksı ağaçları etkilenmez
 		for gz in range(-1, 2):
 			for h in house_grid.get(Vector2i(floori(x / 32.0) + gx, floori(n / 32.0) + gz), []):

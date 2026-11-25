@@ -2439,7 +2439,17 @@ func _lotus_open(c: Node3D, tt: Node3D) -> bool:
 	if miss:
 		Combat.popup_text(tt.global_position + Vector3.UP * 2.2, "Sıyrıldı!", Color(0.8, 0.9, 1.0))
 		Sfx.play("whoosh", tt.global_position, 1.3)
+		if c is Player:   # neden olmadığını söyle (kullanıcı "kapılar açık ama atılmıyor" sandı)
+			Hud.msg("Lotus tetikteki rakibe tutmaz: önce kombo ile sersemlet / havaya kaldır ya da arkasından gel.", Color(1, 0.75, 0.45))
 	return not miss
+
+
+## Lotus için yakında rakip yok: oyuncuya söyle; teknik başlamadığı için bekleme süresi de geri verilir
+func lotus_no_target(c: Node3D, jname: String) -> void:
+	if c is Player:
+		Hud.msg("%s için yakında bir rakip olmalı." % jname, Color(1, 0.75, 0.45))
+		var jid = "ura_renge" if jname == "Ura Renge" else "omote_renge"
+		c.combat.cooldowns.erase(jid)
 
 
 ## Ön Lotus: hedefe atıl, çeneden yukarı tekmele, havada sargıyla sar ve başaşağı yere çak

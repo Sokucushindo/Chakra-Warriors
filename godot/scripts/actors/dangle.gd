@@ -519,10 +519,11 @@ static func sector_chains(mv_list: Array, center: Vector3, root_y: float, opts :
 
 
 ## Uzun saç (VRoid saç mesh'i): to_model: mesh yerel -> model uzayı (Y yukarı, +Z yüz); center: kafa merkezi (model).
-static func sectors(mesh: ArrayMesh, to_model: Transform3D, center: Vector3, root_y: float, opts := {}) -> Dictionary:
+## arrays: yüzey dizileri hazırsa (arka plan işi) mesh'ten okunmaz; paket aynı çıkar (bu saçlarda özel kanal / yüzey malzemesi yok)
+static func sectors(mesh: ArrayMesh, to_model: Transform3D, center: Vector3, root_y: float, opts := {}, arrays: Array = []) -> Dictionary:
 	var allv = []
-	for si in mesh.get_surface_count():
-		var v: PackedVector3Array = MeshArr.get_arrays(mesh, si)[Mesh.ARRAY_VERTEX]
+	for si in (arrays.size() if not arrays.is_empty() else mesh.get_surface_count()):
+		var v: PackedVector3Array = (arrays[si] if not arrays.is_empty() else MeshArr.get_arrays(mesh, si))[Mesh.ARRAY_VERTEX]
 		var mv = PackedVector3Array()
 		mv.resize(v.size())
 		for i in v.size():
@@ -541,4 +542,4 @@ static func sectors(mesh: ArrayMesh, to_model: Transform3D, center: Vector3, roo
 			lp.append(inv * q)
 		d["pts"] = lp
 	var asg: Callable = sc["assign"]
-	return build(mesh, sc["defs"], func(i, _v, si): return asg.call(i, si))
+	return build(mesh, sc["defs"], func(i, _v, si): return asg.call(i, si), arrays)

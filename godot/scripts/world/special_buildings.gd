@@ -281,6 +281,22 @@ static func shop_front(b: Builder, decor: Node3D, x: float, nf: float, dn: float
 	b.box(Vector3(x, 4.7, f.call(0.15)), Vector3(minf(w * 0.6, 1.6 + kj.length() * 1.3), 1.4, 0.2), wood, yaw, false)
 	b.box(Vector3(x, 4.7, f.call(0.27)), Vector3(minf(w * 0.6, 1.6 + kj.length() * 1.3) - 0.25, 1.15, 0.05), cream, yaw, false)
 	b.kanji(Vector3(x, 4.7, f.call(0.33)), kj, 0.95, Color(0.12, 0.1, 0.1), yaw)
+	# kapı (2026-11-25, kullanıcı: "kapılar yok" — perde düz duvara asılıydı): ahşap kasa + eşik taşı, içerisi karanlık giriş,
+	# solda kapalı kafesli sürgü kanat, sağ yarısı açık (perdenin altından içeri girilir)
+	var dw = 2.8
+	var dh = 3.1
+	b.box(Vector3(x, 0.5 + dh * 0.5, f.call(0.03)), Vector3(dw, dh, 0.06), Color(0.07, 0.06, 0.06), yaw, false)   # karanlık iç
+	for sx in [-1.0, 1.0]:
+		b.box(Vector3(x + sx * (dw * 0.5 + 0.12), 0.5 + dh * 0.5, f.call(0.1)), Vector3(0.24, dh, 0.2), wood, yaw, false)
+	b.box(Vector3(x, 0.5 + dh + 0.12, f.call(0.1)), Vector3(dw + 0.48, 0.24, 0.22), wood, yaw, false)   # üst kiriş
+	b.box(Vector3(x, 0.57, f.call(0.1)), Vector3(dw + 0.2, 0.14, 0.24), wood.darkened(0.2), yaw, false)   # alt ray
+	var lx = x - dw * 0.25
+	b.box(Vector3(lx, 0.5 + dh * 0.5, f.call(0.07)), Vector3(dw * 0.5, dh - 0.1, 0.05), Color(0.93, 0.9, 0.8), yaw, false)   # kafesli kanat (kâğıt)
+	for k in 4:
+		b.box(Vector3(lx - dw * 0.25 + (k + 0.5) * dw * 0.125, 0.5 + dh * 0.5, f.call(0.1)), Vector3(0.06, dh - 0.1, 0.04), wood, yaw, false)
+	for k in 5:
+		b.box(Vector3(lx, 0.5 + 0.3 + k * 0.62, f.call(0.1)), Vector3(dw * 0.5, 0.06, 0.04), wood, yaw, false)
+	b.box(Vector3(x, 0.08, f.call(0.7)), Vector3(dw + 0.6, 0.16, 1.1), Color(0.6, 0.58, 0.55), yaw, false)   # eşik taşı
 	# noren: kapı üstünde 4 kumaş şerit + ortada kanji
 	for k in 4:
 		b.box(Vector3(x - 1.35 + k * 0.9, 2.55, f.call(0.4)), Vector3(0.84, 1.0, 0.04), col, yaw, false)
