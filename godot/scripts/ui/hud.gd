@@ -30,6 +30,7 @@ var minimap: Control
 var vignette: ColorRect
 var darkness: ColorRect
 var fps_lbl: Label
+var cheat_lbl: Label   # açık hile varken "Hile açık" (Ayarlar > Hileler)
 var dialog_layer: Control
 var game_hud: Control
 var map_tex: Texture2D
@@ -150,6 +151,9 @@ func _build_vitals() -> void:
 	fps_lbl = UI.label("", 13, Color(0.7, 0.9, 0.7))
 	fps_lbl.position = Vector2(26, 190)
 	game_hud.add_child(fps_lbl)
+	cheat_lbl = UI.label("", 13, Color(1.0, 0.5, 0.35), HORIZONTAL_ALIGNMENT_LEFT, true)
+	cheat_lbl.position = Vector2(26, 208)
+	game_hud.add_child(cheat_lbl)
 	# takım paneli (sol): takım arkadaşlarının adı + canı
 	party_box = UI.vbox(6)
 	party_box.position = Vector2(30, 330)
@@ -1252,6 +1256,11 @@ func _process(dt: float) -> void:
 		return
 	var pr = Game.profile
 	fps_lbl.text = "FPS %d" % Engine.get_frames_per_second() if Game.settings["show_fps"] else ""
+	var cheat_on = Cheats.any_on()
+	cheat_lbl.text = "Hile açık" if cheat_on else ""
+	cheat_lbl.position.y = 208.0 if Game.settings["show_fps"] else 190.0
+	if buff_lbl:
+		buff_lbl.position.y = cheat_lbl.position.y + 18.0 if cheat_on else 190.0   # güçlendirme listesi yazının altına
 	if xhair:
 		var lk = Jutsu.soft_target(pl) != null
 		if lk != xhair_lock:

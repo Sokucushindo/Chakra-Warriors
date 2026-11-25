@@ -831,6 +831,7 @@ static func scorch(g: Vector3, r: float, col := RAI, life := 5.0, heat_t := 1.0)
 	mi.global_position = g + Vector3.UP * 0.04
 	mi.rotation.y = randf() * TAU
 	mi.scale = Vector3(r * 2.0, 1.0, r * 2.0)
+	preload("res://scripts/combat/fx/lib/ground_drape.gd").auto(mi)   # yere serili düz efekt engebeli araziye oturur
 	var tw = mi.create_tween()
 	tw.tween_property(m, "shader_parameter/heat", 0.0, heat_t)
 	tw.tween_interval(maxf(life - heat_t - 1.0, 0.1))

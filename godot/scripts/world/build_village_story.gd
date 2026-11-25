@@ -1,6 +1,7 @@
 class_name BuildVillageStory
 extends RefCounted
 const FacadeKit = preload("res://scripts/world/facade_kit.gd")
+const GardenKit = preload("res://scripts/world/garden_kit.gd")
 ## Hikâyenin her büyük köyde oynanabilmesi için: Akademi, antrenman alanı, gözetleme kulesi, hastane, ANBU binası
 ## (Konoha dışındaki büyük köylerde, köyün hemen dışında bir yerleşke) + her büyük köyde Aranıyor Panosu (Bingo Kitabı).
 ## Konumlar köy merkezine göredir; dünya ölçeği değişse de çalışır.
@@ -156,6 +157,9 @@ static func _compound(parent: Node3D, v: Dictionary, sty: Dictionary) -> void:
 		"flag": acc, "roof": roof, "bw": 28.0, "scale": 0.6, "flag_kanji": {"suna": "砂", "kiri": "霧", "kumo": "雲", "iwa": "岩"}.get(v["id"], "忍")})
 	for i in 4:
 		b.lantern(-12 + i * 8, -12)
+	# arka bahçe: antrenman köşesi + öğrenci bahçesi (iklime göre); köy evleri yerleşkenin CLEAR çemberinin dışında kalır
+	GardenKit.build(b, {"vid": v["id"], "name": "akademi", "x": 0.0, "n": 6.5, "w": 28.0, "side": 6.0, "doors": [Vector2(-7.0, 0.0)],
+		"d0": 2.0, "dmax": 34.0, "style": "academy", "limit": [Vector2.ZERO, float(CLEAR["academy"]) - 14.0]})
 	b.finish()
 	# --- antrenman alanı (ayrı yerde)
 	p = sites["training"]
@@ -203,6 +207,8 @@ static func _compound(parent: Node3D, v: Dictionary, sty: Dictionary) -> void:
 	b.interact(Vector3(0, 0, -7.0), 4, "enter", "[F] Gir: %s Hastanesi" % vn, {"room": "hospital", "vid": v["id"], "out": b.w(Vector3(0, 0, -9.0))})
 	for i in 3:
 		b.lantern(-6 + i * 6, -10)
+	GardenKit.build(b, {"vid": v["id"], "name": "hastane", "x": 0.0, "n": 5.5, "w": 17.0, "side": 5.0, "doors": [Vector2(4.5, 0.0)],
+		"d0": 2.0, "dmax": 20.0, "style": "hospital", "limit": [Vector2.ZERO, float(CLEAR["hospital"]) - 10.0], "min_d": 5.0})
 	b.finish()
 	# --- Chūnin Sınavı final stadyumu (köyün renginde)
 	p = sites["stadium"]

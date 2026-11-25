@@ -76,6 +76,17 @@ func _shoot_set(set_id: String, tag: String, only: Array, cam: Camera3D) -> void
 			if get_tree().current_scene.find_child("Story_%s_akademi" % set_id, true, false) != null and k > 20:
 				break
 	var c3 = Game.from_map(Vector2(v["x"], v["y"]))
+	if OS.get_environment("GARDEN") != "":
+		for k in 120:   # Kage bahçesi köy akışla kurulunca kayda girer
+			var has = false
+			for e in GK.made:
+				if String(e["vid"]) == set_id and String(e["name"]) == "kage":
+					has = true
+			if has or set_id == "konoha":
+				break
+			await _w(1.0)
+		await _shoot_gardens(set_id, tag, only, cam)
+		return
 	for s in specs:
 		if not only.is_empty() and not (String(s[0]) in only):
 			continue
@@ -100,3 +111,41 @@ func _shoot_set(set_id: String, tag: String, only: Array, cam: Camera3D) -> void
 			await _w(0.5)
 			await main.shot("%s_%s_%s_%s" % [tag, set_id, s[0], vk])
 	print("BACKS set ", set_id)
+
+
+## GARDEN=1: GardenKit'in kurduğu bahçeler (arka bahçe kaydı): bahçenin dış kenarından binaya bakış + yükseltilmiş 3/4
+## Görüntüler: <TAG>_<köy>_<ad>_{bahce,ust}.png
+const GK = preload("res://scripts/world/garden_kit.gd")
+func _shoot_gardens(set_id: String, tag: String, only: Array, cam: Camera3D) -> void:
+	for e in GK.made:
+		if String(e["vid"]) != set_id:
+			continue
+		if not only.is_empty() and not (String(e["name"]) in only):
+			continue
+		var f = deg_to_rad(float(e["face"]))
+		var nrm = Vector3(sin(f), 0, -cos(f))
+		var tg = Vector3(cos(f), 0, sin(f))
+		var c: Vector3 = e["center"]
+		var wall: Vector3 = e["wall"]
+		var sz: Vector2 = e["size"]
+		print("GARDEN ", set_id, " ", e["name"], " size ", sz, " u ", e["u"], " d ", e["d"])
+		var big = maxf(sz.x, sz.y)
+		# [konum, bakılan nokta, zeminden yükseklik]
+		var span = minf(sz.x, 60.0)
+		if sz.x > 120.0:   # çok geniş bahçe (Hokage yerleşkesi): göletin olduğu doğu yarıya bak
+			c += tg * sz.x * 0.09
+		var views = {"bahce": [c + nrm * (sz.y * 0.5 - 1.0), (c + wall) * 0.5 + Vector3(0, 1.0, 0), 5.0],
+			"ust": [c + nrm * (sz.y * 0.5 + 4.0) + tg * (span * 0.45 + 4.0), c, clampf(span * 0.5, 14.0, 32.0)]}
+		for vk in views:
+			var p: Vector3 = views[vk][0]
+			var t: Vector3 = views[vk][1]
+			main.player.respawn(Vector3(p.x, Game.terrain_height(p.x, p.z) + 1.0, p.z))
+			await _w(1.6)
+			main.player.visible = false
+			p.y = maxf(Game.terrain_height(p.x, p.z), c.y) + float(views[vk][2])
+			cam.global_position = p
+			cam.look_at(t, Vector3.UP)
+			cam.current = true
+			await _w(0.5)
+			await main.shot("%s_%s_%s_%s" % [tag, set_id, e["name"], vk])
+	print("GARDENS set ", set_id)

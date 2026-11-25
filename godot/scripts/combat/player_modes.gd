@@ -313,7 +313,7 @@ func _death_gate_end() -> void:
 	if is_instance_valid(_red_steam):
 		FX.stop_aura(_red_steam)
 	_red_steam = null
-	if not is_instance_valid(p) or p.hp <= 0.0:
+	if not is_instance_valid(p) or p.hp <= 0.0 or Cheats.on("nomodecost") or Cheats.on("god"):
 		return
 	Hud.banner("ÖLÜM KAPISI", "Bedenin dayanamadı; kül olup dağıldın...", Color(0.7, 0.2, 0.2))
 	Journal.add("Ölüm Kapısı'nı açtım. Bedenim kül oldu.", "milestone")
@@ -394,7 +394,7 @@ func active_modes() -> int:
 ## Üst üste binen modların bedeli: fazladan her mod saniyede 3 + azami chakranın %1.5'i; chakra biterse hepsi kapanır
 func _stack_tick(dt: float) -> void:
 	var n = active_modes()
-	if n < 2:
+	if n < 2 or Cheats.on("nomodecost"):
 		return
 	p.chakra -= (n - 1) * (3.0 + p.max_chakra * 0.015) * dt
 	if p.chakra <= 0.0:
@@ -775,8 +775,9 @@ func _process(dt: float) -> void:
 	if Game.paused or p == null:
 		return
 	beast_cd -= dt
+	var free_modes = Cheats.on("nomodecost")   # hile: mod bedelleri yok
 	if dojutsu:
-		p.chakra -= (3.0 if clan() == "uchiha" else 2.0) * dt
+		p.chakra -= 0.0 if free_modes else (3.0 if clan() == "uchiha" else 2.0) * dt
 		if p.chakra <= 0.0:
 			p.chakra = 0.0
 			Hud.msg("Chakra bitti, gözlerin kapandı.", Color(0.8, 0.8, 1))
@@ -786,7 +787,7 @@ func _process(dt: float) -> void:
 			if marker_t <= 0.0:
 				marker_t = 0.5
 				_update_byakugan()
-	if gates > 0 and gates < 8:   # Ölüm Kapısı can emmez: bedel süre sonunda (beden kül olur)
+	if gates > 0 and gates < 8 and not free_modes:   # Ölüm Kapısı can emmez: bedel süre sonunda (beden kül olur)
 		p.hp -= [0.0, 1.5, 3.0, 5.5, 9.0, 13.0, 18.0, 25.0][gates] * dt * maxf(0.3, 1.0 - Stats.skill(Game.profile, "gates") * 0.8)
 		if p.hp <= p.max_hp * 0.1:
 			gates = 0

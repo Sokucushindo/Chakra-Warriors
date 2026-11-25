@@ -1608,7 +1608,8 @@ func _shadow_trim() -> void:
 	_trim_queued = false
 	if not is_inside_tree():
 		return   # model bu arada sahneden alındı (kıyafet / silah değişiminde yeniden kurulum)
-	var npc = not (get_parent() is Player)
+	# Susanoo bedeni NPC değil: parçaları dev ölçekte uzaktan görülür; açılış yayındaki küçük ölçekte ölçülünce zırhın tamamı 40 m sınırı alıyordu
+	var npc = not (get_parent() is Player or get_parent() is Susanoo)
 	for mi in find_children("*", "MeshInstance3D", true, false):
 		if mi.mesh == null or String(mi.name) in SHADOW_KEEP:
 			continue

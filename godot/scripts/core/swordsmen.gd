@@ -65,7 +65,7 @@ static func state() -> Dictionary:
 
 
 static func _news(title: String, text: String, col := Color(0.55, 0.8, 1.0)) -> void:
-	Hud.msg("Haber: " + text, col.lerp(Color.WHITE, 0.3), 4.0)   # büyük başlık yok
+	Hud.msg(Lang.t("Haber: ") + Lang.t(text), col.lerp(Color.WHITE, 0.3), 4.0)   # büyük başlık yok
 	var pr = _p()
 	if not pr.has("beast_news"):
 		pr["beast_news"] = []

@@ -298,7 +298,7 @@ func _jump() -> void:
 		model.play("jump", 0.05, 1.4, true)
 		return
 	if grounded or swimming:
-		velocity.y = JUMP
+		velocity.y = JUMP * Cheats.jump_mul()
 		grounded = false
 		swimming = false
 		jumps = 1
@@ -309,7 +309,7 @@ func _jump() -> void:
 	elif jumps < 2 + int(Stats.skill(Game.profile, "jumps")):
 		if _try_evade():
 			return
-		velocity.y = JUMP * 0.92
+		velocity.y = JUMP * 0.92 * Cheats.jump_mul()
 		jumps = 2
 		var d = wish_dir()
 		if d.length() > 0.1:
@@ -577,6 +577,7 @@ func _physics_process(dt: float) -> void:
 	if Game.paused:
 		return
 	dt *= Combat.player_comp()   # Sharingan algısı: dünya yavaş, oyuncu normal hızda
+	Cheats.tick(self)   # Ayarlar > Hileler (ölümsüzlük, sınırsız chakra, beklemesiz...)
 	# depar sayacı her hareket kipinde sıfırlanır (duvar/ip/tutunmada Shift bırakılınca kalıyordu -> kısa basışta tam hız);
 	# jutsu/saldırı sırasında birikmez
 	if not Input.is_action_pressed("dash") or not Keys.held("dash") or (combat != null and not combat.get("action") in [null, ""]):
@@ -649,6 +650,7 @@ func _ground_air_move(dt: float) -> void:
 		var spd_mul = Buffs.mod("speed") * (1.0 + Stats.skill(Game.profile, "speed") + Mastery.get_v(Game.profile, "hiz") * 0.003) * (1.0 + Gear.stat(Game.profile, "speed") + Stats.clan_bonus(Game.profile, "speed")) * status_speed()
 		if sprint and wish.length() > 0.1:
 			Mastery.gain(Game.profile, "hiz", dt * 0.025)   # koştukça hız (0.005 idi: sürekli koşsan 1 puan ~20 dk)
+		spd_mul *= Cheats.speed_mul()
 		var target = wish * ((DASH * 1.35 if turbo else DASH) if sprint else (WALK if walking else RUN)) * spd_mul   # tam hız (5 sn Shift) 2x; Caps Lock: yürüyüş
 		if swimming:
 			target *= 0.35
@@ -1370,6 +1372,8 @@ func is_dead() -> bool:
 
 
 func take_hit(info: Dictionary) -> void:
+	if Cheats.on("god"):
+		return   # hile: ölümsüzlük
 	Combat.note_hit(self, info)
 	var atk0 = info.get("attacker")
 	if atk0 != null and is_instance_valid(atk0) and atk0 != self:

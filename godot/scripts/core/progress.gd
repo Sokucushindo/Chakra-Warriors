@@ -736,6 +736,9 @@ func on_technique_used(id: String) -> void:
 
 
 func on_player_died() -> void:
+	if Cheats.on("god") and Game.player:   # hile: ölümsüzlük (can düşüren her yol buraya gelir)
+		Game.player.hp = Game.player.max_hp
+		return
 	if Game.has_meta("arena"):   # arena deneme sürümü: ölüm yok, raunt biter
 		Game.get_meta("arena").player_down()
 		return

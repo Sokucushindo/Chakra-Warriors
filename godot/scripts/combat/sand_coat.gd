@@ -7,7 +7,7 @@ const SHADER := preload("res://shaders/vfx_sand_coat.gdshader")
 
 
 ## Kaplamayı başlat: top_frac = boyun oranı (1.2 = tüm beden), rise = tırmanma süresi. Dönen durum: {"mat", "meshes", "node"}
-static func apply(target: Node3D, top_frac: float, rise: float, inflate := 0.03, crack := 1.0) -> Dictionary:
+static func apply(target: Node3D, top_frac: float, rise: float, inflate := 0.03, crack := 1.0, max_t := 24.0) -> Dictionary:
 	var m = target.get("model")
 	if m == null or not is_instance_valid(m):
 		return {}
@@ -33,6 +33,14 @@ static func apply(target: Node3D, top_frac: float, rise: float, inflate := 0.03,
 	var tw = target.create_tween()
 	tw.tween_method(func(v): mat.set_shader_parameter("reveal_h", v), 0.0, h * top_frac + 0.1, maxf(0.05, rise)).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	target.set_meta("sand_coat", st)
+	# güvenlik: kaldırma çağrısı atanın zamanlayıcısına bağlı; atan ölür / silinirse çağrı hiç gelmez ve kum bedende kalıyordu.
+	# kaplanan kişiye bağlı üst süre (Suna no Yoroi 20 sn + pay): hâlâ duruyorsa dökülerek çözülür
+	if target.is_inside_tree():
+		target.get_tree().create_timer(max_t).timeout.connect(func():
+			for pair in meshes:
+				if is_instance_valid(pair[0]) and pair[0].material_overlay == mat:
+					remove(st, 0.4)
+					return)
 	return st
 
 

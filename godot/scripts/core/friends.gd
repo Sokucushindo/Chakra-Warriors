@@ -1052,7 +1052,7 @@ func _life_event() -> void:
 				f["grief"] = true
 				log_event(f, "%s (%s) bir görevde öldü" % [m["name"], String(m["rel"]).to_lower()])
 				f["news"] = "%s... bir görevden dönmedi. Bu köy için savaştı. Ben de öyle yapacağım... sanırım." % m["name"]
-				Hud.msg("Haber: %s'in %s bir görevde hayatını kaybetti." % [f["name"], String(m["rel"]).to_lower().trim_suffix("ı").trim_suffix("i")], Color(0.8, 0.8, 0.9), 5.0)
+				Hud.msg("Haber: %s'in %s bir görevde hayatını kaybetti." % [f["name"], String(m["rel"]).to_lower()], Color(0.8, 0.8, 0.9), 5.0)   # tam sözcük ("babası"): kırpınca Türkçede "babas", İngilizcede çevrilmeden kalıyordu
 	# köyden kimi zaman tanımadığın ninjalar da kaçar (Bingo Kitabı'na girer)
 	if randf() < 0.03 and not WorldPeople.bingo_from_world(Progress.home()).is_empty():
 		pass   # dünyadan gerçek biri kaçtı (haber WorldPeople.defect'te)

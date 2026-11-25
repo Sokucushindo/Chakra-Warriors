@@ -96,7 +96,7 @@ func _vname(vid: String) -> String:
 
 func _news(title: String, text: String, col := Color(1, 0.6, 0.35)) -> void:
 	# ekranı doldurmasın: büyük başlık yok, kısa bir satır; tam metin haber listesinde
-	Hud.msg("Haber: " + text, col.lerp(Color.WHITE, 0.3), 4.0)
+	Hud.msg(Lang.t("Haber: ") + Lang.t(text), col.lerp(Color.WHITE, 0.3), 4.0)
 	var pr = Game.profile
 	if not pr.has("beast_news"):
 		pr["beast_news"] = []

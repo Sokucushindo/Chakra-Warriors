@@ -52,7 +52,7 @@ static func headline(text: String, col := Color(1, 0.85, 0.6)) -> void:
 	nw.append(text)
 	while nw.size() > 6:
 		nw.pop_front()
-	Hud.msg("Haber: " + text, col, 6.0)
+	Hud.msg(Lang.t("Haber: ") + Lang.t(text), col, 6.0)   # önek ayrı çevrilir: birleşik yazı kalıba uymuyordu
 
 
 static func add(kind: String, vid: String, who := "", extra := {}) -> Dictionary:
@@ -133,6 +133,8 @@ static func tick(dt: float) -> void:
 
 
 static func _team_text(team: Array) -> String:
+	if Lang.is_en():   # yer tutucuya hazır İngilizce girer (ekli ad çevrilemiyordu)
+		return "a team" if team.is_empty() else "%s's team" % String(team[0]["name"])
 	if team.is_empty():
 		return "bir takım"
 	return "%s takımı" % sfx(String(team[0]["name"]), "in")

@@ -569,6 +569,8 @@ func sensing_r(n: Node) -> float:
 func hidden_from(viewer: Node, n: Node) -> bool:
 	if viewer == null or n == null or not is_instance_valid(viewer) or not is_instance_valid(n):
 		return false
+	if n == Game.player and viewer != n and Cheats.on("invis"):
+		return true   # hile: düşmanlara görünmez
 	if get_tree().has_group("kemuri_bulut") and load("res://scripts/combat/fx/kemuridama_fx.gd").veiled(viewer, n):
 		return true
 	var q = stealth_of(n)

@@ -136,6 +136,8 @@ func take_hit(info: Dictionary) -> void:
 		dmg *= 1.25   # Dinamik İşaretleme / algılama: işaretli hedef fazla hasar alır
 	dmg *= maxf(1.0, buff_mod("armor"))   # yalnız bedel (zırh kırılması); savunma kalkanla (Combat.absorb)
 	dmg = Combat.absorb(self, dmg)
+	if Cheats.kills(info.get("attacker")):
+		dmg = maxf(dmg, hp + 1.0)   # hile: tek vuruşta öldür (yalnız oyuncunun darbesi)
 	if dmg <= 0.0:
 		return
 	if has_status("armor_broken"):

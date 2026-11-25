@@ -1661,12 +1661,13 @@ const SET_DESC := {
 	"Fareyi ters çevir (Y)": "Fareyi yukarı itince kamera aşağı bakar.",
 	"Tuş atamaları": "Bütün tuşları değiştirebileceğin ekran.",
 }
-const SET_TABS := [["general", "leaf", "Genel"], ["graphics", "monitor", "Görüntü"], ["sound", "sound", "Ses"], ["controls", "controls", "Kontrol"]]
+const SET_TABS := [["general", "leaf", "Genel"], ["graphics", "monitor", "Görüntü"], ["sound", "sound", "Ses"], ["controls", "controls", "Kontrol"], ["cheats", "skull", "Hileler"]]
 ## Ayar ekranı mühürleri (hanko): sekme / bölüm / tuş grubu adı -> kanji
 const SET_SEALS := {"Ayarlar": "設", "Kontroller": "操", "Genel": "基", "Görüntü": "画", "Ses": "音", "Kontrol": "操",
 	"Oyun": "遊", "Ekran": "映", "Grafik": "彩", "Dünya": "界", "Kamera": "眼", "Kare Hızı": "速", "Ses Düzeyi": "音",
 	"Fare ve Tuşlar": "操", "Hareket": "走", "Dövüş": "闘", "Modlar ve çağrı": "術", "Eşya ve etkileşim": "具",
-	"Menüler": "巻", "Jutsu yuvaları": "印", "Sabit": "固"}
+	"Menüler": "巻", "Jutsu yuvaları": "印", "Sabit": "固", "Hileler": "秘", "Hile Kuralları": "秘", "Anında": "急", "Göz Ver": "眼",
+	"Jutsu Aç": "術", "Güç ve Rütbe": "力", "Kuyruklu Canavar": "獣", "Eşya Ver": "具", "Işınlanma ve Dünya": "界"}
 static var _set_tab := "general"
 static var _set_focus := -1          # klavye / kol ile seçili satır (yeniden çizimde korunur)
 static var _brush: Font = null
@@ -2220,6 +2221,8 @@ static func settings(back: Callable) -> void:
 				_set_keep = false, 300, "controls")
 			kb.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 			h.add_child(kb)
+		"cheats":
+			Cheats.build_tab(body, lw, pick, func(): settings(back))   # Hileler: scripts/core/cheats.gd
 	if _fresh:
 		UI.pop_in(area, 0.985)
 	# klavyeyle değiştirilen satır yeniden çizimde seçili kalsın

@@ -349,6 +349,8 @@ func _update_weather(dt: float) -> void:
 		weather_t = randf_range(120, 300)
 		region_weather = ["açık", "açık", "açık", "açık", "açık", "bulutlu", "yağmur"].pick_random()
 	weather = reg if reg != "açık" else region_weather
+	if Cheats.weather != "":
+		weather = Cheats.weather   # Ayarlar > Hileler: zorlanan hava
 	var target_overcast = {"açık": 0.0, "bulutlu": 0.5, "yağmur": 0.85, "sis": 0.7, "kum fırtınası": 0.8, "kar": 0.6}.get(weather, 0.0)
 	overcast = move_toward(overcast, target_overcast, dt * 0.08)
 	var indoor = Game.player != null and Game.player.global_position.y > Game.terrain_height(Game.player.global_position.x, Game.player.global_position.z) + 800.0

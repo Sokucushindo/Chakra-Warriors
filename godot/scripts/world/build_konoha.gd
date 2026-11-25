@@ -1,6 +1,7 @@
 class_name BuildKonoha
 extends RefCounted
 const FacadeKit = preload("res://scripts/world/facade_kit.gd")
+const GardenKit = preload("res://scripts/world/garden_kit.gd")
 ## Konohagakure: Ateş Ülkesi'nin gizli yaprak köyü. Yerel (x=doğu, n=kuzey), merkez (0,0), yarıçap ~1500 m (plato).
 ## Sokak ağı dünya verisinden (roads.json, kind "street") gelir; evler sokak boylarına dizilir (merkez sık, dış mahalleler seyrek).
 ## Kuzeyde arazi uçurumu (Hokage Kayası, n≈1170) — yüzler uçuruma oyulur. Girilebilir binalar ("enter" -> Interiors),
@@ -456,6 +457,49 @@ static func _academy_back(b: Builder, ax: float, an: float, mcx: float, mcn: flo
 		var t = k / 9.0
 		for sz in [-4.3, 4.3]:
 			b.box(Vector3(gx - 8.3 + t * 16.6, gg + 0.45, gn + sz), Vector3(0.14, 0.9, 0.14), wood, 0.0, true)
+
+
+## Özel binaların arka bahçeleri (2026-11-25, kullanıcı: "arkaları boş görünüyor"): evler, sokaklar, ağaçlar kurulduktan
+## sonra her binanın arka kapısının önündeki gerçekten boş alana binaya uygun bahçe + yalnız bahçede kıvrılan toprak patika
+## (GardenKit). Ölçüler binaların kendi kurulum kodundan (arka yüz, kapı u'ları).
+static func _gardens(b: Builder, cliff_n: float) -> void:
+	var tn = 600.0
+	var ax = -540.0; var an = 610.0
+	var ux = -1020.0; var un = -640.0
+	var yx = -1050.0; var yn = 250.0
+	var anx = -480.0; var ann = cliff_n - 110.0
+	# Naka Tapınağı: salonun arka yüzüne kapı + kaideden bahçeye inen taş basamaklar (patika buradan başlar)
+	if GardenKit.on() and FacadeKit.on():
+		var yo = b.yoff
+		b.yoff = _gy(b, ux, un)
+		FacadeKit.back_door(b, ux, un + 6.0, 0.0, 0.0, 1.0, {"door_w": 2.2, "door_h": 3.0, "frame": Color(0.55, 0.24, 0.22),
+			"door_col": Color(0.4, 0.26, 0.22), "lamp": false, "steps": false})
+		for k in 3:   # kaide (üstü +1.0, arka kenarı un+10) -> zemin
+			var top = 1.0 - k * 0.33
+			b.box(Vector3(ux, (top - 0.8) * 0.5, un + 10.3 + k * 0.45), Vector3(3.6, top + 0.8, 0.5), Color(0.6, 0.6, 0.57).darkened(0.04 * k), 0.0, true)
+		b.yoff = yo
+	var specs = [
+		{"name": "akademi", "x": ax, "n": an + 17.0, "w": 100.0, "side": 3.0, "doors": [Vector2(-30.0, 0.0), Vector2(32.0, 0.0)], "d0": 2.0,
+			"dmax": 40.0, "style": "academy", "avoid": [[Vector2(34.0, 12.0), 9.5]]},
+		{"name": "hastane", "x": 545.0, "n": 251.0, "w": 76.0, "side": 6.0, "doors": [Vector2(0.0, 0.0)], "d0": 6.0, "dmax": 40.0, "style": "hospital"},
+		{"name": "kule", "x": 0.0, "n": tn + 26.0, "w": 210.0, "side": 0.0, "doors": [Vector2(86.0, 0.0), Vector2(-84.0, -4.0)], "d0": 1.0,
+			"dmax": 22.0, "skip": 20.0, "style": "formal",
+			"avoid": [[Vector2(0.0, -26.0), 43.0]], "min_col": 0.0, "min_d": 4.0},   # kulenin taş kaidesi (r 41.5)
+		{"name": "hyuga", "x": yx, "n": yn + 30.0, "w": 78.0, "side": 34.0, "doors": [Vector2(-6.0, 4.0), Vector2(18.0, 4.0)], "d0": 6.0,
+			"dmax": 26.0, "style": "karesansui"},
+		{"name": "naka", "x": ux, "n": un + 6.0, "w": 58.0, "side": 0.0, "doors": [Vector2(0.0, 5.6)], "d0": 6.0, "dmax": 52.0,
+			"style": "karesansui", "shrine": true},
+		{"name": "anbu", "x": anx, "n": ann + 20.0, "w": 40.0, "side": 14.0, "doors": [Vector2(8.0, 0.0)], "d0": 1.0, "dmax": 9.0,
+			"style": "anbu", "min_d": 4.0},
+		{"name": "polis", "x": ux + 160.0, "n": un + 82.0 - 8.0, "face": 180.0, "w": 28.0, "side": 6.0, "doors": [Vector2(-6.0, 0.0)],
+			"d0": 1.5, "dmax": 26.0, "style": "reading"},
+		{"name": "kutuphane", "x": 168.0, "n": tn - 140.0 + 7.5, "w": 24.0, "side": 6.0, "doors": [Vector2(7.2, 0.0)], "d0": 1.5,
+			"dmax": 22.0, "style": "reading", "min_d": 5.0},
+	]
+	for sp in specs:
+		sp["vid"] = "konoha"
+		sp["climate"] = "green"
+		GardenKit.build(b, sp)
 
 
 ## Naka Tapınağı arka / yan yüzleri: ön cephenin koyu kırmızı çatkısı (dikme + kiriş) çepeçevre, kafesli pencereler,
@@ -1212,6 +1256,7 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 			if not _veg_cache.has(vt):
 				_veg_cache[vt] = Props.vegetation_mesh(vt)
 			b.pack_mesh(_veg_cache[vt], Vector3(bx2, _gy(b, bx2, bn2), bn2), rng.randf() * 360.0, rng.randf_range(0.7, 1.3) * (0.5 if vt == 4 else 1.0), 0.5)
+	_gardens(b, cliff_n)
 	b.finish()
 	_merge_house_cells(b.root)
 	print("Konoha: ", count, " ev, ", trees, " ağaç, ", fields, " tarla  toplam ", Time.get_ticks_msec() - _t0, " ms")

@@ -263,6 +263,15 @@ static func _low(s: String) -> String:
 	return s.to_lower().replace("ı", "i").replace("i̇", "i")
 
 
+var _sfx_rx: RegEx
+## Yer tutucuya giren addaki Türkçe hâl eki ('yı, 'nin, 'den, 'e...) İngilizcede atılır
+func _drop_sfx(a: String) -> String:
+	if _sfx_rx == null:
+		_sfx_rx = RegEx.create_from_string("^(.+?)'(y?[ıiuü]|n?[ıiuü]n|y?[ae]|[dt][ae]n?|n?[ıiuü]n[ıiuü]?|[ıiuü]n[ıiuü])$")
+	var m := _sfx_rx.search(a)
+	return m.get_string(1) if m else a
+
+
 func _tmpl(s: String) -> String:
 	for tp in templates:
 		var m: RegExMatch = tp[0].search(s)
@@ -284,6 +293,7 @@ func _tmpl(s: String) -> String:
 				while j < out.length() and not out[j] in "sdfixXc":
 					j += 1
 				var arg := m.get_string(gi) if gi <= m.get_group_count() else ""
+				arg = _drop_sfx(arg)   # "Reika'yı" -> "Reika": Türkçe hâl eki İngilizcede kalmasın
 				res += _translate(arg) if arg != "" else arg
 				gi += 1
 				fmt_i = j + 1

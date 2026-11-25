@@ -409,6 +409,8 @@ func _eye_closeup(kind: int) -> void:
 		var f: Vector3 = p.face_dir()
 		f.y = 0.0
 		f = f.normalized() if f.length() > 0.01 else Vector3.FORWARD
+		if not is_instance_valid(sk):   # model yeniden kuruldu (göz / kıyafet değişti): baş yüksekliğinden devam
+			return [p.global_position + Vector3.UP * 1.62 * a + f * 0.085 * a, f]
 		var head: Vector3 = (sk.global_transform * sk.get_bone_global_pose(hb)).origin
 		return [head + Vector3.UP * 0.075 * a + f * 0.085 * a, f]
 	var cam = Camera3D.new()
@@ -1241,7 +1243,7 @@ func blind() -> float:
 
 func add_blind(amount: float) -> void:
 	var pr = Game.profile
-	if _ems():
+	if _ems() or Cheats.on("noblind"):   # hile: Mangekyō körlüğü yok
 		return
 	if not (_raw_kind("sag") == 4 or _raw_kind("sol") == 4):
 		return

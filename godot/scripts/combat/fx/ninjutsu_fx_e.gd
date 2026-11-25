@@ -711,6 +711,7 @@ static func fade_out(n: Node, mats: Variant, delay: float, dur: float) -> void:
 static func put(pj: PathJutsu, n: Node3D, pos: Vector3, parent: Node = null) -> Node3D:
 	(parent if parent else pj.get_tree().current_scene).add_child(n)
 	n.global_position = pos
+	preload("res://scripts/combat/fx/lib/ground_drape.gd").auto(n)   # yere serili düz efekt engebeli araziye oturur
 	return n
 
 

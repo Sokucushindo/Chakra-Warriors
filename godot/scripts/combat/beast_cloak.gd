@@ -549,7 +549,8 @@ func _process(dt: float) -> void:
 	if level == 0:
 		return
 	# chakra / beden
-	if level == 6:
+	var free_modes = Cheats.on("nomodecost")   # hile: mod bedelleri yok
+	if level == 6 and not free_modes:
 		p.chakra -= 5.0 * dt
 		if p.chakra <= 0.0:
 			p.chakra = 0.0
@@ -560,10 +561,10 @@ func _process(dt: float) -> void:
 		p.chakra = minf(p.max_chakra, p.chakra + (2.0 + level * 2.0) * dt)
 	var tr = TailedBeasts.trust()
 	var unbound = bool(TailedBeasts.beasts().get(beast_id(), {}).get("unbound", false))
-	if level >= 5 and tr < 55.0 and not unbound:
+	if level >= 5 and tr < 55.0 and not unbound and not free_modes:
 		p.hp -= 1.5 * dt   # pelerin bedeni yakıyor
 	var risk = maxf(0.0, SAFE_TRUST[level] - tr) / 100.0
-	if unbound:
+	if unbound or free_modes:
 		risk = 0.0
 	if risk > 0.0 and rampage_t <= 0.0 and randf() < risk * 0.12 * dt:
 		_rampage()

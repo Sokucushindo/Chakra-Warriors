@@ -188,6 +188,10 @@ class TravelGroup extends Node3D:
 		var dy = Roadside.deck_y(m)
 		if dy > w.y:
 			w.y = dy
+		# köprüsüz su (Sonun Vadisi nehri vb.): suyun üstünden geçer, dipten yürümez
+		var wl = Game.water_level(w.x, w.z, w.y)
+		if wl > w.y:
+			w.y = wl
 		return w
 
 	func _place() -> void:

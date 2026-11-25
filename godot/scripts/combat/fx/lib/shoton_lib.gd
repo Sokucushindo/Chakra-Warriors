@@ -367,6 +367,7 @@ static func cmi(mesh: Mesh, o := {}) -> MeshInstance3D:
 static func put(h: Node, n: Node3D, pos: Vector3) -> Node3D:
 	h.get_tree().current_scene.add_child(n)
 	n.global_position = pos
+	preload("res://scripts/combat/fx/lib/ground_drape.gd").auto(n)   # yere serili düz efekt engebeli araziye oturur
 	return n
 
 

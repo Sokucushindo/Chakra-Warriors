@@ -1425,6 +1425,7 @@ func mi_of(mesh: Mesh, mat: Material = null) -> MeshInstance3D:
 func scene_add(n: Node3D, pos: Vector3) -> Node3D:
 	get_tree().current_scene.add_child(n)
 	n.global_position = pos
+	preload("res://scripts/combat/fx/lib/ground_drape.gd").auto(n)   # yere serili düz efekt engebeli araziye oturur
 	return n
 
 

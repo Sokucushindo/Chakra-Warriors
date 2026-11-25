@@ -1526,7 +1526,7 @@ func _do_cast(dt: float) -> bool:
 
 # ------------------------------------------------------------------ hasar alma
 func take_hit(info: Dictionary) -> void:
-	if invuln > 0.0 or p.hp <= 0.0 or is_instance_valid(Ceremony.cur):   # tören sahnesi sürerken kimse vuramaz
+	if invuln > 0.0 or p.hp <= 0.0 or is_instance_valid(Ceremony.cur) or Cheats.on("god"):   # tören sahnesi sürerken kimse vuramaz; hile: ölümsüzlük
 		return
 	if modes and modes.on_player_hit(info):
 		return

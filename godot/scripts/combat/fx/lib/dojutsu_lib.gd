@@ -501,6 +501,7 @@ static func disc_mat(mode: int, c1: Color, c2 := Color(0, 0, 0), c3 := Color(0, 
 static func put(host: Node, n: Node3D, pos: Vector3) -> Node3D:
 	host.get_tree().current_scene.add_child(n)
 	n.global_position = pos
+	preload("res://scripts/combat/fx/lib/ground_drape.gd").auto(n)   # yere serili düz efekt engebeli araziye oturur
 	return n
 
 

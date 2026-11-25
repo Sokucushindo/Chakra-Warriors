@@ -188,6 +188,19 @@ static func on_death(p: Dictionary) -> void:
 		if not WorldPeople.alive(q):
 			continue
 		q["grief"] = true
+		# yasın ağırlığı (2026-11-25): çocuğunu kaybeden en ağır, kardeş / eş, sonra ebeveynini kaybeden
+		var gw = float({"babası": 1.0, "annesi": 1.0, "kardeşi": 0.9, "eşi": 0.9, "oğlu": 0.8, "kızı": 0.8}.get(String(r[1]), 0.7))
+		q["grief_w"] = maxf(float(q.get("grief_w", 0.0)), gw)
+		# kanon: Uchiha'nın gözü büyük kaybın acısıyla uyanır / güçlenir (yalnız "en yakını" değil, bütün aile)
+		if String(q.get("clan", "")) == "uchiha":
+			var qe: Array = q.get("eye", [0, 0])
+			if int(qe[0]) == 0 and randf() < gw:
+				q["eye"] = [1, 1]
+				WorldPeople.log_event(q, "%s'nin ölümünün acısıyla Sharingan'ı uyandı" % String(p["name"]))
+				WorldPeople._learn(q)
+			elif int(qe[0]) == 1 and int(qe[1]) < 3 and gw >= 0.9:
+				q["eye"] = [1, int(qe[1]) + 1]
+				WorldPeople.log_event(q, "%s'nin ölümünün acısıyla Sharingan'ı bir tomoe güçlendi" % String(p["name"]))
 		# r[1] ölenin gözünden ("oğlu"): yakının kaydına tersinden yazılır
 		WorldPeople.log_event(q, "%s %s öldü" % [_inverse(r[1], p), String(p["name"])])
 		if by_player and not String(q["id"]) in D()["avengers"]:

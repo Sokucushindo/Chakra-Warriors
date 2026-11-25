@@ -174,7 +174,9 @@ static func step(p: Dictionary) -> void:
 		if WorldPeople._grow_eye(p):
 			_sync(p)
 			return
-	if k == 1 and int(e[1]) >= 3 and lv >= 80 and randf() < 0.15 and _awaken_ms(p):
+	# Mangekyō gücün değil acının ürünü (kanon: Shisui, Itachi gençken): yas tutanda Güç şartı düşer, şans yasın ağırlığıyla artar
+	var gw = float(p.get("grief_w", 0.0)) if p.get("grief", false) else 0.0
+	if k == 1 and int(e[1]) >= 3 and ((lv >= 80 and randf() < 0.15) or (gw > 0.0 and lv >= 40 and randf() < 0.15 + 0.35 * gw)) and _awaken_ms(p):
 		return
 	if k == 4 and lv >= 120 and randf() < 0.12 and _take_ems(p):
 		return
@@ -195,6 +197,12 @@ static func step(p: Dictionary) -> void:
 
 ## Mangekyō (kanon: en yakınının ölümü). Yakını hayattaysa kendi eliyle öldürür ve köyden kaçar; yas tutuyorsa acısı yeter.
 static func _awaken_ms(p: Dictionary) -> bool:
+	if p.get("grief", false):   # yas tutan en yakınını öldürmeye kalkmaz: kaybın acısı yeter
+		p["eye"] = [4, 3]
+		WorldPeople.log_event(p, "Kaybının acısıyla Mangekyō Sharingan'ı uyandı")
+		WorldPeople._learn(p)
+		_sync(p)
+		return true
 	var c = WorldPeople.get_p(String(p.get("close", "")))
 	if not c.is_empty() and WorldPeople.alive(c) and String(c.get("kage", "")) == "":
 		var cn = String(c["name"])

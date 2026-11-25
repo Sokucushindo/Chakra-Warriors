@@ -1,6 +1,7 @@
 class_name BuildSites
 extends RefCounted
 const FacadeKit = preload("res://scripts/world/facade_kit.gd")
+const GardenKit = preload("res://scripts/world/garden_kit.gd")
 ## Konoha dışındaki köyler ve önemli yerler (anime ölçeği: köyler kilometrelerce, simge yapılar yüzlerce metre).
 ## Konoha ve hikâye yerleri yüklemede kurulur; diğer köyler oyuncu yaklaşınca akışla (birkaç karede) kurulur,
 ## uzaktan ise ucuz siluetleri (far_silhouette) görünür.
@@ -596,10 +597,22 @@ static func suna(parent: Node3D, v: Dictionary) -> void:
 		b.dome(Vector3(rr * sin(a), -0.2, rr * cos(a)), rng.randf_range(10, 30), rng.randf_range(0.8, 2.5), Color(0.9, 0.78, 0.56), 12)
 	await _fill(b, r * 0.88, 140, 28, "suna", rng, _site_clear(v), 1900)
 	await _streets(b, v, "suna", rng)
+	_kage_garden(b, "suna", Vector2(0, 70.0), 0.0, true)
 	b.finish()
 
 
 ## Akademi yerleşkesinin alanı (köy evleri buraya kurulmaz): [x, n, yarıçap] köy merkezine göre
+## Kage binasının arkasına iklime göre bahçe (GardenKit "kage": Suna kum avlu, Kiri yosunlu gölet, Kumo kaya bahçesi,
+## Iwa taş bahçe). wall: arka yüzün ortası (yerel), face: dışa bakan normal; door: kaide halkasına servis kapısı aç
+static func _kage_garden(b: Builder, vid: String, wall: Vector2, face: float, door: bool, door_d := 0.0) -> void:
+	if door and GardenKit.on() and FacadeKit.on():
+		var gy = clampf(Game.terrain_height(b.origin.x + wall.x, b.origin.z - wall.y) - b.origin.y, 0.0, 1.0)
+		FacadeKit.back_door(b, wall.x, wall.y, face, 0.0, gy, {"door_w": 2.4, "door_h": 3.0, "frame": Color(0.6, 0.46, 0.3),
+			"door_col": Color(0.45, 0.32, 0.2), "awning": Color(0.7, 0.56, 0.38), "lamp": false})
+	GardenKit.build(b, {"vid": vid, "name": "kage", "x": wall.x, "n": wall.y, "face": face, "w": 44.0, "side": 4.0,
+		"doors": [Vector2(0.0, door_d)], "d0": 2.0, "dmax": 44.0, "skip": 8.0, "style": "kage"})
+
+
 static func _site_clear(v: Dictionary) -> Array:
 	# önemli yapıların her biri için boş alan: [[x, n, yarıçap], ...] köy merkezine göre
 	var out = []
@@ -774,6 +787,7 @@ static func kiri(parent: Node3D, v: Dictionary) -> void:
 	VillageStyles.mist(b, 90, 0, r * 0.95, 3, 28, 40, rng, 0.3)
 	await _fill(b, r * 0.85, 60, 26, "kiri", rng, [[0, r * 0.55, r * 0.4], [0, -70, 40]] + _site_clear(v), 1600)
 	await _streets(b, v, "kiri", rng)
+	_kage_garden(b, "kiri", Builder.rot(0, 45.0, 20.0), 20.0, false)
 	b.finish()
 
 
@@ -786,6 +800,7 @@ static func kumo(parent: Node3D, v: Dictionary) -> void:
 	var mist_pts = []
 	var r = float(v["r"])
 	var pillars = []
+	var site_cl: Array = _site_clear(v)
 	for k in 40:
 		var a = TAU * (k + rng.randf_range(-0.3, 0.3)) / 40.0 * 3.0
 		var rr = lerpf(130, r * 0.9, sqrt(rng.randf()))
@@ -794,6 +809,14 @@ static func kumo(parent: Node3D, v: Dictionary) -> void:
 		var d = rng.randf_range(55, 100)
 		var h = rng.randf_range(110, 290)
 		var c = rock.darkened(rng.randf_range(0.0, 0.14))
+		# önemli yapıların (hastane, akademi, stadyum, ANBU, antrenman) alanına sütun dikme: hastane kayanın içinde kalıyordu
+		var on_site = false
+		for sc in site_cl:
+			if Vector2(px - float(sc[0]), pn - float(sc[1])).length() < float(sc[2]) + d * 0.55 + 5.0:
+				on_site = true
+				break
+		if on_site:
+			continue
 		# ref (anime Kumo panoraması): köyü saran kayaların çoğu ucu incelen sivri iğne; bir kısmı üstü evli mesa
 		var spire = k % 5 == 1 or k % 5 == 3
 		if spire:
@@ -936,6 +959,7 @@ static func kumo(parent: Node3D, v: Dictionary) -> void:
 			Waterfalls.add(b.w(Vector3(p[0], 0, p[1] - p[2] * 0.45)), p[3] * 0.7, 14.0, 0.0)
 	await _fill(b, r * 0.85, 80, 34, "kumo", rng, [[0, -80, 34]] + _site_clear(v), 1100)
 	await _streets(b, v, "kumo", rng)
+	_kage_garden(b, "kumo", Vector2(0, 66.0), 0.0, false, -1.5)   # sarmal merdivenin dibi (kuzey) bahçe kapısı
 	b.finish()
 
 
@@ -1063,6 +1087,7 @@ static func iwa(parent: Node3D, v: Dictionary) -> void:
 		"trim": Color(0.44, 0.34, 0.26), "acc": Color(0.58, 0.24, 0.17), "gate": Color(0.5, 0.4, 0.32), "kanji": "土", "terrace_h": 0.0})
 	await _fill(b, r * 0.85, 110, 30, "iwa", rng, [[0, -96, 34]] + _site_clear(v), 1400)
 	await _streets(b, v, "iwa", rng)
+	_kage_garden(b, "iwa", Vector2(0, 66.0), 0.0, false)
 	b.finish()
 
 
