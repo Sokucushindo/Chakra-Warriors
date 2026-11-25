@@ -1142,6 +1142,8 @@ static func _kamui_take(c: Node3D, h: Node3D, info: Dictionary, at: Vector3) -> 
 	h.take_hit(inf)
 	if not MsArts._alive(h):
 		return
+	if h == Game.player and float(h.hp) <= float(h.max_hp) * 0.35 and MsArts.pull_player(c):
+		return
 	var weak = not (h is Player) and not h.has_meta("boss") and float(h.hp) <= float(h.max_hp) * 0.35 and h.has_method("die")
 	if weak:
 		Combat.popup_text(MsArts._chest(h) + Vector3.UP, "Kamui boyutuna çekildi", Color(0.7, 0.55, 0.9))
@@ -1157,6 +1159,8 @@ static func _kamui_take(c: Node3D, h: Node3D, info: Dictionary, at: Vector3) -> 
 		MsArts._later(0.95, func():
 			if MsArts._alive(h):
 				h.die({"execute": true, "attacker": c, "kamui": true, "dmg": 9999.0})
+				if is_instance_valid(h) and h.is_dead():
+					MsArts.KS.capture(c, h)   # boyutta tutsak kalır
 				if is_instance_valid(h) and h.get("model"):
 					h.model.visible = false)
 	else:

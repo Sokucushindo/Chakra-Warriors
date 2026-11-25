@@ -33,6 +33,15 @@ static func tick(e: Enemy, dt: float) -> void:
 		e.set_meta("kamui_user", randf() < 0.25)   # Obito tarzı Mangekyō: darbeler içinden geçer
 	maybe_izanagi(e)
 	var eblind = float(e.get_meta("ms_blind", 0.0))
+	# Obito tarzı Mangekyō: canı %30'un altına inince Kamui boyutuna kaçar, RETREAT_TIME sonra rakibinin yanında belirir
+	# (oyuncunun Kamui Kūkan'ıyla aynı boyut; oyuncu içerideyse orada karşılaşırlar)
+	if e.get_meta("kamui_user", false) and kind in [4, 5] and (kind != 4 or eblind < 1.0) and e.hp < e.max_hp * 0.3 			and Game.now() >= float(e.get_meta("kamui_retreat_next", 0.0)) and not e.has_meta("kamui_away"):
+		e.set_meta("kamui_retreat_next", Game.now() + KS.RETREAT_CD)
+		ms_open(e)
+		if kind == 4:
+			_ms_strain(e, 0.06)
+		KS.retreat(e)
+		return
 	if kind == 4 and e.has_meta("ea_susanoo") and is_instance_valid(e.get_meta("ea_susanoo")):
 		_ms_strain(e, dt * 0.004)   # açık Susanoo düşmanın da gözünü yorar (oyuncuyla aynı kural)
 	elif kind == 4 and e.get_meta("ms_open", false):
@@ -93,7 +102,10 @@ static func tick(e: Enemy, dt: float) -> void:
 			ms_open(e)
 			if kind == 4:
 				_ms_strain(e, 0.12)
-			if d < 9.0 and randf() < 0.45:
+			if e.get_meta("kamui_user", false) and d < 7.0 and randf() < 0.4:
+				_kamui_pull(e, t)
+				e.set_meta("ea_cd", randf_range(14.0, 18.0))
+			elif d < 9.0 and randf() < 0.45:
 				_gaze(e, t, 2.6, Color(0.6, 0.0, 0.05), "Tsukuyomi!")
 				if t == Game.player and Game.world:
 					Game.world.env.flash_tint(Color(0.55, 0.0, 0.05, 0.5), 1.2)
@@ -101,6 +113,40 @@ static func tick(e: Enemy, dt: float) -> void:
 			elif d < 30.0:
 				_amaterasu(e, t)
 				e.set_meta("ea_cd", randf_range(12.0, 16.0))
+
+
+const KS = preload("res://scripts/world/kamui_space.gd")
+
+
+## Düşman Kamui: içine çek (oyuncunun "Kamui: içine çek" göz yeteneğiyle aynı kural): 7 m içindeki hedef girdaba çekilir;
+## boss / dev / saldırandan güçlü olan direnir (ağır yara), diğeri boyuta yutulur ve orada tutsak kalır. Oyuncu da çekilir.
+static func _kamui_pull(e: Enemy, t: Node3D) -> void:
+	Combat.popup_text(e.global_position + Vector3.UP * 2.6, "Kamui!", Color(0.75, 0.6, 0.9))
+	e.model.play("cast_out", 0.05, 1.0, true)
+	var at = t.global_position + Vector3.UP * 1.1
+	MsArts.kamui_vortex(at, 1.8, 1.4)
+	t.apply_status("stun", 1.3)
+	Sfx.play("genjutsu", at, 0.7)
+	var wr = weakref(t)
+	e.get_tree().create_timer(1.15).timeout.connect(func():
+		var h = wr.get_ref()
+		if h == null or not is_instance_valid(e) or e.dead or h.is_dead():
+			return
+		if h == Game.player:
+			if MsArts.pull_player(e):
+				return
+		elif h is Enemy and not h.has_meta("boss") and not h.has_meta("teammate") and float(h.size) < 2.5 and Combat.execute_ok(e, h):
+			Combat.popup_text(h.global_position + Vector3.UP * 2.2, "Kamui boyutuna çekildi", Color(0.7, 0.55, 0.9))
+			h.die({"execute": true, "attacker": e, "kamui": true, "dmg": 9999.0})
+			if is_instance_valid(h) and h.is_dead():
+				KS.capture(e, h)
+				if h.get("model"):
+					h.model.visible = false
+			return
+		Combat.popup_text(h.global_position + Vector3.UP * 2.2, "Direndi!", Color(1, 0.6, 0.5))
+		var dir = h.global_position - e.global_position
+		dir.y = 0.0
+		h.take_hit({"dmg": float(h.get("max_hp")) * 0.25, "kind": "heavy", "knock": 10.0, "attacker": e, "dir": dir.normalized()}))
 
 
 ## Düşman Mangekyō'yu açar (oyuncuyla aynı kural: Mangekyō sahibi önce 3 tomoe Sharingan'la dövüşür, Mangekyō tekniği ya da

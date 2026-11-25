@@ -42,6 +42,8 @@ func active() -> Dictionary:
 func quiet() -> bool:
 	if Game.has_meta("arena"):
 		return true   # arena deneme sürümü: araya olay / doğuş girmez
+	if Game.has_meta("kamui_space"):
+		return true   # oyuncu Kamui boyutunda: dünyada olay / doğuş yok
 	if Game.profile.is_empty():
 		return false
 	if not active().is_empty() or (is_instance_valid(LegendPaths._node) and not LegendPaths._node.drill.is_empty()):

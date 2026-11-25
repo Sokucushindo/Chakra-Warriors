@@ -1442,7 +1442,8 @@ func _eye_ability(id: String, t: Node3D) -> void:
 			_shisui_shunshin(t)
 
 
-## Kısa menzil Kamui (Obito): yakındaki hedef girdaba çekilir. Zayıfsa Kamui boyutuna yutulur; güçlüyse direnir,
+## Kısa menzil Kamui (Obito): yakındaki hedef girdaba çekilir ve Kamui boyutuna yutulur (canı dolu olsa da: kanon); boyutta
+## tutsak kalır (world/kamui_space.gd). Boss, kuyruklu canavar ve senden güçlü olan (Combat.execute_ok) direnir,
 ## ağır yarayla kurtulur (anime: Konan / Kakashi'nin kolu). Tutarken sen de yerindesin.
 func _kamui_absorb(t: Node3D) -> void:
 	var tg = t if t and t.global_position.distance_to(p.global_position) < 7.0 else Combat.nearest_enemy(p, 7.0, p.face_dir(), 0.2)
@@ -1457,7 +1458,7 @@ func _kamui_absorb(t: Node3D) -> void:
 	tg.apply_status("stun", 1.3)
 	if p.combat:
 		p.combat.action = "cast"
-	var weak = not tg.has_meta("boss") and (int(tg.get("level")) <= int(Game.profile.get("level", 1)) or float(tg.get("hp")) < float(tg.get("max_hp")) * 0.5)
+	var weak = tg is Enemy and not tg.has_meta("boss") and float(tg.get("size")) < 2.5 and Combat.execute_ok(p, tg)
 	Sfx.play("genjutsu", at, 0.7)
 	if tg.get("model"):
 		var tw = tg.model.create_tween()
@@ -1472,6 +1473,8 @@ func _kamui_absorb(t: Node3D) -> void:
 			Combat.popup_text(at + Vector3.UP, "Kamui boyutuna çekildi", Color(0.7, 0.55, 0.9))
 			Game.profile["kamui_store"] = int(Game.profile.get("kamui_store", 0)) + 1
 			tg.die({"execute": true, "attacker": p, "kamui": true, "dmg": 9999.0})
+			if is_instance_valid(tg) and tg.is_dead():
+				preload("res://scripts/world/kamui_space.gd").capture(p, tg)   # boyutta tutsak kalır
 			if is_instance_valid(tg) and tg.get("model"):
 				tg.model.visible = false
 		else:

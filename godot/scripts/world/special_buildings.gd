@@ -484,8 +484,9 @@ static func hospital(b: Builder, decor: Node3D, hx: float, hn: float, rng: Rando
 	for sx in [-1.0, 1.0]:
 		for sn in [-8.0, -14.5]:
 			b.cyl(Vector3(hx + sx * 9.0, 4.0, fn + sn), 0.7, 8.0, white.darkened(0.08), true, 8)
-	b.box(Vector3(hx, 0.25, fn - 9.0), Vector3(12.0, 0.5, 6.0), Color(0.72, 0.74, 0.8), 0, false)   # giriş basamağı
-	b.box(Vector3(hx, 0.08, fn - 13.0), Vector3(14.0, 0.16, 3.0), Color(0.72, 0.74, 0.8), 0, false)
+	# giriş basamağı: katı (çarpışmasızdı: hastanede doğan / yürüyen gövde 0.5 m taşın içine gömülüyordu)
+	b.box(Vector3(hx, 0.25, fn - 9.0), Vector3(12.0, 0.5, 6.0), Color(0.72, 0.74, 0.8))
+	b.box(Vector3(hx, 0.08, fn - 13.0), Vector3(14.0, 0.16, 3.0), Color(0.72, 0.74, 0.8))
 	# çatı üstü: soluk mavi kubbe (kasnaklı), sol uçta turuncu külah kule + top, sağda turuncu şapkalı iki silindir kule
 	var rt = 27.0
 	b.cyl(Vector3(hx - 10.0, rt + 2.0, hn + 4.0), 26.0, 5.0, Color(0.72, 0.86, 0.9), true, 24)

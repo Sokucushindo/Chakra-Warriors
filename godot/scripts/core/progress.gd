@@ -74,8 +74,8 @@ func refresh_story() -> void:
 func home_spawn() -> Vector3:
 	var vid = home()
 	var v = Game.village(vid)
-	if vid == "konoha":
-		return Game.from_map(Vector2(v["x"] - 120, v["y"] + 120))
+	if vid == "konoha":   # eski sabit nokta yeni yerleşimde bir evin içine düşüyordu: en yakın açık zemin
+		return Missions.open_ground(Game.from_map(Vector2(v["x"] - 120, v["y"] + 120)), 20.0)
 	var c = Vector2(v["x"], v["y"])
 	var best = {}
 	var bd = 1e12
@@ -853,6 +853,8 @@ func interact(it: Dictionary) -> void:
 	match kind:
 		"beast_seal", "beast_talk", "mind_exit", "jubi_revive":
 			TailedBeasts.interact(it)
+		"kamui_exit":
+			preload("res://scripts/world/kamui_space.gd").node().leave_player()
 		"aka_gate":
 			WorldAkatsuki.gate(it)
 		"aka_tag":

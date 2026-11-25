@@ -1488,8 +1488,33 @@ func status_speed() -> float:
 	return Combat.exhaust_k(self)
 
 
+## Doğma / ışınlanma noktasını gerçek zemine oturt: nokta arazi yüksekliğinde verilir, üstünde taş sahne / kaide / basamak
+## (çarpışmalı yapı) varsa gövde onun içinde doğuyordu (hastane önü, Kage kulesi, akademi yolu: "yerin altında doğuyorum").
+## Gövde kapsülü noktanın 1.3 m üstünden aşağı süpürülür, ilk değdiği yüzeye konur; başlangıç zaten doluysa (bina içi) dokunulmaz.
+func floor_lift(pos: Vector3) -> Vector3:
+	if not is_inside_tree():
+		return pos
+	var cap := CapsuleShape3D.new()
+	cap.radius = radius * 0.9
+	cap.height = height
+	var q := PhysicsShapeQueryParameters3D.new()
+	q.shape = cap
+	q.collision_mask = collision_mask
+	q.exclude = [get_rid()]
+	var up := 1.3
+	q.transform = Transform3D(Basis.IDENTITY, pos + Vector3.UP * (up + height * 0.5 + 0.02))
+	var space = get_world_3d().direct_space_state
+	if not space.intersect_shape(q, 1).is_empty():
+		return pos
+	q.motion = Vector3.DOWN * (up + 0.02)
+	var r = space.cast_motion(q)
+	if r.size() < 2 or r[0] >= 1.0:
+		return pos
+	return Vector3(pos.x, maxf(pos.y, pos.y + up + 0.02 - (up + 0.02) * float(r[0]) + 0.03), pos.z)
+
+
 func respawn(pos: Vector3) -> void:
-	global_position = pos
+	global_position = floor_lift(pos)
 	velocity = Vector3.ZERO
 	hp = max_hp
 	chakra = max_chakra

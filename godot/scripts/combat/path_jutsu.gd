@@ -7924,7 +7924,7 @@ func p_tendo(c: Node3D, _t: Node3D) -> void:
 
 ## Göksel Yıldız Kayması: gökyüzü yarılır, dev bir göktaşı ağır ağır alana düşer — devasa çarpma krateri
 func p_tengai_shinsei(c: Node3D, t: Node3D) -> void:
-	DojutsuFXB.tengai_shinsei(self, c, t)
+	TengaiFX.cast(self, c, t)   # kendi efekt dosyası: combat/fx/tengai_fx.gd
 
 
 ## Tengai Shinsei göktaşı: yuvarlak dev kaya, yüzeyi çatlak plakalı, birkaç krater çukuru (birim yarıçap ~1)

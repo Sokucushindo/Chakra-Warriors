@@ -811,7 +811,8 @@ static func _foes(c: Node3D, pos: Vector3, r: float) -> Array:
 
 
 ## Kamui çekişi (kanon: deldiği / odakladığı şey anında Kamui boyutuna gider). Hasar verir; zayıflamış (boss olmayan, canı
-## %35 altı) hedef bütünüyle boyuta çekilir, güçlü hedefin yalnız bir parçası kopar (ağır kanama). Oyuncu hedefse öldürmez.
+## %35 altı) hedef bütünüyle boyuta çekilir (orada tutsak kalır: world/kamui_space.gd), güçlü hedefin yalnız bir parçası kopar
+## (ağır kanama). Oyuncu hedefse öldürmez: zayıflamışsa o da boyuta çekilir (aynı kural), çıkışı arar.
 static func kamui_warp(c: Node3D, h: Node3D, info: Dictionary, at: Vector3) -> void:
 	if not _alive(h):
 		return
@@ -821,6 +822,8 @@ static func kamui_warp(c: Node3D, h: Node3D, info: Dictionary, at: Vector3) -> v
 		inf["dmg"] = minf(float(inf.get("dmg", 0.0)), maxf(1.0, float(h.hp) * 0.5))
 	h.take_hit(inf)
 	if not _alive(h):
+		return
+	if h == Game.player and float(h.hp) <= float(h.max_hp) * 0.35 and pull_player(c):
 		return
 	var weak = not (h is Player) and not h.has_meta("boss") and float(h.hp) <= float(h.max_hp) * 0.35 and h.has_method("die")
 	if weak:
@@ -837,11 +840,28 @@ static func kamui_warp(c: Node3D, h: Node3D, info: Dictionary, at: Vector3) -> v
 		_later(0.95, func():
 			if _alive(h):
 				h.die({"execute": true, "attacker": c, "kamui": true, "dmg": 9999.0})
+				if is_instance_valid(h) and h.is_dead():
+					KS.capture(c, h)   # boyutta tutsak kalır
 				if is_instance_valid(h) and h.get("model"):
 					h.model.visible = false)
 	else:
 		Combat.popup_text(_chest(h) + Vector3.UP, "Bir parçası koptu", Color(0.8, 0.6, 0.95))
 		h.apply_status("bleed", 5.0)
+
+
+const KS = preload("res://scripts/world/kamui_space.gd")
+
+
+## Oyuncu düşman Kamui'siyle boyuta çekilir (NPC'lerle aynı kural; yeni çıkmışsa / kapalı yerdeyse / saldırandan güçlüyse olmaz)
+static func pull_player(c: Node3D) -> bool:
+	var pl = Game.player
+	if pl == null or c == pl or not is_instance_valid(c) or KS.player_inside() or KS._blocked() != "":
+		return false
+	if Game.now() < float(pl.get_meta("kamui_pull_immune", 0.0)) or not Combat.execute_ok(c, pl):
+		return false
+	Combat.popup_text(_chest(pl) + Vector3.UP, "Kamui boyutuna çekildin", Color(0.7, 0.55, 0.9))
+	KS.node().enter_player("pulled")
+	return true
 
 
 ## Kamui Shuriken (kanon, Kakashi): Susanoo, Obito'nun Mangekyō'su biçiminde dev shuriken'ler oluşturur, Kamui ile doldurup

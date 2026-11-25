@@ -1394,6 +1394,23 @@ static func pein_rikudo(pj: PathJutsu, c: Node3D, _t: Node3D) -> void:
 			_puppet_rise(host, p)
 			Combat.popup_text(p + Vector3.UP * 2.6, "Pain bedeni", Color(0.8, 0.7, 1.0))
 			Enemy.fallen.erase(f)
+			# kanon: altı beden çağıranın çevresinde dolaşır (rastgele gezmez) — yoldaşlarla aynı yol: ev = çağıranın yanı
+			var off = Vector3(cos(i * 1.05 + 0.5), 0, sin(i * 1.05 + 0.5)) * 3.5
+			var ew = weakref(e)
+			var cw = weakref(c)
+			pj.every(60.0, 0.4, func(_i, _k):
+				var x = ew.get_ref()
+				var cc = cw.get_ref()
+				if x == null or cc == null or not is_instance_valid(x) or not is_instance_valid(cc) or x.is_dead():
+					return
+				var q = (cc as Node3D).global_position + off
+				x.home = q
+				if x.get("state") in ["idle", "patrol"] and (x.target == null or not is_instance_valid(x.target)):
+					x.wander_to = q
+				if x.global_position.distance_to(q) > 60.0:   # çok geride kaldı: alıcılardan yeniden bağlanır
+					q.y = Game.jutsu_floor_at(q).y
+					x.global_position = q
+					x.target = null)
 			pj.get_tree().create_timer(60.0).timeout.connect(func():
 				if is_instance_valid(e) and not e.is_dead():
 					e.set_meta("teammate", false)
@@ -2088,221 +2105,7 @@ static func _knuckle_gouge(host: Node, g: Vector3, d: Vector3, S: float) -> void
 	_fade_free(mi, 5.0, 1.2)
 
 
-# ================================================================== Tengai Shinsei
-## Göğün üst katmanından dev göktaşı: üstü ufalanıp parça saçar, alt yarısı sıkışmış havayla kara lekeli ve ak sürtünme
-## çizgili, kenarında savrulan rüzgâr yayları (ref); yerde büyüyen gölge yaklaşmayı haber verir. Çarpışta parlama, krater,
-## dışa koşan toz dalgası, yükselen toz sütunu, kalkan kaya levhaları ve uçuşan taşlar. Aynı yörüngeden ikincisi gelir.
-static func tengai_shinsei(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
-	pj.busy(c, 1.2)
-	var tt = pj.tg(c, t, 40.0)
-	var goal = pj.gp(tt.global_position if tt else c.global_position + pj.fwd(c, t) * 20.0)
-	var host = _host(pj)
-	_eye_glint(pj, c, LAV, 2.6)
-	var m1 = _meteor()
-	var met: Node3D = m1["root"]
-	host.add_child(met)
-	# görünüş: göktaşı kameranın öbür yanından, görüş içinde iner; hedef kameraya yakınsa görsel boy küçülür (vuruş aynı)
-	var cam = _cam_pos(pj, c)
-	var away = goal - cam
-	away.y = 0.0
-	var cd = away.length()
-	away = away.normalized() if cd > 0.1 else c.face_dir()
-	var R1 = clampf(cd - 4.0, 4.0, 9.0)
-	var R2 = clampf(cd - 3.0, 5.0, 12.0)
-	var start = goal + Vector3.UP * 60.0 + away * 18.0
-	met.global_position = start
-	met.scale = Vector3.ONE * R1
-	_meteor_shadow(host, goal, R1, 2.6)
-	for k in 10:
-		pj.after(k * 0.25, func():
-			if is_instance_valid(met):
-				_meteor_shed(host, met, R1))
-	var tw = met.create_tween()
-	tw.tween_property(met, "global_position", goal + Vector3.UP * R1 * 0.45, 2.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tw.parallel().tween_property(m1["rock"], "rotation", Vector3(0.5, 0.8, 0.2), 2.6)
-	tw.tween_callback(func():
-		_meteor_land(m1)
-		_meteor_impact(pj, host, goal, R1 / 9.0)
-		if pj.live(c):
-			pj.hit(c, goal + Vector3.UP, 14.0, pj.inf(c, "tengai_shinsei", 5.0, {"knock": 30.0, "launch": 12.0, "kind": "heavy", "hitstop": 0.2}))
-		pj.shake(2.8))
-	tw.tween_property(met, "scale", Vector3(R1, R1 * 0.22, R1), 0.6)
-	tw.tween_interval(1.5)
-	tw.tween_property(met, "scale", Vector3(R1, 0.05, R1), 0.6)
-	tw.tween_callback(met.queue_free)
-	# kanon: ilki durdurulsa bile ikincisi aynı yörüngeden gelip ona çarpar — iki göktaşı art arda
-	pj.after(2.2, func():
-		var m2d = _meteor()
-		var m2: Node3D = m2d["root"]
-		host.add_child(m2)
-		m2.global_position = start + Vector3.UP * 20.0
-		m2.scale = Vector3.ONE * R2
-		_meteor_shadow(host, goal, R2, 2.4)
-		for k in 9:
-			pj.after(k * 0.25, func():
-				if is_instance_valid(m2):
-					_meteor_shed(host, m2, R2))
-		var tw2 = m2.create_tween()
-		tw2.tween_property(m2, "global_position", goal + Vector3.UP * R2 * 0.5, 2.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-		tw2.parallel().tween_property(m2d["rock"], "rotation", Vector3(-0.4, 0.6, 0.3), 2.4)
-		tw2.tween_callback(func():
-			_meteor_land(m2d)
-			_meteor_impact(pj, host, goal, R2 / 9.0)
-			if pj.live(c):
-				pj.hit(c, goal + Vector3.UP, 20.0, pj.inf(c, "tengai_shinsei", 5.0, {"knock": 36.0, "launch": 14.0, "kind": "heavy", "hitstop": 0.2}))
-			pj.shake(3.2))
-		tw2.tween_property(m2, "scale", Vector3(R2, R2 * 0.21, R2), 0.6)
-		tw2.tween_interval(1.5)
-		tw2.tween_property(m2, "scale", Vector3(R2, 0.05, R2), 0.6)
-		tw2.tween_callback(m2.queue_free))
-	Sfx.play("boom", goal, 0.3)
-
-
-## Göktaşı kaya ağı (yarıçap 1): yosunlu koyu gri, pürüzlü yüzey, krater çukurları, üstte kopmakta olan iri parçalar
-static func _meteor_rock_mesh() -> ArrayMesh:
-	if _cache.has("meteor_rock"):
-		return _cache["meteor_rock"]
-	var mb = MB.new()
-	mb.add("sphere", Vector3.ZERO, Vector3.ONE * 2.0, Color(0.26, 0.27, 0.24), Vector3.ZERO, 18)
-	var rng = RandomNumberGenerator.new()
-	rng.seed = 4417
-	for q in 110:
-		var dv = Vector3(rng.randf_range(-1, 1), rng.randf_range(-1, 1), rng.randf_range(-1, 1)).normalized()
-		var bs = rng.randf_range(0.25, 0.5)
-		var eu = Basis(Quaternion(Vector3.UP, dv)).get_euler() * (180.0 / PI)
-		var col = Color(0.36, 0.38, 0.33).lerp(Color(0.22, 0.24, 0.21), rng.randf())
-		mb.add("boulder", dv * (0.98 + maxf(0.0, dv.y) * 0.08), Vector3(bs, bs * 0.3, bs * rng.randf_range(0.7, 1.0)), col, eu, q)
-	for q in 18:   # tepede gevşeyen iri kabuk parçaları (ref: üstü dağılıyor)
-		var dv = Vector3(rng.randf_range(-0.8, 0.8), rng.randf_range(0.5, 1.0), rng.randf_range(-0.8, 0.8)).normalized()
-		var bs = rng.randf_range(0.18, 0.34)
-		mb.add("boulder", dv * rng.randf_range(1.08, 1.22), Vector3(bs, bs, bs), Color(0.2, 0.22, 0.19), Vector3(rng.randf() * 360.0, rng.randf() * 360.0, 0), q + 200)
-	for q in 8:   # krater çukurları: koyu halka + çukur
-		var dv = Vector3(rng.randf_range(-1, 1), rng.randf_range(-1, 1), rng.randf_range(-1, 1)).normalized()
-		var eu = Basis(Quaternion(Vector3.UP, dv)).get_euler() * (180.0 / PI)
-		var cs = rng.randf_range(0.15, 0.3)
-		mb.add("torus", dv * 1.04, Vector3(cs, cs * 0.6, cs), Color(0.33, 0.33, 0.29), eu, 12)
-		mb.add("sphere", dv * 1.0, Vector3(cs * 1.4, cs * 0.3, cs * 1.4), Color(0.12, 0.12, 0.1), eu, 8)
-	_cache["meteor_rock"] = mb.build(Props.toon())
-	return _cache["meteor_rock"]
-
-
-## Rüzgâr yayı ağı: alt kenarı saran açık, kısa kavis
-static func _arc_mesh() -> ArrayMesh:
-	if _cache.has("wind_arc"):
-		return _cache["wind_arc"]
-	var b = MB.new()
-	var pts = []
-	var rr = []
-	for j in 9:
-		var u = j / 8.0
-		var a = u * 1.3
-		pts.append(Vector3(cos(a) * 1.14, -0.2 - u * 0.15, sin(a) * 1.14))
-		rr.append(Vector2(0.018, 0.05) * sin(u * PI) + Vector2(0.002, 0.002))
-	Loft.tube(b, pts, rr, Color.WHITE, 5, 2)
-	_cache["wind_arc"] = b.build(null)
-	return _cache["wind_arc"]
-
-
-## Göktaşı düğümü: {"root", "rock", "cap", "arcs"} (kök taşınır / ölçeklenir; kaya kendi döner, basınç kabuğu altta kalır)
-static func _meteor() -> Dictionary:
-	var root = Node3D.new()
-	var rock = _gi(_meteor_rock_mesh(), null)
-	rock.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-	root.add_child(rock)
-	var cap = _gi(_sph(), _mat("pressure", PRESSURE_SHADER))
-	cap.set_instance_shader_parameter("fade", 1.0)
-	cap.scale = Vector3.ONE * 1.08
-	root.add_child(cap)
-	var arcs = Node3D.new()
-	root.add_child(arcs)
-	for k in 5:
-		var a = _gi(_arc_mesh(), _mat("ghost", GHOST_SHADER))
-		a.set_instance_shader_parameter("body_col", Color(0.95, 0.97, 1.0, 0.75))
-		a.set_instance_shader_parameter("edge_col", Color(0.75, 0.8, 0.9, 0.9))
-		a.set_instance_shader_parameter("fade", 1.0)
-		arcs.add_child(a)
-		a.rotation.y = k * TAU / 5.0 + randf() * 0.4
-		a.position.y = -k * 0.04
-	arcs.create_tween().set_loops(8).tween_property(arcs, "rotation:y", TAU, 0.7).as_relative()
-	return {"root": root, "rock": rock, "cap": cap, "arcs": arcs}
-
-
-## Çarpışta basınç kabuğu ve rüzgâr yayları söner
-static func _meteor_land(md: Dictionary) -> void:
-	var cap = md["cap"]
-	if is_instance_valid(cap):
-		var tw = cap.create_tween()
-		tw.tween_method(_pf(cap, "fade"), 1.0, 0.0, 0.2)
-	var arcs = md["arcs"]
-	if is_instance_valid(arcs):
-		arcs.visible = false
-
-
-## Zeminde yaklaşmayı haber veren, büyüyüp koyulaşan gölge
-static func _meteor_shadow(host: Node, goal: Vector3, R: float, dur: float) -> void:
-	var mi = _decal(host, "mshadow", SHADOW_SHADER, goal + Vector3.UP * 0.07, R * 0.3, {"fade": 0.2})
-	var tw = mi.create_tween().set_parallel()
-	tw.tween_property(mi, "scale", Vector3(R * 1.4, 1, R * 1.4), dur).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tw.tween_method(_pf(mi, "fade"), 0.2, 1.0, dur)
-	tw.chain().tween_method(_pf(mi, "fade"), 1.0, 0.0, 0.15)
-	tw.chain().tween_callback(mi.queue_free)
-
-
-## Düşerken tepesinden kopup geride kalan kaya parçaları
-static func _meteor_shed(host: Node, met: Node3D, R: float) -> void:
-	for k in 6:
-		var dv = Vector3(randf_range(-1, 1), randf_range(0.3, 1.0), randf_range(-1, 1)).normalized()
-		var mi = _gi(_rock(k % 4, Color(0.25, 0.27, 0.23)), null)
-		var p = met.global_position + dv * R * 1.02
-		_put(host, mi, p)
-		var sz = R * randf_range(0.04, 0.1)
-		mi.scale = Vector3.ONE * sz
-		mi.rotation = Vector3(randf(), randf(), randf()) * TAU
-		var tw = mi.create_tween().set_parallel()
-		tw.tween_property(mi, "global_position", p + Vector3.UP * randf_range(2.0, 6.0) + dv * R * 0.3, 1.2).set_ease(Tween.EASE_OUT)
-		tw.tween_property(mi, "rotation", mi.rotation + Vector3(2, 3, 1), 1.2)
-		tw.tween_property(mi, "scale", Vector3.ONE * 0.01, 0.5).set_delay(0.7)
-		tw.chain().tween_callback(mi.queue_free)
-
-
-## Çarpış: parlama, krater, dışa koşan toz dalgası, toz sütunu, kalkan kaya levhaları, uçuşan taşlar (k: boy katsayısı)
-static func _meteor_impact(pj, host: Node, goal: Vector3, k: float) -> void:
-	var lt = OmniLight3D.new()
-	lt.light_color = Color(1.0, 0.92, 0.8)
-	lt.light_energy = 8.0
-	lt.omni_range = 40.0 * k
-	_put(host, lt, goal + Vector3.UP * 6.0)
-	var ltw = lt.create_tween()
-	ltw.tween_property(lt, "light_energy", 0.0, 0.5)
-	ltw.tween_callback(lt.queue_free)
-	var cr = _decal(host, "crater", CRATER_SHADER, goal + Vector3.UP * 0.08, 13.0 * k, {"prog": 0.0, "fade": 1.0, "seed": randf() * 10.0})
-	var ctw = cr.create_tween()
-	ctw.tween_method(_pf(cr, "prog"), 0.0, 1.0, 0.3).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-	ctw.tween_interval(8.0)
-	ctw.tween_method(_pf(cr, "fade"), 1.0, 0.0, 1.5)
-	ctw.tween_callback(cr.queue_free)
-	for q in 20:   # zemine yapışık dışa koşan toz dalgası
-		var a = TAU * q / 20.0 + randf() * 0.2
-		var dirv = Vector3(cos(a), 0, sin(a))
-		_billow(host, goal + dirv * 3.0 * k + Vector3.UP * 1.5, randf_range(5.0, 7.0) * k, 1.8, dirv * 14.0 * k + Vector3.UP * 1.0, Color(0.68, 0.6, 0.5))
-	for q in 8:   # yükselen toz sütunu
-		var a = randf() * TAU
-		_billow(host, goal + Vector3(cos(a), 0, sin(a)) * 2.0 + Vector3.UP * 3.0, randf_range(5.0, 7.0) * k, 2.4, Vector3.UP * randf_range(6.0, 10.0) * k + Vector3(cos(a), 0, sin(a)) * 2.0, Color(0.6, 0.55, 0.48))
-	for q in 12:   # krater dudağında kalkan kaya levhaları
-		var a = TAU * q / 12.0 + randf() * 0.2
-		var dirv = Vector3(cos(a), 0, sin(a))
-		var p = pj.gp(goal + dirv * 8.0 * k)
-		var mi = _gi(_rock(q % 4, Color(0.4, 0.34, 0.28)), null)
-		_put(host, mi, p)
-		var sz = Vector3(randf_range(2.0, 3.5), randf_range(1.5, 3.0), randf_range(0.8, 1.4)) * k
-		mi.rotation = Vector3(-0.6 + randf() * 0.3, atan2(dirv.x, dirv.z), randf_range(-0.3, 0.3))
-		mi.scale = Vector3(sz.x, 0.01, sz.z)
-		var tw = mi.create_tween()
-		tw.tween_property(mi, "scale", sz, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		tw.tween_interval(6.0)
-		tw.tween_property(mi, "global_position", p - Vector3.UP * sz.y, 1.2)
-		tw.tween_callback(mi.queue_free)
-	_chunks(host, goal + Vector3.UP * 2.0, goal.y, 26, 16.0 * k, 1.2 * k, Color(0.36, 0.33, 0.29), 2.0)
+# Tengai Shinsei: kendi dosyası combat/fx/tengai_fx.gd (TengaiFX)
 
 
 # ================================================================== Tsukuyomi

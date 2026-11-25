@@ -8,6 +8,8 @@ const EYE_IDS := ["goz_sag", "goz_sol"]
 const BIJUU_IDS := ["bijuu_t0", "bijuu_t1", "bijuu_t2", "bijuu_t3", "bijuu_t4"]
 const SUS_IDS := ["susanoo_t0", "susanoo_t1", "susanoo_t2"]
 const MS_BIJUU_ID := "ms_bijuu_kuchiyose"
+const KAMUI_ID := "kamui_kukan"
+const KS = preload("res://scripts/world/kamui_space.gd")
 
 
 ## Oyuncunun şu an sahip olduğu özel teknikleri Data.jutsu'ya yazar; artık sahip olmadıklarını siler. Kimlik listesi döner.
@@ -52,6 +54,13 @@ static func refresh(pr: Dictionary) -> Array:
 		out.append(MS_BIJUU_ID)
 	else:
 		Data.jutsu.erase(MS_BIJUU_ID)
+	# Kamui Kūkan (kanon: Obito / Kakashi Mangekyō'su kendi boyutuna girer, oradan bıraktığı yere döner)
+	if KS.has_access(pr):
+		Data.jutsu[KAMUI_ID] = {"name": "Kamui Kūkan", "cost": int(KS.SELF_COST), "cd": KS.SELF_CD, "element": "", "category": "dojutsu", "canon_rank": "S",
+			"seals": [], "virtual": "kamui_space", "desc": "Kamui'nin bağlı olduğu boyuta kendini çekersin (Mangekyō açık olmalı): kaçmak ya da Kamui ile yuttuklarını görmek için. Boyuttayken yeniden kullanınca tam bıraktığın yere dönersin."}
+		out.append(KAMUI_ID)
+	else:
+		Data.jutsu.erase(KAMUI_ID)
 	var mt = Susanoo.max_tier(pr)
 	for i in 3:
 		var id = SUS_IDS[i]
@@ -73,6 +82,8 @@ static func cooldown(p: Player, jid: String) -> float:
 		return 0.0
 	if v.begins_with("eye:") and m.eyes:
 		return float(m.eyes.cd.get(v.substr(4), 0.0))
+	if v == "kamui_space":
+		return float(p.combat.cooldowns.get(jid, 0.0))
 	if v.begins_with("susanoo:") and m.eyes and m.eyes.susanoo and is_instance_valid(m.eyes.susanoo_node):
 		return float(m.eyes.susanoo_node.tech_cd[int(v.substr(8))])
 	if v.begins_with("bijuu:") and m.cloak:
@@ -106,6 +117,35 @@ static func cast(p: Player, jid: String) -> bool:
 		if TailedBeasts.summon_ms_beast(p):
 			p.chakra -= 120.0
 			p.combat.cooldowns[jid] = 60.0
+		return true
+	if v == "kamui_space":
+		var ks = KS.node()
+		if ks.player_in:
+			ks.leave_player()   # çıkış serbest: bıraktığın yere
+			return true
+		var ek: Eyes = m.eyes
+		if ek == null or not ek.active or not ek.ms_on:
+			Hud.msg("Kamui Kūkan için Mangekyō'yu aç (V: Sharingan, tekrar V: Mangekyō).", Color(1, 0.4, 0.4))
+			return true
+		if ek.blind() >= 1.0 and not ek._ems():
+			Hud.msg("Gözlerin kör: Mangekyō teknikleri kullanılamaz. Ebedi Mangekyō gerek.", Color(1, 0.45, 0.45))
+			return true
+		var why = KS._blocked()
+		if why != "":
+			Hud.msg(why, Color(0.8, 0.8, 0.8))
+			return true
+		if float(p.combat.cooldowns.get(jid, 0.0)) > 0.0:
+			Hud.msg("Kamui Kūkan hazır değil (%.0f sn)" % float(p.combat.cooldowns[jid]), Color(0.9, 0.8, 0.6))
+			return true
+		if p.chakra < KS.SELF_COST:
+			Hud.msg("Yeterli chakra yok (%d)." % int(KS.SELF_COST), Color(0.6, 0.7, 1))
+			return true
+		p.chakra -= KS.SELF_COST
+		p.combat.cooldowns[jid] = KS.SELF_CD
+		if not ek._ems():
+			ek.add_blind(0.03)   # Mangekyō bedeli (göz tekniğiyle aynı)
+		Combat.popup_text(p.global_position + Vector3.UP * 2.4, "Kamui Kūkan", Color(0.75, 0.6, 0.95))
+		ks.enter_player("self")
 		return true
 	if v.begins_with("eye:"):
 		var ey: Eyes = m.eyes

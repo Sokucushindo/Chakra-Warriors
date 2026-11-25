@@ -433,6 +433,7 @@ func _begin_game(pos: Vector3) -> void:
 		if m.get("type", "") != "story":
 			Missions._setup(m)
 	await _settle_world()
+	player.global_position = player.floor_lift(player.global_position)   # köy kurulunca doğma noktasının üstüne kaide / sahne gelmiş olabilir
 
 
 ## Kayıt yüklenince / yeni oyunda çevredeki dünya bölgeleri (yerleşimler, tarlalar, peyzaj) yükleme ekranında, tam hızla kurulur.

@@ -868,6 +868,9 @@ func _chase(dt: float) -> void:
 				return nd.substr(4) in (arch.get("owns", []) as Array)
 			return true)
 		ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("need", "")) != "raiton_modo" or buffs.has("raiton_chakura_modo"))
+		# İzanagi / Izanami (kanon: her kullanım bir Sharingan gözünü karartır): ışığı kalan Sharingan / Mangekyō gözü şart,
+		# açık İzanagi varken yeniden açılmaz — eskiden göz kararsa da bekleme bitince tekrar tekrar açılıyordu (oyuncu gözünü harcar)
+		ready = ready.filter(func(id): return not String(id) in ["izanagi", "izanami"] or (int((get_meta("eyes", {}) as Dictionary).get("kind", 0)) in [1, 4, 5] and not has_meta("izanagi_until")))
 		ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("need", "")) != "senju_dna" or String(arch.get("clan", "")) == "senju" or bool(get_meta("senju_cells", false)))   # Hashirama hücresi: oyuncuyla aynı şart
 		ready = ready.filter(func(id): return (String(Data.jutsu.get(id, {}).get("need", "")) != "senninka" or buffs.has("jugo_senninka") or buffs.has("jugo_senninka2")) and (String(Data.jutsu.get(id, {}).get("need", "")) != "senninka2" or buffs.has("jugo_senninka2")))   # Jūgo: oyuncuyla aynı şart
 		ready = ready.filter(func(id): return (String(Data.jutsu.get(id, {}).get("need", "")) != "sototoro" or buffs.has("sototoro") or buffs.has("santoro")) and (String(Data.jutsu.get(id, {}).get("need", "")) != "santoro" or buffs.has("santoro")))   # Inuzuka: kurt biçimi şartı   # Raikage nintaijutsusu: önce Raiton Chakra Modu

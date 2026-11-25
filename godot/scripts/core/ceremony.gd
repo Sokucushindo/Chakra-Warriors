@@ -212,7 +212,7 @@ func _person(nm: String, look: Dictionary, at: Vector3, face_to: Vector3, role :
 		v.look_extra = look
 	get_tree().current_scene.add_child(v)
 	var q = at
-	q.y = Game.ground_height(q.x, q.z)
+	q.y = _floor(at)
 	v.global_position = q
 	v.home = q
 	v.goal = q
@@ -343,6 +343,25 @@ func _change(cb: Callable) -> void:
 	await Interiors.inst._fade(0.0, 0.45)
 
 
+## Noktanın altındaki gerçek zemin: nokta araziden yüksekse (Kage kulesinin taş sahnesi, basamaklar) kendi boyunun biraz
+## üstünden aşağı ışın; yoksa arazi. (Sahne arazi yüksekliğine kuruluyordu: kule önündeki kişiler taş sahnenin içine gömülüyordu.)
+func _floor(p: Vector3) -> float:
+	var base = Game.ground_height(p.x, p.z)
+	if not (p.y > base + 0.2) or Game.player == null:
+		return base
+	var q = PhysicsRayQueryParameters3D.create(Vector3(p.x, p.y + 1.0, p.z), Vector3(p.x, base - 0.3, p.z), 1)
+	q.collide_with_areas = false
+	for _i in 4:
+		var h = Game.player.get_world_3d().direct_space_state.intersect_ray(q)
+		if h.is_empty():
+			break
+		if h["collider"] is CharacterBody3D:   # kişilerin kapsülü zemin sayılmaz
+			q.exclude = q.exclude + [h["rid"]]
+			continue
+		return maxf(float(h["position"].y), base)
+	return base
+
+
 ## Sahne yeri: verilen noktaya en yakın açık zemin (ev / ağaç içine kurulmasın)
 func _open(p: Vector3, r := 6.0) -> Vector3:
 	var q: Vector3 = Missions.open_ground(p, r)
@@ -414,11 +433,11 @@ func _kage() -> void:
 	var stage = door + out * 4.0
 	for dd in [4.0, 5.0, 6.0, 7.0, 8.0, 9.0]:
 		var c2 = door + out * dd
-		c2.y = Game.ground_height(c2.x, c2.z)
+		c2.y = _floor(c2)   # kapı eşiği yüksekliğinden aşağı: kule sahnesinin taşı (arazi değil)
 		if _free(c2 + side * 0.9) and _free(c2 - side * 0.9) and _free(c2):
 			stage = c2
 			break
-	stage.y = Game.ground_height(stage.x, stage.z)
+	stage.y = _floor(Vector3(stage.x, door.y, stage.z))
 	pl.global_position = stage + side * 0.9 + Vector3.UP * 0.05
 	pl.velocity = Vector3.ZERO
 	pin = pl.global_position
@@ -430,12 +449,12 @@ func _kage() -> void:
 	_cine_on()
 	_cam_shot(stage + out * 13.0 + Vector3.UP * 3.2, stage + Vector3.UP * 1.4)
 	await Interiors.inst._fade(0.0, 1.0)
-	Hud.banner("YEMİN TÖRENİ", "%s'nin yeni %s'i" % [String(v.get("name", "Köy")), kt], Color(1, 0.8, 0.45))
+	Hud.banner("YEMİN TÖRENİ", "%s'nin yeni %s'si" % [String(v.get("name", "Köy")), kt], Color(1, 0.8, 0.45))
 	Sfx.play("crowd", stage, 0.8, 0.6)
 	await _wait(3.0)
 	_look_at(old, stage + out * 6.0)
 	_cam_shot(stage + out * 4.6 - side * 0.8 + Vector3.UP * 1.5, stage - side * 0.3 + Vector3.UP * 1.75)   # ikisi birden kadrajda (konuşma balonu da)
-	_say(old, "Bugün köyümüz yeni %s'ini seçti. Konsey, daimyō ve sizler... hepiniz tanıksınız." % kt, 4.0)
+	_say(old, "Bugün köyümüz yeni %s'sini seçti. Konsey, daimyō ve sizler... hepiniz tanıksınız." % kt, 4.0)
 	await _wait(4.2)
 	_say(old, "Bu şapka bir taç değil, bir yüktür. Her ninjanın, her çocuğun hayatı artık senin omuzlarında.", 4.4)
 	await _wait(4.6)

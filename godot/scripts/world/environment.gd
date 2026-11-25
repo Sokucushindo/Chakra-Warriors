@@ -330,6 +330,8 @@ func _process(dt: float) -> void:
 		snow.global_position = cam.global_position + Vector3(0, 12, 0)
 		var fp = Game.player.global_position if Game.player else cam.global_position
 		splash.global_position = Vector3(fp.x, Game.ground_height(fp.x, fp.z) + 0.03, fp.z)
+	if space:
+		_space_look()
 
 
 func _update_weather(dt: float) -> void:
@@ -357,6 +359,45 @@ func _update_weather(dt: float) -> void:
 	rain.emitting = weather == "yağmur" and overcast > 0.4 and not indoor
 	splash.emitting = rain.emitting
 	snow.emitting = weather == "kar" and overcast > 0.3 and not indoor
+
+
+## Kamui Kūkan (world/kamui_space.gd): oyuncu boyuttayken gök yok (simsiyah boşluk), pus karanlığa gömer, ışık tepeden
+## soğuk ve düz (anime karelerinde gölge yok), gece / hava etkisi yok. Kapanınca saat döngüsü kaldığı yerden sürer.
+var space := false
+
+
+func set_space(on: bool) -> void:
+	space = on
+	if not on:
+		env.background_mode = Environment.BG_SKY
+		env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
+		env.ambient_light_energy = 0.3
+		env.fog_aerial_perspective = 0.5
+		sun.shadow_enabled = Game.settings["shadows"]
+	else:
+		_space_look()
+
+
+func _space_look() -> void:
+	env.background_mode = Environment.BG_COLOR
+	env.background_color = Color(0.008, 0.01, 0.016)
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	env.ambient_light_color = Color(0.62, 0.7, 0.82)
+	env.ambient_light_energy = 0.75
+	env.fog_light_color = Color(0.008, 0.01, 0.016)
+	env.fog_density = 0.0042
+	env.fog_aerial_perspective = 0.0
+	env.tonemap_exposure = 0.9
+	env.adjustment_saturation = 1.0
+	sun.light_color = Color(0.8, 0.88, 1.0)
+	sun.light_energy = 0.7
+	sun.shadow_enabled = false
+	sun.look_at_from_position(Vector3.ZERO, -Vector3(-0.35, 0.85, 0.4).normalized(), Vector3.UP)
+	rain.emitting = false
+	splash.emitting = false
+	snow.emitting = false
+	RenderingServer.global_shader_parameter_set("g_night", 0.0)
+	Dangle.wind = Vector3(0.15, 0, 0.05)
 
 
 ## Kamera sarsıntısı / ekran efektleri (dövüş için)
