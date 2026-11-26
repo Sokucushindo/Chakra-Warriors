@@ -3022,6 +3022,29 @@ static func _hair_panel(v: VBoxContainer, look: Dictionary, refresh: Callable) -
 	v.add_child(cg)
 
 
+## Önizleme / portrede dōjutsu görünsün (Bingo Book, envanter): look'taki göz eşyaları (eye_r / eye_l) ya da "dojutsu" sayısı
+static func _preview_eyes(m: CharacterModel, look: Dictionary) -> void:
+	var kr := 0; var lr := 3; var kl := 0; var ll := 3
+	for pair in [["eye_r", true], ["eye_l", false]]:
+		var ed = look.get(pair[0])
+		if ed is Dictionary and int(ed.get("kind", 0)) > 0:
+			if pair[1]:
+				kr = int(ed["kind"]); lr = int(ed.get("lvl", 3))
+			else:
+				kl = int(ed["kind"]); ll = int(ed.get("lvl", 3))
+	var dk := int(look.get("dojutsu", 0))
+	if dk > 0:
+		if kr == 0:
+			kr = dk
+		if kl == 0:
+			kl = dk
+	if kr == 0 and kl == 0:
+		return
+	m.set_dojutsu_eyes(kr, lr, kl, ll, false)
+	if bool(look.get("own_hair", false)) and Game.profile is Dictionary and not Game.profile.is_empty():
+		m.set_ms_designs(Eyes.design_for(Game.profile, "sag_goz"), Eyes.design_for(Game.profile, "sol_goz"))
+
+
 ## Ayrı dünyada dönen karakter önizlemesi (oyun duraklatılmışken de çalışır)
 static func _model_preview(look: Dictionary, cam_pos := Vector3(0, 1.0, -4.4), target := Vector3(0, 0.92, 0), fov := 32.0, spin := true, size := Vector2(400, 600)) -> Control:
 	var svc = SubViewportContainer.new()
@@ -3056,6 +3079,7 @@ static func _model_preview(look: Dictionary, cam_pos := Vector3(0, 1.0, -4.4), t
 	m.setup(lk2)
 	m.play("idle")
 	m.scale = Vector3.ONE
+	_preview_eyes(m, look)
 	var cam = Camera3D.new()
 	cam.fov = fov
 	sv.add_child(cam)
@@ -4104,7 +4128,13 @@ static func bingo_book(main: Node = null) -> void:
 	frame.size = Vector2(300, 340)
 	lp.add_child(frame)
 	if e.has("look") and e["look"] is Dictionary:
-		var pv = _model_preview(e["look"], Vector3(0, 1.48, -1.75), Vector3(0, 1.4, 0), 30.0, false, Vector2(288, 328))
+		var blk: Dictionary = (e["look"] as Dictionary).duplicate()
+		var bey := int(e.get("eye", 0))
+		if bey <= 0 and String(e.get("clan", "")) != "":
+			bey = int(ClanWorld.EYE_KIND.get(String(e.get("clan", "")), 0))
+		if bey > 0:
+			blk["dojutsu"] = bey   # portrede göz açık (Sharingan / Byakugan…)
+		var pv = _model_preview(blk, Vector3(0, 1.48, -1.75), Vector3(0, 1.4, 0), 30.0, false, Vector2(288, 328))
 		pv.position = Vector2(6, 6)
 		frame.clip_contents = true
 		frame.add_child(pv)
@@ -4144,6 +4174,24 @@ static func bingo_book(main: Node = null) -> void:
 	v.add_child(_rank_stamp(String(e.get("rank", "C")), 84))
 	var info = [["Köy", "%s (kaçak)" % e.get("village_name", "?")], ["Tehlike", "%s-rank  •  %s" % [e.get("rank", "?"), _threat_word(int(e.get("level", 1)))]],
 		["Element", String(e.get("element", "?")).capitalize()], ["Son görüldüğü yer", "%s (~%d m alan)" % [e.get("region", "?"), int(e.get("known", 0))]]]
+	# neye karşı olduğunu bil: klan, göz (dōjutsu), kan soyu, taşıdığı canavar, özel silah — yalnız olanlar
+	var bclan := String(e.get("clan", ""))
+	if bclan != "":
+		info.append(["Klan", ClanWorld.clan_name(bclan)])
+	var beye := int(e.get("eye", 0))
+	if beye <= 0 and bclan != "":
+		beye = int(ClanWorld.EYE_KIND.get(bclan, 0))
+	if beye > 0:
+		info.append(["Göz", String({1: "Sharingan", 2: "Byakugan", 3: "Ketsuryūgan", 4: "Mangekyō Sharingan", 5: "Ebedî Mangekyō Sharingan", 6: "Rinnegan", 7: "Tenseigan", 8: "Jōgan"}.get(beye, "?"))])
+	var bnat: Array = e.get("nat", [])
+	if not bnat.is_empty():
+		info.append(["Kan soyu", ", ".join(bnat.map(func(n): return String(Elements.NAMES.get(String(n), String(n).capitalize()))))])
+	if e.has("beast"):
+		info.append(["Jinchūriki", String(BeastModels.INFO.get(String(e["beast"]), {}).get("name", String(e["beast"]))).split(" — ")[0]])
+	if e.has("mist_sword"):
+		info.append(["Kılıç", Swordsmen.sword_name(String(e["mist_sword"]))])
+	elif e.has("legend_weapon"):
+		info.append(["Silah", String(Gear.item(String(e["legend_weapon"])).get("name", String(e["legend_weapon"]))).split(" (")[0]])
 	for row in info:
 		var r = UI.hbox(10)
 		var k = mk.call(row[0], 15, Color(0.45, 0.32, 0.2), true)
@@ -4420,6 +4468,49 @@ static func sell_screen(title: String, buyer: String, back: Callable) -> void:
 # ================================================================== dünya haritası + hızlı seyahat
 ## Bölgesel harita: oyuncunun çevresi (1.6 km) yakın plan; yollar, nehirler, binalar ve dükkân / önemli yer ikonları.
 ## Sağ panelden yere tıklayınca ok oraya yönlendirir. [Dünya Haritası] düğmesiyle dünya haritasına geçilir.
+## Haritaya oyuncunun kendi işaretçisi: sol tık (telefonda dokunuş) koyar, sağ tık kaldırır; ok oraya yol gösterir.
+## to_world: harita pikseli -> dünya konumu, to_px: dünya konumu -> harita pikseli
+static func _map_marker(tr: Control, to_world: Callable, to_px: Callable) -> void:
+	tr.mouse_filter = Control.MOUSE_FILTER_STOP
+	var mk = Control.new()
+	mk.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tr.add_child(mk)
+	mk.draw.connect(func():
+		mk.draw_colored_polygon(PackedVector2Array([Vector2(0, 0), Vector2(-9, -18), Vector2(9, -18)]), Color(0.95, 0.3, 0.25))
+		mk.draw_circle(Vector2(0, -22), 10.0, Color(0.95, 0.3, 0.25))
+		mk.draw_circle(Vector2(0, -22), 4.0, Color.WHITE)
+		mk.draw_arc(Vector2(0, -22), 10.0, 0.0, TAU, 20, Color(0, 0, 0, 0.7), 2.0, true))
+	var place = func():
+		var wp = Game.profile.get("waypoint")
+		mk.visible = wp is Array and wp.size() >= 4 and String(wp[3]) == "İşaret"
+		if mk.visible:
+			mk.position = to_px.call(Vector3(float(wp[0]), float(wp[1]), float(wp[2])))
+		mk.queue_redraw()
+	place.call()
+	tr.gui_input.connect(func(e: InputEvent):
+		if not (e is InputEventMouseButton and e.pressed):
+			return
+		if e.button_index == MOUSE_BUTTON_LEFT:
+			var w: Vector3 = to_world.call(e.position)
+			w.y = Game.ground_height(w.x, w.z)
+			Game.profile["waypoint"] = [w.x, w.y, w.z, "İşaret"]
+			Game.profile["track"] = "waypoint"
+			Hud.msg(Lang.t("İşaret kondu (%d m) — sağ tık: kaldır") % int(w.distance_to(Game.player.global_position)) if Game.player else "", Color(1, 0.85, 0.4))
+			Sfx.play("click")
+		elif e.button_index == MOUSE_BUTTON_RIGHT:
+			var wp = Game.profile.get("waypoint")
+			if wp is Array and wp.size() >= 4 and String(wp[3]) == "İşaret":
+				Game.profile.erase("waypoint")
+				if String(Game.profile.get("track", "")) == "waypoint":
+					Game.profile["track"] = ""
+				Hud.msg("İşaret kaldırıldı", Color(0.85, 0.85, 0.9))
+		place.call())
+	var hint = UI.label("Sol tık: işaret koy  •  Sağ tık: kaldır", 13, UI.CREAM)
+	hint.position = Vector2(14, 12)
+	hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tr.add_child(hint)
+
+
 static func region_map(main: Node) -> void:
 	if Game.has_meta("kamui_space"):
 		kamui_map(main)
@@ -4488,6 +4579,7 @@ static func region_map(main: Node) -> void:
 			var mk = Icons.view("target", 30, UI.GOLD)
 			mk.position = mq - Vector2(15, 15)
 			tr.add_child(mk)
+	_map_marker(tr, func(px: Vector2) -> Vector3: return Vector3(r.x + px.x / sz.x * r.z, 0.0, r.y + px.y / sz.y * r.z), to_px)
 	var scl = UI.label("%d m" % int(r.z * 0.25), 13, UI.CREAM)
 	scl.position = Vector2(14, sz.y - 30)
 	tr.add_child(scl)
@@ -4623,6 +4715,10 @@ static func world_map(main: Node) -> void:
 		var mk = Icons.view("target", 30, UI.GOLD)
 		mk.position = to_px.call(mm.x, mm.y) - Vector2(15, 15)
 		tr.add_child(mk)
+	_map_marker(tr, func(px: Vector2) -> Vector3: return Game.from_map(Vector2(Game.x0 + px.x / sz.x * W, Game.y1 - px.y / sz.y * H)),
+		func(wp: Vector3) -> Vector2:
+			var m2 = Game.to_map(wp)
+			return to_px.call(m2.x, m2.y))
 	# yan panel: hızlı seyahat
 	var side = PanelContainer.new()
 	side.add_theme_stylebox_override("panel", UI.glass(16, 20, 0.8))

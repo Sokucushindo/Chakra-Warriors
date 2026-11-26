@@ -709,7 +709,7 @@ func _combo_base(i: int) -> Dictionary:
 	var wid = ""
 	var gq = Gear.equipped(Game.profile, "sag")
 	if not gq.is_empty():
-		wid = Gear.base_id(String(gq.get("id", "")))
+		wid = Gear.visual_id(String(gq.get("id", "")))   # özel silah tabanıyla (Uchiha Gunbai = gunbai kombosu)
 	if wid == "" or not Gear.item(String(gq.get("id", ""))).has("weapon"):
 		var sk = FightingStyles.player_key(Game.profile)   # silahsız: seçili dövüş tarzı
 		if sk != "":

@@ -4014,7 +4014,7 @@ func c_uchihagaeshi(c: Node3D, t: Node3D) -> void:
 	var dur = 2.4
 	busy(c, dur + 0.3)
 	if c.get("model"):
-		c.model.hold_temp("gunbai", dur + 0.5, "Right", 2.2, PI * 0.5, false, true)
+		c.model.hold_temp("uchiha_gunbai", dur + 0.5, "Right", 2.2, PI * 0.5, false, true)
 		c.model.play("block", 0.08, 1.0)
 	if c is Player:
 		c.facing = atan2(-d.x, -d.z)

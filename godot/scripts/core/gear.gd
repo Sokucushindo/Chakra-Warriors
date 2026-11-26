@@ -1047,6 +1047,9 @@ const ITEMS := {
 	"patlayici_kunai": {"removed": true, "name": "Etiketli Kunai", "slot": "el", "price": 260, "rank": 1, "desc": "Sapına patlayıcı etiket sarılı kunai. Darbeler sert.", "stats": {}, "weapon": {"hit": 5, "dmg": 1.3, "reach": 0.15, "style": "blade"}, "c1": Color(0.6, 0.62, 0.66)},
 	"zincirli_kunai": {"name": "Zincirli Kunai", "slot": "el", "price": 300, "rank": 1, "desc": "Halkasına zincir bağlı kunai: menzil uzar.", "stats": {}, "weapon": {"hit": 5, "dmg": 1.2, "reach": 0.6, "style": "blade"}, "c1": Color(0.6, 0.62, 0.66)},
 	"senbon": {"name": "Senbon İğneleri", "slot": "el", "price": 120, "rank": 0, "desc": "Parmak aralarında yelpaze gibi tutulan ince iğneler (iki elde). UZUN MENZİL: iğne yağmuru, kesin noktalara atış.", "stats": {"speed": 0.02}, "weapon": {"hit": 4.5, "dmg": 1.1, "reach": 0.1, "style": "dual", "ranged": true}, "c1": Color(0.75, 0.77, 0.8)},
+	"uchiha_gunbai": {"name": "Uchiha Gunbai", "skin": true, "slot": "sag", "price": 0, "rank": 1, "clan": "uchiha", "base": "gunbai",
+		"desc": "Uchiha ailesinin savaş yelpazesi (Obito savaşta böyle kullandı): kalın koyu çerçeve, virgül işaretli soluk yüz, boydan boya sap ve zincir. Savuruşu iter, kendisi kalkan olur; Uchiha Gaeshi bununla yapılır. Efsane Gunbai'den hafif.",
+		"stats": {"def": 6, "chakra": 10}, "weapon": {"hit": 5.0, "dmg": 1.45, "reach": 1.0, "style": "fan", "special": "gust", "boost": {"katon": 0.05}}, "c1": Color(0.22, 0.22, 0.25)},
 	"hakko_chakura_to": {"name": "Hakkō Chakura Tō", "skin": true, "slot": "el", "price": 1400, "rank": 1, "clan": "hatake", "base": "tanto",
 		"desc": "Beyaz Işık Chakra Kılıcı — Hatake ailesinin (Sakumo, Kakashi) düz bıçaklı tantōsu, küçük yuvarlak siperlik. Savrulunca beyaz chakra izi bırakır. Hakkō Chakura Tō tekniği bununla yapılır.",
 		"stats": {"melee": 0.06, "chakra": 10}, "weapon": {"hit": 5, "dmg": 1.5, "reach": 0.4, "style": "blade"}, "c1": Color(0.92, 0.94, 0.98)},
@@ -1547,6 +1550,11 @@ static func is_eye(id: String) -> bool:
 ## Eski kayıtlar / yeni karakter: görünümden başlangıç ekipmanı üretir
 static func ensure(p: Dictionary) -> void:
 	if p.has("gear") and p.has("equip"):
+		if String(p.get("clan", "")) == "uchiha" and not p.get("flags", {}).get("uchiha_gunbai", false):
+			p["flags"] = p.get("flags", {})
+			p["flags"]["uchiha_gunbai"] = true
+			if not (p["gear"] as Array).any(func(g): return String(g.get("id", "")) == "uchiha_gunbai"):
+				grant(p, "uchiha_gunbai")   # eski Uchiha kaydı: aile gunbai'si bir kez çantaya
 		var ch = _migrate_sets(p)
 		if _ensure_eyes(p) or ch:
 			apply_look(p)
@@ -1562,6 +1570,9 @@ static func ensure(p: Dictionary) -> void:
 	# Hatake: Hakkō Chakura Tō aile yadigârı (kanon: Sakumo'dan Kakashi'ye) — başlangıçta verilir, dükkânda satılmaz
 	if String(p.get("clan", "")) == "hatake":
 		grant(p, "hakko_chakura_to", "sag")
+	# Uchiha: aile gunbai'si yadigâr (dükkânda yok); kuşanılmadan çantada başlar (akademi öğrencisi yumrukla dövüşür)
+	if String(p.get("clan", "")) == "uchiha":
+		grant(p, "uchiha_gunbai")
 	p["flags"] = p.get("flags", {})
 	p["flags"]["hatake_kit"] = true
 	if L.get("band") != null:
