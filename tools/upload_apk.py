@@ -29,8 +29,10 @@ for a in rel.get('assets', []):
 up = rel['upload_url'].split('{')[0] + '?name=' + name
 a = api(up, data=open(apk, 'rb').read(), method='POST', headers={'Content-Type': 'application/vnd.android.package-archive'}, timeout=3600)
 note = ('\n\n### Android (test build)\nDownload **%s** and install it on your phone (Android 7.0+, 64-bit). '
-        'Touch controls are not ready yet: this build is for testing how the game runs on phones '
-        '(a Bluetooth keyboard and mouse or a controller can be used meanwhile).' % name)
-if 'Android (test build)' not in (rel.get('body') or ''):
-    api(rel['url'], data=json.dumps({'body': (rel.get('body') or '') + note}).encode(), method='PATCH', headers={'Content-Type': 'application/json'})
+        'Touch controls: joystick on the left, drag anywhere free to turn the camera, combat buttons on the right, '
+        'tap the jutsu slots at the bottom to cast. This is an early test build: performance and layout will keep improving.' % name)
+body = rel.get('body') or ''
+if '### Android (test build)' in body:
+    body = body[:body.index('### Android (test build)')].rstrip()
+api(rel['url'], data=json.dumps({'body': body + note}).encode(), method='PATCH', headers={'Content-Type': 'application/json'})
 print('OK', a['browser_download_url'], a['size'] // 1048576, 'MB')
