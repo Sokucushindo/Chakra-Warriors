@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dkgu1l21b8vt0"
 path.s3tc="res://.godot/imported/Darkness_Shibu_F00_000_HairBack_00.png-d77be512028b379c68db0dc43330498a.s3tc.ctex"
+path.etc2="res://.godot/imported/Darkness_Shibu_F00_000_HairBack_00.png-d77be512028b379c68db0dc43330498a.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/Darkness_Shibu_F00_000_HairBack_00.png"
-dest_files=["res://.godot/imported/Darkness_Shibu_F00_000_HairBack_00.png-d77be512028b379c68db0dc43330498a.s3tc.ctex"]
+dest_files=["res://.godot/imported/Darkness_Shibu_F00_000_HairBack_00.png-d77be512028b379c68db0dc43330498a.s3tc.ctex", "res://.godot/imported/Darkness_Shibu_F00_000_HairBack_00.png-d77be512028b379c68db0dc43330498a.etc2.ctex"]
 
 [params]
 

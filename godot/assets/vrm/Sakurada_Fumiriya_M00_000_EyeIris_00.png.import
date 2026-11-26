@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://bk7jc4k2o0iy3"
 path.s3tc="res://.godot/imported/Sakurada_Fumiriya_M00_000_EyeIris_00.png-fa05d8fe9e2acd64cb57813b22b701be.s3tc.ctex"
+path.etc2="res://.godot/imported/Sakurada_Fumiriya_M00_000_EyeIris_00.png-fa05d8fe9e2acd64cb57813b22b701be.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/Sakurada_Fumiriya_M00_000_EyeIris_00.png"
-dest_files=["res://.godot/imported/Sakurada_Fumiriya_M00_000_EyeIris_00.png-fa05d8fe9e2acd64cb57813b22b701be.s3tc.ctex"]
+dest_files=["res://.godot/imported/Sakurada_Fumiriya_M00_000_EyeIris_00.png-fa05d8fe9e2acd64cb57813b22b701be.s3tc.ctex", "res://.godot/imported/Sakurada_Fumiriya_M00_000_EyeIris_00.png-fa05d8fe9e2acd64cb57813b22b701be.etc2.ctex"]
 
 [params]
 

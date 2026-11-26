@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://bw5p2u5wj722m"
 path.s3tc="res://.godot/imported/Sakurada_Fumiriya_M00_000_FaceMouth_00.png-5f2972dd3c3674e55a9fc530aa7b6a7a.s3tc.ctex"
+path.etc2="res://.godot/imported/Sakurada_Fumiriya_M00_000_FaceMouth_00.png-5f2972dd3c3674e55a9fc530aa7b6a7a.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/Sakurada_Fumiriya_M00_000_FaceMouth_00.png"
-dest_files=["res://.godot/imported/Sakurada_Fumiriya_M00_000_FaceMouth_00.png-5f2972dd3c3674e55a9fc530aa7b6a7a.s3tc.ctex"]
+dest_files=["res://.godot/imported/Sakurada_Fumiriya_M00_000_FaceMouth_00.png-5f2972dd3c3674e55a9fc530aa7b6a7a.s3tc.ctex", "res://.godot/imported/Sakurada_Fumiriya_M00_000_FaceMouth_00.png-5f2972dd3c3674e55a9fc530aa7b6a7a.etc2.ctex"]
 
 [params]
 

@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dhbl7603xm5jn"
 path.s3tc="res://.godot/imported/HairSample_Male_Matcap_Rim.png-f46a52d58aa7aca717885bdaa09d2fea.s3tc.ctex"
+path.etc2="res://.godot/imported/HairSample_Male_Matcap_Rim.png-f46a52d58aa7aca717885bdaa09d2fea.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/HairSample_Male_Matcap_Rim.png"
-dest_files=["res://.godot/imported/HairSample_Male_Matcap_Rim.png-f46a52d58aa7aca717885bdaa09d2fea.s3tc.ctex"]
+dest_files=["res://.godot/imported/HairSample_Male_Matcap_Rim.png-f46a52d58aa7aca717885bdaa09d2fea.s3tc.ctex", "res://.godot/imported/HairSample_Male_Matcap_Rim.png-f46a52d58aa7aca717885bdaa09d2fea.etc2.ctex"]
 
 [params]
 

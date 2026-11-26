@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://be1vxwg7dpvyo"
 path.s3tc="res://.godot/imported/AvatarSample_B_F00_000_00_EyeExtra_01.png-a3e499e3d9044dc35cd2873385562573.s3tc.ctex"
+path.etc2="res://.godot/imported/AvatarSample_B_F00_000_00_EyeExtra_01.png-a3e499e3d9044dc35cd2873385562573.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/AvatarSample_B_F00_000_00_EyeExtra_01.png"
-dest_files=["res://.godot/imported/AvatarSample_B_F00_000_00_EyeExtra_01.png-a3e499e3d9044dc35cd2873385562573.s3tc.ctex"]
+dest_files=["res://.godot/imported/AvatarSample_B_F00_000_00_EyeExtra_01.png-a3e499e3d9044dc35cd2873385562573.s3tc.ctex", "res://.godot/imported/AvatarSample_B_F00_000_00_EyeExtra_01.png-a3e499e3d9044dc35cd2873385562573.etc2.ctex"]
 
 [params]
 

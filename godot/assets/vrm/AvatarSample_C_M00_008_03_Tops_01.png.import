@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://doxy1d6i4pe86"
 path.s3tc="res://.godot/imported/AvatarSample_C_M00_008_03_Tops_01.png-a2a633594f8492e310f08f5b0d2a6e37.s3tc.ctex"
+path.etc2="res://.godot/imported/AvatarSample_C_M00_008_03_Tops_01.png-a2a633594f8492e310f08f5b0d2a6e37.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/AvatarSample_C_M00_008_03_Tops_01.png"
-dest_files=["res://.godot/imported/AvatarSample_C_M00_008_03_Tops_01.png-a2a633594f8492e310f08f5b0d2a6e37.s3tc.ctex"]
+dest_files=["res://.godot/imported/AvatarSample_C_M00_008_03_Tops_01.png-a2a633594f8492e310f08f5b0d2a6e37.s3tc.ctex", "res://.godot/imported/AvatarSample_C_M00_008_03_Tops_01.png-a2a633594f8492e310f08f5b0d2a6e37.etc2.ctex"]
 
 [params]
 

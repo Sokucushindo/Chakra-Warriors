@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dqhirjj1nobil"
 path.s3tc="res://.godot/imported/Sakurada_Fumiriya_Matcap_RimHair.png-62823752f2ed87410870cbed3da9122b.s3tc.ctex"
+path.etc2="res://.godot/imported/Sakurada_Fumiriya_Matcap_RimHair.png-62823752f2ed87410870cbed3da9122b.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/Sakurada_Fumiriya_Matcap_RimHair.png"
-dest_files=["res://.godot/imported/Sakurada_Fumiriya_Matcap_RimHair.png-62823752f2ed87410870cbed3da9122b.s3tc.ctex"]
+dest_files=["res://.godot/imported/Sakurada_Fumiriya_Matcap_RimHair.png-62823752f2ed87410870cbed3da9122b.s3tc.ctex", "res://.godot/imported/Sakurada_Fumiriya_Matcap_RimHair.png-62823752f2ed87410870cbed3da9122b.etc2.ctex"]
 
 [params]
 

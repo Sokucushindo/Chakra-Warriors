@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://b8qi7e0qdv6vu"
 path.s3tc="res://.godot/imported/T_Superhero_Female_Dark_BaseColor.png-d75d1df7f0722bf7c3d8eb75184a92b9.s3tc.ctex"
+path.etc2="res://.godot/imported/T_Superhero_Female_Dark_BaseColor.png-d75d1df7f0722bf7c3d8eb75184a92b9.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/chars/T_Superhero_Female_Dark_BaseColor.png"
-dest_files=["res://.godot/imported/T_Superhero_Female_Dark_BaseColor.png-d75d1df7f0722bf7c3d8eb75184a92b9.s3tc.ctex"]
+dest_files=["res://.godot/imported/T_Superhero_Female_Dark_BaseColor.png-d75d1df7f0722bf7c3d8eb75184a92b9.s3tc.ctex", "res://.godot/imported/T_Superhero_Female_Dark_BaseColor.png-d75d1df7f0722bf7c3d8eb75184a92b9.etc2.ctex"]
 
 [params]
 

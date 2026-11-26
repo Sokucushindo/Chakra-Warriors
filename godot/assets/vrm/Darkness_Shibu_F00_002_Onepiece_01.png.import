@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://buwgs7sapd3ws"
 path.s3tc="res://.godot/imported/Darkness_Shibu_F00_002_Onepiece_01.png-472f2319213b7aaa24b387627a951e39.s3tc.ctex"
+path.etc2="res://.godot/imported/Darkness_Shibu_F00_002_Onepiece_01.png-472f2319213b7aaa24b387627a951e39.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/Darkness_Shibu_F00_002_Onepiece_01.png"
-dest_files=["res://.godot/imported/Darkness_Shibu_F00_002_Onepiece_01.png-472f2319213b7aaa24b387627a951e39.s3tc.ctex"]
+dest_files=["res://.godot/imported/Darkness_Shibu_F00_002_Onepiece_01.png-472f2319213b7aaa24b387627a951e39.s3tc.ctex", "res://.godot/imported/Darkness_Shibu_F00_002_Onepiece_01.png-472f2319213b7aaa24b387627a951e39.etc2.ctex"]
 
 [params]
 

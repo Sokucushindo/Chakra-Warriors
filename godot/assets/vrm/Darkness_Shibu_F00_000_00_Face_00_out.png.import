@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://chxt7qppdkg40"
 path.s3tc="res://.godot/imported/Darkness_Shibu_F00_000_00_Face_00_out.png-d2ff535da897fb92bbf59c60603321ab.s3tc.ctex"
+path.etc2="res://.godot/imported/Darkness_Shibu_F00_000_00_Face_00_out.png-d2ff535da897fb92bbf59c60603321ab.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/Darkness_Shibu_F00_000_00_Face_00_out.png"
-dest_files=["res://.godot/imported/Darkness_Shibu_F00_000_00_Face_00_out.png-d2ff535da897fb92bbf59c60603321ab.s3tc.ctex"]
+dest_files=["res://.godot/imported/Darkness_Shibu_F00_000_00_Face_00_out.png-d2ff535da897fb92bbf59c60603321ab.s3tc.ctex", "res://.godot/imported/Darkness_Shibu_F00_000_00_Face_00_out.png-d2ff535da897fb92bbf59c60603321ab.etc2.ctex"]
 
 [params]
 

@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://bxtswon83dt8g"
 path.s3tc="res://.godot/imported/Sakurada_Fumiriya_M00_001_Shoes_01.png-3a7cda373186d703be3febfb828a0ed1.s3tc.ctex"
+path.etc2="res://.godot/imported/Sakurada_Fumiriya_M00_001_Shoes_01.png-3a7cda373186d703be3febfb828a0ed1.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/Sakurada_Fumiriya_M00_001_Shoes_01.png"
-dest_files=["res://.godot/imported/Sakurada_Fumiriya_M00_001_Shoes_01.png-3a7cda373186d703be3febfb828a0ed1.s3tc.ctex"]
+dest_files=["res://.godot/imported/Sakurada_Fumiriya_M00_001_Shoes_01.png-3a7cda373186d703be3febfb828a0ed1.s3tc.ctex", "res://.godot/imported/Sakurada_Fumiriya_M00_001_Shoes_01.png-3a7cda373186d703be3febfb828a0ed1.etc2.ctex"]
 
 [params]
 

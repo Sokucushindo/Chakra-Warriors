@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://2bucijwj12dm"
 path.s3tc="res://.godot/imported/AvatarSample_B_F00_000_00_FaceMouth_00.png-8a2232fc8a879b5060f422fa1f63a0ba.s3tc.ctex"
+path.etc2="res://.godot/imported/AvatarSample_B_F00_000_00_FaceMouth_00.png-8a2232fc8a879b5060f422fa1f63a0ba.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/AvatarSample_B_F00_000_00_FaceMouth_00.png"
-dest_files=["res://.godot/imported/AvatarSample_B_F00_000_00_FaceMouth_00.png-8a2232fc8a879b5060f422fa1f63a0ba.s3tc.ctex"]
+dest_files=["res://.godot/imported/AvatarSample_B_F00_000_00_FaceMouth_00.png-8a2232fc8a879b5060f422fa1f63a0ba.s3tc.ctex", "res://.godot/imported/AvatarSample_B_F00_000_00_FaceMouth_00.png-8a2232fc8a879b5060f422fa1f63a0ba.etc2.ctex"]
 
 [params]
 

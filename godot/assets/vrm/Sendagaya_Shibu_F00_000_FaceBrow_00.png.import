@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://b5nuy5dell0fi"
 path.s3tc="res://.godot/imported/Sendagaya_Shibu_F00_000_FaceBrow_00.png-9dc052f24e39f841fda083cd979b1c2e.s3tc.ctex"
+path.etc2="res://.godot/imported/Sendagaya_Shibu_F00_000_FaceBrow_00.png-9dc052f24e39f841fda083cd979b1c2e.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/Sendagaya_Shibu_F00_000_FaceBrow_00.png"
-dest_files=["res://.godot/imported/Sendagaya_Shibu_F00_000_FaceBrow_00.png-9dc052f24e39f841fda083cd979b1c2e.s3tc.ctex"]
+dest_files=["res://.godot/imported/Sendagaya_Shibu_F00_000_FaceBrow_00.png-9dc052f24e39f841fda083cd979b1c2e.s3tc.ctex", "res://.godot/imported/Sendagaya_Shibu_F00_000_FaceBrow_00.png-9dc052f24e39f841fda083cd979b1c2e.etc2.ctex"]
 
 [params]
 

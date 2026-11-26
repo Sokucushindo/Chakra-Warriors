@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://c3xnfq5jfxp3j"
 path.s3tc="res://.godot/imported/Sendagaya_Shibu_F00_000_Hair_00_01.png-d26dbd612a160fddc9a412c43d292fc4.s3tc.ctex"
+path.etc2="res://.godot/imported/Sendagaya_Shibu_F00_000_Hair_00_01.png-d26dbd612a160fddc9a412c43d292fc4.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/Sendagaya_Shibu_F00_000_Hair_00_01.png"
-dest_files=["res://.godot/imported/Sendagaya_Shibu_F00_000_Hair_00_01.png-d26dbd612a160fddc9a412c43d292fc4.s3tc.ctex"]
+dest_files=["res://.godot/imported/Sendagaya_Shibu_F00_000_Hair_00_01.png-d26dbd612a160fddc9a412c43d292fc4.s3tc.ctex", "res://.godot/imported/Sendagaya_Shibu_F00_000_Hair_00_01.png-d26dbd612a160fddc9a412c43d292fc4.etc2.ctex"]
 
 [params]
 

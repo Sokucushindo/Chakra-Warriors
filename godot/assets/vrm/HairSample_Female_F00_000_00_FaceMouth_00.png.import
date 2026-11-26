@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://bvfvg2e0n8tj6"
 path.s3tc="res://.godot/imported/HairSample_Female_F00_000_00_FaceMouth_00.png-98ca4a1e33c998d1ec0217b4210c4056.s3tc.ctex"
+path.etc2="res://.godot/imported/HairSample_Female_F00_000_00_FaceMouth_00.png-98ca4a1e33c998d1ec0217b4210c4056.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/HairSample_Female_F00_000_00_FaceMouth_00.png"
-dest_files=["res://.godot/imported/HairSample_Female_F00_000_00_FaceMouth_00.png-98ca4a1e33c998d1ec0217b4210c4056.s3tc.ctex"]
+dest_files=["res://.godot/imported/HairSample_Female_F00_000_00_FaceMouth_00.png-98ca4a1e33c998d1ec0217b4210c4056.s3tc.ctex", "res://.godot/imported/HairSample_Female_F00_000_00_FaceMouth_00.png-98ca4a1e33c998d1ec0217b4210c4056.etc2.ctex"]
 
 [params]
 

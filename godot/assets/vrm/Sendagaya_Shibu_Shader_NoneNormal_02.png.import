@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://g7fnlvnh1bd8"
 path.s3tc="res://.godot/imported/Sendagaya_Shibu_Shader_NoneNormal_02.png-6c20bf82d31230ddcd89292d2ffcde91.s3tc.ctex"
+path.etc2="res://.godot/imported/Sendagaya_Shibu_Shader_NoneNormal_02.png-6c20bf82d31230ddcd89292d2ffcde91.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/Sendagaya_Shibu_Shader_NoneNormal_02.png"
-dest_files=["res://.godot/imported/Sendagaya_Shibu_Shader_NoneNormal_02.png-6c20bf82d31230ddcd89292d2ffcde91.s3tc.ctex"]
+dest_files=["res://.godot/imported/Sendagaya_Shibu_Shader_NoneNormal_02.png-6c20bf82d31230ddcd89292d2ffcde91.s3tc.ctex", "res://.godot/imported/Sendagaya_Shibu_Shader_NoneNormal_02.png-6c20bf82d31230ddcd89292d2ffcde91.etc2.ctex"]
 
 [params]
 

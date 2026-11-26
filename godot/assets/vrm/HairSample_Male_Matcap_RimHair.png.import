@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://ficleobcgx67"
 path.s3tc="res://.godot/imported/HairSample_Male_Matcap_RimHair.png-08a34366f099a6f516ac79577ccbafc8.s3tc.ctex"
+path.etc2="res://.godot/imported/HairSample_Male_Matcap_RimHair.png-08a34366f099a6f516ac79577ccbafc8.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/HairSample_Male_Matcap_RimHair.png"
-dest_files=["res://.godot/imported/HairSample_Male_Matcap_RimHair.png-08a34366f099a6f516ac79577ccbafc8.s3tc.ctex"]
+dest_files=["res://.godot/imported/HairSample_Male_Matcap_RimHair.png-08a34366f099a6f516ac79577ccbafc8.s3tc.ctex", "res://.godot/imported/HairSample_Male_Matcap_RimHair.png-08a34366f099a6f516ac79577ccbafc8.etc2.ctex"]
 
 [params]
 

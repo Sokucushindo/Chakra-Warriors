@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://ciyhud87jik8n"
 path.s3tc="res://.godot/imported/Darkness_Shibu_F00_002_Shoes_01.png-6afd0356630001d257c10c9c94581f35.s3tc.ctex"
+path.etc2="res://.godot/imported/Darkness_Shibu_F00_002_Shoes_01.png-6afd0356630001d257c10c9c94581f35.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/Darkness_Shibu_F00_002_Shoes_01.png"
-dest_files=["res://.godot/imported/Darkness_Shibu_F00_002_Shoes_01.png-6afd0356630001d257c10c9c94581f35.s3tc.ctex"]
+dest_files=["res://.godot/imported/Darkness_Shibu_F00_002_Shoes_01.png-6afd0356630001d257c10c9c94581f35.s3tc.ctex", "res://.godot/imported/Darkness_Shibu_F00_002_Shoes_01.png-6afd0356630001d257c10c9c94581f35.etc2.ctex"]
 
 [params]
 

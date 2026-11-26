@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cy2km5gylhj25"
 path.s3tc="res://.godot/imported/AvatarSample_C_M00_000_00_FaceEyelash_00.png-5f4a07c5218712dba54afe4b5e4f5aad.s3tc.ctex"
+path.etc2="res://.godot/imported/AvatarSample_C_M00_000_00_FaceEyelash_00.png-5f4a07c5218712dba54afe4b5e4f5aad.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/AvatarSample_C_M00_000_00_FaceEyelash_00.png"
-dest_files=["res://.godot/imported/AvatarSample_C_M00_000_00_FaceEyelash_00.png-5f4a07c5218712dba54afe4b5e4f5aad.s3tc.ctex"]
+dest_files=["res://.godot/imported/AvatarSample_C_M00_000_00_FaceEyelash_00.png-5f4a07c5218712dba54afe4b5e4f5aad.s3tc.ctex", "res://.godot/imported/AvatarSample_C_M00_000_00_FaceEyelash_00.png-5f4a07c5218712dba54afe4b5e4f5aad.etc2.ctex"]
 
 [params]
 

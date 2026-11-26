@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://caaxfq2bvix54"
 path.s3tc="res://.godot/imported/AvatarSample_C_Matcap_RimHair.png-7d79f86a2d9f49f088bfb436a7e68813.s3tc.ctex"
+path.etc2="res://.godot/imported/AvatarSample_C_Matcap_RimHair.png-7d79f86a2d9f49f088bfb436a7e68813.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/AvatarSample_C_Matcap_RimHair.png"
-dest_files=["res://.godot/imported/AvatarSample_C_Matcap_RimHair.png-7d79f86a2d9f49f088bfb436a7e68813.s3tc.ctex"]
+dest_files=["res://.godot/imported/AvatarSample_C_Matcap_RimHair.png-7d79f86a2d9f49f088bfb436a7e68813.s3tc.ctex", "res://.godot/imported/AvatarSample_C_Matcap_RimHair.png-7d79f86a2d9f49f088bfb436a7e68813.etc2.ctex"]
 
 [params]
 
