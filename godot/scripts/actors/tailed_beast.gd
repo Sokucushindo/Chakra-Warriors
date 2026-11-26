@@ -158,10 +158,49 @@ var ally_owner: Node3D = null
 var ally_life := 0.0
 
 
-## Saldırılacak hedef: vahşi canavar oyuncuya; müttefik canavar en yakın düşmana
+## Kuchiyose komutları müttefik canavarda da geçer (J: Saldır -> Koru -> Bekle -> Takip, U: Bijūdama) — Summon.command_of
+var hold_pos := Vector3.INF
+var cmd_label: Label3D = null
+
+
+func show_cmd() -> void:
+	if cmd_label == null:
+		cmd_label = Label3D.new()
+		cmd_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		cmd_label.font_size = 64
+		cmd_label.pixel_size = 0.03
+		cmd_label.outline_size = 14
+		cmd_label.no_depth_test = true
+		cmd_label.modulate = Color(1.0, 0.85, 0.5)
+		add_child(cmd_label)
+	cmd_label.position = Vector3(0, height * 1.05, 0)
+	cmd_label.text = "[%s]" % Lang.t(Summon.CMD_NAMES[Summon.command_of(ally_owner)])
+	cmd_label.visible = true
+	var tw = cmd_label.create_tween()
+	tw.tween_interval(2.5)
+	tw.tween_callback(func(): cmd_label.visible = false)
+
+
+## Saldırılacak hedef: vahşi canavar oyuncuya; müttefik canavar sahibinin komutuna göre (varsayılan: en yakın düşman)
 func _foe() -> Node3D:
 	if ally_owner == null:
 		return Game.player
+	var cmd := Summon.command_of(ally_owner) if ally_owner is Player else "saldir"
+	if cmd == "takip":
+		return null   # saldırmaz, sahibinin peşinden gelir
+	if cmd == "koru":
+		return Combat.nearest_enemy(ally_owner, 18.0 + height * 0.3)   # yalnız sahibine yaklaşan
+	if cmd == "bekle":
+		if hold_pos == Vector3.INF:
+			hold_pos = global_position
+		for f in get_tree().get_nodes_in_group("fighters"):
+			if f != self and Combat.hostile(self, f) and not f.is_dead() and f.global_position.distance_to(hold_pos) < 12.0 + height:
+				return f
+		return null
+	if ally_owner is Player and ally_owner.combat:
+		var lt = ally_owner.combat.lock_target
+		if lt != null and is_instance_valid(lt) and not lt.is_dead() and Combat.hostile(self, lt):
+			return lt   # kilitlediğin hedefe saldırır
 	var best = null
 	var bd = 160.0
 	for f in get_tree().get_nodes_in_group("fighters"):
@@ -199,6 +238,9 @@ func _physics_process(dt: float) -> void:
 	var pl = _foe()
 	if pl == null:
 		if ally_owner != null and is_instance_valid(ally_owner):
+			if ally_owner is Player and Summon.command_of(ally_owner) == "bekle" and hold_pos != Vector3.INF:
+				_walk_to(hold_pos, dt, 0.8)   # Bekle: yerinde durur
+				return
 			# hedef yok: sahibinin yanında bekle
 			if global_position.distance_to(ally_owner.global_position) > height * 1.2:
 				_walk_to(ally_owner.global_position, dt, 0.8)

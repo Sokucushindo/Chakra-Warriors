@@ -82,7 +82,7 @@ func _ready() -> void:
 	for j in my:
 		if not (j in Game.profile["learned"]):
 			Game.profile["learned"].append(j)
-	await get_tree().create_timer(12.0).timeout
+	await get_tree().create_timer(float(OS.get_environment("BF_WAIT")) if OS.get_environment("BF_WAIT") != "" else 12.0).timeout
 	# taban
 	var t0 = Time.get_ticks_usec()
 	var nb = 0

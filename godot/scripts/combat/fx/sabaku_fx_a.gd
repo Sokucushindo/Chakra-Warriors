@@ -1205,7 +1205,7 @@ static func sabaku_fuyu(pj: ClanJutsu, c: Node3D, _t: Node3D) -> void:
 	body.create_tween().tween_property(body, "scale", Vector3.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	grains(pj, Vector3(0, -0.6, 0), {"parent": vis, "stream": true, "dur": 0.0, "box": Vector3(0.5, 0.05, 0.45), "n": 36, "life": 0.9,
 		"dir": Vector3.DOWN, "spread": 10.0, "v0": 0.3, "v1": 1.0, "g": Vector3(0, -6.0, 0), "s0": 0.025, "s1": 0.055})
-	c.start_flight("sand", {"speed": 15.0, "lift": 8.0, "drain": 2.0, "vis": vis, "name": "Kum bulutu"})
+	c.start_flight("sand", {"speed": 15.0, "lift": 8.0, "drain": 2.0, "vis": vis, "name": "Kum bulutu", "stand": true})
 
 
 ## Sabakuha: önünde yerden yassı, dik bir kum levhası (yırtık, yayvan tabanlı duvar) yükselip ileri süpürür; tepesinden

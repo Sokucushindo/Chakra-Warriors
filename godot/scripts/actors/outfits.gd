@@ -389,19 +389,26 @@ static func has_uniform(vid: String) -> bool:
 	return vid in ["konoha", "suna", "kiri", "kumo", "iwa"] or MINOR_UNIFORM.has(vid)
 
 
+## Sinematik / tören kalabalığı: rütbeli ninja köyünün gerçek üniformasını giyer (dünyadaki NPC'lerle aynı set; eskiden kabuk
+## yelekle Konoha kalıbında giyiniyordu)
+static func uniform(arch: String, vid: String) -> Dictionary:
+	var L := roll(arch, vid)
+	if arch in ["chunin", "jonin", "guard"] and has_uniform(vid):
+		village_set(L, vid, arch == "jonin")
+	return L
+
+
 static func village_set(L: Dictionary, vid := "", jonin := false) -> void:
 	if vid == "":
 		vid = String(L.get("village", Progress.home()))
 	var vk = {"konoha": "", "suna": "suna_", "kiri": "kiri_", "kumo": "kumo_", "iwa": "iwa_"}
 	if vk.has(vid) or MINOR_UNIFORM.has(vid):
-		var keep = {}
-		for k in ["hair", "hair_style", "gender", "skin", "eye", "age", "face_paint", "face_paint_col", "keep_hair", "own_hair"]:
-			if L.has(k):
-				keep[k] = L[k]
 		var sid = String(MINOR_UNIFORM[vid]) if MINOR_UNIFORM.has(vid) else "set_%s%s" % [vk[vid], "jonin" if jonin else "chunin"]
-		Gear.preview_set_look(L, sid)
-		L.merge(keep, true)
-		L["set_id"] = sid
+		# görünüm önce sıfırlanır (wear_set): eskiden setin parçaları önceki görünümün üstüne yazılıyordu; Konoha tarzı yeleğin
+		# ekleri (yaka, cepler, etek) Suna / Kiri setinin altından taşıyordu (iç içe kıyafet)
+		var clean := wear_set(L, sid)
+		L.clear()
+		L.merge(clean, true)
 	else:
 		L["vest"] = Progress.HOME_VILLAGES.get(vid, Progress.HOME_VILLAGES["konoha"])["vest"]
 

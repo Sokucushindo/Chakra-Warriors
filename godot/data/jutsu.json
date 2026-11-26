@@ -782,7 +782,8 @@
   "elements": [],
   "tier": 2,
   "dmg_k": 1.29,
-  "meaning": "Ninken Yoldaşı", "name_en": "Ninken Companion"
+  "meaning": "Ninken Yoldaşı",
+  "name_en": "Ninken Companion"
  },
  "gatsuga": {
   "id": "gatsuga",
@@ -1019,7 +1020,8 @@
   "elements": [],
   "tier": 2,
   "dmg_k": 0.53,
-  "meaning": "Beyaz Işık Chakra Kılıcı", "name_en": "White Light Chakra Sabre",
+  "meaning": "Beyaz Işık Chakra Kılıcı",
+  "name_en": "White Light Chakra Sabre",
   "need": "weapon:hakko_chakura_to"
  },
  "hatake_ninken": {
@@ -1101,7 +1103,8 @@
   "elements": [],
   "tier": 2,
   "dmg_k": 1.05,
-  "meaning": "Arı Sürüsü", "name_en": "Bee Swarm"
+  "meaning": "Arı Sürüsü",
+  "name_en": "Bee Swarm"
  },
  "kamizuru_wax": {
   "id": "kamizuru_wax",
@@ -1124,7 +1127,8 @@
   "elements": [],
   "tier": 2,
   "dmg_k": 1.27,
-  "meaning": "Mitsu Rensei: Bal Mumu Kalkanı", "name_en": "Mitsu Rensei: Honey Wax Shield"
+  "meaning": "Mitsu Rensei: Bal Mumu Kalkanı",
+  "name_en": "Mitsu Rensei: Honey Wax Shield"
  },
  "akurobatto": {
   "id": "akurobatto",
@@ -2747,7 +2751,7 @@
   "elements": [],
   "natures": [],
   "clan": "akimichi",
-  "level": 22,
+  "level": 26,
   "rank": 3,
   "learn": "clan:akimichi",
   "desc": "Vücut kalorilerini saf çakraya çevirir; çakra kanatları ve devasa güç, ağır bedenle.",
@@ -10457,7 +10461,7 @@
   "elements": [],
   "natures": [],
   "clan": "uzumaki",
-  "level": 22,
+  "level": 26,
   "rank": 3,
   "learn": "clan:uzumaki",
   "desc": "Kuyruklu canavarı insana mühürleyen güçlü mühür.",
@@ -11466,8 +11470,8 @@
    "katon"
   ],
   "clan": "",
-  "level": 10,
-  "rank": 2,
+  "level": 22,
+  "rank": 3,
   "learn": "eye:mangekyo",
   "desc": "Rüzgârla desteklenen kasırga ateş.",
   "seals": [
@@ -11568,8 +11572,8 @@
    "katon"
   ],
   "clan": "uchiha",
-  "level": 10,
-  "rank": 2,
+  "level": 22,
+  "rank": 3,
   "learn": "clan:uchiha",
   "desc": "Ufku kaplayan dev alev duvarı.",
   "seals": [
@@ -11601,7 +11605,7 @@
    "katon"
   ],
   "clan": "",
-  "level": 18,
+  "level": 25,
   "rank": 3,
   "learn": "trainer:konoha",
   "desc": "Geniş bir alanı kaplayan alev dalgası.",
@@ -29283,7 +29287,7 @@
    "raiton"
   ],
   "clan": "yotsuki",
-  "level": 18,
+  "level": 22,
   "rank": 0,
   "learn": "clan",
   "desc": "İki kişilik ortak teknik: sen önden, ortağın arkadan şimşekli Lariat ile hedefi makasa alırsınız. Yakında bir ortak (takım arkadaşı, gölge klon, çağrı) gerekir.",
@@ -29326,7 +29330,7 @@
   "element": "",
   "elements": [],
   "clan": "sarutobi",
-  "level": 10,
+  "level": 24,
   "rank": 0,
   "learn": "clan",
   "desc": "Maymun kral Enma çağrılır ve elmas kadar sert bir asaya dönüşür: uzayıp kısalan asayla geniş savuruş ve saplama. Maymun sözleşmesi gerekir (Hiruzen Sarutobi).",
@@ -40392,5 +40396,775 @@
   "Tori",
   "Inu",
   "I"
- ]
+ ],
+ "sakin_tsubute": {
+  "id": "sakin_tsubute",
+  "name": "Sakin Tsubute",
+  "name_en": "Gold Dust Pellets",
+  "cost": 22,
+  "cd": 6.5,
+  "element": "jiton",
+  "elements": [
+   "jiton"
+  ],
+  "natures": [
+   "jiton"
+  ],
+  "clan": "sabaku",
+  "level": 5,
+  "rank": 1,
+  "learn": "clan:sabaku",
+  "desc": "Avuçta sıkışan altın tozu yedi ağır topak halinde yelpaze gibi fırlar; isabet eden altının ağırlığıyla kısa süre yavaşlar.",
+  "seals": [],
+  "canon_rank": "C",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "projectile",
+  "range": "Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Magnet Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Altın Toz Saçması"
+ },
+ "sakin_ryusa": {
+  "id": "sakin_ryusa",
+  "name": "Sakin Ryūsa",
+  "name_en": "Gold Dust Surge",
+  "cost": 30,
+  "cd": 9.0,
+  "element": "jiton",
+  "elements": [
+   "jiton"
+  ],
+  "natures": [
+   "jiton"
+  ],
+  "clan": "sabaku",
+  "level": 8,
+  "rank": 1,
+  "learn": "clan:sabaku",
+  "desc": "Yere yapışık dar bir altın akıntı yılan gibi kıvrılarak hedefe koşar, ucu hedefin altında kabarıp onu savurur.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "rush",
+  "range": "Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Magnet Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Altın Toz Akıntısı"
+ },
+ "sakin_shibari": {
+  "id": "sakin_shibari",
+  "name": "Sakin Shibari",
+  "name_en": "Gold Dust Binding",
+  "cost": 32,
+  "cd": 13.0,
+  "element": "jiton",
+  "elements": [
+   "jiton"
+  ],
+  "natures": [
+   "jiton"
+  ],
+  "clan": "sabaku",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan:sabaku",
+  "desc": "Hedefin bacaklarından beline altın şeritler sarılır; ağırlık onu yerine çakar, bağ çözülünce de bir süre yavaşlar.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "bind",
+  "range": "Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Magnet Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Altın Toz Bağı"
+ },
+ "kusakin_boheki": {
+  "id": "kusakin_boheki",
+  "name": "Kūsakin Bōheki",
+  "name_en": "Air Gold Dust Protective Wall",
+  "cost": 30,
+  "cd": 14.0,
+  "element": "jiton",
+  "elements": [
+   "jiton"
+  ],
+  "natures": [
+   "jiton"
+  ],
+  "clan": "sabaku",
+  "level": 12,
+  "rank": 2,
+  "learn": "clan:sabaku",
+  "desc": "Havaya kaldırılan altın tozu önünde kalın bir duvara dönüşür; değen mermileri 5 saniye boyunca yutar.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "wall",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Magnet Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Havadaki Altın Toz Koruma Duvarı"
+ },
+ "sakin_no_yoroi": {
+  "id": "sakin_no_yoroi",
+  "name": "Sakin no Yoroi",
+  "name_en": "Gold Dust Armour",
+  "cost": 40,
+  "cd": 22.0,
+  "element": "jiton",
+  "elements": [
+   "jiton"
+  ],
+  "natures": [
+   "jiton"
+  ],
+  "clan": "sabaku",
+  "level": 14,
+  "rank": 2,
+  "learn": "clan:sabaku",
+  "desc": "Gövdeye ağır altın plakalar oturur: canının %30'u kadar hasarı emen kalkan; emecek pay bitince plakalar dökülür. Altın ağırdır, biraz yavaşlarsın.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "buff",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Magnet Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Altın Toz Zırhı"
+ },
+ "sakin_bunshin": {
+  "id": "sakin_bunshin",
+  "name": "Sakin Bunshin",
+  "name_en": "Gold Dust Clone",
+  "cost": 34,
+  "cd": 18.0,
+  "element": "jiton",
+  "elements": [
+   "jiton"
+  ],
+  "natures": [
+   "jiton"
+  ],
+  "clan": "sabaku",
+  "level": 11,
+  "rank": 2,
+  "learn": "clan:sabaku",
+  "desc": "Dönen altın toz sütunundan altın kaplı bir klon çıkar; düşmanlar ona yönelir. Klon bozulunca ağır altın tozu yakındakilerin ayaklarını gömer.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "clone",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Magnet Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Altın Toz Klonu"
+ },
+ "sakin_senpu": {
+  "id": "sakin_senpu",
+  "name": "Sakin Senpū",
+  "name_en": "Gold Dust Whirlwind",
+  "cost": 38,
+  "cd": 15.0,
+  "element": "jiton",
+  "elements": [
+   "jiton"
+  ],
+  "natures": [
+   "jiton"
+  ],
+  "clan": "sabaku",
+  "level": 13,
+  "rank": 2,
+  "learn": "clan:sabaku",
+  "desc": "Çevrende bel hizasında dönen kalın altın halkalar içine giren mermileri tanelere çevirir, sonra dışa patlayıp yakındakileri savurur.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Magnet Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Altın Toz Kasırgası"
+ },
+ "sakin_yari": {
+  "id": "sakin_yari",
+  "name": "Sakin Yari",
+  "name_en": "Gold Dust Spears",
+  "cost": 42,
+  "cd": 14.0,
+  "element": "jiton",
+  "elements": [
+   "jiton"
+  ],
+  "natures": [
+   "jiton"
+  ],
+  "clan": "sabaku",
+  "level": 15,
+  "rank": 2,
+  "learn": "clan:sabaku",
+  "desc": "Önünden hedefe doğru yerden sıra sıra yassı altın mızraklar fışkırır; hedefin altında en büyük demet.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "range": "Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Magnet Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Altın Toz Mızrakları"
+ },
+ "sakin_tsuchi": {
+  "id": "sakin_tsuchi",
+  "name": "Sakin Tsuchi",
+  "name_en": "Gold Dust Hammer",
+  "cost": 48,
+  "cd": 17.0,
+  "element": "jiton",
+  "elements": [
+   "jiton"
+  ],
+  "natures": [
+   "jiton"
+  ],
+  "clan": "sabaku",
+  "level": 16,
+  "rank": 3,
+  "learn": "clan:sabaku",
+  "desc": "Üstünde toplanan altın tozu dev bir balyoza dönüşür, geri kalkıp hedefin üstüne iner; savunmayı deler.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 5,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "range": "Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Magnet Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Altın Toz Balyozu"
+ },
+ "sakin_omori": {
+  "id": "sakin_omori",
+  "name": "Sakin Omori",
+  "name_en": "Gold Dust Weight",
+  "cost": 30,
+  "cd": 16.0,
+  "element": "jiton",
+  "elements": [
+   "jiton"
+  ],
+  "natures": [
+   "jiton"
+  ],
+  "clan": "sabaku",
+  "level": 17,
+  "rank": 2,
+  "learn": "clan:sabaku",
+  "desc": "Hedefin üstüne altın toz sağanağı yağar, omuzlarına ve sırtına yapışır; altının ağırlığıyla 7 saniye çok yavaşlar.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "bind",
+  "range": "Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Magnet Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Altın Toz Ağırlığı"
+ },
+ "sakin_ryujin": {
+  "id": "sakin_ryujin",
+  "name": "Sakin Ryūjin",
+  "name_en": "Gold Dust Dragon",
+  "cost": 60,
+  "cd": 24.0,
+  "element": "jiton",
+  "elements": [
+   "jiton"
+  ],
+  "natures": [
+   "jiton"
+  ],
+  "clan": "sabaku",
+  "level": 20,
+  "rank": 3,
+  "learn": "clan:sabaku",
+  "desc": "Yerden kalın bir altın gövde kıvrılarak yükselir, başı açık çeneli bir ejdere dönüşür ve hedefe dalar; çarptığı yerde altın patlaması.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 5,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "projectile",
+  "range": "Long",
+  "requires": {
+   "kekkei_genkai": [
+    "Magnet Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Altın Toz Ejderi"
+ },
+ "sakin_hokai": {
+  "id": "sakin_hokai",
+  "name": "Sakin Hōkai",
+  "name_en": "Gold Dust Avalanche",
+  "cost": 66,
+  "cd": 26.0,
+  "element": "jiton",
+  "elements": [
+   "jiton"
+  ],
+  "natures": [
+   "jiton"
+  ],
+  "clan": "sabaku",
+  "level": 24,
+  "rank": 3,
+  "learn": "clan:sabaku",
+  "desc": "Hedef alanın üstünde altın toz dönen bir tavan gibi birikir, sonra çığ gibi çöker; içindekileri ezip gömer, savunmayı deler.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 5,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "range": "Long",
+  "requires": {
+   "kekkei_genkai": [
+    "Magnet Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Altın Toz Çığı"
+ },
+ "ogon_kyuden": {
+  "id": "ogon_kyuden",
+  "name": "Ōgon Kyūden",
+  "name_en": "Golden Palace",
+  "cost": 90,
+  "cd": 45.0,
+  "element": "jiton",
+  "elements": [
+   "jiton"
+  ],
+  "natures": [
+   "jiton"
+  ],
+  "clan": "sabaku",
+  "level": 32,
+  "rank": 4,
+  "learn": "clan:sabaku",
+  "desc": "Hedef alanın çevresinde on iki altın sütun ve duvar yükselir, dönen altın kubbe kapanır; içindekiler kilitlenir. Saray üç kez içe sıkışır, sonra tepesinden göğe altın ışık sütunu patlayıp çöker.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "bind",
+  "range": "Long",
+  "requires": {
+   "kekkei_genkai": [
+    "Magnet Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Altın Saray"
+ },
+ "ogon_no_taiyo": {
+  "id": "ogon_no_taiyo",
+  "name": "Ōgon no Taiyō",
+  "name_en": "Golden Sun",
+  "cost": 100,
+  "cd": 55.0,
+  "element": "jiton",
+  "elements": [
+   "jiton"
+  ],
+  "natures": [
+   "jiton"
+  ],
+  "clan": "sabaku",
+  "level": 35,
+  "rank": 4,
+  "learn": "clan:sabaku",
+  "desc": "Çevredeki bütün altın tozu göğe akıp üstünde dönen dev bir altın güneşe sıkışır; güneş hedef alana iner, dev altın kıymıklar her yöne saplanır ve geniş alan altınla kaplanır.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "range": "Long",
+  "requires": {
+   "kekkei_genkai": [
+    "Magnet Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Altın Güneş"
+ },
+ "satetsu_heki": {
+  "id": "satetsu_heki",
+  "name": "Satetsu Heki",
+  "name_en": "Iron Sand Wall",
+  "cost": 24,
+  "cd": 11.0,
+  "element": "jiton",
+  "elements": [
+   "jiton"
+  ],
+  "natures": [
+   "jiton"
+  ],
+  "clan": "sabaku",
+  "level": 6,
+  "rank": 1,
+  "learn": "clan:sabaku",
+  "desc": "Yerden akan demir kumu, yüzü dikenli dar levhalardan bir çit duvara dönüşür; oluşurken dibindekileri iter, 4 saniye mermileri durdurur.",
+  "seals": [],
+  "canon_rank": "C",
+  "tier": 3,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "wall",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Magnet Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Demir Kum Duvarı"
+ },
+ "satetsu_buki": {
+  "id": "satetsu_buki",
+  "name": "Satetsu Buki",
+  "name_en": "Iron Sand Weaponry",
+  "cost": 30,
+  "cd": 10.0,
+  "element": "jiton",
+  "elements": [
+   "jiton"
+  ],
+  "natures": [
+   "jiton"
+  ],
+  "clan": "sabaku",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan:sabaku",
+  "desc": "Sağ kolunda demir kumundan tırtıklı bir kılıç sertleşir; üç kesik atarsın, her biri kanatır, sonuncusu savurur.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "melee",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Magnet Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Demir Kum Silahı"
+ },
+ "satetsu_nami": {
+  "id": "satetsu_nami",
+  "name": "Satetsu Nami",
+  "name_en": "Iron Sand Wave",
+  "cost": 38,
+  "cd": 14.0,
+  "element": "jiton",
+  "elements": [
+   "jiton"
+  ],
+  "natures": [
+   "jiton"
+  ],
+  "clan": "sabaku",
+  "level": 12,
+  "rank": 2,
+  "learn": "clan:sabaku",
+  "desc": "Tepesi testere dişli kara bir demir kumu dalgası yerde 16 m koşar; geçtiği herkesi keser, kanatır ve savurur.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "range": "Mid",
+  "requires": {
+   "kekkei_genkai": [
+    "Magnet Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Demir Kum Dalgası"
+ },
+ "satetsu_bunshin": {
+  "id": "satetsu_bunshin",
+  "name": "Satetsu Bunshin",
+  "name_en": "Iron Sand Clone",
+  "cost": 34,
+  "cd": 18.0,
+  "element": "jiton",
+  "elements": [
+   "jiton"
+  ],
+  "natures": [
+   "jiton"
+  ],
+  "clan": "sabaku",
+  "level": 13,
+  "rank": 2,
+  "learn": "clan:sabaku",
+  "desc": "Demir kumundan demir kaplı bir klon sertleşir; düşmanlar ona yönelir. Bozulunca gövdesinden her yöne kara dikenler patlar.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "clone",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Magnet Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Demir Kum Klonu"
+ },
+ "satetsu_karada": {
+  "id": "satetsu_karada",
+  "name": "Satetsu no Karada",
+  "name_en": "Iron Sand Body",
+  "cost": 40,
+  "cd": 22.0,
+  "element": "jiton",
+  "elements": [
+   "jiton"
+  ],
+  "natures": [
+   "jiton"
+  ],
+  "clan": "sabaku",
+  "level": 15,
+  "rank": 2,
+  "learn": "clan:sabaku",
+  "desc": "Demir kumu gövdeni sarıp sertleşir, omuz ve sırttan kara dikenler çıkar: canının %25'i kadar hasarı emen kalkan; dibine gelen düşmanları dikenler keser.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 4,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "buff",
+  "range": "Short",
+  "requires": {
+   "kekkei_genkai": [
+    "Magnet Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Demir Kum Bedeni"
+ },
+ "jitetsu_fuin_to": {
+  "id": "jitetsu_fuin_to",
+  "name": "Jitetsu Fūin Tō",
+  "name_en": "Magnetic Iron Sand Sealing Blade",
+  "cost": 46,
+  "cd": 20.0,
+  "element": "jiton",
+  "elements": [
+   "jiton"
+  ],
+  "natures": [
+   "jiton"
+  ],
+  "clan": "sabaku",
+  "level": 20,
+  "rank": 3,
+  "learn": "clan:sabaku",
+  "desc": "Mıknatıslı demir kumu çift ağızlı kara bir kılıca sıkışır, dönerek hedefe güdümlenir; isabet eden 5 saniye mühürlenir, teknik kullanamaz.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 5,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "projectile",
+  "range": "Long",
+  "requires": {
+   "kekkei_genkai": [
+    "Magnet Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Mıknatıslı Demir Kum Mühür Kılıcı"
+ },
+ "rendan_satetsu_shigure": {
+  "id": "rendan_satetsu_shigure",
+  "name": "Rendan Satetsu Shigure",
+  "name_en": "Successive Shots Iron Sand Drizzle",
+  "cost": 62,
+  "cd": 26.0,
+  "element": "jiton",
+  "elements": [
+   "jiton"
+  ],
+  "natures": [
+   "jiton"
+  ],
+  "clan": "sabaku",
+  "level": 24,
+  "rank": 3,
+  "learn": "clan:sabaku",
+  "desc": "Gökte üç kara demir kumu kütlesi açılır; her biri sırayla hedefin o anki yerine iğne sağanağı boşaltır — üç dalga.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 5,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "range": "Long",
+  "requires": {
+   "kekkei_genkai": [
+    "Magnet Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Art Arda Demir Kum Yağmuru"
+ },
+ "kurogane_jigoku": {
+  "id": "kurogane_jigoku",
+  "name": "Kurogane Jigoku",
+  "name_en": "Black Iron Hell",
+  "cost": 95,
+  "cd": 50.0,
+  "element": "jiton",
+  "elements": [
+   "jiton"
+  ],
+  "natures": [
+   "jiton"
+  ],
+  "clan": "sabaku",
+  "level": 34,
+  "rank": 4,
+  "learn": "clan:sabaku",
+  "desc": "Hedef alanın altı kara demir kumu denizine döner; merkezden dışa üç halka halinde dev dikenler fışkırır, içindekiler kilitlenir. Sonunda ortadan yükselen dev diken hedefi göğe kaldırır.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "dmg_k": 1.0,
+  "category": "kekkei_genkai",
+  "shape": "aoe",
+  "range": "Long",
+  "requires": {
+   "kekkei_genkai": [
+    "Magnet Release"
+   ]
+  },
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Kara Demir Cehennemi"
+ }
 }

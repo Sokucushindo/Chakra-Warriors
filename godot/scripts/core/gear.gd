@@ -1176,7 +1176,7 @@ static func random_legendary() -> String:
 	return LEGENDARY.filter(func(x): return not x in MistSwords.IDS and not WH.INFO.has(x) and not x in ["nanato", "kokinjo", "benihisago", "kohaku"]).pick_random()   # Nanatō yalnız Hachibi yolunun talimiyle   # sahibi olan efsane silahlar da yalnız sahibinden düşer
 
 ## Mağazada satılanlar
-const SHOP_CLOTHES := ["chakura_yoroi", "boenkyo_goz", "yuz_017", "joki_ocak", "uchiha_yakali", "uchiha_uzun", "uchiha_beyaz", "uchiha_polis", "uchiha_kolluk", "uchiha_haori", "kitsune_maske", "tengu_maske", "oni_maske", "kum_kabagi", "sirt_051", "sake_kabagi", "tisort", "uzun_gomlek", "ceket", "yakali", "kolsuz_yakali", "sargili_kolsuz", "file_atlet", "zirhli_gomlek", "kimono_ust",
+const SHOP_CLOTHES := ["chakura_yoroi", "boenkyo_goz", "yuz_017", "shima_kamen", "uzu_kamen", "rinne_kamen", "rinne_kamen_ware", "joki_ocak", "uchiha_yakali", "uchiha_uzun", "uchiha_beyaz", "uchiha_polis", "uchiha_kolluk", "uchiha_haori", "kitsune_maske", "tengu_maske", "oni_maske", "kum_kabagi", "sirt_051", "sake_kabagi", "tisort", "uzun_gomlek", "ceket", "yakali", "kolsuz_yakali", "sargili_kolsuz", "file_atlet", "zirhli_gomlek", "kimono_ust",
 	"ninja_pant", "sort", "sivil_pant", "sargili_pant", "hakama", "sandalet", "takviyeli_sandalet", "tabi", "zori",
 	"tetsu_kabuto", "tsuno_kabuto", "daimyo_kanmuri", "kozan_kabuto", "tsuri_boshi", "shudo_zukin", "okina_zukin", "mekakushi_hotai", "megane", "katamen_fukumen", "fuin_gantai", "katame_hotai", "neko_zukin", "fukumen_zukin", "sarashi_bo", "sarashi_zukin", "kami_hana", "gama_hitai", "kasa", "kapuson", "kafa_bandaji", "bandana", "bez_maske", "gozluk", "gaz_maskesi", "anbu_maske", "anbu_kurt", "anbu_kus", "anbu_ayi",
 	"deri_yelek", "suna_yelek", "kiri_yelek", "kumo_yelek", "iwa_yelek", "samuray_zirh",
@@ -1554,7 +1554,8 @@ static func ensure(p: Dictionary) -> void:
 	p["gear"] = []
 	p["equip"] = {}
 	var L: Dictionary = p.get("look", {})
-	grant(p, _starter_set(p), "set", L.get("top", null), L.get("pants", null))
+	var sd: Array = L.get("set_dye", ["", ""])   # yaratıcıda seçilen üst / alt rengi: elle yapılmış sette boya olarak kalır
+	grant(p, _starter_set(p), "set", L.get("top", null), L.get("pants", null), {"dyed_c1": sd.size() > 0 and String(sd[0]) != "", "dyed_c2": sd.size() > 1 and String(sd[1]) != ""})
 	# silahsız başlanır (kunai silah dükkânında); Shiranui ailesi senbon iğneleriyle (Genma)
 	if String(p.get("clan", "")) == "shiranui":
 		grant(p, "senbon", "sag")

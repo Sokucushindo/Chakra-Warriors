@@ -511,16 +511,24 @@ func _process(dt: float) -> void:
 		return
 	_t = 2.0
 	var lv = int(pr().get("level", 1))
+	var told := false
 	for pid in PATHS:
 		var P: Dictionary = PATHS[pid]
 		var s = state(pid)
+		# güç yetince söylenti (v0.243'te yanlışlıkla silinmişti); aynı anda birden çok açılırsa 2 sn arayla tek tek duyurulur
+		if s == UNKNOWN and not told and lv >= lv_need(pid, "rumor_level") and not Missions.quiet():
+			set_state(pid, RUMOR)
+			s = RUMOR
+			told = true
+			Hud.banner(Lang.t("SÖYLENTİ") + ": " + Lang.t(String(P["name"])).to_upper(), P["site"]["place"], P["color"])
+			Hud.msg(Lang.t(String(P["rumor"])) + "  " + Lang.t("[Tab > Yollar]"), P["color"].lightened(0.3), 8.0)
 		if s < FOUND and lairs.has(pid):
 			var lp = Game.from_map(Vector2(lairs[pid][0], lairs[pid][1]))
 			if Vector2(lp.x - Game.player.global_position.x, lp.z - Game.player.global_position.z).length() < 45.0:
 				set_state(pid, FOUND)
 				Hud.banner("GİZLİ YER BULUNDU", P["site"]["place"], P["color"])
 				Hud.msg("%s burada yaşıyor. Onunla konuş [F]." % P["mentor"]["title"], P["color"].lightened(0.3), 5.0)
-				if Game.profile.get("waypoint") is Array and String(Game.profile["waypoint"][3]) == P["site"]["place"]:
+				if Game.profile.get("waypoint") is Array and String(Game.profile["waypoint"][3]) in [P["site"]["place"], "Arama bölgesi (%s)" % P["name"]]:
 					Game.profile.erase("waypoint")
 
 

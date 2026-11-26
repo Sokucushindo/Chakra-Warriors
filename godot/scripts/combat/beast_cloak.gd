@@ -36,7 +36,53 @@ func setup(combat: PlayerCombat) -> void:
 
 
 func beast_id() -> String:
-	return TailedBeasts.player_jinchuriki()
+	return ride_id if ride_id != "" else TailedBeasts.player_jinchuriki()
+
+
+## Mangekyō ile çağrılmış canavara binme (F): oyuncu o canavara tam dönüşür ve onu kendisi yönetir (pençe kombosu, Kuyruklu
+## Canavar Topu, R/T/C teknikleri). Kalan çağırma süresi işler; F ile ya da süre / chakra bitince inilir, süre kaldıysa canavar
+## yanında yeniden yapay zekâyla savaşır. Sharingan tuttuğu için güven düşüklüğünden kontrol kaybı ve pelerin yanığı yok.
+var ride_id := ""
+var ride_life := 0.0
+var _ride_ending := false
+
+
+func ride_start(b) -> void:
+	if b == null or not is_instance_valid(b):
+		return
+	if level > 0:
+		deactivate()   # kendi pelerinin açıksa önce kapanır (iki canavar aynı anda olmaz)
+	ride_id = String(b.id)
+	ride_life = float(b.ally_life)
+	var at: Vector3 = b.global_position
+	b.dead = true
+	b.queue_free()
+	p.global_position = Vector3(at.x, maxf(at.y, p.global_position.y), at.z)
+	p.velocity = Vector3.ZERO
+	set_level(6)
+	Hud.banner("BİJŪ'YA BİNDİN", "%s artık senin kontrolünde (%d sn)  •  Sol tık: pençe  •  Sağ tık / X: Kuyruklu Canavar Topu  •  F: in" % [String(BeastModels.INFO[ride_id]["name"]).split(" — ")[0], int(ride_life)], chakra_col())
+
+
+func ride_end(respawn := true) -> void:
+	if ride_id == "" or _ride_ending:
+		return
+	_ride_ending = true
+	var id := ride_id
+	var life := ride_life
+	set_level(0)
+	ride_id = ""
+	_ride_ending = false
+	if respawn and life > 1.5 and is_instance_valid(p):
+		var b = TailedBeast.new()
+		b.setup(id)
+		var q = Missions.open_ground(p.global_position + p.face_dir() * 12.0, 20.0)
+		p.get_tree().current_scene.add_child(b)
+		b.global_position = q
+		b.home = q
+		b.make_ally(p, life)
+		Hud.msg("%s yanında savaşmaya devam ediyor (%d sn)." % [String(BeastModels.INFO[id]["name"]).split(" — ")[0], int(life)], chakra_col())
+	else:
+		Hud.msg("Sharingan bağı çözüldü: canavar geri döndü.", Color(0.85, 0.85, 0.9))
 
 
 func max_level() -> int:
@@ -157,6 +203,9 @@ func set_level(l: int) -> void:
 
 
 func deactivate() -> void:
+	if ride_id != "" and not _ride_ending:
+		ride_end(true)
+		return
 	if level == 6:
 		_end_transform()
 	level = 0
@@ -548,6 +597,11 @@ func _process(dt: float) -> void:
 			Game.world.env.set_tint(Color(0, 0, 0, 0))
 	if level == 0:
 		return
+	if ride_id != "":
+		ride_life -= dt
+		if ride_life <= 0.0:
+			ride_end(false)
+			return
 	# chakra / beden
 	var free_modes = Cheats.on("nomodecost")   # hile: mod bedelleri yok
 	if level == 6 and not free_modes:
@@ -555,16 +609,19 @@ func _process(dt: float) -> void:
 		if p.chakra <= 0.0:
 			p.chakra = 0.0
 			Hud.msg("Chakra tükendi, dönüşüm çözüldü.", chakra_col())
+			if ride_id != "":
+				ride_end(true)
+				return
 			set_level(4 if max_level() >= 4 else 1)
 			return
 	else:
 		p.chakra = minf(p.max_chakra, p.chakra + (2.0 + level * 2.0) * dt)
 	var tr = TailedBeasts.trust()
 	var unbound = bool(TailedBeasts.beasts().get(beast_id(), {}).get("unbound", false))
-	if level >= 5 and tr < 55.0 and not unbound and not free_modes:
+	if level >= 5 and tr < 55.0 and not unbound and not free_modes and ride_id == "":
 		p.hp -= 1.5 * dt   # pelerin bedeni yakıyor
 	var risk = maxf(0.0, SAFE_TRUST[level] - tr) / 100.0
-	if unbound or free_modes:
+	if unbound or free_modes or ride_id != "":
 		risk = 0.0
 	if risk > 0.0 and rampage_t <= 0.0 and randf() < risk * 0.12 * dt:
 		_rampage()

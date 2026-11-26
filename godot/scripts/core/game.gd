@@ -483,6 +483,8 @@ func play_step(p: Vector3, pitch: float, vol: float) -> void:
 	var n = step_sound(p)
 	_foot_alt = not _foot_alt
 	pitch *= 0.97 if _foot_alt else 1.03
+	if n == "step_sand":
+		vol *= 0.42   # kum dosyaları toprak/çimden ~5-8 dB yüksek (Suna'da aşırı gürdü)
 	Sfx.play(n, p, pitch, vol)   # toprak / çim / taş / tahta: sıfırdan sentezlenmiş tek vuruşlu sesler (tools/sfx_steps.py)
 	var wet = step_wetness(p)
 	if wet > 0.05 and n != "step_water":

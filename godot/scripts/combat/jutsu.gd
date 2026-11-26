@@ -157,6 +157,12 @@ func _execute_impl(caster: Node3D, id: String, target: Node3D) -> void:
 	caster.set_meta("jid", id)   # hasar dengesi: bu jutsunun isabetleri ölçülmüş çarpanla
 	if String(Data.jutsu.get(id, {}).get("element", "")) == "katon":
 		caster.set_meta("katon_t", Game.now())   # Kirin: Katon ile ısınan gök fırtına bulutu toplar
+	if String(Data.jutsu.get(id, {}).get("element", "")) == "suiton" and String(Data.jutsu.get(id, {}).get("shape", "")) != "buff":
+		# Suiton zemini ıslatır (oyuncu + düşman aynı): hedefin olduğu yerde, yoksa 8 m önde. Islak zemin su kaynağıdır
+		# (Sensatsu Suishō, Tate Eboshi).
+		var wp: Vector3 = target.global_position if target != null and is_instance_valid(target) and target.global_position.distance_to(caster.global_position) < 30.0 else caster.global_position + (caster.face_dir() if caster.has_method("face_dir") else -caster.global_basis.z) * 8.0
+		get_tree().create_timer(0.8).timeout.connect(func():
+			ClanMech.mark_water(wp, 4.0, 12.0))   # görünmez su izi (yerde kalan zemin alanları kapalı; birikinti görseli tekniğin kendi efektinde)
 	caster.set_meta("jid_t", Time.get_ticks_msec() / 1000.0)
 	# Kurama kekkei genkai (kanon, Yakumo): genjutsusu bedeni gerçekten yaralar — yakalanan (sersem/korku/bağ/uyku) düşman gerçek hasar alır.
 	# Oyuncu ve düşman Kurama aynı kural.

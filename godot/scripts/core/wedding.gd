@@ -394,7 +394,7 @@ func _spawn_people() -> void:
 		if oid != sid and String(o.get("status", "")) == "" and int(o.get("bond", 0)) >= 0 and Friends.available(o) and list.size() < 9:
 			list.append([String(o["name"]), Friends.look_of(o)])
 	while list.size() < 16:
-		var gl = Outfits.roll(["chunin", "chunin", "jonin", "genin"].pick_random(), vid)
+		var gl = Outfits.uniform(["chunin", "chunin", "jonin", "genin"].pick_random(), vid)
 		gl["gender"] = ["m", "f"].pick_random()
 		gl["age"] = "adult"
 		list.append(["%s ninjası" % vname, gl])

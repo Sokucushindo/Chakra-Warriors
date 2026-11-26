@@ -652,6 +652,8 @@ func _ground_air_move(dt: float) -> void:
 			Mastery.gain(Game.profile, "hiz", dt * 0.025)   # koştukça hız (0.005 idi: sürekli koşsan 1 puan ~20 dk)
 		spd_mul *= Cheats.speed_mul()
 		var target = wish * ((DASH * 1.35 if turbo else DASH) if sprint else (WALK if walking else RUN)) * spd_mul   # tam hız (5 sn Shift) 2x; Caps Lock: yürüyüş
+		if walking and not sprint:
+			target = wish * WALK * minf(1.0, status_speed())   # Caps Lock: hız statı / buff yürüyüşü hızlandırmaz (yüksek hızda yürüyüş koşuya dönüyordu); yavaşlatma etkiler
 		if swimming:
 			target *= 0.35
 		var hv = Vector3(velocity.x, 0, velocity.z)
@@ -883,10 +885,18 @@ func _fly_move(dt: float) -> void:
 	model.rotation = Vector3(0, facing, -clampf(wish.dot(global_transform.basis.x) * 0.25, -0.3, 0.3))
 	model.position = Vector3(0, model_lift, 0)
 	if combat == null or not combat.busy():
-		if model.current != "air":
-			model.play("air", 0.25)
-		model.overlay.set_pose("ninja_run", 0.0)
-		model.overlay.set_pose("leap", clampf(hv.length() / maxf(spd, 1.0), 0.25, 1.0))
+		if fly_cfg.get("stand", false):
+			# ayakta taşınma (Gaara'nın kum bulutu): dik durur, bacak açıp süzülme pozu yok
+			if model.current != "idle":
+				model.play("idle", 0.25)
+			model.overlay.set_pose("ninja_run", 0.0)
+			model.overlay.set_pose("leap", 0.0)
+			model.rotation.z = 0.0
+		else:
+			if model.current != "air":
+				model.play("air", 0.25)
+			model.overlay.set_pose("ninja_run", 0.0)
+			model.overlay.set_pose("leap", clampf(hv.length() / maxf(spd, 1.0), 0.25, 1.0))
 	if is_instance_valid(fly_vis):
 		fly_vis.rotation.y = facing
 		fly_vis.position.y = 0.0 if fly_cfg.get("hug", false) else sin(fly_cfg["t"] * 2.5) * 0.06

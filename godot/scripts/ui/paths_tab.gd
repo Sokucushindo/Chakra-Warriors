@@ -46,9 +46,14 @@ static func _card(main: Node, pid: String) -> Control:
 	nx.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	nx.custom_minimum_size = Vector2(1000, 0)
 	v.add_child(nx)
-	var area = LegendPaths.lairs.get(pid) if s >= LegendPaths.FOUND else null   # yalnız bulduğun ine dönüş yolu
+	var area = LegendPaths.lairs.get(pid)
 	if area != null:
 		var at: Array = area
+		if s < LegendPaths.FOUND:   # söylenti: inin kendisi değil, 50-90 m ötesinde sabit bir arama noktası (son kısmı oyuncu arar)
+			var h := absi(hash(pid))
+			var ang := float(h % 360) * PI / 180.0
+			var dist := 50.0 + float((h / 360) % 40)
+			at = [float(at[0]) + cos(ang) * dist, float(at[1]) + sin(ang) * dist]
 		var place: String = P["site"]["place"] if s >= LegendPaths.FOUND else "Arama bölgesi (%s)" % P["name"]
 		v.add_child(UI.button("İzi takip et" if s >= LegendPaths.FOUND else "Arama bölgesine git", func():
 			var wp = Game.from_map(Vector2(float(at[0]), float(at[1])))

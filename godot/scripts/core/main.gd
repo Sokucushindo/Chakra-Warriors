@@ -191,6 +191,8 @@ func _creator_look() -> Dictionary:
 	Gear.preview_set_look(L, String(L["start_set"]))   # seçilen set önizlemede giyili
 	L["top"] = s["top"]   # üst rengi: setin üst giysisi
 	L["pants"] = s.get("pants", L.get("pants", Color(0.15, 0.15, 0.17)))   # alt rengi: pantolon
+	# elle yapılmış setler rengi boyadan alır (look.top/pants'ı okumaz): seçilen üst / alt rengi önizlemede de boya olarak
+	L["set_dye"] = [(s["top"] as Color).to_html(false) if s.get("dyed_top", false) else "", (s.get("pants", Color.BLACK) as Color).to_html(false) if s.get("dyed_pants", false) else ""]
 	L["face_id"] = int(s.get("face_base", 0))
 	L["face_cut"] = 0
 	L["eye_art"] = maxi(0, CharacterModel.eye_art_names().find(String(s.get("eye_art", "Yuvarlak"))))
@@ -304,7 +306,7 @@ func _start_new_game(from_creator := false) -> void:
 	var s = creator_state
 	if String(s["name"]).strip_edges() == "":
 		s["name"] = ["Kaito", "Hiro", "Ren", "Sora", "Aki", "Yuki"].pick_random()
-	Game.profile = Progress.new_profile({"slot": s["slot"], "name": s["name"], "gender": s["gender"], "clan": s["clan"], "soy": s.get("soy", "") if s["clan"] == "none" else "",
+	Game.profile = Progress.new_profile({"slot": s["slot"], "name": s["name"], "gender": s["gender"], "clan": s["clan"], "soy": s.get("soy", "") if s["clan"] == "none" else "", "sand_line": String(s.get("sand_line", "suna")),
 		"element": s["element"], "look": _creator_look(), "village": s.get("village", "konoha")})
 	Game.profile["pos"] = null
 	Buffs.reset()
@@ -530,16 +532,21 @@ func _route(e: InputEvent) -> void:
 		Missions.cycle_track()   # harita işaretçisi: görev / dost / aranan / hedef arasında geç
 	elif Game.paused:
 		return
+	elif e.is_action_pressed("interact") and TailedBeasts.ride_toggle(player):
+		pass   # Mangekyō ile çağrılmış canavara bin / in
 	elif e.is_action_pressed("interact"):
 		var it = Interact.nearest(player.global_position)
 		# önce yerdeki dōjutsu sahibinin gözleri (yakındaki etkileşimler F'yi yutuyordu)
 		var ey = player.combat.modes.eyes if player.combat and player.combat.modes else null
 		# görevin konuşulacak kişisi yakındaysa önce o (kapı/görev masası alanının içinde duruyorsa F onu yutuyordu)
 		var qn = Missions.talk_target_near(player.global_position, 4.0)
+		var corpse = Hud._near_catchable(player)   # ekranda "Üstünü ara" yazıyorsa F önce cesedi arar (yakındaki NPC'yle konuşmaz)
 		if ey and ey.steal_target != null and is_instance_valid(ey.steal_target):
 			ey._steal(ey.steal_target)
 		elif ey and ey.cell_target != null and is_instance_valid(ey.cell_target):
 			ey._take_cells(ey.cell_target)
+		elif corpse:
+			corpse.catch()
 		elif qn != null:
 			qn.talk()
 		elif not it.is_empty():

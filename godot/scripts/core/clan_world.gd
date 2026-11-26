@@ -161,9 +161,40 @@ const CLAN_SIGNATURE := {"momochi": ["kirigakure_no_jutsu", "sairento_kiringu", 
 	"gekko": ["mikazuki_no_mai", "toton_jutsu"]}
 
 
-static func clan_jutsu_ids(clan: String) -> Array:
+## Kazekage ailesi üç ayrı soy (anime: üçü ayrı kişi, kimse hepsini kullanmaz): Kum (Gaara, Shukaku kumu — Jiton değil),
+## Altın Kum (Rasa, Jiton), Demir Kum (Üçüncü Kazekage, Jiton). Oyuncu yaratıcıda seçer (profile["sand_line"]); NPC teknik seti
+## kurulurken tek soy seçilir. Listede olmayan sabaku / jiton teknikleri ortak değildir: soy dışıysa öğrenilmez / kullanılmaz.
+const SAND_LINES := {
+	"suna": ["suna_shuriken", "kusa_boheki", "rendan_suna_shigure", "sabaku_fuyu", "sabaku_hando", "sabaku_kyu", "suna_bunshin", "suna_no_kaiwan",
+		"suna_no_yoroi", "sabaku_ro", "gokusa_maiso", "ryusa_bakuryu", "sabakuha", "suna_arare", "sabaku_soso", "sabaku_taiso", "sabaku_sotaiso_fuin"],
+	"sakin": ["jiton_sakin_taiso", "jiton_sakin_taisoso", "sakin_kaihodama", "sakin_tsubute", "sakin_ryusa", "sakin_shibari", "kusakin_boheki", "sakin_no_yoroi", "sakin_bunshin", "sakin_senpu", "sakin_yari", "sakin_tsuchi", "sakin_omori", "sakin_ryujin", "sakin_hokai", "ogon_kyuden", "ogon_no_taiyo"],
+	"satetsu": ["satetsu_no_makingu", "satetsu_renzan", "satetsu_soso", "kurogane_no_kobushi", "jitetsu_ryufusho", "satetsu_shigure", "satetsu_kesshu",
+		"satetsu_kaiho", "satetsu_kurogane_no_tsubasa", "satetsu_heki", "satetsu_buki", "satetsu_nami", "satetsu_bunshin", "satetsu_karada", "jitetsu_fuin_to", "rendan_satetsu_shigure", "kurogane_jigoku"],
+}
+const SAND_LINE_ORDER := ["suna", "sakin", "satetsu"]
+const SAND_LINE_NAMES := {"suna": "Kum (Gaara)", "sakin": "Altın Kum (Rasa)", "satetsu": "Demir Kum (Üçüncü Kazekage)"}
+
+
+static func sand_line_of(jid: String) -> String:
+	for l in SAND_LINES:
+		if jid in SAND_LINES[l]:
+			return l
+	return ""
+
+
+## Bu soydaki biri bu tekniği kullanabilir mi (Kazekage ailesi dışı: her zaman evet)
+static func sand_ok(clan: String, line: String, jid: String) -> bool:
+	if clan != "sabaku":
+		return true
+	var l := sand_line_of(jid)
+	return l == "" or l == (line if line != "" else "suna")
+
+
+static func clan_jutsu_ids(clan: String, line := "") -> Array:
 	if clan == "" or clan == "none":
 		return []
+	if clan == "sabaku":   # Kazekage ailesi: yalnız seçilen soyun listesi
+		return (SAND_LINES.get(line if line != "" else "suna", []) as Array).filter(func(k): return Data.jutsu.has(k))
 	var tags: Array = CLAN_LEARN.get(clan, [])
 	return Data.jutsu.keys().filter(func(k): return not String(k).begins_with("_") and (String(Data.jutsu[k].get("clan", "")) == clan or String(Data.jutsu[k].get("learn", "")) in tags or String(k) in CLAN_SIGNATURE.get(clan, [])))
 
@@ -177,8 +208,10 @@ static func person_name(c: String, female: bool) -> String:
 
 
 ## Klan jutsuları: clan alanı / learn "clan:c" / klan kekkei genkai doğası / klan gözü. Seviyeye göre rütbe sınırı.
-static func clan_jutsu(c: String, lv: int, n := 4) -> Array:
+static func clan_jutsu(c: String, lv: int, n := 4, line := "") -> Array:
 	var info: Dictionary = Data.clans.get(c, {})
+	if c == "sabaku" and line == "":
+		line = (SAND_LINE_ORDER as Array).pick_random()   # bir ninja = bir soy: seti tek soydan (altın + kum karışmaz)
 	var nat: Array = info.get("kg_natures", [])
 	if c == "senju" and randf() > 0.06:
 		nat = []   # kanon: Mokuton Senju'da bile çok nadir (oyuncuyla aynı: toprak+su birlikte gerekir) — çoğu Senju ninjası Mokutonsuz
@@ -195,6 +228,8 @@ static func clan_jutsu(c: String, lv: int, n := 4) -> Array:
 			mine = String(j.get("element", "")) in nat or learn.trim_prefix("kg:") in nat
 		if not mine and eye != "":
 			mine = learn == "eye:" + eye
+		if c == "sabaku":
+			mine = id in SAND_LINES.get(line, [])
 		if not mine or id == "hyuga_soke_no_juinjutsu":   # kafes kuş mührü dövüş tekniği değil (yalnız mühürlü yan aileye)
 			continue
 		var r := int(Enemy.RANK_I.get(String(j.get("canon_rank", "")), 2))

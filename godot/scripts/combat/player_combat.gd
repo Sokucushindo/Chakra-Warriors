@@ -116,6 +116,9 @@ func _unhandled_input(e: InputEvent) -> void:
 		if e.is_action_pressed("slot%d" % (i + 1)):
 			var slots: Array = Game.profile.get("slots", [])
 			if i < slots.size() and slots[i] != null and slots[i] != "":
+				if String(slots[i]) == "sabaku_fuyu" and p.flight_source() == "sand":
+					p.stop_flight()   # ikinci basış: kum bulutundan in (bekleme süresi / chakra yüzünden reddediliyordu)
+					continue
 				begin_cast(slots[i])
 
 
@@ -1619,7 +1622,8 @@ func take_hit(info: Dictionary) -> void:
 	if dmg >= 1.0 and not info.get("no_blood", false) and String(info.get("element", "")) not in ["katon", "raiton"]:
 		FX.blood(p.global_position + Vector3.UP * 1.1, hdir, clampf(dmg / maxf(1.0, p.max_hp) * 5.0, 0.3, 1.0))
 	Combat.damage_number(p.global_position + Vector3.UP * 2.0, dmg, Color(1, 0.4, 0.35))
-	Sfx.play("hurt", p.global_position)
+	var fem := p.model != null and String(p.model.look.get("gender", "m")) == "f"
+	Sfx.play("hurt", p.global_position, randf_range(1.32, 1.42) if fem else randf_range(0.95, 1.05))   # kadın sesi ince perde (aynı ses çalıyordu)
 	if Game.world:
 		Game.world.env.add_shake(0.35)
 	info = Combat.combo_shape(info)   # düşmanın kombosu da aynı kurala uyar

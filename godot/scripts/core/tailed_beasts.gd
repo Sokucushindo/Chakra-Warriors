@@ -477,8 +477,23 @@ func summon_ms_beast(c: Node3D) -> bool:
 	if Game.world:
 		Game.world.env.add_shake(1.2)
 	Sfx.play("roar", p, 0.7)
-	Hud.banner("BİJŪ KUCHİYOSE", "%s Sharingan'ın emrinde! (40 sn)" % BeastModels.INFO[id]["name"].split(" — ")[0], BeastModels.INFO[id]["chakra"])
+	Hud.banner("BİJŪ KUCHİYOSE", "%s Sharingan'ın emrinde! (40 sn)  •  Yanına gidip [F]: bin ve kendin yönet" % BeastModels.INFO[id]["name"].split(" — ")[0], BeastModels.INFO[id]["chakra"])
 	return true
+
+
+## F: Mangekyō ile çağrılmış kendi canavarına bin / in (BeastCloak.ride_start). Yakında canavar yoksa false (F başka işe gider).
+func ride_toggle(pl) -> bool:
+	if pl == null or not pl.combat or not pl.combat.modes or pl.combat.modes.cloak == null:
+		return false
+	var cl = pl.combat.modes.cloak
+	if cl.ride_id != "":
+		cl.ride_end(true)
+		return true
+	for n in get_tree().get_nodes_in_group("fighters"):
+		if n is TailedBeast and n.ally_owner == pl and not n.dead and n.global_position.distance_to(pl.global_position) < float(n.height) * 0.6 + 8.0:
+			cl.ride_start(n)
+			return true
+	return false
 
 
 ## Dünya haritası için: canavarların bilinen yerleri

@@ -250,7 +250,7 @@ func _crowd(center: Vector3, toward: Vector3, n: int, r0 := 7.0) -> Array:
 		if i % 3 == 2:
 			v = _person("", {}, p, toward, "walker")   # sivil
 		else:
-			var lk = Outfits.roll(["genin", "chunin", "chunin", "jonin"][i % 4], vid)
+			var lk = Outfits.uniform(["genin", "chunin", "chunin", "jonin"][i % 4], vid)
 			lk["gender"] = ["m", "f", "m"][i % 3]
 			lk["age"] = "adult" if i % 5 != 4 else "teen"
 			v = _person("", lk, p, toward)
@@ -570,7 +570,7 @@ func _chunin() -> void:
 	pl.global_position = here + Vector3.UP * 0.05
 	pin = pl.global_position
 	var kg = _kage_npc(here + fd * 7.0, here)
-	var proctor = _person("Sınav Gözetmeni", Outfits.roll("jonin", vid), here + fd * 7.0 + side * 1.6, here)
+	var proctor = _person("Sınav Gözetmeni", Outfits.uniform("jonin", vid), here + fd * 7.0 + side * 1.6, here)
 	var cands = _crowd(here - fd * 0.5, here + fd * 3.0, 8, 3.2)
 	_cine_on()
 	_cam_shot(here - fd * 5.0 + side * 2.5 + Vector3.UP * 2.2, here + fd * 3.0 + Vector3.UP * 1.7)
@@ -602,8 +602,8 @@ func _jonin() -> void:
 	pl.global_position = here + Vector3.UP * 0.05
 	pin = pl.global_position
 	var kg = _kage_npc(here + fd * 6.0, here)
-	var j1 = _person("Jōnin Kefili", Outfits.roll("jonin", vid), here + fd * 6.0 + side * 1.8, here)
-	var j2 = _person("Jōnin Kefili", Outfits.roll("jonin", vid), here + fd * 6.0 - side * 1.8, here)
+	var j1 = _person("Jōnin Kefili", Outfits.uniform("jonin", vid), here + fd * 6.0 + side * 1.8, here)
+	var j2 = _person("Jōnin Kefili", Outfits.uniform("jonin", vid), here + fd * 6.0 - side * 1.8, here)
 	_cine_on()
 	_cam_shot(here - fd * 3.4 + side * 1.8 + Vector3.UP * 1.9, here + fd * 3.0 + Vector3.UP * 1.7)
 	_go_w(j1, here + fd * 1.8 + side * 1.6, 1.5)
@@ -715,8 +715,8 @@ func _pardon() -> void:
 	pl.global_position = here + Vector3.UP * 0.05
 	pin = pl.global_position
 	var kg = _kage_npc(here + fd * 6.5, here)
-	var g1 = _person("Kapı Nöbetçisi", Outfits.roll("chunin", vid), here + fd * 6.5 + side * 1.6, here)
-	var g2 = _person("Kapı Nöbetçisi", Outfits.roll("chunin", vid), here + fd * 6.5 - side * 1.6, here)
+	var g1 = _person("Kapı Nöbetçisi", Outfits.uniform("chunin", vid), here + fd * 6.5 + side * 1.6, here)
+	var g2 = _person("Kapı Nöbetçisi", Outfits.uniform("chunin", vid), here + fd * 6.5 - side * 1.6, here)
 	_cine_on()
 	_cine_k = 0.3
 	_cam_shot(here - fd * 3.2 + side * 1.8 + Vector3.UP * 1.9, here + fd * 3.0 + Vector3.UP * 1.7)

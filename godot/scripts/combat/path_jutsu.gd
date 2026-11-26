@@ -378,6 +378,28 @@ const PANIM := {
 	"jibaku_bunshin": {"base": "flicker", "pre": 0.15, "post": 0.3, "seal_pose": "Tairitsu"},
 	"jigyaku_no_jutsu": {"base": "sense", "pre": 0.4, "post": 0.6, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.2, -0.4, 0.9), Vector3(-0.5, 0.75, 0.4), Vector3(-0.2, 0.95, 0.2)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.1, 0.45, 0.88), Vector3(0.0, 0.5, 0.86), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.0, 1.5, 1.5, 1.5, 0.9], "fL": [0, 0, 0, 0, 0], "neck": -8.0}},
 	"jitetsu_ryufusho": {"base": "palm", "pre": 0.4, "post": 0.6, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "crouch": 0.3}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.4, -0.7, -0.5), Vector3(-0.0, -0.3, -0.95), Vector3(-0.0, -0.6, -0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 16.0, "hips_yaw": -20.0}},
+	"sakin_tsubute": {"base": "palm", "pre": 0.25, "post": 0.45},
+	"sakin_ryusa": {"base": "ground", "pre": 0.3, "post": 0.55},
+	"sakin_shibari": {"base": "two_palm", "pre": 0.3, "post": 0.6},
+	"kusakin_boheki": {"base": "two_palm", "pre": 0.25, "post": 0.5},
+	"sakin_no_yoroi": {"base": "power", "pre": 0.3, "post": 0.6},
+	"sakin_bunshin": {"base": "seal", "pre": 0.3, "post": 0.4},
+	"sakin_senpu": {"base": "power", "pre": 0.25, "post": 0.6},
+	"sakin_yari": {"base": "ground", "pre": 0.3, "post": 0.5},
+	"sakin_tsuchi": {"base": "sky", "pre": 0.35, "post": 0.8},
+	"sakin_omori": {"base": "palm", "pre": 0.3, "post": 0.5},
+	"sakin_ryujin": {"base": "ground", "pre": 0.35, "post": 0.8},
+	"sakin_hokai": {"base": "sky", "pre": 0.4, "post": 0.9},
+	"ogon_kyuden": {"base": "two_palm", "pre": 0.45, "post": 1.2},
+	"ogon_no_taiyo": {"base": "sky", "pre": 0.5, "post": 1.4},
+	"satetsu_heki": {"base": "ground", "pre": 0.2, "post": 0.4},
+	"satetsu_buki": {"base": "power", "pre": 0.15, "post": 0.3},
+	"satetsu_nami": {"base": "ground", "pre": 0.3, "post": 0.55},
+	"satetsu_bunshin": {"base": "seal", "pre": 0.3, "post": 0.4},
+	"satetsu_karada": {"base": "power", "pre": 0.3, "post": 0.5},
+	"jitetsu_fuin_to": {"base": "palm", "pre": 0.3, "post": 0.5},
+	"rendan_satetsu_shigure": {"base": "sky", "pre": 0.35, "post": 0.8},
+	"kurogane_jigoku": {"base": "ground", "pre": 0.45, "post": 1.2},
 	"jiton_sakin_taiso": {"base": "two_palm", "pre": 0.55, "post": 1.0, "wind": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 40.0, "crouch": 0.8}, "rel": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.15, 0.98, 0.1), Vector3(0.05, 1.0, 0.05), Vector3(-0.0, 1.0, 0.0)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": -20.0, "neck": -30.0}},
 	"joki_boi": {"base": "clone", "pre": 0.35, "post": 0.4, "seal_pose": "Bunshin"},
 	"juho_soshiken": {"base": "power", "pre": 0.5, "post": 0.6, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": 15.0, "crouch": 0.5}, "rel": {"R": [Vector3(-0.85, -0.45, 0.1), Vector3(-0.9, -0.3, 0.2), Vector3(-0.9, -0.2, 0.3)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "neck": -10.0, "crouch": 0.6}},
@@ -20081,3 +20103,91 @@ func p_kaze_gaeshi(c: Node3D, t: Node3D) -> void:
 
 func p_sumi_nagashi(c: Node3D, t: Node3D) -> void:
 	load("res://scripts/combat/fx/jutsu_p7_fx.gd").sumi_nagashi(self, c, t)
+
+
+func p_sakin_tsubute(c: Node3D, t: Node3D) -> void:
+	JitonFXS.sakin_tsubute(self, c, t)
+
+
+func p_sakin_ryusa(c: Node3D, t: Node3D) -> void:
+	JitonFXS.sakin_ryusa(self, c, t)
+
+
+func p_sakin_shibari(c: Node3D, t: Node3D) -> void:
+	JitonFXS.sakin_shibari(self, c, t)
+
+
+func p_kusakin_boheki(c: Node3D, t: Node3D) -> void:
+	JitonFXS.kusakin_boheki(self, c, t)
+
+
+func p_sakin_no_yoroi(c: Node3D, t: Node3D) -> void:
+	JitonFXS.sakin_no_yoroi(self, c, t)
+
+
+func p_sakin_bunshin(c: Node3D, t: Node3D) -> void:
+	JitonFXS.sakin_bunshin(self, c, t)
+
+
+func p_sakin_senpu(c: Node3D, t: Node3D) -> void:
+	JitonFXS.sakin_senpu(self, c, t)
+
+
+func p_sakin_yari(c: Node3D, t: Node3D) -> void:
+	JitonFXS.sakin_yari(self, c, t)
+
+
+func p_sakin_tsuchi(c: Node3D, t: Node3D) -> void:
+	JitonFXS.sakin_tsuchi(self, c, t)
+
+
+func p_sakin_omori(c: Node3D, t: Node3D) -> void:
+	JitonFXS.sakin_omori(self, c, t)
+
+
+func p_sakin_ryujin(c: Node3D, t: Node3D) -> void:
+	JitonFXS.sakin_ryujin(self, c, t)
+
+
+func p_sakin_hokai(c: Node3D, t: Node3D) -> void:
+	JitonFXS.sakin_hokai(self, c, t)
+
+
+func p_ogon_kyuden(c: Node3D, t: Node3D) -> void:
+	JitonFXS.ogon_kyuden(self, c, t)
+
+
+func p_ogon_no_taiyo(c: Node3D, t: Node3D) -> void:
+	JitonFXS.ogon_no_taiyo(self, c, t)
+
+
+func p_satetsu_heki(c: Node3D, t: Node3D) -> void:
+	JitonFXS.satetsu_heki(self, c, t)
+
+
+func p_satetsu_buki(c: Node3D, t: Node3D) -> void:
+	JitonFXS.satetsu_buki(self, c, t)
+
+
+func p_satetsu_nami(c: Node3D, t: Node3D) -> void:
+	JitonFXS.satetsu_nami(self, c, t)
+
+
+func p_satetsu_bunshin(c: Node3D, t: Node3D) -> void:
+	JitonFXS.satetsu_bunshin(self, c, t)
+
+
+func p_satetsu_karada(c: Node3D, t: Node3D) -> void:
+	JitonFXS.satetsu_karada(self, c, t)
+
+
+func p_jitetsu_fuin_to(c: Node3D, t: Node3D) -> void:
+	JitonFXS.jitetsu_fuin_to(self, c, t)
+
+
+func p_rendan_satetsu_shigure(c: Node3D, t: Node3D) -> void:
+	JitonFXS.rendan_satetsu_shigure(self, c, t)
+
+
+func p_kurogane_jigoku(c: Node3D, t: Node3D) -> void:
+	JitonFXS.kurogane_jigoku(self, c, t)

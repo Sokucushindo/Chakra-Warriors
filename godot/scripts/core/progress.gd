@@ -139,7 +139,7 @@ func objective_text() -> String:
 func new_profile(opts: Dictionary) -> Dictionary:
 	var pr = {
 		"slot": opts.get("slot", 1), "name": opts.get("name", "İsimsiz"), "gender": opts.get("gender", "m"),
-		"clan": opts.get("clan", "none"), "soy": opts.get("soy", ""), "elements": [opts.get("element", "katon")], "element_known": false,
+		"clan": opts.get("clan", "none"), "soy": opts.get("soy", ""), "sand_line": opts.get("sand_line", "suna") if opts.get("clan", "none") == "sabaku" else "", "elements": [opts.get("element", "katon")], "element_known": false,
 		"look": opts.get("look", {}), "level": 1, "xp": 0, "rank": 0, "ryo": 150, "sp": 0, "skills": [],
 		"learned": [], "slots": ["", "", "", "", "", "", "", "", ""], "inventory": {"kunai": 1, "shuriken": 1, "salve": 2, "pill": 1},
 		"throw_sel": "kunai", "summon": "kurbağa", "story": 0, "seed": randi(), "journal": [], "goals": [], "flags": {}, "missions_done": {"D": 0, "C": 0, "B": 0, "A": 0, "S": 0},
@@ -211,7 +211,12 @@ func clan_unlocks(announce := true) -> void:
 		var j: Dictionary = Data.jutsu[jid]
 		var lp = String(j.get("learn", ""))
 		var ok = false
-		if lp == "clan" or lp == "clan:" + String(pr.get("clan", "")):
+		var cln := String(pr.get("clan", ""))
+		if not ClanWorld.sand_ok(cln, String(pr.get("sand_line", "")), jid):
+			continue   # Kazekage ailesi: başka soyun tekniği (altın kum / demir kum / kum karışmaz)
+		if cln == "sabaku" and ClanWorld.sand_line_of(jid) != "":
+			ok = true   # kendi soyunun tekniği: klan tekniği gibi Güç ile (özel görev etiketi olanlar dahil)
+		elif lp == "clan" or lp == "clan:" + String(pr.get("clan", "")):
 			ok = lp != "clan" or j.get("clan", "") == pr.get("clan", "")
 		elif lp.begins_with("kg:"):
 			ok = has_nature(lp.substr(3))
@@ -295,6 +300,8 @@ func _check_kg_awaken(announce: bool) -> void:
 	var cl: Dictionary = Data.clans.get(pr.get("clan", "none"), {})
 	var src: Array = []
 	for n in cl.get("kg_natures", []):
+		if String(pr.get("clan", "")) == "sabaku" and String(pr.get("sand_line", "suna")) in ["", "suna"] and n == "jiton":
+			continue   # Gaara soyu: kum Shukaku'dan / kendi chakrasından, Mıknatıs Salınımı değil
 		src.append([n, int(cl.get("kg_level", 1))])
 	# klansız kan soyu (Darui'nin Ranton'u, Pakura'nın Shakuton'u gibi klan adı olmayan kekkei genkai)
 	var soy: Dictionary = KgPaths.SOY.get(String(pr.get("soy", "")), {})

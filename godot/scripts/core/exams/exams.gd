@@ -226,7 +226,7 @@ func academy_talk() -> void:
 	if cur.begins_with("academy"):
 		Hud.dialog(sensei, "Sınav devam ediyor, odaklan!", [])
 		return
-	Hud.dialog(sensei, "Mezuniyet sınavı üç bölüm: önce yazılı sınav; sonra sınav odasında, hocaların önünde Bunshin ve Henge; en son bahçede Kawarimi ve atış hedefleri. Toplamda %%60 başarı yeterli. Hazır mısın %s?" % pr["name"], [
+	Hud.dialog(sensei, "Mezuniyet sınavı yazılı sınav: soruların yarısını bilirsen mezunsun, sonra jōnin hocanın takım sınavına geçersin. Hazır mısın %s?" % pr["name"], [
 		{"label": "Hazırım! (yazılı sınav)", "cb": academy_written},
 		{"label": "Biraz daha çalışayım", "cb": func(): pass}])
 
@@ -238,8 +238,7 @@ func academy_written() -> void:
 	data = {"written": 0.0, "practical": 0, "targets": 0}
 	ExamUI.written({"title": "Akademi Mezuniyet Sınavı — Yazılı", "subtitle": "8 soru • 2 dakika • Kâğıdına odaklan.", "questions": pool.slice(0, 8), "time": 120.0, "cheat": 0}, func(r: Dictionary):
 		data["written"] = float(r["correct"]) / float(r["total"])
-		Hud.dialog(Progress.home_info()["s1"], "Kâğıtlar toplandı (%d/%d doğru). Şimdi sırayla sınav odasına çağıracağım. %s! Masanın önüne geç: Bunshin no Jutsu ile klonlarını göster. Mühürler: Koç - Yılan - Kaplan." % [r["correct"], r["total"], p()["name"]],
-			[{"label": "Başla", "cb": academy_practical}]))
+		_academy_results())   # 2026-11-26: kunai / atış / oda bölümleri kalktı — yazılıdan sonra doğrudan sonuç ve takım sınavı
 
 
 func academy_practical() -> void:
@@ -413,13 +412,13 @@ func _academy_results() -> void:
 	cur = ""
 	_clear_nodes()
 	var w = float(data["written"])
-	var pr_ok = int(data["practical"])
-	var tg = int(data["broken"])
-	var total = w * 0.4 + pr_ok / 3.0 * 0.35 + tg / float(TARGETS) * 0.25
-	var passed = total >= 0.6
-	var rows = [["Yazılı sınav", "%%%d" % int(w * 100), w >= 0.5], ["Bunshin / Henge / Kawarimi", "%d / 3" % pr_ok, pr_ok >= 2], ["Atış hedefleri", "%d / %d" % [tg, TARGETS], tg >= 2], ["Toplam", "%%%d" % int(total * 100), passed]]
+	var passed = w >= 0.5
+	var rows = [["Yazılı sınav", "%%%d" % int(w * 100), passed]]
 	if passed:
 		flags()["academy_passed"] = true
+		for jid in ["bunshin_no_jutsu", "henge", "kawarimi_no_jutsu"]:   # akademinin temel üç tekniği (eskiden uygulama bölümünde)
+			if Data.jutsu.has(jid) and not jid in p()["learned"]:
+				Progress.learn(jid, false)
 		Progress.add_xp(120)
 		ExamUI.scorecard("Akademi Mezuniyet Sınavı", rows, "MEZUN OLDUN! Ama alın koruyucuyu hak etmek için bir sınav daha var: jōnin hocan %s'nin takım sınavı. Antrenman alanına git." % GeninSquad.sensei_name(), true, func():
 			Missions.target_marker = find_point(["training"])

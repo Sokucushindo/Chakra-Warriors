@@ -797,6 +797,8 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 		for c in cols:
 			fl.add_child(_swatch(c, Color(state.get(key, Color.BLACK)).is_equal_approx(c), func():
 				state[key] = c
+				if key in ["top", "pants"]:
+					state["dyed_" + key] = true   # elle yapılmış set: seçilen renk kıyafete boya olarak geçer
 				_cfocus = key
 				on_change.call()
 				redraw.call()))
@@ -841,9 +843,18 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 			if cl_d.has("kg"):
 				note.call(cc, "Kekkei Genkai: " + String(cl_d["kg"]), UI.ACCENT)
 			note.call(cc, String(cl_d.get("desc", "")))
+			# Kazekage ailesi: üç ayrı soy (anime: Gaara kum, Rasa altın kum, Üçüncü demir kum — kimse hepsini kullanmaz)
+			if state["clan"] == "sabaku":
+				if not String(state.get("sand_line", "")) in ClanWorld.SAND_LINE_ORDER:
+					state["sand_line"] = "suna"
+				var sl_ids: Array = ClanWorld.SAND_LINE_ORDER
+				var slc: VBoxContainer = carousel.call("Kum Soyu", "sand_line", sl_ids, sl_ids.map(func(k): return ClanWorld.SAND_LINE_NAMES[k]))
+				note.call(slc, {"suna": "Shukaku'nun kumu: kum kalkanı, kum zırhı, Sabaku Kyū / Sōsō. Mıknatıs Salınımı yok.",
+					"sakin": "Mıknatıs Salınımı ile ağır altın tozu: ezici dalgalar, gömme, kalın duvarlar.",
+					"satetsu": "Mıknatıs Salınımı ile demir kum: dikenler, işaretleme, dallanan demir yapılar."}[String(state["sand_line"])])
 			# klanın hiden teknikleri: seviye geldikçe kendiliğinden öğrenilir
 			var cj = []
-			for k in ClanWorld.clan_jutsu_ids(String(state["clan"])):
+			for k in ClanWorld.clan_jutsu_ids(String(state["clan"]), String(state.get("sand_line", ""))):
 				cj.append(Data.jutsu[k])
 			cj.sort_custom(func(a, b): return int(a.get("level", 1)) < int(b.get("level", 1)))
 			if not cj.is_empty():
@@ -875,8 +886,8 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 			if not need.is_empty():
 				var parts = []
 				for e in need:
-					parts.append("%s (%d teknik)" % [el_names[e], need[e]])
-				note.call(ec, "⚠ Bu doğayla bazı klan teknikleri kilitli kalır: " + ", ".join(parts) + ". O doğayı ikinci doğa olarak alınca açılır.", Color(1, 0.7, 0.4))
+					parts.append((Lang.t("%s (1 teknik)") % Lang.t(el_names[e])) if int(need[e]) == 1 else (Lang.t("%s (%d teknik)") % [Lang.t(el_names[e]), need[e]]))
+				note.call(ec, Lang.t("⚠ Bu doğayla bazı klan teknikleri kilitli kalır: ") + ", ".join(parts) + Lang.t(". O doğayı ikinci doğa olarak alınca açılır."), Color(1, 0.7, 0.4))
 		"gorunum":
 			var hks = CharacterModel.hair_styles_for(String(state["gender"]))
 			if not hks.has(state["hair_style"]):
@@ -904,7 +915,10 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 					state["skin"] = ClanWorld.HOSHIGAKI_SKINS[0]
 				swatches.call("Ten", "skin", ClanWorld.HOSHIGAKI_SKINS)
 			else:
-				swatches.call("Ten", "skin", [Color(0.98, 0.88, 0.8), Color(0.96, 0.8, 0.66), Color(0.86, 0.68, 0.52), Color(0.68, 0.5, 0.36), Color(0.5, 0.36, 0.26)])
+				var skins := [Color(0.98, 0.88, 0.8), Color(0.96, 0.8, 0.66), Color(0.86, 0.68, 0.52), Color(0.68, 0.5, 0.36), Color(0.5, 0.36, 0.26)]
+				if ClanWorld.HOSHIGAKI_SKINS.has(state["skin"]):
+					state["skin"] = skins[1]   # Hoshigaki'den başka klana geçince mavi ten kalıyordu
+				swatches.call("Ten", "skin", skins)
 			# yüz boyası (Striker Face Paint): klanın kanon boyası varsayılan
 			if not state.has("face_paint"):
 				state["face_paint"] = CharacterModel.CLAN_FACE_PAINT.get(state["clan"], "yok")
@@ -3092,7 +3106,7 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 	var fbar = UI.hbox(8)
 	left.add_child(fbar)
 	var my_clan = String(pr.get("clan", "none"))
-	var clan_ids: Array = ClanWorld.clan_jutsu_ids(my_clan)
+	var clan_ids: Array = ClanWorld.clan_jutsu_ids(my_clan, String(pr.get("sand_line", "")))
 	var modes = [["learned", "Öğrendiklerim (%d)" % learned.size()], ["all", "Jutsu Kitabı (%d)" % Data.jutsu.size()]]
 	if not clan_ids.is_empty():
 		modes.append(["clan", "%s Teknikleri (%d)" % [Data.clans.get(my_clan, {}).get("name", my_clan), clan_ids.size()]])

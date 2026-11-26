@@ -55,10 +55,18 @@ static func issue_next(owner: Node3D) -> void:
 		if d.get("owner_f") == owner:
 			n += 1
 			d.set_meta("hold_pos", d.global_position)
+	for b in owner.get_tree().get_nodes_in_group("fighters"):   # Mangekyō ile çağrılmış canavar da aynı komutu dinler
+		if b is TailedBeast and b.ally_owner == owner and not b.dead:
+			n += 1
+			b.hold_pos = b.global_position
+			b.show_cmd()
 	Hud.msg("Çağrı komutu: %s%s" % [CMD_NAMES[nxt], "" if n > 0 else " (çağrın yok)"], Color(1.0, 0.85, 0.5))
 
 
 static func order_special(owner: Node3D) -> void:
+	for b in owner.get_tree().get_nodes_in_group("fighters"):   # müttefik canavar: hemen Bijūdama (hedefi varsa)
+		if b is TailedBeast and b.ally_owner == owner and not b.dead and b.atk == "" and b._foe() != null:
+			b._begin("ball", 0.0)
 	for s in owner.get_tree().get_nodes_in_group("summons"):
 		if s.get("owner_f") == owner and not s.dead:
 			var lt = owner.combat.lock_target if owner is Player and owner.combat else null

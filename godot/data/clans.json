@@ -361,7 +361,7 @@
  },
  "sabaku": {
   "name": "Kazekage Ailesi",
-  "desc": "Suna'yı yöneten Kazekage soyu. Kum ve demir/altın tozunu mıknatıs chakrasıyla yönetir (Üçüncü'nün demir kumu, Dördüncü'nün altın tozu). Kum kalkanı, kum zırhı, demir kum fırtınası.",
+  "desc": "Suna'yı yöneten Kazekage soyu. Üç ayrı kum soyu var, biri seçilir: Gaara'nın kumu (Shukaku kumu), Rasa'nın altın tozu ve Üçüncü Kazekage'nin demir kumu (ikisi de Mıknatıs Salınımı).",
   "kg": "Jiton (Mıknatıs)",
   "eye": [
    0.35,

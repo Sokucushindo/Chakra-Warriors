@@ -543,6 +543,7 @@ static func has(sid) -> bool:
 	return false
 
 
+const MeshArr = preload("res://scripts/core/mesh_arr.gd")
 const CANON_SKIN := Color(0.9, 0.72, 0.58)
 
 
@@ -639,6 +640,63 @@ static func _palette(cols: PackedColorArray, skin: Color) -> Array:
 
 
 ## Giyene özel: kurulumdaki ten rengi giyenin tenine, tarifin ana renkleri seçilen boyaya (gölgelendiricide, örnek başına)
+## Paletteki hangi renk üstte (bel üstü gövde), hangisi altta (bacak): köşe renklerini palet ailelerine dağıtıp yüksekliğe göre sayar.
+## Ağ başına bir kez (meta "pal_ud"); diskten gelen hazır setlerde de çalışır.
+static func _pal_ud(mesh: Mesh, skin: Color) -> Array:
+	if mesh.has_meta("pal_ud_c"):
+		return mesh.get_meta("pal_ud_c")
+	var arr: Array = MeshArr.get_arrays(mesh, 0)
+	var res := []
+	if arr.size() > Mesh.ARRAY_COLOR and arr[Mesh.ARRAY_COLOR] is PackedColorArray and arr[Mesh.ARRAY_VERTEX] is PackedVector3Array:
+		var vs: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+		var cs: PackedColorArray = arr[Mesh.ARRAY_COLOR]
+		var ab: AABB = mesh.get_aabb()
+		var sl := maxf((skin.r + skin.g + skin.b) / 3.0, 0.002)
+		var sch := Vector3(skin.r, skin.g, skin.b) / sl
+		var cnt := [{}, {}]   # bölge -> renk -> kapladığı ALAN (köşe sayısı ayrıntılı yakayı öne çıkarıyordu)
+		var rep := {}
+		var idx: PackedInt32Array = arr[Mesh.ARRAY_INDEX] if arr[Mesh.ARRAY_INDEX] is PackedInt32Array else PackedInt32Array()
+		var ntri := idx.size() / 3 if idx.size() > 0 else vs.size() / 3
+		for ti in ntri:
+			var i0 := idx[ti * 3] if idx.size() > 0 else ti * 3
+			var i1 := idx[ti * 3 + 1] if idx.size() > 0 else ti * 3 + 1
+			var i2 := idx[ti * 3 + 2] if idx.size() > 0 else ti * 3 + 2
+			var cen := (vs[i0] + vs[i1] + vs[i2]) / 3.0
+			var t := (cen.y - ab.position.y) / maxf(ab.size.y, 0.01)   # boy oranı: çocukta da doğru bölge
+			var zone := 0 if (t > 0.56 and t < 0.8) else (1 if (t > 0.12 and t < 0.48) else -1)
+			if zone < 0:
+				continue
+			var c0: Color = cs[i0]
+			var l := maxf((c0.r + c0.g + c0.b) / 3.0, 0.002)
+			if (Vector3(c0.r, c0.g, c0.b) / l).distance_to(sch) < 0.08 and l / sl > 0.5 and l / sl < 1.6:
+				continue   # ten
+			var area := (vs[i1] - vs[i0]).cross(vs[i2] - vs[i0]).length() * 0.5
+			# renk AİLESİ (parlaklıktan bağımsız): kıvrım gölgeleri aynı kumaşı onlarca tona bölüyordu; çok koyu renkler ayrı aile
+			var fam := Vector3(c0.r, c0.g, c0.b) / l
+			var q := Vector3i(roundi(fam.x * 4.0), roundi(fam.y * 4.0), roundi(fam.z * 4.0)) if l > 0.16 else Vector3i(-1, -1, roundi(l * 20.0))
+			cnt[zone][q] = float(cnt[zone].get(q, 0.0)) + area
+			var qk := [q, Vector3i(roundi(c0.r * 20.0), roundi(c0.g * 20.0), roundi(c0.b * 20.0))]
+			rep[qk] = float(rep.get(qk, 0.0)) + area   # ailenin içinde en çok alan kaplayan gerçek ton
+		for z in 2:
+			var best = null
+			var bn := 0.0
+			for q in cnt[z]:
+				if float(cnt[z][q]) > bn:
+					bn = float(cnt[z][q])
+					best = q
+			var col = null
+			if best != null:
+				var ba := -1.0
+				for qk in rep:
+					if qk[0] == best and float(rep[qk]) > ba:
+						ba = float(rep[qk])
+						var e: Vector3i = qk[1]
+						col = Color(e.x / 20.0, e.y / 20.0, e.z / 20.0)
+			res.append(col)
+	mesh.set_meta("pal_ud_c", res)
+	return res
+
+
 static func _personalize(mi: MeshInstance3D, m) -> void:
 	if mi == null or mi.mesh == null:
 		return
@@ -654,9 +712,18 @@ static func _personalize(mi: MeshInstance3D, m) -> void:
 			params["skin_to"] = Vector4(skin_now.r, skin_now.g, skin_now.b, 1.0)
 	var dye: Array = m.look.get("set_dye", [])
 	var pal: Array = mi.mesh.get_meta("pal", []) if mi.mesh.has_meta("pal") else []
-	for i in mini(2, pal.size()):
-		if dye.size() > i and String(dye[i]) != "":
-			var src: Color = pal[i]
+	# "Üst rengi" / "Alt rengi" palet sırasına (kapladığı alan) göre değil KONUMA göre: bel üstünde en çok görülen renk üst,
+	# bacakta en çok görülen alt (eskiden üst rengi yakaya / atkıya, alt rengi cekete gidiyordu)
+	var any_dye := false
+	for dd in dye:
+		if String(dd) != "":
+			any_dye = true
+	var ud: Array = _pal_ud(mi.mesh, mi.mesh.get_meta("skin0", CANON_SKIN)) if any_dye else []
+	for i in 2:
+		if dye.size() > i and String(dye[i]) != "" and ud.size() > i and ud[i] != null:
+			if i == 1 and ud[0] != null and (ud[1] as Color).is_equal_approx(ud[0]):
+				continue   # tek parça (tulum): üst rengi zaten uygulandı
+			var src: Color = ud[i]
 			var dst := Color.html(String(dye[i]))
 			var nm := "dye_a" if i == 0 else "dye_b"
 			params[nm] = Vector4(src.r, src.g, src.b, 1.0)

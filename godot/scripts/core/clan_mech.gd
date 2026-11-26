@@ -118,11 +118,26 @@ static func prepared_ground(pos: Vector3) -> bool:
 	return GroundFX.kind_at(pos) in ["wet", "mud", "cracked"] or water_near(pos, 6.0)
 
 
+## Suiton atılan yerde 12 sn görünmez su izi (yerde kalan zemin alanları kullanıcı isteğiyle kapalı): su şartlı teknikler için kaynak
+static var _water_marks: Array = []   # [konum, bitiş]
+
+
+static func mark_water(pos: Vector3, r: float, dur: float) -> void:
+	var now = Game.now()
+	_water_marks = _water_marks.filter(func(m): return float(m[2]) > now)
+	_water_marks.append([pos, r, now + dur])
+
+
 static func water_near(pos: Vector3, r := 9.0) -> bool:
 	if Game.world and Game.world.env and String(Game.world.env.weather) == "yağmur":
 		return true
-	if GroundFX.kind_at(pos) == "wet":
-		return true
+	var now = Game.now()
+	for m in _water_marks:   # yakında Suiton atılmış (ıslak zemin): yalnız tam bastığın nokta değil, r içi
+		if float(m[2]) > now and Vector2(pos.x - m[0].x, pos.z - m[0].z).length() <= float(m[1]) + r:
+			return true
+	for z in GroundFX.zones:
+		if String(z["kind"]) in ["wet", "mud"] and Vector2(pos.x - z["pos"].x, pos.z - z["pos"].z).length() <= float(z["r"]) + r:
+			return true
 	for k in 9:
 		var q = pos if k == 8 else pos + Vector3(cos(k * TAU / 8.0), 0, sin(k * TAU / 8.0)) * r
 		if Game.terrain_height(q.x, q.z) < -0.3:

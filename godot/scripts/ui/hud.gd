@@ -539,8 +539,10 @@ func _set_side(i: int, nm: String, icon: String, col: Color, cd: float, ok: bool
 func _build_texts() -> void:
 	msg_lbl = UI.label("", 22, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER)
 	msg_lbl.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	msg_lbl.position = Vector2(-500, -210)
-	msg_lbl.size = Vector2(1000, 30)
+	msg_lbl.position = Vector2(-600, -210)
+	msg_lbl.size = Vector2(1200, 30)
+	msg_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART   # uzun söylenti / ipucu ekrandan taşmasın; yukarı doğru büyür
+	msg_lbl.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	game_hud.add_child(msg_lbl)
 	# etkileşim ipucu: tuş rozeti + metin, mürekkep hap
 	prompt_box = PanelContainer.new()
@@ -1330,10 +1332,14 @@ func _process(dt: float) -> void:
 		msg_t -= dt
 		if msg_t <= 0.0:
 			msg_lbl.text = ""
-	var it = Interact.nearest(pl.global_position)
+	# F ile AYNI sıra (main.gd): ceset / yakalanacak -> görevde konuşulacak kişi -> hizmet -> baktığın kişi
 	var catch = _near_catchable(pl)
-	var tk = _near_talker(pl) if it.is_empty() and not catch else null
-	var ptxt = it.get("label", "") if not it.is_empty() else ((String(catch.get("catch_label")) if catch.get("catch_label") != null else "Yakala!") if catch else (Lang.t("Konuş: %s") % tk.display if tk else ""))
+	var qn = Missions.talk_target_near(pl.global_position, 4.0) if not catch else null
+	var it = Interact.nearest(pl.global_position) if not catch and qn == null else {}
+	var tk = _near_talker(pl) if it.is_empty() and not catch and qn == null else null
+	if qn != null:
+		tk = qn
+	var ptxt = (String(catch.get("catch_label")) if catch.get("catch_label") != null else "Yakala!") if catch else (it.get("label", "") if not it.is_empty() else (Lang.t("Konuş: %s") % tk.display if tk else ""))
 	# önce tam metin çevrilir (sözlükte "[F] ..." ile kayıtlı), sonra [F] atılır — eskiden önce atılıyor, çeviri bulunmuyordu
 	var ptr = Lang.t(String(ptxt))
 	if ptr == String(ptxt):
@@ -1418,6 +1424,8 @@ func _near_talker(pl: Node3D) -> Node:
 		to.y = 0.0
 		var facing = to.normalized().dot(fw) if to.length() > 0.3 and fw != Vector3.ZERO else 1.0
 		var sc = d - 2.4 * facing
+		if c.get("follow") != null and is_instance_valid(c.get("follow")) and facing < 0.85:
+			sc += 3.0   # peşinden gelen takım arkadaşı hep dibinde: ancak doğrudan ona bakınca seçilir
 		if sc < bs:
 			bs = sc; best = c
 	return best
