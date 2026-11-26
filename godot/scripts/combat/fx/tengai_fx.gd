@@ -16,10 +16,10 @@ static var _cache := {}
 
 const ROCK_COL := Color(0.36, 0.38, 0.33)
 const EARTH_COL := Color(0.42, 0.35, 0.27)
-const R1 := 80.0          # birinci göktaşı yarıçapı (m): 160 m çap, gökyüzünü kaplar (ref kare 1-3)
-const R2 := 95.0          # ikinci göktaşı (daha büyük)
-const FOOT1 := 14.0       # birincinin zemine gömülen tabanı = vuruş yarıçapı
-const FOOT2 := 20.0       # ikinci çarpışın vuruş yarıçapı
+const R1 := 50.0          # birinci göktaşı yarıçapı (m): 100 m çap (kullanıcı); atan her zaman dışında kalır (eskiden 160 m, atanın üstüne iniyordu)
+const R2 := 56.0          # ikinci göktaşı (daha büyük)
+const FOOT1 := 26.0       # birincinin zemine gömülen tabanı = vuruş yarıçapı (görünen ezme alanı)
+const FOOT2 := 32.0       # ikinci çarpışın vuruş yarıçapı
 const DUR1 := 3.3         # iniş süresi
 const DUR2 := 3.6
 const SPAWN2 := 1.7       # ikincinin belirdiği an
@@ -663,8 +663,14 @@ static func _tri(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3) -> void:
 # ================================================================== ana akış
 static func cast(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	pj.busy(c, 1.2)
-	var tt = pj.tg(c, t, 40.0)
-	var goal: Vector3 = pj.gp(tt.global_position if tt else c.global_position + pj.fwd(c, t) * 20.0)
+	var tt = pj.tg(c, t, 70.0)
+	var goal: Vector3 = pj.gp(tt.global_position if tt else c.global_position + pj.fwd(c, t) * 60.0)
+	# atan kayanın altında / içinde kalmasın: iniş noktası atandan en az ikinci kayanın yarıçapı + pay kadar uzakta
+	var off = goal - c.global_position
+	off.y = 0.0
+	if off.length() < R2 + 8.0:
+		var dir = off.normalized() if off.length() > 0.5 else c.face_dir()
+		goal = pj.gp(c.global_position + dir * (R2 + 8.0))
 	var host: Node = pj.get_tree().current_scene
 	DojutsuFXB._eye_glint(pj, c, Color(0.8, 0.72, 1.0), 3.0)   # Rinnegan parıltısı
 	# yörünge: göktaşı izleyen kameranın baktığı yönde, hedefin ardından alçalarak gelir (görüş içinde iner)
@@ -676,10 +682,10 @@ static func cast(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	away = away.rotated(Vector3.UP, randf_range(-0.22, 0.22))
 	var sink1 = R1 - sqrt(R1 * R1 - FOOT1 * FOOT1)
 	var E1 = goal + Vector3.UP * (R1 - sink1)
-	var S1 = goal + away * 360.0 + Vector3.UP * 170.0   # ~400 m ötede, kameranın üst yarısında: ilk saniyeden çerçevenin üçte biri
+	var S1 = goal + away * 110.0 + Vector3.UP * 430.0   # yukarıdan iner (dikeyden ~15°, kamerada görünsün diye hafif öne): yatık gelmez
 	var top1 = E1 + Vector3.UP * R1
 	var E2 = top1 + Vector3.UP * (R2 * 0.92)
-	var S2 = goal + away * 520.0 + Vector3.UP * 420.0
+	var S2 = goal + away * 150.0 + Vector3.UP * 640.0   # ikincisi de yukarıdan, birincinin tepesine
 	var st = {"m1": null, "m2": null, "shat": false}
 	# gök kararır (izleyen yakınsa)
 	if Game.world and cpos.distance_to(goal) < 800.0:
@@ -940,7 +946,8 @@ static func _impact(host: Node, g: Vector3, R: float, foot: float, rock_col: Col
 		fi.set_instance_shader_parameter("prog", 0.0)
 		fi.set_instance_shader_parameter("fade", 1.0)
 		fi.set_instance_shader_parameter("seed", randf() * 40.0)
-		_put(host, fi, f0 + dv * L * 0.5 + Vector3.UP * 0.1)
+		var fc = f0 + dv * L * 0.5
+		_put(host, fi, Vector3(fc.x, Game.jutsu_floor(fc.x, fc.z) + 0.1, fc.z))   # ortasının altındaki zemin: eğimde havada / gömülü kalmasın, zemin uyumu da bükebilsin
 		fi.global_basis = Basis.looking_at(-dv, Vector3.UP)
 		fi.scale = Vector3(wdt, 1.0, L * 0.5)
 		preload("res://scripts/combat/fx/lib/ground_drape.gd").auto(fi)

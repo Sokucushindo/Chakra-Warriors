@@ -4407,6 +4407,9 @@ static func sell_screen(title: String, buyer: String, back: Callable) -> void:
 ## Bölgesel harita: oyuncunun çevresi (1.6 km) yakın plan; yollar, nehirler, binalar ve dükkân / önemli yer ikonları.
 ## Sağ panelden yere tıklayınca ok oraya yönlendirir. [Dünya Haritası] düğmesiyle dünya haritasına geçilir.
 static func region_map(main: Node) -> void:
+	if Game.has_meta("kamui_space"):
+		kamui_map(main)
+		return
 	var rm = Game.world.get("road_map") if Game.world else null
 	if rm == null or rm.local_map == null or rm.local_rect.z <= 0.0 or Game.player == null:
 		world_map(main)
@@ -4510,7 +4513,34 @@ static func region_map(main: Node) -> void:
 	_close_button(bg, func(): main.resume())
 
 
+## Kamui Kūkan'dayken harita: dünya yerine boyutun kendi kütle haritası (Hud.draw_kamui_map), tutsaklar ve çıkış girdabı
+static func kamui_map(main: Node) -> void:
+	var bg = _full(0.7)
+	var vp = bg.get_viewport_rect().size
+	var D = minf(vp.x - 120.0, vp.y - 160.0)
+	var cv = Control.new()
+	cv.position = Vector2((vp.x - D) * 0.5, (vp.y - D) * 0.5 + 20.0)
+	cv.size = Vector2(D, D)
+	cv.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cv.draw.connect(func():
+		if Game.player:
+			Hud.draw_kamui_map(cv, Game.player, Vector2(D, D) * 0.5, D * 0.5, 360.0))
+	bg.add_child(cv)
+	var title = UI.label("KAMUI KŪKAN", 30, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, true)
+	title.position = Vector2(0, cv.position.y - 52)
+	title.size = Vector2(vp.x, 40)
+	bg.add_child(title)
+	var hint = UI.label("Kırmızı: tutsaklar   ·   Mor girdap: çıkış", 16, Color(UI.TEXT, 0.75), HORIZONTAL_ALIGNMENT_CENTER, true)
+	hint.position = Vector2(0, cv.position.y + D + 8)
+	hint.size = Vector2(vp.x, 28)
+	bg.add_child(hint)
+	_close_button(bg, func(): main.resume())
+
+
 static func world_map(main: Node) -> void:
+	if Game.has_meta("kamui_space"):
+		kamui_map(main)
+		return
 	var bg = _full(0.7)
 	var tex: Texture2D = Game.world_map_tex()
 	var vp = bg.get_viewport_rect().size

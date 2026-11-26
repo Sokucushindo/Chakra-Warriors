@@ -1374,6 +1374,8 @@ func is_dead() -> bool:
 func take_hit(info: Dictionary) -> void:
 	if Cheats.on("god"):
 		return   # hile: ölümsüzlük
+	if Combat.other_space(self, info):
+		return   # başka uzaydaki (Kamui boyutu) saldırganın hasarı geçmez
 	Combat.note_hit(self, info)
 	var atk0 = info.get("attacker")
 	if atk0 != null and is_instance_valid(atk0) and atk0 != self:

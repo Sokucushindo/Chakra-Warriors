@@ -102,7 +102,9 @@ static func tick(e: Enemy, dt: float) -> void:
 			ms_open(e)
 			if kind == 4:
 				_ms_strain(e, 0.12)
-			if e.get_meta("kamui_user", false) and d < 7.0 and randf() < 0.4:
+			if e.get_meta("kamui_user", false) and _kamui_react(e, t, d):
+				pass   # Kamui: gelen saldırıyı yuttu / Hōshutsu ile geri çıkardı (oyuncuyla aynı kural ve sayılar)
+			elif e.get_meta("kamui_user", false) and d < 7.0 and randf() < 0.4:
 				_kamui_pull(e, t)
 				e.set_meta("ea_cd", randf_range(14.0, 18.0))
 			elif d < 9.0 and randf() < 0.45:
@@ -123,30 +125,73 @@ const KS = preload("res://scripts/world/kamui_space.gd")
 static func _kamui_pull(e: Enemy, t: Node3D) -> void:
 	Combat.popup_text(e.global_position + Vector3.UP * 2.6, "Kamui!", Color(0.75, 0.6, 0.9))
 	e.model.play("cast_out", 0.05, 1.0, true)
-	var at = t.global_position + Vector3.UP * 1.1
-	MsArts.kamui_vortex(at, 1.8, 1.4)
+	var at = KS.touch_point(e, t)   # oyuncunun yutuşuyla aynı: burgaç dokunulan noktada, beden oraya akar
 	t.apply_status("stun", 1.3)
-	Sfx.play("genjutsu", at, 0.7)
+	Sfx.play("kamui_in", at, 1.0)
+	if t == Game.player:
+		MsArts.kamui_vortex(at, MsArts._hh(t) * 1.6, 1.4, {"pull": 0.5})
+		var wp = weakref(t)
+		e.get_tree().create_timer(1.15).timeout.connect(func():
+			var h = wp.get_ref()
+			if h == null or not is_instance_valid(e) or e.dead or h.is_dead():
+				return
+			if MsArts.pull_player(e):
+				return
+			_kamui_resist(e, h))
+		return
+	var weak = t is Enemy and not t.has_meta("boss") and not t.has_meta("teammate") and float(t.size) < 2.5 and Combat.execute_ok(e, t)   # oyuncuyla aynı kural
+	if weak:
+		KS.swallow(e, t, at, 1.1, func():
+			Combat.popup_text(at + Vector3.UP, "Kamui boyutuna çekildi", Color(0.7, 0.55, 0.9))
+			t.die({"execute": true, "attacker": e, "kamui": true, "dmg": 9999.0})
+			if is_instance_valid(t) and t.is_dead():
+				KS.capture(e, t))
+		return
+	MsArts.kamui_vortex(at, MsArts._hh(t) * 1.4, 1.3, {"pull": 0.5})
+	KS.twist_into(t, at, 1.1, false, 0.3)   # direnir: burgaca doğru çekilip geri yaylanır
 	var wr = weakref(t)
 	e.get_tree().create_timer(1.15).timeout.connect(func():
 		var h = wr.get_ref()
 		if h == null or not is_instance_valid(e) or e.dead or h.is_dead():
 			return
-		if h == Game.player:
-			if MsArts.pull_player(e):
-				return
-		elif h is Enemy and not h.has_meta("boss") and not h.has_meta("teammate") and float(h.size) < 2.5 and Combat.execute_ok(e, h):
-			Combat.popup_text(h.global_position + Vector3.UP * 2.2, "Kamui boyutuna çekildi", Color(0.7, 0.55, 0.9))
-			h.die({"execute": true, "attacker": e, "kamui": true, "dmg": 9999.0})
-			if is_instance_valid(h) and h.is_dead():
-				KS.capture(e, h)
-				if h.get("model"):
-					h.model.visible = false
-			return
-		Combat.popup_text(h.global_position + Vector3.UP * 2.2, "Direndi!", Color(1, 0.6, 0.5))
-		var dir = h.global_position - e.global_position
-		dir.y = 0.0
-		h.take_hit({"dmg": float(h.get("max_hp")) * 0.25, "kind": "heavy", "knock": 10.0, "attacker": e, "dir": dir.normalized()}))
+		_kamui_resist(e, h))
+
+
+## Yapay zekâ Kamui tepkisi (oyuncunun "içine çek" + Kamui: Hōshutsu kurallarıyla aynı): 3 m içinde hedef yokken 8 m içindeki
+## düşman mermisini yutar (her mermi için bir kez %60 zar; bekleme çekişle ortak); yuttuğu saldırı ya da kendi tutsağı varsa
+## Hōshutsu ile hedefinin üstüne çıkarır (25 chakra, 10 sn). true = bir şey yaptı
+static func _kamui_react(e: Enemy, t: Node3D, d: float) -> bool:
+	if d > 3.0:
+		for pr in e.get_tree().get_nodes_in_group("projectiles"):
+			if not is_instance_valid(pr) or pr.get("dead") or pr.get("shooter") == e or pr.has_meta("kamui_roll_%d" % e.get_instance_id()):
+				continue
+			if pr.global_position.distance_to(e.global_position + Vector3.UP) > 8.0:
+				continue
+			var sh = pr.get("shooter")
+			if sh == null or not is_instance_valid(sh) or not Combat.hostile(e, sh):
+				continue
+			pr.set_meta("kamui_roll_%d" % e.get_instance_id(), true)
+			if randf() < 0.6 and KS.absorb_projectile(e):
+				e.model.play("cast_out", 0.05, 1.0, true)
+				e.set_meta("ea_cd", randf_range(5.0, 7.0))
+				return true
+	if Game.now() < float(e.get_meta("kamui_out_next", 0.0)) or e.chakra < 25.0 or d > 25.0 or randf() > 0.35:
+		return false
+	if KS.release_out(e, t):
+		e.chakra -= 25.0
+		e.set_meta("kamui_out_next", Game.now() + 10.0)
+		e.model.play("cast_out", 0.05, 1.0, true)
+		Combat.popup_text(e.global_position + Vector3.UP * 2.6, "Kamui: Hōshutsu!", Color(0.75, 0.6, 0.95))
+		e.set_meta("ea_cd", randf_range(6.0, 9.0))
+		return true
+	return false
+
+
+static func _kamui_resist(e: Enemy, h: Node3D) -> void:
+	Combat.popup_text(h.global_position + Vector3.UP * 2.2, "Direndi!", Color(1, 0.6, 0.5))
+	var dir = h.global_position - e.global_position
+	dir.y = 0.0
+	h.take_hit({"dmg": float(h.get("max_hp")) * 0.25, "kind": "heavy", "knock": 10.0, "attacker": e, "dir": dir.normalized()})
 
 
 ## Düşman Mangekyō'yu açar (oyuncuyla aynı kural: Mangekyō sahibi önce 3 tomoe Sharingan'la dövüşür, Mangekyō tekniği ya da
@@ -201,6 +246,7 @@ static func kamui_phase(e: Enemy) -> bool:
 		return false
 	var now = Time.get_ticks_msec()
 	if now < int(e.get_meta("kamui_until", 0)):
+		MsArts.kamui_ripple(e)   # darbe içinden geçti: yalnız geçtiği yerde küçük burkulma (anime)
 		return true
 	if now < int(e.get_meta("kamui_next", 0)):
 		return false
@@ -209,7 +255,7 @@ static func kamui_phase(e: Enemy) -> bool:
 	e.set_meta("kamui_next", now + 8500)
 	_ms_strain(e, 0.05)
 	Combat.popup_text(e.global_position + Vector3.UP * 2.6, "Kamui!", Color(0.75, 0.6, 0.9))
-	MsArts.kamui_vortex(e.global_position + Vector3.UP * 1.0, 0.9, 2.7)
+	MsArts.kamui_ripple(e)
 	if e.model:
 		for g in e.model.find_children("*", "GeometryInstance3D", true, false):
 			(g as GeometryInstance3D).transparency = 0.55

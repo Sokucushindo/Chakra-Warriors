@@ -297,8 +297,16 @@ func on_damaged(_info: Dictionary) -> void:
 func die(_info: Dictionary) -> void:
 	dead = true
 	state = "dead"
-	model.play("death", 0.1)
 	collision_layer = 0
+	if _info.get("kamui", false):
+		# Kamui boyutuna yutuldu: beden burgaçta kayboldu (yere düşme, ceset, kan yok); düğüm sessizce kalkar
+		model.visible = false
+		remove_from_group("fighters")
+		var tk = create_tween()
+		tk.tween_interval(4.0)   # havadaki aletleri / kare işleri onu tutuyor olabilir: hemen silinmez (gizli, dövüş dışı)
+		tk.tween_callback(queue_free)
+		return
+	model.play("death", 0.1)
 	# cesedin altında kan gölü yayılır (ceset kalkınca söner); dev yaratıklar/klonlar hariç
 	if size < 2.5 and not self is ShadowClone and not _info.get("no_blood", false):   # ruhu sökülen ölüde yara yok
 		get_tree().create_timer(0.8).timeout.connect(func():

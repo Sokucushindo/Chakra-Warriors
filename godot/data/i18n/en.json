@@ -1,4 +1,14 @@
 {
+"Tobi no Kamen": "Tobi no Kamen",
+"Tobi'nin turuncu maskesi: sağ gözde tek delik, delikten dışa açılan oluklu sarmal. Gözün delikten görünür.": "Tobi's orange mask: a single hole over the right eye with a grooved spiral winding out from it. Your eye shows through the hole.",
+"Shima no Kamen": "Shima no Kamen",
+"Maskeli Adam'ın Kiri ve Ame günlerindeki sarı maskesi: sağ gözdeki deliğin çevresinde halkalar, yüze yayılan dalgalı kara şeritler.": "The yellow mask the Masked Man wore in his Kiri and Ame days: rings around the right eye hole and wavy black stripes across the face.",
+"Uzu no Kamen": "Uzu no Kamen",
+"Kyūbi saldırısı gecesinin Maskeli Adam maskesi: başın önünü saran kül-kahve kabuk, sağ gözdeki delikten dışa açılan beş geniş kat.": "The Masked Man's mask from the night of the Nine-Tails attack: an ash-brown shell over the front of the head, with five broad layers swirling out from the right eye hole.",
+"Rinne no Kamen": "Rinne no Kamen",
+"Dördüncü Büyük Ninja Savaşı'nın beyaz maskesi: alında Rinnegan halkaları, iki göz deliği halkanın üstünde. İki gözün de delikten görünür.": "The white mask of the Fourth Great Ninja War: Rinnegan rings on the forehead, with both eye holes on a ring. Both of your eyes show through.",
+"Wareta Rinne no Kamen": "Wareta Rinne no Kamen",
+"Savaş maskesinin çatlamış hâli: sol gözden yayılan çatlaklar, kopan parçanın altından sol göz ve yanak açıkta.": "The cracked war mask: cracks spread from the left eye, and a broken-off piece leaves the left eye and cheek bare.",
 "Oyun": "Game",
 "Grafik": "Graphics",
 "Fare ve Tuşlar": "Mouse and Keys",
@@ -13928,5 +13938,16 @@
 "Kamui Kūkan hazır değil (%.0f sn)": "Kamui Kūkan isn't ready (%.0f s)",
 "Yeterli chakra yok (%d).": "Not enough chakra (%d).",
 "Kamui boyutuna çekildin": "Pulled into the Kamui dimension",
-"Kamui!": "Kamui!"
+"Kamui!": "Kamui!",
+"%s boyuttan salındı": "%s released from the dimension",
+"Kırmızı: tutsaklar   ·   Mor girdap: çıkış": "Red: prisoners   ·   Purple vortex: exit",
+"Kamui boyutundan döndü": "Returned from the Kamui dimension",
+"Kamui'ye yutuldu": "Swallowed by Kamui",
+"Kamui: Hōshutsu": "Kamui: Hōshutsu",
+"Kamui boyutuna aldığını burgaçtan geri çıkarırsın (Mangekyō açık olmalı): önce yuttuğun saldırıyı (Kamui: içine çek ile) hedefine geri fırlatır, yoksa boyuttaki en eski tutsağı hedefinin yanına bırakır — çıkan, yanındaki ilk dövüşçüye saldırır.": "You bring out what you took into the Kamui dimension through a vortex (Mangekyō must be active): first the attack you swallowed (with Kamui: pull in) is fired back at your target; otherwise the oldest prisoner in the dimension is dropped next to your target — whoever comes out attacks the nearest fighter.",
+"Kamui: Hōshutsu için Mangekyō'yu aç (V: Sharingan, tekrar V: Mangekyō).": "Activate your Mangekyō for Kamui: Hōshutsu (V: Sharingan, V again: Mangekyō).",
+"Kamui: Hōshutsu hazır değil (%.0f sn)": "Kamui: Hōshutsu is not ready (%.0f s)",
+"Boyutun içindesin: Hōshutsu dışarıda kullanılır.": "You are inside the dimension: Hōshutsu is used outside.",
+"Kamui boyutunda çıkarılacak bir şey yok.": "There is nothing in the Kamui dimension to bring out.",
+"Kamui: Hōshutsu!": "Kamui: Hōshutsu!"
 }

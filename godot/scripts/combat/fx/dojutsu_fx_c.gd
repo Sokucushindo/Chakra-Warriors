@@ -1032,22 +1032,15 @@ static func _furrow(a: Vector3, b: Vector3, w: float, dark: Color, glow: Color, 
 	return mi
 
 
-## Kamui burgacı (kendi çizimimiz): açılır, dur sn döner, kapanır. parent verilirse pos yerel
-static func _swirl(pos: Vector3, size: float, dur: float, sdir := 1.0, ink := OBI_INK, paper := OBI_PALE, parent: Node = null) -> MeshInstance3D:
-	var mi = _mi(_quad(), _swirl_m(ink, paper, true), parent)
-	if parent != null:
-		mi.position = pos
-	else:
-		mi.global_position = pos
-	mi.scale = Vector3.ONE * minf(size, 8.0) * 2.0
-	mi.set_instance_shader_parameter("strength", 0.0)
-	mi.set_instance_shader_parameter("sdir", sdir)
-	var tw = mi.create_tween()
-	tw.tween_method(func(x: float): _iparam(mi, "strength", x), 0.0, 1.0, minf(0.3, dur * 0.4)).set_ease(Tween.EASE_OUT)
-	tw.tween_interval(maxf(0.05, dur - 0.6))
-	tw.tween_method(func(x: float): _iparam(mi, "strength", x), 1.0, 0.0, 0.3).set_ease(Tween.EASE_IN)
-	tw.tween_callback(mi.queue_free)
-	return mi
+## Kamui burgacı: Kamui ailesinin kendi uzay bükülmesi (MsArts.kamui_vortex, anime ref refs/kamui_anime) — sdir > 0 içe yutar,
+## < 0 dışa açılır (çıkış). parent verilirse pos onun yerel ofseti, burgaç onu izler. (ink/paper eski çizim tonlarıydı: kullanılmıyor)
+static func _swirl(pos: Vector3, size: float, dur: float, sdir := 1.0, _ink := OBI_INK, _paper := OBI_PALE, parent: Node = null) -> MeshInstance3D:
+	var o = {"pull": 0.45 if sdir > 0.0 else -0.4}
+	var p3 = parent as Node3D
+	if p3 != null:
+		o["follow"] = p3
+		return MsArts.kamui_vortex(p3.global_transform.basis * pos, minf(size, 8.0), dur, o)
+	return MsArts.kamui_vortex(pos, minf(size, 8.0), dur, o)
 
 
 ## Burgaca çekilen / burgaçtan saçılan zerreler (inward: içe)
@@ -1112,7 +1105,7 @@ static func _see_through(model: Node, amount: float) -> void:
 static func _intangible(c: Node3D, dur: float) -> void:
 	MsArts._flicker_guard(c, dur)
 	_see_through(c.get("model"), 0.55)
-	_swirl(Vector3.UP * 1.1, 0.45, dur, 1.0, OBI_INK, OBI_PALE, c)
+	MsArts.kamui_ripple(c)   # anime: sürekli girdap yok, geçişte küçük burkulma
 	var wr = weakref(c)
 	MsArts._later(dur, func():
 		var n = wr.get_ref()
@@ -1122,11 +1115,10 @@ static func _intangible(c: Node3D, dur: float) -> void:
 
 ## Kamui ile ışınlan: çıkışta içe, varışta dışa dönen burgaç
 static func _kamui_hop(c: Node3D, to: Vector3) -> void:
-	_swirl(c.global_position + Vector3.UP * 1.1, 0.8, 0.45, 1.0)
-	_swirl_specks(c.global_position + Vector3.UP * 1.1, 1.0, 6, 0.35, true)
+	_swirl(MsArts.KS.eye_point(c), 0.8, 0.45, 1.0)
 	MsArts._blink(c, to)
-	_swirl(to + Vector3.UP * 1.1, 0.8, 0.45, -1.0)
-	_swirl_specks(to + Vector3.UP * 1.1, 1.0, 6, 0.35, false)
+	_swirl(MsArts.KS.eye_point(c), 0.8, 0.45, -1.0)
+	MsArts.KS.twist_into(c, MsArts.KS.eye_point(c), 0.22, true)   # gözdeki burgaçtan açılarak belirir (dönmez)
 	Sfx.play("th_teleport", to, 1.3, 0.6)
 
 
@@ -1134,38 +1126,32 @@ static func _kamui_hop(c: Node3D, to: Vector3) -> void:
 static func _kamui_take(c: Node3D, h: Node3D, info: Dictionary, at: Vector3) -> void:
 	if not MsArts._alive(h):
 		return
-	_swirl(at, 1.6, 1.0, -1.0, Color(0.03, 0.04, 0.12), Color(0.4, 0.55, 0.9))
-	_swirl_specks(at, 1.8, 8, 0.8, true)
 	var inf = info.duplicate()
 	if h == Game.player:
 		inf["dmg"] = minf(float(inf.get("dmg", 0.0)), maxf(1.0, float(h.hp) * 0.5))
-	h.take_hit(inf)
-	if not MsArts._alive(h):
-		return
+	# zayıflamış (ya da bu darbeyle düşecek) hedef darbe yemez: bütünüyle boyuta akar (hasarla ölüp yerde ceset kalmasın)
+	var weak = not (h is Player) and not h.has_meta("boss") and float(h.hp) - float(inf.get("dmg", 0.0)) <= float(h.max_hp) * 0.35 and h.has_method("die")
+	if not weak:
+		h.take_hit(inf)
+		if not MsArts._alive(h):
+			return
 	if h == Game.player and float(h.hp) <= float(h.max_hp) * 0.35 and MsArts.pull_player(c):
 		return
-	var weak = not (h is Player) and not h.has_meta("boss") and float(h.hp) <= float(h.max_hp) * 0.35 and h.has_method("die")
 	if weak:
-		Combat.popup_text(MsArts._chest(h) + Vector3.UP, "Kamui boyutuna çekildi", Color(0.7, 0.55, 0.9))
 		h.apply_status("stun", 1.2)
-		var m = h.get("model")
-		if m:
-			var tw = m.create_tween()
-			tw.set_parallel(true)
-			tw.tween_property(m, "scale", m.scale * 0.05, 0.9).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
-			tw.tween_property(m, "rotation:y", m.rotation.y + TAU * 2.0, 0.9)
 		if c == Game.player:
 			Game.profile["kamui_store"] = int(Game.profile.get("kamui_store", 0)) + 1
-		MsArts._later(0.95, func():
-			if MsArts._alive(h):
-				h.die({"execute": true, "attacker": c, "kamui": true, "dmg": 9999.0})
-				if is_instance_valid(h) and h.is_dead():
-					MsArts.KS.capture(c, h)   # boyutta tutsak kalır
-				if is_instance_valid(h) and h.get("model"):
-					h.model.visible = false)
+		# anime (Kakashi): odak noktasındaki uzay sarmal burkulur, beden oraya akıp kaybolur; ceset / düşüş karesi yok
+		MsArts.KS.swallow(c, h, at, 0.9, func():
+			Combat.popup_text(at + Vector3.UP, "Kamui boyutuna çekildi", Color(0.7, 0.55, 0.9))
+			h.die({"execute": true, "attacker": c, "kamui": true, "dmg": 9999.0})
+			if is_instance_valid(h) and h.is_dead():
+				MsArts.KS.capture(c, h))   # boyutta tutsak kalır
 	else:
 		Combat.popup_text(MsArts._chest(h) + Vector3.UP, "Bir parçası koptu", Color(0.8, 0.6, 0.95))
 		h.apply_status("bleed", 5.0)
+		MsArts.kamui_vortex(at, MsArts._hh(h) * 1.4, 1.0, {"pull": 0.5})
+		MsArts.KS.twist_into(h, at, 0.7, false, 0.3)   # güçlü hedef: odaktaki parça burkulup kopar, beden geri yaylanır
 
 
 ## Demir zincir a -> b (Obito'nun bilek zinciri): halka halka, grow sn'de uca doğru uzar; life sn sonra dağılır
@@ -1996,23 +1982,23 @@ static func muzan(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	pj.busy(c, 0.95)
 	MsArts._flicker_guard(c, 0.7)
 	MsArts._anim(c, "cast", 2.0)
-	var cp = c.global_position + Vector3.UP * 1.1
-	_swirl(cp, 1.0, 0.5, 1.0)
-	_swirl_specks(cp, 1.6, 10, 0.4, true)
+	_swirl(MsArts.KS.eye_point(c), 1.0, 0.5, 1.0)
 	Sfx.play("th_teleport", c.global_position, 1.1, 0.7)
-	_see_through(c.get("model"), 1.0)   # girdaba çekilir: görünmez
+	MsArts.KS.twist_into(c, MsArts.KS.eye_point(c), 0.28)   # sağ gözdeki burgaca akar (dönmez)
 	var wr = weakref(tg)
 	MsArts._later(0.3, func():
 		if not MsArts._alive(c):
 			return
-		_see_through(c.get("model"), 0.0)
 		var n = wr.get_ref()
 		if n == null or n.is_dead():
+			var mm = c.get("model")
+			if mm:
+				mm.visible = true
 			return
 		var top = n.global_position + Vector3.UP * (H + 6.0)
-		_swirl(top + Vector3.UP * 1.0, 1.1, 0.5, -1.0)
-		_swirl_specks(top + Vector3.UP * 1.0, 1.8, 10, 0.4, false)
 		MsArts._blink(c, top)
+		_swirl(MsArts.KS.eye_point(c), 1.1, 0.5, -1.0)
+		MsArts.KS.twist_into(c, MsArts.KS.eye_point(c), 0.22, true)
 		MsArts._anim(c, "fall", 1.0)
 		var tw = MsArts._tw()
 		tw.tween_interval(0.12)
@@ -2140,18 +2126,12 @@ static func tenso(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	var P = Jutsu._ground(tg.global_position)
 	var wr = weakref(tg)
 	var mdl = tg.get("model")
-	var s0: Vector3 = mdl.scale if mdl != null and is_instance_valid(mdl) else Vector3.ONE
-	_swirl(MsArts._chest(tg), 1.5, 0.75, 1.0)
-	_swirl_specks(MsArts._chest(tg), 2.2, 12, 0.6, true)
+	var tp = MsArts.KS.touch_point(c, tg)
+	_swirl(tp, 1.5, 0.75, 1.0)
 	Sfx.play("th_teleport", P, 0.8)
 	if fits:
 		tg.apply_status("bind", 1.5)
-		if mdl != null and is_instance_valid(mdl):
-			var tw = mdl.create_tween()
-			tw.set_parallel(true)
-			tw.tween_property(mdl, "scale", s0 * 0.04, 0.5).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
-			tw.tween_property(mdl, "rotation:y", mdl.rotation.y + TAU * 2.0, 0.5)
-			tw.chain().tween_callback(func(): mdl.visible = false)
+		MsArts.KS.twist_into(tg, tp, 0.5)   # burgaca akıp kaybolur (dönmez)
 	# mühürler: rakibin durduğu yerin çevresine halka
 	MsArts._later(0.35, func():
 		if not MsArts._alive(c):
@@ -2167,14 +2147,16 @@ static func tenso(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		var n = wr.get_ref()
 		if n == null or not fits:
 			return
-		if mdl != null and is_instance_valid(mdl):
-			mdl.visible = true
-			mdl.scale = s0
 		if n.is_dead():
+			if mdl != null and is_instance_valid(mdl):
+				mdl.visible = true
 			return
 		n.global_position = P
-		_swirl(P + Vector3.UP * 1.1, 1.2, 0.4, -1.0)
-		_swirl_specks(P + Vector3.UP * 1.1, 1.6, 8, 0.35, false))
+		if n.has_method("reset_physics_interpolation"):
+			n.reset_physics_interpolation()
+		var ep = P + Vector3.UP * (float(n.get("height")) if n.get("height") != null else 1.8) * 0.62
+		_swirl(ep, 1.2, 0.4, -1.0)
+		MsArts.KS.twist_into(n, ep, 0.3, true))   # burgaçtan açılarak geri bırakılır
 	MsArts._later(1.14, func():
 		if not MsArts._alive(c):
 			return

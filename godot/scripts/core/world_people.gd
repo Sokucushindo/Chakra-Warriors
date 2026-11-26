@@ -799,6 +799,25 @@ static func on_enemy_ready(e: Node) -> void:
 	WorldAmbition.arm(e, p)   # güce takmış kişi / Kage: Susanoo kademesi, emrindeki canavarlar
 
 
+## Kamui boyutuna yutuldu: ölmedi, kayıp (dünya akışlarının dışında); boyuttan salınınca on_kamui_released geri getirir
+static func on_kamui_taken(e: Node) -> void:
+	var p = get_p(String(e.arch.get("world_person", "")))
+	if p.is_empty() or not alive(p):
+		return
+	p["missing"] = true
+	p["kamui"] = true
+	log_event(p, "Kamui boyutuna çekildi")
+
+
+static func on_kamui_released(id: String) -> void:
+	var p = get_p(id)
+	if p.is_empty() or not alive(p) or not p.get("kamui", false):
+		return
+	p.erase("kamui")
+	p["missing"] = false
+	log_event(p, "Kamui boyutundan döndü")
+
+
 ## Enemy.die: dünyadaki kişi de ölür (Bingo kaydı varsa o da kapanır); yakını yas tutar, intikam/uyanış zinciri başlar
 static func on_enemy_died(e: Node, info: Dictionary) -> void:
 	var p = get_p(String(e.arch.get("world_person", "")))

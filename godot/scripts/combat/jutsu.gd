@@ -2445,7 +2445,7 @@ func j_kamui(c: Node3D, t: Node3D) -> void:
 	var tg = _tg(c, t, 35.0)
 	var pos: Vector3 = (tg.global_position + Vector3.UP * float(tg.height) * 0.5) if tg else _aim_ground(c, t, 12.0, 35.0) + Vector3.UP
 	var FOCUS = 1.1
-	MsArts.kamui_vortex(pos, 2.4, FOCUS + 0.5)
+	MsArts.kamui_vortex(pos, maxf(3.2, float(tg.height) * 1.9) if tg else 3.2, FOCUS + 0.6, {"twist": 1.5, "pull": 0.6})   # anime: odakta hedefi tümüyle saran büyük sarmal   # anime: odakta güçlü sarmal burkulma
 	Sfx.play("genjutsu", pos, 0.7)
 	if c is Player:
 		Hud.msg("Kamui: odaklanıyor...", Color(0.75, 0.6, 0.95), 0.9)

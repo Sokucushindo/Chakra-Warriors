@@ -195,6 +195,7 @@ var _face_xf := Transform3D.IDENTITY   # yüz mesh'i yerel -> model uzayı
 var head_fix := Transform3D.IDENTITY
 var eye_center_model := Vector3(0, 1.62, 0.08)
 var eye_half := 0.032
+var eye_iris_model: Array = []   # iki iris merkezi model uzayında (maske göz deliği tam gözün önüne açılır)
 var sclera_mat: ShaderMaterial = null
 var face_skin_mat: ShaderMaterial = null   # yüz derisi (Byakugan damarları)   # göz akı (Rinnegan tüm gözü kaplar)
 var _eye_trails: Array = []
@@ -1262,6 +1263,8 @@ func _face_and_hair() -> void:
 		var ir: AABB = fd["iris"]
 		var ic = ir.get_center() if ir.size != Vector3.ZERO else fd["aabb"].get_center()
 		eye_center_model = place * ic
+		var icm: Array = fd.get("iris_c", [])
+		eye_iris_model = [place * (icm[0] as Vector3), place * (icm[1] as Vector3)] if icm.size() >= 2 and icm[0] != Vector3.ZERO else []
 		if body_mesh and body_mesh.get_surface_override_material(0) is ShaderMaterial:
 			body_mesh.get_surface_override_material(0).set_shader_parameter("scalp_cut", _scalp_cut())
 		eye_half = clampf((place.basis * ir.size).abs().x * 0.3, 0.02, 0.045) if ir.size != Vector3.ZERO else 0.032

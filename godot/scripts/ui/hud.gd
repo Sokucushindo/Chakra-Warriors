@@ -706,7 +706,8 @@ func _target_screen_dir(pl: Node3D, wp: Vector3) -> Vector2:
 
 
 func _update_objective_pointer(pl: Node3D) -> void:
-	var on = Missions.has_marker and not Game.paused
+	var in_kamui = Game.has_meta("kamui_space")   # Kamui boyutunda dünya hedefi gösterilmez (çıkınca geri gelir)
+	var on = Missions.has_marker and not Game.paused and not in_kamui
 	compass.visible = on
 	if on:
 		var wp: Vector3 = Missions.target_marker
@@ -735,7 +736,7 @@ func _update_objective_pointer(pl: Node3D) -> void:
 		beam.material_override = sm
 		beam.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		pl.get_parent().add_child(beam)
-	beam.visible = Missions.has_marker
+	beam.visible = Missions.has_marker and not in_kamui
 	if beam.visible:
 		var tp: Vector3 = Missions.target_marker
 		beam.global_position = Vector3(tp.x, Game.terrain_height(tp.x, tp.z) + 130.0, tp.z)
@@ -1375,6 +1376,8 @@ func _process(dt: float) -> void:
 		boss_box.visible = false
 	# mini harita
 	var sm: ShaderMaterial = minimap.get_meta("mat")
+	var kin = Game.has_meta("kamui_space")
+	(minimap.get_meta("tex") as TextureRect).visible = not kin   # Kamui boyutu: dünya haritası yerine boyutun kendi kütle haritası
 	var rm = Game.world.get("road_map") if Game.world else null
 	if rm != null and rm.local_map != null and rm.local_rect.z > 0.0:
 		# yüksek çözünürlüklü yerel harita (yollar, nehirler, köyler; 1.6 km, kuzey yukarı)
@@ -1427,6 +1430,62 @@ func _near_catchable(pl: Node3D) -> Node:
 	return null
 
 
+## Kamui Kūkan mini haritası: kara boşluk üstünde kütlelerin tepeden ayak izleri (yükseldikçe açık), tutsaklar, çıkış girdabı,
+## oyuncu oku. Dünya haritası / yerler / görev hedefi gösterilmez. 300 m çap.
+## (büyük harita da bunu çizer: Menus.kamui_map) C merkez, R yarıçap px, span_m yarıçapın metre karşılığı
+func draw_kamui_map(c: Control, pl: Node3D, C: Vector2, R: float, span_m: float) -> void:
+	var KS = preload("res://scripts/world/kamui_space.gd")
+	var ks = KS.inst
+	var sc = R / span_m
+	var rot = deg_to_rad(pl.yaw)
+	c.draw_circle(C, R - 3, Color(0.015, 0.018, 0.03, 1.0))
+	if ks == null or not is_instance_valid(ks):
+		return
+	var o: Vector3 = ks.global_position
+	var lp = Vector2(pl.global_position.x - o.x, pl.global_position.z - o.z)
+	var to_mm = func(v: Vector2) -> Vector2:
+		return C + (v - lp).rotated(rot) * sc
+	var draw_rect_r = func(r: Rect2, top: float) -> void:
+		if r.get_center().distance_to(lp) > span_m + 25.0:
+			return
+		var pts = PackedVector2Array([to_mm.call(r.position), to_mm.call(Vector2(r.end.x, r.position.y)), to_mm.call(r.end), to_mm.call(Vector2(r.position.x, r.end.y))])
+		for q in pts:
+			if q.distance_to(C) > R - 5:
+				return
+		var k = clampf((top + 10.0) / 50.0, 0.0, 1.0)
+		var col = Color(0.16, 0.21, 0.27).lerp(Color(0.6, 0.71, 0.82), k)
+		c.draw_colored_polygon(pts, col)
+		pts.append(pts[0])
+		c.draw_polyline(pts, Color(0.82, 0.9, 1.0, 0.35), 1.0)
+	for cell in ks.cells:
+		if cell.has("r"):
+			draw_rect_r.call(cell["r"], float(cell["top"]))
+	for st in ks.stacks:
+		draw_rect_r.call(st["r"], float(st["top"]))
+	for e in ks.live:
+		if is_instance_valid(e) and not e.is_dead():
+			var q: Vector2 = to_mm.call(Vector2(e.global_position.x - o.x, e.global_position.z - o.z))
+			if q.distance_to(C) < R - 6:
+				c.draw_circle(q, 4.0, Color(0.95, 0.3, 0.3))
+				c.draw_arc(q, 4.0, 0, TAU, 12, Color(0.1, 0.0, 0.0), 1.2)
+	if not ks.exit_item.is_empty():
+		var rp: Vector3 = ks.exit_item["pos"]
+		var q: Vector2 = to_mm.call(Vector2(rp.x - o.x, rp.z - o.z))
+		var dv = q - C
+		if dv.length() > R - 14:
+			q = C + dv.normalized() * (R - 14)
+		c.draw_circle(q, 8.0, Color(0.05, 0.03, 0.08))
+		for k in 3:
+			c.draw_arc(q, 4.0 + k * 2.2, k * 2.1, k * 2.1 + 4.2, 10, Color(0.8, 0.65, 1.0), 1.4)
+	var fr = pl.facing - rot
+	var ar = clampf(R / 120.0, 1.0, 1.8)
+	var tip = C + Vector2(0, -12).rotated(-fr) * ar
+	var l = C + Vector2(-7, 8).rotated(-fr) * ar
+	var r2 = C + Vector2(7, 8).rotated(-fr) * ar
+	c.draw_colored_polygon(PackedVector2Array([tip, l, r2]), Color(1, 0.95, 0.9))
+	c.draw_polyline(PackedVector2Array([tip, l, r2, tip]), Color(0.1, 0.05, 0.0), 2.0)
+
+
 func _draw_minimap_markers(c: Control) -> void:
 	var pl = Game.player
 	if pl == null:
@@ -1438,6 +1497,9 @@ func _draw_minimap_markers(c: Control) -> void:
 		var d = Vector2(wp.x - pl.global_position.x, wp.z - pl.global_position.z)
 		d = d.rotated(rot)
 		return Vector2(R, R) + d * scale
+	if Game.has_meta("kamui_space"):
+		draw_kamui_map(c, pl, Vector2(120, 120), 120.0, 150.0)
+		return
 	var sense_r = Stats.sense_radius(Game.profile)
 	for f in get_tree().get_nodes_in_group("fighters"):
 		if Combat.hostile(pl, f) and f.get("team") != "dummy" and not f.is_dead():

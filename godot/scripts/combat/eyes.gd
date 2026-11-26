@@ -1449,40 +1449,38 @@ func _kamui_absorb(t: Node3D) -> void:
 	var tg = t if t and t.global_position.distance_to(p.global_position) < 7.0 else Combat.nearest_enemy(p, 7.0, p.face_dir(), 0.2)
 	if tg != null and tg.is_dead():
 		tg = null
+	if (tg == null or tg.global_position.distance_to(p.global_position) > 3.0) and preload("res://scripts/world/kamui_space.gd").absorb_projectile(p):
+		return   # kanon: üstüne gelen saldırıyı boyuta yutar; Kamui: Hōshutsu onu geri çıkarır
 	if tg == null:
 		Hud.msg("Kamui: dokunacak kadar yakında hedef yok (7 m).", Color(0.8, 0.8, 0.8))
 		cd["sag"] = 0.5
 		return
-	var at = tg.global_position + Vector3.UP * 1.1
-	MsArts.kamui_vortex(at, 1.8, 1.4)
+	var KS = preload("res://scripts/world/kamui_space.gd")
+	var at = KS.touch_point(p, tg)   # anime: burgaç dokunulan / bakılan noktada açılır, beden oraya akar
 	tg.apply_status("stun", 1.3)
 	if p.combat:
 		p.combat.action = "cast"
-	var weak = tg is Enemy and not tg.has_meta("boss") and float(tg.get("size")) < 2.5 and Combat.execute_ok(p, tg)
-	Sfx.play("genjutsu", at, 0.7)
-	if tg.get("model"):
-		var tw = tg.model.create_tween()
-		tw.tween_property(tg.model, "scale", tg.model.scale * (0.05 if weak else 0.7), 1.1).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
-		tw.parallel().tween_property(tg.model, "rotation:y", tg.model.rotation.y + TAU * 2.0, 1.1)
+	var weak = tg is Enemy and not tg.has_meta("boss") and float(tg.get("size")) < 2.5 and Combat.execute_ok(p, tg)   # kanon: Obito dokunduğunu çeker; yalnız boss, dev ve çok güçlü direnir
+	Sfx.play("kamui_in", at, 1.0)
 	get_tree().create_timer(1.15).timeout.connect(func():
 		if p.combat and p.combat.action == "cast":
-			p.combat.action = ""
-		if not is_instance_valid(tg) or tg.is_dead():
-			return
-		if weak:
+			p.combat.action = "")
+	if weak or (tg is Enemy and tg.has_meta("kamui_prisoner")):
+		KS.swallow(p, tg, at, 1.1, func():
 			Combat.popup_text(at + Vector3.UP, "Kamui boyutuna çekildi", Color(0.7, 0.55, 0.9))
 			Game.profile["kamui_store"] = int(Game.profile.get("kamui_store", 0)) + 1
 			tg.die({"execute": true, "attacker": p, "kamui": true, "dmg": 9999.0})
 			if is_instance_valid(tg) and tg.is_dead():
-				preload("res://scripts/world/kamui_space.gd").capture(p, tg)   # boyutta tutsak kalır
-			if is_instance_valid(tg) and tg.get("model"):
-				tg.model.visible = false
-		else:
-			if tg.get("model"):
-				tg.model.create_tween().tween_property(tg.model, "scale", Vector3.ONE * (float(tg.model.age_scale) if "age_scale" in tg.model else 1.0), 0.2).set_trans(Tween.TRANS_BACK)
-			Combat.popup_text(at + Vector3.UP, "Direndi!", Color(1, 0.6, 0.5))
-			tg.take_hit({"dmg": float(tg.get("max_hp")) * 0.25 * _eye_pow(), "kind": "heavy", "knock": 10.0, "attacker": p, "dir": (tg.global_position - p.global_position).normalized()})
-			VFX.star(at, Color(0.6, 0.45, 0.9), 2.4, 0.15))
+				KS.capture(p, tg))   # boyutta tutsak kalır
+		return
+	MsArts.kamui_vortex(at, MsArts._hh(tg) * 1.4, 1.3, {"pull": 0.5})
+	KS.twist_into(tg, at, 1.1, false, 0.3)   # direnir: beden burgaca doğru çekilip geri yaylanır
+	get_tree().create_timer(1.15).timeout.connect(func():
+		if not is_instance_valid(tg) or tg.is_dead():
+			return
+		Combat.popup_text(at + Vector3.UP, "Direndi!", Color(1, 0.6, 0.5))
+		tg.take_hit({"dmg": float(tg.get("max_hp")) * 0.25 * _eye_pow(), "kind": "heavy", "knock": 10.0, "attacker": p, "dir": (tg.global_position - p.global_position).normalized()})
+		VFX.star(at, Color(0.6, 0.45, 0.9), 2.4, 0.15))
 
 
 ## Kamui ışınlanması (Obito): baktığın yere / hedefin arkasına girdapla geçersin. Çıkışta kısa savunmasız an (anime: uzak geçiş anlık değil).
@@ -1498,19 +1496,24 @@ func _kamui_warp(t: Node3D) -> void:
 		f.y = 0
 		dest = from + f.normalized() * 22.0
 	dest.y = Game.jutsu_floor_at(dest).y
-	MsArts.kamui_vortex(from + Vector3.UP * 1.1, 1.3, 0.8)
+	var KS = preload("res://scripts/world/kamui_space.gd")
+	MsArts.kamui_vortex(KS.eye_point(p), 1.8, 0.75, {"pull": 0.55})
+	KS.twist_into(p, KS.eye_point(p), 0.38)   # sağ göze doğru burgaca akar (dönmez)
 	add_blind(0.02 * minf(2.0, from.distance_to(dest) / 15.0))
-	p.model.visible = false
 	if p.combat:
 		p.combat.invuln = maxf(p.combat.invuln, 0.5)
-	Sfx.play("genjutsu", from, 1.2)
+	Sfx.play("kamui_in", from, 1.0)
 	get_tree().create_timer(0.4).timeout.connect(func():
-		MsArts.kamui_vortex(dest + Vector3.UP * 1.1, 1.3, 0.8)
 		p.global_position = dest + Vector3.UP * 0.2
 		p.velocity = Vector3.ZERO
 		if p.has_method("reset_physics_interpolation"):
 			p.reset_physics_interpolation()
-		get_tree().create_timer(0.3).timeout.connect(func(): p.model.visible = true)
+		if t and is_instance_valid(t):
+			var d0 = t.global_position - dest
+			d0.y = 0
+			p.facing = atan2(-d0.x, -d0.z)
+		MsArts.kamui_vortex(KS.eye_point(p), 1.8, 0.7, {"pull": -0.5})
+		KS.twist_into(p, KS.eye_point(p), 0.32, true)   # varışta gözdeki burgaçtan açılarak belirir
 		if t and is_instance_valid(t):
 			var d = t.global_position - dest
 			d.y = 0
@@ -1556,7 +1559,7 @@ func _phase_start() -> void:
 	phase_t = 0.0
 	if p.combat:
 		p.combat.invuln = maxf(p.combat.invuln, 0.12)   # ilk karede de geçirgen
-	_phase_vortex = MsArts.kamui_vortex(p.global_position + Vector3.UP * 1.0, 0.9, PHASE_MAX + 0.4)
+	MsArts.kamui_ripple(p)   # anime: geçirgenlik sürekli girdap değil; darbe geçtikçe küçük burkulma (PlayerCombat.take_hit)
 	_set_phase_look(true)
 	Sfx.play("genjutsu", p.global_position, 1.4, 0.5)
 
@@ -1581,8 +1584,6 @@ func _phase_tick(dt: float) -> void:
 		p.combat.invuln = maxf(p.combat.invuln, 0.12)
 	p.chakra -= 9.0 * dt * _transplant_mult()
 	add_blind(0.006 * dt)
-	if is_instance_valid(_phase_vortex):
-		_phase_vortex.global_position = p.global_position + Vector3.UP * 1.0
 	if phase_t >= PHASE_MAX or p.chakra <= 0.0 or not active or blind() >= 1.0:
 		_phase_end()
 

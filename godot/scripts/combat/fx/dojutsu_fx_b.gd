@@ -350,36 +350,6 @@ void fragment() {
 }
 """
 
-## Kamui girdabı: kameraya dönük, arkasındaki görüntüyü kendi çevresinde büken sarmal; ortası kara
-const SPIRAL_SHADER := """
-shader_type spatial;
-render_mode unshaded, cull_disabled, depth_draw_never, blend_mix;
-uniform sampler2D scr : hint_screen_texture, filter_linear_mipmap;
-instance uniform float twist = 1.0;
-instance uniform float fade = 1.0;
-instance uniform float spin = 1.0;
-void vertex() {
-	MODELVIEW_MATRIX = VIEW_MATRIX * mat4(INV_VIEW_MATRIX[0] * length(MODEL_MATRIX[0].xyz), INV_VIEW_MATRIX[1] * length(MODEL_MATRIX[1].xyz), INV_VIEW_MATRIX[2] * length(MODEL_MATRIX[2].xyz), MODEL_MATRIX[3]);
-}
-void fragment() {
-	vec2 q = UV * 2.0 - 1.0;
-	float r = length(q);
-	float ang = atan(q.y, q.x);
-	float sw = twist * (1.0 - smoothstep(0.0, 1.0, r)) * 5.0;
-	float a2 = ang + sw + TIME * spin * 6.0;
-	vec2 off = vec2(cos(a2), sin(a2)) * r - q;
-	vec3 col = texture(scr, SCREEN_UV + off * 0.06 * twist).rgb;
-	float arms = sin(ang * 3.0 + log(max(r, 0.02)) * 7.0 * twist + TIME * spin * 10.0);
-	col = mix(col, vec3(0.08, 0.07, 0.09), smoothstep(0.75, 0.95, arms) * 0.85 * twist);
-	col = mix(col, vec3(0.85, 0.85, 0.9), (1.0 - smoothstep(0.0, 0.03, abs(arms + 0.85))) * 0.5 * twist);
-	col = mix(col, vec3(0.02), 1.0 - smoothstep(0.08 * twist, 0.18 * twist, r));
-	float mask = 1.0 - smoothstep(0.75, 1.0, r);
-	float nearf = smoothstep(0.8, 2.5, -VERTEX.z);
-	ALBEDO = col;
-	ALPHA = clamp(mask * fade * nearf, 0.0, 1.0);
-}
-"""
-
 ## Susanoo yumruğunun yerde bıraktığı dört boğum çukuru (x: enine, y: yumruk yönü)
 const KNUCKLE_SHADER := """
 shader_type spatial;
@@ -2331,20 +2301,9 @@ static func kamuibashiri(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	Sfx.play("wind", c.global_position, 1.8, 0.5)
 
 
-## Kamui girdabı: açılır (büküm artar), döner, kapanır
-static func _kamui_vortex(host: Node, pos: Vector3, r: float, dur: float) -> void:
-	var mi = _gi(_quad(), _mat("spiral", SPIRAL_SHADER))
-	mi.set_instance_shader_parameter("twist", 0.0)
-	mi.set_instance_shader_parameter("fade", 1.0)
-	mi.set_instance_shader_parameter("spin", 1.0 if randf() < 0.5 else -1.0)
-	_put(host, mi, pos)
-	mi.scale = Vector3.ONE * r
-	var tw = mi.create_tween()
-	tw.tween_method(_pf(mi, "twist"), 0.0, 1.0, dur * 0.35).set_ease(Tween.EASE_OUT)
-	tw.tween_interval(dur * 0.35)
-	tw.tween_method(_pf(mi, "twist"), 1.0, 0.0, dur * 0.3).set_ease(Tween.EASE_IN)
-	tw.parallel().tween_property(mi, "scale", Vector3.ONE * r * 0.2, dur * 0.3)
-	tw.tween_callback(mi.queue_free)
+## Kamui girdabı: Kamui ailesinin uzay bükülmesi (MsArts.kamui_vortex, anime ref) — çağıranı yutar / yolda küçük burkulmalar
+static func _kamui_vortex(_host: Node, pos: Vector3, r: float, dur: float) -> void:
+	MsArts.kamui_vortex(pos, r * 0.6, maxf(dur, 0.35), {"pull": 0.4, "core": 0.05 if r >= 0.9 else 0.0, "ink": 1.0 if r >= 0.9 else 0.6})
 
 
 ## Kolda savrulan zincir (çağırana bağlı; koşu boyunca arkaya dalgalanır, sonra toplanır)

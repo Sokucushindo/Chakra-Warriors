@@ -31,7 +31,8 @@ const EDGE := Color(0.78, 0.88, 0.98)
 static var inst = null
 
 var built := false
-var cells: Array = []        # [{"c": Vector2 yerel merkez, "top": float, "ring": int}] oyun alanındaki kütle tepeleri
+var cells: Array = []        # [{"c": Vector2 yerel merkez, "top": float, "ring": int, "r": Rect2 yerel taban}] oyun alanındaki kütle tepeleri
+var stacks: Array = []       # üstteki küçük kütleler [{"r", "top"}] (mini harita)
 var player_in := false
 var how := ""                # "self" | "pulled"
 var ret_pos := Vector3.ZERO
@@ -105,7 +106,7 @@ func _build() -> void:
 			if ring <= 1:
 				if gx == 0 and gz == 0:   # varış: 3 hücrelik geniş düz kütle
 					_block(st, body, Rect2(-29, -29, 58, 58), 0.0, FLOOR, col, rng)
-					cells.append({"c": Vector2.ZERO, "top": 0.0, "ring": 0})
+					cells.append({"c": Vector2.ZERO, "top": 0.0, "ring": 0, "r": Rect2(-29, -29, 58, 58)})
 				continue
 			if ring >= 3 and rng.randf() < 0.07:
 				continue   # boşluk: dibe kadar iner (anime: kütle aralarında derin yarıklar)
@@ -125,7 +126,7 @@ func _build() -> void:
 			var r = Rect2(c.x - CELL * 0.5 + ml, c.y - CELL * 0.5 + mt, CELL - ml - mr, CELL - mt - mb)
 			_block(st, body, r, top, FLOOR, col, rng)
 			if col:
-				cells.append({"c": r.get_center(), "top": top, "ring": ring})
+				cells.append({"c": r.get_center(), "top": top, "ring": ring, "r": r})
 			if rng.randf() < 0.32:
 				# üstüne oturan küçük kütle (anime: basamaklı yığınlar); merkezi kapatmaz (doğuş noktası tepe merkezinde)
 				var sx = r.size.x * rng.randf_range(0.28, 0.44)
@@ -134,7 +135,10 @@ func _build() -> void:
 				var qz = 1.0 if rng.randf() < 0.5 else -1.0
 				var cx = r.get_center().x + qx * (r.size.x * 0.5 - sx * 0.5 - 0.4)
 				var cz = r.get_center().y + qz * (r.size.y * 0.5 - sz * 0.5 - 0.4)
-				_block(st, body, Rect2(cx - sx * 0.5, cz - sz * 0.5, sx, sz), top + snappedf(rng.randf_range(2.5, 10.0), 1.5), top - 0.01, col, rng)
+				var t2 = top + snappedf(rng.randf_range(2.5, 10.0), 1.5)
+				_block(st, body, Rect2(cx - sx * 0.5, cz - sz * 0.5, sx, sz), t2, top - 0.01, col, rng)
+				if col:
+					stacks.append({"r": Rect2(cx - sx * 0.5, cz - sz * 0.5, sx, sz), "top": t2})   # yalnız harita çizimi
 	# dip: yarıklardan düşen burada durur (koyu, ışıksız)
 	var ext = (FAR + 1) * CELL
 	_block(st, body, Rect2(-ext, -ext, ext * 2.0, ext * 2.0), FLOOR, FLOOR - 4.0, true, rng, 0.25)
@@ -277,9 +281,9 @@ func enter_player(how_: String) -> void:
 	ret_pos = pl.global_position
 	ret_yaw = float(pl.yaw)
 	_place_over(ret_pos)
-	MsArts.kamui_vortex(ret_pos + Vector3.UP * 1.0, 1.3, 1.0)
-	Sfx.play("th_teleport", ret_pos, 0.8, 0.7)
-	Sfx.play("genjutsu", ret_pos, 0.6, 0.6)
+	MsArts.kamui_vortex(eye_point(pl), 1.9, 1.0)
+	Sfx.play("kamui_in", ret_pos, 1.0)
+	pass
 	_shrink(pl, 0.45)
 	await get_tree().create_timer(0.45).timeout
 	if pl == null or not is_instance_valid(pl):
@@ -294,7 +298,8 @@ func enter_player(how_: String) -> void:
 	Interiors.inst._teleport(arrival(), ret_yaw)
 	if pl.combat:
 		pl.combat.action = ""
-	pl.model.visible = true
+	MsArts.kamui_vortex(eye_point(pl), 1.9, 0.7, {"pull": -0.5})
+	_shrink(pl, 0.35, true)   # boyutta burgaçtan açılarak belirir
 	_spawn_held()
 	if how == "self":
 		_open_rift(global_position + Vector3(0, 1.2, -3.0))
@@ -302,7 +307,7 @@ func enter_player(how_: String) -> void:
 	else:
 		rift_t = RIFT_DELAY
 	await Interiors.inst._fade(0.0, 0.35)
-	MsArts.kamui_vortex(pl.global_position + Vector3.UP * 1.0, 1.3, 0.8)
+	MsArts.kamui_vortex(eye_point(pl), 1.9, 0.8, {"pull": -0.5})
 	if how == "self":
 		Hud.banner("KAMUI KŪKAN", "Boyuttasın. Çıkmak için Kamui'yi yeniden kullan ya da girdaba gir [F] — bıraktığın yere dönersin.", Color(0.7, 0.8, 0.95))
 	else:
@@ -316,8 +321,8 @@ func leave_player() -> void:
 	if pl == null or busy or not player_in:
 		return
 	busy = true
-	MsArts.kamui_vortex(pl.global_position + Vector3.UP * 1.0, 1.3, 0.8)
-	Sfx.play("th_teleport", pl.global_position, 0.9, 0.7)
+	MsArts.kamui_vortex(eye_point(pl), 1.9, 0.8)
+	Sfx.play("kamui_in", pl.global_position, 1.0)
 	_shrink(pl, 0.4)
 	await get_tree().create_timer(0.4).timeout
 	await Interiors.inst._fade(1.0, 0.2)
@@ -329,8 +334,9 @@ func leave_player() -> void:
 		pl.set_meta("kamui_pull_immune", Game.now() + PULL_IMMUNE)
 	if pl.combat:
 		pl.combat.invuln = maxf(pl.combat.invuln, 0.8)   # çıkışta üstüne kurulu tuzaktan kısa koruma (giriş anıyla aynı)
+	MsArts.kamui_vortex(eye_point(pl), 1.9, 0.8, {"pull": -0.5})
+	_shrink(pl, 0.4, true)   # burgaçtan açılarak çıkar
 	await Interiors.inst._fade(0.0, 0.3)
-	MsArts.kamui_vortex(p + Vector3.UP * 1.0, 1.3, 0.8)
 	busy = false
 
 
@@ -365,18 +371,101 @@ func _close_rift() -> void:
 	exit_item = {}
 
 
-static func _shrink(n: Node3D, dur: float) -> void:
-	var m = n.get("model")
-	if m == null:
+## Kanon (Obito'nun kendi Kamui'si): beden dönmez — sağ gözü merkez alan uzay burgacına çekilir (twist_into); grow=true tersi (çıkış).
+static func _shrink(n: Node3D, dur: float, grow := false) -> void:
+	twist_into(n, eye_point(n), dur, grow)
+
+
+## Kamui yutuşu (anime ref: refs/kamui_anime): beden KENDİ ETRAFINDA DÖNMEZ; burgaç merkezine (göz / dokunulan / odaklanan
+## nokta) doğru akarak küçülür — enine önce incelir, boyuna sonra çekilir. Sarmal burkulmayı burgacın ekran bükülmesi verir
+## (MsArts.kamui_vortex arkasındaki bedeni de sarmala büker). amount < 1: kısmi çekiş, sonra geri yaylanır (direnen hedef).
+## grow=true: burgaçtan dışa açılarak belirir. Bitişte gizlenir (hide) ya da eski hâline döner.
+static func twist_into(n: Node3D, center: Vector3, dur: float, grow := false, amount := 1.0, hide := true) -> void:
+	if n == null or not is_instance_valid(n):
 		return
+	var m = n.get("model")
+	if m == null or not is_instance_valid(m) or not (m is Node3D):
+		return
+	var par = m.get_parent() as Node3D
+	if par == null:
+		return
+	if m.has_meta("kamui_tw"):
+		var old = m.get_meta("kamui_tw")
+		if old is Tween and (old as Tween).is_valid():
+			(old as Tween).kill()
+		m.scale = m.get_meta("kamui_s0")
+		m.position = m.get_meta("kamui_p0")
 	var s0: Vector3 = m.scale
+	var p0: Vector3 = m.position
+	m.set_meta("kamui_s0", s0)
+	m.set_meta("kamui_p0", p0)
+	var cl: Vector3 = par.to_local(center)
+	var f = func(k: float) -> void:   # k: 0 tam beden -> 1 burgaçta yok
+		if not is_instance_valid(m):
+			return
+		var kw = clampf(k * 1.3, 0.0, 1.0)   # enine daha erken incelir: burgaca akan beden
+		var sx = lerpf(1.0, 0.015, kw)
+		var sy = lerpf(1.0, 0.015, k)
+		m.scale = Vector3(s0.x * sx, s0.y * sy, s0.z * sx)
+		m.position = cl + Vector3((p0.x - cl.x) * sx, (p0.y - cl.y) * sy, (p0.z - cl.z) * sx)
 	var tw = m.create_tween()
-	tw.set_parallel(true)
-	tw.tween_property(m, "scale", s0 * 0.05, dur).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
-	tw.tween_property(m, "rotation:y", m.rotation.y + TAU * 2.0, dur)
-	tw.chain().tween_callback(func():
+	m.set_meta("kamui_tw", tw)
+	if grow:
+		m.visible = true
+		f.call(1.0)
+		tw.tween_method(f, 1.0, 0.0, dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	elif amount < 0.999:
+		tw.tween_method(f, 0.0, amount, dur * 0.6).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+		tw.tween_method(f, amount, 0.0, dur * 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	else:
+		tw.tween_method(f, 0.0, 1.0, dur).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	tw.tween_callback(func():
 		if is_instance_valid(m):
-			m.scale = s0)
+			if not grow and amount >= 0.999 and hide:
+				m.visible = false
+			m.scale = s0
+			m.position = p0
+			m.remove_meta("kamui_tw"))
+
+
+## Hedef Kamui burgacına yutulur (oyuncunun / NPC'nin dokunuşla çekişi, Kakashi'nin uzak odağı, Kamui Raikiri): burgaç merkezde
+## açılır, beden ona akar ve gözden kaybolur; ancak ondan SONRA on_gone çağrılır (ölüm karesi / ceset görünmez).
+## Boyuttaki tutsak yeniden çekilirse dünyada çekildiği yere geri salınır (release).
+static func swallow(c: Node3D, h: Node3D, center: Vector3, dur: float, on_gone: Callable) -> void:
+	if h == null or not is_instance_valid(h):
+		return
+	var hh = float(h.get("height")) if h.get("height") != null else 1.8
+	MsArts.kamui_vortex(center, hh * 1.7, dur + 0.45, {"pull": 0.6, "twist": 1.2})   # anime: hedefin çevresindeki geniş uzay burkulur
+	if h is Enemy and h.has_meta("kamui_prisoner"):
+		twist_into(h, center, dur)
+		h.get_tree().create_timer(dur + 0.02).timeout.connect(func():
+			if is_instance_valid(h) and not h.is_dead():
+				release(h))
+		return
+	h.set_meta("kamui_from", {"pos": h.global_position, "yaw": float(h.get("facing")) if h.get("facing") != null else 0.0})
+	twist_into(h, center, dur)
+	h.get_tree().create_timer(dur + 0.02).timeout.connect(func():
+		if is_instance_valid(h) and not h.is_dead():
+			if h.get("model"):
+				h.model.visible = false
+			on_gone.call())
+
+
+## Dokunarak / yakından yutma noktası: hedefin göğsünde, çekene bakan yüzeyde (anime: elin değdiği yer)
+static func touch_point(c: Node3D, h: Node3D) -> Vector3:
+	var hh = float(h.get("height")) if h.get("height") != null else 1.8
+	var d = c.global_position - h.global_position
+	d.y = 0.0
+	var rad = float(h.get("radius")) if h.get("radius") != null else 0.4
+	return h.global_position + Vector3.UP * hh * 0.62 + (d.normalized() * rad * 0.8 if d.length() > 0.01 else Vector3.ZERO)
+
+
+## Sağ göz noktası (dünya): burgaç oradan açılır
+static func eye_point(n: Node3D) -> Vector3:
+	var h = float(n.get("height")) if n.get("height") != null else 1.8
+	var fwd = n.face_dir() if n.has_method("face_dir") else Vector3.FORWARD
+	var right = fwd.cross(Vector3.UP).normalized()
+	return n.global_position + Vector3.UP * h * 0.92 + fwd * 0.12 + right * 0.04
 
 
 # ------------------------------------------------------------------ tutsaklar (çekilen NPC'ler)
@@ -393,7 +482,9 @@ static func capture(c: Node3D, h: Node3D) -> void:
 	a["ryo"] = 0
 	a["no_world"] = true
 	var L: Array = held()
-	var rec = {"a": var_to_str(a), "by": "player" if c == Game.player else "npc", "name": String(h.get("display_name"))}
+	var fr: Dictionary = h.get_meta("kamui_from", {"pos": h.global_position, "yaw": float(h.get("facing")) if h.get("facing") != null else 0.0})
+	var rec = {"a": var_to_str(a), "by": "player" if c == Game.player else "npc", "name": String(h.get("display_name")),
+		"pos": var_to_str(fr["pos"]), "yaw": float(fr["yaw"]), "by_id": str(c.get_instance_id()) if c else ""}   # salınınca tam bu yere döner; by_id: yutan (yapay zekâ kendi tutsağını çıkarır)
 	L.append(rec)
 	while L.size() > MAX_HELD:
 		L.pop_front()
@@ -427,6 +518,197 @@ func _spawn_one(rec: Dictionary, i: int) -> void:
 	live.append(e)
 
 
+## Boyuttaki tutsak yeniden Kamui'ye alındı: dünyada çekildiği yere (dolu ise en yakın boş zemine) canlı döner, burgaçtan açılarak
+## belirir; kaydı boyuttan silinir (kanon: Obito yuttuğunu çıkardığı yere bırakır)
+static func release(e: Node3D) -> void:
+	var ks = node()
+	var uid = int(e.get_meta("kamui_prisoner", -1))
+	var rec := {}
+	for r in held():
+		if int(r.get("uid", -2)) == uid:
+			rec = r
+	ks._drop_record(uid)
+	ks.live.erase(e)
+	if rec.is_empty():
+		rec = {"a": var_to_str((e as Enemy).arch.duplicate(true)), "name": String(e.get("display_name"))}
+	var to = str_to_var(String(rec.get("pos", ""))) if rec.has("pos") else null
+	if not to is Vector3:
+		to = ks.ret_pos + Vector3(3.0, 0.0, 3.0)   # eski kayıt (yer saklanmamış): girişin yanına
+	_retire(e)
+	var p: Vector3 = Interiors.inst._exit_floor(to) if Interiors.inst else to
+	var w = _emerge(rec, p, float(rec.get("yaw", 0.0)))
+	if w and Game.player:
+		Combat.popup_text(Game.player.global_position + Vector3.UP * 2.4, Lang.t("%s boyuttan salındı") % String(w.display_name), Color(0.75, 0.6, 0.95))
+
+
+## Boyuttan çıkan tutsağın içerideki düğümü: hemen gizlenir / dövüş dışı kalır, birkaç sn sonra silinir (havadaki aletlerinin
+## karesi onu hâlâ tutuyor olabilir: anında silmek "Lambda capture freed" hatası veriyordu)
+static func _retire(e: Node3D) -> void:
+	e.visible = false
+	e.set_physics_process(false)
+	e.set("collision_layer", 0)
+	e.remove_from_group("fighters")
+	e.set("dead", true)
+	e.get_tree().create_timer(4.0).timeout.connect(func():
+		if is_instance_valid(e):
+			e.queue_free())
+
+
+## Kayıttaki kişiyi dünyada p noktasında canlı çıkarır: gözündeki burgaçtan açılarak belirir (çıkış sesi)
+static func _emerge(rec: Dictionary, p: Vector3, yaw: float) -> Enemy:
+	var a = str_to_var(String(rec.get("a", "")))
+	if not a is Dictionary or (a as Dictionary).is_empty():
+		return null
+	a["respawn"] = false
+	var ks = node()
+	var w := Enemy.new()
+	w.setup(a)
+	ks.get_tree().current_scene.add_child(w)
+	w.global_position = p + Vector3.UP * 0.05
+	w.home = p
+	w.facing = yaw
+	w.set_meta("respawn", false)
+	if w.has_method("reset_physics_interpolation"):
+		w.reset_physics_interpolation()
+	WorldPeople.on_kamui_released(String(a.get("world_person", "")))
+	MsArts.kamui_vortex(eye_point(w), 1.8, 1.0, {"pull": -0.5})
+	twist_into(w, eye_point(w), 0.5, true)
+	Sfx.play("kamui_out", p, 0.9)
+	return w
+
+
+# ------------------------------------------------------------------ Kamui: Hōshutsu (boyuttan dışarı çıkarma)
+## Kanon: Kamui boyutuna aldığını sahibi istediği yere geri çıkarır (Obito boyuttakileri dışarı taşır; yuttuğu saldırı da
+## boyutta kalır, kendi burgacından geri çıkar). Yutulan mermiler (Kamui: içine çek ile) oturumda burada bekler.
+const STORE_MAX := 3
+static var stored_shots: Array = []   # oyuncunun yuttuğu Projectile düğümleri (sahneden ayrılmış)
+
+
+## Yutulan mermilerin deposu: oyuncunun ortak deposu, yapay zekânın kendi deposu (meta)
+static func _shots_of(c: Node) -> Array:
+	if c is Player:
+		return stored_shots
+	if not c.has_meta("kamui_shots"):
+		c.set_meta("kamui_shots", [])
+	return c.get_meta("kamui_shots")
+
+
+## Yakındaki düşman mermisini (jutsu / alet) boyuta yutar: true = yuttu
+static func absorb_projectile(c: Node3D, r := 8.0) -> bool:
+	var best: Node3D = null
+	var bd = r
+	for pr in c.get_tree().get_nodes_in_group("projectiles"):
+		if not is_instance_valid(pr) or pr.get("dead") or pr.get("shooter") == c:
+			continue
+		var sh = pr.get("shooter")
+		if sh != null and is_instance_valid(sh) and not Combat.hostile(c, sh):
+			continue
+		var d = pr.global_position.distance_to(c.global_position + Vector3.UP)
+		if d < bd:
+			bd = d
+			best = pr
+	if best == null:
+		return false
+	best.set_physics_process(false)
+	best.set("vel", (best.get("vel") as Vector3) * 0.0 if best.get("vel") is Vector3 else Vector3.ZERO)
+	var at = best.global_position
+	MsArts.kamui_vortex(at, 1.0, 0.7, {"pull": 0.6})
+	Sfx.play("kamui_in", at, 1.1)
+	var s0: Vector3 = best.scale
+	var tw = best.create_tween()
+	tw.tween_property(best, "scale", s0 * 0.02, 0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	tw.tween_callback(func():
+		if not is_instance_valid(best):
+			return
+		best.scale = s0
+		if best.get_parent():
+			best.get_parent().remove_child(best)
+		if not is_instance_valid(c):
+			best.queue_free()
+			return
+		var st: Array = _shots_of(c)
+		st.append(best)
+		while st.size() > STORE_MAX:
+			var old = st.pop_front()
+			if is_instance_valid(old):
+				old.queue_free())
+	Combat.popup_text(at + Vector3.UP * 0.6, "Kamui'ye yutuldu", Color(0.75, 0.6, 0.95))
+	return true
+
+
+## Hōshutsu: önce yutulmuş saldırı (sırayla) hedefe doğru burgaçtan geri fırlar; yoksa boyuttaki en eski tutsak nişan
+## noktasında burgaçtan çıkar ve ona en yakın dövüşçüye saldırır (kanon: boyuttan çıkan kendi iradesiyle davranır).
+## true = bir şey çıkarıldı
+static func release_out(c: Node3D, t: Node3D) -> bool:
+	var fwd: Vector3 = c.face_dir() if c.has_method("face_dir") else Vector3.FORWARD
+	if c is Player and c.has_method("cam_forward"):
+		fwd = c.cam_forward()
+		fwd.y = 0.0
+		fwd = fwd.normalized()
+	var shots: Array = _shots_of(c)
+	while not shots.is_empty():
+		var pr = shots.pop_front()
+		if not is_instance_valid(pr):
+			continue
+		var at = c.global_position + Vector3.UP * 1.4 + fwd * 1.6
+		var aim = (t.global_position + Vector3.UP * float(t.get("height") if t.get("height") != null else 1.8) * 0.55 - at).normalized() if t and is_instance_valid(t) else fwd
+		c.get_tree().current_scene.add_child(pr)
+		pr.global_position = at
+		var spd = maxf(18.0, (pr.get("vel") as Vector3).length() if pr.get("vel") is Vector3 else 0.0)
+		pr.set("vel", aim * maxf(spd, 22.0))
+		pr.set("shooter", c)
+		var inf: Dictionary = (pr.get("info") as Dictionary).duplicate() if pr.get("info") is Dictionary else {}
+		inf["attacker"] = c
+		pr.set("info", inf)
+		pr.set("hit_list", [])
+		pr.set("homing", t if t and is_instance_valid(t) else null)
+		pr.set("life", 3.0)
+		if pr.has_method("look_at"):
+			pr.look_at(at + aim, Vector3.UP if absf(aim.y) < 0.95 else Vector3.RIGHT)
+		pr.set_physics_process(true)
+		MsArts.kamui_vortex(at, 1.0, 0.6, {"pull": -0.6})
+		Sfx.play("kamui_out", at, 1.0)
+		Combat.popup_text(at + Vector3.UP * 0.6, "Kamui: Hōshutsu", Color(0.75, 0.6, 0.95))
+		return true
+	var L: Array = held()
+	var ks = node()
+	if ks.player_in:
+		return false
+	var ri = -1
+	for i in L.size():
+		if c is Player or String(L[i].get("by_id", "")) == str(c.get_instance_id()):   # yapay zekâ yalnız kendi yuttuğunu çıkarır
+			ri = i
+			break
+	if ri < 0:
+		return false
+	var rec: Dictionary = L[ri]
+	var to: Vector3
+	if t and is_instance_valid(t):
+		var side = fwd.cross(Vector3.UP).normalized()
+		to = t.global_position + side * 2.5
+	else:
+		to = c.global_position + fwd * 8.0
+	to = Game.jutsu_floor_at(to + Vector3.UP * 2.0)
+	L.remove_at(ri)
+	var d = (t.global_position - to) if t and is_instance_valid(t) else -fwd
+	var w = _emerge(rec, to, atan2(-d.x, -d.z))
+	if w == null:
+		return false
+	# boyuttan sersem çıkan: yanındaki ilk dövüşçüye (çağıranın hedefi varsa ona) saldırır
+	var near: Node3D = t if t and is_instance_valid(t) and not t.is_dead() and t != w else null
+	if near == null:
+		var bd = 15.0
+		for f in w.get_tree().get_nodes_in_group("fighters"):
+			if f != w and f != c and not f.is_dead() and f.global_position.distance_to(to) < bd:
+				bd = f.global_position.distance_to(to)
+				near = f
+	w.target = near if near else c
+	if near:
+		w.state = "chase"
+	Combat.popup_text(to + Vector3.UP * 2.4, Lang.t("%s boyuttan salındı") % String(w.display_name), Color(0.75, 0.6, 0.95))
+	return true
+
+
 func _drop_record(uid: int) -> void:
 	var L: Array = held()
 	for i in range(L.size() - 1, -1, -1):
@@ -443,9 +725,9 @@ static func retreat(e: Node3D) -> bool:
 	if not ks.player_in:
 		ks._place_over(e.global_position)
 	var from = e.global_position
-	MsArts.kamui_vortex(from + Vector3.UP * 1.0, 1.2, 0.9)
+	MsArts.kamui_vortex(eye_point(e), 1.8, 0.9)
 	Combat.popup_text(from + Vector3.UP * 2.6, "Kamui!", Color(0.75, 0.6, 0.9))
-	Sfx.play("th_teleport", from, 0.85, 0.7)
+	Sfx.play("kamui_in", from, 0.9)
 	_shrink(e, 0.4)
 	e.set_meta("kamui_away", true)
 	ks.visible = true
@@ -474,7 +756,8 @@ func _return_away(a: Dictionary) -> void:
 		var off = Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)).normalized() * 3.5
 		to = t.global_position + off   # kanon: rakibin yanında / arkasında belirir
 	elif player_in and t == Game.player:
-		return   # oyuncu da boyutta: burada dövüşmeye devam
+		_shrink(e, 0.35, true)   # oyuncu da boyutta: burada belirir, dövüş sürer
+		return
 	to = Game.jutsu_floor_at(to + Vector3.UP * 2.0) + Vector3.UP * 0.1
 	if (to - (a["from"] as Vector3)).length() > 80.0:
 		to = a["from"]
@@ -482,8 +765,9 @@ func _return_away(a: Dictionary) -> void:
 	e.velocity = Vector3.ZERO
 	if e.has_method("reset_physics_interpolation"):
 		e.reset_physics_interpolation()
-	MsArts.kamui_vortex(to + Vector3.UP * 1.0, 1.2, 0.8)
-	Sfx.play("th_teleport", to, 0.9, 0.6)
+	MsArts.kamui_vortex(eye_point(e), 1.8, 0.8, {"pull": -0.5})
+	_shrink(e, 0.4, true)   # burgaçtan açılarak çıkar (oyuncuyla aynı)
+	Sfx.play("kamui_out", to, 0.9)
 
 
 # ------------------------------------------------------------------ kare
@@ -517,6 +801,11 @@ func _process(dt: float) -> void:
 			if is_instance_valid(e):
 				_drop_record(int(e.get_meta("kamui_prisoner", -1)))
 			live.remove_at(i)
+			continue
+		# kök neden (Enemy._patrol): gezinti noktası kütle dışına düşüyordu, artık aynı zeminde kalır; bu yalnız güvenlik (yarığa düşen evine)
+		if e.global_position.y < float(e.home.y) - 6.0:
+			e.global_position = e.home
+			e.velocity = Vector3.ZERO
 	if rift_t > 0.0:
 		rift_t -= dt
 		if rift_t <= 0.0:

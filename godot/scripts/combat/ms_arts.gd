@@ -66,35 +66,75 @@ static func _spiral(pos: Vector3, size: float, dur: float, normal := Vector3(0, 
 	return kamui_vortex(pos, size, dur)
 
 
-## Kamui girdabı (anime): uzay merkeze doğru burkulur, ortası koyu boşluğa açılır; kameraya bakan, ekranı büken dörtgen
-static func kamui_vortex(pos: Vector3, size: float, dur: float) -> MeshInstance3D:
+## Kamui girdabı (anime ref: refs/kamui_anime): uzay odak noktasına doğru sarmal burkulur — arkasındaki görüntü (beden dahil)
+## merkeze akar, ince mürekkep çizgileri içe döner, ortası küçük kara nokta. Kameraya bakan, ekranı büken dörtgen (kabuk yok).
+## o: "follow" Node3D (pos onun yerel ofseti olur, izler), "pull" (+ içe yutma / - dışa çıkış), "twist", "core", "ink", "spin",
+## "back" (kameradan uzağa itme, m)
+static func kamui_vortex(pos: Vector3, size: float, dur: float, o := {}) -> MeshInstance3D:
 	var q = QuadMesh.new()
 	q.size = Vector2(1, 1)
 	var m = ShaderMaterial.new()
 	m.shader = load("res://shaders/vfx_kamui.gdshader")
 	m.set_shader_parameter("strength", 0.0)
+	var pull = float(o.get("pull", 0.35))
+	m.set_shader_parameter("pull", pull)
+	m.set_shader_parameter("twist", float(o.get("twist", 1.0)))
+	m.set_shader_parameter("core", float(o.get("core", 0.07)))
+	m.set_shader_parameter("ink", float(o.get("ink", 1.0)))
+	m.set_shader_parameter("spin", float(o.get("spin", 1.0 if pull >= 0.0 else -1.0)))
 	var mi = MeshInstance3D.new()
 	mi.mesh = q
 	mi.material_override = m
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mi.extra_cull_margin = 4.0
 	_scene().add_child(mi)
-	mi.global_position = pos
+	var fol = o.get("follow") as Node3D
+	mi.global_position = (fol.global_position + pos) if fol and is_instance_valid(fol) else pos
 	mi.scale = Vector3.ONE * size * 2.0
+	var back = float(o.get("back", minf(0.7, size * 0.4)))   # bedenin arkasına: beden önünde burgaca akar (ekran dokusu bedeni görmez)
 	var face = func():
-		if is_instance_valid(mi) and Game.player and Game.player.cam:
-			mi.look_at(Game.player.cam.global_position, Vector3.UP)
+		if not is_instance_valid(mi):
+			return
+		var base: Vector3 = (fol.global_position + pos) if fol and is_instance_valid(fol) else pos
+		var cam = mi.get_viewport().get_camera_3d() if mi.is_inside_tree() else null
+		if cam and cam.global_position.distance_squared_to(base) > 0.0001:
+			mi.global_position = base + (base - cam.global_position).normalized() * back
+			mi.look_at(cam.global_position, Vector3.UP)
 			mi.rotate_object_local(Vector3.UP, PI)
+		else:
+			mi.global_position = base
 	face.call()
+	var t_in = minf(0.45, dur * 0.45)   # açılış (anime: uzay yavaşça burkulmaya başlar)
 	var tw = mi.create_tween()
 	tw.tween_method(func(k: float):
 		m.set_shader_parameter("strength", k)
-		face.call(), 0.0, 1.0, minf(0.35, dur * 0.4)).set_ease(Tween.EASE_OUT)
-	tw.tween_method(func(_k: float): face.call(), 0.0, 1.0, maxf(0.05, dur - 0.65))
+		face.call(), 0.0, 1.0, t_in).set_ease(Tween.EASE_OUT)
+	tw.tween_method(func(_k: float): face.call(), 0.0, 1.0, maxf(0.05, dur - t_in - 0.3))
 	tw.tween_method(func(k: float):
 		m.set_shader_parameter("strength", k)
+		mi.scale = Vector3.ONE * size * 2.0 * (0.3 + 0.7 * k)   # çöküş: burgaç kara noktaya kapanır
 		face.call(), 1.0, 0.0, 0.3).set_ease(Tween.EASE_IN)
 	tw.tween_callback(mi.queue_free)
 	return mi
+
+
+## Bedenin boyu (yoksa 1.8): Kamui burgacı hedef boyuna göre büyür
+static func _hh(n: Node) -> float:
+	return float(n.get("height")) if n and n.get("height") != null else 1.8
+
+
+## Kamui geçirgenliği (anime ref d_phase): darbe bedenin içinden geçerken yalnız geçtiği yerde küçük, kısa bir uzay
+## burkulması olur (beden dönmez, sürekli girdap yok). Sık darbede 0.15 sn'de bir.
+static func kamui_ripple(n: Node3D, at := Vector3.INF) -> void:
+	if n == null or not is_instance_valid(n):
+		return
+	var now = Game.now()
+	if now < float(n.get_meta("kamui_rip_t", 0.0)):
+		return
+	n.set_meta("kamui_rip_t", now + 0.15)
+	var hh = float(n.get("height")) if n.get("height") != null else 1.8
+	var p = at if at != Vector3.INF else n.global_position + Vector3.UP * hh * randf_range(0.45, 0.8)
+	kamui_vortex(p - n.global_position, 0.42, 0.42, {"follow": n, "pull": 0.15, "twist": 0.7, "core": 0.0, "ink": 0.7})
 
 
 ## Itachi'nin kargası: sivri gagalı başı, kalın gövdesi, yelpaze kuyruğu ve parmak parmak tüylenen kanatları (Sharingan gözlü).
@@ -816,37 +856,32 @@ static func _foes(c: Node3D, pos: Vector3, r: float) -> Array:
 static func kamui_warp(c: Node3D, h: Node3D, info: Dictionary, at: Vector3) -> void:
 	if not _alive(h):
 		return
-	kamui_vortex(at, 1.6, 1.0)
 	var inf = info.duplicate()
 	if h == Game.player:
 		inf["dmg"] = minf(float(inf.get("dmg", 0.0)), maxf(1.0, float(h.hp) * 0.5))
-	h.take_hit(inf)
-	if not _alive(h):
-		return
+	# zayıflamış (ya da bu darbeyle düşecek) hedef darbe yemez: bütünüyle boyuta akar (hasarla ölüp yerde ceset kalmasın)
+	var weak = not (h is Player) and not h.has_meta("boss") and float(h.hp) - float(inf.get("dmg", 0.0)) <= float(h.max_hp) * 0.35 and h.has_method("die")
+	if not weak:
+		h.take_hit(inf)
+		if not _alive(h):
+			return
 	if h == Game.player and float(h.hp) <= float(h.max_hp) * 0.35 and pull_player(c):
 		return
-	var weak = not (h is Player) and not h.has_meta("boss") and float(h.hp) <= float(h.max_hp) * 0.35 and h.has_method("die")
 	if weak:
-		Combat.popup_text(_chest(h) + Vector3.UP, "Kamui boyutuna çekildi", Color(0.7, 0.55, 0.9))
 		h.apply_status("stun", 1.2)
-		var m = h.get("model")
-		if m:
-			var tw = m.create_tween()
-			tw.set_parallel(true)
-			tw.tween_property(m, "scale", m.scale * 0.05, 0.9).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
-			tw.tween_property(m, "rotation:y", m.rotation.y + TAU * 2.0, 0.9)
 		if c == Game.player:
 			Game.profile["kamui_store"] = int(Game.profile.get("kamui_store", 0)) + 1
-		_later(0.95, func():
-			if _alive(h):
-				h.die({"execute": true, "attacker": c, "kamui": true, "dmg": 9999.0})
-				if is_instance_valid(h) and h.is_dead():
-					KS.capture(c, h)   # boyutta tutsak kalır
-				if is_instance_valid(h) and h.get("model"):
-					h.model.visible = false)
+		# anime (Kakashi): odak noktasındaki uzay sarmal burkulur, beden oraya akıp kaybolur; ceset / düşüş karesi yok
+		KS.swallow(c, h, at, 0.9, func():
+			Combat.popup_text(at + Vector3.UP, "Kamui boyutuna çekildi", Color(0.7, 0.55, 0.9))
+			h.die({"execute": true, "attacker": c, "kamui": true, "dmg": 9999.0})
+			if is_instance_valid(h) and h.is_dead():
+				KS.capture(c, h))   # boyutta tutsak kalır
 	else:
 		Combat.popup_text(_chest(h) + Vector3.UP, "Bir parçası koptu", Color(0.8, 0.6, 0.95))
 		h.apply_status("bleed", 5.0)
+		kamui_vortex(at, _hh(h) * 1.4, 1.0, {"pull": 0.5})
+		KS.twist_into(h, at, 0.7, false, 0.3)   # güçlü hedef: odaktaki parça burkulup kopar, beden geri yaylanır
 
 
 const KS = preload("res://scripts/world/kamui_space.gd")
@@ -857,7 +892,7 @@ static func pull_player(c: Node3D) -> bool:
 	var pl = Game.player
 	if pl == null or c == pl or not is_instance_valid(c) or KS.player_inside() or KS._blocked() != "":
 		return false
-	if Game.now() < float(pl.get_meta("kamui_pull_immune", 0.0)) or not Combat.execute_ok(c, pl):
+	if Game.now() < float(pl.get_meta("kamui_pull_immune", 0.0)) or Combat.power_of(pl) > Combat.power_of(c) * 1.5:   # çekme kuralı her iki yönde aynı
 		return false
 	Combat.popup_text(_chest(pl) + Vector3.UP, "Kamui boyutuna çekildin", Color(0.7, 0.55, 0.9))
 	KS.node().enter_player("pulled")
@@ -1150,9 +1185,10 @@ static func _chain_wrap(tg: Node3D, life: float) -> void:
 ## Kamui ile ışınlan: çıkış ve varış noktasında küçük girdap
 static func _kamui_tp(c: Node3D, to: Vector3) -> void:
 	kamui_vortex(c.global_position + Vector3.UP * 1.1, 0.8, 0.45)
+	Sfx.play("kamui_in", c.global_position, 0.9)
 	_blink(c, to)
 	kamui_vortex(to + Vector3.UP * 1.1, 0.8, 0.45)
-	Sfx.play("th_teleport", to, 1.3, 0.6)
+	Sfx.play("kamui_out", to, 0.9)
 
 
 ## Hedefi a -> b taşı (fırlatma / yere çakma); yay yüksekliği arc. Taşınırken bağlıdır.

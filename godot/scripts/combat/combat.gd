@@ -22,6 +22,15 @@ const CC_MAX := 3.0
 ## Ortak kural (oyuncu = düşman, AI eşitliği): tek vuruşta canın %60'ından fazlasını götüren darbe ya da execute
 ## (Kamui, mühür, ruh sökme...) yalnız hedef saldırandan güçsüz/eşitse tam işler. Hedef güçlüyse darbe can oranına
 ## kırpılır: güç oranı r = saldıran/hedef -> en fazla max_hp * 0.6 * r² (en az %8). Güç: oyuncu Mastery.power, NPC level.
+## Saldıran başka bir uzayda mı (Kamui boyutu / iç mekân dünyanın yüzlerce metre üstünde): oradan süren hasar (süreli alan,
+## hedefe kilitli tik) geçmez — boyuttan çıkan hâlâ içerideki tekniğin hasarını yiyordu. Oyuncu ve düşman aynı.
+func other_space(target: Node, info: Dictionary) -> bool:
+	var atk = info.get("attacker")
+	if atk == null or not is_instance_valid(atk) or not (atk is Node3D) or not (target is Node3D) or atk == target:
+		return false
+	return absf((atk as Node3D).global_position.y - (target as Node3D).global_position.y) > 400.0
+
+
 func power_of(n: Node) -> float:
 	if n is Player:
 		return float(Mastery.power(Game.profile)) if not Game.profile.is_empty() else 1.0

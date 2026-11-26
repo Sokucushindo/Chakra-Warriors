@@ -9,6 +9,9 @@ const BIJUU_IDS := ["bijuu_t0", "bijuu_t1", "bijuu_t2", "bijuu_t3", "bijuu_t4"]
 const SUS_IDS := ["susanoo_t0", "susanoo_t1", "susanoo_t2"]
 const MS_BIJUU_ID := "ms_bijuu_kuchiyose"
 const KAMUI_ID := "kamui_kukan"
+const KAMUI_OUT_ID := "kamui_hoshutsu"
+const KAMUI_OUT_COST := 25.0
+const KAMUI_OUT_CD := 10.0
 const KS = preload("res://scripts/world/kamui_space.gd")
 
 
@@ -59,8 +62,12 @@ static func refresh(pr: Dictionary) -> Array:
 		Data.jutsu[KAMUI_ID] = {"name": "Kamui Kūkan", "cost": int(KS.SELF_COST), "cd": KS.SELF_CD, "element": "", "category": "dojutsu", "canon_rank": "S",
 			"seals": [], "virtual": "kamui_space", "desc": "Kamui'nin bağlı olduğu boyuta kendini çekersin (Mangekyō açık olmalı): kaçmak ya da Kamui ile yuttuklarını görmek için. Boyuttayken yeniden kullanınca tam bıraktığın yere dönersin."}
 		out.append(KAMUI_ID)
+		Data.jutsu[KAMUI_OUT_ID] = {"name": "Kamui: Hōshutsu", "cost": int(KAMUI_OUT_COST), "cd": KAMUI_OUT_CD, "element": "", "category": "dojutsu", "canon_rank": "S",
+			"seals": [], "virtual": "kamui_out", "desc": "Kamui boyutuna aldığını burgaçtan geri çıkarırsın (Mangekyō açık olmalı): önce yuttuğun saldırıyı (Kamui: içine çek ile) hedefine geri fırlatır, yoksa boyuttaki en eski tutsağı hedefinin yanına bırakır — çıkan, yanındaki ilk dövüşçüye saldırır."}
+		out.append(KAMUI_OUT_ID)
 	else:
 		Data.jutsu.erase(KAMUI_ID)
+		Data.jutsu.erase(KAMUI_OUT_ID)
 	var mt = Susanoo.max_tier(pr)
 	for i in 3:
 		var id = SUS_IDS[i]
@@ -71,6 +78,21 @@ static func refresh(pr: Dictionary) -> Array:
 			out.append(id)
 		else:
 			Data.jutsu.erase(id)
+	# yeni açılan özel teknik (yeni göz tekniği, Kamui Kūkan, canavar tekniği) öğrenilen jutsu gibi ilk boş yuvaya kendiliğinden konur;
+	# ad + kimlik bir kez görülür: oyuncu yuvadan çıkarırsa geri konmaz
+	var seen: Array = pr.get("special_seen", [])
+	var slots: Array = pr.get("slots", [])
+	for id in out:
+		var key = "%s|%s" % [id, String(Data.jutsu.get(id, {}).get("name", ""))]
+		if key in seen:
+			continue
+		seen.append(key)
+		if not id in slots:
+			for i in slots.size():
+				if slots[i] == "" or slots[i] == null:
+					slots[i] = id
+					break
+	pr["special_seen"] = seen
 	return out
 
 
@@ -82,7 +104,7 @@ static func cooldown(p: Player, jid: String) -> float:
 		return 0.0
 	if v.begins_with("eye:") and m.eyes:
 		return float(m.eyes.cd.get(v.substr(4), 0.0))
-	if v == "kamui_space":
+	if v == "kamui_space" or v == "kamui_out":
 		return float(p.combat.cooldowns.get(jid, 0.0))
 	if v.begins_with("susanoo:") and m.eyes and m.eyes.susanoo and is_instance_valid(m.eyes.susanoo_node):
 		return float(m.eyes.susanoo_node.tech_cd[int(v.substr(8))])
@@ -146,6 +168,34 @@ static func cast(p: Player, jid: String) -> bool:
 			ek.add_blind(0.03)   # Mangekyō bedeli (göz tekniğiyle aynı)
 		Combat.popup_text(p.global_position + Vector3.UP * 2.4, "Kamui Kūkan", Color(0.75, 0.6, 0.95))
 		ks.enter_player("self")
+		return true
+	if v == "kamui_out":
+		var eo: Eyes = m.eyes
+		if eo == null or not eo.active or not eo.ms_on:
+			Hud.msg("Kamui: Hōshutsu için Mangekyō'yu aç (V: Sharingan, tekrar V: Mangekyō).", Color(1, 0.4, 0.4))
+			return true
+		if eo.blind() >= 1.0 and not eo._ems():
+			Hud.msg("Gözlerin kör: Mangekyō teknikleri kullanılamaz. Ebedi Mangekyō gerek.", Color(1, 0.45, 0.45))
+			return true
+		if float(p.combat.cooldowns.get(jid, 0.0)) > 0.0:
+			Hud.msg("Kamui: Hōshutsu hazır değil (%.0f sn)" % float(p.combat.cooldowns[jid]), Color(0.9, 0.8, 0.6))
+			return true
+		if p.chakra < KAMUI_OUT_COST:
+			Hud.msg("Yeterli chakra yok (%d)." % int(KAMUI_OUT_COST), Color(0.6, 0.7, 1))
+			return true
+		var tgt = p.combat.lock_target if p.combat.lock_target and is_instance_valid(p.combat.lock_target) and not p.combat.lock_target.is_dead() else Combat.nearest_enemy(p, 30.0, p.face_dir(), 0.0)
+		if KS.player_inside():
+			Hud.msg("Boyutun içindesin: Hōshutsu dışarıda kullanılır.", Color(0.8, 0.8, 0.8))
+			return true
+		if not KS.release_out(p, tgt):
+			Hud.msg("Kamui boyutunda çıkarılacak bir şey yok.", Color(0.8, 0.8, 0.8))
+			return true
+		p.chakra -= KAMUI_OUT_COST
+		p.combat.cooldowns[jid] = KAMUI_OUT_CD
+		if not eo._ems():
+			eo.add_blind(0.02)
+		if p.combat:
+			p.combat.action = ""
 		return true
 	if v.begins_with("eye:"):
 		var ey: Eyes = m.eyes

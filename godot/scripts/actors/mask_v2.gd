@@ -3,10 +3,11 @@ const MeshArr = preload("res://scripts/core/mesh_arr.gd")
 ## Tam yüz maskeleri (ref refs/kiyafet/anbu/Konoha_Anbu): kavisli kabuk, yuvarlak göz deliği, yüzeye oturan fırça boyası.
 ## Her maske kendi çizimi; boyalar kabuğun üstünde incelen şeritler (çubuk / kutu yok).
 
-const STYLES := ["anbu_kedi", "anbu_kurt", "anbu_kus", "anbu_ayi", "anbu_tilki", "anbu_kaplan", "anbu_yilan", "anbu_maymun", "anbu_baykus", "anbu_kartal", "anbu_tavsan", "anbu_geyik", "anbu_kaplumbaga", "anbu_yarasa", "anbu_kurbaga", "anbu_ejder", "kitsune", "kitsune_festival", "tengu", "oni", "hannya", "okame", "kok_maskesi", "spiral_maske", "avci_maske", "kemik_maske"]
+const STYLES := ["anbu_kedi", "anbu_kurt", "anbu_kus", "anbu_ayi", "anbu_tilki", "anbu_kaplan", "anbu_yilan", "anbu_maymun", "anbu_baykus", "anbu_kartal", "anbu_tavsan", "anbu_geyik", "anbu_kaplumbaga", "anbu_yarasa", "anbu_kurbaga", "anbu_ejder", "kitsune", "kitsune_festival", "tengu", "oni", "hannya", "okame", "kok_maskesi", "avci_maske", "kemik_maske"]
 const PB = preload("res://scripts/actors/mask_v2_b.gd")
+const PO = preload("res://scripts/actors/mask_v2_obito.gd")   # Obito / Tobi maskeleri: gerçek göz delikli
 ## Maskenin kendi rengi (eşya rengi değil: boyalı ahşap / kemik maske boyanmaz)
-const BASE := {"kitsune": Color(0.95, 0.94, 0.9), "kitsune_festival": Color(0.97, 0.95, 0.9), "tengu": Color(0.72, 0.1, 0.1), "oni": Color(0.68, 0.12, 0.1), "hannya": Color(0.86, 0.82, 0.68), "okame": Color(0.97, 0.94, 0.88), "kok_maskesi": Color(0.93, 0.92, 0.89), "spiral_maske": Color(0.93, 0.5, 0.14), "avci_maske": Color(0.93, 0.93, 0.9), "kemik_maske": Color(0.86, 0.82, 0.7)}
+const BASE := {"kitsune": Color(0.95, 0.94, 0.9), "kitsune_festival": Color(0.97, 0.95, 0.9), "tengu": Color(0.72, 0.1, 0.1), "oni": Color(0.68, 0.12, 0.1), "hannya": Color(0.86, 0.82, 0.68), "okame": Color(0.97, 0.94, 0.88), "kok_maskesi": Color(0.93, 0.92, 0.89), "avci_maske": Color(0.93, 0.93, 0.9), "kemik_maske": Color(0.86, 0.82, 0.7)}
 const ANBU_WHITE := Color(0.93, 0.93, 0.92)
 const INK := Color(0.09, 0.08, 0.1)
 const RED := Color(0.66, 0.11, 0.14)
@@ -19,7 +20,7 @@ static var _cache := {}
 
 
 static func has(s) -> bool:
-	return s in STYLES or s in PB.STYLES
+	return s in STYLES or s in PB.STYLES or s in PO.STYLES
 
 
 class Mk:
@@ -481,19 +482,6 @@ static func _design(k: Mk, s: String) -> void:
 			k.st([V.call(0.03, -0.012), V.call(0.042, -0.05), V.call(0.03, -0.094)], 0.0048, RED)
 			k.eyes(0.02, 0.035, 0.0118)
 			k.st([V.call(0.008, -0.075), V.call(0.0, -0.077)], 0.003, INK)
-		"spiral_maske":
-			k.ears = []
-			k.shell()
-			var pts := []
-			for i in 44:
-				var t := i / 43.0
-				var a := -0.2 + t * TAU * 3.25
-				var r := 0.012 + t * 0.098
-				pts.append(V.call(0.018 + sin(a) * r * 0.8, 0.022 + cos(a) * r))
-			var clip := pts.filter(func(q): return (q as Vector2).length() < 0.108)
-			k.st(clip, 0.0062, k.fg.darkened(0.42), false, 0.2)
-			k.dot(0.018, 0.022, 0.0115, 0.0115, k.fg.darkened(0.5), false, 0.0, 0.0018)
-			k.dot(0.018, 0.022, 0.0085, 0.0085, Color(0.02, 0.02, 0.03), false, 0.0, 0.0024)
 		"avci_maske":
 			k.shell()
 			for i in 2:
@@ -533,6 +521,8 @@ static func _nose_cone(c: Color) -> MB:
 static func build(m, s, fg: Color) -> bool:
 	if s in PB.STYLES:
 		return PB.build(m, s, fg)
+	if s in PO.STYLES:
+		return PO.build(m, s, fg)
 	if not s in STYLES:
 		return false
 	fg = BASE.get(s, ANBU_WHITE)

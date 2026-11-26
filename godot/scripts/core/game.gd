@@ -581,6 +581,8 @@ func world_rect() -> Vector4:
 
 ## Bir noktanın hangi bölgede olduğunu döndürür (köy > yer > ülke)
 func region_name(p: Vector3) -> String:
+	if has_meta("kamui_space") and p.y > terrain_height(p.x, p.z) + 800.0:
+		return "Kamui Kūkan"   # Kamui boyutu (dünyanın üstünde kurulur): dünya bölgesi değil
 	var m := to_map(p)
 	for v in world_info["villages"]:
 		if m.distance_to(Vector2(v["x"], v["y"])) < float(v["r"]):

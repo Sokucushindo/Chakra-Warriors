@@ -800,8 +800,18 @@ func _patrol(dt: float) -> void:
 	if v.length() < 2.0 or state_t > 8.0:
 		state_t = 0.0
 		wander_to = home + Vector3(randf_range(-15, 15), 0, randf_range(-15, 15))
+		if global_position.y - Game.ground_height(global_position.x, global_position.z) > 30.0:
+			# dünyanın üstündeki kat (Kamui boyutunun kütleleri, iç mekân): gezinti noktası aynı zeminde değilse (kenardan
+			# yarığa / alt kata düşerdi) evde kalır
+			var fl = Game.jutsu_floor_at(Vector3(wander_to.x, global_position.y + 1.0, wander_to.z))
+			if absf(fl.y - global_position.y) > 1.2:
+				wander_to = home
 		step_move(Vector3.ZERO, dt)
 		model.play("idle", 0.2)
+		return
+	if _ledge_ahead(v):
+		wander_to = global_position   # yol yarıktan geçiyor (Kamui kütlesi / iç kat): kenarda durur, sonra başka yön seçer
+		step_move(Vector3.ZERO, dt)
 		return
 	step_move(v.normalized() * 3.0, dt)
 	model.play("walk", 0.2)
@@ -942,6 +952,8 @@ func _chase(dt: float) -> void:
 		elif _is_ninja() and d > 6.0:
 			# yaklaşırken zikzak (isabet almamak için)
 			dir = dir.rotated(Vector3.UP, sin(Time.get_ticks_msec() * 0.003 + get_instance_id()) * 0.5 * skill)
+		if _ledge_ahead(dir) and target.global_position.y > global_position.y - 2.0:
+			dir = Vector3.ZERO   # dünyanın üstündeki katta (Kamui kütlesi, iç mekân) kenardan yarığa yürümez; hedef aşağıda değilse durur
 		step_move(dir * sp, dt, false)
 		model.play("run" if sp > 6 else "walk", 0.15, 1.1)
 		model.rotation.y = facing
@@ -1092,6 +1104,23 @@ func _footsteps(_dt: float) -> void:
 		Game.play_step(global_position, randf_range(0.88, 1.05), 0.2)
 		GroundMarks.step(self, false)   # kumda/karda iz (oyuncuyla aynı)
 	_step_ph = model.anim_progress() if model.current in CharacterModel.FOOT_PHASES else -1.0
+
+
+## Dünyanın üstündeki katta (Kamui boyutu, iç mekân) önündeki adım bir uçurum mu (2.5 m'den derin düşüş). Arazide hep false.
+## 0.2 sn önbellekli (her karede ışın atmasın)
+var _ledge_t := 0.0
+var _ledge_v := false
+func _ledge_ahead(dir: Vector3) -> bool:
+	if dir.length_squared() < 0.0001 or global_position.y - Game.ground_height(global_position.x, global_position.z) < 30.0:
+		return false
+	var now = Game.now()
+	if now < _ledge_t:
+		return _ledge_v
+	_ledge_t = now + 0.2
+	var ahead = global_position + dir.normalized() * 1.3
+	var fl = Game.jutsu_floor_at(Vector3(ahead.x, global_position.y + 1.0, ahead.z))
+	_ledge_v = global_position.y - fl.y > 2.5
+	return _ledge_v
 
 
 ## Zemin: iç mekânda (mağara/in, dünyanın çok üstünde) arazi değil bulunduğu kat
@@ -1464,6 +1493,8 @@ func threat_color() -> Color:
 
 
 func take_hit(info: Dictionary) -> void:
+	if Combat.other_space(self, info):
+		return   # başka uzaydaki saldırganın hasarı geçmez (oyuncuyla aynı)
 	if sub_inv > 0.0 and not dead:
 		return   # Kawarimi anı: darbe kütüğe gider
 	# hazır Kawarimi (jutsu yuvası; oyuncuyla aynı — Player.take_hit): bloktan önce gelir, darbeyi kütük alır, saldıranın
@@ -1819,7 +1850,8 @@ func die(info: Dictionary) -> void:
 	if info.get("execute", false) and not Combat.execute_ok(info.get("attacker"), self):
 		take_hit(info)   # hedef saldırandan güçlü: anında ölüm yerine kırpılmış darbe (cap_one_shot)
 		return
-	if not info.get("execute", false) or true:
+	var kamui_gone = info.get("kamui", false)   # Kamui boyutuna yutuldu: ölmedi, boyutta tutsak (ceset / ganimet / yeniden doğuş yok)
+	if not kamui_gone:
 		fallen.append({"arch": arch, "pos": global_position, "team": String(team), "teammate": bool(get_meta("teammate", false)), "friend_id": String(get_meta("friend_id", "")),
 			"t": Time.get_ticks_msec() / 1000.0, "name": display_name, "size": size})
 		if fallen.size() > 30:
@@ -1827,7 +1859,10 @@ func die(info: Dictionary) -> void:
 	if not info.get("execute", false) and PathJutsu.izanagi_rewrite(self):
 		return   # açık İzanagi: ölüm yanılsamaydı
 	PathJutsu.ura_shisho_trigger(self)   # Ura Shishō Fūin: ölünce kara küre (oyuncuyla aynı)
-	WorldPeople.on_enemy_died(self, info)
+	if kamui_gone:
+		WorldPeople.on_kamui_taken(self)
+	else:
+		WorldPeople.on_enemy_died(self, info)
 	if has_meta("kage_of"):   # köyün Kage'si düştü: haber + halef
 		Kage.kage_killed(String(get_meta("kage_of")), info.get("attacker") == Game.player or Game.player != null and global_position.distance_to(Game.player.global_position) < 60.0)
 		remove_meta("kage_of")
@@ -1847,11 +1882,14 @@ func die(info: Dictionary) -> void:
 		if not tf.is_empty():
 			tf["stolen"] = 0
 		remove_meta("stolen_ryo")
-	if not has_meta("teammate") and size < 2.5:
+	if kamui_gone:
+		if info.get("attacker") is Player and int(ryo) > 0:
+			Progress.add_ryo(int(ryo))   # ceset aranamaz: üstündeki para doğrudan
+	elif not has_meta("teammate") and size < 2.5:
 		_make_loot()
 	super.die(info)
 	# Mangekyō: yakın olduğun birini (dost, sevgili; hain/kaçak olmuş olsa bile) kendi elinle öldürmek
-	if info.get("attacker") is Player:
+	if info.get("attacker") is Player and not kamui_gone:
 		var fid = String(get_meta("friend_id", get_meta("slain_fid", "")))
 		if fid == "" and has_meta("bingo_id"):
 			for be in Missions._bingo()["list"]:
@@ -1884,7 +1922,7 @@ func die(info: Dictionary) -> void:
 					bodies.pop_front()
 				Game.profile["kugutsu_bodies"] = bodies
 				Hud.msg("%s: bedeni insan kuklası için mühürlendi (%d kukla)." % [display_name, bodies.size()], Color(0.85, 0.6, 0.5), 4.0)
-	if get_meta("respawn", true) and arch.get("respawn", true):
+	if get_meta("respawn", true) and arch.get("respawn", true) and not kamui_gone:
 		var a = arch
 		var h = home
 		var parent = get_parent()
