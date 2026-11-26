@@ -252,6 +252,9 @@ const ALET_FX := {"agiz_kozu": "res://scripts/combat/fx/agiz_kozu_fx.gd", "aobik
 	"fuin_fuda": "res://scripts/combat/fx/fuin_fuda_fx.gd", "kekkai_fuda": "res://scripts/combat/fx/kekkai_fuda_fx.gd"}
 
 
+static var _tool_mesh := {}
+
+
 static func tool(who: Node3D, start: Vector3, dir: Vector3, kind: String, target: Node3D) -> Projectile:
 	if ALET_FX.has(kind):
 		return load(ALET_FX[kind]).launch(who, start, dir, target)
@@ -264,34 +267,40 @@ static func tool(who: Node3D, start: Vector3, dir: Vector3, kind: String, target
 	var mult = Stats.melee_mult(Game.profile) * (1.0 + Stats.skill(Game.profile, "throw_dmg") + (Stats.skill(Game.profile, "tag_dmg") if kind == "tag" else 0.0) + Mastery.get_v(Game.profile, "shurikenjutsu") * 0.02) if who is Player else 1.0
 	pr.info = {"dmg": (10.0 if kind == "kunai" else 6.0) * mult, "knock": 1.5, "kind": "light", "hitstop": 0.02, "melee": true, "tool": kind}
 	var mi = MeshInstance3D.new()
-	var b = MB.new()
+	if not _tool_mesh.has(kind):   # alet geometrisi her atışta aynı: bir kez kurulur (savaşta atış başına ~10 ms idi)
+		var b = MB.new()
+		match kind:
+			"kunai", "tag":
+				b.add("box", Vector3(0, 0, -0.18), Vector3(0.05, 0.02, 0.32), Color(0.6, 0.62, 0.66))
+				b.add("cyl", Vector3(0, 0, 0.08), Vector3(0.03, 0.18, 0.03), Color(0.2, 0.2, 0.22), Vector3(90, 0, 0), 6)
+				b.add("torus", Vector3(0, 0, 0.2), Vector3(0.08, 0.08, 0.08), Color(0.3, 0.3, 0.32), Vector3(90, 0, 0), 8)
+				if kind == "tag":
+					b.add("box", Vector3(0, 0, 0.1), Vector3(0.07, 0.005, 0.16), Color(0.95, 0.9, 0.75))
+			"shuriken":
+				# yatay dönen 4 uçlu yıldız (XY yıldızı X ekseninde 90° yatırılır)
+				var sb = MB.new()
+				CharacterModel._w_star(sb, Vector3.ZERO, 0.19, 0.06, 4, Color(0.6, 0.62, 0.66), Color(0.15, 0.15, 0.17))
+				b.add_mesh(sb, Transform3D(Basis(Vector3.RIGHT, PI * 0.5), Vector3.ZERO))
+			"senbon":   # ince uzun iğne
+				b.add("cyl", Vector3(0, 0, -0.05), Vector3(0.012, 0.32, 0.012), Color(0.75, 0.77, 0.82), Vector3(90, 0, 0), 4)
+		_tool_mesh[kind] = b.build(Props.toon())
 	match kind:
-		"kunai", "tag":
-			b.add("box", Vector3(0, 0, -0.18), Vector3(0.05, 0.02, 0.32), Color(0.6, 0.62, 0.66))
-			b.add("cyl", Vector3(0, 0, 0.08), Vector3(0.03, 0.18, 0.03), Color(0.2, 0.2, 0.22), Vector3(90, 0, 0), 6)
-			b.add("torus", Vector3(0, 0, 0.2), Vector3(0.08, 0.08, 0.08), Color(0.3, 0.3, 0.32), Vector3(90, 0, 0), 8)
-			if kind == "tag":
-				b.add("box", Vector3(0, 0, 0.1), Vector3(0.07, 0.005, 0.16), Color(0.95, 0.9, 0.75))
 		"shuriken":
-			# yatay dönen 4 uçlu yıldız (XY yıldızı X ekseninde 90° yatırılır)
-			var sb = MB.new()
-			CharacterModel._w_star(sb, Vector3.ZERO, 0.19, 0.06, 4, Color(0.6, 0.62, 0.66), Color(0.15, 0.15, 0.17))
-			b.add_mesh(sb, Transform3D(Basis(Vector3.RIGHT, PI * 0.5), Vector3.ZERO))
 			pr.spin = Vector3(0, 30, 0)
 			pr.info["dmg"] = 6.0 * mult
-		"senbon":   # ince uzun iğne
-			b.add("cyl", Vector3(0, 0, -0.05), Vector3(0.012, 0.32, 0.012), Color(0.75, 0.77, 0.82), Vector3(90, 0, 0), 4)
+		"senbon":
 			pr.info["dmg"] = 4.0 * mult
 			pr.on_hit = func(_pos: Vector3, tgt: Node3D) -> void:
 				if tgt != null and is_instance_valid(tgt) and tgt.has_method("apply_status") and randf() < 0.35:
 					tgt.apply_status("slow", 3.0)
 					Combat.popup_text(tgt.global_position + Vector3.UP * 2.2, "Zehir!", Color(0.6, 0.9, 0.4))
-	mi.mesh = b.build(Props.toon())
+	mi.mesh = _tool_mesh[kind]
 	# hayran modeli varsa kunai görseli (namlu uçuş yönüne, -Z)
 	var tn = SFProps.weapon_node(kind, SFProps.THROWN) if kind in ["kunai", "tag"] else null
 	if tn:
 		tn.rotation.y = PI
 		pr.add_child(tn)
+		mi.free()   # yedek görsel kullanılmadı (ağaca girmeyen düğüm sızıyordu)
 	else:
 		pr.add_child(mi)
 	if kind == "tag":

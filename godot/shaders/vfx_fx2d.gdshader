@@ -4,19 +4,19 @@ shader_type spatial;
 render_mode unshaded, cull_disabled, depth_draw_never, shadows_disabled, blend_mix;
 
 uniform int kind = 0;
-uniform vec4 col : source_color = vec4(1.0, 0.8, 0.3, 1.0);
-uniform vec4 core : source_color = vec4(1.0, 1.0, 1.0, 1.0);
-uniform float t = 0.0;
-uniform float spikes = 8.0;
-uniform float seed = 0.0;
+instance uniform vec4 col : source_color = vec4(1.0, 0.8, 0.3, 1.0);
+instance uniform vec4 core : source_color = vec4(1.0, 1.0, 1.0, 1.0);
+instance uniform float t = 0.0;
+instance uniform float spikes = 8.0;
+instance uniform float seed = 0.0;   // kart başına değerler: malzeme paylaşılır (her vuruşta yeni malzeme yaratmak pahalıydı)
 uniform bool billboard = true;
 
-float hash(float x) { return fract(sin(x * 127.1 + seed * 31.7) * 43758.5453); }
-float hash2(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7)) + seed) * 43758.5453); }
-float vn(vec2 p) {
+float hash(float x, float sd) { return fract(sin(x * 127.1 + sd * 31.7) * 43758.5453); }
+float hash2(vec2 p, float sd) { return fract(sin(dot(p, vec2(127.1, 311.7)) + sd) * 43758.5453); }
+float vn(vec2 p, float sd) {
 	vec2 i = floor(p), f = fract(p);
 	vec2 u = f * f * (3.0 - 2.0 * f);
-	return mix(mix(hash2(i), hash2(i + vec2(1, 0)), u.x), mix(hash2(i + vec2(0, 1)), hash2(i + vec2(1, 1)), u.x), u.y);
+	return mix(mix(hash2(i, sd), hash2(i + vec2(1, 0), sd), u.x), mix(hash2(i + vec2(0, 1), sd), hash2(i + vec2(1, 1), sd), u.x), u.y);
 }
 
 void vertex() {
@@ -38,7 +38,7 @@ void fragment() {
 		float k = a / 6.2831 * spikes;
 		float i = floor(k);
 		float f = fract(k);
-		float len = 0.55 + 0.45 * hash(i);
+		float len = 0.55 + 0.45 * hash(i, seed);
 		float spike = (1.0 - abs(f - 0.5) * 2.0);
 		float edge = mix(0.22, len, pow(spike, 3.0));
 		float sz = 1.0 - t * 0.35;
@@ -49,13 +49,13 @@ void fragment() {
 		// şok dalgası: dışa giden sert halka, iç kenarı gürültüyle kırık
 		float rad = t;
 		float w = 0.06 + 0.1 * (1.0 - t);
-		float n = vn(vec2(a * 3.0, t * 4.0)) * 0.08;
+		float n = vn(vec2(a * 3.0, t * 4.0), seed) * 0.08;
 		float band = step(rad - w + n, r) * step(r, rad);
 		al = band * (1.0 - t);
 		c = mix(core.rgb, col.rgb, smoothstep(rad - w, rad, r));
 	} else {
 		// zemin çatlağı / yanık: merkezden dallanan çizgiler + koyu leke
-		float n = vn(p * 3.0) * 0.5 + vn(p * 7.0) * 0.5;
+		float n = vn(p * 3.0, seed) * 0.5 + vn(p * 7.0, seed) * 0.5;
 		float k = a / 6.2831 * spikes + n * 0.8;
 		// çizgiler uca doğru incelip söner; leke merkezden yumuşakça dağılan yanık (kart kenarı / zemin kesişimi görünmesin)
 		float crack = 1.0 - smoothstep(0.02, 0.06, abs(fract(k) - 0.5) * (0.4 + r) * (1.0 + r * 1.5));

@@ -1176,7 +1176,7 @@ func _process(dt: float) -> void:
 	for e in _spawned.duplicate():
 		if not is_instance_valid(e):
 			_spawned.erase(e)
-		elif e.global_position.distance_to(Game.player.global_position) > 600.0:
+		elif e.global_position.distance_to(Game.player_anchor()) > 600.0:   # Kamui boyutunda: bıraktığı yere göre
 			e.queue_free()
 			_spawned.erase(e)
 

@@ -1423,7 +1423,7 @@ static func _tv(im: ImmediateMesh, v: Array) -> void:
 
 
 ## Noktalar boyunca tüp (baştan kuyruğa incelen, dalgalanan yarıçap)
-static func _tube(im: ImmediateMesh, m: Material, pts: Array, rad: float, age: float) -> void:
+static func _tube(im: Mesh, m: Material, pts: Array, rad: float, age: float) -> void:
 	var n = pts.size()
 	var sides = 10
 	var rings = []
@@ -1446,16 +1446,39 @@ static func _tube(im: ImmediateMesh, m: Material, pts: Array, rad: float, age: f
 			var nrm = sd * cos(a) + up * sin(a)
 			ring.append([p + nrm * r, nrm])
 		rings.append(ring)
-	im.surface_begin(Mesh.PRIMITIVE_TRIANGLES, m)
+	if im is ArrayMesh:   # RaitonLib.host artık dizi mesh veriyor: aynı tepeler/üçgenler, indeksli
+		var vs := PackedVector3Array()
+		var ns := PackedVector3Array()
+		var ix := PackedInt32Array()
+		for ring in rings:
+			for v in ring:
+				vs.append(v[0])
+				ns.append(v[1])
+		var rw = sides + 1
+		for i in n - 1:
+			for k in sides:
+				var a0 = i * rw + k
+				var b0 = (i + 1) * rw + k
+				ix.append_array([a0, b0, a0 + 1, a0 + 1, b0, b0 + 1])
+		var arr = []
+		arr.resize(Mesh.ARRAY_MAX)
+		arr[Mesh.ARRAY_VERTEX] = vs
+		arr[Mesh.ARRAY_NORMAL] = ns
+		arr[Mesh.ARRAY_INDEX] = ix
+		(im as ArrayMesh).add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+		(im as ArrayMesh).surface_set_material((im as ArrayMesh).get_surface_count() - 1, m)
+		return
+	var imm := im as ImmediateMesh
+	imm.surface_begin(Mesh.PRIMITIVE_TRIANGLES, m)
 	for i in n - 1:
 		for k in sides:
-			_tv(im, rings[i][k])
-			_tv(im, rings[i + 1][k])
-			_tv(im, rings[i][k + 1])
-			_tv(im, rings[i][k + 1])
-			_tv(im, rings[i + 1][k])
-			_tv(im, rings[i + 1][k + 1])
-	im.surface_end()
+			_tv(imm, rings[i][k])
+			_tv(imm, rings[i + 1][k])
+			_tv(imm, rings[i][k + 1])
+			_tv(imm, rings[i][k + 1])
+			_tv(imm, rings[i + 1][k])
+			_tv(imm, rings[i + 1][k + 1])
+	imm.surface_end()
 
 
 ## Merminin izinden su gövdesi + ayrı görsel baş (vh). Gövde, sıçrama noktasından yükselen hazır bir kavisle başlar

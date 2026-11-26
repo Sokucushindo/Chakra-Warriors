@@ -34,8 +34,8 @@ func _forearm_lock(sk: Skeleton3D) -> void:
 	for side in forearm_lock:
 		if float(hold.get(side, 0.0)) <= 0.0:
 			continue
-		var hb = sk.find_bone(side + "Hand")
-		var lb = sk.find_bone(side + "LowerArm")
+		var hb = _fb(sk, side + "Hand")
+		var lb = _fb(sk, side + "LowerArm")
 		if hb < 0 or lb < 0:
 			continue
 		var hp: Transform3D = sk.get_bone_global_pose(hb)
@@ -152,10 +152,10 @@ func _hand_free(side: String) -> bool:
 func _two_hand_ik(sk: Skeleton3D, w: float) -> void:
 	# sol el = sağ elin kabza düzlemine göre AYNA kopyası (aynı şekil, kabzanın karşı tarafından sarar), kabza boyunca biraz aşağıda.
 	# Parmaklar sağ eldekiyle aynı kıvrımda (hold Left); kol IK ile bileği oraya taşır.
-	var ua = sk.find_bone("LeftUpperArm")
-	var la = sk.find_bone("LeftLowerArm")
-	var hb = sk.find_bone("LeftHand")
-	var rb = sk.find_bone("RightHand")
+	var ua = _fb(sk, "LeftUpperArm")
+	var la = _fb(sk, "LeftLowerArm")
+	var hb = _fb(sk, "LeftHand")
+	var rb = _fb(sk, "RightHand")
 	if ua < 0 or la < 0 or hb < 0 or rb < 0:
 		return
 	var inv = sk.global_transform.affine_inverse()
@@ -187,7 +187,7 @@ func _two_hand_ik(sk: Skeleton3D, w: float) -> void:
 func _arm_ik(sk: Skeleton3D, ua: int, la: int, tgt: Vector3, w: float) -> void:
 	var S = sk.get_bone_global_pose(ua).origin
 	var E = sk.get_bone_global_pose(la).origin
-	var hb = sk.find_bone("LeftHand")
+	var hb = _fb(sk, "LeftHand")
 	var H = sk.get_bone_global_pose(hb).origin
 	var a = S.distance_to(E)
 	var b = E.distance_to(H)
@@ -208,7 +208,7 @@ func _arm_ik(sk: Skeleton3D, ua: int, la: int, tgt: Vector3, w: float) -> void:
 
 ## Parmağı dinlenme pozuna göre verilen kıvrıma (mutlak) yaklaştır: animasyondaki açık el ne olursa olsun kapanır
 func _curl(sk: Skeleton3D, bone: String, q: Quaternion, w: float) -> void:
-	var bi = sk.find_bone(bone)
+	var bi = _fb(sk, bone)
 	if bi < 0:
 		return
 	var target = sk.get_bone_rest(bi).basis.get_rotation_quaternion() * q
@@ -217,7 +217,7 @@ func _curl(sk: Skeleton3D, bone: String, q: Quaternion, w: float) -> void:
 
 ## Kemiği model uzayında verilen yöne çevir (PoseOverlay._rot_model ile aynı)
 func _rot_model(sk: Skeleton3D, bone: String, dir_model: Vector3, w: float) -> void:
-	var bi = sk.find_bone(bone)
+	var bi = _fb(sk, bone)
 	if bi < 0:
 		return
 	var gp = sk.get_bone_global_pose(bi)
@@ -226,3 +226,17 @@ func _rot_model(sk: Skeleton3D, bone: String, dir_model: Vector3, w: float) -> v
 	var parent_basis = sk.get_bone_global_pose(parent).basis if parent >= 0 else Basis.IDENTITY
 	var local = (parent_basis.inverse() * (Basis(q) * gp.basis)).get_rotation_quaternion()
 	sk.set_bone_pose_rotation(bi, sk.get_bone_pose_rotation(bi).slerp(local, clampf(w, 0.0, 1.0)))
+
+## Kemik numarası önbelleği: kemik adıyla arama (dize -> StringName -> karma) her karakterde her kare onlarca kez yapılıyordu
+var _fb_c := {}
+var _fb_sk: Skeleton3D = null
+
+func _fb(sk: Skeleton3D, bone: String) -> int:
+	if sk != _fb_sk:
+		_fb_c.clear()
+		_fb_sk = sk
+	var v = _fb_c.get(bone)
+	if v == null:
+		v = sk.find_bone(bone)
+		_fb_c[bone] = v
+	return v

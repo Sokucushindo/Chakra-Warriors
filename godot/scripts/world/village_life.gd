@@ -204,6 +204,10 @@ static func _phase_of(tod: float) -> String:
 	return "aksam"
 
 
+var _fight := false
+var _fight_t := 0.0
+
+
 func _process(dt: float) -> void:
 	# gece parıltısı (fenerler) — saniyede bir
 	glow_t -= dt
@@ -215,9 +219,15 @@ func _process(dt: float) -> void:
 	if Game.player == null or Game.paused:
 		return
 	spawn_cd -= dt
+	# dövüş sürerken köylü değişimi bekler: uzaklaşan silinmez, yerine yenisi kurulmaz (savaşın ortasına kişi başı 100-250 ms
+	# model kurulumu giriyordu; profil 2026-11-26). Görünen yakın çevre aynı; dövüş bitince sıra kaldığı yerden sürer.
+	_fight_t -= dt
+	if _fight_t <= 0.0:
+		_fight_t = 0.5
+		_fight = Game.player.has_method("in_fight") and Game.player.in_fight()
 	# ön kurulum sürerken sıra dönmez: biten kişi hemen girer (sıra dönünce her kişi bir tam tur bekliyor, köy dolmuyordu)
 	var staging = is_instance_valid(_building) and not _building.built and Time.get_ticks_msec() - _building_t < 3000
-	if not queue.is_empty() and spawn_cd <= 0.0 and not staging:
+	if not queue.is_empty() and spawn_cd <= 0.0 and not staging and not _fight:
 		# oyuncu koşarken / atılırken (Ctrl) yeni karakter kurma: hareket bitince sırayla gelirler
 		var spd = Game.player.velocity.length() if "velocity" in Game.player else 0.0
 		if spd < 9.0 or npcs.size() < 4:
@@ -240,7 +250,7 @@ func _process(dt: float) -> void:
 		return
 	t = 0.8
 	_sweep_pend()
-	var p = Game.player.global_position
+	var p = Game.player_anchor()   # Kamui boyutunda: köylüler "uzaklaştı" diye silinmesin
 	# Chūnin Sınavı sürerken (orman, ön eleme, final yolu/final) sınav alanında sıradan köylü olmaz: sokak ve mekân NPC'leri kalkar, yenisi gelmez
 	if int(ChuninExam.stage) in [2, 3, 4, 5]:
 		for n in npcs.duplicate():
@@ -314,12 +324,14 @@ func _process(dt: float) -> void:
 	target = maxi(2, int(round(target * fill)))
 	target = maxi(2, target - int(_job_count() * 0.6))   # işe geçenler sokaktan eksilir (toplam kişi sayısı aynı kalır)
 	for n in far:
+		if _fight:
+			break
 		if is_instance_valid(n) and not _recycle(n, near_r, roofs, p, true):
 			n.queue_free()
 			npcs.erase(n)
 	var planned = npcs.size() + queue.size()
 	# kalabalık ayarı düşürüldü: fazlalardan, oyuncuya uzak olanı her tikte bir tane dağıt (göz önünde kaybolmasın)
-	if npcs.size() > target + 2:
+	if npcs.size() > target + 2 and not _fight:
 		for n in npcs:
 			if is_instance_valid(n) and n.global_position.distance_to(p) > 45.0:
 				n.queue_free()

@@ -536,34 +536,36 @@ static func strip(pts: PackedVector3Array, w: float, hint := Vector3.ZERO, twin 
 	var n = pts.size()
 	if n < 2:
 		return ArrayMesh.new()
-	var st = SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	# aynı tepeler / üçgenler; nokta başına iki tepe (paylaşılır), dizilerle tek seferde (SurfaceTool tepe tepe yavaştı)
 	var tans: Array = []
 	for i in n:
 		var tv = pts[mini(i + 1, n - 1)] - pts[maxi(i - 1, 0)]
 		tans.append(tv.normalized() if tv.length() > 0.00001 else Vector3.FORWARD)
 	var planes = 2 if twin else 1
+	var vs := PackedVector3Array()
+	var uvs := PackedVector2Array()
+	var ix := PackedInt32Array()
+	var ww = widths.size() == n
 	for pl in planes:
-		for i in n - 1:
-			var w0 = w * (widths[i] if widths.size() == n else 1.0)
-			var w1 = w * (widths[i + 1] if widths.size() == n else 1.0)
-			var s0: Vector3 = _side(tans[i], pl, hint) * w0
-			var s1: Vector3 = _side(tans[i + 1], pl, hint) * w1
+		var base = vs.size()
+		for i in n:
+			var s0: Vector3 = _side(tans[i], pl, hint) * (w * (widths[i] if ww else 1.0))
 			var u0 = float(i) / (n - 1)
-			var u1 = float(i + 1) / (n - 1)
-			st.set_uv(Vector2(u0, 0.0))
-			st.add_vertex(pts[i] - s0)
-			st.set_uv(Vector2(u0, 1.0))
-			st.add_vertex(pts[i] + s0)
-			st.set_uv(Vector2(u1, 1.0))
-			st.add_vertex(pts[i + 1] + s1)
-			st.set_uv(Vector2(u0, 0.0))
-			st.add_vertex(pts[i] - s0)
-			st.set_uv(Vector2(u1, 1.0))
-			st.add_vertex(pts[i + 1] + s1)
-			st.set_uv(Vector2(u1, 0.0))
-			st.add_vertex(pts[i + 1] - s1)
-	return st.commit()
+			vs.append(pts[i] - s0)
+			vs.append(pts[i] + s0)
+			uvs.append(Vector2(u0, 0.0))
+			uvs.append(Vector2(u0, 1.0))
+		for i in n - 1:
+			var a = base + i * 2
+			ix.append_array([a, a + 1, a + 3, a, a + 3, a + 2])
+	var arr = []
+	arr.resize(Mesh.ARRAY_MAX)
+	arr[Mesh.ARRAY_VERTEX] = vs
+	arr[Mesh.ARRAY_TEX_UV] = uvs
+	arr[Mesh.ARRAY_INDEX] = ix
+	var am = ArrayMesh.new()
+	am.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+	return am
 
 
 static func _side(tv: Vector3, pl: int, hint: Vector3) -> Vector3:

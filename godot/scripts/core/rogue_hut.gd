@@ -132,7 +132,7 @@ static func _burn(h: Dictionary) -> void:
 	h["raid"] = false
 	h.erase("raid_at")
 	for e in raiders:
-		if is_instance_valid(e) and not e.is_dead() and e.global_position.distance_to(Game.player.global_position) > 200.0:
+		if is_instance_valid(e) and not e.is_dead() and e.global_position.distance_to(Game.player_anchor()) > 200.0:
 			e.queue_free()
 	raiders = []
 	_clear_mark()

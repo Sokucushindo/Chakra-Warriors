@@ -1189,7 +1189,7 @@ func _spawn(id: String) -> Node:
 func _visit(dt: float) -> void:
 	visit_t -= dt
 	if visitor != null and is_instance_valid(visitor):
-		if visitor.global_position.distance_to(Game.player.global_position) > 90.0 or visit_t < -150.0:
+		if visitor.global_position.distance_to(Game.player_anchor()) > 90.0 or visit_t < -150.0:
 			visitor.vanish()
 			visitor = null
 		elif visitor.global_position.distance_to(Game.player.global_position) > 3.5:

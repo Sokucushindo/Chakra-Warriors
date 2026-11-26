@@ -67,6 +67,18 @@ func _process(dt: float) -> void:
 var last_save_ms := 0.0
 
 
+## Oyuncunun dünyadaki yeri: Kamui boyutundayken (dünyanın 3000 m üstü) bıraktığı yer — uzaklık / bölge hesapları onu kullanır.
+## Eskiden boyuta girip çıkınca baskındaki Kage ve köy ninjaları "600 m uzakta kaldı" diye siliniyordu.
+func player_anchor() -> Vector3:
+	if player == null:
+		return Vector3.ZERO
+	if has_meta("kamui_space"):
+		var ks = load("res://scripts/world/kamui_space.gd").inst
+		if ks != null and is_instance_valid(ks) and ks.player_in:
+			return ks.ret_pos
+	return player.global_position
+
+
 ## Son 15 saniyede hasar aldıysa dövüşte sayılır
 func _in_fight() -> bool:
 	for c in player.get_children():

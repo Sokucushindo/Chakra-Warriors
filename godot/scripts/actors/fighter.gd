@@ -330,6 +330,13 @@ func stagger(t: float) -> void:
 
 ## Hareket + arazi; wish: istenen yatay hız
 func step_move(wish: Vector3, dt: float, turn := true) -> void:
+	# duran kişi (tezgâhtar, oturan, nöbetçi, bekleyen dövüşçü): hız sıfır, yerde ve tam zemin hizasındaysa çarpışma hareketi
+	# atlanır (profil: duranların her fizik karesindeki boş move_and_slide). İtilen / vurulan / yürüyen normal yoldan geçer.
+	if wish == Vector3.ZERO and grounded and velocity.y <= 0.0 and absf(velocity.x) + absf(velocity.z) < 0.02 and state not in ["hitstun", "knockdown", "dead"]:
+		if absf(global_position.y - Game.ground_height(global_position.x, global_position.z)) < 0.002:
+			velocity = Vector3.ZERO
+			model.rotation.y = facing
+			return
 	var slow = 0.45 if has_status("slow") else Combat.exhaust_k(self)
 	var hv = Vector3(velocity.x, 0, velocity.z)
 	if state in ["hitstun", "knockdown", "dead"]:

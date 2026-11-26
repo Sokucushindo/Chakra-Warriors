@@ -447,7 +447,7 @@ static func pulse(pos: Vector3, fn: Callable, parent: Node = null) -> Pulse:
 
 ## Dünya koordinatında her kare yeniden çizilen taşıyıcı: fn(im, node, dt, age) -> bool
 static func host(fn: Callable) -> Pulse:
-	var im = ImmediateMesh.new()
+	var im = ArrayMesh.new()   # kare başı şerit: dizilerle tek seferde (ImmediateMesh tepe başına 3 çağrı, savaşta en pahalı iş)
 	var mi = MeshInstance3D.new()
 	mi.mesh = im
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -505,7 +505,7 @@ static func _vx(im: ImmediateMesh, p: Vector3, u: float, v: float, a: float) -> 
 
 ## Çoklu çizgiyi tek yüzeyde çizer. polys: [{"p": [Vector3], "w": yarı genişlik, "a": saydamlık, "k": 0 iki uç incelir /
 ## 1 baştan uca kalınlaşır (kuyruk) / 2 sabit}]. flat: yere yatık (yan yön yatay), değilse kameraya dönük. U = dünya uzunluğu.
-static func draw(im: ImmediateMesh, m: Material, polys: Array, amul: float, cam: Vector3, flat := false) -> void:
+static func draw(im: Mesh, m: Material, polys: Array, amul: float, cam: Vector3, flat := false) -> void:
 	var any = false
 	for pl in polys:
 		if (pl["p"] as Array).size() >= 2 and float(pl["a"]) * amul > 0.002:
@@ -513,7 +513,11 @@ static func draw(im: ImmediateMesh, m: Material, polys: Array, amul: float, cam:
 			break
 	if not any:
 		return
-	im.surface_begin(Mesh.PRIMITIVE_TRIANGLES, m)
+	# aynı tepeler / aynı üçgenler; her nokta iki tepe (sol, sağ), parça başına iki üçgen (indeksli)
+	var vs := PackedVector3Array()
+	var cs := PackedColorArray()
+	var uvs := PackedVector2Array()
+	var ix := PackedInt32Array()
 	for pl in polys:
 		var pts: Array = pl["p"]
 		var n = pts.size()
@@ -524,15 +528,15 @@ static func draw(im: ImmediateMesh, m: Material, polys: Array, amul: float, cam:
 			continue
 		var w0 = float(pl["w"])
 		var kind = int(pl.get("k", 0))
-		var ls = []
-		var rs = []
-		var us = []
+		var col = Color(1, 1, 1, al)
+		var base = vs.size()
 		var acc = 0.0
+		var prev: Vector3 = pts[0]
 		for i in n:
 			var p: Vector3 = pts[i]
 			if i > 0:
-				acc += p.distance_to(pts[i - 1])
-			us.append(acc)
+				acc += p.distance_to(prev)
+			prev = p
 			var tn: Vector3 = Vector3(pts[mini(i + 1, n - 1)]) - Vector3(pts[maxi(i - 1, 0)])
 			var sd: Vector3 = tn.cross(Vector3.UP) if flat else tn.cross(cam - p)
 			if sd.length_squared() < 0.000000001:
@@ -546,18 +550,34 @@ static func draw(im: ImmediateMesh, m: Material, polys: Array, amul: float, cam:
 			elif kind == 3:
 				w = w0 * (0.08 + 0.92 * sin(PI * f))
 			sd = sd.normalized() * w
-			ls.append(p + sd)
-			rs.append(p - sd)
+			vs.append(p + sd)
+			vs.append(p - sd)
+			uvs.append(Vector2(acc, 0.0))
+			uvs.append(Vector2(acc, 1.0))
+			cs.append(col)
+			cs.append(col)
 		for i in n - 1:
-			var u0 = float(us[i])
-			var u1 = float(us[i + 1])
-			_vx(im, ls[i], u0, 0.0, al)
-			_vx(im, rs[i], u0, 1.0, al)
-			_vx(im, ls[i + 1], u1, 0.0, al)
-			_vx(im, ls[i + 1], u1, 0.0, al)
-			_vx(im, rs[i], u0, 1.0, al)
-			_vx(im, rs[i + 1], u1, 1.0, al)
-	im.surface_end()
+			var l0 = base + i * 2
+			ix.append_array([l0, l0 + 1, l0 + 2, l0 + 2, l0 + 1, l0 + 3])
+	if vs.is_empty():
+		return
+	if im is ArrayMesh:
+		var arr = []
+		arr.resize(Mesh.ARRAY_MAX)
+		arr[Mesh.ARRAY_VERTEX] = vs
+		arr[Mesh.ARRAY_COLOR] = cs
+		arr[Mesh.ARRAY_TEX_UV] = uvs
+		arr[Mesh.ARRAY_INDEX] = ix
+		(im as ArrayMesh).add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+		(im as ArrayMesh).surface_set_material((im as ArrayMesh).get_surface_count() - 1, m)
+		return
+	var imm := im as ImmediateMesh
+	imm.surface_begin(Mesh.PRIMITIVE_TRIANGLES, m)
+	for k in ix:
+		imm.surface_set_color(cs[k])
+		imm.surface_set_uv(uvs[k])
+		imm.surface_add_vertex(vs[k])
+	imm.surface_end()
 
 
 # ═════════════════════════════════════════ şimşek geometrisi ═════════════════════════════════════════

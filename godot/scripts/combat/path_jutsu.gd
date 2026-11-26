@@ -5704,6 +5704,7 @@ func _branch(L: float, r: float) -> MeshInstance3D:
 	m.emission_enabled = true
 	m.emission = WOOD * 0.35
 	m.roughness = 0.9
+	VFX.keep_mat(m)   # çağıranlar çoğu kez başka malzemeyle değiştirir: türü yine de canlı kalsın (Satetsu donması)
 	mi.material_override = m
 	return mi
 

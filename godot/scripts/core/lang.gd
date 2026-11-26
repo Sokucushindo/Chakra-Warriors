@@ -116,7 +116,9 @@ func _load() -> void:
 			continue   # harfi olmayan şablon ("%s: %s") her şeye uyar: alma
 		var rx := RegEx.new()
 		if rx.compile(pat) == OK:
-			templates.append([rx, v, key])
+			# yer tutucudan sonra yalnız cümle sonu ("Benim adım %s!", "Ben %s."): yer tutucu birden çok cümle yutamaz
+			var tail := key.substr(last).strip_edges()
+			templates.append([rx, v, key, tail != "" and tail.length() <= 3 and tail.lstrip(".!?…") == ""])
 	for k in exact:
 		var key := String(k)
 		var v := String(exact[k])
@@ -272,10 +274,23 @@ func _drop_sfx(a: String) -> String:
 	return m.get_string(1) if m else a
 
 
+var _send: RegEx
+
+
+func _send_rx() -> RegEx:
+	if _send == null:
+		_send = RegEx.create_from_string("[.!?…]\\s")
+	return _send
+
+
 func _tmpl(s: String) -> String:
 	for tp in templates:
 		var m: RegExMatch = tp[0].search(s)
 		if m == null:
+			continue
+		# "Benim adım %s!" birleşik konuşmanın tamamına uyuyordu ("Sayuri! Suyun üstünde ...") -> yarım çeviri. Bu tür kalıpta
+		# son yer tutucu cümle sonu içeriyorsa eşleşme reddedilir; yazı cümlelere bölünüp parça parça çevrilir.
+		if tp.size() > 3 and tp[3] and m.get_group_count() > 0 and _send_rx().search(m.get_string(m.get_group_count())) != null:
 			continue
 		var out: String = tp[1]
 		var res := ""

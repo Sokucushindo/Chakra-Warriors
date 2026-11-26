@@ -309,14 +309,14 @@ static func ai_tools(e: Node3D) -> Array:
 		out.append("inochi_kare")
 	if sk >= 0.35:
 		for f in fighters():
-			if not Combat.hostile(e, f) and not f.is_dead() and e.global_position.distance_to(f.global_position) < 7.0 and f.has_method("has_status") and (f.has_status("fear") or f.has_status("kokuangyo")):
+			if e.global_position.distance_squared_to(f.global_position) < 49.0 and not Combat.hostile(e, f) and not f.is_dead() and f.has_method("has_status") and (f.has_status("fear") or f.has_status("kokuangyo")):
 				out.append("genjutsu_kosui")
 				break
 	if sk >= 0.6 and d < 2.4:
 		out.append("genjutsu_yaku")
 	if sk >= 0.3:
 		for f in fighters():
-			if f != e and not f.is_dead() and not Combat.hostile(e, f) and e.global_position.distance_to(f.global_position) < 11.0:
+			if f != e and e.global_position.distance_squared_to(f.global_position) < 121.0 and not f.is_dead() and not Combat.hostile(e, f):
 				out.append("okarina")   # yanında yoldaş varken çalar
 				break
 	if sk >= 0.7 and float(e.hp) < float(e.max_hp) * 0.35 and not e.has_meta("eiyu_ictim") and str(e.arch.get("kind", "")) == "rogue":
@@ -324,7 +324,7 @@ static func ai_tools(e: Node3D) -> Array:
 	if sk >= 0.45 and d > 9.0 and d < 26.0:   # kendi yoldaşları da etkilenir: yanında kimse yokken ve hedef yakınında yoldaş yokken
 		var clear = true
 		for f in fighters():
-			if f != e and not f.is_dead() and not Combat.hostile(e, f) and (f.global_position.distance_to(e.target.global_position) < 14.0):
+			if f != e and f.global_position.distance_squared_to(e.target.global_position) < 196.0 and not f.is_dead() and not Combat.hostile(e, f):
 				clear = false
 				break
 		if clear:

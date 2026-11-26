@@ -24,7 +24,7 @@ var t := 20.0
 func _process(dt: float) -> void:
 	if Game.paused or Game.player == null or Game.profile.is_empty():
 		return
-	var pp: Vector3 = Game.player.global_position
+	var pp: Vector3 = Game.player_anchor()   # Kamui boyutunda: bıraktığı yere göre
 	# takımları yürüt: lider hedefe, diğerleri liderin arkasında üçgen dizilişte
 	for tm in teams.duplicate():
 		var ns: Array = tm["nodes"].filter(func(n): return is_instance_valid(n) and not n.dead)

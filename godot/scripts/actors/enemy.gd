@@ -836,8 +836,8 @@ func _chase(dt: float) -> void:
 	# uzakçı (jutsu/alet hazır): aşağıdan atar; hazır değilse ya da yakıncıysa zıplayıp yanına çıkar
 	var elevated = up_dy > 1.8
 	var nowr = Game.now()
-	var ranged_ready = ranged_cd <= 0.0 and ((nowr >= jgap and (arch.get("jutsu", []) as Array).any(func(id): return nowr >= float(jcd.get(id, 0.0)) and chakra >= jutsu_cost(id))) or (arch.get("tools", true) and _ready_tools().size() > 0))
-	if elevated and d < 30.0 and leap_cd <= 0.0 and grounded and not ranged_ready and not arch.has("beast") and float(arch.get("size", 1.0)) < 2.0:
+	# menzilli hazırlık yalnız hedef yüksekteyken gerekir (eskiden her karede alet listesiyle birlikte hesaplanıyordu)
+	if elevated and d < 30.0 and leap_cd <= 0.0 and grounded and not arch.has("beast") and float(arch.get("size", 1.0)) < 2.0 			and not (ranged_cd <= 0.0 and ((nowr >= jgap and (arch.get("jutsu", []) as Array).any(func(id): return nowr >= float(jcd.get(id, 0.0)) and chakra >= jutsu_cost(id))) or (arch.get("tools", true) and _any_tool_ready()))):
 		_climb_leap(minf(up_dy, 40.0))
 		return
 	# hedef uzaklaşıyorsa ninja sıçrayışıyla kovala (oyuncu Ctrl ile kaçınca hiç yetişemiyorlardı)
@@ -912,7 +912,7 @@ func _chase(dt: float) -> void:
 			model.overlay.set_pose("seal", 1.0)
 			Sfx.play("seal", global_position)
 			return
-		elif arch.get("tools", true) and _ready_tools().size() > 0:
+		elif arch.get("tools", true) and _any_tool_ready():
 			# aletler sınırsız, ama her aletin kendi 30 sn bekleme süresi var (oyuncuyla aynı); bazı ninjalar senbon kullanır
 			var tk: String = _ready_tools().pick_random()
 			tool_cd[tk] = Game.now() + PlayerCombat.TOOL_CD
@@ -1233,6 +1233,15 @@ func _swing_keyed(wid: String) -> void:
 
 
 ## Bekleme süresi dolmuş aletler (düşmanın taşıdıkları: kunai, shuriken; Kiri/Oto/kaçaklar senbon da)
+## Hazır alet var mı (tam liste ancak kunai / shuriken / senbon beklemedeyse taranır; sonuç _ready_tools().size() > 0 ile aynı)
+func _any_tool_ready() -> bool:
+	var now = Game.now()
+	for k in (["kunai", "shuriken"] + (["senbon"] if String(arch.get("kind", "")) in ["kiri", "oto", "rogue"] else [])):
+		if now >= float(tool_cd.get(k, 0.0)):
+			return true
+	return _ready_tools().size() > 0
+
+
 func _ready_tools() -> Array:
 	var now = Game.now()
 	var kinds = ["kunai", "shuriken"] + (["senbon"] if String(arch.get("kind", "")) in ["kiri", "oto", "rogue"] else [])

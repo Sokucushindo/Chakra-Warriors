@@ -232,6 +232,14 @@ static func _daze(who: Node3D, f: Node3D) -> void:
 	var pj = PathJutsu.get_pinst()
 	if pj == null or who.get("model") == null:
 		return
+	# üç görüntü art arda karelerde (üç model aynı karede kurulunca oyun ~0,4 sn donuyordu)
+	var a0 = randf()
 	for k in 3:
-		var a = TAU * k / 3.0 + randf()
-		pj.decoy(who, f.global_position + Vector3(cos(a), 0, sin(a)) * 2.4, STUN + 0.3)
+		var a = TAU * k / 3.0 + a0
+		var at: Vector3 = f.global_position + Vector3(cos(a), 0, sin(a)) * 2.4
+		if k == 0:
+			pj.decoy(who, at, STUN + 0.3)
+		else:
+			who.get_tree().create_timer(0.035 * k).timeout.connect(func():
+				if is_instance_valid(who) and who.get("model") != null:
+					pj.decoy(who, at, STUN + 0.3 - 0.035 * k))

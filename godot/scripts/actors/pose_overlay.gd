@@ -210,24 +210,24 @@ func _process_modification() -> void:
 	# yaş oranları (kemik ölçeği çocuk kemiklere de geçer: saç/bant kafayla büyür)
 	var shaped = b_arm != 1.0 or b_leg != 1.0 or b_chest != 1.0 or b_rib != 1.0 or b_belly != Vector2.ONE or b_neck != 1.0 or b_face != 1.0
 	if head_scale != 1.0 or shaped:
-		var hb = sk.find_bone("Head")
+		var hb = _fb(sk, "Head")
 		if hb >= 0:
 			var hx = head_scale * b_face / (chest_scale * b_neck)
 			sk.set_bone_pose_scale(hb, Vector3(hx, head_scale / chest_scale, hx))
 	if shaped:
 		# bel -> göğüs kafesi -> boyun: her kemik üstündekinin ölçeğini geri alır, kendi payını koyar
-		var sp_i = sk.find_bone("Spine")
+		var sp_i = _fb(sk, "Spine")
 		if sp_i >= 0:
 			sk.set_bone_pose_scale(sp_i, Vector3(b_belly.x, 1.0, b_belly.y))
-		var ch_i = sk.find_bone("Chest")
+		var ch_i = _fb(sk, "Chest")
 		if ch_i >= 0:
 			sk.set_bone_pose_scale(ch_i, Vector3(b_rib / b_belly.x, 1.0, b_rib / b_belly.y))
-		var nk_i = sk.find_bone("Neck")
+		var nk_i = _fb(sk, "Neck")
 		if nk_i >= 0:
 			var nx = b_neck / (b_rib * b_chest)
 			sk.set_bone_pose_scale(nk_i, Vector3(nx, 1.0, nx))
 		for hn in ["LeftHand", "RightHand"]:
-			var hd_i = sk.find_bone(hn)
+			var hd_i = _fb(sk, hn)
 			if hd_i >= 0 and b_arm != 1.0:
 				sk.set_bone_pose_scale(hd_i, Vector3(1.0 / b_arm, 1.0, 1.0 / b_arm))   # el kolla şişmez
 	if stoop != 0.0:
@@ -241,34 +241,34 @@ func _process_modification() -> void:
 		_apply_keys(sk, dt)
 	if foot_pitch != 0.0:
 		for b in ["LeftFoot", "RightFoot"]:
-			var fi = sk.find_bone(b)
+			var fi = _fb(sk, b)
 			if fi >= 0:
 				sk.set_bone_pose_rotation(fi, sk.get_bone_pose_rotation(fi) * Quaternion(Vector3.RIGHT, deg_to_rad(foot_pitch)))
 	if toe_pitch != 0.0:
 		for b in ["LeftToes", "RightToes"]:
-			var ti = sk.find_bone(b)
+			var ti = _fb(sk, b)
 			if ti >= 0:
 				sk.set_bone_pose_rotation(ti, sk.get_bone_rest(ti).basis.get_rotation_quaternion() * Quaternion(Vector3.RIGHT, deg_to_rad(toe_pitch)))
 	if limb_scale != 1.0 or leg_len != 1.0 or shaped:
 		for b in ["LeftUpperArm", "RightUpperArm", "LeftUpperLeg", "RightUpperLeg"]:
-			var li = sk.find_bone(b)
+			var li = _fb(sk, b)
 			if li >= 0:
 				sk.set_bone_pose_scale(li, _limb_base(b))
 	for bb in bulk.keys():
-		var bi2 = sk.find_bone(String(bb))
+		var bi2 = _fb(sk, String(bb))
 		var sv = float(bulk[bb])
 		if bi2 >= 0 and absf(sv - 1.0) > 0.001:
 			sk.set_bone_pose_scale(bi2, _limb_base(String(bb)) * Vector3(sv, 1.0, sv))
 			var hand_b = String(bb).replace("UpperArm", "Hand").replace("UpperLeg", "Foot")
-			var hi2 = sk.find_bone(hand_b)
+			var hi2 = _fb(sk, hand_b)
 			if hi2 >= 0 and hand_b != String(bb):
 				sk.set_bone_pose_scale(hi2, Vector3(1.0 / sv, 1.0, 1.0 / sv))   # el kaslı kolla şişmez
 	for hb in hide.keys():
-		var hi3 = sk.find_bone(String(hb))
+		var hi3 = _fb(sk, String(hb))
 		if hi3 >= 0:
 			sk.set_bone_pose_scale(hi3, Vector3.ONE * 0.001)
 	if chest_scale != 1.0 or b_chest != 1.0:
-		var cb = sk.find_bone("UpperChest")
+		var cb = _fb(sk, "UpperChest")
 		if cb >= 0:
 			sk.set_bone_pose_scale(cb, Vector3(chest_scale * b_chest, 1.0, chest_scale * b_chest))
 	for fs in fist.keys():
@@ -278,23 +278,23 @@ func _process_modification() -> void:
 			var segang := {"Proximal": 1.35, "Intermediate": 1.45, "Distal": 0.95}
 			for i in 4:
 				for seg in FINGER_SEG:
-					var fi = sk.find_bone(String(fs) + FINGERS[i] + seg)
+					var fi = _fb(sk, String(fs) + FINGERS[i] + seg)
 					if fi >= 0:
 						var tq = sk.get_bone_rest(fi).basis.get_rotation_quaternion() * Quaternion(Vector3.RIGHT, float(segang[seg]))   # iki elde de aynı yön (sol elde işaret ters dönünce parmaklar geriye açılıp pençe oluyordu)
 						sk.set_bone_pose_rotation(fi, sk.get_bone_pose_rotation(fi).slerp(tq, fv))
 			for seg in THUMB_SEG:
-				var ti = sk.find_bone(String(fs) + "Thumb" + seg)
+				var ti = _fb(sk, String(fs) + "Thumb" + seg)
 				if ti >= 0:
 					var tq2 = sk.get_bone_rest(ti).basis.get_rotation_quaternion() * Quaternion.from_euler(Vector3(0.55, 0, 0.4 * sgn))
 					sk.set_bone_pose_rotation(ti, sk.get_bone_pose_rotation(ti).slerp(tq2, fv))
 		elif fv < -0.001:   # açık avuç: animasyonun kıvırdığı parmaklar dinlenme pozuna (düz) açılır
 			for i in 4:
 				for seg in FINGER_SEG:
-					var fi = sk.find_bone(String(fs) + FINGERS[i] + seg)
+					var fi = _fb(sk, String(fs) + FINGERS[i] + seg)
 					if fi >= 0:
 						sk.set_bone_pose_rotation(fi, sk.get_bone_pose_rotation(fi).slerp(sk.get_bone_rest(fi).basis.get_rotation_quaternion(), -fv))
 	for gb in grow.keys():
-		var gi = sk.find_bone(String(gb))
+		var gi = _fb(sk, String(gb))
 		var gv = float(grow[gb])
 		if gi >= 0 and absf(gv - 1.0) > 0.001:
 			# mutlak ölçek (kare başında sıfırlanmıyor; çarpınca katlanarak büyürdü): bu karenin diğer ölçekleri x büyüme
@@ -370,7 +370,7 @@ func _hit_pose(sk: Skeleton3D) -> void:
 		_add_local(sk, "RightLowerArm", Vector3(0.0, 0.0, -e * 0.25), 1.0)
 	# her darbede dizler bir an boşalır, kalça hafif düşer (dimdik durmasın); ağır darbede aşağıdaki çöküş bunun üstüne biner
 	if grounded and soft > 0.0 and hit_up <= 0.0:
-		var hb0 = sk.find_bone("Hips")
+		var hb0 = _fb(sk, "Hips")
 		if hb0 >= 0:
 			sk.set_bone_pose_position(hb0, sk.get_bone_pose_position(hb0) + Vector3(0, -0.05 * soft, 0))
 		for sd in [["Left", 1.0], ["Right", -1.0]]:
@@ -385,7 +385,7 @@ func _hit_pose(sk: Skeleton3D) -> void:
 		_add_local(sk, "RightUpperArm", Vector3(0, 0, -u * 0.6), 1.0)
 	if hit_heavy > 0.0:   # ağır darbe: dizler çöker, kalça düşer, gövde katlanır
 		var hv = maxf(0.0, e) * hit_heavy
-		var hb = sk.find_bone("Hips")
+		var hb = _fb(sk, "Hips")
 		if hb >= 0:
 			sk.set_bone_pose_position(hb, sk.get_bone_pose_position(hb) + Vector3(0, -0.12 * hv, 0))
 		for side in [["Left", 1.0], ["Right", -1.0]]:
@@ -408,7 +408,7 @@ func _guard_pose(sk: Skeleton3D, w: float, dt: float) -> void:
 	guard_jolt = move_toward(guard_jolt, 0.0, dt * 4.5)
 	var j = guard_jolt * guard_jolt * (3.0 - 2.0 * guard_jolt)
 	if grounded:
-		var hb = sk.find_bone("Hips")
+		var hb = _fb(sk, "Hips")
 		if hb >= 0:
 			sk.set_bone_pose_position(hb, sk.get_bone_pose_position(hb) + Vector3(0, -(0.1 + 0.06 * j) * w, -0.05 * j * w))
 		for b in GUARD_LEGS.FIGHT:
@@ -437,7 +437,7 @@ func _charge_pose(sk: Skeleton3D, w: float) -> void:
 	var k = clampf(charge_k, 0.0, 1.0)
 	var d = (0.55 + 0.45 * k) * w
 	var tremble = sin(_t * 55.0) * 0.012 * k * k * w
-	var hb = sk.find_bone("Hips")
+	var hb = _fb(sk, "Hips")
 	if hb >= 0:
 		sk.set_bone_pose_position(hb, sk.get_bone_pose_position(hb) + Vector3(tremble, -0.34 * d, -0.06 * d))
 	_add_local(sk, "Hips", Vector3(deg_to_rad(12), 0, 0), d)
@@ -516,7 +516,7 @@ func _tuck_pose(sk: Skeleton3D, w: float) -> void:
 
 ## Chakra doldurma duruşu: ayaklar omuz genişliğinden açık, dizler hafif kırık, kalça biraz alçak (eller mühürde)
 func _plant_pose(sk: Skeleton3D, w: float) -> void:
-	var hb = sk.find_bone("Hips")
+	var hb = _fb(sk, "Hips")
 	if hb >= 0:
 		sk.set_bone_pose_position(hb, sk.get_bone_pose_position(hb) + Vector3(0, -0.09 * w, 0))
 	for side in [["Left", 1.0], ["Right", -1.0]]:
@@ -702,8 +702,8 @@ func _key_feet(sk: Skeleton3D, w: float, cp: Dictionary, yaw: float, dt: float) 
 	var lean: float = float(cp.get("spine", 0.0))
 	var pivot = deg_to_rad(clampf(yaw, -70.0, 70.0)) * 0.35
 	for side in ["Left", "Right"]:
-		var fb = sk.find_bone(side + "Foot")
-		var ub = sk.find_bone(side + "UpperLeg")
+		var fb = _fb(sk, side + "Foot")
+		var ub = _fb(sk, side + "UpperLeg")
 		if fb < 0 or ub < 0:
 			continue
 		var fdir: Vector3 = sk.get_bone_global_pose(fb).basis.y.normalized()
@@ -719,7 +719,7 @@ func _key_feet(sk: Skeleton3D, w: float, cp: Dictionary, yaw: float, dt: float) 
 	var spd = _key_bv.length()
 	_key_bob = lerpf(_key_bob, clampf((spd - 4.0) * 0.012, 0.0, 0.07), clampf(dt * (14.0 if spd > 4.0 else 5.0), 0.0, 1.0))
 	if _key_bob > 0.001:
-		var hb = sk.find_bone("Hips")
+		var hb = _fb(sk, "Hips")
 		if hb >= 0:
 			sk.set_bone_pose_position(hb, sk.get_bone_pose_position(hb) + Vector3(0, -_key_bob * w, 0))
 
@@ -729,7 +729,7 @@ func _apply_cast(sk: Skeleton3D, w: float, cp_in := {}) -> void:
 	var cr: float = cp.get("crouch", 0.0) * w
 	if cr > 0.0:
 		# çömelme: kalça alçalır, uyluklar öne, baldırlar geriye (ayaklar yerde kalır)
-		var hb = sk.find_bone("Hips")
+		var hb = _fb(sk, "Hips")
 		if hb >= 0:
 			sk.set_bone_pose_position(hb, sk.get_bone_pose_position(hb) + Vector3(0, -0.32 * cr, 0.05 * cr))
 		for side in [["Left", 1.0], ["Right", -1.0]]:
@@ -773,7 +773,7 @@ func _apply_cast(sk: Skeleton3D, w: float, cp_in := {}) -> void:
 
 ## Kemiği, model uzayında verilen yöne (kemik +Y ekseni = kemik doğrultusu) döndürür.
 func _rot_model(sk: Skeleton3D, bone: String, dir_model: Vector3, w: float) -> void:
-	var bi = sk.find_bone(bone)
+	var bi = _fb(sk, bone)
 	if bi < 0:
 		return
 	var gp = sk.get_bone_global_pose(bi)
@@ -790,7 +790,7 @@ func _rot_model(sk: Skeleton3D, bone: String, dir_model: Vector3, w: float) -> v
 
 
 func _add_local(sk: Skeleton3D, bone: String, euler: Vector3, w: float) -> void:
-	var bi = sk.find_bone(bone)
+	var bi = _fb(sk, bone)
 	if bi < 0:
 		return
 	var cur = sk.get_bone_pose_rotation(bi)
@@ -807,8 +807,8 @@ func _root_motion(sk: Skeleton3D, dt: float) -> void:
 		root_vel = root_vel.lerp(Vector3.ZERO, clampf(dt * 10.0, 0.0, 1.0))
 		_rm_prev_l = Vector3.INF
 		return
-	var lf = sk.find_bone("LeftFoot")
-	var rf = sk.find_bone("RightFoot")
+	var lf = _fb(sk, "LeftFoot")
+	var rf = _fb(sk, "RightFoot")
 	if lf < 0 or rf < 0:
 		return
 	var pl = sk.get_bone_global_pose(lf).origin
@@ -852,7 +852,7 @@ func _foot_ik(sk: Skeleton3D) -> void:
 		return   # uzaktakiler için atla (maliyet)
 	var gt: Transform3D = sk.global_transform
 	if _ankle_h < 0.0:
-		var a = sk.find_bone("LeftFoot")
+		var a = _fb(sk, "LeftFoot")
 		if a < 0:
 			return
 		_ankle_h = (gt * sk.get_bone_global_rest(a).origin).y - owner3d.global_position.y
@@ -863,7 +863,7 @@ func _foot_ik(sk: Skeleton3D) -> void:
 	var targets_ik = {}
 	var drop = 0.0
 	for side in ["Left", "Right"]:
-		var fb = sk.find_bone(side + "Foot")
+		var fb = _fb(sk, side + "Foot")
 		if fb < 0:
 			return
 		var P: Vector3 = gt * sk.get_bone_global_pose(fb).origin
@@ -880,7 +880,7 @@ func _foot_ik(sk: Skeleton3D) -> void:
 	if targets_ik.is_empty():
 		return
 	if drop < -0.01:   # alçaktaki ayağa uzanabilmek için kalça iner
-		var hb = sk.find_bone("Hips")
+		var hb = _fb(sk, "Hips")
 		if hb >= 0:
 			sk.set_bone_pose_position(hb, sk.get_bone_pose_position(hb) + Vector3(0, drop / maxf(0.01, gt.basis.get_scale().y), 0))
 	var inv = gt.affine_inverse()
@@ -894,9 +894,9 @@ func _foot_ik(sk: Skeleton3D) -> void:
 
 
 func _leg_ik(sk: Skeleton3D, side: String, tgt: Vector3) -> void:
-	var ub = sk.find_bone(side + "UpperLeg")
-	var lb = sk.find_bone(side + "LowerLeg")
-	var fb = sk.find_bone(side + "Foot")
+	var ub = _fb(sk, side + "UpperLeg")
+	var lb = _fb(sk, side + "LowerLeg")
+	var fb = _fb(sk, side + "Foot")
 	if ub < 0 or lb < 0 or fb < 0:
 		return
 	var S = sk.get_bone_global_pose(ub).origin
@@ -921,3 +921,17 @@ func _leg_ik(sk: Skeleton3D, side: String, tgt: Vector3) -> void:
 	_rot_model(sk, side + "UpperLeg", knee - S, 1.0)
 	var E2 = sk.get_bone_global_pose(lb).origin
 	_rot_model(sk, side + "LowerLeg", (S + dn * dist) - E2, 1.0)
+
+## Kemik numarası önbelleği: kemik adıyla arama (dize -> StringName -> karma) her karakterde her kare onlarca kez yapılıyordu
+var _fb_c := {}
+var _fb_sk: Skeleton3D = null
+
+func _fb(sk: Skeleton3D, bone: String) -> int:
+	if sk != _fb_sk:
+		_fb_c.clear()
+		_fb_sk = sk
+	var v = _fb_c.get(bone)
+	if v == null:
+		v = sk.find_bone(bone)
+		_fb_c[bone] = v
+	return v

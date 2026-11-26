@@ -281,6 +281,16 @@ func _drape(it: Dictionary, mi: MeshInstance3D, t: Transform3D) -> void:
 		own = ArrayMesh.new()
 		it["own"] = own
 	own.clear_surfaces()
+	# alanın altındaki hücre yükseklikleri bir kez diziye (köşe başına dört sözlük okuması yerine); değerler height() ile aynı
+	var gi0 = floori(mn.x / CELL) - 1
+	var gj0 = floori(mn.y / CELL) - 1
+	var gw = floori(mxp.x / CELL) - gi0 + 3
+	var gh = floori(mxp.y / CELL) - gj0 + 3
+	var grid := PackedFloat32Array()
+	grid.resize(gw * gh)
+	for gj in gh:
+		for gi in gw:
+			grid[gj * gw + gi] = _cell(gi0 + gi, gj0 + gj)
 	for sd in surfs:
 		var arrs: Array = (sd["arrs"] as Array).duplicate()
 		var src: PackedVector3Array = arrs[Mesh.ARRAY_VERTEX]
@@ -289,7 +299,20 @@ func _drape(it: Dictionary, mi: MeshInstance3D, t: Transform3D) -> void:
 		for q in src.size():
 			var v: Vector3 = src[q]
 			var w: Vector3 = t * v
-			vs[q] = v + bup * (height(w.x, w.z) - h0 + LIFT)
+			var fx = w.x / CELL
+			var fz = w.z / CELL
+			var ci = floori(fx)
+			var cj = floori(fz)
+			var li = ci - gi0
+			var lj = cj - gj0
+			var hh: float
+			if li >= 0 and lj >= 0 and li + 1 < gw and lj + 1 < gh:
+				var tx = fx - ci
+				var o = lj * gw + li
+				hh = lerpf(lerpf(grid[o], grid[o + 1], tx), lerpf(grid[o + gw], grid[o + gw + 1], tx), fz - cj)
+			else:
+				hh = height(w.x, w.z)
+			vs[q] = v + bup * (hh - h0 + LIFT)
 		arrs[Mesh.ARRAY_VERTEX] = vs
 		own.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrs)
 		if sd["mat"] != null:

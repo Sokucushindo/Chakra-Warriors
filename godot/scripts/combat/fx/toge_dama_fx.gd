@@ -79,7 +79,17 @@ static func burst(who: Node3D, at: Vector3, mult: float) -> void:
 	var s = {"t": 0.0}
 	var fn = func(dt: float) -> bool:
 		s["t"] += dt
-		var fs: Array = Kit.fighters()
+		# adaylar karede bir kez: düşman, ayakta ve diken bulutuna erişebilir (eskiden her diken her karede herkesi tarıyordu:
+		# köyde ~130 kişi x diken sayısı -> 2 sn boyunca kare başı 20-60 ms). Sonuç aynı: elenenler zaten değemezdi.
+		var fs: Array = []
+		if is_instance_valid(who):
+			var reach = SPEED * 1.2 * (s["t"] + 0.1) + 6.0
+			for f in Kit.fighters():
+				var fh = f.get("height")
+				if fh != null and not f.has_method("hit_test") and f.global_position.distance_to(at) > reach + float(fh):
+					continue
+				if Combat.hostile(who, f) and not f.is_dead():
+					fs.append(f)
 		for i in SPIKES:
 			var e: Dictionary = sp[i]
 			if not e["on"]:
@@ -95,7 +105,7 @@ static func burst(who: Node3D, at: Vector3, mult: float) -> void:
 				e["p"] = p
 				if is_instance_valid(who):
 					for f in fs:
-						if Combat.hostile(who, f) and not f.is_dead() and Combat.capsule_hit(p, f, 0.1):
+						if is_instance_valid(f) and not f.is_dead() and Combat.capsule_hit(p, f, 0.1):
 							e["on"] = false
 							var id = f.get_instance_id()
 							if int(hits.get(id, 0)) < MAX_HITS:

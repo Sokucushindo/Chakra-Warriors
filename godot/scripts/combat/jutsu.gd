@@ -62,9 +62,14 @@ func soft_target(caster: Node3D) -> Node3D:
 	var nd := 25.0
 	var fd: Vector3 = caster.face_dir()
 	for f in caster.get_tree().get_nodes_in_group("fighters"):
+		# önce ucuz mesafe elemesi (her karede çağrılır; köyde ~130 savaşçı): menzil dışındakiler düşmanlık denetimine girmez
+		var fp: Vector3 = f.global_position
+		var fh: float = f.height
+		if fp.distance_squared_to(from) > (53.0 + fh) * (53.0 + fh) and fp.distance_squared_to(caster.global_position) > 625.0:
+			continue
 		if f == caster or not Combat.hostile(caster, f) or f.is_dead():
 			continue
-		var c: Vector3 = f.global_position + Vector3.UP * f.height * 0.55
+		var c: Vector3 = fp + Vector3.UP * fh * 0.55
 		var v = c - from
 		var L = v.length()
 		if L > 45.0 + 8.0 or L < 1.0:
@@ -133,6 +138,18 @@ signal jutsu_prep(caster: Node, id: String, release_in: float)   # mühür dizil
 
 
 func execute(caster: Node3D, id: String, target: Node3D) -> void:
+	if Engine.has_meta("jx"):   # DBGJX geçici ölçüm
+		var __t = Time.get_ticks_usec()
+		_execute_impl(caster, id, target)
+		var __d: Dictionary = Engine.get_meta("jx")
+		var __e = Time.get_ticks_usec() - __t
+		var __r = __d.get(id, [0, 0, 0])
+		__d[id] = [__r[0] + 1, __r[1] + __e, maxi(__r[2], __e)]
+		return
+	_execute_impl(caster, id, target)
+
+
+func _execute_impl(caster: Node3D, id: String, target: Node3D) -> void:
 	jutsu_cast.emit(caster, id)
 	Combat.note_caster(caster)   # bağ / yavaşlatma süresi güç farkına göre (Combat.cc_dur)
 	if KinginFX.on_cast(caster, id):

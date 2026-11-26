@@ -597,20 +597,30 @@ static func element_core(el: String, col: Color, size: float) -> Node3D:
 
 
 # ================================================================== tek seferlik efektler
+static var _card_mats := {}
+static var _card_quad: QuadMesh = null
+
+
 static func _card(kind: int, col: Color, core := Color.WHITE, spikes := 8.0, billboard := true) -> MeshInstance3D:
-	var q = QuadMesh.new()
-	q.size = Vector2.ONE
-	var m = ShaderMaterial.new()
-	m.shader = load("res://shaders/vfx_fx2d.gdshader")
-	m.set_shader_parameter("kind", kind)
-	m.set_shader_parameter("col", col)
-	m.set_shader_parameter("core", core)
-	m.set_shader_parameter("spikes", spikes)
-	m.set_shader_parameter("seed", randf() * 100.0)
-	m.set_shader_parameter("billboard", billboard)
+	# malzeme tür + kameraya dönüklük başına paylaşılır; renk / zaman / tohum kart başına (instance uniform) -> aynı görünüş
+	var mk = kind * 2 + (1 if billboard else 0)
+	if not _card_mats.has(mk):
+		var m = ShaderMaterial.new()
+		m.shader = load("res://shaders/vfx_fx2d.gdshader")
+		m.set_shader_parameter("kind", kind)
+		m.set_shader_parameter("billboard", billboard)
+		_card_mats[mk] = m
+	if _card_quad == null:
+		_card_quad = QuadMesh.new()
+		_card_quad.size = Vector2.ONE
 	var mi = MeshInstance3D.new()
-	mi.mesh = q
-	mi.material_override = m
+	mi.mesh = _card_quad
+	mi.material_override = _card_mats[mk]
+	mi.set_instance_shader_parameter("col", col)
+	mi.set_instance_shader_parameter("core", core)
+	mi.set_instance_shader_parameter("spikes", spikes)
+	mi.set_instance_shader_parameter("seed", randf() * 100.0)
+	mi.set_instance_shader_parameter("t", 0.0)
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	return mi
 
@@ -625,10 +635,9 @@ static func star(pos: Vector3, col: Color, size := 2.0, dur := 0.18) -> void:
 	_track(mi)
 	mi.global_position = pos
 	mi.scale = Vector3.ONE * size * 0.6
-	var m: ShaderMaterial = mi.material_override
 	var tw = mi.create_tween().set_parallel(true)
 	tw.tween_property(mi, "scale", Vector3.ONE * size, dur * 0.4).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-	tw.tween_method(func(x: float): m.set_shader_parameter("t", x), 0.0, 1.0, dur)
+	tw.tween_method(func(x: float): mi.set_instance_shader_parameter("t", x), 0.0, 1.0, dur)
 	tw.chain().tween_callback(mi.queue_free)
 
 
@@ -645,9 +654,8 @@ static func shockwave(pos: Vector3, col: Color, size := 6.0, dur := 0.4, flat :=
 		var n = normal.normalized()
 		mi.global_transform = Transform3D(Basis(Quaternion(Vector3.BACK, n)), pos)
 	mi.scale = Vector3.ONE * size
-	var m: ShaderMaterial = mi.material_override
 	var tw = mi.create_tween()
-	tw.tween_method(func(x: float): m.set_shader_parameter("t", x), 0.05, 1.0, dur).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	tw.tween_method(func(x: float): mi.set_instance_shader_parameter("t", x), 0.05, 1.0, dur).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
 	tw.tween_callback(mi.queue_free)
 	# Blender şok halkası: yerden kalkan kıvrık kenarlı 3B dalga (düz kartın üstünde hacim)
 	var rm = asset("shock_ring")
@@ -677,11 +685,9 @@ static func cracks(pos: Vector3, size := 4.0, col := Color(0.12, 0.09, 0.07, 0.9
 	var g = Game.jutsu_floor_at(pos).y + 0.06 + size * 0.04   # büyük izi engebeli zemin kesmesin
 	mi.global_transform = Transform3D(Basis(Vector3.RIGHT, -PI * 0.5).rotated(Vector3.UP, randf() * TAU), Vector3(pos.x, g, pos.z))
 	mi.scale = Vector3.ONE * size
-	var m: ShaderMaterial = mi.material_override
-	m.set_shader_parameter("t", 0.0)
 	var tw = mi.create_tween()
 	tw.tween_interval(dur * 0.7)
-	tw.tween_method(func(x: float): m.set_shader_parameter("t", x), 0.0, 1.0, dur * 0.3)
+	tw.tween_method(func(x: float): mi.set_instance_shader_parameter("t", x), 0.0, 1.0, dur * 0.3)
 	tw.tween_callback(mi.queue_free)
 
 
@@ -1175,7 +1181,42 @@ static func _black_smolder(pos: Vector3, size := 2.0, dur := 6.0) -> void:
 
 ## Yükleme ekranında tüm VFX shader/parçacık türlerini bir kez ekran dışı çizdirir (ilk yayında takılma olmasın).
 ## Ana dünyayı paylaşan küçük SubViewport'un kamerası, dünyanın uzak bir köşesinde oluşturulan efektleri görür.
+## Standart malzeme gölgelendiricisi koruyucu: Godot bir malzeme türünü (özellik birleşimi) kullanan son malzeme silinince o
+## türün derlenmiş gölgelendiricisini de siler; geçici efektlerin nadir türleri her teknikte yeniden derleniyordu
+## (profil: Satetsu Kaihō atış başına ~0,7 sn donma, savaşta kare süresinin %1-5'i). Her türden bir kopya kalıcı tutulur.
+static var _kept := {}
+
+
+static func keep_mat(m) -> void:
+	if not (m is BaseMaterial3D):
+		return
+	var b := m as BaseMaterial3D
+	var k = "%d|%d|%d|%d|%d|%d|%s|%s|%s|%s|%s|%d|%s|%s|%s|%d|%s|%d|%s|%s|%s" % [b.transparency, b.shading_mode, b.blend_mode, b.cull_mode, b.depth_draw_mode,
+		b.diffuse_mode, b.no_depth_test, b.vertex_color_use_as_albedo, b.emission_enabled, b.normal_enabled, b.rim_enabled, b.billboard_mode,
+		b.albedo_texture != null, b.emission_texture != null, b.billboard_keep_scale, b.distance_fade_mode, b.proximity_fade_enabled,
+		b.texture_filter, b.use_point_size, b.fixed_size, b.disable_receive_shadows]
+	if _kept.has(k) or _kept.size() > 400:
+		return
+	var d: BaseMaterial3D = b.duplicate()
+	d.get_rid()   # gölgelendirici ancak istendiğinde bağlanır: kopya türü canlı tutsun diye hemen iste
+	_kept[k] = d
+
+
+static func _keep_node(n: Node) -> void:
+	if n is GeometryInstance3D:
+		var gi := n as GeometryInstance3D
+		if gi.material_override is BaseMaterial3D:
+			keep_mat(gi.material_override)
+		if n is MeshInstance3D:
+			var mesh = (n as MeshInstance3D).mesh
+			if mesh is PrimitiveMesh and (mesh as PrimitiveMesh).material is BaseMaterial3D:
+				keep_mat((mesh as PrimitiveMesh).material)
+
+
 static func warmup() -> void:
+	var tr = tree()
+	if tr and not tr.node_added.is_connected(_keep_node):
+		tr.node_added.connect(_keep_node)
 	var host = scene()
 	var W = Vector3(0, 2600, 0)
 	var sv = SubViewport.new()
@@ -1240,9 +1281,47 @@ static func warmup() -> void:
 	smoke_ring(W, 1.0)
 	explosion(W + Vector3(4, 0, 0), 0.6)
 	black_smolder(W + Vector3(-4, 0, 0), 0.6, 0.3)
+	# element kütüphanelerinin malzemeleri: ilk tekniğinde derlenip savaşta 10-35 ms donduruyordu (Katon/Doton/Raiton/Fūton/Suiton...).
+	# Argümansız *_mat işlevleri kendiliğinden bulunur, her biri küçük bir kartla bir kez çizdirilir (yeni kütüphane eklenince de kapsar).
+	var t0 = Time.get_ticks_msec()
+	var q = QuadMesh.new()
+	var nm = 0
+	var dir = DirAccess.open("res://scripts/combat/fx/lib")
+	if dir:
+		for fn in dir.get_files():
+			if not fn.ends_with(".gd") or fn == "ground_drape.gd":
+				continue
+			var sc = load("res://scripts/combat/fx/lib/" + fn)
+			if sc == null:
+				continue
+			var cm: Dictionary = sc.get_script_constant_map()
+			if cm.get("RENDER") is Dictionary and sc.has_method("mat"):   # anahtarlı gölgelendirici kümesi (Raiton): her anahtar bir kez
+				for key in cm["RENDER"]:
+					var km = sc.call("mat", key)
+					if km is Material:
+						var kmi = MeshInstance3D.new()
+						kmi.mesh = q
+						kmi.material_override = km
+						put.call(kmi)
+						nm += 1
+			for md in sc.get_script_method_list():
+				var mname = String(md["name"])
+				if not (mname.ends_with("_mat") or mname == "mat") or int(md.get("flags", 0)) & METHOD_FLAG_STATIC == 0:
+					continue
+				if (md["args"] as Array).size() > (md["default_args"] as Array).size():
+					continue
+				var m = sc.call(mname)
+				if m is Material:
+					var mi = MeshInstance3D.new()
+					mi.mesh = q
+					mi.material_override = m
+					put.call(mi)
+					nm += 1
+	FX._puddle(0)   # kan birikintisi dokuları (ilk kanda piksel piksel üretiliyordu: ~180 ms)
 	for i in 8:
 		mover.position.y = i * 0.3
 		await tree().process_frame
+	print("VFX warmup: %d kütüphane malzemesi, %d ms" % [nm, Time.get_ticks_msec() - t0])
 	anchor.queue_free()
 	sv.queue_free()
 

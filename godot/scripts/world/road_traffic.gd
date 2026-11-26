@@ -17,7 +17,7 @@ func _process(dt: float) -> void:
 	if _t > 0.0:
 		return
 	_t = 1.2
-	var p = Game.player.global_position
+	var p = Game.player_anchor()   # Kamui boyutunda: bıraktığı yere göre
 	for g in get_children():
 		if g.global_position.distance_to(p) > DESPAWN or g.done:
 			g.queue_free()

@@ -25,6 +25,9 @@ var slot := 0
 
 
 ## c: çağıran, kind: puppet/ink/golem/bee, n: adet, d: jutsu verisi (hasar/kademe için)
+static var _mesh_cache := {}
+
+
 static func spawn(c: Node3D, k: String, n: int, d: Dictionary) -> Array:
 	var out = []
 	var tier = int(d.get("tier", 2))
@@ -79,7 +82,12 @@ func _ready() -> void:
 	vis = Node3D.new()
 	add_child(vis)
 	var mi = MeshInstance3D.new()
-	mi.mesh = _build_mesh()
+	# aynı tür (kukla: iki yüz tipi) her çağrıda aynı model: bir kez kurulur (Hyakki no Sōen 100 kukla tek karede donuyordu);
+	# golem yosunu rastgele -> 4 çeşit
+	var mkey = kind + ("_%d" % (slot % 2) if kind == "puppet" else ("_%d" % (randi() % 4) if kind == "golem" else ""))
+	if not _mesh_cache.has(mkey):
+		_mesh_cache[mkey] = _build_mesh()
+	mi.mesh = _mesh_cache[mkey]
 	vis.add_child(mi)
 	if kind == "puppet":
 		for k in 3:
