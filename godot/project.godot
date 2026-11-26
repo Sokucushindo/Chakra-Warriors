@@ -55,6 +55,7 @@ WorldDamage="*res://scripts/world/world_damage.gd"
 ClanWorld="*res://scripts/core/clan_world.gd"
 Encounters="*res://scripts/core/world_encounters.gd"
 
+TouchControls="*res://scripts/ui/touch_controls.gd"
 [shader_globals]
 
 push0={
