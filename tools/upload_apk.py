@@ -29,10 +29,17 @@ for a in rel.get('assets', []):
 up = rel['upload_url'].split('{')[0] + '?name=' + name
 a = api(up, data=open(apk, 'rb').read(), method='POST', headers={'Content-Type': 'application/vnd.android.package-archive'}, timeout=3600)
 note = ('\n\n### Android (test build)\nDownload **%s** and install it on your phone (Android 7.0+, 64-bit). '
-        'Touch controls: joystick on the left, drag anywhere free to turn the camera, combat buttons on the right, '
-        'tap the jutsu slots at the bottom to cast. This is an early test build: performance and layout will keep improving.' % name)
+        'Touch controls: joystick on the left (push it to the edge for the ninja run), drag anywhere free to turn the camera, '
+        'pinch with two fingers to zoom, combat buttons on the right, tap the jutsu slots at the bottom to cast. '
+        'The ••• button opens more actions (weapon, hand seals, Sage, beast, gates, inventory...); in seal mode tap the seals, then Cast. '
+        'The phone back button pauses the game. Button size, visibility, camera sensitivity, vibration and a left-handed layout are in '
+        'Settings > Controls > Touch. The first start uses phone-friendly graphics (you can raise them in Settings).' % name)
 body = rel.get('body') or ''
-if '### Android (test build)' in body:
-    body = body[:body.index('### Android (test build)')].rstrip()
-api(rel['url'], data=json.dumps({'body': body + note}).encode(), method='PATCH', headers={'Content-Type': 'application/json'})
+tail = ''
+if '### Android (test build)' in body:   # yalnız Android bölümü yenilenir; sonrasındaki satırlar (launcher indirme satırı) kalır
+    i = body.index('### Android (test build)')
+    j = body.find('\n\nDownload:', i)
+    tail = body[j:] if j >= 0 else ''
+    body = body[:i].rstrip()
+api(rel['url'], data=json.dumps({'body': body + note + tail}).encode(), method='PATCH', headers={'Content-Type': 'application/json'})
 print('OK', a['browser_download_url'], a['size'] // 1048576, 'MB')

@@ -142,14 +142,22 @@ static func code_name(code: int) -> String:
 	return n
 
 
+static var touch_held := {}    # Android dokunmatik katmanı: o an basılı tutulan eylemler (fiziksel tuş yok)
+static var touch_names := {}   # Android: ipuçlarında tuş yerine dokunmatik düğmenin adı (oyunun dilinde, tek satır)
+
+
 ## Eylemin (ilk) tuşunun adı: ekrandaki ipuçları için
 static func name(action: String) -> String:
+	if touch_names.has(action):
+		return String(touch_names[action])
 	var b: Array = binds.get(action, [])
 	return code_name(b[0]) if not b.is_empty() else "?"
 
 
 ## Eylemin tuşu şu an fiziksel olarak basılı mı (eylem başka yoldan tetiklenmiş olsa bile)
 static func held(action: String) -> bool:
+	if touch_held.get(action, false):
+		return true
 	for c in binds.get(action, []):
 		if (c > 0 and Input.is_physical_key_pressed(c)) or (c < 0 and Input.is_mouse_button_pressed(-c)):
 			return true

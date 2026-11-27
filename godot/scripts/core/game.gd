@@ -26,6 +26,8 @@ var settings := {
 	# ayrıntılı grafik (kalite ön ayarı bunları birlikte kurar; tek tek de değişir)
 	"look": 2,   # görünüm sürümü: 2 = yumuşak filtre kapalı + hafif doygun renk (eski kayıtlarda bir kez uygulanır)
 	"aa": 2, "ssao": true, "res_scale": 1.0, "grass": 3, "crowd": 2,
+	# dokunmatik (Android): düğme boyutu / saydamlığı, kamera kaydırma hassasiyeti, joystick ucunda koşu, titreşim, solak düzen
+	"touch_size": 1.0, "touch_alpha": 0.6, "touch_sens": 1.0, "touch_run": true, "touch_vibe": true, "touch_left": false,
 }
 var profile: Dictionary = {}
 var paused := false

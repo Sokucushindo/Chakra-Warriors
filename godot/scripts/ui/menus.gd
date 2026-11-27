@@ -2188,6 +2188,9 @@ static func settings(back: Callable) -> void:
 				s["ui_scale"] = scales[posmod(si + d, scales.size())]
 				Game.apply_settings(), false, Vector2i(si, scales.size()))
 			dirty.call(ur, ["ui_scale"])
+			if TouchControls.on:   # telefonda pencere / çözünürlük seçimi yok (ekran hep tam; 3B çözünürlük: Çözünürlük ölçeği)
+				mr.queue_free()
+				rr.queue_free()
 			var g = _set_section(body, "monitor", "Grafik")
 			var q = int(s.get("quality", 2))
 			dirty.call(pick.call(g, "Grafik kalitesi", Game.QUALITY_NAMES[clampi(q, 0, 2)], func(d): Game.set_quality(posmod(q + d, 3)), false, Vector2i(clampi(q, 0, 2), 3)), ["quality"])
@@ -2222,6 +2225,16 @@ static func settings(back: Callable) -> void:
 			slider.call(a, "Arayüz sesleri", "ui_vol", 0.0, 1.0, 0.05, true)
 			toggle.call(a, "Oyun arka plandayken sesi kapat", "bg_mute", false)
 		"controls":
+			if TouchControls.on:
+				# Android: dokunmatik düğmeler (scripts/ui/touch_controls.gd)
+				var tc = _set_section(body, "controls", "Dokunmatik")
+				choose.call(tc, "Düğme boyutu", "touch_size", [0.8, 0.9, 1.0, 1.15, 1.3, 1.5], ["80%", "90%", "100%", "115%", "130%", "150%"], 1.0)
+				slider.call(tc, "Düğme görünürlüğü", "touch_alpha", 0.2, 1.0, 0.05, true)
+				slider.call(tc, "Kamera kaydırma hassasiyeti", "touch_sens", 0.3, 3.0, 0.05, false)
+				toggle.call(tc, "Joystick ucunda ninja koşusu", "touch_run", true)
+				toggle.call(tc, "Dokununca titreşim", "touch_vibe", true)
+				choose.call(tc, "El düzeni", "touch_left", [false, true], ["Sağ el (saldırı sağda)", "Sol el (saldırı solda)"], false)
+				toggle.call(tc, "Kamerayı ters çevir (Y)", "invert_y", false)
 			var k = _set_section(body, "controls", "Fare ve Tuşlar")
 			slider.call(k, "Fare hassasiyeti", "sens", 0.2, 3.0, 0.05, false)
 			toggle.call(k, "Fareyi ters çevir (Y)", "invert_y", false)

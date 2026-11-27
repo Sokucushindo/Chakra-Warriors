@@ -62,7 +62,7 @@ func handle_input(e: InputEvent) -> bool:
 	if e.is_action_pressed("seal_mode"):
 		seal_mode = true
 		seal_seq.clear()
-		Hud.msg("MÜHÜR MODU: 1-9, 0, -, = ile mühür yap, G'yi bırakınca jutsu", Color(1, 0.9, 0.6), 2.0)
+		Hud.msg("MÜHÜR MODU: mühürlere dokun, Ör ile jutsuyu yap" if Keys.touch_names.has("seal_mode") else "MÜHÜR MODU: 1-9, 0, -, = ile mühür yap, G'yi bırakınca jutsu", Color(1, 0.9, 0.6), 2.0)
 		return true
 	if e.is_action_released("seal_mode") and seal_mode:
 		seal_mode = false

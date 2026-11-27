@@ -35,6 +35,32 @@ if os.path.isdir(src_bake):
         shutil.rmtree(dst_bake)   # eski sürümün önbelleği kalmasın (iki kopya APK'yı şişiriyordu)
     shutil.copytree(src_bake, dst_bake)
 
+# build.json: PC exe'si gibi dünya + kıyafet anahtarı yazılır. Anahtarsız APK "geliştirme" kipine düşüyor, pakete konmuş hazır
+# köyleri görmüyor ve Konoha'yı telefonda sıfırdan kurmaya çalışıyordu (yükleme %45 "Ormanlar"da takılıyordu).
+import hashlib, json, glob
+PROJ = os.path.join(ROOT, 'godot')
+def _md5(p):
+    return hashlib.md5(open(p, 'rb').read()).hexdigest()
+def _world_key():   # village_bake.gd key() / build.py ile aynı
+    files = []
+    for d in ['scripts/world', 'data/world']:
+        for f in os.listdir(os.path.join(PROJ, d)):
+            if f.endswith(('.gd', '.json', '.bin', '.png')):
+                files.append('res://%s/%s' % (d, f))
+    files += ['res://scripts/actors/character_model.gd', 'res://scripts/actors/outfit_parts.gd']
+    files.sort()
+    return hashlib.md5(''.join(f + _md5(os.path.join(PROJ, f[6:])) for f in files).encode('utf-8')).hexdigest()[:12]
+def _el_key():      # build.py ile aynı
+    d = os.path.join(PROJ, 'scripts', 'actors')
+    files = sorted(f for f in os.listdir(d) if (f.startswith('set_el') or f.startswith('set_v2')) and f.endswith('.gd'))
+    files += ['loft.gd', 'mb.gd']
+    return hashlib.md5(''.join(f + _md5(os.path.join(d, f)) for f in files if os.path.exists(os.path.join(d, f))).encode('utf-8')).hexdigest()[:12]
+wk = _world_key()
+if not os.path.exists(os.path.join(dst_bake, 'konoha_%s.scn' % wk)):
+    sys.exit('Hazır köy anahtarı tutmuyor (%s yok): PC tarafinda önce build.py main, sonra git merge main' % wk)
+build_json = os.path.join(PROJ, 'data', 'build.json')
+json.dump({'build': 'main', 'version': version, 'world': wk, 'el': _el_key()}, open(build_json, 'w'))
+
 kv = dict(l.strip().split('=', 1) for l in open(KEYS, encoding='utf-8') if '=' in l)
 env = dict(os.environ)
 env.update({
@@ -51,6 +77,7 @@ if os.path.exists(apk):
 cmd = [GODOT, '--headless', '--path', os.path.join(ROOT, 'godot'), '--export-release', 'Android', apk,
        '--log-file', os.path.join(ROOT, '_tmp', 'android_export.log')]
 r = subprocess.run(cmd, env=env, capture_output=True, text=True, encoding='utf-8', errors='replace')
+json.dump({'build': 'dev', 'version': version}, open(build_json, 'w'))   # geliştirme koşuları kendi klasörüne pişirsin
 tail = (r.stdout + r.stderr).strip().splitlines()[-15:]
 if not os.path.exists(apk):
     print('\n'.join(tail))
