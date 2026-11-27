@@ -852,7 +852,7 @@ func _music_state() -> String:
 	if it and it.inside != "":
 		if it.inside in ["rogue_hideout", "akatsuki_cave", "lair_cave", "lair_lab", "snake_lab"]:
 			return "magara"
-		return "koy"
+		return "dukkan"   # dükkân, ramenci, çay evi, ev içi (2026-11-27 kullanıcı: Konohamaru / Afternoon of Konoha)
 	var p = player.global_position
 	var vid := ""
 	var vg := 0
@@ -863,11 +863,11 @@ func _music_state() -> String:
 			vg = int(v.get("ground", 11))
 			break
 	var night: bool = world.env.time_of_day < 0.22 or world.env.time_of_day > 0.8
-	if night:
+	if night and Sfx.music_groups.has("gece"):
 		return "gece"
 	if vid != "":
 		if vid in ["konoha", "suna", "kiri", "kumo", "iwa"]:
-			return vid
+			return vid if Sfx.music_groups.has(vid) else "koy"   # köye özel parça yoksa köyde gezme müziği
 		if vg in [8, 15]:
 			return "kar"
 		if vg in [1, 3, 13]:

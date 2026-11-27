@@ -28,6 +28,11 @@ func _ready() -> void:
 	await _say("magara")
 	Interiors.inst.exit()
 	await get_tree().create_timer(2.0).timeout
+	Interiors.inst.enter({"pos": p, "out": p + Vector3(0, 0, 3), "room": "ramen", "kind": "enter"})
+	await get_tree().create_timer(3.0).timeout
+	await _say("dukkan")
+	Interiors.inst.exit()
+	await get_tree().create_timer(2.0).timeout
 	var e = Enemy.new()
 	e.setup(Enemy.archetype("rogue", 0))
 	get_tree().current_scene.add_child(e)
