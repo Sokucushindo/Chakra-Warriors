@@ -124,7 +124,7 @@ func _show_loading() -> void:
 
 func _loading_progress(v: float, label: String) -> void:
 	if loading:
-		(loading.find_child("L", true, false) as Label).text = label + "..."
+		(loading.find_child("L", true, false) as Label).text = Lang.t(label) + "..."   # "..." eklenince çeviri kaydı bulunmuyordu: İngilizce oyunda aşamalar Türkçe kalıyordu
 		(loading.find_child("B", true, false) as ProgressBar).value = v
 
 
@@ -711,7 +711,7 @@ func fast_travel(vid: String) -> void:
 		BuildSites.budget_ms = 120.0
 		var t0 = Time.get_ticks_msec()
 		while not rec.get("done", false) and Time.get_ticks_msec() - t0 < 90000:
-			_loading_progress(clampf((Time.get_ticks_msec() - t0) / 15000.0, 0.05, 0.95), "%s kuruluyor" % v["name"])
+			_loading_progress(clampf((Time.get_ticks_msec() - t0) / 15000.0, 0.05, 0.95), Lang.t("%s kuruluyor") % v["name"])
 			await get_tree().process_frame
 		BuildSites.budget_ms = 8.0
 		player.set_physics_process(true)

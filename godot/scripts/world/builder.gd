@@ -1,5 +1,6 @@
 class_name Builder
 extends RefCounted
+const OccGuard = preload("res://scripts/world/occ_guard.gd")
 ## Köy/yer inşa yardımcısı. Yerel koordinat: (x=doğu, y=yukarı, n=kuzey) merkez etrafında.
 ## Görseller 128 m hücrelere göre birleştirilir, çarpışmalar StaticBody3D kutularıdır.
 
@@ -548,6 +549,7 @@ func build_occluders() -> void:
 		oi.name = "Occ_%d_%d" % [key.x, key.y]
 		oi.occluder = oc
 		root.add_child(oi)
+		(func(): OccGuard.add(oi)).call_deferred()   # kamera kutunun içine düşmesin (scripts/world/occ_guard.gd)
 
 
 static var dressing := 0
@@ -957,8 +959,20 @@ func _ground_off(x: float, n: float, rad: float) -> Vector2:
 	return Vector2(lo, hi)
 
 
+## Yerel (x, n) noktası dik yamaçta mı: 3 m çevrede eğim > lim (uçurum yüzü, kaya kenarı)
+func steep_at(x: float, n: float, r := 3.0, lim := 0.9) -> bool:
+	var c = w(Vector3(x, 0, n))
+	var h = Game.terrain_height(c.x, c.z)
+	for o in [Vector2(r, 0), Vector2(-r, 0), Vector2(0, r), Vector2(0, -r)]:
+		if absf(Game.terrain_height(c.x + o.x, c.z + o.y) - h) / r > lim:
+			return true
+	return false
+
+
 ## Dairesel duvar halkası. gaps: [[açı, genişlik derece]]
-func wall_ring(r: float, h: float, thick: float, col: Color, gaps: Array, step := 4.0, top_col := Color(0.5, 0.2, 0.15)) -> void:
+## rise_cap >= 0: tepe en alçak zeminin en çok bu kadar üstüne çıkar (kaya dibinde sur basamak basamak yükselmesin; Konoha)
+## flat_top: tepe her yerde bu yükseklikte (yerel; Konoha: "eşitle şu duvarları")
+func wall_ring(r: float, h: float, thick: float, col: Color, gaps: Array, step := 4.0, top_col := Color(0.5, 0.2, 0.15), rise_cap := -1.0, flat_top := NAN) -> void:
 	var a = 0.0
 	while a < 360.0:
 		var mid = a + step * 0.5
@@ -971,8 +985,17 @@ func wall_ring(r: float, h: float, thick: float, col: Color, gaps: Array, step :
 			var rad = deg_to_rad(mid)
 			var L = 2.0 * PI * r * step / 360.0 + 0.4
 			var g = _ground_off(r * sin(rad), r * cos(rad), L * 0.5)
-			var bot = minf(g.x, 0.0) - 2.0
-			var top = g.y + h
+			# taban: parça boyunca ve iki yüzünde sık ölçülen en alçak zemin (5 nokta çukuru kaçırıyor, sur havada kalıyordu)
+			var lo = g.x
+			for k in 9:
+				var aa = deg_to_rad(a + step * k / 8.0)
+				for rr in [r - thick * 0.5, r + thick * 0.5]:
+					var wp2 = w(Vector3(rr * sin(aa), 0, rr * cos(aa)))
+					lo = minf(lo, Game.terrain_height(wp2.x, wp2.z) - origin.y)
+			var bot = minf(lo, 0.0) - 2.0
+			var top = (minf(g.y, g.x + rise_cap) if rise_cap >= 0.0 else g.y) + h
+			if not is_nan(flat_top):
+				top = maxf(flat_top, lo + 3.0)
 			box(Vector3(r * sin(rad), (bot + top) * 0.5, r * cos(rad)), Vector3(L, top - bot, thick), col, mid)
 			box(Vector3(r * sin(rad), top + 0.4, r * cos(rad)), Vector3(L, 0.8, thick + 0.8), top_col, mid, true)   # başlık çarpışmalı: surun tepesinde yürürken içinden geçilmesin
 		a += step
@@ -1022,6 +1045,8 @@ func village_gate(ang: float, r: float, half_open: float, height: float, post_co
 func tree(x: float, n: float, s: float, rng: RandomNumberGenerator, y := 0.0) -> void:
 	if key in TREELESS:
 		return   # kanonda ağaçsız köy (kullanıcı 2026-11-10: lore'a göre ağaç yok)
+	if steep_at(x, n):
+		return   # uçurum yüzüne / dik yamaca ağaç dikilmez (2026-11-27: Hokage Kayası yüzünde ağaçlar)
 	# prosedürel ağaç (hazır paket ağaçları doğal durmuyordu; kullanıcı eskisini tercih etti)
 	if _tree_meshes.is_empty():
 		for v in Props.VILLAGE_TREE_W.size():
@@ -1086,6 +1111,8 @@ func pack_mesh(m: Mesh, p: Vector3, yaw_deg := 0.0, scale := 1.0, dist := 1.0) -
 	if m == null:
 		return
 	var wp = w(p)
+	if absf(wp.y - Game.terrain_height(wp.x, wp.z)) < 1.5 and steep_at(p.x, p.z):
+		return   # yere konan süs (bank, fener, sunak, çalı) uçurum yüzünde / dik yamaçta durmaz
 	var k = "%d|%d|%d" % [int(floor(wp.x / CELL)), int(floor(wp.z / CELL)), m.get_instance_id()]
 	if not packs.has(k):
 		packs[k] = [m, [], dist]

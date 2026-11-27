@@ -1,5 +1,6 @@
 class_name VillageBake
 extends RefCounted
+const OccGuard = preload("res://scripts/world/occ_guard.gd")
 ## Köyleri önceden pişirme: köy ilk kurulduğunda sahne ağacı (.scn) + köyün dünyaya kaydettiği veriler (.dat) diske yazılır;
 ## sonraki açılışlarda saniyede yüklenir (Konoha ~15 sn -> ~1-2 sn, hızlı seyahat anında).
 ## Anahtar: dünya kodu + dünya verisinin içerik özeti (dev) ya da build.json "world" alanı (exe). Kod değişirse önbellek yenilenir.
@@ -221,6 +222,7 @@ static func try_load(parent: Node3D, vid: String) -> Node3D:
 		DirAccess.remove_absolute(sp)
 		DirAccess.remove_absolute(dp)
 		return null
+	OccGuard.scan.call_deferred(root)   # gizleyici kutular: kamera içlerine düşmesin (etraf kayboluyordu)
 	split_bodies(root)   # çarpışma: tek gövdede binlerce şekil Jolt'ta kurulamıyordu ("Compound hierarchy is too deep") -> duvarlardan geçiliyordu
 	parent.add_child(root)
 	for it in data["inter"]:

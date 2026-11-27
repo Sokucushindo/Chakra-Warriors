@@ -90,6 +90,90 @@ static func _sites(v: Dictionary) -> Dictionary:
 	return out
 
 
+## Suna Hastanesi (anime ref: refs/suna_hospital/suna_hospital.png, Narutopedia "Suna Hospital"): üst üste binmiş kerpiç
+## silindirlerden kule — geniş kaide, şişkin yuvarlak bantlar, sıra sıra yuvarlak delikler, üst katta altın çerçeveli beyaz
+## diskte kırmızı "医" arması, kubbe tepede iki küçük top; solda kare pencereli alçak yuvarlak ek bina. Kapı yerel -n (güney) yüzünde.
+static func _suna_hospital(b: Builder, vn: String) -> void:
+	# yer: kule + ek bina ~21 m yarıçap; hiçbir yol / sokak (yarı genişlik 8 m + 3 m pay) değmeyene kadar yoldan uzağa kayar
+	# (2026-11-27, kullanıcı: "hastaneyi yolun ortasına koymuşsun": eski 18x12 kutunun yerine ölçmeden kondu)
+	var rd = func(lp: Vector2) -> float:
+		var wp = b.w(Vector3(lp.x, 0, lp.y))
+		return Game.road_dist(wp.x, wp.z)
+	var off = Vector2.ZERO
+	for it in 60:
+		var hit = false
+		for k in 24:
+			var a = TAU * k / 24.0
+			for rr in [0.0, 11.0, 21.0]:
+				if rd.call(off + Vector2(cos(a), sin(a)) * rr) < 11.0:
+					hit = true
+		if not hit:
+			break
+		var gx = rd.call(off + Vector2(3, 0)) - rd.call(off - Vector2(3, 0))
+		var gn = rd.call(off + Vector2(0, 3)) - rd.call(off - Vector2(0, 3))
+		var gdir = Vector2(gx, gn)
+		off += (gdir.normalized() if gdir.length() > 0.01 else Vector2(0, 1)) * 2.0
+	if off != Vector2.ZERO:
+		var nw = b.w(Vector3(off.x, 0, off.y))
+		b.origin = Vector3(nw.x, Game.terrain_height(nw.x, nw.z), nw.z)
+	var body = Color(0.84, 0.62, 0.36)       # oker kerpiç
+	var band = Color(0.9, 0.7, 0.44)         # açık, şişkin bantlar
+	var dark = Color(0.86, 0.62, 0.36).darkened(0.12)
+	var hole = Color(0.24, 0.15, 0.08)
+	var gold = Color(0.8, 0.6, 0.3)
+	# delik sırası: yarıçap R, yükseklik y, adet, faz (ön yüzde arma / kapı açıklığı bırakılır)
+	var holes = func(R: float, y: float, cnt: int, ph: float, skip_front: float) -> void:
+		for i in cnt:
+			var a = 360.0 * (i + ph) / cnt
+			var fd = absf(fmod(a + 540.0, 360.0) - 180.0)   # ön yüzden (yerel -n) açı farkı
+			if fd < skip_front:
+				continue
+			var o = Builder.rot(0, -R, a)
+			b.disc(Vector3(o.x, y, o.y), 0.95, 0.3, hole, a, 10)
+	# kaide (yere gömülü: eğimde altı boş kalmasın) + yuvarlak kenarlı bant
+	b.cyl(Vector3(0, 2.5, 0), 26.0, 13.0, body, true, 28)
+	b.sphere(Vector3(0, 8.6, 0), Vector3(27.6, 2.2, 27.6), band, 28)
+	holes.call(13.05, 5.4, 22, 0.5, 14.0)
+	# orta gövde: iki sıra kaydırmalı delik
+	b.cyl(Vector3(0, 13.4, 0), 21.0, 8.4, dark, true, 26)
+	holes.call(10.55, 11.6, 16, 0.0, 0.0)
+	holes.call(10.55, 14.8, 16, 0.5, 0.0)
+	# şişkin bel bandı
+	b.sphere(Vector3(0, 18.0, 0), Vector3(23.2, 2.6, 23.2), band, 26)
+	# üst kat: arma kuşağı + tek sıra delik
+	b.cyl(Vector3(0, 21.4, 0), 19.6, 5.6, body, true, 24)
+	holes.call(9.85, 21.6, 14, 0.5, 26.0)
+	b.sphere(Vector3(0, 24.4, 0), Vector3(21.6, 2.2, 21.6), band, 24)
+	# kubbe + iki küçük top (animedeki "kulak"lar)
+	b.dome(Vector3(0, 24.8, 0), 19.4, 6.4, body.lightened(0.04), 24)
+	for sx in [-1.0, 1.0]:
+		b.sphere(Vector3(sx * 3.4, 31.2, 0.6), Vector3(4.6, 4.4, 4.6), band, 14, true)
+	# arma: üst katın önünde kuşak + altın çerçeve + beyaz disk + kırmızı 医
+	b.box(Vector3(0, 21.6, -9.6), Vector3(9.5, 1.0, 0.6), dark.darkened(0.1), 0.0, false)
+	b.disc(Vector3(0, 21.6, -10.0), 6.4, 0.5, gold, 0.0, 28)
+	b.disc(Vector3(0, 21.6, -10.3), 5.4, 0.3, Color(0.96, 0.95, 0.91), 0.0, 28)
+	b.kanji(Vector3(0, 21.55, -10.5), "医", 3.6, Color(0.66, 0.12, 0.14))
+	# ek bina (solda): alçak yuvarlak gövde, bant, kare beyaz pencere, kubbe
+	var ax = -14.5; var an = 3.0
+	b.cyl(Vector3(ax, 3.0, an), 12.0, 12.0, body, true, 20)
+	b.sphere(Vector3(ax, 7.6, an), Vector3(13.0, 1.6, 13.0), band, 20)
+	b.dome(Vector3(ax, 8.2, an), 11.6, 3.6, body.lightened(0.04), 20)
+	var wo = Builder.rot(0, -5.9, -35.0)
+	b.box(Vector3(ax + wo.x, 6.0, an + wo.y), Vector3(2.9, 2.5, 0.4), gold, -35.0, false)
+	b.box(Vector3(ax + wo.x * 1.02, 6.0, an + wo.y * 1.02), Vector3(2.3, 1.9, 0.3), Color(0.95, 0.95, 0.93), -35.0, false)
+	for i in 6:
+		var aa = -35.0 + 40.0 + i * 38.0
+		var oo = Builder.rot(0, -6.05, aa)
+		b.disc(Vector3(ax + oo.x, 4.4, an + oo.y), 0.8, 0.3, hole, aa, 10)
+	# giriş: kaidede kemerli kapı (koyu oyuk + açık söve), önünde fenerler
+	b.box(Vector3(0, 2.5, -13.05), Vector3(4.2, 5.0, 0.5), dark.darkened(0.2), 0.0, false)
+	b.disc(Vector3(0, 5.0, -13.05), 4.2, 0.5, dark.darkened(0.2), 0.0, 16)
+	b.box(Vector3(0, 2.1, -13.2), Vector3(3.0, 4.2, 0.3), Color(0.3, 0.22, 0.15), 0.0, false)
+	b.interact(Vector3(0, 0, -14.5), 4, "enter", "[F] Gir: %s Hastanesi" % vn, {"room": "hospital", "vid": "suna", "out": b.w(Vector3(0, 0, -16.5))})
+	for sx in [-1.0, 1.0]:
+		b.lantern(sx * 5.0, -17.0)
+
+
 ## Chūnin Sınavı 2. aşamasının alanı (köy dışı, sabit): kapı yollarından uzak, karada, köy kenarından ~550 m
 static func exam_ground(v: Dictionary) -> Vector2:
 	var c = Vector2(float(v["x"]), float(v["y"]))
@@ -189,26 +273,29 @@ static func _compound(parent: Node3D, v: Dictionary, sty: Dictionary) -> void:
 	p = sites["hospital"]
 	base = Game.terrain_height(p.x, -p.y)
 	b = Builder.new(parent, p.x, p.y, base, "Story_%s_hastane" % v["id"])
-	b.box(Vector3(0, 0.5, 0), Vector3(18, 3.0, 12), wall.darkened(0.25))
-	b.box(Vector3(0, 4.5, 0), Vector3(17, 7, 11), Color(0.92, 0.92, 0.9))
-	b.roof(Vector3(0, 8.0, 0), Vector3(19, 3.0, 13), Color(0.75, 0.2, 0.2))
-	b.disc(Vector3(0, 5.5, -5.6), 2.4, 0.3, Color(0.85, 0.15, 0.15))
-	var ho = {"floors": 1, "win_y": 4.6, "win": Vector2(1.8, 1.6), "pitch": 3.6, "frame": Color(0.75, 0.2, 0.2),
-		"glass": Color(0.62, 0.8, 0.86), "pipes": Color(0.6, 0.62, 0.66), "margin": 1.8}
-	var hb = ho.duplicate()
-	hb.merge({"door": 4.5, "door_w": 2.0, "door_h": 2.8, "door_col": Color(0.85, 0.88, 0.9), "awning": Color(0.75, 0.2, 0.2), "props": "clinic",
-		"seed": hash(v["id"]) % 1000 + 10})
-	FacadeKit.dress(b, 0.0, 5.5, 0.0, 17.0, 2.0, 6.0, hb)
-	for sx in [-1.0, 1.0]:
-		var hs = ho.duplicate()
-		hs.merge({"seed": hash(v["id"]) % 1000 + 12 + int(sx)})
-		FacadeKit.dress(b, sx * 8.5, 0.0, 90.0 if sx > 0.0 else 270.0, 11.0, 2.0, 6.0, hs)
-	b.box(Vector3(0, 2.4, -5.6), Vector3(3.0, 4.4, 0.4), Color(0.3, 0.22, 0.15), 0.0, false)   # kapı
-	b.interact(Vector3(0, 0, -7.0), 4, "enter", "[F] Gir: %s Hastanesi" % vn, {"room": "hospital", "vid": v["id"], "out": b.w(Vector3(0, 0, -9.0))})
-	for i in 3:
-		b.lantern(-6 + i * 6, -10)
-	GardenKit.build(b, {"vid": v["id"], "name": "hastane", "x": 0.0, "n": 5.5, "w": 17.0, "side": 5.0, "doors": [Vector2(4.5, 0.0)],
-		"d0": 2.0, "dmax": 20.0, "style": "hospital", "limit": [Vector2.ZERO, float(CLEAR["hospital"]) - 10.0], "min_d": 5.0})
+	if v["id"] == "suna":
+		_suna_hospital(b, vn)   # animedeki Suna hastanesi: üst üste kerpiç silindir kule
+	else:
+		b.box(Vector3(0, 0.5, 0), Vector3(18, 3.0, 12), wall.darkened(0.25))
+		b.box(Vector3(0, 4.5, 0), Vector3(17, 7, 11), Color(0.92, 0.92, 0.9))
+		b.roof(Vector3(0, 8.0, 0), Vector3(19, 3.0, 13), Color(0.75, 0.2, 0.2))
+		b.disc(Vector3(0, 5.5, -5.6), 2.4, 0.3, Color(0.85, 0.15, 0.15))
+		var ho = {"floors": 1, "win_y": 4.6, "win": Vector2(1.8, 1.6), "pitch": 3.6, "frame": Color(0.75, 0.2, 0.2),
+			"glass": Color(0.62, 0.8, 0.86), "pipes": Color(0.6, 0.62, 0.66), "margin": 1.8}
+		var hb = ho.duplicate()
+		hb.merge({"door": 4.5, "door_w": 2.0, "door_h": 2.8, "door_col": Color(0.85, 0.88, 0.9), "awning": Color(0.75, 0.2, 0.2), "props": "clinic",
+			"seed": hash(v["id"]) % 1000 + 10})
+		FacadeKit.dress(b, 0.0, 5.5, 0.0, 17.0, 2.0, 6.0, hb)
+		for sx in [-1.0, 1.0]:
+			var hs = ho.duplicate()
+			hs.merge({"seed": hash(v["id"]) % 1000 + 12 + int(sx)})
+			FacadeKit.dress(b, sx * 8.5, 0.0, 90.0 if sx > 0.0 else 270.0, 11.0, 2.0, 6.0, hs)
+		b.box(Vector3(0, 2.4, -5.6), Vector3(3.0, 4.4, 0.4), Color(0.3, 0.22, 0.15), 0.0, false)   # kapı
+		b.interact(Vector3(0, 0, -7.0), 4, "enter", "[F] Gir: %s Hastanesi" % vn, {"room": "hospital", "vid": v["id"], "out": b.w(Vector3(0, 0, -9.0))})
+		for i in 3:
+			b.lantern(-6 + i * 6, -10)
+		GardenKit.build(b, {"vid": v["id"], "name": "hastane", "x": 0.0, "n": 5.5, "w": 17.0, "side": 5.0, "doors": [Vector2(4.5, 0.0)],
+			"d0": 2.0, "dmax": 20.0, "style": "hospital", "limit": [Vector2.ZERO, float(CLEAR["hospital"]) - 10.0], "min_d": 5.0})
 	b.finish()
 	# --- Chūnin Sınavı final stadyumu (köyün renginde)
 	p = sites["stadium"]

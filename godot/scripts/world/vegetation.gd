@@ -284,9 +284,9 @@ func _generate(key: Vector2i, detail: bool, holder: Dictionary) -> void:
 		var hx := Game.terrain_height(x + 2.0, z) - h
 		var hz := Game.terrain_height(x, z + 2.0) - h
 		var sl := Vector2(hx, hz).length() / 2.0
-		if sl > 1.1:
-			continue
-		if _hrock.w > 0.0 and sl > 0.22 and x > _hrock.x - 700.0 and x < _hrock.y + 700.0 and my > _hrock.z - 80.0 and my < _hrock.z + 320.0:
+		if sl > (0.6 if t in SMALL else 0.75):
+			continue   # dik yamaç / uçurum yüzü: ağaç, çiçek, çalı yok (2026-11-27: 1.1'di, yandan çıkan ağaçlar)
+		if _hrock.w > 0.0 and sl > 0.22 and x > _hrock.x - 700.0 and x < _hrock.y + 700.0 and my > _hrock.z - 260.0 and my < _hrock.z + 320.0:
 			continue   # Hokage Kayası yüzü: duvardan ağaç çıkmasın
 		if t in [9, 0] and sl > 0.7:
 			t = 4

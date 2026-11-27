@@ -1,10 +1,11 @@
 Chakra Warriors v{v}
 ===================
 
-No install: double-click ChakraWarriors.exe and the game starts.
+Start ChakraWarriorsLauncher.exe: it checks for updates, downloads them automatically and starts the game with Play.
+(You can also double-click ChakraWarriors.exe directly; then you update by hand.)
 (If Windows shows "unknown publisher": "More info" > "Run anyway".)
 The game starts in English; you can switch to Turkish in Settings > Language.
-UPDATE: put the new ChakraWarriors.exe over the old one. Saves are kept in a separate folder
+UPDATE: the launcher does it for you (or put the new ChakraWarriors.exe over the old one). Saves are kept in a separate folder
 (%APPDATA%\Godot\app_userdata\Shinobi Yolu) and are not deleted.
 If the window does not fit your screen: Settings > Display (fullscreen / window size).
 
@@ -30,10 +31,11 @@ Esc            pause
 
 --------------------------------------------------------------------------------
 TÜRKÇE
-Kurulum yok: ChakraWarriors.exe'ye çift tıkla, oyun açılır.
+ChakraWarriorsLauncher.exe'yi aç: güncellemeleri denetler, kendisi indirip kurar, Oyna ile oyunu başlatır.
+(ChakraWarriors.exe'ye doğrudan da çift tıklayabilirsin; o zaman güncellemeyi elle yaparsın.)
 (Windows "bilinmeyen yayıncı" uyarısı verirse: "Ek bilgi" > "Yine de çalıştır".)
 Oyun İngilizce açılır; Ayarlar > Dil'den Türkçeye geçebilirsin.
-GÜNCELLEME: yeni ChakraWarriors.exe'yi eskisinin üstüne koy. Kayıtların bilgisayarında ayrı bir
+GÜNCELLEME: launcher kendisi yapar (ya da yeni ChakraWarriors.exe'yi eskisinin üstüne koy). Kayıtların bilgisayarında ayrı bir
 klasörde durur (%APPDATA%\Godot\app_userdata\Shinobi Yolu), silinmez; kaldığın yerden devam edersin.
 Ekran sığmıyorsa: Ayarlar > Ekran (tam ekran / pencere boyutları).
 

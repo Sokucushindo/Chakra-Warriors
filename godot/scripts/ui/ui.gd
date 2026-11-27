@@ -505,6 +505,8 @@ static func rarity_of_gear(id: String) -> int:
 		return 4
 	if it.has("unique"):
 		return int(it["unique"])
+	if it.has("clan") and it.get("skin", false):
+		return 3   # klan yadigârı silah (Uchiha Gunbai, Hakkō Chakura Tō...): fiyatı 0 diye mavi görünüyordu -> destansı (mor)
 	var r = int(it.get("rank", 0))
 	var p = int(it.get("price", 0))
 	if r >= 4 or p >= 2000:

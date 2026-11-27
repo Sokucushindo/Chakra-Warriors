@@ -573,6 +573,9 @@ func _place(e: Node3D, at: Vector3) -> void:
 
 
 func _mark(at: Vector3, nm: String) -> void:
+	# sınavın yeni adımı: ok onu göstersin (önceden seçilmiş hikâye / hedef takibi kuleyi gizliyordu, ok Akademi'de kalıyordu)
+	if String(Game.profile.get("track", "")) not in ["", "mission", "none"]:
+		Missions.set_track("")
 	Missions.target_marker = at
 	Missions.has_marker = true
 	Missions.target_name = nm

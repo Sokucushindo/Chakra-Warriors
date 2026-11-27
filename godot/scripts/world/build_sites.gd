@@ -14,6 +14,7 @@ static var _fx_done := {}          # şelale/buhar gibi kalıcı efektler bir ke
 static func build_all(parent: Node3D) -> void:
 	for v in Game.world_info["villages"]:
 		if v["id"] == "konoha":
+			BuildKonoha.register_clears(v)   # sur dışı göller: ağaç çıkmasın (önbellekten yüklense de)
 			if VillageBake.try_load(parent, "konoha") == null:
 				var snap = VillageBake.snapshot("konoha")
 				BuildKonoha.build(parent, v)

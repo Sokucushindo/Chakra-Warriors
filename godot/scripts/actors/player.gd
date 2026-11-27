@@ -1,5 +1,6 @@
 class_name Player
 extends CharacterBody3D
+const OccGuard = preload("res://scripts/world/occ_guard.gd")
 ## Oyuncu: Shinobi Striker tarzı parkur + Storm tarzı dövüş girişleri.
 ## Ctrl/Space: zıpla, havada çift zıplama, duvarda -> duvardan sek.  Shift: ninja koşusu / havada dash.
 ## Duvara doğru koşmak = duvarda koşmaya başlar (ek tuş yok, chakra harcamaz).
@@ -696,10 +697,13 @@ func _ground_air_move(dt: float) -> void:
 	var wl = Game.water_level(p.x, p.z, terr)   # deniz 0, gölet/kanal/vadi kendi yüzeyi
 	on_water = wl > terr + 0.1
 	var ground = terr
+	var on_deck = on_water and p.y > wl + 0.12 and is_on_floor()   # köprü tabliyesinde: su üstünde yürümüyorsun
 	if on_water and not swimming:
 		ground = wl
-		chakra -= 1.5 * maxf(0.1, 1.0 + Stats.skill(Game.profile, "water_cost")) * dt  # su üstünde durmak chakra ister
-		Mastery.gain(Game.profile, "chakra", dt * 0.03)   # su üstünde yürüme: chakra kontrolü antrenmanı (0.005 idi: 1 puan ~20 dk, neredeyse gelişmiyordu)
+		if not on_deck:
+			chakra -= 1.5 * maxf(0.1, 1.0 + Stats.skill(Game.profile, "water_cost")) * dt  # su üstünde durmak chakra ister
+		if not on_deck:
+			Mastery.gain(Game.profile, "chakra", dt * 0.03)   # su üstünde yürüme: chakra kontrolü antrenmanı (0.005 idi: 1 puan ~20 dk, neredeyse gelişmiyordu)
 		if chakra <= 0.0 and wl - terr > 1.0:   # sığ suda (dere, gölet) yüzülmez: dibe basılır
 			swimming = true
 			leaping = false
@@ -1276,12 +1280,13 @@ func _footstep(_sp: float, sprint: bool) -> void:
 		_step_ph = -1.0
 		return
 	var wl = Game.water_level(global_position.x, global_position.z, Game.terrain_height(global_position.x, global_position.z)) if on_water else 0.0
+	var surf = on_water and global_position.y < wl + 0.12   # köprü tabliyesinde halka / şıpırtı yok
 	if model.footstep_cross(_step_ph):
 		Game.play_step(global_position, randf_range(0.92, 1.08), 0.32 if sprint else 0.26)
-		GroundMarks.step(self, on_water, wl)   # suda halka dalga, kumda/karda ayak izi
+		GroundMarks.step(self, surf, wl)   # suda halka dalga, kumda/karda ayak izi
 	_step_ph = model.anim_progress() if model.current in CharacterModel.FOOT_PHASES else -1.0
 	# suyun üstünde dururken de ayak altından ara ara halka yayılır
-	if on_water and Vector2(velocity.x, velocity.z).length() < 0.5:
+	if surf and Vector2(velocity.x, velocity.z).length() < 0.5:
 		_ripple_t -= get_physics_process_delta_time()
 		if _ripple_t <= 0.0:
 			_ripple_t = 1.3
@@ -1367,7 +1372,16 @@ func _update_camera(dt: float) -> void:
 		if cp.y < Game.terrain_height(cp.x, cp.z) + 0.4:
 			want = maxf(0.8, t - want / 8.0)
 			break
+	# gizleyici kutusunun içine düşme: Godot içinde kalınan gizleyicinin arkasını tümden gizler ("binaya yaklaşınca etraf
+	# yok oluyor"). Ev gizleyicisi saçaklı ev kaydından kurulduğu için duvardan taşabiliyor: kamera kutunun dışına çekilir
+	var occ_hit := false
+	while want > 0.8 and OccGuard.inside(cam_pivot.global_position + back * want):
+		want -= 0.3
+		occ_hit = true
+	want = maxf(want, 0.8)
 	cam_cur_dist = lerpf(cam_cur_dist, want, minf(1.0, dt * (20.0 if want < cam_cur_dist else 6.0)))
+	if occ_hit:
+		cam_cur_dist = minf(cam_cur_dist, want)   # içeri doğru beklemeden: bir kare bile kutuda kalırsa ekran boşalıyor
 	var shake = Vector3.ZERO
 	if Game.world and Game.world.env.shake > 0.0:
 		var s: float = Game.world.env.shake

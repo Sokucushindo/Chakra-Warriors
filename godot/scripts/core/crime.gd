@@ -158,6 +158,11 @@ func attack(v: Node, alarm := false) -> void:
 			WorldPeople.after_spawn(e, wp)
 	e.team = "enemy"
 	e.target = Game.player
+	# köyün kendi insanı: köyünün tarafında (genel kalıptan "kaçak" tarafı geliyordu; kaçak avına gelen ANBU, sana saldıran
+	# Konoha chūnin'ini kaçak sanıp öldürüyordu — 2026-11-27)
+	var fv = _village_at(at)
+	if fv != "" and String(e.get_meta("faction", "")) in ["", "rogue", "genin_rival", "bandit"]:
+		e.set_meta("faction", fv)
 	if fid != "":
 		e.set_meta("slain_fid", fid)   # düşmana dönen dost: öldürünce kim olduğu bilinsin (Mangekyō, ilişki kaydı)
 	victims.append({"node": e, "vid": _village_at(at), "fid": fid, "civ": civ, "dead": false})

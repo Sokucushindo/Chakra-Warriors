@@ -290,6 +290,16 @@ static func _g(x: float, n: float) -> float:
 	return Game.terrain_height(x, -n)
 
 
+## Dik yamaç mı (r yarıçapında en büyük eğim > lim): uçurum yüzüne ağaç / fener / dinlenme yeri kurulmasın (2026-11-27,
+## Hokage Kayası yüzünde yol kenarı ağaçları ve uçurum kenarından taşan dinlenme yeri)
+static func _steep(x: float, n: float, r := 4.0, lim := 0.55) -> bool:
+	var h := _g(x, n)
+	for o in [Vector2(r, 0), Vector2(-r, 0), Vector2(0, r), Vector2(0, -r), Vector2(r, r) * 0.7, Vector2(-r, r) * 0.7, Vector2(r, -r) * 0.7, Vector2(-r, -r) * 0.7]:
+		if absf(_g(x + o.x, n + o.y) - h) / r > lim:
+			return true
+	return false
+
+
 ## Yol boyu süs: köy yakınında fenerler ve ağaç sıraları, kırda ağaç/çalı kümeleri, ara sıra çit ve taş
 static func _along_segment(b: Builder, k: Vector2i, e: Vector2i, t_from := 0.0, t_to := 1e9) -> void:
 	var x0 := k.x * REGION
@@ -315,22 +325,24 @@ static func _along_segment(b: Builder, k: Vector2i, e: Vector2i, t_from := 0.0, 
 			if p.x < x0 or p.x >= x0 + REGION or p.y < y0 or p.y >= y0 + REGION:
 				continue
 			var h := hash(Vector2i(int(p.x), int(p.y)))
-			if not is_clear(p.x, p.y, 10.0):
+			if not is_clear(p.x, p.y, 10.0) or _steep(p.x, p.y, 9.0):
 				continue
 			var vnear := _village_near(p.x, p.y)
 			if vnear < 0.0:
 				continue
 			var bio := Game.biome_at(p.x, -p.y)
 			if vnear < 700.0:
-				# köye giden yol: iki yanda taş fener ve sıra ağaç
+				# köye giden yol: ara sıra taş fener; ağaçlar sıra değil seyrek ve düzensiz (2026-11-27, kullanıcı: "ağaçlar random
+				# dağılmamış, eskiden yol olduğu belli": iki yanda her 23 m'de karşılıklı ağaç dizisi vardı)
 				for sd in [-1.0, 1.0]:
-					var q: Vector2 = p + side * 9.0 * sd
-					if (h % 3) == 0:
-						_stone_lantern(b, q.x, q.y)
-					elif bio in [2, 6, 7, 4]:
-						var rng := RandomNumberGenerator.new()
-						rng.seed = h + int(sd)
-						b.tree(q.x, q.y + side.y * 3.0 * sd, rng.randf_range(0.8, 1.15), rng, _g(q.x, q.y))
+					var rng := RandomNumberGenerator.new()
+					rng.seed = h + int(sd) * 7919
+					if (h % 4) == 0 and sd > 0.0:
+						var ql: Vector2 = p + side * 9.0 * sd
+						_stone_lantern(b, ql.x, ql.y)
+					elif bio in [2, 6, 7, 4] and rng.randf() < 0.3:
+						var q: Vector2 = p + side * rng.randf_range(11.0, 26.0) * sd + dir * rng.randf_range(-9.0, 9.0)
+						b.tree(q.x, q.y, rng.randf_range(0.75, 1.2), rng, _g(q.x, q.y))
 				continue
 			if (h % 5) == 0 and bio in [2, 4, 6, 7, 10]:
 				var sd2 := 1.0 if (h >> 4) % 2 == 0 else -1.0
@@ -389,6 +401,8 @@ static func _slot(b: Builder, node: Node3D, s: Dictionary, rng: RandomNumberGene
 	var g := _g(x, n)
 	if s["t"] != "bridge" and s["t"] != "deck" and g < 0.6:
 		return
+	if not s["t"] in ["bridge", "deck", "farm"] and _steep(x, n, float(CLEAR_R.get(s["t"], 10.0)) * 0.8, 0.35):
+		return   # dinlenme yeri / tapınak / kamp dik yamaca ya da uçurum kenarına taşmasın
 	var f := {"x": x, "y": n, "g": g, "yaw": yaw}
 	match s["t"]:
 		"bridge":
