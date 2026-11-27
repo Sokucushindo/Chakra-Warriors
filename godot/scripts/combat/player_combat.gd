@@ -244,11 +244,11 @@ func _start_step() -> void:
 	p.model.overlay.snap("guard", 0.0)
 	p.model.play(c["anim"], 0.05, c["speed"], true)
 	p.model.overlay.set_pose("kick", 1.0 if c.get("kick", false) and not c.has("keys") else 0.0)   # el yapımı vuruşta eski tekme pozu altta açık kalmasın
-	var armed_now = not Gear.weapon(Game.profile).is_empty() and bool(Game.profile.get("weapon_drawn", false))
+	var armed_now = not LazyFx.g("Gear").weapon(Game.profile).is_empty() and bool(Game.profile.get("weapon_drawn", false))
 	Combat.punch_fist(p.model, String(c.get("keyed_id", "")), armed_now, float(c.get("dur", 0.6)) + 0.1)   # silahsız vuruş: sıkılı yumruk
 	_set_two_hand(c.get("two_hand", false), float(c.get("dur", 0.6)), float(c.get("two_off", 0.32)))
 	if c.has("keys"):
-		p.model.overlay.key_mass = KEYED.mass(Gear.base_id(String(c.get("keyed_id", Gear.equipped(Game.profile, "sag").get("id", "")))))
+		p.model.overlay.key_mass = KEYED.mass(LazyFx.g("Gear").base_id(String(c.get("keyed_id", LazyFx.g("Gear").equipped(Game.profile, "sag").get("id", "")))))
 		p.model.overlay.play_keys(c["keys"], float(c.get("key_spd", 1.0)))
 		if c.has("keyed_id"):
 			KEYED.on_start(c["keyed_id"], int(c["keyed_i"]), p)   # sıçrama, Samehada açılıp büyüme vb.
@@ -261,7 +261,7 @@ func _start_step() -> void:
 	else:
 		p.model.overlay.stop_keys()
 	# yelpaze: kombonun 4. vuruşu uzak rüzgâr dalgası (3 sn bekleme, spam yok)
-	if String(Gear.weapon(Game.profile).get("style", "")) == "fan" and step == 3 and fan_cd <= 0.0 and p.chakra >= 6.0:
+	if String(LazyFx.g("Gear").weapon(Game.profile).get("style", "")) == "fan" and step == 3 and fan_cd <= 0.0 and p.chakra >= 6.0:
 		fan_cd = 3.0
 		p.chakra -= 6.0
 		var dir = p.face_dir()
@@ -273,9 +273,9 @@ func _start_step() -> void:
 			VFX.puffs(o + dir * 4.0 + Vector3.UP, {"amount": 40, "life": 0.6, "size": 0.7, "radius": 1.2, "vmin": 10, "vmax": 18, "dir": dir, "spread": 18.0,
 				"colors": [Color(0.85, 1.0, 0.92, 0.7), Color(0.7, 0.95, 0.85, 0)]})
 			Sfx.play("wind", o, 1.1)
-			Combat.hit_zone(p, o, dir, 16.0, 18.0, 3.0, {"dmg": 12.0 * Stats.melee_mult(Game.profile), "knock": 14.0, "launch": 3.0, "kind": "heavy", "element": "fuuton", "hitstop": 0.04, "melee": true}))
+			Combat.hit_zone(p, o, dir, 16.0, 18.0, 3.0, {"dmg": 12.0 * LazyFx.g("Stats").melee_mult(Game.profile), "knock": 14.0, "launch": 3.0, "kind": "heavy", "element": "fuuton", "hitstop": 0.04, "melee": true}))
 	# silaha özgü savuruş (kılıç "vuuşş", ağır silah "vuuum", asa "vuff"...), silahsız: yumruk savuruşu
-	var wst = String(Gear.weapon(Game.profile).get("style", "fist")) if Game.profile.get("weapon_drawn", false) else "fist"
+	var wst = String(LazyFx.g("Gear").weapon(Game.profile).get("style", "fist")) if Game.profile.get("weapon_drawn", false) else "fist"
 	if String(c.get("keyed_id", "")) in CharacterModel.ARM_WEAR:
 		wst = "fist"   # kolluk: eller boş, yumruk savuruşu
 	if not c.get("shot", false):   # uzak atış: savuruş sesi yok
@@ -289,16 +289,16 @@ func _start_step() -> void:
 static func cast_cost(j: Dictionary) -> float:
 	if Game.has_meta("sandbox"):
 		return 0.0
-	return float(j.get("cost", 0)) if Stats.is_taijutsu(j) else jutsu_cost(j)
+	return float(j.get("cost", 0)) if LazyFx.g("Stats").is_taijutsu(j) else jutsu_cost(j)
 
 
 static func jutsu_cost(j: Dictionary) -> float:
-	var c = float(j.get("cost", 0)) * Stats.JUTSU_COST_K * clampf(1.0 + Stats.skill(Game.profile, "jutsu_cost"), 0.7, 1.0)
+	var c = float(j.get("cost", 0)) * LazyFx.g("Stats").JUTSU_COST_K * clampf(1.0 + LazyFx.g("Stats").skill(Game.profile, "jutsu_cost"), 0.7, 1.0)
 	# nakil Senju hücresi: beden yabancı hücreyle savaşır, Mokuton daha çok chakra yer (Senju kanında yok)
 	if "mokuton" in j.get("elements", []) and Game.profile.get("flags", {}).get("senju_cells", false) and String(Game.profile.get("clan", "")) != "senju":
-		c *= KgPaths.LAB_COST_MULT
+		c *= LazyFx.g("KgPaths").LAB_COST_MULT
 	if "fuuton" in j.get("elements", []):
-		c *= float(Gear.weapon(Game.profile).get("fuuton_cost", 1.0))   # Fujaku: az chakrayla üst düzey rüzgâr
+		c *= float(LazyFx.g("Gear").weapon(Game.profile).get("fuuton_cost", 1.0))   # Fujaku: az chakrayla üst düzey rüzgâr
 	return c
 
 
@@ -480,7 +480,7 @@ func _do_attack(dt: float) -> bool:
 			action = ""
 			p.model.overlay.set_pose("kick", 0.0)
 			FX.impact(p.global_position, Color(0.9, 0.8, 0.6), 0.6)
-			Combat.hit_sphere(p, p.global_position + Vector3.UP * 0.5, 2.2, {"dmg": 8.0 * Stats.melee_mult(Game.profile), "knock": 10.0, "launch": 4.0, "kind": "heavy", "melee": true})
+			Combat.hit_sphere(p, p.global_position + Vector3.UP * 0.5, 2.2, {"dmg": 8.0 * LazyFx.g("Stats").melee_mult(Game.profile), "knock": 10.0, "launch": 4.0, "kind": "heavy", "melee": true})
 		return true
 	if c.get("kick", false) and not c.has("keys"):
 		# tekme gerçek hareket: diz çekilir, vuruş anında bacak açılır, hemen geri toplanır (eskiden bacak adım boyunca dümdüz asılı kalıyordu)
@@ -552,7 +552,7 @@ func _do_attack(dt: float) -> bool:
 		if c.has("rai"):
 			_raijin_fx(int(c["rai"]), pt)
 		if c.has("keyed_id"):
-			KEYED.on_strike(c["keyed_id"], int(c["keyed_i"]), p, float(c["dmg"]) * Stats.melee_mult(Game.profile))   # zemin/patlama/uçan kâğıt
+			KEYED.on_strike(c["keyed_id"], int(c["keyed_i"]), p, float(c["dmg"]) * LazyFx.g("Stats").melee_mult(Game.profile))   # zemin/patlama/uçan kâğıt
 		var hits = [] if c.get("shot", false) else Combat.hit_sphere(p, pt, c["reach"] * 0.65 * Buffs.mod("reach"), _hit_info(c))
 		if not hits.is_empty() and c.has("keyed_id") and step == COMBO.size() - 1:
 			VFX.slowmo(0.3, 0.22)   # bitiriş isabeti: kısa ağır çekim + sert sarsıntı
@@ -562,8 +562,8 @@ func _do_attack(dt: float) -> bool:
 			_on_hit_fx(pt, c)
 			landed = true
 			_shave_cd(0.8 if c.get("heavy", false) else 0.3)   # isabetli vuruş jutsu beklemesini kısaltır (düşmanla aynı)
-			var armed_m = String(Gear.weapon(Game.profile).get("style", "fist")) != "fist" and bool(Game.profile.get("weapon_drawn", false))
-			Mastery.gain(Game.profile, "kenjutsu" if armed_m else "taijutsu", 0.02 * hits.size())
+			var armed_m = String(LazyFx.g("Gear").weapon(Game.profile).get("style", "fist")) != "fist" and bool(Game.profile.get("weapon_drawn", false))
+			LazyFx.g("Mastery").gain(Game.profile, "kenjutsu" if armed_m else "taijutsu", 0.02 * hits.size())
 			Aging.train(0.0015 * hits.size())
 			for h in hits:
 				Progress.on_hit_landed(h)
@@ -627,7 +627,7 @@ func _combo(i: int) -> Dictionary:
 	if branch != "":
 		return _branch_c()
 	var c = _combo_base(i)
-	var cm = Stats.skill(Game.profile, "combo")
+	var cm = LazyFx.g("Stats").skill(Game.profile, "combo")
 	if cm > 0.0:
 		c["dur"] = float(c["dur"]) / (1.0 + cm)
 		c["hit"] = float(c["hit"]) / (1.0 + cm)
@@ -641,13 +641,13 @@ func _branch_c() -> Dictionary:
 	var ms: Array = SM.moves(branch, _branch_armed())
 	var mv: Dictionary = ms[clampi(bstep, 0, ms.size() - 1)]
 	var k = float(_combo_base(0)["dmg"]) / 3.6
-	var cm = Stats.skill(Game.profile, "combo")
+	var cm = LazyFx.g("Stats").skill(Game.profile, "combo")
 	var c = {"anim": "idle", "speed": 1.0, "keys": mv, "key_spd": 1.0 + cm, "dur": float(mv["len"]) / (1.0 + cm), "hit": float(mv["hit"]) / (1.0 + cm),
 		"dmg": float(mv["dmg"]) * k * (1.0 + cm * 0.5), "reach": float(mv["reach"]), "lunge": float(mv["lunge"]), "knock": float(mv["knock"]),
 		"launch": float(mv.get("launch", 0.0)), "heavy": bool(mv.get("heavy", false)), "fx": Color(1.0, 0.95, 0.85), "snd": "hit", "branch": branch}
 	if _branch_armed():   # silahlı dal: silahın menzili, vuruş rengi ve sesi
 		var b0 = _combo_base(0)
-		c["reach"] = float(c["reach"]) + float(Gear.weapon(Game.profile).get("reach", 0.0))
+		c["reach"] = float(c["reach"]) + float(LazyFx.g("Gear").weapon(Game.profile).get("reach", 0.0))
 		c["fx"] = b0.get("fx", c["fx"])
 		c["snd"] = b0.get("snd", "hit")
 		c["two_hand"] = bool(mv.get("two", false))
@@ -661,10 +661,10 @@ func _branch_c() -> Dictionary:
 func _branch_armed() -> bool:
 	if dbg_wid != "" or not bool(Game.profile.get("weapon_drawn", false)):
 		return false
-	var gq = Gear.equipped(Game.profile, "sag")
-	if gq.is_empty() or not Gear.item(String(gq.get("id", ""))).has("weapon"):
+	var gq = LazyFx.g("Gear").equipped(Game.profile, "sag")
+	if gq.is_empty() or not LazyFx.g("Gear").item(String(gq.get("id", ""))).has("weapon"):
 		return false
-	return not Gear.base_id(String(gq.get("id", ""))) in KEYED.RANGED
+	return not LazyFx.g("Gear").base_id(String(gq.get("id", ""))) in KEYED.RANGED
 
 
 ## Adım bitince: dal seçimi (kombonun ortasında ileri = yukarı, geri = aşağı) ve dalın sürmesi. true: yeni adım başladı
@@ -699,19 +699,19 @@ func _branch_next(_c: Dictionary) -> bool:
 
 func _combo_base(i: int) -> Dictionary:
 	var c: Dictionary = COMBO[clampi(i, 0, COMBO.size() - 1)].duplicate()
-	var w = Gear.weapon(Game.profile)
+	var w = LazyFx.g("Gear").weapon(Game.profile)
 	# silah hasarı sıkıştırılmış: en ağır silah bile yumruğun ~1.5 katı (jutsu anlamını korusun)
 	# her silahın kendi vuruş hasarı (hit); kombo adımları yumruk kombosunun oranlarıyla (4.2 = yumruğun ortalama vuruşu)
 	var per_hit = float(w.get("hit", 4.2))
-	c["dmg"] = per_hit * float(c["dmg"]) / 4.2 * (1.0 + Stats.weapon_bonus(Game.profile, String(w.get("style", "fist"))) * 0.6)
+	c["dmg"] = per_hit * float(c["dmg"]) / 4.2 * (1.0 + LazyFx.g("Stats").weapon_bonus(Game.profile, String(w.get("style", "fist"))) * 0.6)
 	c["reach"] = float(c["reach"]) + float(w["reach"])
 	var st: Dictionary = STYLE_COMBOS.get(w["style"], {})
 	var wid = ""
-	var gq = Gear.equipped(Game.profile, "sag")
+	var gq = LazyFx.g("Gear").equipped(Game.profile, "sag")
 	if not gq.is_empty():
-		wid = Gear.visual_id(String(gq.get("id", "")))   # özel silah tabanıyla (Uchiha Gunbai = gunbai kombosu)
-	if wid == "" or not Gear.item(String(gq.get("id", ""))).has("weapon"):
-		var sk = FightingStyles.player_key(Game.profile)   # silahsız: seçili dövüş tarzı
+		wid = LazyFx.g("Gear").visual_id(String(gq.get("id", "")))   # özel silah tabanıyla (Uchiha Gunbai = gunbai kombosu)
+	if wid == "" or not LazyFx.g("Gear").item(String(gq.get("id", ""))).has("weapon"):
+		var sk = LazyFx.g("FightingStyles").player_key(Game.profile)   # silahsız: seçili dövüş tarzı
 		if sk != "":
 			wid = sk
 		elif Combat.storm and wid == "":
@@ -823,7 +823,7 @@ func _special_info(info: Dictionary, c: Dictionary) -> Dictionary:
 ## Efsanevi silah yetenekleri: isabetten sonra (can çalma, chakra emme, patlama, çekme)
 ## Kusarigama vuruşu: orak elden zincirle fırlar (throw/reel), yay çizer (sweep) ya da etrafta döner (spin); zincir elden orağa uzanır
 func _chain_strike(c: Dictionary, tgt: Node3D) -> void:
-	var pj = PathJutsu.get_pinst()
+	var pj = LazyFx.g("PathJutsu").get_pinst()
 	var kind: String = c["chain_kind"]
 	var dir = p.face_dir()
 	var reach: float = float(c["reach"]) * Buffs.mod("reach")
@@ -844,7 +844,7 @@ func _chain_strike(c: Dictionary, tgt: Node3D) -> void:
 	b.add("cyl", Vector3(0, 0, -0.15), Vector3(0.03, 0.3, 0.03), Color(0.45, 0.32, 0.2), Vector3(90, 0, 0), 8)
 	b.add("box", Vector3(0, 0.09, 0.0), Vector3(0.01, 0.22, 0.04), Color(0.75, 0.78, 0.82), Vector3(-25, 0, 0))
 	var tip = MeshInstance3D.new()
-	tip.mesh = b.build(Props.toon())
+	tip.mesh = b.build(LazyFx.g("Props").toon())
 	get_tree().current_scene.add_child(tip)
 	tip.global_position = hand.call()
 	var chain_mat = StandardMaterial3D.new()
@@ -898,7 +898,7 @@ func _chain_strike(c: Dictionary, tgt: Node3D) -> void:
 
 
 func _special_hit(h: Node3D, pt: Vector3, c: Dictionary) -> void:
-	var dmg = float(c["dmg"]) * Stats.melee_mult(Game.profile)
+	var dmg = float(c["dmg"]) * LazyFx.g("Stats").melee_mult(Game.profile)
 	match c.get("special", ""):
 		"lifesteal":
 			p.hp = minf(p.max_hp, p.hp + dmg * 0.25)
@@ -945,7 +945,7 @@ func _hit_info(c: Dictionary) -> Dictionary:
 
 func _hit_info_base(c: Dictionary) -> Dictionary:
 	return {
-		"dmg": c["dmg"] * Stats.melee_mult(Game.profile), "knock": c.get("knock", 2.0), "launch": c.get("launch", 0.0), "melee": true,
+		"dmg": c["dmg"] * LazyFx.g("Stats").melee_mult(Game.profile), "knock": c.get("knock", 2.0), "launch": c.get("launch", 0.0), "melee": true,
 		"kind": "heavy" if c.get("heavy", false) else "light", "hitstop": 0.09 if c.get("heavy", false) else 0.04,
 		"dir": p.face_dir(),
 		"blade": String(c.get("snd", "")) in ["hit_blade", "hit_sword", "hit_claw", "hit_chain", "hit_heavy_weapon"],   # kesici silah: daha çok kan
@@ -957,13 +957,13 @@ func _on_hit_fx(pt: Vector3, c: Dictionary) -> void:
 	FX.hit_spark(pt, c.get("fx", Color(1.0, 0.85, 0.45) if not heavy else Color(1.0, 0.55, 0.25)), 1.4 if heavy else 0.9)
 	if c.get("water", false):   # Samehada bitiriş: yere çakma — etrafa su kubbesi + sprey (videodaki gibi)
 		var gp = Game.jutsu_floor_at(pt)
-		WaterArt.splash(gp, 2.6 if c.get("water_big", false) else 1.6)
+		LazyFx.g("WaterArt").splash(gp, 2.6 if c.get("water_big", false) else 1.6)
 		if c.get("water_big", false):
-			WaterArt.dome(gp, 4.5)
+			LazyFx.g("WaterArt").dome(gp, 4.5)
 	if c.get("grind", false):   # Samehada itip delme: dönen mavi chakra girdabı (videodaki gibi)
 		for k in 3:
 			var ang = k * TAU / 3.0
-			WindFX.streak(func(q: float) -> Vector3: return pt + Vector3(cos(ang + q * 6.0), sin(ang + q * 6.0), 0).rotated(Vector3.UP, p.facing) * (0.4 + q * 0.7), 0.3, 0.06, Color(0.55, 0.9, 1.0), k * 0.03, 10)
+			LazyFx.g("WindFX").streak(func(q: float) -> Vector3: return pt + Vector3(cos(ang + q * 6.0), sin(ang + q * 6.0), 0).rotated(Vector3.UP, p.facing) * (0.4 + q * 0.7), 0.3, 0.06, Color(0.55, 0.9, 1.0), k * 0.03, 10)
 	if c.get("flash", false):   # baş hizasında sert vuruş: büyük beyaz çarpma flaşı
 		VFX.star(pt, Color(1, 1, 1), 3.2, 0.2)
 		if Game.world:
@@ -1037,7 +1037,7 @@ func _update_charge(dt: float) -> void:
 	var on_wall = p.wall_n != Vector3.ZERO
 	var want = Input.is_action_pressed("charge") and (p.grounded or on_wall) and (action == "" or action == "charge") and not Game.ui_open
 	if want and action == "charge":
-		Mastery.gain(Game.profile, "chakra", dt * 0.06)   # meditasyon / chakra toplama antrenmanı (0.01 idi)
+		LazyFx.g("Mastery").gain(Game.profile, "chakra", dt * 0.06)   # meditasyon / chakra toplama antrenmanı (0.01 idi)
 	if want:
 		if action != "charge":
 			action = "charge"
@@ -1055,7 +1055,7 @@ func _update_charge(dt: float) -> void:
 				aura = FX.chakra_aura(p, Color(0.3, 0.62, 1.0), p.model.age_scale if p.model and p.model.get("age_scale") else 1.0)
 			_chg_fx = 0.0
 			Sfx.play("wind", p.global_position, 0.8, 0.6)
-		p.chakra = minf(p.max_chakra, p.chakra + Stats.charge_rate(Game.profile) * dt)   # chakra ustalığıyla hızlanır
+		p.chakra = minf(p.max_chakra, p.chakra + LazyFx.g("Stats").charge_rate(Game.profile) * dt)   # chakra ustalığıyla hızlanır
 		if action == "charge":
 			p.model.overlay.cast_pose = _charge_seal_pose()   # her kare IK: animasyonla oynayan omuzlara rağmen eller tam birleşik
 		# ayak dibinde chakra basıncı: dışa açılan rüzgâr halkası, kalkan toz ve küçük taşlar (anime)
@@ -1085,7 +1085,7 @@ func _raijin_fx(i: int, pt: Vector3) -> void:
 	match i:
 		3:
 			VFX.bolt(tip, tip + dir * 3.2 + Vector3.UP * 0.1, col, 0.22, 0.25, 4)   # chakra ağzı uzar
-			Combat.hit_zone(p, p.global_position, dir, 4.5, 12.0, 2.0, {"dmg": 3.0 * Stats.melee_mult(Game.profile), "knock": 3.0, "kind": "light", "element": "raiton", "melee": true})
+			Combat.hit_zone(p, p.global_position, dir, 4.5, 12.0, 2.0, {"dmg": 3.0 * LazyFx.g("Stats").melee_mult(Game.profile), "knock": 3.0, "kind": "light", "element": "raiton", "melee": true})
 		5:
 			VFX.bolt(pt + Vector3.UP * 14.0, pt + Vector3.DOWN * 1.0, col, 0.55, 0.35, 5)
 			VFX.cracks(Vector3(pt.x, p.global_position.y, pt.z), 3.0)
@@ -1135,7 +1135,7 @@ func _gunbai_gust(i: int) -> void:
 			VFX.embers(f, Color(1.0, 0.55, 0.12), 22, 12.0)
 			Sfx.play("fire", f, 1.0, 1.2)
 			# alev hattındakilere yanık (düz geri savrulma vuruşun kendisinde)
-			Combat.hit_zone(p, p.global_position, dir, 9.0, 40.0, 3.0, {"dmg": 4.0 * Stats.melee_mult(Game.profile), "knock": 2.0, "kind": "light", "element": "katon", "burn": 2.0})
+			Combat.hit_zone(p, p.global_position, dir, 9.0, 40.0, 3.0, {"dmg": 4.0 * LazyFx.g("Stats").melee_mult(Game.profile), "knock": 2.0, "kind": "light", "element": "katon", "burn": 2.0})
 			if Game.world:
 				Game.world.env.add_shake(0.5)
 				Game.world.env.screen_flash(0.05)
@@ -1258,7 +1258,7 @@ func throw_tool() -> void:
 	if float(tool_cd.get(tool, 0.0)) > 0.0:
 		Hud.msg("%s hazır değil: %d sn" % [Data.items.get(tool, {"name": tool})["name"], ceili(float(tool_cd[tool]))], Color(1, 0.75, 0.5))
 		return
-	tool_cd[tool] = TOOL_CD / (1.0 + Mastery.get_v(Game.profile, "shurikenjutsu") / 50.0)   # shurikenjutsu ustalığı: alet daha çabuk hazır
+	tool_cd[tool] = TOOL_CD / (1.0 + LazyFx.g("Mastery").get_v(Game.profile, "shurikenjutsu") / 50.0)   # shurikenjutsu ustalığı: alet daha çabuk hazır
 	action = "throw"
 	t = 0.0
 	var tgt = _auto_target(40.0)
@@ -1273,11 +1273,11 @@ func throw_tool() -> void:
 	p.model.play("throw", 0.05, 1.8, true)
 	Sfx.play(("throw_" + tool) if tool in ["kunai", "shuriken"] else "kunai", start)
 	var n = 3 if tool in ["shuriken", "senbon", "togarashi_dama", "toge_dama"] else 1
-	if Stats.has_unlock(Game.profile, "multi_throw") and tool in ["kunai", "shuriken"]:
+	if LazyFx.g("Stats").has_unlock(Game.profile, "multi_throw") and tool in ["kunai", "shuriken"]:
 		n += 2  # Silah Yağmuru
 	for i in n:
 		var dir = aim.rotated(Vector3.UP, deg_to_rad((i - (n - 1) * 0.5) * 8.0))
-		Mastery.gain(Game.profile, "shurikenjutsu", 0.2)   # atış: shurikenjutsu (0.01 idi: aletler 30 sn beklemeli, 1 puan ~2.5 saat)
+		LazyFx.g("Mastery").gain(Game.profile, "shurikenjutsu", 0.2)   # atış: shurikenjutsu (0.01 idi: aletler 30 sn beklemeli, 1 puan ~2.5 saat)
 		Projectile.tool(p, start, dir, tool, tgt)
 
 
@@ -1315,7 +1315,7 @@ func _do_chakra_dash(dt: float) -> bool:
 
 # ------------------------------------------------------------------ jutsu
 func begin_cast(jid: String) -> void:
-	if SpecialSlots.cast(p, jid):   # göz / kuyruklu canavar tekniği (slotta)
+	if LazyFx.g("SpecialSlots").cast(p, jid):   # göz / kuyruklu canavar tekniği (slotta)
 		return
 	if jid != "henge":
 		_break_henge()
@@ -1365,14 +1365,14 @@ func begin_cast(jid: String) -> void:
 	if Eyes.ms_tracked(jid) and modes and modes.eyes and not modes.eyes.ms_on:   # kanon: Mangekyō teknikleri ancak Mangekyō açıkken
 		Hud.msg("%s için Mangekyō açık olmalı (V: Sharingan, tekrar V: Mangekyō)." % String(j["name"]), Color(1, 0.4, 0.4))
 		return
-	var cblock = CanonRules.block(p, jid)
+	var cblock = LazyFx.g("CanonRules").block(p, jid)
 	if cblock != "":
 		Hud.msg("%s: %s" % [String(j["name"]), cblock], Color(1, 0.65, 0.45))
 		return
-	if CanonRules.dmg_mult(p, jid) < 1.0:
+	if LazyFx.g("CanonRules").dmg_mult(p, jid) < 1.0:
 		Hud.msg("Yakında su yok — suyu kendi chakrandan üretiyorsun: yarı güç.", Color(0.6, 0.8, 1.0))
-	if not PathJutsu.gate_ok(p, jid):
-		Hud.msg("%s için en az %d. kapı açık olmalı — Hachimon Tonkō ile kapıları aç." % [String(j["name"]), int(PathJutsu.GATE_REQ[jid])], Color(1, 0.6, 0.45))
+	if not LazyFx.g("PathJutsu").gate_ok(p, jid):
+		Hud.msg("%s için en az %d. kapı açık olmalı — Hachimon Tonkō ile kapıları aç." % [String(j["name"]), int(LazyFx.g("PathJutsu").GATE_REQ[jid])], Color(1, 0.6, 0.45))
 		return
 	if need == "jin:any" and TailedBeasts.player_jinchuriki() == "":
 		Hud.msg("%s yalnız bir jinchūriki kullanabilir." % String(j["name"]), Color(1, 0.6, 0.45))
@@ -1380,19 +1380,19 @@ func begin_cast(jid: String) -> void:
 	if need.begins_with("jin:") and need != "jin:any" and TailedBeasts.player_jinchuriki() != need.substr(4):   # kanon: canavarın kendi tekniği
 		Hud.msg("%s yalnız %s jinchūrikisi kullanabilir." % [String(j["name"]), "Sekiz Kuyruk" if need.substr(4) == "gyuki" else need.substr(4).capitalize()], Color(1, 0.6, 0.45))
 		return
-	if need.begins_with("contract:") and not Contracts.signed(need.substr(9)):   # kanon: çağrı hayvanının tekniği (Enma -> Kongōnyoi)
-		Hud.msg("%s için %s gerekir." % [String(j["name"]), String(Contracts.DEFS.get(need.substr(9), {}).get("name", need.substr(9)))], Color(1, 0.75, 0.45))
+	if need.begins_with("contract:") and not LazyFx.g("Contracts").signed(need.substr(9)):   # kanon: çağrı hayvanının tekniği (Enma -> Kongōnyoi)
+		Hud.msg("%s için %s gerekir." % [String(j["name"]), String(LazyFx.g("Contracts").DEFS.get(need.substr(9), {}).get("name", need.substr(9)))], Color(1, 0.75, 0.45))
 		return
-	if need.begins_with("own:") and not need.substr(4) in Gear.owned_ids(Game.profile):   # sahip olunan araç (Altı Yol hazineleri)
-		Hud.msg("%s için %s gerekir." % [String(j["name"]), String(Gear.item(need.substr(4)).get("name", need.substr(4)))], Color(1, 0.75, 0.45))
+	if need.begins_with("own:") and not need.substr(4) in LazyFx.g("Gear").owned_ids(Game.profile):   # sahip olunan araç (Altı Yol hazineleri)
+		Hud.msg("%s için %s gerekir." % [String(j["name"]), String(LazyFx.g("Gear").item(need.substr(4)).get("name", need.substr(4)))], Color(1, 0.75, 0.45))
 		return
-	if need.begins_with("weapon:") and not need.substr(7) in Gear.held_ids(Game.profile):   # kılıca özgü teknik
-		Hud.msg("%s için %s kuşanmalısın." % [String(j["name"]), String(Gear.item(need.substr(7)).get("name", need.substr(7)))], Color(1, 0.75, 0.45))
+	if need.begins_with("weapon:") and not need.substr(7) in LazyFx.g("Gear").held_ids(Game.profile):   # kılıca özgü teknik
+		Hud.msg("%s için %s kuşanmalısın." % [String(j["name"]), String(LazyFx.g("Gear").item(need.substr(7)).get("name", need.substr(7)))], Color(1, 0.75, 0.45))
 		return
 	if need == "islak_zemin":
 		var tgj = _cast_target()
 		var gpos: Vector3 = tgj.global_position if tgj else p.aim_point(40.0)
-		if not ClanMech.prepared_ground(gpos):
+		if not LazyFx.g("ClanMech").prepared_ground(gpos):
 			Hud.msg("%s için zemini hazırla: toprağı kır (Doton) ve su ekle (Suiton) — ya da çamur/su başında kullan." % String(j["name"]), Color(0.7, 0.85, 0.5))
 			return
 	if need == "sototoro" and not (Buffs.has("sototoro") or Buffs.has("santoro")):   # kanon: ninkenle birleşik kurt biçiminde
@@ -1416,13 +1416,13 @@ func begin_cast(jid: String) -> void:
 	if need == "juin2" and not Buffs.has("juin2"):   # kanon: Kimimaro yalnız lanet mührünün ikinci aşamasında
 		Hud.msg("%s için Lanetli Mühür'ün ikinci aşamasında olmalısın." % String(j["name"]), Color(0.85, 0.55, 1.0))
 		return
-	if need.begins_with("contract:") and not Contracts.signed(need.substr(9)):   # kurbağa yağı vb.: sözleşme gerekir
-		Hud.msg("%s için %s gerekli." % [String(j["name"]), String(Contracts.DEFS.get(need.substr(9), {}).get("name", "çağırma sözleşmesi"))], Color(1, 0.7, 0.4))
+	if need.begins_with("contract:") and not LazyFx.g("Contracts").signed(need.substr(9)):   # kurbağa yağı vb.: sözleşme gerekir
+		Hud.msg("%s için %s gerekli." % [String(j["name"]), String(LazyFx.g("Contracts").DEFS.get(need.substr(9), {}).get("name", "çağırma sözleşmesi"))], Color(1, 0.7, 0.4))
 		return
 	if need.begins_with("beast:"):   # belirli canavarın tekniği (Shukaku'nun fūtonu, Kurama'nın Rasenshurikeni...)
 		var bid = need.substr(6)
 		if not in_beast or modes.cloak == null or modes.cloak.beast_id() != bid:
-			var bn = String(BeastModels.INFO.get(bid, {}).get("name", bid)).split(" —")[0]
+			var bn = String(LazyFx.g("BeastModels").INFO.get(bid, {}).get("name", bid)).split(" —")[0]
 			Hud.msg("%s sadece %s jinchūriki'si olarak, canavar modundayken atılabilir." % [String(j["name"]), bn], Color(1, 0.55, 0.3))
 			return
 	if jid == "byoen_hoka" and (modes == null or modes.cloak == null or modes.cloak.level < 6):   # kanon: yalnız Matatabi'ye tam dönüşmüşken
@@ -1440,13 +1440,13 @@ func begin_cast(jid: String) -> void:
 	if Game.has_meta("sandbox"):
 		cost = 0.0
 	# klan kuralı: Akimichi kalorisi, Aburame kikaichū kolonisi, Inuzuka ortak teknikleri köpekle
-	var cm_block = ClanMech.cast_block(jid, j)
+	var cm_block = LazyFx.g("ClanMech").cast_block(jid, j)
 	if cm_block != "" and not Game.has_meta("sandbox"):
 		Hud.msg(cm_block, Color(1, 0.75, 0.45))
 		return
-	var tai = Stats.is_taijutsu(j)   # taijutsu chakra değil stamina harcar
+	var tai = LazyFx.g("Stats").is_taijutsu(j)   # taijutsu chakra değil stamina harcar
 	if tai and not Game.has_meta("sandbox"):
-		cost = Stats.tai_stamina_cost(j)   # stamina bedeli seviyeyle şişmez (büyüyen şey stamina barı: dayanıklılık/taijutsu ustalığı)
+		cost = LazyFx.g("Stats").tai_stamina_cost(j)   # stamina bedeli seviyeyle şişmez (büyüyen şey stamina barı: dayanıklılık/taijutsu ustalığı)
 	if tai and p.stamina < cost:
 		Hud.msg("Nefesin tükendi! Biraz soluklan (stamina)", Color(1, 0.75, 0.35))
 		return
@@ -1454,17 +1454,17 @@ func begin_cast(jid: String) -> void:
 		Hud.msg("Yeterli chakra yok! [C] ile chakra topla", Color(0.5, 0.8, 1))
 		return
 	# ninjutsu ustalığı: yetersizse teknik yapılamaz; sınırdaysa mühür bozulabilir (yaptıkça gelişme)
-	var mc = "" if Game.has_meta("sandbox") else Mastery.cast_check(Game.profile, j)
+	var mc = "" if Game.has_meta("sandbox") else LazyFx.g("Mastery").cast_check(Game.profile, j)
 	if mc != "" and not mc.begins_with("fail:"):
 		Hud.msg(mc, Color(1, 0.55, 0.45))
 		return
 	_seal_fail = mc.begins_with("fail:") and randf() < float(mc.substr(5))
 	if tai:
 		p.spend_stamina(cost)
-		Mastery.gain(Game.profile, "dayaniklilik", cost / 170.0)   # beden zorladıkça dayanıklılık gelişir (2026-11-22: /500 çok yavaştı)
+		LazyFx.g("Mastery").gain(Game.profile, "dayaniklilik", cost / 170.0)   # beden zorladıkça dayanıklılık gelişir (2026-11-22: /500 çok yavaştı)
 	else:
 		p.chakra -= cost
-	ClanMech.pay(jid, j)
+	LazyFx.g("ClanMech").pay(jid, j)
 	cooldowns[jid] = Combat.jutsu_cd(j)
 	cd_max[jid] = cooldowns[jid]
 	_jdmg[jid] = 0.0
@@ -1513,15 +1513,15 @@ func _do_cast(dt: float) -> bool:
 			FX.smoke_puff(p.global_position + Vector3.UP * 1.3 + p.face_dir() * 0.4, 0.35, 5)
 			Combat.popup_text(p.global_position + Vector3.UP * 2.3, "Mühür bozuldu!", Color(1, 0.6, 0.4))
 			cooldowns[cast_jutsu] = minf(float(cooldowns.get(cast_jutsu, 0.0)), 2.0)
-			Mastery.gain(Game.profile, Mastery.branch_of(jd), 0.1 * (1.0 + int(jd.get("tier", 2)) * 0.3))
+			LazyFx.g("Mastery").gain(Game.profile, LazyFx.g("Mastery").branch_of(jd), 0.1 * (1.0 + int(jd.get("tier", 2)) * 0.3))
 			return true
-		var br = Mastery.branch_of(jd)   # teknik kendi dalını geliştirir (genjutsu, fūinjutsu, tıbbi...)
+		var br = LazyFx.g("Mastery").branch_of(jd)   # teknik kendi dalını geliştirir (genjutsu, fūinjutsu, tıbbi...)
 		for jel in ([String(jd.get("element", ""))] if (jd.get("elements", []) as Array).is_empty() else jd["elements"]):
-			Mastery.gain_el(Game.profile, String(jel), 0.3 * (1.0 + int(jd.get("tier", 2)) * 0.35))   # doğa ustalığı: iki doğada ustalaşan birleştirir
-		Mastery.gain(Game.profile, br, 0.3 * (1.0 + int(jd.get("tier", 2)) * 0.35))   # temel teknikler (Henge) de hissedilir ilerletir: ~20 Henge -> Bunshin
+			LazyFx.g("Mastery").gain_el(Game.profile, String(jel), 0.3 * (1.0 + int(jd.get("tier", 2)) * 0.35))   # doğa ustalığı: iki doğada ustalaşan birleştirir
+		LazyFx.g("Mastery").gain(Game.profile, br, 0.3 * (1.0 + int(jd.get("tier", 2)) * 0.35))   # temel teknikler (Henge) de hissedilir ilerletir: ~20 Henge -> Bunshin
 		if br != "ninjutsu" and br != "taijutsu" and br != "kenjutsu":
-			Mastery.gain(Game.profile, "ninjutsu", 0.06)   # chakra şekillendirme ortak temel
-		Mastery.gain(Game.profile, "chakra", jutsu_cost(jd) / 60.0)   # /360 idi: ninjutsudan ~7 kat yavaştı
+			LazyFx.g("Mastery").gain(Game.profile, "ninjutsu", 0.06)   # chakra şekillendirme ortak temel
+		LazyFx.g("Mastery").gain(Game.profile, "chakra", jutsu_cost(jd) / 60.0)   # /360 idi: ninjutsudan ~7 kat yavaştı
 		Jutsu.execute(p, cast_jutsu, tg)
 		Progress.on_technique_used(cast_jutsu)
 	return true
@@ -1531,11 +1531,11 @@ func _do_cast(dt: float) -> bool:
 func take_hit(info: Dictionary) -> void:
 	if invuln > 0.0 or p.hp <= 0.0 or is_instance_valid(Ceremony.cur) or Cheats.on("god"):   # tören sahnesi sürerken kimse vuramaz; hile: ölümsüzlük
 		if modes and modes.eyes and modes.eyes.phasing:
-			MsArts.kamui_ripple(p)   # Kamui geçirgenliği: darbe içinden geçti
+			LazyFx.g("MsArts").kamui_ripple(p)   # Kamui geçirgenliği: darbe içinden geçti
 		return
 	if modes and modes.on_player_hit(info):
 		return
-	ClanMech.on_player_hit(info)
+	LazyFx.g("ClanMech").on_player_hit(info)
 	Jutsu.kurama_ido_check(p)   # Kurama: can düşünce Ido uyanabilir
 	if p.has_meta("shintenshin_t"):   # boş bedene darbe: Yamanaka'nın ruhu bedene geri çekilir
 		Combat.popup_text(p.global_position + Vector3.UP * 2.4, "Ruh bedene döndü!", Color(0.8, 0.65, 1))
@@ -1547,8 +1547,8 @@ func take_hit(info: Dictionary) -> void:
 	var atk: Node3D = info.get("attacker")
 	var dmg: float = info.get("dmg", 5.0) * Combat.jutsu_factor(info)
 	dmg *= Combat.element_mult(info.get("element", ""), Game.profile.get("elements", [""])[0])
-	dmg *= 1.0 - Gear.elem_resist(p, String(info.get("element", "")))   # kıyafet seti element direnci
-	dmg *= Elements.on_hit(p, info)  # ıslak/yanık/donma etkileşimleri oyuncuya da işler
+	dmg *= 1.0 - LazyFx.g("Gear").elem_resist(p, String(info.get("element", "")))   # kıyafet seti element direnci
+	dmg *= LazyFx.g("Elements").on_hit(p, info)  # ıslak/yanık/donma etkileşimleri oyuncuya da işler
 	if action == "guard" and atk and is_instance_valid(atk):
 		var to_atk = (atk.global_position - p.global_position)
 		to_atk.y = 0
@@ -1557,7 +1557,7 @@ func take_hit(info: Dictionary) -> void:
 		var fdot = to_atk.normalized().dot(p.face_dir()) if to_atk.length() >= 0.3 else 1.0
 		if fdot > 0.1 or (byaku and fdot > -0.9):
 			var tier = int(info.get("tier", -1))
-			var gskill = clampf(Stats.skill(Game.profile, "guard"), 0.0, 0.8)
+			var gskill = clampf(LazyFx.g("Stats").skill(Game.profile, "guard"), 0.0, 0.8)
 			if guard_t < 0.18 and tier < 3:
 				# mükemmel blok (yakın dövüş ve küçük jutsu): saldıran sendeler
 				Combat.popup_text(p.global_position + Vector3.UP * 2.2, "MÜKEMMEL!", Color(0.6, 0.9, 1))
@@ -1592,7 +1592,7 @@ func take_hit(info: Dictionary) -> void:
 					Combat.damage_number(p.global_position + Vector3.UP * 2.0, dmg, Color(0.75, 0.8, 1.0))
 				if p.hp <= 0.0:
 					p.hp = 0.0
-					if not ClanMech.try_extra_life():
+					if not LazyFx.g("ClanMech").try_extra_life():
 						Progress.on_player_died()
 				return
 	p.hp -= dmg
@@ -1602,10 +1602,10 @@ func take_hit(info: Dictionary) -> void:
 		# ölüm işlenmiyor, Kakuzu kalpleri / İzanagi de devreye girmiyordu
 		p.hp = 0.0
 		Combat.damage_number(p.global_position + Vector3.UP * 2.0, dmg, Color(1, 0.4, 0.35))
-		if not ClanMech.try_extra_life():
+		if not LazyFx.g("ClanMech").try_extra_life():
 			Progress.on_player_died()
 		return
-	Mastery.gain(Game.profile, "dayaniklilik", clampf(dmg / maxf(1.0, p.max_hp), 0.0, 0.5) * 1.2)   # dayak yedikçe dayanıklılık (2026-11-22: 0.4 çok yavaştı)
+	LazyFx.g("Mastery").gain(Game.profile, "dayaniklilik", clampf(dmg / maxf(1.0, p.max_hp), 0.0, 0.5) * 1.2)   # dayak yedikçe dayanıklılık (2026-11-22: 0.4 çok yavaştı)
 	last_hit_t = 0.0
 	# Jashin laneti: çemberdeyken sana gelen acı bağlı hedefe de gelir
 	if p.has_meta("jashin_link"):
@@ -1702,5 +1702,5 @@ func take_hit(info: Dictionary) -> void:
 	p.model.overlay.set_pose("guard", 0.0)
 	if p.hp <= 0.0:
 		p.hp = 0.0
-		if not ClanMech.try_extra_life():
+		if not LazyFx.g("ClanMech").try_extra_life():
 			Progress.on_player_died()

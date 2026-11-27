@@ -65,7 +65,7 @@ var dyn: Control
 var _fills := {}     # hp / ck / xp / kr -> ColorRect (GPU gölgelendirici dolgu: akan enerji dokusu)
 static var _fill_shader: Shader
 var portrait_tex: Texture2D = null
-var el_col: Color = UI.GOLD
+var el_col: Color = LazyFx.g("UI").GOLD
 
 static var _ink: Font
 static var _cond: Font
@@ -222,18 +222,18 @@ func _draw() -> void:
 	_draw_portrait()
 	_draw_name()
 	var cf = cond_font()
-	draw_style_box(UI.brush(Color(0.02, 0.018, 0.016, 0.88), "a", 0), Rect2(122, 59, 330, 26))
-	_t(self, UI.font(true), Vector2(140, 78), String(st["rank_txt"]), 18, Color(1.0, 0.86, 0.5), 2, Color(0.05, 0.03, 0.02, 0.92))
+	draw_style_box(LazyFx.g("UI").brush(Color(0.02, 0.018, 0.016, 0.88), "a", 0), Rect2(122, 59, 330, 26))
+	_t(self, LazyFx.g("UI").font(true), Vector2(140, 78), String(st["rank_txt"]), 18, Color(1.0, 0.86, 0.5), 2, Color(0.05, 0.03, 0.02, 0.92))
 	_bar_frame(HP_R)
 	_bar_frame(CK_R)
 	_bar_frame(ST_R)
 	_bar_frame(XP_R)
 	_ticks(XP_R)
 	_leaf(Vector2(COL_X + 11, XP_R.get_center().y), 22.0)
-	_t(self, cf, Vector2(COL_X + 28, XP_R.get_center().y + 6), Lang.t("GÜÇ"), 17, Color(0.98, 0.7, 0.38), 4)
+	_t(self, cf, Vector2(COL_X + 28, XP_R.get_center().y + 6), LazyFx.g("Lang").t("GÜÇ"), 17, Color(0.98, 0.7, 0.38), 4)
 	# Ryō + kütük satırı: kısa mürekkep oluk üstünde
-	draw_style_box(UI.brush(Color(0.02, 0.018, 0.016, 0.72), "a", 0), Rect2(BX - 10, 182, 250, 32))
-	draw_style_box(UI.brush(Color(0.02, 0.018, 0.016, 0.72), "s", 0), Rect2(408, 182, 130, 32))
+	draw_style_box(LazyFx.g("UI").brush(Color(0.02, 0.018, 0.016, 0.72), "a", 0), Rect2(BX - 10, 182, 250, 32))
+	draw_style_box(LazyFx.g("UI").brush(Color(0.02, 0.018, 0.016, 0.72), "s", 0), Rect2(408, 182, 130, 32))
 	_coins(Vector2(BX + 6, 198))
 	var cl: Dictionary = st["clan"]
 	if not cl.is_empty():
@@ -246,7 +246,7 @@ func _draw() -> void:
 func _draw_dyn() -> void:
 	if st.is_empty():
 		return
-	var f = UI.font(true)
+	var f = LazyFx.g("UI").font(true)
 	var cf = cond_font()
 	# çubukların üst kenarında ince parlak çizgi (dolgunun üstünde: ıslak yüzey)
 	for r in [HP_R, CK_R, ST_R]:
@@ -283,8 +283,8 @@ func _bar_frame(r: Rect2) -> void:
 	var th := r.size.y
 	var pad := clampf(th * 0.55, 5.0, 12.0)
 	var g := Rect2(r.position.x - 16.0, r.position.y - pad, r.size.x + 44.0, th + pad * 2.0)   # kuru kuyruk çubuğun ucunda biter, sayılara taşmaz
-	draw_style_box(UI.brush(Color(0, 0, 0, 0.35), "a", 0), Rect2(g.position + Vector2(2, 3), g.size))
-	draw_style_box(UI.brush(Color(0.025, 0.022, 0.02, 0.9), "a", 0), g)
+	draw_style_box(LazyFx.g("UI").brush(Color(0, 0, 0, 0.35), "a", 0), Rect2(g.position + Vector2(2, 3), g.size))
+	draw_style_box(LazyFx.g("UI").brush(Color(0.025, 0.022, 0.02, 0.9), "a", 0), g)
 	draw_rect(r.grow(1.0), Color(0, 0, 0, 0.85))
 	draw_rect(r, Color(0.075, 0.066, 0.058))
 	draw_rect(Rect2(r.position, Vector2(r.size.x, minf(3.0, th * 0.3))), Color(0, 0, 0, 0.45))   # iç gölge
@@ -301,19 +301,19 @@ func _ticks(r: Rect2) -> void:
 func _draw_name() -> void:
 	var plate := Rect2(118, 2, 364, 54)
 	var sb := StyleBoxTexture.new()
-	sb.texture = UI._t("washi")
+	sb.texture = LazyFx.g("UI")._t("washi")
 	sb.set_texture_margin_all(16)
 	sb.modulate_color = Color(0, 0, 0, 0.4)
 	draw_style_box(sb, Rect2(plate.position + Vector2(3, 4), plate.size))
 	sb.modulate_color = Color.WHITE
 	draw_style_box(sb, plate)
 	var nm := String(st["name"])
-	var f = UI.title_font()
+	var f = LazyFx.g("UI").title_font()
 	var fs := 38
 	while fs > 18 and f.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x > 270.0:
 		fs -= 2
-	var nw := f.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-	var nx := plate.position.x + 18.0 + (290.0 - nw) * 0.5
+	var nw = f.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	var nx = plate.position.x + 18.0 + (290.0 - nw) * 0.5
 	var ny := plate.get_center().y + fs * 0.34
 	var ink := Color(0.09, 0.06, 0.045)
 	draw_string(f, Vector2(nx, ny + 1.0), nm, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(ink, 0.25))
@@ -321,30 +321,30 @@ func _draw_name() -> void:
 	draw_string(f, Vector2(nx, ny), nm, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, ink)
 	# hanko: rütbe mührü
 	var hr := Rect2(plate.end.x - 50, plate.position.y + 9, 36, 36)
-	draw_texture_rect(UI._t("seal"), hr, false, Color(UI.ACCENT, 0.92))
-	var kf = UI.seal_font()
+	draw_texture_rect(LazyFx.g("UI")._t("seal"), hr, false, Color(LazyFx.g("UI").ACCENT, 0.92))
+	var kf = LazyFx.g("UI").seal_font()
 	var ch := "忍"
-	var cw := kf.get_string_size(ch, HORIZONTAL_ALIGNMENT_LEFT, -1, 24).x
+	var cw = kf.get_string_size(ch, HORIZONTAL_ALIGNMENT_LEFT, -1, 24).x
 	draw_string(kf, Vector2(hr.get_center().x - cw * 0.5, hr.get_center().y + 9), ch, HORIZONTAL_ALIGNMENT_LEFT, -1, 24, Color(1, 0.95, 0.88, 0.95))
 
 
 func _draw_portrait() -> void:
 	# kâğıda yayılmış mürekkep lekesi zemin
-	draw_texture_rect(UI._t("ink_disc"), Rect2(C - Vector2(90, 90), Vector2(180, 180)), false, Color(0.025, 0.022, 0.02, 0.92))
+	draw_texture_rect(LazyFx.g("UI")._t("ink_disc"), Rect2(C - Vector2(90, 90), Vector2(180, 180)), false, Color(0.025, 0.022, 0.02, 0.92))
 	draw_circle(C, 43.0, el_col.darkened(0.72))
 	if portrait_tex:
 		draw_texture_rect(portrait_tex, Rect2(C - Vector2(41, 41), Vector2(82, 82)), false)
 	else:
 		var nm := String(st["name"]).substr(0, 1).to_upper()
-		var fb = UI.title_font()
-		var w := fb.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, 40).x
-		draw_string(fb, C + Vector2(-w * 0.5, 14), nm, HORIZONTAL_ALIGNMENT_LEFT, -1, 40, UI.CREAM)
+		var fb = LazyFx.g("UI").title_font()
+		var w = fb.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, 40).x
+		draw_string(fb, C + Vector2(-w * 0.5, 14), nm, HORIZONTAL_ALIGNMENT_LEFT, -1, 40, LazyFx.g("UI").CREAM)
 	draw_arc(C, 43.0, 0.0, TAU, 64, Color(0, 0, 0, 0.75), 2.5, true)
-	draw_arc(C, 45.0, 0.0, TAU, 64, Color(UI.CREAM, 0.18), 1.0, true)
+	draw_arc(C, 45.0, 0.0, TAU, 64, Color(LazyFx.g("UI").CREAM, 0.18), 1.0, true)
 	# ensō: önce gölgesi, sonra kırmızı fırça halkası
 	var er := Rect2(C - Vector2(78, 78), Vector2(156, 156))
-	draw_texture_rect(UI._t("enso"), Rect2(er.position + Vector2(2, 3), er.size), false, Color(0, 0, 0, 0.55))
-	draw_texture_rect(UI._t("enso"), er, false, UI.ACCENT)
+	draw_texture_rect(LazyFx.g("UI")._t("enso"), Rect2(er.position + Vector2(2, 3), er.size), false, Color(0, 0, 0, 0.55))
+	draw_texture_rect(LazyFx.g("UI")._t("enso"), er, false, LazyFx.g("UI").ACCENT)
 	# rütbe: halkanın altında altı elmas; kazanılan = krem, içinde kırmızı nokta; kalan = koyu, ince krem kenar
 	for i in 6:
 		var a := PI * 0.5 + (float(i) - 2.5) * 0.25
@@ -355,12 +355,12 @@ func _draw_portrait() -> void:
 			dsh.append(q + Vector2(1, 1.5))
 		draw_colored_polygon(dsh, Color(0, 0, 0, 0.6))
 		if i < int(st["rk"]):
-			draw_colored_polygon(d, UI.CREAM)
+			draw_colored_polygon(d, LazyFx.g("UI").CREAM)
 			_outline(d, Color(0.08, 0.05, 0.03, 0.9), 1.2)
-			draw_circle(sp, 1.6, UI.ACCENT)
+			draw_circle(sp, 1.6, LazyFx.g("UI").ACCENT)
 		else:
 			draw_colored_polygon(d, Color(0.06, 0.055, 0.05, 0.92))
-			_outline(d, Color(UI.CREAM, 0.45), 1.0)
+			_outline(d, Color(LazyFx.g("UI").CREAM, 0.45), 1.0)
 
 
 ## Ryō: ipe dizili mon sikkeleri (yan yana üç yığın), soluk altın, kare delik, mürekkep kenar
@@ -381,7 +381,7 @@ func _coins(base: Vector2) -> void:
 			_outline(top, Color(0.12, 0.07, 0.02, 0.85), 1.0)
 			draw_rect(Rect2(x - 2.0, cy - 1.0, 4.0, 2.0), Color(0.1, 0.06, 0.02))
 	# ip: sikkelerin ortasından geçen kırmızı bağ
-	draw_line(base + Vector2(-6, -6), base + Vector2(40, -4), Color(UI.ACCENT, 0.9), 1.5, true)
+	draw_line(base + Vector2(-6, -6), base + Vector2(40, -4), Color(LazyFx.g("UI").ACCENT, 0.9), 1.5, true)
 
 
 ## Kawarimi kütüğü: yuvarlak ahşap kesit + gövde, mürekkep kontur ve halkalar; hak yoksa sönük
@@ -440,6 +440,6 @@ func _gem(c: Vector2, col: Color) -> void:
 	var inner := PackedVector2Array([c + Vector2(0, -7), c + Vector2(5.5, 0), c + Vector2(0, 7), c + Vector2(-5.5, 0)])
 	draw_colored_polygon(PackedVector2Array([outer[0] + Vector2(0, 2), outer[1] + Vector2(0, 2), outer[2] + Vector2(0, 2), outer[3] + Vector2(0, 2)]), Color(0, 0, 0, 0.45))
 	draw_colored_polygon(outer, Color(0.05, 0.045, 0.04))
-	_outline(outer, Color(UI.TEXT, 0.45), 1.0)
+	_outline(outer, Color(LazyFx.g("UI").TEXT, 0.45), 1.0)
 	draw_colored_polygon(inner, col)
 	draw_line(c + Vector2(-2, -3), c + Vector2(1, -5), Color(1, 1, 1, 0.7), 1.2, true)

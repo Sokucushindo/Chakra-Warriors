@@ -154,7 +154,7 @@ class Animal extends Node3D:
 				b.add("sphere", Vector3(0, 1.0, 0.35), Vector3(0.25, 0.15, 0.3), Color(0.12, 0.12, 0.14), Vector3.ZERO, 6)
 				run_speed = 7.0
 		var mi = MeshInstance3D.new()
-		mi.mesh = b.build(Props.toon())
+		mi.mesh = b.build(LazyFx.g("Props").toon())
 		body.add_child(mi)
 		for sx in [-1.0, 1.0]:
 			for sz in ([-leg_z, leg_z] if leg_z > 0.0 else [0.0]):
@@ -173,7 +173,7 @@ class Animal extends Node3D:
 				else:
 					lb.add("cyl", Vector3(0, -leg_h * 0.5, 0), Vector3(leg_r * 2.0, leg_h, leg_r * 2.0), lc, Vector3.ZERO, 5)
 				var lm = MeshInstance3D.new()
-				lm.mesh = lb.build(Props.toon())
+				lm.mesh = lb.build(LazyFx.g("Props").toon())
 				pivot.add_child(lm)
 				legs.append([pivot, 0.0 if (sx > 0) == (sz > 0) else PI])
 		goal = global_position

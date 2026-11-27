@@ -259,7 +259,7 @@ static func _mesh(key: String, fn: Callable) -> Mesh:
 	if not _c.has(key):
 		var b = MB.new()
 		fn.call(b)
-		_c[key] = b.build(Props.toon())
+		_c[key] = b.build(LazyFx.g("Props").toon())
 	return _c[key]
 
 
@@ -328,10 +328,10 @@ static func _chips(p: Vector3, n: int) -> void:
 	if not _c.has("mesh:chip"):
 		var b = MB.new()
 		b.add("box", Vector3.ZERO, Vector3(0.012, 0.006, 0.06), Color(0.72, 0.62, 0.42))
-		_c["mesh:chip"] = b.build(Props.toon())
+		_c["mesh:chip"] = b.build(LazyFx.g("Props").toon())
 		var b2 = MB.new()
 		b2.add("box", Vector3.ZERO, Vector3(0.03, 0.002, 0.05), Color(0.95, 0.94, 0.9))
-		_c["mesh:tuft"] = b2.build(Props.toon())
+		_c["mesh:tuft"] = b2.build(LazyFx.g("Props").toon())
 	for k in n:
 		var mi = MeshInstance3D.new()
 		mi.mesh = _c["mesh:tuft"] if k % 3 == 0 else _c["mesh:chip"]

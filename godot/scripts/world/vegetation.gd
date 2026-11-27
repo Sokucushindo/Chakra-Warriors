@@ -65,22 +65,22 @@ var _walls: Array = []      # [x, y(harita), sur yarıçapı]: sur boyunca ağa�
 func _ready() -> void:
 	for t in 21:
 		# prosedürel bitki örtüsü (hazır model ağaçlar doğal durmuyordu, kaldırıldı): yakın tam model + uzak LOD
-		meshes[t] = [[Props.vegetation_mesh(t), null]]
+		meshes[t] = [[LazyFx.g("Props").vegetation_mesh(t), null]]
 		var_count[t] = 1
 		if t in [0, 9, 1]:   # anime ağaçları (çam: köknar / kara çam): birkaç çeşit (geniş / ince / meşe; orman devlerinde iki farklı taç)
 			meshes[t] = []
 			for vv in (3 if t == 0 else 2):
-				meshes[t].append([Props.vegetation_mesh(t, vv), null])
+				meshes[t].append([LazyFx.g("Props").vegetation_mesh(t, vv), null])
 			var_count[t] = meshes[t].size()
 			if t == 9:
-				meshes[t].append([AnimeTree.mesh("forest", "death", 2), null])   # yalnız Ölüm Ormanı (var_count dışında)
+				meshes[t].append([LazyFx.g("AnimeTree").mesh("forest", "death", 2), null])   # yalnız Ölüm Ormanı (var_count dışında)
 		if t == 12:   # çiçek öbekleri: 6 farklı tür (öbek öbek, her öbekte tek tür)
 			meshes[t] = []
-			for v in Props.FLOWER_KINDS:
-				meshes[t].append([Props.flower_mesh(v), null])
-			var_count[t] = Props.FLOWER_KINDS
-		lods[t] = Props.vegetation_lod(t)
-		fars[t] = Props.vegetation_far(t)
+			for v in LazyFx.g("Props").FLOWER_KINDS:
+				meshes[t].append([LazyFx.g("Props").flower_mesh(v), null])
+			var_count[t] = LazyFx.g("Props").FLOWER_KINDS
+		lods[t] = LazyFx.g("Props").vegetation_lod(t)
+		fars[t] = LazyFx.g("Props").vegetation_far(t)
 	for t in CONVEX:
 		convex[t] = []
 		for v in meshes[t]:
@@ -118,11 +118,11 @@ func _ready() -> void:
 		cs.shape = CylinderShape3D.new()
 		cs.set_meta("cyl", cs.shape)
 		sb.add_child(cs)
-		for br in Props.FOREST_BRANCHES:
+		for br in LazyFx.g("Props").FOREST_BRANCHES:
 			var bc = CollisionShape3D.new()
 			bc.shape = BoxShape3D.new()
 			sb.add_child(bc)
-		for q in 6 + AnimeTree.MAX_ROOT_COLS:   # anime ağacı dalları + kökleri (kapsül): içlerinden geçilmesin
+		for q in 6 + LazyFx.g("AnimeTree").MAX_ROOT_COLS:   # anime ağacı dalları + kökleri (kapsül): içlerinden geçilmesin
 			var lc = CollisionShape3D.new()
 			lc.shape = CapsuleShape3D.new()
 			lc.disabled = true
@@ -423,11 +423,11 @@ func _install(key: Vector2i, detail: bool, holder: Dictionary) -> void:
 		else:
 			var a = _mmi(node, pv[0], buf, n, 0.0, near_end if has_lod or t in SMALL else FAR_R * 1.2 * view)
 			a.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if not t in SMALL else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-			if has_lod and not t in SMALL and t in Props.ANIME_T:
+			if has_lod and not t in SMALL and t in LazyFx.g("Props").ANIME_T:
 				# anime ağacı: gölgeyi az kartlı uzak modelden at (tam taçtaki yüzlerce alfa-kesmeli kart x 4 gölge katmanı pahalı);
 				# gölge mesafesi zaten kısa (~150 m), yakın model yalnız görünür geçişte çizilir
 				a.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-				var sh2 = _mmi(node, Props.vegetation_shadow(t, vi), buf, n, 0.0, minf(near_end, 200.0))
+				var sh2 = _mmi(node, LazyFx.g("Props").vegetation_shadow(t, vi), buf, n, 0.0, minf(near_end, 200.0))
 				sh2.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
 				if t in [9, 5]:
 					# orman devleri: gölge OPAK atılır. Yaprak kartlarının saydamlık kesmeli gölgesi ormanda ekran kartı süresinin
@@ -479,11 +479,11 @@ func _proxy(t: int) -> ArrayMesh:
 			b.add_grad("sphere", Vector3(0, 52, 0), Vector3(34, 20, 34), Color(0.22, 0.42, 0.2), Color(0.06, 0.16, 0.07), Vector3.ZERO, 4)
 			b.add("cyl", Vector3(0, 22, 0), Vector3(5.0, 44, 5.0), Color(0.3, 0.2, 0.14), Vector3.ZERO, 3)
 		9:
-			b.add_grad("sphere", Vector3(0, Props.FOREST_TRUNK_H - 4.0, 0), Vector3(22, 16, 22), Color(0.32, 0.6, 0.24), Color(0.1, 0.26, 0.1), Vector3.ZERO, 4)
-			b.add("cyl", Vector3(0, Props.FOREST_TRUNK_H * 0.4, 0), Vector3(Props.FOREST_TRUNK_R * 2.0, Props.FOREST_TRUNK_H * 0.8, Props.FOREST_TRUNK_R * 2.0), Color(0.36, 0.25, 0.17), Vector3.ZERO, 3)
+			b.add_grad("sphere", Vector3(0, LazyFx.g("Props").FOREST_TRUNK_H - 4.0, 0), Vector3(22, 16, 22), Color(0.32, 0.6, 0.24), Color(0.1, 0.26, 0.1), Vector3.ZERO, 4)
+			b.add("cyl", Vector3(0, LazyFx.g("Props").FOREST_TRUNK_H * 0.4, 0), Vector3(LazyFx.g("Props").FOREST_TRUNK_R * 2.0, LazyFx.g("Props").FOREST_TRUNK_H * 0.8, LazyFx.g("Props").FOREST_TRUNK_R * 2.0), Color(0.36, 0.25, 0.17), Vector3.ZERO, 3)
 		_:
 			b.add_grad("sphere", Vector3(0, 7.0, 0), Vector3(8.5, 7.0, 8.5), Color(0.34, 0.6, 0.24), Color(0.12, 0.3, 0.12), Vector3.ZERO, 4)
-	var m = b.build(Props.foliage())
+	var m = b.build(LazyFx.g("Props").foliage())
 	_proxies[t] = m
 	return m
 
@@ -576,7 +576,7 @@ func _physics_process(_dt: float) -> void:
 			trunk.shape = convex[t][mini(int(tr[6]) if tr.size() > 6 else 0, convex[t].size() - 1)]
 			trunk.scale = Vector3.ONE * s
 			trunk.position = Vector3(0, 0.3, 0)
-			for b in Props.FOREST_BRANCHES.size():
+			for b in LazyFx.g("Props").FOREST_BRANCHES.size():
 				(sb.get_child(b + 1) as CollisionShape3D).disabled = true
 			continue
 		trunk.shape = trunk.get_meta("cyl")
@@ -584,7 +584,7 @@ func _physics_process(_dt: float) -> void:
 		var sh: CylinderShape3D = trunk.shape
 		var h = 10.0 * s
 		match t:
-			9: h = Props.FOREST_TRUNK_H * s
+			9: h = LazyFx.g("Props").FOREST_TRUNK_H * s
 			5: h = 60.0 * s
 			4: h = 2.2 * s
 			11: h = 4.5 * s
@@ -599,16 +599,16 @@ func _physics_process(_dt: float) -> void:
 		var mm0 = meshes[t][clampi(int(tr[6]) if tr.size() > 6 else 0, 0, (meshes[t] as Array).size() - 1)][0] if meshes.has(t) else null
 		if mm0 is ArrayMesh and (mm0 as ArrayMesh).has_meta("limbs"):
 			has_limbs = true
-		for b in Props.FOREST_BRANCHES.size():
+		for b in LazyFx.g("Props").FOREST_BRANCHES.size():
 			var bc: CollisionShape3D = sb.get_child(b + 1)
 			bc.disabled = t != 9 or has_limbs
 			if t == 9 and not has_limbs:
-				var br: Array = Props.FOREST_BRANCHES[b]
+				var br: Array = LazyFx.g("Props").FOREST_BRANCHES[b]
 				var a = deg_to_rad(br[1])
 				var L: float = br[2]
 				var d = Vector3(sin(a), 0, cos(a))
 				(bc.shape as BoxShape3D).size = Vector3(1.4, 0.8, L) * s
-				bc.transform = Transform3D(Basis(Vector3.UP, a), (d * (Props.FOREST_TRUNK_R + L * 0.5) + Vector3(0, br[0], 0)) * s)
+				bc.transform = Transform3D(Basis(Vector3.UP, a), (d * (LazyFx.g("Props").FOREST_TRUNK_R + L * 0.5) + Vector3(0, br[0], 0)) * s)
 
 
 ## Ağacın durumu değişti (kül oldu / yeniden yeşerdi): gövdesi bir sonraki fizik karesinde baştan kurulsun
@@ -656,7 +656,7 @@ func _set_limbs(sb: StaticBody3D, t: int, v: int, s: float) -> void:
 			var cap: CapsuleShape3D = lc.shape
 			cap.radius = maxf(0.12, float(L[2]) * s)
 			cap.height = maxf(cap.radius * 2.0 + 0.01, (b - a).length() + cap.radius * 2.0)
-			lc.transform = AnimeTree.limb_xf(a, b)
+			lc.transform = LazyFx.g("AnimeTree").limb_xf(a, b)
 			lc.disabled = false
 		else:
 			lc.disabled = true

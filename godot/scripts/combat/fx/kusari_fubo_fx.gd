@@ -27,14 +27,14 @@ static func _bell() -> Mesh:
 		b.add("frustum", Vector3(0, 0, 0.065), Vector3(0.11, 0.13, 0.11), blk, Vector3(-90, 0, 0), 10)
 		b.add("sphere", Vector3(0, 0, 0.13), Vector3(0.11, 0.11, 0.05), blk, Vector3.ZERO, 10)
 		b.add("box", Vector3(0.03, 0.03, 0.08), Vector3(0.008, 0.012, 0.07), Color(0.42, 0.42, 0.46))
-		return b.build(Props.toon()))
+		return b.build(LazyFx.g("Props").toon()))
 
 
 static func _link() -> Mesh:
 	return Kit.cached_mesh("fubo_halka", func():
 		var b = MB.new()
 		b.add("torus", Vector3.ZERO, Vector3(0.065, 0.09, 0.03), Color(0.1, 0.1, 0.12), Vector3.ZERO, 8)
-		return b.build(Props.toon()))
+		return b.build(LazyFx.g("Props").toon()))
 
 
 static func attach(node: Node3D, owner_body: Node3D) -> void:

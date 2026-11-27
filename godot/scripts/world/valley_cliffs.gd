@@ -150,7 +150,7 @@ static func _emit(b: Builder, mat: Material, pts: PackedVector3Array, cols: Pack
 static var _mat: ShaderMaterial
 static func material() -> ShaderMaterial:
 	if _mat == null:
-		_mat = Props.toon().duplicate()
+		_mat = LazyFx.g("Props").toon().duplicate()
 		_mat.set_shader_parameter("detail_tex", load("res://assets/tex/rock.png"))
 		_mat.set_shader_parameter("detail_tex_amt", 0.4)
 		_mat.set_shader_parameter("detail_tex_scale", 0.16)

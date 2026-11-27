@@ -140,7 +140,7 @@ static func _wire(who: Node3D, tg, aim: Vector3) -> void:
 static func _build_link() -> Mesh:
 	var b = MB.new()   # zincir çizgisi parçayı +Z boyunca dizer
 	b.add("cyl", Vector3.ZERO, Vector3(0.05, 0.24, 0.05), Color(0.12, 0.12, 0.14), Vector3(90, 0, 0), 6)
-	return b.build(Props.toon())
+	return b.build(LazyFx.g("Props").toon())
 
 
 ## El uçar: path(k), yakalarsa hedefi taşıyıp getirir

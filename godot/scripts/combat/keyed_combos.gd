@@ -1231,10 +1231,10 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 		_kote_fx(who, i, dmg)
 		return
 	if id == "nanato":
-		NanatoFX.strike(who, i, dmg)
+		LazyFx.g("NanatoFX").strike(who, i, dmg)
 		return
 	if id == "kokuto":
-		KokutoFX.strike(who, i, dmg)
+		LazyFx.g("KokutoFX").strike(who, i, dmg)
 		return
 	if id == "amagasa":
 		AmagasaFX.strike(who, i, dmg)
@@ -1381,7 +1381,7 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 		SapanFX.strike(who, i, dmg)
 		return
 	if id == "shichiseiken":
-		KinginFX.curse_hit(who)   # Kōkinjō ile söz ruhu çekilmiş hedef: lanet
+		LazyFx.g("KinginFX").curse_hit(who)   # Kōkinjō ile söz ruhu çekilmiş hedef: lanet
 		return
 	var f: Vector3 = who.face_dir() if who.has_method("face_dir") else -who.global_transform.basis.z
 	f.y = 0
@@ -1438,7 +1438,7 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 				1:   # Nui Tsuki: iğne öndekinden arkasındakine geçer (hat boyu delme)
 					for k in 5:
 						Combat.hit_sphere(who, who.global_position + Vector3.UP * 1.1 + f * (1.4 + k * 0.9), 0.6, {"dmg": dmg * 0.5, "knock": 1.5, "kind": "light", "hitstop": 0.02, "melee": true, "bleed": 2.0})
-					WindFX.streak(func(t: float) -> Vector3: return who.global_position + Vector3.UP * 1.1 + f * (0.6 + t * 5.0), 0.16, 0.03, Color(0.9, 0.93, 1.0, 0.9), 0.0, 10)
+					LazyFx.g("WindFX").streak(func(t: float) -> Vector3: return who.global_position + Vector3.UP * 1.1 + f * (0.6 + t * 5.0), 0.16, 0.03, Color(0.9, 0.93, 1.0, 0.9), 0.0, 10)
 				2: _spin_throw(who, dmg, "straight", o.merged({"stitch": true}))
 				4: _spin_throw(who, dmg * 0.6, "orbit_self", o.merged({"dur": 1.0, "orbit": 3.4, "turns": 2.0}))
 				5: _spin_throw(who, dmg * 1.3, "straight", o.merged({"stitch": true, "bind": 2.0, "dur": 1.3}))
@@ -1446,7 +1446,7 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 			match i:
 				0:   # yatay savuruş: rüzgâr izi yay
 					for k in 3:
-						WindFX.streak(func(t: float) -> Vector3:
+						LazyFx.g("WindFX").streak(func(t: float) -> Vector3:
 							var a = lerpf(-1.3, 1.3, t)
 							return who.global_position + Vector3.UP * (1.0 + k * 0.15) + (f * cos(a) - side * sin(a)) * 2.3, 0.22, 0.07, Color(0.85, 0.9, 1.0, 0.7), k * 0.03, 14)
 				1, 5:   # yere çakma: yarık, taşlar, sarsıntı (bitirişte şok dalgası)
@@ -1464,11 +1464,11 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 			if i in [0, 2, 4]:
 				var sg = -1.0 if i == 2 else 1.0
 				for k in (1 if i != 4 else 2):
-					WindFX.streak(func(t: float) -> Vector3:
+					LazyFx.g("WindFX").streak(func(t: float) -> Vector3:
 						var a = lerpf(-1.4, 1.4, t) * sg + k * PI
 						return who.global_position + Vector3.UP * (1.0 + k * 0.2) + (f * cos(a) - side * sin(a)) * 2.6, 0.24, 0.12, red, k * 0.1, 16)
 			if i == 3:
-				WindFX.streak(func(t: float) -> Vector3: return who.global_position + f * 1.8 + Vector3.UP * (0.2 + t * 2.6) - f * t * 0.6, 0.22, 0.12, red, 0.0, 12)
+				LazyFx.g("WindFX").streak(func(t: float) -> Vector3: return who.global_position + f * 1.8 + Vector3.UP * (0.2 + t * 2.6) - f * t * 0.6, 0.22, 0.12, red, 0.0, 12)
 			if i == 5:   # Kama Nage: orak dönerek fırlatılır, rakibin çevresinde biçer, ele döner
 				_spin_throw(who, dmg * 0.6, "circle", {"mesh": "kama", "radius": 1.0, "spin": 2.6, "turns": 3.0, "orbit": 1.6, "dur": 1.0, "knock": 8.0})
 		"kiba":
@@ -1484,14 +1484,14 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 						h.apply_status("slow", 2.0)
 			elif i == 5:   # Shunshin Tsuki: göz açıp kapayana kadar uzun saplama (beyaz chakra izi yalnız Hakkō Chakura Tō'da)
 				var o = who.global_position + Vector3.UP * 1.15
-				WindFX.streak(func(t: float) -> Vector3: return o - f * 1.5 + f * t * 5.5, 0.25, 0.05, Color(0.7, 0.74, 0.8, 0.7), 0.0, 10)
+				LazyFx.g("WindFX").streak(func(t: float) -> Vector3: return o - f * 1.5 + f * t * 5.5, 0.25, 0.05, Color(0.7, 0.74, 0.8, 0.7), 0.0, 10)
 				VFX.slowmo(0.3, 0.2)
 		"wakizashi":
 			if i == 5:   # Jūmonji: havada kalan artı izi gecikmeyle patlar
 				var c = who.global_position + Vector3.UP * 1.2 + f * 1.4
 				var wc = Color(0.95, 0.97, 1.0, 0.9)
-				WindFX.streak(func(t: float) -> Vector3: return c + Vector3.UP * lerpf(0.9, -0.9, t), 0.5, 0.06, wc, 0.0, 10)
-				WindFX.streak(func(t: float) -> Vector3: return c + side * lerpf(0.9, -0.9, t), 0.5, 0.06, wc, 0.2, 10)
+				LazyFx.g("WindFX").streak(func(t: float) -> Vector3: return c + Vector3.UP * lerpf(0.9, -0.9, t), 0.5, 0.06, wc, 0.0, 10)
+				LazyFx.g("WindFX").streak(func(t: float) -> Vector3: return c + side * lerpf(0.9, -0.9, t), 0.5, 0.06, wc, 0.2, 10)
 				who.get_tree().create_timer(0.5).timeout.connect(func():
 					if is_instance_valid(who):
 						FX.hit_spark(c, Color(1, 1, 1), 1.6)
@@ -1505,7 +1505,7 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 						if not is_instance_valid(who):
 							return
 						var q = o + f * (1.5 + k * 1.2)
-						WindFX.streak(func(t: float) -> Vector3: return q + side * lerpf(-1.6, 1.6, t) - f * sin(t * PI) * 0.5, 0.18, 0.08, Color(0.92, 0.96, 1.0, 0.85), 0.0, 12)
+						LazyFx.g("WindFX").streak(func(t: float) -> Vector3: return q + side * lerpf(-1.6, 1.6, t) - f * sin(t * PI) * 0.5, 0.18, 0.08, Color(0.92, 0.96, 1.0, 0.85), 0.0, 12)
 						for h in Combat.hit_sphere(who, q, 1.6, {"dmg": dmg * 0.5, "knock": 8.0, "kind": "heavy", "hitstop": 0.05, "melee": false}, hit_list):
 							hit_list.append(h))
 				_shake(who, 0.5)
@@ -1515,7 +1515,7 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 				for k in 10:
 					var a = TAU * k / 10.0
 					var dd = (side * cos(a) + Vector3.UP * sin(a))
-					WindFX.streak(func(t: float) -> Vector3: return q + dd * (0.2 + t * 1.3), 0.2, 0.06, Color(1, 0.95, 0.8, 0.8), 0.0, 8)
+					LazyFx.g("WindFX").streak(func(t: float) -> Vector3: return q + dd * (0.2 + t * 1.3), 0.2, 0.06, Color(1, 0.95, 0.8, 0.8), 0.0, 8)
 				FX.hit_spark(q, Color(1, 0.9, 0.6), 1.5)
 				_shake(who, 0.6)
 				VFX.slowmo(0.25, 0.2)
@@ -1526,7 +1526,7 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 				for k in 3:
 					var off = side * ((k - 1) * 0.16)
 					var o = who.global_position + Vector3.UP * (1.25 + lift) + f * 0.5 + off
-					WindFX.streak(func(t: float) -> Vector3: return o + d * (t * length) + Vector3.UP * (-t * 0.9 * signf(lift + 0.001)), 0.18, w, glow, k * 0.02, 10)
+					LazyFx.g("WindFX").streak(func(t: float) -> Vector3: return o + d * (t * length) + Vector3.UP * (-t * 0.9 * signf(lift + 0.001)), 0.18, w, glow, k * 0.02, 10)
 			match i:
 				0: rake.call((f + side * 0.5).normalized(), 0.3, 1.6, 0.04)
 				1: rake.call((f - side * 0.5).normalized(), 0.3, 1.6, 0.04)
@@ -1548,7 +1548,7 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 			match i:
 				1, 2, 3:   # ikiye bölünmüş: iki bıçaktan iki iz
 					for k in 2:
-						WindFX.streak(func(t: float) -> Vector3:
+						LazyFx.g("WindFX").streak(func(t: float) -> Vector3:
 							var a = lerpf(-1.1, 1.1, t) * (1.0 if k == 0 else -1.0)
 							return who.global_position + Vector3.UP * 1.2 + (f * cos(a) - side * sin(a)) * 2.2, 0.2, 0.08, cc, k * 0.05, 14)
 				4:   # birleşip chakra yükler
@@ -1574,7 +1574,7 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 					var off = (float(k) / maxf(nb - 1, 1) - 0.5) * spread
 					var d = (f + side * off).normalized()
 					var o = who.global_position + Vector3.UP * (h + randf_range(-0.3, 0.3))
-					WindFX.streak(func(t: float) -> Vector3: return o + d * (0.8 + t * length) + side * sin(t * 6.0 + k) * 0.15, 0.22, 0.035, Color(0.9, 0.97, 1.0, 0.95), k * 0.03, 10)
+					LazyFx.g("WindFX").streak(func(t: float) -> Vector3: return o + d * (0.8 + t * length) + side * sin(t * 6.0 + k) * 0.15, 0.22, 0.035, Color(0.9, 0.97, 1.0, 0.95), k * 0.03, 10)
 					Combat.hit_sphere(who, o + d * length * 0.6, 1.1, {"dmg": dmg * mul, "knock": 4.0 * mk, "kind": "light", "hitstop": 0.02, "melee": false, "element": "wind", "bleed": 2.0})
 			match i:
 				0:
@@ -1582,27 +1582,27 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 					VFX.debris(q0, Color(0.6, 0.55, 0.45), 6, 3.0, 0.2)
 				1: blades2.call(4, 8.0, 0.6, 1.2, 0.3)   # Birinci Ay: kısa kamaitachi
 				2:   # İkinci Ay: rüzgâr duvarı — önündeki her şeyi geri savurur, mermileri dağıtır
-					WindFX.gust(who.global_position + Vector3.UP * 1.0 + f, f, 8.0, 4.5, {"n": 16})
-					WindFX.wake(gp.call(1.0), f, 7.0, 5.0, Color(0.85, 0.82, 0.72, 0.5), 0.7)
+					LazyFx.g("WindFX").gust(who.global_position + Vector3.UP * 1.0 + f, f, 8.0, 4.5, {"n": 16})
+					LazyFx.g("WindFX").wake(gp.call(1.0), f, 7.0, 5.0, Color(0.85, 0.82, 0.72, 0.5), 0.7)
 					Combat.hit_zone(who, who.global_position, f, 7.0, 40.0, 3.0, {"dmg": dmg * 0.55, "knock": 16.0, "kind": "light", "melee": false, "element": "wind"})
 					for pj in who.get_tree().get_nodes_in_group("projectiles"):
 						if is_instance_valid(pj) and pj.global_position.distance_to(who.global_position + f * 3.0) < 4.0 and pj.get("shooter") != who:
 							pj.queue_free()
 				3:   # kasırga: önündeki rakibi havaya kaldırır
 					var q3 = gp.call(2.2)
-					WindFX.gust(q3, Vector3.UP, 5.0, 2.0, {"n": 14})
+					LazyFx.g("WindFX").gust(q3, Vector3.UP, 5.0, 2.0, {"n": 14})
 					VFX.debris(q3, Color(0.65, 0.6, 0.5), 10, 6.0, 0.3)
 					Combat.hit_sphere(who, q3 + Vector3.UP * 0.8, 2.4, {"dmg": dmg * 0.5, "knock": 2.0, "launch": 9.0, "kind": "heavy", "hitstop": 0.03, "melee": false, "element": "wind"})
 				4:   # havadan aşağı: yere çarpan rüzgâr halkası
 					var q4 = gp.call(1.8)
 					VFX.cracks(q4, 1.6)
 					VFX.debris(q4, Color(0.65, 0.58, 0.45), 12, 5.0, 0.3)
-					WindFX.wake(q4, f, 5.0, 4.0, Color(0.75, 0.68, 0.55, 0.6), 0.8)
+					LazyFx.g("WindFX").wake(q4, f, 5.0, 4.0, Color(0.75, 0.68, 0.55, 0.6), 0.8)
 					Combat.hit_sphere(who, q4 + Vector3.UP * 0.4, 3.4, {"dmg": dmg * 0.65, "knock": 9.0, "launch": 4.0, "kind": "heavy", "hitstop": 0.04, "melee": false, "element": "wind"})
 					_shake(who, 0.35)
 				5:   # Üçüncü Ay — Daikamaitachi: uzun, geniş kesici fırtına
 					blades2.call(11, 20.0, 1.4, 1.3, 0.4)
-					WindFX.gust(who.global_position + Vector3.UP * 1.2 + f, f, 18.0, 6.0, {"n": 24})
+					LazyFx.g("WindFX").gust(who.global_position + Vector3.UP * 1.2 + f, f, 18.0, 6.0, {"n": 24})
 					Dangle.gust(who.global_position + f * 8.0, f * 45.0, 14.0, 1.2)
 					_shake(who, 0.6)
 		"yelpaze":
@@ -1612,25 +1612,25 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 					var off = (float(k) / maxf(n - 1, 1) - 0.5) * spread
 					var d = (f + side * off).normalized()
 					var o = who.global_position + Vector3.UP * (h + randf_range(-0.3, 0.3))
-					WindFX.streak(func(t: float) -> Vector3: return o + d * (0.8 + t * length) + side * sin(t * 6.0 + k) * 0.15, 0.22, 0.035, Color(0.9, 0.97, 1.0, 0.95), k * 0.03, 10)
+					LazyFx.g("WindFX").streak(func(t: float) -> Vector3: return o + d * (0.8 + t * length) + side * sin(t * 6.0 + k) * 0.15, 0.22, 0.035, Color(0.9, 0.97, 1.0, 0.95), k * 0.03, 10)
 					Combat.hit_sphere(who, o + d * length * 0.6, 1.0, {"dmg": dmg * 0.35, "knock": 4.0, "kind": "light", "hitstop": 0.02, "melee": false, "element": "wind", "bleed": 2.0})
 			match i:
 				1: blades.call(5, 9.0, 0.8, 1.2)
-				2: WindFX.gust(who.global_position + Vector3.UP * 1.0 + f, f, 6.0, 3.0, {"n": 12})
+				2: LazyFx.g("WindFX").gust(who.global_position + Vector3.UP * 1.0 + f, f, 6.0, 3.0, {"n": 12})
 				3:
 					for k in 8:
 						var d = f.rotated(Vector3.UP, TAU * k / 8.0)
 						var o = who.global_position + Vector3.UP * 1.0
-						WindFX.streak(func(t: float) -> Vector3: return o + d * (0.6 + t * 4.0), 0.2, 0.035, Color(0.9, 0.97, 1.0, 0.95), k * 0.02, 8)
+						LazyFx.g("WindFX").streak(func(t: float) -> Vector3: return o + d * (0.6 + t * 4.0), 0.2, 0.035, Color(0.9, 0.97, 1.0, 0.95), k * 0.02, 8)
 					Combat.hit_sphere(who, who.global_position + Vector3.UP, 4.0, {"dmg": dmg * 0.6, "knock": 9.0, "kind": "light", "hitstop": 0.03, "melee": false, "element": "wind"})
 				4:
 					var q = gp.call(1.6)
 					VFX.debris(q, Color(0.65, 0.58, 0.45), 12, 5.0, 0.3)
-					WindFX.wake(q, f, 5.0, 4.0, Color(0.75, 0.68, 0.55, 0.6), 0.8)
+					LazyFx.g("WindFX").wake(q, f, 5.0, 4.0, Color(0.75, 0.68, 0.55, 0.6), 0.8)
 					Combat.hit_sphere(who, q + Vector3.UP * 0.4, 3.2, {"dmg": dmg * 0.6, "knock": 8.0, "launch": 5.0, "kind": "heavy", "hitstop": 0.04, "melee": false})
 				5:
 					blades.call(9, 16.0, 1.2, 1.3)
-					WindFX.gust(who.global_position + Vector3.UP * 1.2 + f, f, 14.0, 5.0, {"n": 20})
+					LazyFx.g("WindFX").gust(who.global_position + Vector3.UP * 1.2 + f, f, 14.0, 5.0, {"n": 20})
 					Dangle.gust(who.global_position + f * 6.0, f * 40.0, 12.0, 1.0)
 					_shake(who, 0.5)
 		"kongo_asa":
@@ -1654,14 +1654,14 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 			var hp = who.global_position + Vector3.UP * 1.1 + f * 1.8
 			match i:
 				0:   # kanca çekişi: kanca suyla hedefe uzanır, çekerken su kuyruğu
-					WaterArt.jet(tip, hp + f * 1.6 + Vector3.DOWN * 0.2, 0.3)   # kancadan hedefe su hortumu (3B serpinti tek başına görünmüyordu)
-					WaterArt.spray(tip, 0.9, f, 25.0, 1.4)
-					WaterArt.drops(hp, 8, 0.8, 5.0, -f, 0.5)
+					LazyFx.g("WaterArt").jet(tip, hp + f * 1.6 + Vector3.DOWN * 0.2, 0.3)   # kancadan hedefe su hortumu (3B serpinti tek başına görünmüyordu)
+					LazyFx.g("WaterArt").spray(tip, 0.9, f, 25.0, 1.4)
+					LazyFx.g("WaterArt").drops(hp, 8, 0.8, 5.0, -f, 0.5)
 				1:   # iki uçla: her vuruşta yandan su yayı
-					WaterArt.spray(tip, 0.8, (f + side).normalized(), 40.0, 1.2)
+					LazyFx.g("WaterArt").spray(tip, 0.8, (f + side).normalized(), 40.0, 1.2)
 					who.get_tree().create_timer(0.24).timeout.connect(func():
 						if is_instance_valid(who):
-							WaterArt.spray(who.global_position + Vector3.UP * 1.0 + f * 1.2, 0.8, (f - side).normalized(), 40.0, 1.2))
+							LazyFx.g("WaterArt").spray(who.global_position + Vector3.UP * 1.0 + f * 1.2, 0.8, (f - side).normalized(), 40.0, 1.2))
 					VFX.splash(hp, 1.4)
 				2:   # çark: sopa dönerken çevresine su halkası saçar
 					for k in 4:
@@ -1669,22 +1669,22 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 							if is_instance_valid(who):
 								var a = TAU * k / 4.0
 								var dd = (f * cos(a) + Vector3.UP * sin(a)).normalized()
-								WaterArt.spray(who.global_position + Vector3.UP * 1.1 + f * 1.0, 0.7, dd, 30.0, 1.0)
+								LazyFx.g("WaterArt").spray(who.global_position + Vector3.UP * 1.1 + f * 1.0, 0.7, dd, 30.0, 1.0)
 								Combat.hit_sphere(who, who.global_position + Vector3.UP * 1.1 + f * 1.6, 1.6, {"dmg": dmg * 0.25, "knock": 2.0, "kind": "light", "hitstop": 0.02, "melee": false, "element": "water"}))
 				3:   # süpürme + kaldırma: yerden su sütunu
 					var q = gp.call(1.8)
-					WaterArt.ripple(q, 2.0)
-					WaterArt.spray(q, 1.4, Vector3.UP, 15.0, 1.8)
-					WaterArt.splash(q, 1.2)
+					LazyFx.g("WaterArt").ripple(q, 2.0)
+					LazyFx.g("WaterArt").spray(q, 1.4, Vector3.UP, 15.0, 1.8)
+					LazyFx.g("WaterArt").splash(q, 1.2)
 				4:   # kancayla yakalama (pull) + su kalkanı + itme: önde su duvarı, ardından su dalgası öne
-					WaterArt.jet(tip, hp + f * 1.8, 0.32, 0.2)   # kanca su hortumuyla hedefi yakalar
+					LazyFx.g("WaterArt").jet(tip, hp + f * 1.8, 0.32, 0.2)   # kanca su hortumuyla hedefi yakalar
 					var q = gp.call(1.2)
-					WaterArt.splash(q, 1.6)
-					WaterArt.spray(q + Vector3.UP * 0.3, 1.6, f, 30.0, 1.6, true)
+					LazyFx.g("WaterArt").splash(q, 1.6)
+					LazyFx.g("WaterArt").spray(q + Vector3.UP * 0.3, 1.6, f, 30.0, 1.6, true)
 					Combat.hit_sphere(who, who.global_position + f * 2.4 + Vector3.UP, 2.2, {"dmg": dmg * 0.6, "knock": 11.0, "kind": "light", "hitstop": 0.03, "melee": false, "element": "water"})
 				5:   # Suijin Senpū (UZUN MENZİL): yatay savuruştan çıkan su dalgası öne 13 m ilerler (fışkırma dizisi) -> ucunda su girdabı
 					var q0 = gp.call(1.6)
-					WaterArt.spray(who.global_position + Vector3.UP * 1.1 + f * 1.4, 1.6, f, 50.0, 1.8, true)
+					LazyFx.g("WaterArt").spray(who.global_position + Vector3.UP * 1.1 + f * 1.4, 1.6, f, 50.0, 1.8, true)
 					_shake(who, 0.5)
 					for k in 8:
 						who.get_tree().create_timer(0.06 + k * 0.07).timeout.connect(func():
@@ -1692,30 +1692,30 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 								return
 							var qd = q0 + f * (1.2 + k * 1.6)
 							qd.y = q0.y
-							WaterArt.ripple(qd, 1.4)
-							WaterArt.spray(qd, 1.2 + k * 0.05, Vector3.UP, 14.0, 1.6)
+							LazyFx.g("WaterArt").ripple(qd, 1.4)
+							LazyFx.g("WaterArt").spray(qd, 1.2 + k * 0.05, Vector3.UP, 14.0, 1.6)
 							Combat.hit_sphere(who, qd + Vector3.UP * 0.8, 1.6, {"dmg": dmg * 0.3, "knock": 6.0, "launch": 5.0, "kind": "heavy", "hitstop": 0.03, "melee": false, "element": "water"}))
 					who.get_tree().create_timer(0.66).timeout.connect(func():
 						if not is_instance_valid(who):
 							return
 						var q = q0 + f * 13.0
-						WaterArt.splash(q, 2.4)
+						LazyFx.g("WaterArt").splash(q, 2.4)
 						for k in 3:
-							WindFX.streak(func(t: float) -> Vector3:
+							LazyFx.g("WindFX").streak(func(t: float) -> Vector3:
 								var a2 = t * TAU * 2.0 + k * 2.1
 								return q + Vector3(cos(a2) * (1.0 + t * 1.6), t * 3.2, sin(a2) * (1.0 + t * 1.6)), 0.6, 0.12, Color(0.55, 0.8, 1.0, 0.85), k * 0.08, 24)
 						Combat.hit_sphere(who, q + Vector3.UP, 3.4, {"dmg": dmg * 0.7, "knock": 12.0, "launch": 7.0, "kind": "heavy", "hitstop": 0.06, "melee": false, "element": "water"}))
 		"kubikiribocho":
 			match i:
 				1:   # boyun biçmesi: geniş kılıç izi
-					WindFX.streak(func(t: float) -> Vector3:
+					LazyFx.g("WindFX").streak(func(t: float) -> Vector3:
 						var a = lerpf(-1.4, 1.4, t)
 						return who.global_position + Vector3.UP * 1.45 + (f * cos(a) - side * sin(a)) * 2.6, 0.2, 0.09, Color(0.85, 0.9, 1.0, 0.75), 0.0, 16)
 				4:   # kılıcın saplandığı yer
 					var q = gp.call(1.3)
 					VFX.cracks(q, 1.2)
 				5:   # Kirigakure Kubikiri: arkadan boyun biçmesi (sis içinde)
-					WindFX.streak(func(t: float) -> Vector3:
+					LazyFx.g("WindFX").streak(func(t: float) -> Vector3:
 						var a2 = lerpf(-1.5, 1.5, t)
 						return who.global_position + Vector3.UP * 1.45 + (f * cos(a2) - side * sin(a2)) * 2.8, 0.22, 0.12, Color(0.85, 0.9, 1.0, 0.85), 0.0, 18)
 					Combat.hit_sphere(who, who.global_position + Vector3.UP * 1.3 + f * 1.8, 2.4, {"dmg": dmg * 0.8, "knock": 12.0, "kind": "heavy", "hitstop": 0.1, "melee": false, "bleed": 6.0})
@@ -1726,27 +1726,27 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 			match i:
 				0, 1:
 					var sweep = side * (1.0 if i == 0 else -1.0)
-					WindFX.gust(from, (f + sweep * 0.25).normalized(), 8.0, 4.0, {"n": 14})
+					LazyFx.g("WindFX").gust(from, (f + sweep * 0.25).normalized(), 8.0, 4.0, {"n": 14})
 					Combat.hit_sphere(who, from + f * 3.5, 2.6, {"dmg": dmg * 0.7, "knock": 10.0, "kind": "light", "hitstop": 0.03, "melee": false, "element": "wind"})
 				2:
 					var q = gp.call(2.0)
-					WindFX.gust(q + Vector3.UP * 0.3, f, 7.0, 5.0, {"n": 16})
+					LazyFx.g("WindFX").gust(q + Vector3.UP * 0.3, f, 7.0, 5.0, {"n": 16})
 					VFX.debris(q, Color(0.6, 0.55, 0.45), 8, 4.0, 0.25)
 					Combat.hit_sphere(who, q + f * 2.5 + Vector3.UP * 0.5, 3.0, {"dmg": dmg * 0.8, "knock": 8.0, "kind": "heavy", "hitstop": 0.04, "melee": false, "element": "wind"})
 				3:
 					for k in 3:
-						WindFX.streak(func(t: float) -> Vector3:
+						LazyFx.g("WindFX").streak(func(t: float) -> Vector3:
 							var a = t * TAU * 1.5 + k * 2.1
 							return who.global_position + f * 2.4 + Vector3(cos(a) * (0.6 + t * 0.6), t * 4.0, sin(a) * (0.6 + t * 0.6)), 0.5, 0.08, Color(0.85, 0.95, 0.9, 0.8), k * 0.05, 16)
 					Combat.hit_sphere(who, who.global_position + f * 2.4 + Vector3.UP, 1.8, {"dmg": dmg * 0.6, "knock": 1.0, "launch": 9.0, "kind": "light", "hitstop": 0.03, "melee": false, "element": "wind"})
 				4:
 					for k in 2:
-						WindFX.streak(func(t: float) -> Vector3:
+						LazyFx.g("WindFX").streak(func(t: float) -> Vector3:
 							var a = t * TAU
 							return who.global_position + Vector3.UP * (0.6 + k * 0.6) + Vector3(cos(a), 0, sin(a)) * 3.2, 0.4, 0.1, Color(0.85, 0.95, 0.9, 0.75), k * 0.06, 24)
 					Combat.hit_sphere(who, who.global_position + Vector3.UP, 3.6, {"dmg": dmg * 0.6, "knock": 12.0, "kind": "light", "hitstop": 0.03, "melee": false, "element": "wind"})
 				5:
-					WindFX.gust(from, f, 16.0, 6.0, {"n": 24})
+					LazyFx.g("WindFX").gust(from, f, 16.0, 6.0, {"n": 24})
 					for k in 4:
 						Combat.hit_sphere(who, from + f * (2.5 + k * 3.2), 2.8, {"dmg": dmg * 0.5, "knock": 16.0, "kind": "heavy", "hitstop": 0.04, "melee": false, "element": "wind"})
 					Dangle.gust(from + f * 6.0, f * 40.0, 12.0, 1.0)
@@ -1816,7 +1816,7 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 				var q = gp.call(1.6) + Vector3.UP * 1.2
 				for k in 2:
 					var sx = -0.35 + k * 0.7
-					WindFX.streak(func(t: float) -> Vector3: return q + side * sx + f * t * 2.6, 0.18, 0.09, Color(0.75, 0.9, 1.0, 0.9), k * 0.04, 12)
+					LazyFx.g("WindFX").streak(func(t: float) -> Vector3: return q + side * sx + f * t * 2.6, 0.18, 0.09, Color(0.75, 0.9, 1.0, 0.9), k * 0.04, 12)
 				VFX.star(q + f * 1.8, Color(0.8, 0.92, 1.0), 2.4, 0.16)
 				_shake(who, 0.4)
 		"ruzgar_bicak":
@@ -2138,7 +2138,7 @@ static func on_start(id: String, i: int, who: Node3D) -> void:
 		SapanFX.start(who, i)
 		return
 	if id == "kokuto" and i == 4:
-		KokutoFX.slip_behind(who)   # Kage Mawari: rakibin arkasına süzül
+		LazyFx.g("KokutoFX").slip_behind(who)   # Kage Mawari: rakibin arkasına süzül
 		return
 	if who == null or not is_instance_valid(who):
 		return
@@ -2397,7 +2397,7 @@ static func _wind_slash(who: Node3D, i: int, f: Vector3, side: Vector3, dmg: flo
 		var go = func():
 			if not is_instance_valid(who):
 				return
-			WindFX.gust(from, f, length, width, {"n": 10, "sheets": 3 if i < 5 else 6, "speed": 38.0, "lift": lift, "leaves": i == 5, "dust": i == 5})
+			LazyFx.g("WindFX").gust(from, f, length, width, {"n": 10, "sheets": 3 if i < 5 else 6, "speed": 38.0, "lift": lift, "leaves": i == 5, "dust": i == 5})
 			# yol boyunca isabet (yakın vuruşun ötesindeki düşmanlar da kesilir)
 			var info = {"dmg": dmg * (0.45 if i < 5 else 0.9), "element": "fuuton", "knock": 6.0 if i < 5 else 14.0, "launch": 4.0 if i == 2 else 0.0,
 				"kind": "heavy" if i == 5 else "light", "hitstop": 0.02}
@@ -2492,7 +2492,7 @@ static func _smoke_shift(who: Node3D, tg: Node3D) -> void:
 
 ## Avuçta şimşek topu (Raikiri/Chidori görünüşü): sağ ele bağlı parlayan top + çevreye kırbaçlanan dallar
 static func _rai_hand(who: Node3D, dur: float, big: bool) -> void:
-	var pj = PathJutsu.get_pinst()
+	var pj = LazyFx.g("PathJutsu").get_pinst()
 	if pj == null:
 		return
 	var ba = pj.bone_attach(who, "RightHand")
@@ -2604,7 +2604,7 @@ static func _shadow_hand(tg: Node3D) -> void:
 
 ## Avuçta büyüyen Rasengan (VFX.rasengan): kurulum boyunca sağ ele bağlı, vuruşta söner
 static func _rasen_hand(who: Node3D, dur: float) -> void:
-	var pj = PathJutsu.get_pinst()
+	var pj = LazyFx.g("PathJutsu").get_pinst()
 	if pj == null:
 		return
 	var ba = pj.bone_attach(who, "RightHand")
@@ -2650,7 +2650,7 @@ static func _ink_run(who: Node3D, pj, kind: String, s: float, from: Vector3, to:
 
 ## Kâğıt kanatlar (Konan): sırttan açılıp kapanan büyük kâğıt kanat çifti (gerçek _paper_wing geometrisi)
 static func _paper_wings(who: Node3D, dur: float) -> void:
-	var pj = PathJutsu.get_pinst()
+	var pj = LazyFx.g("PathJutsu").get_pinst()
 	if pj == null:
 		return
 	var ba = pj.bone_attach(who, "UpperChest")
@@ -2663,7 +2663,7 @@ static func _paper_wings(who: Node3D, dur: float) -> void:
 		var b = MB.new()
 		pj._paper_wing(b, sx)
 		var mi = MeshInstance3D.new()
-		mi.mesh = b.build(Props.toon())
+		mi.mesh = b.build(LazyFx.g("Props").toon())
 		root.add_child(mi)
 	root.scale = Vector3.ONE * 0.1
 	var tw = root.create_tween()
@@ -2716,7 +2716,7 @@ static func _puppet_lunge(who: Node3D, pj, from: Vector3, to: Vector3, dmg: floa
 
 ## Kil figür (ClayArt) fırlatılır: arc yüksekliğiyle uçar, varınca VFX.clay_blast + hasar
 static func _clay_fly(who: Node3D, kind: String, from: Vector3, to: Vector3, s: float, dur: float, arc: float, dmg: float, blast: float) -> void:
-	var fig: Node3D = ClayArt.bird(s) if kind == "bird" else (ClayArt.spider(s) if kind == "spider" else ClayArt.doll(s))
+	var fig: Node3D = LazyFx.g("ClayArt").bird(s) if kind == "bird" else (LazyFx.g("ClayArt").spider(s) if kind == "spider" else LazyFx.g("ClayArt").doll(s))
 	who.get_tree().current_scene.add_child(fig)
 	fig.global_position = from
 	var tw = fig.create_tween()
@@ -3313,7 +3313,7 @@ static func _spin_throw(who: Node3D, dmg: float, mode: String, opts := {}) -> vo
 		cm.height = 1.0
 		cm.radial_segments = 4
 		wire_mi.mesh = cm
-		wire_mi.material_override = Props.toon_color(Color(0.85, 0.87, 0.92), 0.2)
+		wire_mi.material_override = LazyFx.g("Props").toon_color(Color(0.85, 0.87, 0.92), 0.2)
 		who.get_tree().current_scene.add_child(wire_mi)
 	var tw = copy.create_tween()
 	if float(opts.get("delay", 0.0)) > 0.0:
@@ -3495,7 +3495,7 @@ static func _enma_cameo(who: Node3D, dmg: float, big: bool) -> void:
 	if n != null:
 		n.visible = false
 		FX.smoke_puff(n.global_position, 0.6, 8)
-	var parts = SummonModels.build("monkey_king", 2.6 if big else 2.1, 1.0)
+	var parts = LazyFx.g("SummonModels").build("monkey_king", 2.6 if big else 2.1, 1.0)
 	var mk: Node3D = parts["root"]
 	who.get_tree().current_scene.add_child(mk)
 	var look_to = (tg.global_position if tg != null else at + f * 2.0)
@@ -3668,7 +3668,7 @@ static func _kusa_iai(who: Node3D, dmg: float) -> void:
 	to.y = Game.ground_height(to.x, to.z)
 	var bl = Color(0.55, 0.8, 1.0)
 	VFX.bolt(from + Vector3.UP, to + Vector3.UP, bl, 0.3, 0.35, 4)
-	WindFX.streak(func(t: float) -> Vector3:
+	LazyFx.g("WindFX").streak(func(t: float) -> Vector3:
 		return from.lerp(to, t) + Vector3.UP * 1.1, 0.25, 0.1, Color(0.8, 0.9, 1.0, 0.8), 0.0, 14)
 	who.global_position = to
 	if who is CharacterBody3D:
@@ -3781,7 +3781,7 @@ static func _style_start(id: String, i: int, who: Node3D) -> void:
 					if is_instance_valid(who):
 						who.velocity.x = f.x * 17.0
 						who.velocity.z = f.z * 17.0
-						WindFX.swirl(who.global_position + Vector3.UP * 0.4, 0.9, 1.6, 0.5, 8, Color(0.85, 0.82, 0.75, 0.85), true))
+						LazyFx.g("WindFX").swirl(who.global_position + Vector3.UP * 0.4, 0.9, 1.6, 0.5, 8, Color(0.85, 0.82, 0.75, 0.85), true))
 		"style_uchiha":
 			ov.fist = {"Right": 1.0, "Left": 1.0}
 			if i == 3:   # Kage Buyō (kanon, Shishi Rendan): havaya kalkan rakibin hemen arkasında yaprak gölgesi gibi belirir
@@ -3790,7 +3790,7 @@ static func _style_start(id: String, i: int, who: Node3D) -> void:
 					var away = tgu.global_position - who.global_position
 					away.y = 0
 					away = away.normalized() if away.length() > 0.05 else Vector3.FORWARD
-					var pjk = PathJutsu.get_pinst()
+					var pjk = LazyFx.g("PathJutsu").get_pinst()
 					if pjk:
 						pjk._trail_ghost(who, 0.45, 0.35)
 					who.global_position = tgu.global_position + away * 0.9 + Vector3.UP * 0.4
@@ -3834,7 +3834,7 @@ static func _style_start(id: String, i: int, who: Node3D) -> void:
 		"style_kakuzu":
 			ov.fist = {"Right": -0.6, "Left": -0.6} if i != 2 else {"Right": 1.0, "Left": 1.0}
 			if i == 2:   # Domu: ten taşlaşır, kısa kalkan
-				var pjd = PathJutsu.get_pinst()
+				var pjd = LazyFx.g("PathJutsu").get_pinst()
 				if pjd:
 					pjd._stone_skin(who, 0.8 / speed(id), Color(0.18, 0.17, 0.17))
 				if who is Player:
@@ -3886,7 +3886,7 @@ static func _style_start(id: String, i: int, who: Node3D) -> void:
 		"style_hachibi":
 			ov.fist = {"Right": 1.0, "Left": 1.0} if i != 2 else {"Right": 0.6, "Left": 0.6}
 			if i == 3:   # Lariat: Raiton örtüsü + atılış
-				var pjl = PathJutsu.get_pinst()
+				var pjl = LazyFx.g("PathJutsu").get_pinst()
 				if pjl:
 					pjl._rai_cloak(who, 0.55 / speed(id))
 				who.get_tree().create_timer(0.14 / speed(id)).timeout.connect(func():
@@ -3901,7 +3901,7 @@ static func _style_start(id: String, i: int, who: Node3D) -> void:
 		"style_silah":
 			ov.fist = {"Right": 0.8, "Left": 0.8}
 			if i in [0, 1, 4]:   # parşömen iki el arasında açılır (mühürden mühüre silah)
-				var pjs = PathJutsu.get_pinst()
+				var pjs = LazyFx.g("PathJutsu").get_pinst()
 				if pjs:
 					var sc = pjs.hold_scroll(who, 0.55 / speed(id), 0.36, 0.55)
 					pjs.fade_free(sc, 0.55 / speed(id), 0.15)
@@ -4138,7 +4138,7 @@ static func _bulk_in(who: Node3D, ov, b: Dictionary, hit_t: float, tok: int) -> 
 
 ## Jūgo: dirsekten fışkıran beyaz buhar jeti (yumruğu ivmelendirir)
 static func _jet(who: Node3D, bone: String, at_t: float) -> void:
-	var pj = PathJutsu.get_pinst()
+	var pj = LazyFx.g("PathJutsu").get_pinst()
 	if pj == null:
 		return
 	who.get_tree().create_timer(maxf(0.0, at_t - 0.12)).timeout.connect(func():
@@ -4157,7 +4157,7 @@ static func _jet(who: Node3D, bone: String, at_t: float) -> void:
 				"colors": [Color(1, 1, 0.9, 1), Color(1.0, 0.75, 0.3, 0.9), Color(0.9, 0.35, 0.1, 0)]})
 		var e = bt * Vector3(0, 0.12, 0) - f * 0.2
 		VFX.shockwave(e - f * 0.25, Color(1.0, 0.9, 0.75), 1.2, 0.18, false, -f)
-		WindFX.streak(func(u: float) -> Vector3: return e - f * (0.2 + u * 2.4), 0.2, 0.05, Color(1, 0.95, 0.85), 0.0, 6)
+		LazyFx.g("WindFX").streak(func(u: float) -> Vector3: return e - f * (0.2 + u * 2.4), 0.2, 0.05, Color(1, 0.95, 0.85), 0.0, 6)
 		Sfx.play("whoosh", who.global_position, 1.6, 0.6))
 
 
@@ -4191,7 +4191,7 @@ static func _jugo_club(who: Node3D, bone: String, spiky: bool) -> void:
 		if bool(old.get_meta("spiky", false)) == spiky:
 			return
 		old.queue_free()
-	var pj = PathJutsu.get_pinst()
+	var pj = LazyFx.g("PathJutsu").get_pinst()
 	if pj == null:
 		return
 	var ba = pj.bone_attach(who, bone)
@@ -4202,7 +4202,7 @@ static func _jugo_club(who: Node3D, bone: String, spiky: bool) -> void:
 	var b = MB.new()
 	var pts = [Vector3(0, 0.0, 0), Vector3(0, 0.12, 0.01), Vector3(0, 0.26, 0.02), Vector3(0, 0.38, 0.02), Vector3(0, 0.47, 0.01), Vector3(0, 0.53, 0)]
 	var rad = [Vector2(0.06, 0.06), Vector2(0.085, 0.08), Vector2(0.11, 0.1), Vector2(0.135, 0.12), Vector2(0.13, 0.115), Vector2(0.05, 0.045)]
-	Loft.tube(b, pts, rad, [skin.darkened(0.1), skin, skin, skin.lightened(0.05), skin, skin.darkened(0.15)], 14, 4, true, true)
+	LazyFx.g("Loft").tube(b, pts, rad, [skin.darkened(0.1), skin, skin, skin.lightened(0.05), skin, skin.darkened(0.15)], 14, 4, true, true)
 	for k in 7:   # pütürler: yüzeyde taş kabarcıkları
 		var a = k * TAU / 7.0 + 0.3
 		var y = 0.14 + (k % 3) * 0.11
@@ -4220,7 +4220,7 @@ static func _jugo_club(who: Node3D, bone: String, spiky: bool) -> void:
 				Vector3(rad_to_deg(-sin(a2)) * 0.9 - 25.0, 0, rad_to_deg(cos(a2)) * 0.9), 5)
 		b.add("cone", Vector3(0, 0.72, 0.02), Vector3(0.1, 0.45, 0.08), skin.lightened(0.15), Vector3.ZERO, 6)   # uçtaki sivri kazık
 	var mi = MeshInstance3D.new()
-	mi.mesh = b.build(Props.toon())
+	mi.mesh = b.build(LazyFx.g("Props").toon())
 	ba.add_child(mi)
 	ba.set_meta("spiky", spiky)
 	mi.scale = Vector3(0.5, 0.3, 0.5)
@@ -4242,7 +4242,7 @@ static func _bone_material() -> StandardMaterial3D:
 static func _bone_blade(who: Node3D) -> void:
 	if who.has_meta("bone_blade") and is_instance_valid(who.get_meta("bone_blade")):
 		return
-	var pj = PathJutsu.get_pinst()
+	var pj = LazyFx.g("PathJutsu").get_pinst()
 	if pj == null:
 		return
 	var ba = pj.bone_attach(who, "RightLowerArm")   # kemik +Y = ön kol doğrultusu: kılıç bileğin ötesine kolun devamı olarak uzanır
@@ -4253,14 +4253,14 @@ static func _bone_blade(who: Node3D) -> void:
 	b.add("cone", Vector3(0, 0.66, 0.0), Vector3(0.075, 0.7, 0.028), Color(0.95, 0.94, 0.88), Vector3.ZERO, 4)   # yassı sivri kemik kılıç
 	b.add("box", Vector3(0, 0.6, 0.0), Vector3(0.012, 0.5, 0.012), Color(0.75, 0.72, 0.66))   # sırt çizgisi
 	var mi = MeshInstance3D.new()
-	mi.mesh = b.build(Props.toon())
+	mi.mesh = b.build(LazyFx.g("Props").toon())
 	ba.add_child(mi)
 	who.set_meta("bone_blade", ba)
 
 
 ## Yanagi / Karamatsu: kemiklerden fışkıran sivri kemik dikenleri (kısa süre)
 static func _bone_spikes(who: Node3D, bones: Array, dur: float) -> void:
-	var pj = PathJutsu.get_pinst()
+	var pj = LazyFx.g("PathJutsu").get_pinst()
 	if pj == null:
 		return
 	for bn in bones:
@@ -4273,7 +4273,7 @@ static func _bone_spikes(who: Node3D, bones: Array, dur: float) -> void:
 			var d = Vector3(cos(a), 0.3, sin(a)).normalized()
 			b.add_xf("cone", Transform3D(Basis(Quaternion(Vector3.UP, d)) * Basis.from_scale(Vector3(0.05, 0.32, 0.05)), Vector3(0, 0.08 + k * 0.05, 0) + d * 0.2), Color(0.94, 0.93, 0.87), 5)
 		var mi = MeshInstance3D.new()
-		mi.mesh = b.build(Props.toon())
+		mi.mesh = b.build(LazyFx.g("Props").toon())
 		ba.add_child(mi)
 		mi.scale = Vector3.ONE * 0.05
 		var tw = mi.create_tween()
@@ -4311,7 +4311,7 @@ static func _chidori_run(who: Node3D, dur: float) -> void:
 
 ## Chakra Neşteri: parmak uçlarından titreşen mavi bıçak (p_chakura_no_mesu ile aynı yapı), dur sn sonra söner
 static func _scalpel(who: Node3D, right: bool, dur: float) -> void:
-	var pj = PathJutsu.get_pinst()
+	var pj = LazyFx.g("PathJutsu").get_pinst()
 	if pj == null:
 		return
 	var ba = pj.bone_attach(who, "RightHand" if right else "LeftHand")
@@ -4332,7 +4332,7 @@ static func _scalpel(who: Node3D, right: bool, dur: float) -> void:
 
 ## Ōkashō: yumrukta toplanan chakra (beyaz-mavi parıltı), dur sn
 static func _tip_fist(who: Node3D, dur: float) -> void:
-	var pj = PathJutsu.get_pinst()
+	var pj = LazyFx.g("PathJutsu").get_pinst()
 	if pj == null:
 		return
 	var ba = pj.bone_attach(who, "RightHand")
@@ -4346,7 +4346,7 @@ static func _tip_fist(who: Node3D, dur: float) -> void:
 
 ## Shukaku kısmi dönüşüm: sağ kolun çevresinde dönen kum taneleri (kemiğe bağlı) — kol kum pençeye döner
 static func _sand_arm(who: Node3D, dur: float) -> void:
-	var pj = PathJutsu.get_pinst()
+	var pj = LazyFx.g("PathJutsu").get_pinst()
 	if pj == null:
 		return
 	for bone in ["RightLowerArm", "RightHand"]:
@@ -4362,7 +4362,7 @@ static func _sand_arm(who: Node3D, dur: float) -> void:
 
 ## Kedi pençesi izi: üç paralel mavi alev kesiği (çapraz; right = sağ üstten sol alta)
 static func _cat_claw(who: Node3D, at: Vector3, f: Vector3, right: bool, r: float, col := Color(0.25, 0.5, 1.0, 0.85)) -> void:
-	var pj = PathJutsu.get_pinst()
+	var pj = LazyFx.g("PathJutsu").get_pinst()
 	if pj == null:
 		return
 	var am = VFX.asset("slash_arc")
@@ -4397,7 +4397,7 @@ static func _cat_claw(who: Node3D, at: Vector3, f: Vector3, right: bool, r: floa
 
 ## Rōshi: yumruğu saran erimiş lav (kemiğe bağlı pürüzlü lav kütlesi + damlalar), dur sn
 static func _lava_fist(who: Node3D, bone: String, dur: float) -> void:
-	var pj = PathJutsu.get_pinst()
+	var pj = LazyFx.g("PathJutsu").get_pinst()
 	if pj == null:
 		return
 	var ba = pj.bone_attach(who, bone)
@@ -4426,7 +4426,7 @@ static func _steam_rocket(who: Node3D, dur: float) -> void:
 	for k in 4:
 		who.get_tree().create_timer(dur * k / 4.0).timeout.connect(func():
 			if is_instance_valid(who):
-				BijuuArts._steam_cloud(who.global_position + Vector3.UP * 1.2 - who.face_dir() * 0.6, 0.25, 0.7, 0.7))
+				LazyFx.g("BijuuArts")._steam_cloud(who.global_position + Vector3.UP * 1.2 - who.face_dir() * 0.6, 0.25, 0.7, 0.7))
 	FX.speed_lines(from + Vector3.UP, (to - from).normalized())
 	who.create_tween().tween_property(who, "global_position", to, dur).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 
@@ -4435,7 +4435,7 @@ static func _steam_rocket(who: Node3D, dur: float) -> void:
 static func _bubble_trap(who: Node3D, tg: Node3D, dur: float) -> void:
 	var bub = MeshInstance3D.new()
 	bub.mesh = VFX._sphere(0.5, 20, 10)
-	bub.material_override = BijuuArts._glass(Color(0.85, 1.0, 0.95), 0.4, 0.25)
+	bub.material_override = LazyFx.g("BijuuArts")._glass(Color(0.85, 1.0, 0.95), 0.4, 0.25)
 	tg.add_child(bub)
 	var h = float(tg.get("height")) if tg.get("height") != null else 1.8
 	bub.position = Vector3.UP * h * 0.5
@@ -4454,7 +4454,7 @@ static func _bubble_trap(who: Node3D, tg: Node3D, dur: float) -> void:
 
 ## Fū: sırttan dört şeffaf böcek kanadı (Chōmei kanat malzemesi), hızla çırpar, dur sn
 static func _bug_wings(who: Node3D, dur: float) -> void:
-	var mat = BijuuArts._glass(Color(0.55, 0.85, 1.0), 0.45, 0.6)
+	var mat = LazyFx.g("BijuuArts")._glass(Color(0.55, 0.85, 1.0), 0.45, 0.6)
 	var wings = []
 	for k in 4:
 		var piv = Node3D.new()
@@ -4484,7 +4484,7 @@ static func _bug_wings(who: Node3D, dur: float) -> void:
 
 ## Matatabi tırnakları: parmak uçlarında mavi alev (oyunun "blue" ateş malzemesi), dur sn
 static func _blue_claws(who: Node3D, right: bool, left: bool, dur: float) -> void:
-	var pj = PathJutsu.get_pinst()
+	var pj = LazyFx.g("PathJutsu").get_pinst()
 	if pj == null:
 		return
 	var bones = []
@@ -4513,12 +4513,12 @@ static func _blue_claws(who: Node3D, right: bool, left: bool, dur: float) -> voi
 
 ## Üç bıçaklı tırpan: oyunun gerçek silah modeli (SFProps hayran modeli, yoksa CharacterModel prosedürel) — kabza (0,0,0), sap +Z
 static func _scythe_node() -> Node3D:
-	var n = SFProps.weapon_node("uc_tirpan")
+	var n = LazyFx.g("SFProps").weapon_node("uc_tirpan")
 	if n != null:
 		return n
 	var mi = MeshInstance3D.new()
 	mi.mesh = CharacterModel.weapon_mesh("uc_tirpan")
-	mi.material_override = Props.toon()
+	mi.material_override = LazyFx.g("Props").toon()
 	return mi
 
 
@@ -4612,7 +4612,7 @@ static func _hira_mark_near(who: Node3D, p: Vector3) -> Vector3:
 
 ## Üç uçlu kunai fırlatır; stick: yere saplanıp 8 sn işaret olarak kalır
 static func _hira_throw(who: Node3D, from: Vector3, to: Vector3, dur: float, stick: bool) -> void:
-	var pj = PathJutsu.get_pinst()
+	var pj = LazyFx.g("PathJutsu").get_pinst()
 	if pj == null:
 		return
 	var k = pj._hira_kunai()
@@ -4636,7 +4636,7 @@ static func _hira_throw(who: Node3D, from: Vector3, to: Vector3, dur: float, sti
 
 ## Sarı flaşla bir noktaya ışınlan (yerde ya da havada); tg verilirse ona dön
 static func _hira_hop(who: Node3D, p: Vector3, tg: Node3D, ground := true) -> void:
-	var pj = PathJutsu.get_pinst()
+	var pj = LazyFx.g("PathJutsu").get_pinst()
 	if pj:
 		pj._yellow_flash(who.global_position + Vector3.UP)
 	var to = p
@@ -4701,7 +4701,7 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 	Sfx.play_style(id, i, at)   # dövüş tarzının kendi sesi (böcek, kum, kemik, Mokuton toprağı, kâğıt...)
 	match id:
 		"style_rinnegan":
-			var pjr = PathJutsu.get_pinst()
+			var pjr = LazyFx.g("PathJutsu").get_pinst()
 			if pjr == null:
 				return
 			var violet = Color(0.72, 0.62, 0.95)
@@ -4724,7 +4724,7 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 						var start = tg1.global_position + Vector3.UP
 						for q in 4:
 							var off = Vector3(randf_range(-0.6, 0.6), randf_range(-0.4, 0.7), randf_range(-0.6, 0.6))
-							WindFX.streak(func(u: float) -> Vector3: return (start + off).lerp(who.global_position + Vector3.UP + off * 0.3, u), 0.3, 0.05, Color(0.85, 0.97, 0.9, 0.7), q * 0.03, 10)
+							LazyFx.g("WindFX").streak(func(u: float) -> Vector3: return (start + off).lerp(who.global_position + Vector3.UP + off * 0.3, u), 0.3, 0.05, Color(0.85, 0.97, 0.9, 0.7), q * 0.03, 10)
 						var dest = who.global_position + f * 1.3
 						var ptw = tg1.create_tween()
 						ptw.tween_property(tg1, "global_position", Vector3(dest.x, tg1.global_position.y, dest.z), 0.16).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
@@ -4765,7 +4765,7 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 		"style_juken":
 			FX.hit_spark(at, Color(0.75, 0.88, 1.0), 0.7)   # avuçtan çıkan chakra
 			if i == 5:   # Hakke Kūshō: çift avuçtan ileri giden hava basıncı
-				WindFX.gust(who.global_position + Vector3.UP * 1.1, f, 7.0, 2.2, {})
+				LazyFx.g("WindFX").gust(who.global_position + Vector3.UP * 1.1, f, 7.0, 2.2, {})
 				for d in [2.5, 4.5]:
 					Combat.hit_sphere(who, who.global_position + Vector3.UP * 1.0 + f * d, 1.6, _kinfo(dmg, 0.7, {"element": "", "knock": 16.0, "kind": "heavy", "melee": true}))
 		"style_akimichi":
@@ -4780,7 +4780,7 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 				_shake(who, 0.25)
 				FX.hit_spark(at + f * 0.8, Color(1.0, 0.95, 0.85), 1.2)
 		"style_inuzuka":
-			var pj = PathJutsu.get_pinst()
+			var pj = LazyFx.g("PathJutsu").get_pinst()
 			if pj:   # üç pençe izi
 				for k in 3:
 					pj._arc_cut(at + Vector3.UP * (k - 1) * 0.12, f, -50.0, 50.0, Color(0.9, 0.88, 0.8), 1.2)
@@ -4814,7 +4814,7 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 				_water_whip(who, tg, dmg * 0.9, i == 4)
 			elif i == 3:   # Gōsuiwan: şişen kasla yumruk (ref hozuki_2: su değil, kas) — darbe halkası + su sıçrar
 				VFX.shockwave(at + f * 0.4, Color(0.9, 0.95, 1.0), 3.0, 0.22, false, f)
-				WaterArt.spray(at + f * 0.3, 0.7, f, 35.0, 1.2)
+				LazyFx.g("WaterArt").spray(at + f * 0.3, 0.7, f, 35.0, 1.2)
 				_shake(who, 0.3)
 		"style_aburame":
 			var tg = _near_foe(who, 16.0)
@@ -4846,7 +4846,7 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 						_kikai_drain(who, tg, 0.14)
 		"style_yilan":
 			var tg = _near_foe(who, 12.0)
-			var pjy = PathJutsu.get_pinst()
+			var pjy = LazyFx.g("PathJutsu").get_pinst()
 			if pjy == null:
 				return
 			var aimy = tg.global_position if tg else who.global_position + f * 6.0
@@ -4896,7 +4896,7 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 						var a = TAU * k / 3.0
 						var q = g + Vector3(cos(a), 0, sin(a)) * 1.6
 						who.get_tree().create_timer(k * 0.06).timeout.connect(func():
-							var snk: Node3D = SummonModels.build("snake_swarm", 1.6, 1.0)["root"]
+							var snk: Node3D = LazyFx.g("SummonModels").build("snake_swarm", 1.6, 1.0)["root"]
 							who.get_tree().current_scene.add_child(snk)
 							snk.global_position = q - Vector3.UP * 1.5
 							snk.look_at(Vector3(g.x, q.y, g.z), Vector3.UP)
@@ -4910,7 +4910,7 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 					_shake(who, 0.4)
 		"style_gama":
 			var tg = _near_foe(who, 12.0)
-			var pjg = PathJutsu.get_pinst()
+			var pjg = LazyFx.g("PathJutsu").get_pinst()
 			if pjg == null:
 				return
 			var aimg = tg.global_position if tg else who.global_position + f * 6.0
@@ -4941,7 +4941,7 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 						tw3.tween_callback(nd.queue_free)
 					Combat.hit_zone(who, who.global_position, f, 8.0, 18.0, 2.4, _kinfo(dmg, 0.9, {"element": "", "knock": 2.0, "kind": "light", "bleed": 2.0}))
 				1:   # savaş kurbağası hedefe zıplayıp ezer (gerçek model)
-					var toad: Node3D = SummonModels.build("toad_small", 1.2, 1.0)["root"]
+					var toad: Node3D = LazyFx.g("SummonModels").build("toad_small", 1.2, 1.0)["root"]
 					who.get_tree().current_scene.add_child(toad)
 					var st2 = who.global_position + side * 1.2
 					toad.global_position = st2
@@ -5042,7 +5042,7 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 					_shake(who, 0.55)
 		"style_tip":
 			var tg = _near_foe(who, 10.0)
-			var pjt = PathJutsu.get_pinst()
+			var pjt = LazyFx.g("PathJutsu").get_pinst()
 			if pjt == null:
 				return
 			var blue = Color(0.6, 0.9, 1.0)
@@ -5086,7 +5086,7 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 					Sfx.play("boom", g, 0.8)
 		"style_kakuzu":
 			var tg = _near_foe(who, 18.0)
-			var pjz = PathJutsu.get_pinst()
+			var pjz = LazyFx.g("PathJutsu").get_pinst()
 			if pjz == null:
 				return
 			var thread = StandardMaterial3D.new()
@@ -5179,12 +5179,12 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 					Combat.hit_zone(who, who.global_position, f, 3.2, 70.0, 2.6, _kinfo(dmg, 1.3, {"element": "doton", "knock": 9.0, "kind": "heavy", "melee": true}))
 				1:   # pençe kavrar: kum tabutu
 					if tg and tg.global_position.distance_to(who.global_position) < 6.0:
-						BijuuArts._sand_coffin(tg, 1.4, true)
+						LazyFx.g("BijuuArts")._sand_coffin(tg, 1.4, true)
 						Combat.hit_sphere(who, tg.global_position + Vector3.UP, 1.2, _kinfo(dmg, 0.9, {"element": "doton", "knock": 0.0, "kind": "heavy"}))
 				2:   # Fūton: Renkūdan — karından hava mermisi (küçük)
-					BijuuArts._renkudan(who, {"s": 0.28, "from": who.global_position + Vector3.UP * 1.1 + f * 0.6, "aim": aim, "dmg": dmg * 1.3, "tgt": tg})
+					LazyFx.g("BijuuArts")._renkudan(who, {"s": 0.28, "from": who.global_position + Vector3.UP * 1.1 + f * 0.6, "aim": aim, "dmg": dmg * 1.3, "tgt": tg})
 				3:   # Sabaku Taisō: önden kum dalgası (küçük)
-					BijuuArts._sabaku_taiso(who, {"s": 0.32, "aim": aim, "dmg": dmg * 1.2, "tgt": tg})
+					LazyFx.g("BijuuArts")._sabaku_taiso(who, {"s": 0.32, "aim": aim, "dmg": dmg * 1.2, "tgt": tg})
 				4:   # Suna no Tate: kısa kum kalkanı + çevre sarsma
 					VFX.shockwave(who.global_position + Vector3.UP, sand, 5.0, 0.3, true)
 					Combat.hit_sphere(who, who.global_position + Vector3.UP, 2.6, _kinfo(dmg, 0.8, {"element": "doton", "knock": 10.0, "kind": "heavy"}))
@@ -5199,7 +5199,7 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 					Combat.hit_sphere(who, g + Vector3.UP * 0.6, 2.8, _kinfo(dmg, 1.4, {"element": "doton", "knock": 6.0, "launch": 5.0, "kind": "heavy"}))
 					who.get_tree().create_timer(0.2).timeout.connect(func():
 						if is_instance_valid(who):
-							BijuuArts._renkudan(who, {"s": 0.45, "from": who.global_position + Vector3.UP * 1.2 + who.face_dir() * 0.6, "aim": aim, "dmg": dmg * 1.4, "tgt": tg}))
+							LazyFx.g("BijuuArts")._renkudan(who, {"s": 0.45, "from": who.global_position + Vector3.UP * 1.2 + who.face_dir() * 0.6, "aim": aim, "dmg": dmg * 1.4, "tgt": tg}))
 					_shake(who, 0.5)
 		"style_jin_matatabi":
 			var tg = _near_foe(who, 14.0)
@@ -5209,13 +5209,13 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 					_cat_claw(who, who.global_position + Vector3.UP * 1.15, f, i == 0, 2.0)
 					Combat.hit_zone(who, who.global_position, f, 3.0, 50.0, 2.4, _kinfo(dmg, 1.0, {"element": "katon", "knock": 4.0, "kind": "light", "melee": true, "burn": 2.0}))
 				2:   # kedi sıçrayışı: yay çizip pençeyle iner
-					BijuuArts._neko_pounce(who, {"s": 0.3, "aim": aim, "dmg": dmg * 1.6, "tgt": tg})
+					LazyFx.g("BijuuArts")._neko_pounce(who, {"s": 0.3, "aim": aim, "dmg": dmg * 1.6, "tgt": tg})
 				3:   # mavi ateş topları (küçük yay)
-					BijuuArts._aobi_dama(who, {"s": 0.3, "from": who.global_position + Vector3.UP * 1.4 + f * 0.5, "aim": aim, "dmg": dmg * 1.5, "tgt": tg})
+					LazyFx.g("BijuuArts")._aobi_dama(who, {"s": 0.3, "from": who.global_position + Vector3.UP * 1.4 + f * 0.5, "aim": aim, "dmg": dmg * 1.5, "tgt": tg})
 				4:   # alçak süpürme: yerde mavi alev şeridi
 					for k in 3:
 						var p = who.global_position + f * (1.2 + k * 1.1) + side * (k - 1) * 0.6
-						BijuuArts._blue_patch(who, p, 0.4, dmg * 0.5, 3.0)
+						LazyFx.g("BijuuArts")._blue_patch(who, p, 0.4, dmg * 0.5, 3.0)
 					Combat.hit_zone(who, who.global_position, f, 2.8, 80.0, 1.2, _kinfo(dmg, 0.9, {"element": "katon", "knock": 2.0, "kind": "light", "melee": true, "stun": 0.4, "burn": 2.0}))
 				5:   # çapraz çift pençe X
 					var o = who.global_position + Vector3.UP * 1.2 + f * 0.9
@@ -5233,13 +5233,13 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 					VFX.lava_splash(hp, 0.2)
 					Combat.hit_zone(who, who.global_position, f, 2.6, 40.0, 2.4, _kinfo(dmg, 1.2, {"element": "yoton", "knock": 6.0, "kind": "heavy", "melee": true, "burn": 2.0}))
 				2:   # Yōton: Kakōgan (küçük lav kayaları)
-					BijuuArts._kakogan(who, {"s": 0.22, "from": who.global_position + Vector3.UP * 1.4 + f * 0.6, "aim": aim, "dmg": dmg * 1.4, "tgt": tg})
+					LazyFx.g("BijuuArts")._kakogan(who, {"s": 0.22, "from": who.global_position + Vector3.UP * 1.4 + f * 0.6, "aim": aim, "dmg": dmg * 1.4, "tgt": tg})
 				3:   # Funkatsu: hedefin altından lav fışkırır
-					BijuuArts._funkatsu(who, {"s": 0.28, "aim": aim, "dmg": dmg * 1.5, "tgt": tg})
+					LazyFx.g("BijuuArts")._funkatsu(who, {"s": 0.28, "aim": aim, "dmg": dmg * 1.5, "tgt": tg})
 				4:   # lav kabuğu sarsıntısı: çevreye lav damlası + sarsma
 					var c0 = who.global_position + Vector3.UP
 					VFX.goo_drops(c0, "molten", 5, 0.35, 5.0)
-					VFX.shockwave(Vector3(c0.x, Game.ground_height(c0.x, c0.z) + 0.1, c0.z), BijuuArts.LAVA, 5.0, 0.35, true)
+					VFX.shockwave(Vector3(c0.x, Game.ground_height(c0.x, c0.z) + 0.1, c0.z), LazyFx.g("BijuuArts").LAVA, 5.0, 0.35, true)
 					for h in Combat.hit_sphere(who, c0, 2.8, _kinfo(dmg, 1.0, {"element": "yoton", "knock": 9.0, "kind": "heavy", "burn": 3.0})):
 						pass
 				5:   # lav yumruğu yere: erimiş yarık + lav gölü
@@ -5247,7 +5247,7 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 					g.y = Game.ground_height(g.x, g.z)
 					VFX.cracks(g, 4.5, Color(1.0, 0.45, 0.05, 0.95), 3.0)
 					VFX.debris(g, Color(0.25, 0.12, 0.08), 10, 6.0, 0.25)
-					BijuuArts._lava_pool(who, g, 0.28, dmg * 0.3, 4.0)
+					LazyFx.g("BijuuArts")._lava_pool(who, g, 0.28, dmg * 0.3, 4.0)
 					Combat.hit_sphere(who, g + Vector3.UP * 0.6, 2.8, _kinfo(dmg, 2.2, {"element": "yoton", "knock": 8.0, "launch": 7.0, "kind": "heavy", "burn": 4.0}))
 					_shake(who, 0.6)
 		"style_jin_kokuo":
@@ -5256,18 +5256,18 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 			var back = who.global_position + Vector3.UP * 1.3 - f * 0.4
 			match i:
 				0, 1:   # buharlı tekme: sırttan buhar fışkırır, tekme hızlanır
-					BijuuArts._steam_cloud(back, 0.22, 0.6, 0.6)
+					LazyFx.g("BijuuArts")._steam_cloud(back, 0.22, 0.6, 0.6)
 					Combat.hit_zone(who, who.global_position, f, 2.6, 60.0, 2.4 if i == 0 else 1.2, _kinfo(dmg, 1.2, {"element": "futton", "knock": 8.0 if i == 0 else 2.0, "kind": "heavy", "melee": true, "stun": 0.0 if i == 0 else 0.5}))
 				2:   # boynuz atılışı (kısa hücum)
-					BijuuArts._horn_ram(who, {"s": 0.22, "aim": aim, "dmg": dmg * 1.5, "tgt": tg})
+					LazyFx.g("BijuuArts")._horn_ram(who, {"s": 0.22, "aim": aim, "dmg": dmg * 1.5, "tgt": tg})
 				3:   # haşlama buharı: hedefin üstünde kaynar sis
-					BijuuArts._futton_boil(who, {"s": 0.22, "aim": aim, "dmg": dmg * 1.2, "tgt": tg})
+					LazyFx.g("BijuuArts")._futton_boil(who, {"s": 0.22, "aim": aim, "dmg": dmg * 1.2, "tgt": tg})
 				4:   # buhar patlaması
-					BijuuArts._steam_burst(who, {"s": 0.22, "dmg": dmg * 1.3})
+					LazyFx.g("BijuuArts")._steam_burst(who, {"s": 0.22, "dmg": dmg * 1.3})
 				5:   # roket tekmenin çarpışı
 					var kp = who.global_position + Vector3.UP * 1.0 + f * 1.0
-					VFX.star(kp, BijuuArts.STEAM, 2.4, 0.15)
-					BijuuArts._steam_cloud(kp, 0.22, 0.6, 0.6)
+					VFX.star(kp, LazyFx.g("BijuuArts").STEAM, 2.4, 0.15)
+					LazyFx.g("BijuuArts")._steam_cloud(kp, 0.22, 0.6, 0.6)
 					Combat.hit_zone(who, who.global_position, f, 3.0, 50.0, 2.4, _kinfo(dmg, 2.3, {"element": "futton", "knock": 18.0, "launch": 5.0, "kind": "heavy", "hitstop": 0.1}))
 					_shake(who, 0.55)
 		"style_jin_chomei":
@@ -5279,22 +5279,22 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 					var sx = 1.0 if i == 0 else -1.0
 					var o = who.global_position + Vector3.UP * 1.3
 					for k in 2:
-						WindFX.streak(func(t: float) -> Vector3: return o + Vector3.UP * (k - 0.5) * 0.3 + f * (0.6 + t * 6.0) + side * sin(t * PI) * 0.5 * sx, 0.2, 0.1, Color(0.85, 1.0, 0.75, 0.95), k * 0.03, 12)
+						LazyFx.g("WindFX").streak(func(t: float) -> Vector3: return o + Vector3.UP * (k - 0.5) * 0.3 + f * (0.6 + t * 6.0) + side * sin(t * PI) * 0.5 * sx, 0.2, 0.1, Color(0.85, 1.0, 0.75, 0.95), k * 0.03, 12)
 					Combat.hit_zone(who, who.global_position, f, 6.5, 22.0, 2.4, _kinfo(dmg, 1.0, {"element": "fuuton", "knock": 4.0, "kind": "light", "bleed": 1.0}))
 				2:   # böcek sürüsü: chakra emer
-					BijuuArts._mushi_swarm(who, {"s": 0.4, "from": hand, "aim": aim, "dmg": dmg * 1.6, "tgt": tg})
+					LazyFx.g("BijuuArts")._mushi_swarm(who, {"s": 0.4, "from": hand, "aim": aim, "dmg": dmg * 1.6, "tgt": tg})
 				3:   # pul tozu parlaması: kör eder
-					BijuuArts._rinpun(who, {"s": 0.32, "from": hand, "aim": aim, "dmg": dmg * 1.3})
+					LazyFx.g("BijuuArts")._rinpun(who, {"s": 0.32, "from": hand, "aim": aim, "dmg": dmg * 1.3})
 				4:   # havadan dalış tekmesi
 					var kp = who.global_position + Vector3.UP * 0.8 + f * 1.0
-					VFX.shockwave(Vector3(kp.x, Game.ground_height(kp.x, kp.z) + 0.1, kp.z), BijuuArts.SCALE, 3.5, 0.3, true)
+					VFX.shockwave(Vector3(kp.x, Game.ground_height(kp.x, kp.z) + 0.1, kp.z), LazyFx.g("BijuuArts").SCALE, 3.5, 0.3, true)
 					Combat.hit_sphere(who, kp, 1.8, _kinfo(dmg, 1.5, {"element": "fuuton", "knock": 8.0, "launch": 3.0, "kind": "heavy", "melee": true}))
 				5:   # kanatlar açılır: pul tozu + rüzgâr fırtınası
-					BijuuArts._rinpun(who, {"s": 0.4, "from": hand, "aim": aim, "dmg": dmg * 1.2})
+					LazyFx.g("BijuuArts")._rinpun(who, {"s": 0.4, "from": hand, "aim": aim, "dmg": dmg * 1.2})
 					var o5 = who.global_position + Vector3.UP * 1.2
 					for k in 5:
 						var dd = f.rotated(Vector3.UP, deg_to_rad((k - 2) * 12.0))
-						WindFX.streak(func(t: float) -> Vector3: return o5 + dd * (0.5 + t * 8.0) + Vector3.UP * sin(t * PI * 2.0 + k) * 0.3, 0.24, 0.12, Color(0.85, 1.0, 0.75, 0.95), k * 0.02, 12)
+						LazyFx.g("WindFX").streak(func(t: float) -> Vector3: return o5 + dd * (0.5 + t * 8.0) + Vector3.UP * sin(t * PI * 2.0 + k) * 0.3, 0.24, 0.12, Color(0.85, 1.0, 0.75, 0.95), k * 0.02, 12)
 					Combat.hit_zone(who, who.global_position, f, 8.0, 35.0, 3.0, _kinfo(dmg, 1.6, {"element": "fuuton", "knock": 12.0, "launch": 3.0, "kind": "heavy", "bleed": 1.5}))
 					_shake(who, 0.4)
 		"style_jin_gyuki":
@@ -5303,24 +5303,24 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 			var purple = Color(0.65, 0.35, 0.75)
 			match i:
 				0, 1:   # örtüden chakra kolu darbesi
-					BijuuArts._chakra_kaina(who, {"s": 0.35, "aim": aim, "dmg": dmg * 1.4, "tgt": tg, "col": purple})
+					LazyFx.g("BijuuArts")._chakra_kaina(who, {"s": 0.35, "aim": aim, "dmg": dmg * 1.4, "tgt": tg, "col": purple})
 				2:   # iki dokunaç kavrayıp çarpar
 					for k in 2:
 						var off = f.cross(Vector3.UP) * (k - 0.5) * 1.2
 						who.get_tree().create_timer(k * 0.1).timeout.connect(func():
 							if is_instance_valid(who):
-								BijuuArts._tako_ude(who, {"s": 0.5, "dmg": dmg * 1.0, "aim": aim + off, "tgt": tg, "base_h": 1.7 + k * 0.15}))
+								LazyFx.g("BijuuArts")._tako_ude(who, {"s": 0.5, "dmg": dmg * 1.0, "aim": aim + off, "tgt": tg, "base_h": 1.7 + k * 0.15}))
 				3:   # Tako Bunshin: mürekkep bulutu, ahtapot klonları, geri kaçış
-					BijuuArts._tako_bunshin(who, {"s": 0.3})
+					LazyFx.g("BijuuArts")._tako_bunshin(who, {"s": 0.3})
 				4:   # dokunaç süpürmesi
 					for k in 3:
 						var a = TAU * k / 3.0
 						var q = who.global_position + Vector3(cos(a), 0, sin(a)) * 3.0
 						who.get_tree().create_timer(k * 0.06).timeout.connect(func():
 							if is_instance_valid(who):
-								BijuuArts._tako_ude(who, {"s": 0.4, "dmg": dmg * 0.7, "aim": q, "tgt": null, "base_h": 1.6}))
+								LazyFx.g("BijuuArts")._tako_ude(who, {"s": 0.4, "dmg": dmg * 0.7, "aim": q, "tgt": null, "base_h": 1.6}))
 				5:   # küçük Bijūdama
-					BijuuArts._bijudama_rasengan(who, {"s": 0.3, "from": who.global_position + Vector3.UP * 1.5 + f * 0.8, "aim": aim + Vector3.UP, "dmg": dmg * 2.6, "col": purple})
+					LazyFx.g("BijuuArts")._bijudama_rasengan(who, {"s": 0.3, "from": who.global_position + Vector3.UP * 1.5 + f * 0.8, "aim": aim + Vector3.UP, "dmg": dmg * 2.6, "col": purple})
 					_shake(who, 0.4)
 		"style_jin_kurama":
 			var tg = _near_foe(who, 16.0)
@@ -5331,17 +5331,17 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 					_cat_claw(who, who.global_position + Vector3.UP * 1.15, f, i == 0, 2.2, Color(1.0, 0.5, 0.12, 0.85))
 					Combat.hit_zone(who, who.global_position, f, 3.0, 50.0, 2.4, _kinfo(dmg, 1.2, {"element": "katon", "knock": 5.0, "kind": "heavy", "melee": true, "burn": 1.5}))
 				2:   # chakra kolu kavrar, yere çarpar
-					BijuuArts._chakra_kaina(who, {"s": 0.38, "aim": aim, "dmg": dmg * 1.6, "tgt": tg, "col": fox})
+					LazyFx.g("BijuuArts")._chakra_kaina(who, {"s": 0.38, "aim": aim, "dmg": dmg * 1.6, "tgt": tg, "col": fox})
 				3:   # Bijū Hōkō: kükreme dalgası
-					BijuuArts._biju_hoko(who, {"s": 0.3, "from": who.global_position + Vector3.UP * 1.5 + f * 0.5, "aim": aim + Vector3.UP, "dmg": dmg * 1.4, "col": fox})
+					LazyFx.g("BijuuArts")._biju_hoko(who, {"s": 0.3, "from": who.global_position + Vector3.UP * 1.5 + f * 0.5, "aim": aim + Vector3.UP, "dmg": dmg * 1.4, "col": fox})
 				4:   # iki chakra kolu birden (çapraz)
 					for k in 2:
 						var off = f.cross(Vector3.UP) * (k - 0.5) * 2.0
 						who.get_tree().create_timer(k * 0.08).timeout.connect(func():
 							if is_instance_valid(who):
-								BijuuArts._chakra_kaina(who, {"s": 0.3, "aim": aim + off, "dmg": dmg * 0.9, "tgt": tg if k == 0 else null, "col": fox}))
+								LazyFx.g("BijuuArts")._chakra_kaina(who, {"s": 0.3, "aim": aim + off, "dmg": dmg * 0.9, "tgt": tg if k == 0 else null, "col": fox}))
 				5:   # Bijūdama Rasengan (küçük)
-					BijuuArts._bijudama_rasengan(who, {"s": 0.3, "from": who.global_position + Vector3.UP * 1.3 + f * 0.9, "aim": aim + Vector3.UP, "dmg": dmg * 2.6, "col": fox})
+					LazyFx.g("BijuuArts")._bijudama_rasengan(who, {"s": 0.3, "from": who.global_position + Vector3.UP * 1.3 + f * 0.9, "aim": aim + Vector3.UP, "dmg": dmg * 2.6, "col": fox})
 					_shake(who, 0.5)
 		"style_jin_saiken":
 			var tg = _near_foe(who, 18.0)
@@ -5349,11 +5349,11 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 			var hand = who.global_position + Vector3.UP * 1.3 + f * 0.6
 			match i:
 				0, 1:   # köpük-asit baloncukları (Saiken'in gerçek baloncuğu; küçük)
-					BijuuArts._fukuso(who, {"s": 0.32, "from": hand + side * (0.25 if i == 0 else -0.25), "aim": aim, "dmg": dmg * 0.9})
+					LazyFx.g("BijuuArts")._fukuso(who, {"s": 0.32, "from": hand + side * (0.25 if i == 0 else -0.25), "aim": aim, "dmg": dmg * 0.9})
 				2:   # asit sisi
-					BijuuArts._acid_mist(who, {"s": 0.3, "aim": aim, "dmg": dmg * 1.1})
+					LazyFx.g("BijuuArts")._acid_mist(who, {"s": 0.3, "aim": aim, "dmg": dmg * 1.1})
 				3:   # sümük gölü: saplar, yavaşlatır
-					BijuuArts._slime(who, {"s": 0.3, "aim": Vector3(aim.x, Game.ground_height(aim.x, aim.z), aim.z), "dmg": dmg})
+					LazyFx.g("BijuuArts")._slime(who, {"s": 0.3, "aim": Vector3(aim.x, Game.ground_height(aim.x, aim.z), aim.z), "dmg": dmg})
 				4:   # baloncuk hapsi: hedef köpük balonun içinde kalır
 					if tg and tg.global_position.distance_to(who.global_position) < 12.0:
 						_bubble_trap(who, tg, 1.6)
@@ -5365,7 +5365,7 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 						var q = c0 + Vector3(cos(a) * 1.3, 0.9 + (k % 2) * 0.5, sin(a) * 1.3)
 						var bub = MeshInstance3D.new()
 						bub.mesh = VFX._sphere(0.5, 16, 8)
-						bub.material_override = BijuuArts._glass(Color(0.85, 1.0, 0.9), 0.45, 0.3)
+						bub.material_override = LazyFx.g("BijuuArts")._glass(Color(0.85, 1.0, 0.9), 0.45, 0.3)
 						who.get_tree().current_scene.add_child(bub)
 						bub.global_position = q
 						bub.scale = Vector3.ONE * 0.1
@@ -5373,10 +5373,10 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 						tw.tween_property(bub, "scale", Vector3.ONE * 0.7, 0.2).set_trans(Tween.TRANS_BACK)
 						tw.tween_interval(0.15 + k * 0.07)
 						tw.tween_callback(func():
-							VFX.puffs(q, {"amount": 10, "life": 0.5, "size": 0.4, "radius": 0.3, "vmin": 3, "vmax": 6, "gravity": Vector3(0, -10, 0), "colors": [Color(0.95, 1, 0.9, 1), BijuuArts.ACID, Color(0.4, 0.8, 0.2, 0)]})
+							VFX.puffs(q, {"amount": 10, "life": 0.5, "size": 0.4, "radius": 0.3, "vmin": 3, "vmax": 6, "gravity": Vector3(0, -10, 0), "colors": [Color(0.95, 1, 0.9, 1), LazyFx.g("BijuuArts").ACID, Color(0.4, 0.8, 0.2, 0)]})
 							if is_instance_valid(who):
 								for h in Combat.hit_sphere(who, q, 1.4, _kinfo(dmg, 0.45, {"element": "suiton", "knock": 3.0, "kind": "light"})):
-									BijuuArts._corrode(h, 3.0, dmg * 0.05, BijuuArts.ACID)
+									LazyFx.g("BijuuArts")._corrode(h, 3.0, dmg * 0.05, LazyFx.g("BijuuArts").ACID)
 							bub.queue_free())
 					_shake(who, 0.3)
 		"style_jin_isobu":
@@ -5385,26 +5385,26 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 			var aimg = Vector3(aim.x, Game.ground_height(aim.x, aim.z), aim.z)
 			match i:
 				0:   # mercan diken: hedefin altından
-					BijuuArts._coral(aimg - Vector3.UP * 0.2, 2.2, 2.5, BijuuArts.CORAL)
+					LazyFx.g("BijuuArts")._coral(aimg - Vector3.UP * 0.2, 2.2, 2.5, LazyFx.g("BijuuArts").CORAL)
 					Combat.hit_sphere(who, aimg + Vector3.UP * 0.8, 1.3, _kinfo(dmg, 1.2, {"element": "suiton", "knock": 2.0, "launch": 7.0, "kind": "heavy"}))
 				1:   # su avucu itişi
 					var pt = who.global_position + Vector3.UP * 1.1 + f * 1.2
-					WaterArt.splash(pt, 0.8)
-					WaterArt.spray(pt, 1.0, f, 25.0, 1.4)
+					LazyFx.g("WaterArt").splash(pt, 0.8)
+					LazyFx.g("WaterArt").spray(pt, 1.0, f, 25.0, 1.4)
 					Combat.hit_zone(who, who.global_position, f, 3.4, 40.0, 2.4, _kinfo(dmg, 1.0, {"element": "suiton", "knock": 10.0, "kind": "heavy"}))
 				2:   # mercan tarlası (küçük): bağlar
-					BijuuArts._sango(who, {"s": 0.28, "aim": aim, "dmg": dmg * 1.2, "tgt": tg})
+					LazyFx.g("BijuuArts")._sango(who, {"s": 0.28, "aim": aim, "dmg": dmg * 1.2, "tgt": tg})
 				3:   # kabuk yuvarlanışı
-					BijuuArts._shell_roll(who, {"s": 0.32, "aim": aim, "dmg": dmg * 1.4, "tgt": tg, "stun": 1.4, "knock": 9.0, "hard_down": true, "hit_r": 3.6})   # kombo içinde: uzağa savurmaz, yerde tutar (sis adımı kopmasın)
+					LazyFx.g("BijuuArts")._shell_roll(who, {"s": 0.32, "aim": aim, "dmg": dmg * 1.4, "tgt": tg, "stun": 1.4, "knock": 9.0, "hard_down": true, "hit_r": 3.6})   # kombo içinde: uzağa savurmaz, yerde tutar (sis adımı kopmasın)
 				4:   # yanılsama sisi (küçük)
-					BijuuArts._kiri_genjutsu(who, {"s": 0.35, "aim": aim, "dmg": dmg, "tgt": tg})
+					LazyFx.g("BijuuArts")._kiri_genjutsu(who, {"s": 0.35, "aim": aim, "dmg": dmg, "tgt": tg})
 					Combat.hit_sphere(who, aimg + Vector3.UP * 0.8, 2.6, _kinfo(dmg, 0.5, {"element": "suiton", "knock": 0.0, "kind": "heavy", "stun": 1.2}))   # sisin yanılsaması sendeletir
 				5:   # mercan halkası kapanır + su patlaması
 					for k in 6:
 						var a = TAU * k / 6.0
 						var q = aimg + Vector3(cos(a), 0, sin(a)) * 1.3
 						who.get_tree().create_timer(k * 0.03).timeout.connect(func():
-							BijuuArts._coral(q - Vector3.UP * 0.2, 2.6, 2.0, BijuuArts.CORAL if k % 2 else BijuuArts.CORAL2))
+							LazyFx.g("BijuuArts")._coral(q - Vector3.UP * 0.2, 2.6, 2.0, LazyFx.g("BijuuArts").CORAL if k % 2 else LazyFx.g("BijuuArts").CORAL2))
 					who.get_tree().create_timer(0.25).timeout.connect(func():
 						VFX.splash(aimg + Vector3.UP * 0.5, 1.6)
 						if is_instance_valid(who):
@@ -5414,7 +5414,7 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 							_shake(who, 0.5))
 		"style_jashin":
 			var tg = _near_foe(who, 20.0)
-			var pjj = PathJutsu.get_pinst()
+			var pjj = LazyFx.g("PathJutsu").get_pinst()
 			if pjj == null:
 				return
 			var blood = Color(0.6, 0.05, 0.05)
@@ -5476,14 +5476,14 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 						_shake(who, 0.4)
 		"style_hachibi":
 			var tg = _near_foe(who, 14.0)
-			var pjb = PathJutsu.get_pinst()
+			var pjb = LazyFx.g("PathJutsu").get_pinst()
 			if pjb == null:
 				return
 			var octo = Color(0.75, 0.4, 0.62)
 			var aimb = tg.global_position if tg else who.global_position + f * 7.0
 			match i:
 				0:   # dokunaç kırbacı (Gyūki'nin gerçek Takoashi Ude dokunacı, insan ölçeği)
-					BijuuArts._tako_ude(who, {"s": 0.45, "dmg": dmg * 1.1, "aim": aimb, "tgt": tg, "base_h": 1.6})
+					LazyFx.g("BijuuArts")._tako_ude(who, {"s": 0.45, "dmg": dmg * 1.1, "aim": aimb, "tgt": tg, "base_h": 1.6})
 				1:   # Ran Taijutsu (kanon: B'nin "Disturbance Taijutsu"su): ritimle dönen düzensiz tekme — kılıç yok (kılıçlar yalnız Nanatō
 					# kuşanınca, Akurobatto). Ayaktan Sekiz Kuyruk mürekkebi savrulur, yerde mürekkep izi kalır
 					var fp = who.global_position + f * 1.1
@@ -5509,25 +5509,25 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 						var off = f.cross(Vector3.UP) * (k - 0.5) * 1.2
 						who.get_tree().create_timer(k * 0.12).timeout.connect(func():
 							if is_instance_valid(who):
-								BijuuArts._tako_ude(who, {"s": 0.5, "dmg": dmg * 1.0, "aim": aimb + off, "tgt": tg, "base_h": 1.7 + k * 0.15}))
+								LazyFx.g("BijuuArts")._tako_ude(who, {"s": 0.5, "dmg": dmg * 1.0, "aim": aimb + off, "tgt": tg, "base_h": 1.7 + k * 0.15}))
 				5:   # Sekiz Kuyruk topu (küçük): ağızda toplanır, fırlar, mor kubbe patlar
 					var from = who.global_position + Vector3.UP * 1.5 + f * 1.0
 					var ball = pjb._bijuball(0.55)
 					who.get_tree().current_scene.add_child(ball)
 					ball.global_position = from
-					BijudamaFX.launch(from, f, 0.55, ball)
+					LazyFx.g("BijudamaFX").launch(from, f, 0.55, ball)
 					var to2 = (tg.global_position + Vector3.UP) if tg else from + f * 12.0
 					var tw5 = ball.create_tween()
 					tw5.tween_property(ball, "global_position", to2, from.distance_to(to2) / 34.0)
 					tw5.tween_callback(func():
 						ball.queue_free()
-						BijudamaFX.explode(to2, 2.8)
+						LazyFx.g("BijudamaFX").explode(to2, 2.8)
 						if is_instance_valid(who):
 							Combat.hit_sphere(who, to2, 2.8, _kinfo(dmg, 2.4, {"element": "", "knock": 18.0, "launch": 6.0, "kind": "heavy", "hitstop": 0.12}))
 							_shake(who, 0.7))
 		"style_silah":
 			var tg = _near_foe(who, 20.0)
-			var pjw = PathJutsu.get_pinst()
+			var pjw = LazyFx.g("PathJutsu").get_pinst()
 			if pjw == null:
 				return
 			var from0 = who.global_position + Vector3.UP * 1.3 + f * 0.6
@@ -5619,7 +5619,7 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 					tw5.tween_callback(ball.queue_free)
 		"style_hiraishin":
 			var tg = _hira_target(who)
-			var pjh = PathJutsu.get_pinst()
+			var pjh = LazyFx.g("PathJutsu").get_pinst()
 			if pjh == null:
 				return
 			var yel = Color(1.0, 0.9, 0.4)
@@ -5684,14 +5684,14 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 					_shake(who, 0.6)
 		"style_kagit":
 			var tg = _near_foe(who, 16.0)
-			var pjk = PathJutsu.get_pinst()
+			var pjk = LazyFx.g("PathJutsu").get_pinst()
 			if pjk == null:
 				return
 			var aimk = (tg.global_position + Vector3.UP) if tg else who.global_position + f * 8.0 + Vector3.UP
 			var handk = who.global_position + Vector3.UP * 1.35 + f * 0.5
 			match i:
 				0, 1:   # kâğıt shuriken
-					var mesh = pjk._paper_star().build(Props.toon())
+					var mesh = pjk._paper_star().build(LazyFx.g("Props").toon())
 					for k in 3:
 						var mi = MeshInstance3D.new()
 						mi.mesh = mesh
@@ -5723,7 +5723,7 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 					var p = Vector3(aimk.x, Game.ground_height(aimk.x, aimk.z), aimk.z)
 					for k in 7:
 						var mi2 = MeshInstance3D.new()
-						mi2.mesh = pjk._paper_spear(randf_range(1.8, 2.8)).build(Props.toon())
+						mi2.mesh = pjk._paper_spear(randf_range(1.8, 2.8)).build(LazyFx.g("Props").toon())
 						who.get_tree().current_scene.add_child(mi2)
 						var q = p + Vector3(randf_range(-0.9, 0.9), -2.5, randf_range(-0.9, 0.9))
 						mi2.global_position = q
@@ -5759,7 +5759,7 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 							_shake(who, 0.5))
 		"style_sumi":
 			var tg = _near_foe(who, 16.0)
-			var pjs = PathJutsu.get_pinst()
+			var pjs = LazyFx.g("PathJutsu").get_pinst()
 			if pjs == null:
 				return
 			var aims = tg.global_position if tg else who.global_position + f * 8.0
@@ -5790,7 +5790,7 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 					_shake(who, 0.4)
 		"style_akasuna":
 			var tg = _near_foe(who, 14.0)
-			var pjp = PathJutsu.get_pinst()
+			var pjp = LazyFx.g("PathJutsu").get_pinst()
 			if pjp == null:
 				return
 			var aimp = tg.global_position if tg else who.global_position + f * 6.0
@@ -5845,7 +5845,7 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 					_clay_fly(who, "bird", hand + Vector3.UP * 0.5, aim, 0.6, 0.42, 2.4, dmg * 1.2, 1.0)
 				3:   # Jirai: hedefin altına kil mayın — kısa gecikmeyle patlar
 					var p = Vector3(aim.x, Game.ground_height(aim.x, aim.z), aim.z)
-					var mine = ClayArt.spider(0.35)
+					var mine = LazyFx.g("ClayArt").spider(0.35)
 					who.get_tree().current_scene.add_child(mine)
 					mine.global_position = p - Vector3.UP * 0.15
 					who.get_tree().create_timer(0.45).timeout.connect(func():
@@ -5858,7 +5858,7 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 					for k in 3:
 						_clay_fly(who, "bird", hand + side * (k - 1) * 0.6 + Vector3.UP * 0.4, aim + side * (k - 1) * 1.2, 0.5, 0.6 + k * 0.08, 3.0, dmg * 0.7, 0.9)
 				5:   # Katsu!: dev kil bebek hedefe düşüp büyük patlama
-					var doll = ClayArt.doll(1.2)
+					var doll = LazyFx.g("ClayArt").doll(1.2)
 					who.get_tree().current_scene.add_child(doll)
 					var top = aim + Vector3.UP * 9.0
 					doll.global_position = top
@@ -5875,7 +5875,7 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 			var tg = _near_foe(who, 14.0)
 			match i:
 				0, 1:   # tekme rüzgârı
-					WindFX.streak(func(u: float) -> Vector3:
+					LazyFx.g("WindFX").streak(func(u: float) -> Vector3:
 						var a = lerpf(1.2, -1.2, u) * (1.0 if i == 0 else -1.0)
 						return who.global_position + Vector3.UP * (1.3 if i == 0 else 0.3) + (f * cos(a) - side * sin(a)) * 1.6, 0.18, 0.12, Color(0.9, 1.0, 0.92, 0.9), 0.0, 12)
 				3:   # topuk inişi
@@ -5903,7 +5903,7 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 									Combat.hit_sphere(who, to, 1.0, _kinfo(dmg, 0.25, {"element": "katon", "knock": 1.5, "kind": "light", "burn": 1.0})))
 							tw.tween_callback(fb.queue_free))
 				5:   # Hirudora: avuçtan kaplan başı hava basıncı (gerçek _tiger_head modeli)
-					var pjh = PathJutsu.get_pinst()
+					var pjh = LazyFx.g("PathJutsu").get_pinst()
 					if pjh:
 						var node = pjh._tiger_head(1.1)
 						who.get_tree().current_scene.add_child(node)
@@ -5972,7 +5972,7 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 							q.y = Game.ground_height(q.x, q.z)
 							who.get_tree().create_timer(0.05 + k * 0.05).timeout.connect(func():
 								VFX.debris(q, Color(0.55, 0.47, 0.38), 5, 4.0, 0.25)
-								var dog: Node3D = SummonModels.build("dog_small" if k == 0 else "dog_pack", 0.45 if k == 0 else 0.62, 1.0)["root"]
+								var dog: Node3D = LazyFx.g("SummonModels").build("dog_small" if k == 0 else "dog_pack", 0.45 if k == 0 else 0.62, 1.0)["root"]
 								who.get_tree().current_scene.add_child(dog)
 								dog.global_position = q - Vector3.UP * 0.7
 								dog.look_at(Vector3(p.x, dog.global_position.y, p.z), Vector3.UP)
@@ -6002,14 +6002,14 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 							Sfx.play("chidori", hp2, 1.0, 0.8))
 		"style_sarutobi":
 			var tg = _near_foe(who, 12.0)
-			var pj2 = PathJutsu.get_pinst()
+			var pj2 = LazyFx.g("PathJutsu").get_pinst()
 			var mouth = who.global_position + Vector3.UP * 1.55 + f * 0.4
 			match i:
 				0, 1:   # Hien: rüzgâr chakralı yumruk — ileri kısa mavi-beyaz kesik
 					var sx = 1.0 if i == 0 else -1.0
 					var o = who.global_position + Vector3.UP * 1.3 + side * sx * 0.2
 					for k in 2:   # yumruğun önünden iki kavisli rüzgâr kesiği (Asuma'nın Hien akışı)
-						WindFX.streak(func(t: float) -> Vector3: return o + Vector3.UP * (k - 0.5) * 0.25 + f * (0.5 + t * 2.6) + side * sin(t * PI) * 0.35 * sx, 0.22, 0.13, Color(0.78, 0.92, 1.0, 0.95), k * 0.03, 12)
+						LazyFx.g("WindFX").streak(func(t: float) -> Vector3: return o + Vector3.UP * (k - 0.5) * 0.25 + f * (0.5 + t * 2.6) + side * sin(t * PI) * 0.35 * sx, 0.22, 0.13, Color(0.78, 0.92, 1.0, 0.95), k * 0.03, 12)
 					FX.hit_spark(o + f * 1.2, Color(0.8, 0.93, 1.0), 0.6)
 					Combat.hit_zone(who, who.global_position, f, 2.8, 30.0, 2.2, _kinfo(dmg, 1.0, {"element": "fuuton", "knock": 5.0, "kind": "light", "melee": true, "bleed": 1.0}))
 				2:   # Haisekishō: kül bulutu (ref sarutobi_0) — göz alır, yavaşlatır; bulut 4 sn kalır, tutuşturulabilir
@@ -6047,7 +6047,7 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 					Sfx.play("fire", who.global_position, 0.9)
 		"style_senju":
 			var tg = _near_foe(who, 9.0)
-			var pj = PathJutsu.get_pinst()
+			var pj = LazyFx.g("PathJutsu").get_pinst()
 			var gcol = Color(0.55, 0.47, 0.38)
 			match i:
 				0, 1:   # Senju kanı: yumruğun ardında hava patlaması
@@ -6263,14 +6263,14 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 						Combat.hit_sphere(who, p4 + Vector3.UP, 2.0, _kinfo(dmg, 0.9, {"element": "doton", "knock": 3.0, "kind": "heavy"}))
 				5:   # Sabaku Sōsō: sarılı kum sıkıştırır
 					if tg:
-						var stc = SandCoat.apply(tg, 0.82, 0.22)   # Sabaku Kyū kaplaması tırmanır...
+						var stc = LazyFx.g("SandCoat").apply(tg, 0.82, 0.22)   # Sabaku Kyū kaplaması tırmanır...
 						who.get_tree().create_timer(0.3).timeout.connect(func():
 							if is_instance_valid(tg) and not stc.is_empty():
-								SandCoat.squeeze(stc, 0.35))   # ...ve avuç kapanınca çöker (Sōsō)
+								LazyFx.g("SandCoat").squeeze(stc, 0.35))   # ...ve avuç kapanınca çöker (Sōsō)
 						who.get_tree().create_timer(0.62).timeout.connect(func():
 							if is_instance_valid(tg):
 								if not stc.is_empty():
-									SandCoat.remove(stc, 0.3)
+									LazyFx.g("SandCoat").remove(stc, 0.3)
 								VFX.puffs(tg.global_position + Vector3.UP, {"amount": 30, "life": 0.8, "size": 0.9, "radius": 0.8, "vmin": 2, "vmax": 6, "gravity": Vector3(0, -6, 0),
 									"colors": [Color(0.95, 0.82, 0.58, 0.95), Color(0.8, 0.65, 0.4, 0)]})
 								Combat.hit_sphere(who, tg.global_position + Vector3.UP, 1.6, _kinfo(dmg, 1.6, {"element": "doton", "knock": 4.0, "kind": "heavy", "bleed": 2.0})))
@@ -6328,13 +6328,13 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 				_shake(who, 0.5)
 		"style_kaguya":
 			if i == 4:   # Teshi Sendan: sol parmak uçlarından üç kemik mermisi
-				var pj = PathJutsu.get_pinst()
+				var pj = LazyFx.g("PathJutsu").get_pinst()
 				var tg = _near_foe(who, 20.0)
 				for k in 3:
 					var b = MB.new()
 					b.add("cone", Vector3(0, 0, 0.08), Vector3(0.05, 0.18, 0.05), Color(0.95, 0.94, 0.88), Vector3(90, 0, 0), 5)
 					var mi = MeshInstance3D.new()
-					mi.mesh = b.build(Props.toon())
+					mi.mesh = b.build(LazyFx.g("Props").toon())
 					var dir = (f + side * (k - 1) * 0.06).normalized()
 					if tg:
 						dir = ((tg.global_position + Vector3.UP) - (who.global_position + Vector3.UP * 1.3)).normalized()
@@ -6347,7 +6347,7 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 
 ## Hōzuki Mizudeppō: parmak ucundan fırlayan su mermisi (hedefe yönelir)
 static func _water_bullet(who: Node3D, from: Vector3, tg: Node3D, dmg: float, size: float) -> void:
-	var pj = PathJutsu.get_pinst()
+	var pj = LazyFx.g("PathJutsu").get_pinst()
 	if pj == null:
 		return
 	var f: Vector3 = who.face_dir() if who.has_method("face_dir") else Vector3.FORWARD
@@ -6355,23 +6355,23 @@ static func _water_bullet(who: Node3D, from: Vector3, tg: Node3D, dmg: float, si
 	# ref hozuki_1: yuvarlak baş önde (-Z), arkaya incelen kuyruk; camsı Storm suyu (WaterArt)
 	var b = MB.new()
 	var s = size * (0.55 if size < 0.4 else 0.9)
-	Loft.tube(b, [Vector3(0, 0, -s * 1.0), Vector3(0, 0, -s * 0.75), Vector3(0, 0, -s * 0.2), Vector3(0, 0, s * 0.8), Vector3(0, 0, s * 2.2)],
+	LazyFx.g("Loft").tube(b, [Vector3(0, 0, -s * 1.0), Vector3(0, 0, -s * 0.75), Vector3(0, 0, -s * 0.2), Vector3(0, 0, s * 0.8), Vector3(0, 0, s * 2.2)],
 		[Vector2(0.02, 0.02), Vector2(s * 0.62, s * 0.62), Vector2(s * 0.7, s * 0.7), Vector2(s * 0.35, s * 0.35), Vector2(0.01, 0.01)], Color.WHITE, 12, 4, true, true)
 	var mi = MeshInstance3D.new()
 	mi.mesh = b.build(null)
-	mi.material_override = WaterArt.mat()
+	mi.material_override = LazyFx.g("WaterArt").mat()
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	WaterArt.spray(from, 0.35 if size < 0.4 else 0.8, dir, 20.0, 1.2)
+	LazyFx.g("WaterArt").spray(from, 0.35 if size < 0.4 else 0.8, dir, 20.0, 1.2)
 	var big = size >= 0.4
 	pj.shot(who, from, dir, 34.0 if not big else 24.0, mi, _kinfo(dmg, 1.0, {"element": "suiton", "knock": 4.0 if not big else 12.0, "kind": "heavy" if big else "light"}), tg, false, 0.9, func(p, _h):
-		WaterArt.splash(p, 0.5 if not big else 1.1))
+		LazyFx.g("WaterArt").splash(p, 0.5 if not big else 1.1))
 	Sfx.play("water", from, 1.4, 0.5)
 
 
 ## Hōzuki Mizu Muchi: elden hedefe uzanan dalgalı su kırbacı; ucunda isabet
 static var _water_mat: StandardMaterial3D
 static func _water_whip(who: Node3D, tg: Node3D, dmg: float, twin: bool) -> void:
-	var pj = PathJutsu.get_pinst()
+	var pj = LazyFx.g("PathJutsu").get_pinst()
 	if pj == null:
 		return
 	if _water_mat == null:
@@ -6386,7 +6386,7 @@ static func _water_whip(who: Node3D, tg: Node3D, dmg: float, twin: bool) -> void
 		var sd = (-1.0 if k == 0 else 1.0)
 		var hand = who.global_position + Vector3.UP * 1.3 + f * 0.5 + Vector3.UP.cross(f) * sd * 0.25
 		_whip_arc(who, hand, end, sd)
-	WaterArt.splash(end - Vector3.UP * 0.6, 0.6)
+	LazyFx.g("WaterArt").splash(end - Vector3.UP * 0.6, 0.6)
 	Combat.hit_sphere(who, end, 1.4, _kinfo(dmg, 1.0, {"element": "suiton", "knock": 7.0, "kind": "heavy"}))
 	FX.hit_spark(end, Color(0.7, 0.9, 1.0), 1.0)
 	Sfx.play("water", end, 1.2, 0.6)
@@ -6407,10 +6407,10 @@ static func _whip_arc(who: Node3D, a: Vector3, b2: Vector3, sd: float) -> void:
 		pts.append(Vector3(sin(u * PI) * L * 0.28 * sd + sin(u * TAU) * L * 0.05, sin(u * PI) * L * 0.12, u * L))
 		var w = lerpf(0.1, 0.03, u) * (1.0 + sin(u * PI) * 0.4)
 		rad.append(Vector2(w, w))
-	Loft.tube(mb, pts, rad, Color.WHITE, 10, 2, true, true)
+	LazyFx.g("Loft").tube(mb, pts, rad, Color.WHITE, 10, 2, true, true)
 	var mi = MeshInstance3D.new()
 	mi.mesh = mb.build(null)
-	mi.material_override = WaterArt.mat()
+	mi.material_override = LazyFx.g("WaterArt").mat()
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	who.get_tree().current_scene.add_child(mi)
 	mi.global_position = a
@@ -6423,7 +6423,7 @@ static func _whip_arc(who: Node3D, a: Vector3, b2: Vector3, sd: float) -> void:
 	tw.parallel().tween_method(func(x: float): if is_instance_valid(mi): mi.rotation = r0; mi.rotate_object_local(Vector3.BACK, x * sd), -0.6, 0.4, 0.4)
 	tw.tween_property(mi, "scale", Vector3(0.2, 0.2, 1.05), 0.14)
 	tw.tween_callback(mi.queue_free)
-	WaterArt.spray(a, 0.3, d.normalized(), 25.0, 0.8)
+	LazyFx.g("WaterArt").spray(a, 0.3, d.normalized(), 25.0, 0.8)
 
 
 ## Aburame: böcek sürüsü — titreşen kara benek bulutu, hedefe süzülür; isabette chakra emer
@@ -6433,12 +6433,12 @@ static func _swarm_mesh(r: float) -> MeshInstance3D:
 		var p = Vector3(randf_range(-1, 1), randf_range(-0.7, 0.7), randf_range(-1, 1)).normalized() * r * pow(randf(), 0.7)
 		b.add("sphere", p, Vector3(randf_range(0.05, 0.08), randf_range(0.03, 0.05), randf_range(0.05, 0.08)), Color(0.05, 0.05, 0.04).lightened(randf() * 0.12), Vector3.ZERO, 4)
 	var mi = MeshInstance3D.new()
-	mi.mesh = b.build(Props.toon())
+	mi.mesh = b.build(LazyFx.g("Props").toon())
 	return mi
 
 
 static func _swarm(who: Node3D, tg: Node3D, dmg: float, r: float, off: Vector3, speed := 20.0) -> void:
-	var pj = PathJutsu.get_pinst()
+	var pj = LazyFx.g("PathJutsu").get_pinst()
 	if pj == null:
 		return
 	var f: Vector3 = who.face_dir() if who.has_method("face_dir") else Vector3.FORWARD
@@ -6448,7 +6448,7 @@ static func _swarm(who: Node3D, tg: Node3D, dmg: float, r: float, off: Vector3, 
 	var pr = pj.shot(who, from, dir, speed, mi, _kinfo(dmg, 1.0, {"element": "", "knock": 1.0, "kind": "light", "kikai": true}), tg, false, 1.4, func(_p, h):
 		if h and is_instance_valid(h):
 			_kikai_drain(who, h, 0.03)
-			var cj = ClanJutsu.get_inst()
+			var cj = LazyFx.g("ClanJutsu").get_inst()
 			if cj:
 				cj.swarm_body(h, 1.6, 0.45, 0.02))   # Kikaichū no Jutsu'nun yapışma görünüşü: bedende sürünen benekler
 	if pr:
@@ -6483,12 +6483,12 @@ static func _kikai_drain(who: Node3D, h: Node3D, k: float) -> void:
 ## Yuki: buz iğnesi — IceArt kristal malzemesiyle ince sivri senbon (ucu -Z: mermi yönü)
 static func _ice_mesh(L: float, w: float) -> MeshInstance3D:
 	var b = MB.new()
-	IceArt.shard(b, Vector3(0, 0, L * 0.5), Vector3.FORWARD, L, w, IceArt._rng(), Color.WHITE, 5, true)
-	return IceArt._mi(b)
+	LazyFx.g("IceArt").shard(b, Vector3(0, 0, L * 0.5), Vector3.FORWARD, L, w, LazyFx.g("IceArt")._rng(), Color.WHITE, 5, true)
+	return LazyFx.g("IceArt")._mi(b)
 
 
 static func _ice_needle(who: Node3D, from: Vector3, tg: Node3D, dmg: float, yaw_off := 0.0, dir_in := Vector3.ZERO) -> void:
-	var pj = PathJutsu.get_pinst()
+	var pj = LazyFx.g("PathJutsu").get_pinst()
 	if pj == null:
 		return
 	var f: Vector3 = who.face_dir() if who.has_method("face_dir") else Vector3.FORWARD
@@ -6501,13 +6501,13 @@ static func _ice_needle(who: Node3D, from: Vector3, tg: Node3D, dmg: float, yaw_
 
 ## Tsubame Fubuki: IceArt.swallow (Hyōton jutsusunun kendi buz kırlangıcı), kavisle hedefe
 static func _ice_swallow(who: Node3D, from: Vector3, tg: Node3D, dmg: float) -> void:
-	var pj = PathJutsu.get_pinst()
+	var pj = LazyFx.g("PathJutsu").get_pinst()
 	if pj == null:
 		return
 	var f: Vector3 = who.face_dir() if who.has_method("face_dir") else Vector3.FORWARD
 	var dir = (((tg.global_position + Vector3.UP) - from).normalized() if tg else f) + Vector3.UP * 0.35
-	var pr = pj.shot(who, from, dir.normalized(), 18.0, IceArt.swallow(0.55), _kinfo(dmg, 1.0, {"element": "hyoton", "knock": 2.0, "kind": "light", "slow": 1.0}), tg, false, 1.6, func(p, _h):
-		IceArt.shatter(Engine.get_main_loop(), p, 0.35, 5))
+	var pr = pj.shot(who, from, dir.normalized(), 18.0, LazyFx.g("IceArt").swallow(0.55), _kinfo(dmg, 1.0, {"element": "hyoton", "knock": 2.0, "kind": "light", "slow": 1.0}), tg, false, 1.6, func(p, _h):
+		LazyFx.g("IceArt").shatter(Engine.get_main_loop(), p, 0.35, 5))
 	if pr:
 		pr.homing_turn = 5.0
 		VFX.trail(pr, 0.06, Color(0.9, 0.97, 1.0, 0.7), Color(0.7, 0.9, 1.0, 0.3), Color(0.7, 0.9, 1.0, 0), 12, 0.0)
@@ -6537,7 +6537,7 @@ static func _sensatsu(who: Node3D, tg: Node3D, dmg: float) -> void:
 				tw.tween_callback(n.queue_free)
 		if is_instance_valid(who):
 			who.get_tree().create_timer(0.12).timeout.connect(func():
-				IceArt.shatter(Engine.get_main_loop(), c, 0.6, 12)
+				LazyFx.g("IceArt").shatter(Engine.get_main_loop(), c, 0.6, 12)
 				if is_instance_valid(who):
 					Combat.hit_sphere(who, c, 1.4, _kinfo(dmg, 1.7, {"element": "hyoton", "knock": 3.0, "kind": "heavy", "bleed": 3.0, "slow": 2.0}))))
 
@@ -6548,15 +6548,15 @@ static func _sand_mesh(r: float) -> MeshInstance3D:
 	var sand_d = Color(0.7, 0.56, 0.36)
 	var bm = MB.new()
 	var L = r * 1.6
-	Loft.tube(bm, [Vector3(0, 0, L), Vector3(0, 0, L * 0.35), Vector3(0, 0, -L * 0.35), Vector3(0, 0, -L)],
+	LazyFx.g("Loft").tube(bm, [Vector3(0, 0, L), Vector3(0, 0, L * 0.35), Vector3(0, 0, -L * 0.35), Vector3(0, 0, -L)],
 		[Vector2(0.01, 0.01), Vector2(r * 0.6, r * 0.24), Vector2(r * 0.6, r * 0.24), Vector2(0.01, 0.01)], [sand_d, sand, sand.lightened(0.12), sand_d], 8, 4, true, true)
 	var mi = MeshInstance3D.new()
-	mi.mesh = bm.build(Props.toon())
+	mi.mesh = bm.build(LazyFx.g("Props").toon())
 	return mi
 
 
 static func _sand_ball(who: Node3D, from: Vector3, tg: Node3D, dmg: float, r: float, yaw_off := 0.0) -> void:
-	var pj = PathJutsu.get_pinst()
+	var pj = LazyFx.g("PathJutsu").get_pinst()
 	if pj == null:
 		return
 	var f: Vector3 = who.face_dir() if who.has_method("face_dir") else Vector3.FORWARD
@@ -6570,7 +6570,7 @@ static func _sand_ball(who: Node3D, from: Vector3, tg: Node3D, dmg: float, r: fl
 
 ## Suna no Te / Tsunami: yerden fışkıran organik kum kütlesi (Sabaku Sōsō dalgasının kendi topak-şerit kütlesi), sonra çöker
 static func _sand_burst(p: Vector3, s: float) -> void:
-	var m = JutsuEngine.organic_mass("sand", Vector3(1.6, 2.2, 1.6) * s)
+	var m = LazyFx.g("JutsuEngine").organic_mass("sand", Vector3(1.6, 2.2, 1.6) * s)
 	var sc = Engine.get_main_loop().current_scene
 	sc.add_child(m)
 	m.global_position = p - Vector3.UP * 1.6 * s
@@ -6585,12 +6585,12 @@ static func _sand_burst(p: Vector3, s: float) -> void:
 
 ## Sabaku Kyū: Gaara jutsusunun kendi kum kaplaması (SandCoat) — ayaktan boyna tırmanır, süre bitince dökülür
 static func _sand_coffin(tg: Node3D, life: float) -> void:
-	var st = SandCoat.apply(tg, 0.82, 0.3)
+	var st = LazyFx.g("SandCoat").apply(tg, 0.82, 0.3)
 	if st.is_empty():
 		return
 	tg.get_tree().create_timer(life).timeout.connect(func():
 		if is_instance_valid(tg):
-			SandCoat.remove(st, 0.4))
+			LazyFx.g("SandCoat").remove(st, 0.4))
 
 
 ## Uzumaki: Kongō Fūsa — Kinbaku/Chakra zincirleri jutsusunun kendi halkalı zinciri (Jutsu._chain_line), gövdeden hedefe
@@ -6625,7 +6625,7 @@ static func _rai_armor(who: Node3D) -> void:
 # ------------------------------------------------------------------ Kamizuru arıları (ref refs/styles/kamizuru_*.png)
 ## Arı modeli: dev arı çağrısının (ClanConstruct "bee") aynısı, küçük (ClanJutsu._kz_bee)
 static func _bee_node(sc: float) -> Node3D:
-	var cj = ClanJutsu.get_inst()
+	var cj = LazyFx.g("ClanJutsu").get_inst()
 	if cj:
 		return cj._kz_bee(sc)
 	return Node3D.new()
@@ -6652,7 +6652,7 @@ static func _bee_dart(who: Node3D, from: Vector3, tg: Node3D, dmg: float, delay:
 	who.get_tree().create_timer(maxf(0.001, delay)).timeout.connect(func():
 		if not is_instance_valid(who):
 			return
-		var pj = PathJutsu.get_pinst()
+		var pj = LazyFx.g("PathJutsu").get_pinst()
 		if pj == null:
 			return
 		var f: Vector3 = who.face_dir() if who.has_method("face_dir") else Vector3.FORWARD
@@ -6771,7 +6771,7 @@ const HAKKO_WHITE := Color(1.0, 1.0, 0.97, 0.95)
 
 ## Her kesik beyaz chakra yayı bırakır (kanon: "savrulunca beyaz chakra çizgisi"); bitiriş ileri uzanan ışık hilali
 static func _hakko_strike(who: Node3D, i: int, dmg: float, f: Vector3, side: Vector3) -> void:
-	var pj = PathJutsu.get_pinst()
+	var pj = LazyFx.g("PathJutsu").get_pinst()
 	var at = who.global_position + Vector3.UP * 1.1 + f * 0.9
 	match i:
 		0:
@@ -6797,7 +6797,7 @@ static func _hakko_strike(who: Node3D, i: int, dmg: float, f: Vector3, side: Vec
 				who.get_tree().create_timer(k * 0.04).timeout.connect(func():
 					if is_instance_valid(who) and pj:
 						pj._arc_cut(o + f * (1.2 + k * 1.4), f, -55.0, 55.0, HAKKO_WHITE, 1.4 + k * 0.25))
-			WindFX.streak(func(t: float) -> Vector3: return o + f * t * 6.5, 0.3, 0.08, HAKKO_WHITE, 0.0, 12)
+			LazyFx.g("WindFX").streak(func(t: float) -> Vector3: return o + f * t * 6.5, 0.3, 0.08, HAKKO_WHITE, 0.0, 12)
 			for d in [2.5, 4.2, 5.8]:
 				Combat.hit_sphere(who, o + f * d, 1.3, _kinfo(dmg, 0.55, {"element": "", "knock": 9.0, "kind": "heavy", "melee": true, "blade": true, "bleed": 2.0}))
 
@@ -6817,12 +6817,12 @@ static func _hakko_dash(who: Node3D) -> void:
 	else:
 		to = from + f * 4.5
 	to.y = Game.ground_height(to.x, to.z)
-	var pj = PathJutsu.get_pinst()
+	var pj = LazyFx.g("PathJutsu").get_pinst()
 	if pj:
 		pj._trail_ghost(who, 0.4, 0.3)
 	var o = from + Vector3.UP * 1.1
 	var e = to + Vector3.UP * 1.1
-	WindFX.streak(func(t: float) -> Vector3: return o.lerp(e, t), 0.35, 0.09, HAKKO_WHITE, 0.0, 12)
+	LazyFx.g("WindFX").streak(func(t: float) -> Vector3: return o.lerp(e, t), 0.35, 0.09, HAKKO_WHITE, 0.0, 12)
 	if who is CharacterBody3D:
 		who.global_position = to
 		who.velocity = Vector3.ZERO
@@ -6871,7 +6871,7 @@ static func _mateki_strike(who: Node3D, i: int, dmg: float, f: Vector3, side: Ve
 					if is_instance_valid(who):
 						VFX.shockwave(o2, MATEKI_RED, 3.0 + k * 2.5, 0.35, false))
 			if tg and is_instance_valid(tg):
-				var pj = PathJutsu.get_pinst()
+				var pj = LazyFx.g("PathJutsu").get_pinst()
 				if pj:
 					for j in 3:
 						var a = j * TAU / 3.0
@@ -6884,7 +6884,7 @@ static func _mateki_strike(who: Node3D, i: int, dmg: float, f: Vector3, side: Ve
 			if tg and is_instance_valid(tg):
 				var from = _flute_tip(who)
 				var to = tg.global_position + Vector3.UP * 1.0
-				Doki.spirit_worm(who.get_tree().current_scene, from, to, 0.55, func(p: Vector3):
+				LazyFx.g("Doki").spirit_worm(who.get_tree().current_scene, from, to, 0.55, func(p: Vector3):
 					VFX.puffs(p, {"amount": 14, "life": 0.5, "size": 0.35, "radius": 0.4, "vmin": 1, "vmax": 3, "spread": 180.0, "add": false, "colors": [Color(0.55, 0.45, 0.7, 0.9), Color(0.3, 0.25, 0.4, 0)]})
 					if is_instance_valid(who):
 						for h in Combat.hit_sphere(who, p, 1.4, _kinfo(dmg, 1.0, {"element": "", "knock": 3.0, "kind": "heavy"})):
@@ -6894,7 +6894,7 @@ static func _mateki_strike(who: Node3D, i: int, dmg: float, f: Vector3, side: Ve
 			var dp = who.global_position - f * 2.2
 			dp.y = Game.ground_height(dp.x, dp.z)
 			FX.smoke_puff(dp + Vector3.UP * 2.0, 1.2, 12)
-			var dk = Doki.spawn(who.get_tree().current_scene, dp, 0.0, 0)
+			var dk = LazyFx.g("Doki").spawn(who.get_tree().current_scene, dp, 0.0, 0)
 			var fl = tp - dp
 			fl.y = 0
 			dk.rotation.y = atan2(-fl.x, -fl.z)
@@ -6929,7 +6929,7 @@ const KG_BLUE := Color(0.45, 0.72, 1.0)
 
 ## Kemiğe iliştirilmiş geçici görsel (avuçtaki fırtına ışığı, kavurucu küre, toz küpü, kristal kılıç...)
 static func _bone_fx(who: Node3D, bone: String, n: Node3D, dur: float, off := Vector3.ZERO) -> void:
-	var pj = PathJutsu.get_pinst()
+	var pj = LazyFx.g("PathJutsu").get_pinst()
 	var ba = pj.bone_attach(who, bone) if pj else null
 	if ba == null:
 		n.queue_free()
@@ -6947,7 +6947,7 @@ static func _kg_cost(who: Node3D, id: String, frac: float) -> bool:
 		return true
 	var mx = float(who.get("max_chakra")) if who.get("max_chakra") != null else 100.0
 	if id == "style_mokuton" and who is Player and String(Game.profile.get("clan", "")) != "senju" and bool((Game.profile.get("flags", {}) as Dictionary).get("senju_cells", false)):
-		frac *= KgPaths.LAB_COST_MULT
+		frac *= LazyFx.g("KgPaths").LAB_COST_MULT
 	var c = mx * frac
 	if float(who.chakra) < c:
 		if who is Player:
@@ -7055,7 +7055,7 @@ static func _kg_style_start(id: String, i: int, who: Node3D, ov) -> void:
 	match id:
 		"style_koton":   # yumruklar çelikle kaplanır; 3. adımda ön koldan çelik kılıç dövülür (Kōken)
 			ov.fist = {"Right": 1.0, "Left": 1.0} if i != 3 else {"Right": -0.8, "Left": 1.0}
-			var pjk = PathJutsu.get_pinst()
+			var pjk = LazyFx.g("PathJutsu").get_pinst()
 			if pjk:
 				var dur = [0.45, 0.5, 0.65, 0.5, 0.65, 1.1][i] / sp
 				for hand in (["RightHand"] if i in [0, 4, 5] else (["LeftHand"] if i == 1 else [])):
@@ -7076,7 +7076,7 @@ static func _kg_style_start(id: String, i: int, who: Node3D, ov) -> void:
 			ov.fist = {"Right": -0.9, "Left": -0.9}
 		"style_meiton":   # sol avuçta Meiton işareti, eller açık
 			ov.fist = {"Right": -0.6, "Left": -1.0}
-			var pjm = PathJutsu.get_pinst()
+			var pjm = LazyFx.g("PathJutsu").get_pinst()
 			if pjm:
 				pjm._mei_mark(who, [0.45, 0.45, 0.6, 0.6, 0.7, 1.1][i] / sp)
 		"style_jinsoku":   # sıkı yumruklar; her adım bulanık ardıl görüntü bırakır
@@ -7129,9 +7129,9 @@ static func _kg_style_start(id: String, i: int, who: Node3D, ov) -> void:
 				_bone_fx(who, "LeftHand", VFX.scorch_orb(0.22), 0.24 / sp)
 		"style_shoton":   # ön koldan kristal kılıç büyür (Guren); fırlatışta avuç açık
 			ov.fist = {"Right": 1.0, "Left": 1.0} if i in [0, 1, 5] else {"Right": -0.7, "Left": -0.7}
-			var pj = PathJutsu.get_pinst()
+			var pj = LazyFx.g("PathJutsu").get_pinst()
 			if pj and i in [0, 1, 5]:
-				var bl = pj._crystal_cluster(0.1, PathJutsu.PINKCRYSTAL)   # ön kolu saran, bileği aşan kristal kılıç
+				var bl = pj._crystal_cluster(0.1, LazyFx.g("PathJutsu").PINKCRYSTAL)   # ön kolu saran, bileği aşan kristal kılıç
 				bl.scale = Vector3(0.8, 2.2, 0.8)
 				_bone_fx(who, "LeftLowerArm" if i == 1 else "RightLowerArm", bl, [0.5, 0.5, 0, 0, 0, 1.25][i] / sp, Vector3(0, 0.08, 0))
 		"style_jinton":   # avuçlar karşılıklı, aralarında beyaz çekirdekli toz küpü kurulur
@@ -7152,7 +7152,7 @@ static func _kg_style_start(id: String, i: int, who: Node3D, ov) -> void:
 
 
 static func _kg_style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector3, side: Vector3, at: Vector3) -> void:
-	var pj = PathJutsu.get_pinst()
+	var pj = LazyFx.g("PathJutsu").get_pinst()
 	if pj == null:
 		return
 	var sp = speed(id)
@@ -7169,7 +7169,7 @@ static func _kg_style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vec
 						FX.hit_spark(hp, Color(0.9, 0.92, 1.0), 0.9)
 						Sfx.play("clink", hp, 0.9)
 				2:   # Kōken: ön koldan dövülen çelik kılıçla geniş yatay kesik
-					WindFX.streak(func(u: float) -> Vector3:
+					LazyFx.g("WindFX").streak(func(u: float) -> Vector3:
 						var an = lerpf(-1.2, 1.2, u)
 						return who.global_position + Vector3.UP * 1.1 + (f * cos(an) + side * sin(an)) * 2.2, 0.14, 0.07, Color(0.85, 0.9, 1.0, 0.9), 0.0, 10)
 					Sfx.play("swing_sword", who.global_position, 1.0)
@@ -7211,9 +7211,9 @@ static func _kg_style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vec
 					for q in 3:
 						var dd = q * 0.12
 						who.get_tree().create_timer(dd).timeout.connect(func():
-							WindFX.streak(func(u: float) -> Vector3:
+							LazyFx.g("WindFX").streak(func(u: float) -> Vector3:
 								var p = o + f * (0.8 + u * 7.0)
-								return p + side * sin(u * PI) * 0.6 * (1.0 if i == 0 else -1.0), 0.25, 0.1, Color(PathJutsu.TAIFU_C.r, PathJutsu.TAIFU_C.g, PathJutsu.TAIFU_C.b, 0.9), 0.0, 10))
+								return p + side * sin(u * PI) * 0.6 * (1.0 if i == 0 else -1.0), 0.25, 0.1, Color(LazyFx.g("PathJutsu").TAIFU_C.r, LazyFx.g("PathJutsu").TAIFU_C.g, LazyFx.g("PathJutsu").TAIFU_C.b, 0.9), 0.0, 10))
 					Sfx.play("whoosh", o, 1.2)
 					Combat.hit_zone(who, who.global_position, f, 7.5, 16.0, 2.6, _kinfo(dmg, 0.85, {"element": "taiton", "knock": 5.0, "kind": "heavy", "bleed": 1.5}))
 				2:   # dönen tekme: bedenin çevresinde girdap, yakındakileri kaldırır
@@ -7241,7 +7241,7 @@ static func _kg_style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vec
 					var c4 = who.global_position + Vector3.UP * 0.9
 					for q in 14:
 						var a0 = q * TAU / 14.0
-						WindFX.streak(func(u: float) -> Vector3:
+						LazyFx.g("WindFX").streak(func(u: float) -> Vector3:
 							var r = 0.6 + u * 4.2
 							return c4 + Vector3(cos(a0 + u * 0.3) * r, 0, sin(a0 + u * 0.3) * r), 0.3, 0.1, Color(0.92, 0.98, 1.0, 0.9), 0.0, 8)
 					Combat.hit_sphere(who, c4, 4.4, _kinfo(dmg, 0.85, {"element": "taiton", "knock": 8.0, "kind": "heavy", "bleed": 2.0}))
@@ -7253,10 +7253,10 @@ static func _kg_style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vec
 								return
 							for arm in 3:
 								var a0 = -k * 0.5 + arm * TAU / 3.0
-								WindFX.streak(func(u: float) -> Vector3:
+								LazyFx.g("WindFX").streak(func(u: float) -> Vector3:
 									var a = a0 + u * 2.4
 									var rr = 4.5 * (1.0 - u * 0.85)
-									return g5 + Vector3(cos(a) * rr, 0.3 + u * 0.3, sin(a) * rr), 0.25, 0.1, Color(PathJutsu.TAIFU_C.r, PathJutsu.TAIFU_C.g, PathJutsu.TAIFU_C.b, 0.85), 0.0, 10)
+									return g5 + Vector3(cos(a) * rr, 0.3 + u * 0.3, sin(a) * rr), 0.25, 0.1, Color(LazyFx.g("PathJutsu").TAIFU_C.r, LazyFx.g("PathJutsu").TAIFU_C.g, LazyFx.g("PathJutsu").TAIFU_C.b, 0.85), 0.0, 10)
 							for h in pj.enemies_near(who, g5, 4.5):
 								if h is CharacterBody3D:
 									var v: Vector3 = g5 - h.global_position
@@ -7267,7 +7267,7 @@ static func _kg_style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vec
 							return
 						pj._taifu_funnel(g5, 2.0, 9.0, 0)
 						pj._taifu_funnel(g5, 2.0, 9.0, 3)
-						WindFX.blast(g5 + Vector3.UP, 3.0, 16, PathJutsu.TAIFU_C, true)
+						LazyFx.g("WindFX").blast(g5 + Vector3.UP, 3.0, 16, LazyFx.g("PathJutsu").TAIFU_C, true)
 						Sfx.play("boom", g5, 0.9)
 						Combat.hit_sphere(who, g5 + Vector3.UP, 2.6, _kinfo(dmg, 2.0, {"element": "taiton", "knock": 1.0, "launch": 12.0, "kind": "heavy", "bleed": 2.0, "dir": Vector3.UP})))
 		"style_meiton":   # yakın-orta: işaretli avuçla emen darbeler, kara bağla çekiş, emen küre, emme duruşu; bitiriş biriken chakrayı salmak
@@ -7284,7 +7284,7 @@ static func _kg_style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vec
 				2:   # kara bağ: hedefe uzanıp onu dibine çeker
 					if tg and tg.global_position.distance_to(who.global_position) < 10.0:
 						var e2: Vector3 = tg.global_position + Vector3.UP * 1.1
-						WindFX.streak(func(u: float) -> Vector3: return lh.lerp(e2, u), 0.3, 0.12, Color(0.5, 0.25, 0.75, 0.9), 0.0, 12, pj._mei_mat(0.85))
+						LazyFx.g("WindFX").streak(func(u: float) -> Vector3: return lh.lerp(e2, u), 0.3, 0.12, Color(0.5, 0.25, 0.75, 0.9), 0.0, 12, pj._mei_mat(0.85))
 						if tg is CharacterBody3D:
 							var v: Vector3 = who.global_position - tg.global_position
 							v.y = 0
@@ -7297,7 +7297,7 @@ static func _kg_style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vec
 					b.add("sphere", Vector3.ZERO, Vector3.ONE * 0.4, Color.WHITE, Vector3.ZERO, 10)
 					orb.add_child(pj.mesh_of(b, pj._mei_mat(0.9)))
 					var pr = pj.shot(who, lh, ((tg.global_position + Vector3.UP) - lh).normalized() if tg else f, 26.0, orb, _kinfo(dmg, 1.0, {"element": "meiton", "knock": 4.0, "kind": "heavy", "chakra_drain": 6.0}), tg, false, 1.2, func(p, h):
-						VFX.shockwave(p, PathJutsu.MEI_C, 1.4, 0.25, false)
+						VFX.shockwave(p, LazyFx.g("PathJutsu").MEI_C, 1.4, 0.25, false)
 						if h and is_instance_valid(who):
 							pj._mei_store(who, 6.0))
 					pr.radius = 0.4
@@ -7311,7 +7311,7 @@ static func _kg_style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vec
 					who.set_meta("meiton_store", maxf(0.0, store - 60.0))
 					var kp = clampf(1.0 + minf(store, 60.0) / 40.0, 1.0, 2.5)
 					var c5: Vector3 = who.global_position + Vector3.UP * 1.1 + f * 2.2
-					VFX.shockwave(c5, PathJutsu.MEI_C, 2.5 + kp, 0.35, false)
+					VFX.shockwave(c5, LazyFx.g("PathJutsu").MEI_C, 2.5 + kp, 0.35, false)
 					for q in 4:
 						VFX.black_bolt(lh, lh + (f + side * randf_range(-0.6, 0.6) + Vector3.UP * randf_range(-0.2, 0.3)).normalized() * (3.0 + kp), 0.08, 0.3, 2)
 					Sfx.play("boom", c5, 0.8)
@@ -7343,7 +7343,7 @@ static func _kg_style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vec
 								return
 							var s0: Vector3 = who.global_position + Vector3.UP * randf_range(1.1, 1.5) + side * randf_range(-0.3, 0.3)
 							var s1: Vector3 = s0 + f2 * 1.3 + Vector3.UP * randf_range(-0.2, 0.2)
-							WindFX.streak(func(u: float) -> Vector3: return s0.lerp(s1, u), 0.08, 0.09, Color(1, 0.97, 0.92, 0.85), 0.0, 4)
+							LazyFx.g("WindFX").streak(func(u: float) -> Vector3: return s0.lerp(s1, u), 0.08, 0.09, Color(1, 0.97, 0.92, 0.85), 0.0, 4)
 							Combat.hit_zone(who, who.global_position, f2, 2.4, 45.0, 2.4, _kinfo(dmg, 0.35, {"knock": 0.3, "kind": "light", "melee": true, "element": "", "hitstop": 0.0})))
 				3:   # arkaya geçip dirsek
 					if tg:
@@ -7443,19 +7443,19 @@ static func _kg_style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vec
 			match i:
 				0, 1:   # avuçtan tek düz lazer (dallanmaz)
 					var h0 = hand + side * (0.25 if i == 0 else -0.25)
-					LightRibbon.spawn([h0, h0.lerp(end, 0.5), end], 0.5, 0.25, KG_BLUE)
+					LazyFx.g("LightRibbon").spawn([h0, h0.lerp(end, 0.5), end], 0.5, 0.25, KG_BLUE)
 					FX.light(end, Color(0.6, 0.85, 1.0), 3.0, 7.0, 0.25)
 					for h in Combat.hit_zone(who, who.global_position, f, reach, 9.0, 2.6, _kinfo(dmg, 0.75 * cm, {"element": "ranton", "knock": 3.0, "kind": "light", "stun": 0.2})):
-						JutsuEngine.impact_for("ranton", h.global_position + Vector3.UP, KG_BLUE, 0.5)
+						LazyFx.g("JutsuEngine").impact_for("ranton", h.global_position + Vector3.UP, KG_BLUE, 0.5)
 				2:   # Kōga: yerde zikzak koşan ışık tazısı (oyunun Ranton tazısı)
 					var head = Node3D.new()
-					var hound = RantonArt.hound(1.3)
+					var hound = LazyFx.g("RantonArt").hound(1.3)
 					hound.position.y = -0.9
 					head.add_child(hound)
 					var spd = 17.0
 					var start = gpf.call(who.global_position + f * 1.0) + Vector3.UP * 0.9
 					var pr = pj.shot(who, start, f, spd, head, _kinfo(dmg, 1.0 * cm, {"element": "ranton", "knock": 5.0, "kind": "heavy", "stun": 0.5}), tg, false, 1.2,
-						func(p, _h): JutsuEngine.impact_for("ranton", p, KG_BLUE, 0.9))
+						func(p, _h): LazyFx.g("JutsuEngine").impact_for("ranton", p, KG_BLUE, 0.9))
 					if pr:
 						var st0 = {"t": 0.0, "off": 0.0}
 						pr.on_tick = func(p, dt):
@@ -7484,13 +7484,13 @@ static func _kg_style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vec
 							if not is_instance_valid(who):
 								return
 							var hs = who.global_position + Vector3.UP * 1.35 + f * 0.6
-							LightRibbon.spawn(LightRibbon.curve(hs, e2, mid, 16), 0.32, 0.45, KG_BLUE)
+							LazyFx.g("LightRibbon").spawn(LazyFx.g("LightRibbon").curve(hs, e2, mid, 16), 0.32, 0.45, KG_BLUE)
 							if tt and is_instance_valid(tt) and not tt.is_dead():
 								Combat.hit_sphere(who, e2, 1.2, _kinfo(dmg, 0.26 * cm, {"element": "ranton", "knock": 2.0, "kind": "light", "stun": 0.2})))
 					FX.light(hand, Color(0.8, 0.92, 1.0), 4.0, 8.0, 0.4)
 				5:   # Kuro Pansā: avuçtan kara şimşek panteri fırlar, dişleri kapanır (felç)
 					var pan = Node3D.new()
-					var pa = RantonArt.panther(1.4)
+					var pa = LazyFx.g("RantonArt").panther(1.4)
 					pa.position.y = -0.9
 					pan.add_child(pa)
 					var from = gpf.call(who.global_position + f * 1.2) + Vector3.UP * 0.9
@@ -7680,7 +7680,7 @@ static func _kg_style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vec
 						_shake(who, 0.4))
 		"style_shoton":
 			var tg = _near_foe(who, 16.0)
-			var pink = PathJutsu.PINKCRYSTAL
+			var pink = LazyFx.g("PathJutsu").PINKCRYSTAL
 			var hand = who.global_position + Vector3.UP * 1.35 + f * 0.6
 			var aimp: Vector3 = (tg.global_position + Vector3.UP * 1.0) if tg else hand + f * 10.0
 			match i:
@@ -7809,7 +7809,7 @@ static func _kg_style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vec
 						var aim0: Vector3 = (tg.global_position + Vector3.UP) if tg else hand + f * 10.0
 						var pr = pj.shot(who, hand + side * (k - 0.5) * 0.25, (aim0 - hand).normalized().rotated(Vector3.UP, (k - 0.5) * 0.06), 38.0, holder,
 							_kinfo(dmg, 0.45, {"element": "mokuton", "knock": 2.0, "kind": "heavy", "bleed": 1.5, "slow": 1.5}), tg, false, 0.9,
-							func(p, _h): FX.hit_spark(p, PathJutsu.WOOD_C.lightened(0.3), 0.7))
+							func(p, _h): FX.hit_spark(p, LazyFx.g("PathJutsu").WOOD_C.lightened(0.3), 0.7))
 						if pr:
 							pr.homing_turn = 3.0
 				1:   # kol ağaca dönüp uzanır, yakalar ve çeker

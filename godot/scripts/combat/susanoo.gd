@@ -48,10 +48,10 @@ static func config(pr: Dictionary) -> Dictionary:
 
 ## Göz türlerine ve ustalığa göre ulaşılabilen en yüksek kademe
 static func max_tier(pr: Dictionary) -> int:
-	var r = Gear.equipped(pr, "sag_goz"); var l = Gear.equipped(pr, "sol_goz")
+	var r = LazyFx.g("Gear").equipped(pr, "sag_goz"); var l = LazyFx.g("Gear").equipped(pr, "sol_goz")
 	if r.is_empty() or l.is_empty():
 		return 0
-	var kr = int(Gear.item(r["id"]).get("eye", {}).get("kind", 0)); var kl = int(Gear.item(l["id"]).get("eye", {}).get("kind", 0))
+	var kr = int(LazyFx.g("Gear").item(r["id"]).get("eye", {}).get("kind", 0)); var kl = int(LazyFx.g("Gear").item(l["id"]).get("eye", {}).get("kind", 0))
 	# iki göz de Mangekyō soyundan olmalı; biri Rinnegan olabilir (Sasuke gibi) ama en az biri Mangekyō/EMS
 	if not (kr in [4, 5, 6] and kl in [4, 5, 6] and (kr in [4, 5] or kl in [4, 5])):
 		return 0
@@ -215,20 +215,20 @@ func _place(bone: String, mesh: Mesh, kind: int) -> void:
 # ------------------------------------------------------------------ ağ yardımcıları
 ## Dikey tüp (gövde, bacak): yarıçap Vector2(x, z)
 static func _vtube(mb: MB, pts: Array, rad: Array, col, seg := 14, sub := 3) -> void:
-	Loft.tube(mb, pts, rad, col, seg, sub, true, true, Callable(), Vector3.BACK)
+	LazyFx.g("Loft").tube(mb, pts, rad, col, seg, sub, true, true, Callable(), Vector3.BACK)
 
 
 ## Uçları topuzlu kemik
 static func _shaft(mb: MB, a: Vector3, b: Vector3, r: float, col := K_BONE) -> void:
 	var up = Vector3.BACK if absf((b - a).normalized().y) > 0.9 else Vector3.UP
-	Loft.tube(mb, [a, a.lerp(b, 0.14), a.lerp(b, 0.5), a.lerp(b, 0.86), b], [r * 1.45, r * 0.9, r * 0.8, r * 0.9, r * 1.45], col, 8, 2, true, true, Callable(), up)
+	LazyFx.g("Loft").tube(mb, [a, a.lerp(b, 0.14), a.lerp(b, 0.5), a.lerp(b, 0.86), b], [r * 1.45, r * 0.9, r * 0.8, r * 0.9, r * 1.45], col, 8, 2, true, true, Callable(), up)
 
 
 ## Kıvrılarak sivrilen diken / boynuz / alev tutamı
 static func _spike(mb: MB, base: Vector3, dir: Vector3, length: float, r: float, col: Color, bend := Vector3.ZERO, flat := 1.0) -> void:
 	var d = dir.normalized()
 	var up = Vector3.BACK if absf(d.y) > 0.9 else Vector3.UP
-	Loft.tube(mb, [base, base + d * length * 0.5 + bend * length * 0.22, base + d * length + bend * length],
+	LazyFx.g("Loft").tube(mb, [base, base + d * length * 0.5 + bend * length * 0.22, base + d * length + bend * length],
 		[Vector2(r * flat, r), Vector2(r * 0.62 * flat, r * 0.62), Vector2(0.004, 0.004)], col, 6, 3, true, true, Callable(), up)
 
 
@@ -284,7 +284,7 @@ static func _ribs(mb: MB, c: Vector3, R: float, Rz: float, y0: float, y1: float,
 				pts.append(c + Vector3(sx * sin(ang) * R * w, y - drop * pow(u, 1.4), -cos(ang) * Rz * w))
 				var tp = 1.0 if closed else (1.0 - 0.6 * smoothstep(0.7, 1.0, u))
 				rr.append(Vector2(band * 0.32, band * tp))
-			Loft.tube(mb, pts, rr, K_BONE, 6, 2)
+			LazyFx.g("Loft").tube(mb, pts, rr, K_BONE, 6, 2)
 
 
 ## Omurga: üst üste omurlar + geriye bakan dikensi çıkıntılar
@@ -350,10 +350,10 @@ func _tier_skeleton(face: int) -> void:
 		_finger_bones(sd, sx, K_BONE, 0.0165)
 		# hayalet et: kolları saran soluk beden
 		var g1 = MB.new()
-		Loft.limb(g1, ua, la, 0.1, 0.085, K_FLESH)
+		LazyFx.g("Loft").limb(g1, ua, la, 0.1, 0.085, K_FLESH)
 		_on(sd + "UpperArm", g1, 1)
 		var g2 = MB.new()
-		Loft.limb(g2, la, lh + Vector3(0.1 * sx, 0, 0), 0.09, 0.075, K_FLESH)
+		LazyFx.g("Loft").limb(g2, la, lh + Vector3(0.1 * sx, 0, 0), 0.09, 0.075, K_FLESH)
 		_on(sd + "LowerArm", g2, 1)
 	var sk = MB.new()
 	_skull(sk, SKULL_OF[clampi(face, 0, SKULL_OF.size() - 1)])
@@ -427,7 +427,7 @@ func _skull(m: MB, face: int) -> void:
 	_head_shell(m, K_BONE)
 	for sx in [-1.0, 1.0]:
 		m.add("sphere", _hp(0.05 * sx, 1.665, -0.014), Vector3(0.078, 0.062, 0.04), K_DARK, Vector3(0, 0, -8 * sx), 10)   # göz çukuru
-		Loft.tube(m, [_hp(0.07 * sx, 1.62, 0.004), _hp(0.105 * sx, 1.63, 0.006), Vector3(0.122 * sx, 1.65, 0.03)], [0.011, 0.012, 0.008], K_BONE, 6, 2)   # elmacık
+		LazyFx.g("Loft").tube(m, [_hp(0.07 * sx, 1.62, 0.004), _hp(0.105 * sx, 1.63, 0.006), Vector3(0.122 * sx, 1.65, 0.03)], [0.011, 0.012, 0.008], K_BONE, 6, 2)   # elmacık
 	m.add("cone", _hp(0, 1.613, -0.004), Vector3(0.03, 0.042, 0.02), K_DARK, Vector3.ZERO, 3)   # burun boşluğu
 	_patch(m, func(u, v): return _hp(lerpf(-0.064, 0.064, u), lerpf(1.528, 1.582, v), 0.004), 8, 1, K_DARK)   # diş aralığı
 	for k in 8:   # sıkılmış düz dişler: üst ve alt sıra
@@ -482,7 +482,7 @@ func _head(m: MB, face: int, hooded: bool, crest: bool) -> void:
 	if not hooded:
 		for sx in [-1.0, 1.0]:
 			if not face in F_NO_EYES:
-				Loft.tube(m, [_hp(0.012 * sx, 1.676, 0.006), _hp(0.055 * sx, 1.697, 0.008), _hp(0.106 * sx, 1.728, 0.003)],
+				LazyFx.g("Loft").tube(m, [_hp(0.012 * sx, 1.676, 0.006), _hp(0.055 * sx, 1.697, 0.008), _hp(0.106 * sx, 1.728, 0.003)],
 					[Vector2(0.01, 0.009), Vector2(0.013, 0.011), Vector2(0.005, 0.005)], _t(K_FLESH, 0.8), 6, 3)   # çatık kaş
 				m.add("sphere", _hp(0.052 * sx, 1.667, -0.009), Vector3(0.064, 0.027, 0.03), K_DARK, Vector3(0, 0, -17 * sx), 8)   # göz yarığı
 	# ağız: dar koyu yarık + sivri dişler, köşelerde azı dişi
@@ -499,7 +499,7 @@ func _head(m: MB, face: int, hooded: bool, crest: bool) -> void:
 		for k in 7:
 			mpts.append(mp.call(k / 6.0))
 			mr.append(Vector2(0.006, 0.006 + 0.01 * sin(PI * k / 6.0)))
-		Loft.tube(m, mpts, mr, K_DARK, 6, 2)
+		LazyFx.g("Loft").tube(m, mpts, mr, K_DARK, 6, 2)
 		for k in 7:
 			var p: Vector3 = mp.call((k + 0.5) / 7.0)
 			var fang = 1.5 if k in [0, 6] else 1.0
@@ -510,12 +510,12 @@ func _head(m: MB, face: int, hooded: bool, crest: bool) -> void:
 	var short_nose = func() -> void:
 		if not hooded:
 			var nb2 = _hp(0, 1.65, -0.005)
-			Loft.tube(m, [nb2, nb2 + Vector3(0, -0.025, 0.022), nb2 + Vector3(0, -0.045, 0.012)], [0.011, 0.018, 0.013], K_FLESH, 6, 2)
+			LazyFx.g("Loft").tube(m, [nb2, nb2 + Vector3(0, -0.025, 0.022), nb2 + Vector3(0, -0.045, 0.012)], [0.011, 0.018, 0.013], K_FLESH, 6, 2)
 	match face:
 		0:
 			if not hooded:
 				var nb = _hp(0, 1.65, -0.01)
-				Loft.tube(m, [nb, nb + Vector3(0, -0.006, 0.1), nb + Vector3(0, -0.035, 0.2)], [0.022, 0.019, 0.008], K_FLESH, 8, 3)   # tengu burnu
+				LazyFx.g("Loft").tube(m, [nb, nb + Vector3(0, -0.006, 0.1), nb + Vector3(0, -0.035, 0.2)], [0.022, 0.019, 0.008], K_FLESH, 8, 3)   # tengu burnu
 				m.add("cyl", _hp(0, 1.765, 0.004), Vector3(0.05, 0.012, 0.05), K_LINE, Vector3(82, 0, 0), 6)                    # altıgen mücevher
 		1, 13:
 			for sx in [-1.0, 1.0]:
@@ -529,15 +529,15 @@ func _head(m: MB, face: int, hooded: bool, crest: bool) -> void:
 				_vtube(m, [Vector3(0, 1.78, 0.0), Vector3(0, 1.93, -0.01), Vector3(0, 2.12, -0.03)], [Vector2(0.115, 0.13), Vector2(0.085, 0.1), Vector2(0.006, 0.006)], _t(K_FLESH, 0.9), 14, 3)
 				for k in 5:
 					var x0 = (k - 2) * 0.04
-					Loft.tube(m, [_hp(x0, 1.73, 0.004), Vector3(x0 * 0.75, 1.93, 0.094 - absf(x0) * 0.25), Vector3(0, 2.12, -0.02)], [0.004, 0.004, 0.003], K_LINE, 4, 3)
+					LazyFx.g("Loft").tube(m, [_hp(x0, 1.73, 0.004), Vector3(x0 * 0.75, 1.93, 0.094 - absf(x0) * 0.25), Vector3(0, 2.12, -0.02)], [0.004, 0.004, 0.003], K_LINE, 4, 3)
 				var nb3 = _hp(0, 1.65, -0.005)
-				Loft.tube(m, [nb3, nb3 + Vector3(0, -0.03, 0.02), nb3 + Vector3(0, -0.045, 0.01)], [0.009, 0.014, 0.01], K_FLESH, 6, 2)
+				LazyFx.g("Loft").tube(m, [nb3, nb3 + Vector3(0, -0.03, 0.02), nb3 + Vector3(0, -0.045, 0.01)], [0.009, 0.014, 0.01], K_FLESH, 6, 2)
 			_spike(m, Vector3(0, 1.5, 0.08), Vector3(0, -1, 0.2), 0.07, 0.022, skin)
 		3:   # Hannya: içe kıvrılan uzun boynuzlar, kulaklara uzanan sırıtış, uzun azı dişleri, sivri çene
 			for sx in [-1.0, 1.0]:
 				_spike(m, _hp(0.06 * sx, 1.79, -0.012), Vector3(0.7 * sx, 1, 0.1), 0.3, 0.027, K_BONE, Vector3(-0.4 * sx, 0.5, 0.1))
-				Loft.tube(m, [_hp(0.01 * sx, 1.69, 0.012), _hp(0.06 * sx, 1.715, 0.016), _hp(0.105 * sx, 1.74, 0.008)], [0.012, 0.017, 0.008], _t(skin, 0.7), 6, 3)
-				Loft.tube(m, [mp.call(0.5 + 0.5 * sx), _hp(0.092 * sx, 1.605, 0.003), _hp(0.1 * sx, 1.635, 0.002)], [0.007, 0.006, 0.003], K_DARK, 5, 3)
+				LazyFx.g("Loft").tube(m, [_hp(0.01 * sx, 1.69, 0.012), _hp(0.06 * sx, 1.715, 0.016), _hp(0.105 * sx, 1.74, 0.008)], [0.012, 0.017, 0.008], _t(skin, 0.7), 6, 3)
+				LazyFx.g("Loft").tube(m, [mp.call(0.5 + 0.5 * sx), _hp(0.092 * sx, 1.605, 0.003), _hp(0.1 * sx, 1.635, 0.002)], [0.007, 0.006, 0.003], K_DARK, 5, 3)
 				_spike(m, _hp(0.066 * sx, 1.575, 0.004), Vector3(0.05 * sx, 1, 0.15), 0.05, 0.01, K_BONE)
 				_spike(m, _hp(0.05 * sx, 1.556, 0.004), Vector3(0.05 * sx, -1, 0.15), 0.045, 0.009, K_BONE)
 				m.add("sphere", _hp(0.085 * sx, 1.635, -0.006), Vector3(0.05, 0.04, 0.03), skin, Vector3.ZERO, 6)
@@ -545,11 +545,11 @@ func _head(m: MB, face: int, hooded: bool, crest: bool) -> void:
 			short_nose.call()
 		4:   # Karasu Tengu: karga gagası, alında tokin, geriye taranmış tüy tepelik
 			var bk = _hp(0, 1.635, -0.03)
-			Loft.tube(m, [bk, bk + Vector3(0, -0.015, 0.1), bk + Vector3(0, -0.075, 0.21)], [Vector2(0.052, 0.04), Vector2(0.036, 0.028), Vector2(0.004, 0.004)], K_BONE, 8, 3)
+			LazyFx.g("Loft").tube(m, [bk, bk + Vector3(0, -0.015, 0.1), bk + Vector3(0, -0.075, 0.21)], [Vector2(0.052, 0.04), Vector2(0.036, 0.028), Vector2(0.004, 0.004)], K_BONE, 8, 3)
 			var bk2 = _hp(0, 1.565, -0.03)
-			Loft.tube(m, [bk2, bk2 + Vector3(0, -0.01, 0.08), bk2 + Vector3(0, -0.03, 0.15)], [Vector2(0.04, 0.02), Vector2(0.028, 0.014), Vector2(0.004, 0.004)], _t(K_BONE, 0.8), 8, 3)
+			LazyFx.g("Loft").tube(m, [bk2, bk2 + Vector3(0, -0.01, 0.08), bk2 + Vector3(0, -0.03, 0.15)], [Vector2(0.04, 0.02), Vector2(0.028, 0.014), Vector2(0.004, 0.004)], _t(K_BONE, 0.8), 8, 3)
 			for sx in [-1.0, 1.0]:
-				Loft.tube(m, [_hp(0.05 * sx, 1.6, 0.003), bk + Vector3(0.03 * sx, -0.045, 0.1), bk + Vector3(0, -0.08, 0.2)], [0.004, 0.004, 0.003], K_DARK, 4, 3)
+				LazyFx.g("Loft").tube(m, [_hp(0.05 * sx, 1.6, 0.003), bk + Vector3(0.03 * sx, -0.045, 0.1), bk + Vector3(0, -0.08, 0.2)], [0.004, 0.004, 0.003], K_DARK, 4, 3)
 			if not hooded:
 				m.add("cyl", _hp(0, 1.775, 0.012), Vector3(0.055, 0.035, 0.055), K_LINE, Vector3(75, 0, 0), 8)
 				for k in 9:
@@ -562,10 +562,10 @@ func _head(m: MB, face: int, hooded: bool, crest: bool) -> void:
 						_blade(m, bs2, bs2 + Vector3(0.07 * sx, 0.03 - k * 0.03, -0.2), 0.03, Vector3(sx, 0.2, 0.3).normalized(), _t(K_FLESH, 0.85), 0.8, 0.0)
 		5:   # Kitsune: tilki burnu, dik kulaklar, yanak çizgileri, ense tüyleri
 			var mz = _hp(0, 1.615, -0.035)
-			Loft.tube(m, [mz, mz + Vector3(0, -0.012, 0.085), mz + Vector3(0, -0.02, 0.16)], [Vector2(0.062, 0.05), Vector2(0.042, 0.034), Vector2(0.02, 0.017)], skin, 10, 3)
+			LazyFx.g("Loft").tube(m, [mz, mz + Vector3(0, -0.012, 0.085), mz + Vector3(0, -0.02, 0.16)], [Vector2(0.062, 0.05), Vector2(0.042, 0.034), Vector2(0.02, 0.017)], skin, 10, 3)
 			m.add("sphere", mz + Vector3(0, -0.012, 0.165), Vector3(0.03, 0.024, 0.024), K_DARK if not hooded else K_BONE, Vector3.ZERO, 6)
 			for sx in [-1.0, 1.0]:
-				Loft.tube(m, [mz + Vector3(0.05 * sx, -0.03, 0.02), mz + Vector3(0.035 * sx, -0.036, 0.09), mz + Vector3(0, -0.036, 0.158)], [0.004, 0.004, 0.003], K_DARK if not hooded else K_LINE, 4, 3)
+				LazyFx.g("Loft").tube(m, [mz + Vector3(0.05 * sx, -0.03, 0.02), mz + Vector3(0.035 * sx, -0.036, 0.09), mz + Vector3(0, -0.036, 0.158)], [0.004, 0.004, 0.003], K_DARK if not hooded else K_LINE, 4, 3)
 				_spike(m, mz + Vector3(0.03 * sx, -0.038, 0.1), Vector3(0, -1, 0.1), 0.03, 0.007, K_BONE)
 				if not hooded:
 					_spike(m, Vector3(0.08 * sx, 1.8, 0.0), Vector3(0.28 * sx, 1, 0), 0.2, 0.055, skin, Vector3.ZERO, 0.45)
@@ -580,7 +580,7 @@ func _head(m: MB, face: int, hooded: bool, crest: bool) -> void:
 		6:   # Dokuro: kafatası yüz, iri göz çukurları, çatlak alın, tek boynuzu kırık
 			for sx in [-1.0, 1.0]:
 				m.add("sphere", _hp(0.05 * sx, 1.665, -0.014), Vector3(0.078, 0.062, 0.04), K_DARK, Vector3(0, 0, -8 * sx), 10)
-				Loft.tube(m, [_hp(0.07 * sx, 1.62, 0.004), _hp(0.105 * sx, 1.63, 0.006), Vector3(0.122 * sx, 1.65, 0.03)], [0.011, 0.012, 0.008], K_BONE, 6, 2)
+				LazyFx.g("Loft").tube(m, [_hp(0.07 * sx, 1.62, 0.004), _hp(0.105 * sx, 1.63, 0.006), Vector3(0.122 * sx, 1.65, 0.03)], [0.011, 0.012, 0.008], K_BONE, 6, 2)
 			m.add("cone", _hp(0, 1.613, -0.004), Vector3(0.03, 0.042, 0.02), K_DARK, Vector3.ZERO, 3)
 			_patch(m, func(q0, v): return _hp(lerpf(-0.064, 0.064, q0), lerpf(1.528, 1.582, v), 0.004), 8, 1, K_DARK)
 			for k in 8:
@@ -588,7 +588,7 @@ func _head(m: MB, face: int, hooded: bool, crest: bool) -> void:
 				m.add("box", _hp(x, 1.5685, 0.007), Vector3(0.0125, 0.021, 0.008), K_BONE)
 				m.add("box", _hp(x, 1.5425, 0.007), Vector3(0.0125, 0.021, 0.008), K_BONE)
 			if not hooded:
-				Loft.tube(m, [_hp(0.02, 1.83, 0.003), _hp(0.035, 1.79, 0.003), _hp(0.015, 1.765, 0.003), _hp(0.04, 1.735, 0.003)], [0.003, 0.004, 0.004, 0.002], K_DARK, 4, 2)
+				LazyFx.g("Loft").tube(m, [_hp(0.02, 1.83, 0.003), _hp(0.035, 1.79, 0.003), _hp(0.015, 1.765, 0.003), _hp(0.04, 1.735, 0.003)], [0.003, 0.004, 0.004, 0.002], K_DARK, 4, 2)
 				_spike(m, _hp(0.07, 1.795, -0.012), Vector3(0.5, 1, 0.1), 0.24, 0.028, K_BONE, Vector3(-0.2, 0.4, 0))
 				m.add("cyl", _hp(-0.07, 1.8, -0.005) + Vector3(-0.012, 0.022, 0), Vector3(0.05, 0.05, 0.05), K_BONE, Vector3(0, 0, 25), 6)
 		7:   # Ryōmen: Madara'nın çift yüzlü Susanoo'su (arka yüz _head sonunda eklenir)
@@ -597,7 +597,7 @@ func _head(m: MB, face: int, hooded: bool, crest: bool) -> void:
 			for sx in [-1.0, 1.0]:
 				_spike(m, _hp(0.012 * sx, 1.612, 0.014), Vector3(sx, -0.25, 0.1), 0.09, 0.008, K_LINE, Vector3(0, -0.3, 0))
 			var nb4 = _hp(0, 1.655, 0.0)
-			Loft.tube(m, [nb4, nb4 + Vector3(0, -0.03, 0.03), nb4 + Vector3(0, -0.045, 0.02)], [0.012, 0.02, 0.014], _t(K_PLATE, 0.85), 6, 2)
+			LazyFx.g("Loft").tube(m, [nb4, nb4 + Vector3(0, -0.03, 0.03), nb4 + Vector3(0, -0.045, 0.02)], [0.012, 0.02, 0.014], _t(K_PLATE, 0.85), 6, 2)
 			if not hooded:
 				_vtube(m, [Vector3(0, 1.712, 0.005), Vector3(0, 1.8, 0.0), Vector3(0, 1.865, -0.005), Vector3(0, 1.892, -0.005)],
 					[Vector2(0.136, 0.152), Vector2(0.126, 0.142), Vector2(0.082, 0.096), Vector2(0.02, 0.02)], K_PLATE, 16, 3)
@@ -618,14 +618,14 @@ func _head(m: MB, face: int, hooded: bool, crest: bool) -> void:
 					for k in 9:
 						ep.append(shk.call(k / 8.0, 1.0))
 						er.append(0.006)
-					Loft.tube(m, ep, er, K_LINE, 4, 2)
+					LazyFx.g("Loft").tube(m, ep, er, K_LINE, 4, 2)
 				for sx in [-1.0, 1.0]:
 					_spike(m, Vector3(0.02 * sx, 1.77, 0.16), Vector3(0.75 * sx, 1, 0), 0.3, 0.032, K_LINE, Vector3(-0.3 * sx, 0.6, 0), 0.3)
 				m.add("cyl", Vector3(0, 1.775, 0.162), Vector3(0.06, 0.012, 0.06), K_LINE, Vector3(90, 0, 0), 8)
 		9:   # Ichigan: tek iri göz, tek kaş kemeri, alında tek boynuz
 			if not hooded:
 				m.add("sphere", _hp(0, 1.675, -0.012), Vector3(0.105, 0.07, 0.035), K_DARK, Vector3.ZERO, 10)
-				Loft.tube(m, [_hp(-0.085, 1.69, 0.006), _hp(-0.04, 1.722, 0.012), _hp(0, 1.73, 0.014), _hp(0.04, 1.722, 0.012), _hp(0.085, 1.69, 0.006)],
+				LazyFx.g("Loft").tube(m, [_hp(-0.085, 1.69, 0.006), _hp(-0.04, 1.722, 0.012), _hp(0, 1.73, 0.014), _hp(0.04, 1.722, 0.012), _hp(0.085, 1.69, 0.006)],
 					[0.007, 0.014, 0.016, 0.014, 0.007], _t(K_FLESH, 0.75), 6, 3)
 				for sx in [-1.0, 1.0]:
 					m.add("sphere", _hp(0.012 * sx, 1.61, 0.0), Vector3(0.012, 0.02, 0.01), K_DARK, Vector3.ZERO, 5)
@@ -641,7 +641,7 @@ func _head(m: MB, face: int, hooded: bool, crest: bool) -> void:
 					var x1 = (k - 2) * 0.05
 					_spike(m, Vector3(x1, 1.82, -0.03), Vector3(x1 * 2.5, 1.0, -0.2), 0.3 - absf(x1) * 1.2, 0.045, _t(K_FLESH, 0.8), Vector3(0, 0.3, -0.25), 0.5)
 			for sx in [-1.0, 1.0]:
-				Loft.tube(m, [Vector3(0.122 * sx, 1.66, 0.01), Vector3(0.13 * sx, 1.59, 0.012), Vector3(0.126 * sx, 1.53, 0.012)], [0.012, 0.016, 0.012], skin, 6, 3)
+				LazyFx.g("Loft").tube(m, [Vector3(0.122 * sx, 1.66, 0.01), Vector3(0.13 * sx, 1.59, 0.012), Vector3(0.126 * sx, 1.53, 0.012)], [0.012, 0.016, 0.012], skin, 6, 3)
 				m.add_xf("torus", Transform3D(Basis(Vector3.FORWARD, PI * 0.5) * Basis.from_scale(Vector3(0.07, 0.016, 0.07)), Vector3(0.127 * sx, 1.495, 0.012)), K_LINE, 10)
 		11:   # Shishi: basık geniş burun, alt çeneden çıkan azılar, kıvırcık yele, topak kaşlar
 			if not hooded:
@@ -660,17 +660,17 @@ func _head(m: MB, face: int, hooded: bool, crest: bool) -> void:
 						m.add("sphere", Vector3(sin(a) * rad, 1.69 + cos(a) * (0.15 + r * 0.03), 0.02 - r * 0.07), Vector3.ONE * (0.085 + 0.02 * ((k + r) % 2)), _t(K_FLESH, 0.92 if (k + r) % 2 == 0 else 0.74), Vector3.ZERO, 7)
 		12:   # Ryū: ejder burnu ve alt çene, dişler, uzun bıyıklar, dallı boynuzlar, ense yelesi
 			var sn = _hp(0, 1.625, -0.04)
-			Loft.tube(m, [sn, sn + Vector3(0, 0.0, 0.1), sn + Vector3(0, 0.006, 0.2)], [Vector2(0.076, 0.052), Vector2(0.06, 0.044), Vector2(0.046, 0.034)], skin, 10, 3)
+			LazyFx.g("Loft").tube(m, [sn, sn + Vector3(0, 0.0, 0.1), sn + Vector3(0, 0.006, 0.2)], [Vector2(0.076, 0.052), Vector2(0.06, 0.044), Vector2(0.046, 0.034)], skin, 10, 3)
 			var jw = _hp(0, 1.545, -0.04)
-			Loft.tube(m, [jw, jw + Vector3(0, -0.006, 0.1), jw + Vector3(0, 0.002, 0.18)], [Vector2(0.06, 0.028), Vector2(0.048, 0.022), Vector2(0.03, 0.015)], _t(skin, 0.85), 10, 3)
-			Loft.tube(m, [_hp(0, 1.585, -0.03), sn + Vector3(0, -0.042, 0.1), sn + Vector3(0, -0.036, 0.19)], [Vector2(0.06, 0.012), Vector2(0.05, 0.01), Vector2(0.034, 0.008)], K_DARK if not hooded else K_BONE, 8, 3)
+			LazyFx.g("Loft").tube(m, [jw, jw + Vector3(0, -0.006, 0.1), jw + Vector3(0, 0.002, 0.18)], [Vector2(0.06, 0.028), Vector2(0.048, 0.022), Vector2(0.03, 0.015)], _t(skin, 0.85), 10, 3)
+			LazyFx.g("Loft").tube(m, [_hp(0, 1.585, -0.03), sn + Vector3(0, -0.042, 0.1), sn + Vector3(0, -0.036, 0.19)], [Vector2(0.06, 0.012), Vector2(0.05, 0.01), Vector2(0.034, 0.008)], K_DARK if not hooded else K_BONE, 8, 3)
 			for sx in [-1.0, 1.0]:
 				m.add("sphere", sn + Vector3(0.024 * sx, 0.03, 0.2), Vector3(0.03, 0.026, 0.03), skin, Vector3.ZERO, 6)
 				for k in 5:
 					var t = k / 4.0
 					m.add("cone", sn + Vector3(lerpf(0.055, 0.036, t) * sx, -0.045, 0.03 + t * 0.165), Vector3(0.012, 0.024, 0.01), K_BONE, Vector3(180, 0, 0), 4)
 				var wb = sn + Vector3(0.04 * sx, 0.0, 0.19)
-				Loft.tube(m, [wb, wb + Vector3(0.12 * sx, 0.04, 0.02), wb + Vector3(0.21 * sx, -0.03, -0.1), wb + Vector3(0.25 * sx, -0.15, -0.22)], [0.007, 0.006, 0.004, 0.002], K_LINE, 5, 4)
+				LazyFx.g("Loft").tube(m, [wb, wb + Vector3(0.12 * sx, 0.04, 0.02), wb + Vector3(0.21 * sx, -0.03, -0.1), wb + Vector3(0.25 * sx, -0.15, -0.22)], [0.007, 0.006, 0.004, 0.002], K_LINE, 5, 4)
 				if not hooded:
 					var hb = _hp(0.06 * sx, 1.8, -0.04)
 					var hd = Vector3(0.4 * sx, 1, -0.5).normalized()
@@ -695,8 +695,8 @@ func _head(m: MB, face: int, hooded: bool, crest: bool) -> void:
 			for k in 7:
 				ep2.append(hood.call(q1, k / 7.0))
 				er2.append(0.007)
-			Loft.tube(m, ep2, er2, K_LINE, 5, 2)
-		Loft.tube(m, [Vector3(0, 1.86, -0.03), Vector3(0, 1.885, 0.09), Vector3(0, 1.84, 0.2), Vector3(0, 1.755, 0.27)],
+			LazyFx.g("Loft").tube(m, ep2, er2, K_LINE, 5, 2)
+		LazyFx.g("Loft").tube(m, [Vector3(0, 1.86, -0.03), Vector3(0, 1.885, 0.09), Vector3(0, 1.84, 0.2), Vector3(0, 1.755, 0.27)],
 			[Vector2(0.11, 0.05), Vector2(0.085, 0.04), Vector2(0.045, 0.026), Vector2(0.005, 0.005)], K_FLESH, 10, 4)   # gaga
 		m.add("cyl", Vector3(0, 1.918, 0.1), Vector3(0.05, 0.012, 0.05), K_LINE, Vector3(20, 0, 0), 6)   # tepedeki altıgen mücevher
 	elif not face in F_NO_HAIR:
@@ -732,7 +732,7 @@ static func _spiral(m: MB, c: Vector3, R: float, hgt: float, turns: float, sgn: 
 		var q = R * (1.0 - t * 0.92)
 		pts.append(c + Vector3(cos(ang) * q, hgt * sqrt(maxf(0.02, 1.0 - pow(q / (R * 1.08), 2.0))) + 0.004, sin(ang) * q * 1.12))
 		rr.append(0.008)
-	Loft.tube(m, pts, rr, K_LINE, 5, 2)
+	LazyFx.g("Loft").tube(m, pts, rr, K_LINE, 5, 2)
 
 
 ## Kademe 3-5: etli / zırhlı beden. 3 = İnsansı (kaslı üst gövde, açık iblis yüzü), 4 = Zırhlı (gagalı başlık, tam beden zırh),
@@ -748,13 +748,13 @@ func _tier_body(armor: int, face: int) -> void:
 		# göğüs plakası kenarı + orta sırt
 		_vtube(t, [Vector3(0, 1.1, 0.188), Vector3(0, 1.26, 0.208), Vector3(0, 1.4, 0.19)], [Vector2(0.014, 0.01), Vector2(0.014, 0.01), Vector2(0.014, 0.01)], K_LINE, 5, 2)
 		for sx in [-1.0, 1.0]:
-			Loft.tube(t, [Vector3(0.0, 1.44, 0.16), Vector3(0.14 * sx, 1.4, 0.192), Vector3(0.265 * sx, 1.33, 0.13), Vector3(0.3 * sx, 1.25, 0.0)], [0.011, 0.011, 0.011, 0.011], K_LINE, 5, 3)
+			LazyFx.g("Loft").tube(t, [Vector3(0.0, 1.44, 0.16), Vector3(0.14 * sx, 1.4, 0.192), Vector3(0.265 * sx, 1.33, 0.13), Vector3(0.3 * sx, 1.25, 0.0)], [0.011, 0.011, 0.011, 0.011], K_LINE, 5, 3)
 	else:
 		for sx in [-1.0, 1.0]:   # göğüs kasları + kaburga çizgileri
 			t.add("sphere", Vector3(0.125 * sx, 1.35, 0.172), Vector3(0.24, 0.14, 0.085), K_FLESH, Vector3.ZERO, 10)
 			for k in 4:
 				var y = 1.07 + k * 0.05
-				Loft.tube(t, [Vector3(0.04 * sx, y - 0.015, 0.183), Vector3(0.15 * sx, y, 0.14), Vector3(0.232 * sx, y + 0.03, 0.02)], [0.007, 0.008, 0.006], K_LINE, 4, 3)
+				LazyFx.g("Loft").tube(t, [Vector3(0.04 * sx, y - 0.015, 0.183), Vector3(0.15 * sx, y, 0.14), Vector3(0.232 * sx, y + 0.03, 0.02)], [0.007, 0.008, 0.006], K_LINE, 4, 3)
 		_vtube(t, [Vector3(0, 1.0, 0.172), Vector3(0, 1.15, 0.187), Vector3(0, 1.27, 0.19)], [Vector2(0.007, 0.006), Vector2(0.007, 0.006), Vector2(0.007, 0.006)], K_LINE, 4, 2)
 	# boyun
 	_vtube(t, [Vector3(0, 1.42, 0.0), Vector3(0, 1.56, 0.01)], [Vector2(0.085, 0.085), Vector2(0.07, 0.07)], _t(K_FLESH, 0.85), 10, 2)
@@ -777,7 +777,7 @@ func _tier_body(armor: int, face: int) -> void:
 		var sx = 1.0 if sd == "Left" else -1.0
 		var ua = _bp(sd + "UpperArm"); var la = _bp(sd + "LowerArm"); var lh = _bp(sd + "Hand")
 		var a = MB.new()
-		Loft.limb(a, ua + Vector3(0.02 * sx, 0, 0), la, 0.09, 0.07, K_FLESH)
+		LazyFx.g("Loft").limb(a, ua + Vector3(0.02 * sx, 0, 0), la, 0.09, 0.07, K_FLESH)
 		# omuz kubbesi + sarmal
 		var dc = ua + Vector3(0.04 * sx, 0.04, 0.0)
 		a.add("sphere", dc, Vector3(0.34, 0.25, 0.37), _t(K_FLESH, 0.92), Vector3.ZERO, 14)
@@ -795,7 +795,7 @@ func _tier_body(armor: int, face: int) -> void:
 			for q in 7:
 				ep.append(lam.call(q / 6.0, 1.0))
 				er.append(0.007)
-			Loft.tube(a, ep, er, K_LINE, 4, 2)
+			LazyFx.g("Loft").tube(a, ep, er, K_LINE, 4, 2)
 		if A_BONE[armor] == 1 and armor != 10:   # iblis: omuzdan fışkıran kemik dikenler
 			for k in 4:
 				_spike(a, dc + Vector3((0.0 + k * 0.03) * sx, 0.07, -0.08 + k * 0.05), Vector3(0.45 * sx, 1, (k - 1.5) * 0.25), 0.2 + 0.05 * (k % 2), 0.035, K_BONE, Vector3(0.3 * sx, 0, 0))
@@ -803,7 +803,7 @@ func _tier_body(armor: int, face: int) -> void:
 		# önkol: kol koruyucu + dirsek dikeni
 		var b = MB.new()
 		var gcol = K_PLATE if (plated or A_KOTE[armor] == 1) else K_FLESH
-		Loft.tube(b, [la.lerp(lh, 0.04), la.lerp(lh, 0.45), la.lerp(lh, 0.97)], [0.082, 0.1, 0.07], gcol, 12, 3)
+		LazyFx.g("Loft").tube(b, [la.lerp(lh, 0.04), la.lerp(lh, 0.45), la.lerp(lh, 0.97)], [0.082, 0.1, 0.07], gcol, 12, 3)
 		b.add_xf("torus", Transform3D(Basis(Vector3.FORWARD, PI * 0.5) * Basis.from_scale(Vector3(0.21, 0.045, 0.21)), la.lerp(lh, 0.95)), K_LINE, 12)
 		_spike(b, la + Vector3(0, 0, -0.03), Vector3(-sx * 0.5, 0.1, -1), 0.15, 0.04, K_BONE if A_BONE[armor] == 1 else gcol, Vector3.ZERO, 0.6)
 		if A_BONE[armor] == 1:
@@ -831,7 +831,7 @@ func _tier_body(armor: int, face: int) -> void:
 		for k in 31:
 			hem.append(mant.call(k / 30.0, 1.0))
 			hr.append(0.008)
-		Loft.tube(mt, hem, hr, K_LINE, 4, 1)
+		LazyFx.g("Loft").tube(mt, hem, hr, K_LINE, 4, 1)
 		_on("UpperChest", mt)
 	# ---- bel kuşağı, etek, bacaklar (tam beden)
 	if tier >= 4:
@@ -851,7 +851,7 @@ func _tier_body(armor: int, face: int) -> void:
 			for k in 27:
 				hem2.append(robe.call(k / 26.0, 1.0))
 				hr2.append(0.008)
-			Loft.tube(kz, hem2, hr2, K_LINE, 4, 1)
+			LazyFx.g("Loft").tube(kz, hem2, hr2, K_LINE, 4, 1)
 		elif A_SKIRT[armor] == 0:            # kusazuri: belden sarkan plaka perdeleri
 			for k in 8:
 				var a = TAU * (k + 0.5) / 8.0
@@ -879,7 +879,7 @@ func _tier_body(armor: int, face: int) -> void:
 			_spike(lg, ll + Vector3(0, 0.03, 0.08), Vector3(0, 1, 0.35), 0.11, 0.035, K_BONE if A_BONE[armor] == 1 else K_PLATE, Vector3.ZERO, 0.6)
 			_on(sd + "LowerLeg", lg)
 			var fm = MB.new()
-			Loft.tube(fm, [ft + Vector3(0, -0.01, -0.05), ft + Vector3(0, -0.045, 0.07), toe + Vector3(0, -0.07, 0.07)], [Vector2(0.07, 0.07), Vector2(0.08, 0.058), Vector2(0.062, 0.036)], _t(K_FLESH, 0.8), 10, 3)
+			LazyFx.g("Loft").tube(fm, [ft + Vector3(0, -0.01, -0.05), ft + Vector3(0, -0.045, 0.07), toe + Vector3(0, -0.07, 0.07)], [Vector2(0.07, 0.07), Vector2(0.08, 0.058), Vector2(0.062, 0.036)], _t(K_FLESH, 0.8), 10, 3)
 			_on(sd + "Foot", fm)
 	_armor_extra(armor)
 	# ---- sol el silahları
@@ -894,7 +894,7 @@ func _tier_body(armor: int, face: int) -> void:
 				var a0 = lerpf(-1.25, 1.25, k / 10.0)
 				bp2.append(lh + Vector3(sin(a0) * 0.44 + 0.03, 0.0, 0.2 - cos(a0) * 0.16))
 				br.append(0.022 - 0.014 * absf(a0) / 1.25)
-			Loft.tube(m2, bp2, br, K_FLESH, 6, 2)
+			LazyFx.g("Loft").tube(m2, bp2, br, K_FLESH, 6, 2)
 			_shaft(m2, bp2[0], bp2[10], 0.004, K_LINE)
 		else:   # Yata Aynası: kalkan diski, kenar halkası, ortada üç tomoe + sarmal
 			var sc = _bp("LeftLowerArm").lerp(lh, 0.7) + Vector3(0, 0.1, 0)
@@ -946,8 +946,8 @@ static func _rope(mb: MB, pts: Array, r: float, col: Color, turns := 8.0) -> voi
 		var a = turns * TAU * i / float(n - 1)
 		hp.append(pts[i] + (s1 * cos(a) + s2 * sin(a)) * r * 0.95)
 		hr.append(r * 0.3)
-	Loft.tube(mb, pts, rr, col, 8, 1)
-	Loft.tube(mb, hp, hr, K_LINE, 4, 1)
+	LazyFx.g("Loft").tube(mb, pts, rr, col, 8, 1)
+	LazyFx.g("Loft").tube(mb, hp, hr, K_LINE, 4, 1)
 
 
 ## Matkap: koni + etrafında sarmal oluk
@@ -967,7 +967,7 @@ static func _drill(mb: MB, base: Vector3, dir: Vector3, length: float, r: float,
 		var rad = r * (1.0 - 0.76 * t) if t < 0.5 else r * 1.24 * (1.0 - t)
 		hp.append(base + d * length * t + (s1 * cos(a) + s2 * sin(a)) * (rad + 0.004))
 		hr.append(0.007)
-	Loft.tube(mb, hp, hr, K_LINE, 4, 1)
+	LazyFx.g("Loft").tube(mb, hp, hr, K_LINE, 4, 1)
 
 
 ## Shide: halattan sarkan zikzak kâğıt şerit
@@ -1004,8 +1004,8 @@ func _armor_extra(armor: int) -> void:
 			b.add_xf("torus", Transform3D(Basis(Vector3.FORWARD, PI * 0.5) * Basis.from_scale(Vector3(r, th, r)), la.lerp(lh, t)), col, 12)
 		match armor:
 			3:   # Yamabushi: göğüste çapraz kuşak + ponponlar (yuigesa), kolda sargı
-				Loft.tube(c, [Vector3(0.21 * sx, 1.44, 0.04), Vector3(0.12 * sx, 1.33, 0.2), Vector3(0.0, 1.1, 0.2)], [0.022, 0.022, 0.022], _t(K_FLESH, 0.62), 6, 3)
-				Loft.tube(c, [Vector3(0.21 * sx, 1.44, 0.0), Vector3(0.13 * sx, 1.32, -0.2), Vector3(0.0, 1.12, -0.19)], [0.022, 0.022, 0.022], _t(K_FLESH, 0.62), 6, 3)
+				LazyFx.g("Loft").tube(c, [Vector3(0.21 * sx, 1.44, 0.04), Vector3(0.12 * sx, 1.33, 0.2), Vector3(0.0, 1.1, 0.2)], [0.022, 0.022, 0.022], _t(K_FLESH, 0.62), 6, 3)
+				LazyFx.g("Loft").tube(c, [Vector3(0.21 * sx, 1.44, 0.0), Vector3(0.13 * sx, 1.32, -0.2), Vector3(0.0, 1.12, -0.19)], [0.022, 0.022, 0.022], _t(K_FLESH, 0.62), 6, 3)
 				c.add("sphere", Vector3(0.135 * sx, 1.345, 0.225), Vector3.ONE * 0.085, K_LINE, Vector3.ZERO, 8)
 				c.add("sphere", Vector3(0.065 * sx, 1.215, 0.225), Vector3.ONE * 0.085, K_LINE, Vector3.ZERO, 8)
 				c.add("sphere", Vector3(0.1 * sx, 1.3, -0.225), Vector3.ONE * 0.085, K_LINE, Vector3.ZERO, 8)
@@ -1086,8 +1086,8 @@ func _armor_extra(armor: int) -> void:
 						for k in 6:
 							ep.append(kg.call(qq, k / 5.0))
 							er.append(0.008)
-						Loft.tube(u, ep, er, K_LINE, 4, 2)
-				Loft.tube(u, [Vector3(sx * 0.54, 1.58, 0.0), Vector3(sx * 0.3, 1.535, 0.1), Vector3(sx * 0.06, 1.48, 0.19)], [0.008, 0.008, 0.008], K_LINE, 4, 2)
+						LazyFx.g("Loft").tube(u, ep, er, K_LINE, 4, 2)
+				LazyFx.g("Loft").tube(u, [Vector3(sx * 0.54, 1.58, 0.0), Vector3(sx * 0.3, 1.535, 0.1), Vector3(sx * 0.06, 1.48, 0.19)], [0.008, 0.008, 0.008], K_LINE, 4, 2)
 				c.add_xf("torus", Transform3D(Basis(Vector3.RIGHT, PI * 0.5) * Basis.from_scale(Vector3(0.075, 0.02, 0.075)), Vector3(0.115 * sx, 1.33, 0.222)), K_LINE, 12)
 				u.add_xf("torus", Transform3D(Basis(Vector3.RIGHT, PI * 0.5) * Basis.from_scale(Vector3(0.08, 0.02, 0.08)), Vector3(0.14 * sx, 1.34, 0.232)), K_LINE, 12)
 		_on(sd + "UpperArm", a)
@@ -1099,20 +1099,20 @@ func _armor_extra(armor: int) -> void:
 			_shaft(u, Vector3(-0.1, 1.44, -0.24), Vector3(0.1, 1.44, -0.24), 0.02, K_LINE)
 			if full:
 				for sx in [-1.0, 1.0]:   # belde püsküllü ip
-					Loft.tube(kz, [Vector3(0.05 * sx, 1.0, 0.19), Vector3(0.09 * sx, 0.85, 0.24), Vector3(0.08 * sx, 0.7, 0.26)], [0.012, 0.012, 0.012], K_LINE, 5, 3)
+					LazyFx.g("Loft").tube(kz, [Vector3(0.05 * sx, 1.0, 0.19), Vector3(0.09 * sx, 0.85, 0.24), Vector3(0.08 * sx, 0.7, 0.26)], [0.012, 0.012, 0.012], K_LINE, 5, 3)
 					kz.add("sphere", Vector3(0.08 * sx, 0.67, 0.26), Vector3.ONE * 0.07, K_LINE, Vector3.ZERO, 8)
 		4:
 			for sx in [-1.0, 1.0]:   # göğüste çapraz kordon, sırtta agemaki fiyongu
-				Loft.tube(c, [Vector3(0.21 * sx, 1.41, 0.15), Vector3(0, 1.25, 0.218), Vector3(-0.2 * sx, 1.09, 0.17)], [0.01, 0.01, 0.01], K_LINE, 5, 4)
+				LazyFx.g("Loft").tube(c, [Vector3(0.21 * sx, 1.41, 0.15), Vector3(0, 1.25, 0.218), Vector3(-0.2 * sx, 1.09, 0.17)], [0.01, 0.01, 0.01], K_LINE, 5, 4)
 				u.add_xf("torus", Transform3D(Basis(Vector3.RIGHT, PI * 0.5) * Basis.from_scale(Vector3(0.16, 0.035, 0.11)), Vector3(0.08 * sx, 1.3, -0.215)), K_LINE, 12)
-				Loft.tube(u, [Vector3(0.02 * sx, 1.28, -0.22), Vector3(0.05 * sx, 1.12, -0.24), Vector3(0.045 * sx, 0.98, -0.25)], [0.012, 0.012, 0.012], K_LINE, 5, 3)
+				LazyFx.g("Loft").tube(u, [Vector3(0.02 * sx, 1.28, -0.22), Vector3(0.05 * sx, 1.12, -0.24), Vector3(0.045 * sx, 0.98, -0.25)], [0.012, 0.012, 0.012], K_LINE, 5, 3)
 				u.add("cone", Vector3(0.045 * sx, 0.93, -0.25), Vector3(0.05, 0.1, 0.05), K_LINE, Vector3.ZERO, 6)
 			c.add("sphere", Vector3(0, 1.25, 0.222), Vector3(0.05, 0.05, 0.025), K_LINE, Vector3.ZERO, 8)
 			u.add("sphere", Vector3(0, 1.3, -0.225), Vector3(0.06, 0.06, 0.04), K_LINE, Vector3.ZERO, 8)
 		5:
 			# çapraz kuşak (sağ omuzdan sol kalçaya), dik yaka, sırtta yırtık pelerin şeritleri
 			for o in [0.0, 0.035]:
-				Loft.tube(c, [Vector3(-0.22, 1.44 - o, 0.06), Vector3(-0.08, 1.33 - o, 0.205), Vector3(0.1, 1.17 - o, 0.2), Vector3(0.23, 1.05 - o, 0.08)], [0.02, 0.02, 0.02, 0.02], _t(K_FLESH, 0.62), 6, 3)
+				LazyFx.g("Loft").tube(c, [Vector3(-0.22, 1.44 - o, 0.06), Vector3(-0.08, 1.33 - o, 0.205), Vector3(0.1, 1.17 - o, 0.2), Vector3(0.23, 1.05 - o, 0.08)], [0.02, 0.02, 0.02, 0.02], _t(K_FLESH, 0.62), 6, 3)
 			var col_fn = func(q: float, v: float) -> Vector3:
 				var ang = lerpf(0.5, TAU - 0.5, q)
 				return Vector3(sin(ang) * (0.115 + 0.03 * v), 1.47 + 0.11 * v, 0.0 + cos(ang) * (0.105 + 0.03 * v))
@@ -1132,7 +1132,7 @@ func _armor_extra(armor: int) -> void:
 				var q = 0.115 * (1.0 - t * 0.9)
 				sp.append(Vector3(cos(ang) * q, 1.27 + sin(ang) * q, 0.2 + 0.02 * sqrt(1.0 - pow(q / 0.12, 2.0))))
 				sr.append(0.008)
-			Loft.tube(c, sp, sr, K_LINE, 5, 1)
+			LazyFx.g("Loft").tube(c, sp, sr, K_LINE, 5, 1)
 			for k in 3:
 				_drill(u, Vector3((k - 1) * 0.13, 1.36, -0.18), Vector3((k - 1) * 0.55, 0.75, -0.7), 0.36 if k == 1 else 0.28, 0.07, _t(K_FLESH, 0.85))
 		7:
@@ -1173,7 +1173,7 @@ func _armor_extra(armor: int) -> void:
 		9:
 			for k in 5:   # karın plakaları + sırt yüzgeci
 				var y = 1.03 + k * 0.05
-				Loft.tube(c, [Vector3(-0.13, y + 0.01, 0.15), Vector3(0, y, 0.195 + k * 0.004), Vector3(0.13, y + 0.01, 0.15)], [Vector2(0.012, 0.022), Vector2(0.014, 0.024), Vector2(0.012, 0.022)], K_LINE, 6, 3)
+				LazyFx.g("Loft").tube(c, [Vector3(-0.13, y + 0.01, 0.15), Vector3(0, y, 0.195 + k * 0.004), Vector3(0.13, y + 0.01, 0.15)], [Vector2(0.012, 0.022), Vector2(0.014, 0.024), Vector2(0.012, 0.022)], K_LINE, 6, 3)
 			for k in 7:
 				var y = 1.02 + k * 0.07
 				_blade(u, Vector3(0, y, -0.17), Vector3(0, y + 0.1, -0.17 - 0.16 - 0.05 * sin(k * 0.6)), 0.05, Vector3(1, 0, 0), K_LINE, 1.0, 0.0)
@@ -1200,13 +1200,13 @@ func _armor_extra(armor: int) -> void:
 				var ang = lerpf(-2.0, 2.0, t)
 				sh.append(Vector3(sin(ang) * 0.5, 1.55 + cos(ang) * 0.5, -0.16 - 0.06 * cos(ang)))
 				shr.append(Vector2(0.012, 0.05))
-			Loft.tube(u, sh, shr, _t(K_FLESH, 0.7), 6, 2)
+			LazyFx.g("Loft").tube(u, sh, shr, _t(K_FLESH, 0.7), 6, 2)
 			if full:   # peştamal: önde ve arkada uzun kumaş
 				for sz in [-1.0, 1.0]:
 					var lc = func(q: float, v: float) -> Vector3:
 						return Vector3(lerpf(-0.11, 0.11, q) * (1.0 + 0.2 * v), 1.0 - v * long, sz * (0.185 + 0.06 * v) + 0.01 * sin(PI * q))
 					_patch(kz, lc, 3, 4, _t(K_FLESH, 0.72))
-					Loft.tube(kz, [lc.call(0.0, 1.0), lc.call(0.5, 1.0), lc.call(1.0, 1.0)], [0.008, 0.008, 0.008], K_LINE, 4, 2)
+					LazyFx.g("Loft").tube(kz, [lc.call(0.0, 1.0), lc.call(0.5, 1.0), lc.call(1.0, 1.0)], [0.008, 0.008, 0.008], K_LINE, 4, 2)
 		12:
 			var cl = func(q: float, v: float) -> Vector3:   # dik yaka
 				var ang = lerpf(0.6, TAU - 0.6, q)
@@ -1231,8 +1231,8 @@ func _wings(m: MB) -> void:
 		var L = func(s: float) -> Vector3:
 			var q = clampf(s, 0.0, 0.9999) * 3.0
 			var i = int(q)
-			return Loft._cr(cp[maxi(0, i - 1)], cp[i], cp[i + 1], cp[mini(3, i + 2)], q - i)
-		Loft.tube(m, cp, [0.075, 0.062, 0.045, 0.015], _t(K_FLESH, 0.8), 8, 4)
+			return LazyFx.g("Loft")._cr(cp[maxi(0, i - 1)], cp[i], cp[i + 1], cp[mini(3, i + 2)], q - i)
+		LazyFx.g("Loft").tube(m, cp, [0.075, 0.062, 0.045, 0.015], _t(K_FLESH, 0.8), 8, 4)
 		# [tüy sayısı, kökte boy, uçta boy, kemikten aşağı kayma, ton]: üstte kısa örtü tüyleri, altta uzun uçuş tüyleri
 		var rows = [[15, 0.26, 0.3, 0.0, 1.0], [15, 0.28, 0.34, 0.17, 0.84], [16, 0.3, 0.4, 0.34, 1.0], [16, 0.36, 0.55, 0.52, 0.84], [17, 0.5, 1.0, 0.72, 1.0]]
 		for r in rows.size():
@@ -1317,7 +1317,7 @@ func swipe(owner_f: Node3D, dir: Vector3) -> void:
 	var reach = maxf(3.0, H * 0.75)
 	# savuruş önündeki yelpaze alanın tamamına iner (yerdeki küçük hedef dahil)
 	var gp = owner_f.global_position
-	var info = {"dmg": 16.0 * tier * Stats.melee_mult(Game.profile), "knock": 12.0 + tier * 4.0, "launch": 4.0, "kind": "heavy", "dir": dir}
+	var info = {"dmg": 16.0 * tier * LazyFx.g("Stats").melee_mult(Game.profile), "knock": 12.0 + tier * 4.0, "launch": 4.0, "kind": "heavy", "dir": dir}
 	get_tree().create_timer(0.18 if tier < 3 else 0.3).timeout.connect(func():
 		if is_instance_valid(owner_f):
 			Combat.hit_zone(owner_f, gp, dir, reach, 75.0, H * 1.1, info)
@@ -1523,7 +1523,7 @@ func _crescent(owner_f: Node3D, from: Vector3, dir: Vector3, dist: float) -> voi
 		var a = lerpf(-1.2, 1.2, k / 12.0)
 		pts.append(Vector3(sin(a) * H * 0.35, cos(a) * H * 0.35 - H * 0.15, -cos(a) * H * 0.08))
 		rr.append(Vector2(H * 0.02 * (1.0 - absf(a) / 1.3) + 0.2, H * 0.05 * (1.0 - absf(a) / 1.3) + 0.3))
-	Loft.tube(mb, pts, rr, Color.WHITE, 8, 3)
+	LazyFx.g("Loft").tube(mb, pts, rr, Color.WHITE, 8, 3)
 	var mi = MeshInstance3D.new()
 	mi.mesh = mb.build(null)
 	mi.material_override = _fx_mat()
@@ -1625,10 +1625,10 @@ static func of(c: Node3D, jid := "") -> Susanoo:
 		var kind = int(c.get_meta("eyes").get("kind", 0)) if c.has_meta("eyes") else 0
 		var cur = c.get_meta("ea_susanoo") if c.has_meta("ea_susanoo") else null
 		if (cur == null or not is_instance_valid(cur)) and kind in [4, 5] and (kind == 5 or float(c.get_meta("ms_blind", 0.0)) < 1.0):
-			EnemyArts._susanoo(c)
+			LazyFx.g("EnemyArts")._susanoo(c)
 			cur = c.get_meta("ea_susanoo") if c.has_meta("ea_susanoo") else null
 		if cur and is_instance_valid(cur) and cur.tier < need and kind == 5:
-			cur.build(EnemyArts.random_susanoo(c), need, c.get("model"))
+			cur.build(LazyFx.g("EnemyArts").random_susanoo(c), need, c.get("model"))
 		if cur and is_instance_valid(cur) and cur.tier >= need:
 			sn = cur
 	if sn == null or sn.body == null or sn.body.skel == null:

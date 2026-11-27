@@ -198,7 +198,7 @@ static func _mesh(key: String, fn: Callable) -> Mesh:
 	if not _c.has(key):
 		var b = MB.new()
 		fn.call(b)
-		_c[key] = b.build(Props.toon())
+		_c[key] = b.build(LazyFx.g("Props").toon())
 	return _c[key]
 
 

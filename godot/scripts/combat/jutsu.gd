@@ -10,11 +10,11 @@ func _mult(caster: Node3D) -> float:
 		# az önce yapılan tekniğin dalı (ör. genjutsu ise genjutsu ustalığı) gücü belirler
 		var br = "ninjutsu"
 		if caster.has_meta("jid") and Time.get_ticks_msec() / 1000.0 - float(caster.get_meta("jid_t", 0.0)) < 12.0:
-			br = Mastery.branch_of(Data.jutsu.get(String(caster.get_meta("jid")), {}))
-		return Stats.jutsu_mult(Game.profile, br)
+			br = LazyFx.g("Mastery").branch_of(Data.jutsu.get(String(caster.get_meta("jid")), {}))
+		return LazyFx.g("Stats").jutsu_mult(Game.profile, br)
 	var pw = float(caster.get("power")) if caster.get("power") != null else 1.0
 	var bk = "jutsu"
-	if caster.has_meta("jid") and Mastery.branch_of(Data.jutsu.get(String(caster.get_meta("jid")), {})) == "taijutsu":
+	if caster.has_meta("jid") and LazyFx.g("Mastery").branch_of(Data.jutsu.get(String(caster.get_meta("jid")), {})) == "taijutsu":
 		bk = "melee"   # taijutsu tekniği yakın dövüş güçlendirmesiyle (oyuncuyla aynı: Stats.jutsu_mult)
 	return pw * (caster.buff_mod(bk) if caster.has_method("buff_mod") else 1.0)   # AI'nın kendi buff'ları
 
@@ -25,9 +25,9 @@ func _elem_bonus(caster: Node3D, el: String) -> float:
 	if caster is Player:
 		var els: Array = Game.profile.get("elements", [])
 		# element buff'ları (ör. Sanmai no Shinka "katon": 1.3) hasara gerçekten yansır
-		var wboost = Gear.elem_boost(caster, el)   # silah + kıyafet seti element güçlendirmesi
-		return ((1.2 if not els.is_empty() and els[0] == el else 1.0) + Stats.element_bonus(Game.profile, el) + (Stats.skill(Game.profile, "kg") if el in Stats.KG_NATURES else 0.0)) * Buffs.mod(el) * (1.0 + wboost)
-	return (1.0 + Gear.elem_boost(caster, el)) * (caster.buff_mod(el) if caster.has_method("buff_mod") else 1.0)   # AI: silah + set + kendi element buff'ı
+		var wboost = LazyFx.g("Gear").elem_boost(caster, el)   # silah + kıyafet seti element güçlendirmesi
+		return ((1.2 if not els.is_empty() and els[0] == el else 1.0) + LazyFx.g("Stats").element_bonus(Game.profile, el) + (LazyFx.g("Stats").skill(Game.profile, "kg") if el in LazyFx.g("Stats").KG_NATURES else 0.0)) * Buffs.mod(el) * (1.0 + wboost)
+	return (1.0 + LazyFx.g("Gear").elem_boost(caster, el)) * (caster.buff_mod(el) if caster.has_method("buff_mod") else 1.0)   # AI: silah + set + kendi element buff'ı
 
 
 func _aim(caster: Node3D, target: Node3D) -> Vector3:
@@ -152,7 +152,7 @@ func execute(caster: Node3D, id: String, target: Node3D) -> void:
 func _execute_impl(caster: Node3D, id: String, target: Node3D) -> void:
 	jutsu_cast.emit(caster, id)
 	Combat.note_caster(caster)   # bağ / yavaşlatma süresi güç farkına göre (Combat.cc_dur)
-	if KinginFX.on_cast(caster, id):
+	if LazyFx.g("KinginFX").on_cast(caster, id):
 		return   # Benihisago: kaydedilen lanetli kişi lanet sözünü söyledi (o tekniği kullandı) -> teknik yerine su kabağına çekilir
 	caster.set_meta("jid", id)   # hasar dengesi: bu jutsunun isabetleri ölçülmüş çarpanla
 	if String(Data.jutsu.get(id, {}).get("element", "")) == "katon":
@@ -162,7 +162,7 @@ func _execute_impl(caster: Node3D, id: String, target: Node3D) -> void:
 		# (Sensatsu Suishō, Tate Eboshi).
 		var wp: Vector3 = target.global_position if target != null and is_instance_valid(target) and target.global_position.distance_to(caster.global_position) < 30.0 else caster.global_position + (caster.face_dir() if caster.has_method("face_dir") else -caster.global_basis.z) * 8.0
 		get_tree().create_timer(0.8).timeout.connect(func():
-			ClanMech.mark_water(wp, 4.0, 12.0))   # görünmez su izi (yerde kalan zemin alanları kapalı; birikinti görseli tekniğin kendi efektinde)
+			LazyFx.g("ClanMech").mark_water(wp, 4.0, 12.0))   # görünmez su izi (yerde kalan zemin alanları kapalı; birikinti görseli tekniğin kendi efektinde)
 	caster.set_meta("jid_t", Time.get_ticks_msec() / 1000.0)
 	# Kurama kekkei genkai (kanon, Yakumo): genjutsusu bedeni gerçekten yaralar — yakalanan (sersem/korku/bağ/uyku) düşman gerçek hasar alır.
 	# Oyuncu ve düşman Kurama aynı kural.
@@ -185,40 +185,40 @@ func _execute_impl(caster: Node3D, id: String, target: Node3D) -> void:
 	var own_id = id   # klan/kekkei genkai jutsularının kendi uygulaması (ClanJutsu) önceliklidir
 	id = String(Data.jutsu.get(id, {}).get("impl", id))  # klan jutsuları ortak uygulamayı kullanabilir
 	var jd: Dictionary = Data.jutsu.get(id, {})
-	if not has_method("j_" + id) and jd.is_empty() and not ClanJutsu.handles(own_id) and not PathJutsu.handles_path(own_id) and not MsArts.handles(own_id):
+	if not has_method("j_" + id) and jd.is_empty() and not LazyFx.g("ClanJutsu").handles(own_id) and not LazyFx.g("PathJutsu").handles_path(own_id) and not LazyFx.g("MsArts").handles(own_id):
 		Hud.msg("%s henüz uygulanmadı" % id, Color(1, 0.6, 0.4))
 		return
 	# destan ölçeği: rütbe × ustalık; bırakış anı (flaş, şok halkası, toz, B+ yavaş çekim + kamera)
-	var g = JutsuEngine.grand(caster, jd.merged({"id": id}))
+	var g = LazyFx.g("JutsuEngine").grand(caster, jd.merged({"id": id}))
 	var tier = int(jd.get("tier", 2))
 	var shp = String(jd.get("shape", ""))
-	if tier < 3 and JutsuEngine.SIGNATURE_SCALE.has(id):
+	if tier < 3 and LazyFx.g("JutsuEngine").SIGNATURE_SCALE.has(id):
 		tier = 3   # imza element jutsuları B gibi sahnelenir
 	var calm = shp in ["transform", "stealth", "sensor", "utility", "heal", "revive", "teleport", "clone", "counter"] or String(jd.get("category", "")) == "medical" or String(jd.get("learn", "")) == "path:kagit"   # kâğıt sanatı da sessiz; tıbbi teknikler sessiz: ayakta toz/şok yok
-	VFX.release(caster, _cast_origin(caster, id), JutsuEngine.color_of(jd), g, tier if not calm else mini(tier, 2), not calm)
+	VFX.release(caster, _cast_origin(caster, id), LazyFx.g("JutsuEngine").color_of(jd), g, tier if not calm else mini(tier, 2), not calm)
 	var prev = VFX.epic
 	# rütbeye/seviyeye göre büyütme kaldırıldı (kullanıcı: bazı jutsular anlamsız büyüyordu) — her jutsu kendi anime boyutunda;
 	# animede zaten dev olan imza teknikleri (Gōkakyū, Daitoppa, Suikōdan...) kendi ölçeğini korur
-	VFX.epic = float(JutsuEngine.SIGNATURE_SCALE.get(id, 1.0))
+	VFX.epic = float(LazyFx.g("JutsuEngine").SIGNATURE_SCALE.get(id, 1.0))
 	var prev_caster = Buffs.caster
 	Buffs.caster = caster   # buff'lar atana gitsin (düşmanın buff'ı oyuncuya değil düşmana)
-	if MsArts.handles(own_id):   # Mangekyō tarzlarının kendi teknikleri
-		MsArts.cast(caster, own_id, target)
-	elif PathJutsu.handles_path(own_id):   # Efsane Yolları teknikleri
-		PathJutsu.cast_path(caster, own_id, target)
-	elif ClanJutsu.handles(own_id):
-		ClanJutsu.cast(caster, own_id, target)
+	if LazyFx.g("MsArts").handles(own_id):   # Mangekyō tarzlarının kendi teknikleri
+		LazyFx.g("MsArts").cast(caster, own_id, target)
+	elif LazyFx.g("PathJutsu").handles_path(own_id):   # Efsane Yolları teknikleri
+		LazyFx.g("PathJutsu").cast_path(caster, own_id, target)
+	elif LazyFx.g("ClanJutsu").handles(own_id):
+		LazyFx.g("ClanJutsu").cast(caster, own_id, target)
 	elif has_method("j_" + id):
 		call("j_" + id, caster, target)
 	else:
-		JutsuEngine.cast(caster, id, target)  # veri güdümlü: şekil × element × kademe
+		LazyFx.g("JutsuEngine").cast(caster, id, target)  # veri güdümlü: şekil × element × kademe
 	Buffs.caster = prev_caster
 	VFX.epic = prev
 
 
 # ================================================================== KATON
 func j_katon_goukakyuu(c: Node3D, t: Node3D) -> void:
-	KatonFXB.katon_goukakyuu(self, c, t)
+	LazyFx.g("KatonFXB").katon_goukakyuu(self, c, t)
 
 
 func j_katon_housenka(c: Node3D, t: Node3D) -> void:
@@ -246,7 +246,7 @@ func j_katon_housenka(c: Node3D, t: Node3D) -> void:
 
 ## Karyū Endan: ağızdan fışkıran alev, ejder biçimini alıp kıvrılarak hedefe dalar; yol boyu alev dilleri, çarpınca patlar
 func j_katon_karyuu(c: Node3D, t: Node3D) -> void:
-	KatonFXA.katon_karyuu(self, c, t)
+	LazyFx.g("KatonFXA").katon_karyuu(self, c, t)
 
 
 ## Duvarı element çarpışmasına kaydet (mermi duvara girince elementlere göre çözülür)
@@ -331,8 +331,8 @@ func _stream(c: Node3D, t: Node3D, dur: float, col: Color, el: String, tick_dmg:
 				var along = rel.dot(d)
 				if along < 0.5 or along > 10.0 or (rel - d * along).length() > 1.2 + along * 0.2 + pr.radius:
 					continue
-				var r = Elements.clash({"el": el, "pow": tick_dmg * 6.0}, {"el": pr.element(), "pow": pr.power()})
-				Elements.clash_fx(pr.global_position, r["effect"], el, pr.element(), pr.radius)
+				var r = LazyFx.g("Elements").clash({"el": el, "pow": tick_dmg * 6.0}, {"el": pr.element(), "pow": pr.power()})
+				LazyFx.g("Elements").clash_fx(pr.global_position, r["effect"], el, pr.element(), pr.radius)
 				pr.apply_clash(r["b_alive"], r["b_scale"])
 				if not r["a_alive"]:
 					e.set_meta("stopped", true)
@@ -349,20 +349,20 @@ func _stream(c: Node3D, t: Node3D, dur: float, col: Color, el: String, tick_dmg:
 
 # ================================================================== SUITON
 func j_suiton_suiryuudan(c: Node3D, t: Node3D) -> void:
-	SuitonFXB.suiton_suiryuudan(self, c, t)
+	LazyFx.g("SuitonFXB").suiton_suiryuudan(self, c, t)
 
 
 func j_suiton_suijinheki(c: Node3D, _t: Node3D) -> void:
-	SuitonFXB.suiton_suijinheki(self, c, _t)
+	LazyFx.g("SuitonFXB").suiton_suijinheki(self, c, _t)
 
 
 func j_suiton_suikoudan(c: Node3D, t: Node3D) -> void:
-	SuitonFXE.j_suiton_suikoudan(self, c, t)
+	LazyFx.g("SuitonFXE").j_suiton_suikoudan(self, c, t)
 
 
 # ================================================================== FUUTON
 func j_fuuton_daitoppa(c: Node3D, t: Node3D) -> void:
-	FutonFXA.fuuton_daitoppa(self, c, t)
+	LazyFx.g("FutonFXA").fuuton_daitoppa(self, c, t)
 
 
 ## Rüzgâr kütlesi: ağızdan ileri genişleyen yarı saydam soluk gövde + akışla kıvrılan yoğun beyaz çizgiler (kabuk değil: kenarları söner)
@@ -382,7 +382,7 @@ func _wind_mass(c: Node3D, mo: Vector3, d: Vector3, reach: float, width: float, 
 	var tw = root.create_tween()
 	tw.tween_method(func(k: float):
 		if is_instance_valid(mi):
-			mi.mesh = FireArt.sheet_mesh(maxf(1.0, reach * k), lerpf(1.5, width, k), lerpf(1.2, height, k), mh, k * 1.5)
+			mi.mesh = LazyFx.g("FireArt").sheet_mesh(maxf(1.0, reach * k), lerpf(1.5, width, k), lerpf(1.2, height, k), mh, k * 1.5)
 			m.set_shader_parameter("reach", maxf(1.0, reach * k)), 0.05, 1.0, dur * 0.45).set_ease(Tween.EASE_OUT)
 	tw.tween_method(func(a: float): m.set_shader_parameter("alpha", a), 1.0, 0.0, dur * 0.55)
 	tw.tween_callback(root.queue_free)
@@ -391,7 +391,7 @@ func _wind_mass(c: Node3D, mo: Vector3, d: Vector3, reach: float, width: float, 
 ## Ağızdan/elden ileri fırlayan saydam, kırılan hava konisi
 func _wind_cone(from: Vector3, d: Vector3, length: float, width: float, dur: float) -> void:
 	# görünür koni yapay duruyordu: organik rüzgâr hamlesi (akım çizgileri + toz + yaprak)
-	WindFX.gust(from, d, length, width, {"n": int(clampf(10 + width * 1.5, 12, 28)), "speed": maxf(30.0, length / maxf(0.3, dur))})
+	LazyFx.g("WindFX").gust(from, d, length, width, {"n": int(clampf(10 + width * 1.5, 12, 28)), "speed": maxf(30.0, length / maxf(0.3, dur))})
 	return
 	length *= VFX.epic
 	width *= VFX.epic
@@ -427,7 +427,7 @@ func j_fuuton_shinkuu(c: Node3D, t: Node3D) -> void:
 			pr.info = {"dmg": 7.0 * m, "element": "fuuton", "knock": 4.0, "kind": "light", "hitstop": 0.02}
 			pr.add_child(VFX.wind_ball(1.1))
 			pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
-				WindFX.blast(pos, 2.2, 10, WindFX.LINE, false)
+				LazyFx.g("WindFX").blast(pos, 2.2, 10, LazyFx.g("WindFX").LINE, false)
 			get_tree().current_scene.add_child(pr)
 			pr.global_position = _mouth(c)
 			VFX.element_trail(pr, "fuuton", Color(0.8, 1, 0.9), 0.9))
@@ -467,11 +467,11 @@ func rasenshuriken_body(size := 2.8, tint := Color(0.78, 0.9, 1.0)) -> Node3D:
 
 ## Hazırlık (CastAnim çağırır): kol başın üstünde; avuçta önce Rasengan, sonra rüzgâr bıçakları dışa açılarak büyür.
 func form_fuuton_rasenshuriken(c: Node3D, dur: float) -> void:
-	FutonFXE.form_fuuton_rasenshuriken(self, c, dur)
+	LazyFx.g("FutonFXE").form_fuuton_rasenshuriken(self, c, dur)
 
 
 func j_fuuton_rasenshuriken(c: Node3D, t: Node3D) -> void:
-	FutonFXE.fuuton_rasenshuriken(self, c, t)
+	LazyFx.g("FutonFXE").fuuton_rasenshuriken(self, c, t)
 
 
 ## Genişleme (anime): hedefi içine alan dev beyaz küre; yüzeyinde fırça gibi kıvrılan şeritler (mikro rüzgâr bıçakları),
@@ -514,7 +514,7 @@ func _rasen_burst(c: Node3D, pos: Vector3, m: float, rad := 6.0, hits := true, h
 	for k in npuff:
 		var a = TAU * k / float(npuff)
 		FX.smoke_puff(base + Vector3(cos(a) * rad * 1.08, 0.2, sin(a) * rad * 1.08), clampf(rad / 6.0, 0.4, 1.4) * 0.9, 3)   # küre tabanında savrulan toz (küreyi örtmesin)
-	WindFX.blast(base + Vector3.UP * 0.5, rad * 1.8, 30, Color(0.92, 0.97, 1.0, 0.9))
+	LazyFx.g("WindFX").blast(base + Vector3.UP * 0.5, rad * 1.8, 30, Color(0.92, 0.97, 1.0, 0.9))
 	VFX.cracks(base, rad * 1.3)
 	VFX.debris(base, Color(0.5, 0.42, 0.32), 14, 16.0, 0.4)
 	VFX.screen_lines(0.6, 1.0)
@@ -537,15 +537,15 @@ func _rasen_burst(c: Node3D, pos: Vector3, m: float, rad := 6.0, hits := true, h
 
 # ================================================================== DOTON
 func j_doton_doryuheki(c: Node3D, _t: Node3D) -> void:
-	DotonFXB.doryuheki(self, c, _t)
+	LazyFx.g("DotonFXB").doryuheki(self, c, _t)
 
 
 func j_doton_doryuusou(c: Node3D, t: Node3D) -> void:
-	DotonFXD.doryuusou(self, c, t)
+	LazyFx.g("DotonFXD").doryuusou(self, c, t)
 
 
 func j_doton_yomi(c: Node3D, t: Node3D) -> void:
-	DotonFXD.yomi(self, c, t)
+	LazyFx.g("DotonFXD").yomi(self, c, t)
 
 
 # ================================================================== RAITON
@@ -600,7 +600,7 @@ func _pose_chidori_run(c: Node3D) -> void:
 
 
 func j_rasengan(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXA.rasengan(PathJutsu.get_pinst(), c, t)
+	LazyFx.g("NinjutsuFXA").rasengan(LazyFx.g("PathJutsu").get_pinst(), c, t)
 
 
 ## El tekniği: hazırlan, hedefe hücum et, çarpınca büyük patlama
@@ -759,7 +759,7 @@ func j_raiton_armor(c: Node3D, _t: Node3D) -> void:
 
 # ================================================================== GENEL / AKADEMİ
 func j_bunshin(c: Node3D, _t: Node3D) -> void:
-	NinjutsuFXA.bunshin(PathJutsu.get_pinst(), c, _t)
+	LazyFx.g("NinjutsuFXA").bunshin(LazyFx.g("PathJutsu").get_pinst(), c, _t)
 
 
 ## Kılık modeli: gizlenen asıl modelin konumunu, yönünü ve animasyonunu her karede kopyalar
@@ -782,11 +782,11 @@ class HengeSync extends Node:
 
 func j_henge(c: Node3D, _t: Node3D) -> void:
 	if not c is Player:
-		NinjutsuFXA.henge_pop(c.global_position + Vector3.UP, 1.0)
+		LazyFx.g("NinjutsuFXA").henge_pop(c.global_position + Vector3.UP, 1.0)
 		return
 	if c.get_node_or_null("Disguise"):
 		end_henge(c)
-	NinjutsuFXA.henge_pop(c.global_position + Vector3.UP, 1.2)
+	LazyFx.g("NinjutsuFXA").henge_pop(c.global_position + Vector3.UP, 1.2)
 	Buffs.add("henge", 25.0, {"stealth": 1.0})
 	c.model.visible = false
 	var disguise = CharacterModel.new()
@@ -815,14 +815,14 @@ func end_henge(c: Node3D) -> void:
 	if d:
 		d.name = "DisguiseOld"
 		d.queue_free()
-		NinjutsuFXA.henge_pop(c.global_position + Vector3.UP, 1.0, true)
+		LazyFx.g("NinjutsuFXA").henge_pop(c.global_position + Vector3.UP, 1.0, true)
 	if c.get("model") and is_instance_valid(c.model):
 		c.model.visible = true
 	Buffs.remove("henge")
 
 
 func j_shunshin(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXA.shunshin(PathJutsu.get_pinst(), c, t)
+	LazyFx.g("NinjutsuFXA").shunshin(LazyFx.g("PathJutsu").get_pinst(), c, t)
 
 
 func j_shousen(c: Node3D, _t: Node3D) -> void:
@@ -832,7 +832,7 @@ func j_shousen(c: Node3D, _t: Node3D) -> void:
 	for i in 10:
 		tw.tween_callback(func():
 			if c is Player:
-				c.hp = minf(c.max_hp, c.hp + 4.0 * Stats.jutsu_mult(Game.profile, "iryo"))
+				c.hp = minf(c.max_hp, c.hp + 4.0 * LazyFx.g("Stats").jutsu_mult(Game.profile, "iryo"))
 			for f in get_tree().get_nodes_in_group("fighters"):
 				if f != c and not Combat.hostile(c, f) and f.global_position.distance_to(c.global_position) < 5 and f.get("hp") != null:
 					f.hp = minf(f.max_hp, f.hp + 4.0))
@@ -865,15 +865,15 @@ func j_kokuangyo(c: Node3D, _t: Node3D) -> void:
 
 
 func j_kuchiyose(c: Node3D, _t: Node3D) -> void:
-	Contracts.summon(c, Data.jutsu.get("kuchiyose", {"id": "kuchiyose"}))
+	LazyFx.g("Contracts").summon(c, Data.jutsu.get("kuchiyose", {"id": "kuchiyose"}))
 
 
 func j_zofuku_kuchiyose_no_jutsu(c: Node3D, _t: Node3D) -> void:
-	Contracts.summon(c, Data.jutsu.get("zofuku_kuchiyose_no_jutsu", {"id": "zofuku_kuchiyose_no_jutsu"}))
+	LazyFx.g("Contracts").summon(c, Data.jutsu.get("zofuku_kuchiyose_no_jutsu", {"id": "zofuku_kuchiyose_no_jutsu"}))
 
 
 func j_reverse_summoning_technique(c: Node3D, _t: Node3D) -> void:
-	Contracts.reverse_summon(c)
+	LazyFx.g("Contracts").reverse_summon(c)
 
 
 # ================================================================== KLAN TEKNİKLERİ
@@ -972,7 +972,7 @@ func j_juuken_64(c: Node3D, t: Node3D) -> void:
 
 
 func j_kaiten(c: Node3D, _t: Node3D) -> void:
-	ClanFX.kaiten(self, c, _t)
+	LazyFx.g("ClanFX").kaiten(self, c, _t)
 
 
 # ---------------------------------------------------------------- Nara
@@ -1134,7 +1134,7 @@ func _shadow_coil(t: Node3D, dur: float, turns := 1.2, top := 0.8, hand := false
 			var w = lerpf(0.085, 0.05 if hand else 0.012, u / maxf(grow, 0.01))
 			rad.append(Vector2(w, w * 0.8))
 		var b = MB.new()
-		Loft.tube(b, pts, rad, Color.WHITE, 8, 2, true, true)
+		LazyFx.g("Loft").tube(b, pts, rad, Color.WHITE, 8, 2, true, true)
 		if hand and grow >= 0.99:
 			# kara el (referans: Kubishibari karesi): iri yassı avuç boğazın önüne yapışık, parmaklar boynun iki yanına sarılır
 			var fr2 = t.face_dir() if t.has_method("face_dir") else Vector3.FORWARD
@@ -1149,8 +1149,8 @@ func _shadow_coil(t: Node3D, dur: float, turns := 1.2, top := 0.8, hand := false
 				var fy = (f - 1.5) * 0.07
 				var base = palm + Vector3.UP * (0.06 + fy)
 				var fp = [base, base + sd * 0.1 + fwd * 0.02, base + sd * 0.17 + fwd * 0.1, base + sd * 0.17 + fwd * 0.2]
-				Loft.tube(b, fp, [Vector2(0.042, 0.03), Vector2(0.04, 0.028), Vector2(0.034, 0.024), Vector2(0.016, 0.012)], Color.WHITE, 6, 2, true, true)
-			Loft.tube(b, [palm - Vector3.UP * 0.06, palm - Vector3.UP * 0.04 - sd * 0.12 + fwd * 0.04, palm - Vector3.UP * 0.02 - sd * 0.17 + fwd * 0.14], [Vector2(0.04, 0.03), Vector2(0.034, 0.026), Vector2(0.016, 0.012)], Color.WHITE, 6, 2, true, true)   # başparmak öbür yandan
+				LazyFx.g("Loft").tube(b, fp, [Vector2(0.042, 0.03), Vector2(0.04, 0.028), Vector2(0.034, 0.024), Vector2(0.016, 0.012)], Color.WHITE, 6, 2, true, true)
+			LazyFx.g("Loft").tube(b, [palm - Vector3.UP * 0.06, palm - Vector3.UP * 0.04 - sd * 0.12 + fwd * 0.04, palm - Vector3.UP * 0.02 - sd * 0.17 + fwd * 0.14], [Vector2(0.04, 0.03), Vector2(0.034, 0.026), Vector2(0.016, 0.012)], Color.WHITE, 6, 2, true, true)   # başparmak öbür yandan
 		mi.mesh = b.build(null)
 	upd.call(0)
 	_ticks(int(dur / 0.05), 0.05, upd, func():
@@ -1202,7 +1202,7 @@ func kurama_painting(c: Node3D, t: Node3D) -> void:
 			pts.append(Vector3(x0 + cos(ang) * lx - sin(ang) * ly, y0 + sin(ang) * lx + cos(ang) * ly, -0.004))
 			var w = 0.022 * sin(clampf(u, 0.08, 0.92) * PI) + 0.003
 			rad.append(Vector2(w, 0.0015))
-		Loft.tube(sb, pts, rad, INKS[k % 4], 6, 2, true, true)
+		LazyFx.g("Loft").tube(sb, pts, rad, INKS[k % 4], 6, 2, true, true)
 		var sm = StandardMaterial3D.new()
 		sm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		sm.cull_mode = BaseMaterial3D.CULL_DISABLED
@@ -1284,7 +1284,7 @@ func kurama_painting(c: Node3D, t: Node3D) -> void:
 				var a0 = randf() * TAU
 				var h0 = randf_range(0.2, 1.9)
 				var rr = randf_range(0.7, 1.3)
-				WindFX.streak(func(u: float) -> Vector3:
+				LazyFx.g("WindFX").streak(func(u: float) -> Vector3:
 					var aa = a0 + u * TAU * 0.8
 					return o + Vector3(cos(aa) * rr * (1.0 - u * 0.4), h0 + sin(u * PI) * 0.3, sin(aa) * rr * (1.0 - u * 0.4)), 0.5, 0.09, col, n * 0.025, 12)
 			for k in 3:
@@ -1380,7 +1380,7 @@ func j_baika(c: Node3D, _t: Node3D) -> void:
 
 
 func j_nikudan(c: Node3D, t: Node3D) -> void:
-	AkijugoFXA.nikudan(self, c, t)
+	LazyFx.g("AkijugoFXA").nikudan(self, c, t)
 
 
 # ---------------------------------------------------------------- Aburame
@@ -1440,7 +1440,7 @@ func j_mushi_swarm(c: Node3D, t: Node3D) -> void:
 func j_ninken(c: Node3D, _t: Node3D) -> void:
 	for n in get_tree().get_nodes_in_group("ninken"):
 		n.queue_free()
-	var d = Ninken.new()
+	var d = LazyFx.g("Ninken").new()
 	d.owner_f = c
 	get_tree().current_scene.add_child(d)
 	d.global_position = _ground(c.global_position + c.global_transform.basis.x * 2.0)
@@ -1626,7 +1626,7 @@ func j_shintenshin(c: Node3D, t: Node3D) -> void:
 	Sfx.play("genjutsu", t.global_position, 1.2)
 	pass   # referans: görünür halka/ışın/aura yok
 	# ruh bedenden çıkar: mor top hedefe uçar, oyuncunun bedeni yere çöker (anime Shintenshin)
-	var cj = ClanJutsu.get_inst()
+	var cj = LazyFx.g("ClanJutsu").get_inst()
 	cj._mind_orb(c, t, func(): if is_instance_valid(t): cj._mind_halo(t, 12.0))
 	if c.get("model"):
 		c.model.play("sit", 0.2)
@@ -1681,7 +1681,7 @@ func j_mokuton_spikes(c: Node3D, t: Node3D) -> void:
 		var b = MB.new()
 		for s in 4:
 			b.add("cone", Vector3(randf_range(-0.7, 0.7), 1.6, randf_range(-0.7, 0.7)), Vector3(0.7, 3.2 + randf() * 1.6, 0.7), Color(0.55, 0.4, 0.24), Vector3(randf_range(-20, 20), 0, randf_range(-20, 20)), 6)
-		sp.mesh = b.build(Props.toon())
+		sp.mesh = b.build(LazyFx.g("Props").toon())
 		get_tree().current_scene.add_child(sp)
 		sp.global_position = p - Vector3(0, 4, 0)
 		var tw = sp.create_tween()
@@ -1711,7 +1711,7 @@ func j_mokuton_wall(c: Node3D, _t: Node3D) -> void:
 		wall.add_child(cs)
 	b.add("hemi", Vector3(0, 5.0, 0), Vector3(9.5, 4.0, 9.5), Color(0.47, 0.33, 0.2), Vector3.ZERO, 14)
 	var mi = MeshInstance3D.new()
-	mi.mesh = b.build(Props.toon())
+	mi.mesh = b.build(LazyFx.g("Props").toon())
 	wall.add_child(mi)
 	get_tree().current_scene.add_child(wall)
 	_element_wall(wall, "mokuton", c, Vector3(0, 2.6, 0), Vector3(5, 2.6, 5), 60.0 * _mult(c))
@@ -1745,7 +1745,7 @@ func j_hyoton_senbon(c: Node3D, t: Node3D) -> void:
 		var mi = MeshInstance3D.new()
 		var cm = CylinderMesh.new()
 		cm.top_radius = 0.0; cm.bottom_radius = 0.09; cm.height = 1.3
-		cm.material = JutsuEngine.glow_mat(Color(0.75, 0.93, 1.0), 1.0)
+		cm.material = LazyFx.g("JutsuEngine").glow_mat(Color(0.75, 0.93, 1.0), 1.0)
 		mi.mesh = cm
 		mi.rotation.x = -PI * 0.5
 		pr.add_child(mi)
@@ -1761,11 +1761,11 @@ func j_hyoton_senbon(c: Node3D, t: Node3D) -> void:
 
 
 func j_hyoton_spears(c: Node3D, t: Node3D) -> void:
-	ElementFX.hyoton_spears(self, c, t)
+	LazyFx.g("ElementFX").hyoton_spears(self, c, t)
 
 
 func j_bone_bullets(c: Node3D, t: Node3D) -> void:
-	FinalFX1.bone_bullets(self, c, t)
+	LazyFx.g("FinalFX1").bone_bullets(self, c, t)
 
 
 func j_bone_armor(c: Node3D, _t: Node3D) -> void:
@@ -1776,7 +1776,7 @@ func j_bone_armor(c: Node3D, _t: Node3D) -> void:
 		var dir = Vector3(cos(a), 0, sin(a))
 		b.add_xf("cone", Transform3D(Basis(Quaternion(Vector3.UP, (dir + Vector3.UP * 0.4).normalized())).scaled(Vector3(0.12, 0.45, 0.12)), dir * 0.32 + Vector3(0, y, 0)), Color(0.96, 0.94, 0.86), 5)
 	var spikes = MeshInstance3D.new()
-	spikes.mesh = b.build(Props.toon())
+	spikes.mesh = b.build(LazyFx.g("Props").toon())
 	c.add_child(spikes)
 	Sfx.play("clink", c.global_position, 0.5)
 	if c is Player:
@@ -1847,7 +1847,7 @@ func _chain_line(parent: Node3D, a: Vector3, b: Vector3, sag := 0.4, grow := 0.2
 
 
 func j_chakra_chains(c: Node3D, t: Node3D) -> void:
-	Clan3FXA.chakra_chains(PathJutsu.get_pinst(), c, t)
+	LazyFx.g("Clan3FXA").chakra_chains(LazyFx.g("PathJutsu").get_pinst(), c, t)
 
 
 # ---------------------------------------------------------------- Hozuki
@@ -1864,18 +1864,18 @@ func water_body(c: Node3D, dur: float, drops := true) -> void:
 	var n = maxi(1, int(dur / 0.5))
 	_ticks(n, minf(0.5, dur), func(_i):
 		if drops and is_instance_valid(c):
-			WaterArt.drops(c.global_position + Vector3(randf_range(-0.25, 0.25), randf_range(0.8, 1.7), randf_range(-0.25, 0.25)), 2, 0.4, 1.0, Vector3.DOWN, 0.3), func():
+			LazyFx.g("WaterArt").drops(c.global_position + Vector3(randf_range(-0.25, 0.25), randf_range(0.8, 1.7), randf_range(-0.25, 0.25)), 2, 0.4, 1.0, Vector3.DOWN, 0.3), func():
 		for mi in meshes:
 			if is_instance_valid(mi) and (mi as MeshInstance3D).material_overlay == wm:
 				(mi as MeshInstance3D).material_overlay = null)
 
 
 func j_suika(c: Node3D, _t: Node3D) -> void:
-	FinalFX0.suika(self, c, _t)
+	LazyFx.g("FinalFX0").suika(self, c, _t)
 
 
 func j_water_gun(c: Node3D, t: Node3D) -> void:
-	FinalFX0.water_gun(self, c, t)
+	LazyFx.g("FinalFX0").water_gun(self, c, t)
 
 
 # ---------------------------------------------------------------- Jinchuriki: kuyruklu canavar bombası
@@ -1911,16 +1911,16 @@ func _jd(id: String) -> Dictionary:
 
 
 func _inf(c: Node3D, id: String, mul: float, extra := {}) -> Dictionary:
-	return JutsuEngine.info(c, _jd(id), mul, extra)
+	return LazyFx.g("JutsuEngine").info(c, _jd(id), mul, extra)
 
 
 func _tg(c: Node3D, t: Node3D, rng: float) -> Node3D:
-	return JutsuEngine._target_in_range(c, t, rng)
+	return LazyFx.g("JutsuEngine")._target_in_range(c, t, rng)
 
 
 ## Kirin: gökte fırtına bulutu toplanır, sonra şimşek ejderhası kilitli hedefe iner
 func j_kirin(c: Node3D, t: Node3D) -> void:
-	LightningFX.kirin(self, c, t)
+	LazyFx.g("LightningFX").kirin(self, c, t)
 
 
 ## Gōryūka: bulutlar arasından süzülen birden çok ateş ejderhası başı
@@ -1935,29 +1935,29 @@ func j_katon_goryuka_no_jutsu(c: Node3D, t: Node3D) -> void:
 			if not is_instance_valid(c):
 				return
 			var dd = (dir + Vector3(randf_range(-0.25, 0.25), 0.35 + randf_range(0, 0.3), randf_range(-0.25, 0.25))).normalized()
-			JutsuEngine.spawn_projectile(c, d, _mouth(c) + dir, dd, "dragon", 2.2, 20.0, _inf(c, "katon_goryuka_no_jutsu", 0.45), t))
+			LazyFx.g("JutsuEngine").spawn_projectile(c, d, _mouth(c) + dir, dd, "dragon", 2.2, 20.0, _inf(c, "katon_goryuka_no_jutsu", 0.45), t))
 	if c is Player:
 		VFX.screen_lines(0.5, 0.5, Color(1, 0.8, 0.5))
 
 
 ## Suirō: hedefi su küresine hapseder (iç basınç hasarı)
 func j_suiro_no_jutsu(c: Node3D, t: Node3D) -> void:
-	SuitonFXA.suiro_no_jutsu(self, c, t)
+	LazyFx.g("SuitonFXA").suiro_no_jutsu(self, c, t)
 
 
 ## Daibakufu: dev şelale dalgası — çevreyi su basar, önündeki her şeyi süpürür
 func j_suiton_daibakufu_no_jutsu(c: Node3D, t: Node3D) -> void:
-	SuitonFXD.suiton_daibakufu_no_jutsu(self, c, t)
+	LazyFx.g("SuitonFXD").suiton_daibakufu_no_jutsu(self, c, t)
 
 
 ## Kirigakure: yoğun sis — görüş düşer, düşmanlar seni kaybeder
 func j_kirigakure_no_jutsu(c: Node3D, _t: Node3D) -> void:
-	SuitonFXA.kirigakure_no_jutsu(self, c, _t)
+	LazyFx.g("SuitonFXA").kirigakure_no_jutsu(self, c, _t)
 
 
 ## Doryūdan: arkada yerden toprak ejderhası yükselir, ağzından çamur mermileri tükürür
 func j_doton_doryudan(c: Node3D, t: Node3D) -> void:
-	DotonFXC.doryudan(self, c, t)
+	LazyFx.g("DotonFXC").doryudan(self, c, t)
 
 
 ## ================================================================ Tendō (kanon, Rinnegan)
@@ -2122,9 +2122,9 @@ func shinra_crater(g: Vector3, r: float) -> void:
 		var dv = Vector3(cos(ang), 0, sin(ang))
 		var a0 = dv * r * 0.5
 		var pts = [a0, a0 + dv * L * 0.5, a0 + dv * L]
-		Loft.tube(mb, pts, [Vector2(w, 0.05), Vector2(w * 0.7, 0.04), Vector2(0.02, 0.02)], Color(0.68, 0.56, 0.4).darkened(randf() * 0.12), 4, 2, true, true, Callable(), Vector3.UP)
+		LazyFx.g("Loft").tube(mb, pts, [Vector2(w, 0.05), Vector2(w * 0.7, 0.04), Vector2(0.02, 0.02)], Color(0.68, 0.56, 0.4).darkened(randf() * 0.12), 4, 2, true, true, Callable(), Vector3.UP)
 	var rays = MeshInstance3D.new()
-	rays.mesh = mb.build(Props.toon())
+	rays.mesh = mb.build(LazyFx.g("Props").toon())
 	root.add_child(rays)
 	var tw = root.create_tween()
 	tw.tween_interval(25.0)
@@ -2172,7 +2172,7 @@ func bansho_core(c: Node3D, t: Node3D, rng := 26.0) -> void:
 		var start: Vector3 = f.global_position + Vector3.UP
 		for q in 5:   # çekim çizgileri: hedeften kullanıcıya akan hız çizgileri
 			var off = Vector3(randf_range(-0.8, 0.8), randf_range(-0.6, 0.9), randf_range(-0.8, 0.8))
-			WindFX.streak(func(u: float) -> Vector3: return (start + off).lerp(c.global_position + Vector3.UP + off * 0.3, u), 0.35, 0.05, col, q * 0.03, 10)
+			LazyFx.g("WindFX").streak(func(u: float) -> Vector3: return (start + off).lerp(c.global_position + Vector3.UP + off * 0.3, u), 0.35, 0.05, col, q * 0.03, 10)
 		shinra_orb(start, 2.2, 0.3, 0.5)
 		var heavy = f is TailedBeast or f.has_meta("boss")
 		var to = dest + (f.global_position - dest).normalized() * (0.4 if f != tt else 0.0)
@@ -2194,12 +2194,12 @@ func bansho_core(c: Node3D, t: Node3D, rng := 26.0) -> void:
 
 ## Raikiri: Chidori'nin keskin, beyaz-mavi hali — daha hızlı hücum
 func j_raikiri(c: Node3D, t: Node3D) -> void:
-	RaitonFXF.raikiri(PathJutsu.get_pinst(), c, t)
+	LazyFx.g("RaitonFXF").raikiri(LazyFx.g("PathJutsu").get_pinst(), c, t)
 
 
 ## Ōdama Rasengan: devasa spiral küre, ezici öğütme
 func j_odama_rasengan(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXA.odama_core(PathJutsu.get_pinst(), c, t)
+	LazyFx.g("NinjutsuFXA").odama_core(LazyFx.g("PathJutsu").get_pinst(), c, t)
 
 
 ## Amaterasu (kanon): bakılan odak noktasında ANINDA kara alev — kaçılamaz (yalnız yer değiştirme / ani hızla sıyrılınır),
@@ -2300,7 +2300,7 @@ func j_enton_kagutsuchi(c: Node3D, t: Node3D) -> void:
 			return
 		for n in get_tree().current_scene.get_children():
 			if n is Projectile and not n.dead and n.shooter != c and Combat.hostile(c, n.shooter) and n.global_position.distance_to(center + Vector3.UP * 1.2) < 3.0:
-				KatonLib.embers(get_tree().current_scene if is_inside_tree() else Game.world, n.global_position, 10, 0.4, KatonLib.PAL_BLACK, {"vmin": 4.0 * 0.4, "vmax": 4.0, "life": 0.6})
+				LazyFx.g("KatonLib").embers(get_tree().current_scene if is_inside_tree() else Game.world, n.global_position, 10, 0.4, LazyFx.g("KatonLib").PAL_BLACK, {"vmin": 4.0 * 0.4, "vmax": 4.0, "life": 0.6})
 				n.block()
 		if i % 3 == 0:
 			for h in Combat.hit_sphere(c, center + Vector3.UP * 1.0 + d * 0.8, 2.6, inf):
@@ -2348,7 +2348,7 @@ func _kagutsuchi_spear(c: Node3D, from: Vector3, aim: Vector3, delay: float, inf
 		if is_instance_valid(c):
 			for h in Combat.hit_sphere(c, end, 1.5, inf):
 				Amaterasu.ignite(c, h, h.global_position, 6.0, tick_inf)
-		KatonLib.embers(get_tree().current_scene if is_inside_tree() else Game.world, end, 10, 0.4, KatonLib.PAL_BLACK, {"vmin": 4.0 * 0.4, "vmax": 4.0, "life": 0.8}))
+		LazyFx.g("KatonLib").embers(get_tree().current_scene if is_inside_tree() else Game.world, end, 10, 0.4, LazyFx.g("KatonLib").PAL_BLACK, {"vmin": 4.0 * 0.4, "vmax": 4.0, "life": 0.8}))
 	tw.tween_property(sp, "scale", Vector3.ONE * 0.01, 0.25)
 	tw.tween_callback(sp.queue_free)
 
@@ -2399,7 +2399,7 @@ func j_enton_yasaka_no_magatama(c: Node3D, t: Node3D) -> void:
 					_ignite(h, 7.0)
 				VFX.shockwave(tgt, Color(0.2, 0.0, 0.25), 4.0, 0.5, false)
 				VFX.black_smolder(_ground(tgt), 2.0, 6.0)
-				KatonLib.embers(get_tree().current_scene if is_inside_tree() else Game.world, tgt, 14, 0.4, KatonLib.PAL_BLACK, {"vmin": 5.0 * 0.4, "vmax": 5.0, "life": 0.9})
+				LazyFx.g("KatonLib").embers(get_tree().current_scene if is_inside_tree() else Game.world, tgt, 14, 0.4, LazyFx.g("KatonLib").PAL_BLACK, {"vmin": 5.0 * 0.4, "vmax": 5.0, "life": 0.9})
 				mi.queue_free()))
 	get_tree().create_timer(2.0).timeout.connect(holder.queue_free)
 
@@ -2426,7 +2426,7 @@ func j_amaterasu_entenka(c: Node3D, t: Node3D) -> void:
 	for k in 10:   # tutuşma: Susanoo'nun gövdesinden kara alev dilleri fışkırır
 		var a = randf() * TAU
 		var p = c.global_position + Vector3(cos(a), 0, sin(a)) * sn.h() * 0.18 + Vector3.UP * sn.h() * randf_range(0.2, 0.6)
-		KatonLib.tongue(get_tree().current_scene, p, randf_range(1.5, 2.6) + sn.h() * 0.05, 0.4, 0.6, Vector3.UP, Vector3.UP * 3.0, KatonLib.PAL_BLACK, 2, 1.15)
+		LazyFx.g("KatonLib").tongue(get_tree().current_scene, p, randf_range(1.5, 2.6) + sn.h() * 0.05, 0.4, 0.6, Vector3.UP, Vector3.UP * 3.0, LazyFx.g("KatonLib").PAL_BLACK, 2, 1.15)
 	if c is Player:
 		Buffs.add("entenka", DUR, {"_name": "Amaterasu: Entenka", "_desc": "Susanoo kara alevle kaplı: ek kalkan, yaklaşan tutuşur"})
 	elif c.has_method("add_buff"):
@@ -2452,13 +2452,13 @@ func j_amaterasu_entenka(c: Node3D, t: Node3D) -> void:
 ## tetiklenir. Oyunda: atarken kilitli/en yakın hedef işaretlenir; 3 sn sonra kurulur, 90 sn içinde o hedef 30 m içinde
 ## görüş alanına girdiği anda Amaterasu yanar (bir kez).
 func j_tensha_fuin_amaterasu(c: Node3D, t: Node3D) -> void:
-	DojutsuFXB.tensha_core(c, t)
+	LazyFx.g("DojutsuFXB").tensha_core(c, t)
 
 ## Tsukuyomi (kanon, Itachi): GÖZ TEMASI — kurban, zamanı kullanıcının yönettiği kızıl-kara bir dünyaya çekilir:
 ## çarmıha gerilir, 72 saat boyunca kılıçlanır; dışarıda yalnız bir an geçer. Kurban çöker, uzun süre kendine gelemez.
 ## Sharingan sahibi direnir, Kyō Tenchi-ten yansıtır (Eyes.genjutsu_land).
 func j_tsukuyomi(c: Node3D, t: Node3D) -> void:
-	DojutsuFXB.tsukuyomi_core(c, t)
+	LazyFx.g("DojutsuFXB").tsukuyomi_core(c, t)
 
 
 ## Kamui (kanon, Kakashi'nin uzak menzili): bakılan odak noktasında uzay bükülür ve oradaki şey boyuta çekilir. Odaklanma
@@ -2468,7 +2468,7 @@ func j_kamui(c: Node3D, t: Node3D) -> void:
 	var tg = _tg(c, t, 35.0)
 	var pos: Vector3 = (tg.global_position + Vector3.UP * float(tg.height) * 0.5) if tg else _aim_ground(c, t, 12.0, 35.0) + Vector3.UP
 	var FOCUS = 1.1
-	MsArts.kamui_vortex(pos, maxf(3.2, float(tg.height) * 1.9) if tg else 3.2, FOCUS + 0.6, {"twist": 1.5, "pull": 0.6})   # anime: odakta hedefi tümüyle saran büyük sarmal   # anime: odakta güçlü sarmal burkulma
+	LazyFx.g("MsArts").kamui_vortex(pos, maxf(3.2, float(tg.height) * 1.9) if tg else 3.2, FOCUS + 0.6, {"twist": 1.5, "pull": 0.6})   # anime: odakta hedefi tümüyle saran büyük sarmal   # anime: odakta güçlü sarmal burkulma
 	Sfx.play("genjutsu", pos, 0.7)
 	if c is Player:
 		Hud.msg("Kamui: odaklanıyor...", Color(0.75, 0.6, 0.95), 0.9)
@@ -2480,13 +2480,13 @@ func j_kamui(c: Node3D, t: Node3D) -> void:
 			return
 		var n = wr.get_ref() if wr else null
 		var caught = []
-		for h in MsArts._foes(c, pos, 2.2):
+		for h in LazyFx.g("MsArts")._foes(c, pos, 2.2):
 			caught.append(h)
 		if n != null and is_instance_valid(n) and not n in caught:
 			Combat.popup_text(n.global_position + Vector3.UP * 2.4, "Kamui'den kaçtı!", Color(0.8, 0.8, 0.8))
 		var inf = _inf(c, "kamui", 2.2, {"knock": 0.0, "kind": "heavy", "attacker": c, "dir": Vector3.ZERO})
 		for h in caught:
-			MsArts.kamui_warp(c, h, inf, pos)
+			LazyFx.g("MsArts").kamui_warp(c, h, inf, pos)
 		if Game.world:
 			Game.world.env.add_shake(0.3))
 
@@ -2529,7 +2529,7 @@ func j_sabaku_kyu(c: Node3D, t: Node3D) -> void:
 	var sand = Color(0.82, 0.68, 0.45)
 	Sfx.play("earth", tg.global_position, 1.3)
 	tg.apply_status("bind", 2.4)
-	var shell = VFX._mi(VFX._sphere(0.5, 20, 10), Props.toon_color(sand))
+	var shell = VFX._mi(VFX._sphere(0.5, 20, 10), LazyFx.g("Props").toon_color(sand))
 	tg.add_child(shell)
 	shell.position = Vector3(0, tg.height * 0.5, 0)
 	shell.scale = Vector3(3.5, 0.1, 3.5)
@@ -2568,7 +2568,7 @@ func j_kibaku_nendo(c: Node3D, t: Node3D) -> void:
 			pr.homing = t
 			pr.homing_turn = 2.5
 			pr.info = _inf(c, "kibaku_nendo", 0.4, {"element": "bakuton"})
-			var bird = ClayArt.bird(1.4)
+			var bird = LazyFx.g("ClayArt").bird(1.4)
 			pr.add_child(bird)
 			pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
 				VFX.clay_blast(pos, 1.0)
@@ -2608,4 +2608,4 @@ func j_jinton_genkai_hakuri_no_jutsu(c: Node3D, t: Node3D) -> void:
 
 ## Mokuryū: yerden yükselen tahta ejderha hedefe atılır, sarılıp sıkar
 func j_mokuton_mokuryu_no_jutsu(c: Node3D, t: Node3D) -> void:
-	MokutonFXA.mokuton_mokuryu_no_jutsu(self, c, t)
+	LazyFx.g("MokutonFXA").mokuton_mokuryu_no_jutsu(self, c, t)

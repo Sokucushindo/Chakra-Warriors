@@ -78,7 +78,7 @@ static func tool_mult(who: Node, tag_bonus := false) -> float:
 	if not who is Player:
 		return 1.0
 	var p = Game.profile
-	return Stats.melee_mult(p) * (1.0 + Stats.skill(p, "throw_dmg") + (Stats.skill(p, "tag_dmg") if tag_bonus else 0.0) + Mastery.get_v(p, "shurikenjutsu") * 0.02)
+	return LazyFx.g("Stats").melee_mult(p) * (1.0 + LazyFx.g("Stats").skill(p, "throw_dmg") + (LazyFx.g("Stats").skill(p, "tag_dmg") if tag_bonus else 0.0) + LazyFx.g("Mastery").get_v(p, "shurikenjutsu") * 0.02)
 
 
 ## Ortak fırlatma: oyunun kendi mermisi (çarpışma, kalkan, vuruş kuralları aynı kalır)

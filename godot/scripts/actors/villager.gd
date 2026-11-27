@@ -155,7 +155,7 @@ func plan_look() -> void:
 		display = display_override
 	# rol kıyafet seti (özel görünüm verilmişse — Kage, ANBU... — dokunma)
 	if look_extra.is_empty():
-		lk.merge(Outfits.roll(_outfit_arch(), Outfits.village_near()), true)
+		lk.merge(LazyFx.g("Outfits").roll(_outfit_arch(), LazyFx.g("Outfits").village_near()), true)
 		if role == "job":
 			lk = VillagerJobs.finish_look(self, lk)
 	if look_extra.get("whole", false):
@@ -174,12 +174,12 @@ func _ready() -> void:
 	var lk = look
 	var new_folk := {}
 	if folk_vid != "" and look_extra.is_empty() and display_override == "":
-		new_folk = WorldFolk.adopt(folk_vid, role, lk, folk_site)   # ilk kez görülen sivil: adı, yaşı, görünüşü kalıcı olur
+		new_folk = LazyFx.g("WorldFolk").adopt(folk_vid, role, lk, folk_site)   # ilk kez görülen sivil: adı, yaşı, görünüşü kalıcı olur
 		if not new_folk.is_empty():
 			display = String(new_folk["name"])
 	super._ready()
 	if not new_folk.is_empty():
-		WorldFolk.on_stage(new_folk, self)
+		LazyFx.g("WorldFolk").on_stage(new_folk, self)
 	remove_from_group("fighters")
 	add_to_group("talkers")
 	if not _all.has(self):
@@ -197,7 +197,7 @@ func _ready() -> void:
 	anim_t = randf_range(0.0, 3.0)
 	if role in ["guard", "patrol"] and night:
 		_hold_lantern()
-	Friends.tag(self)
+	LazyFx.g("Friends").tag(self)
 
 
 ## Tanıdık NPC'nin başında adı + rütbesi (bağ rengiyle)
@@ -240,14 +240,14 @@ func talk() -> void:
 	var fid = String(get_meta("friend_id", ""))
 	var line = _lines().pick_random()
 	if lines_override.is_empty() and role in ["walker", "shopper", "sitter", "kid", "customer"]:
-		line = Talk.stranger(self, String(line))
-	line = Talk.fit(self, Talk.localize(String(line)))
-	var fk = WorldFolk.of_node(self)
-	if fid != "" and Friends.all().has(fid):
-		line = Friends.greeting(fid)
+		line = LazyFx.g("Talk").stranger(self, String(line))
+	line = LazyFx.g("Talk").fit(self, LazyFx.g("Talk").localize(String(line)))
+	var fk = LazyFx.g("WorldFolk").of_node(self)
+	if fid != "" and LazyFx.g("Friends").all().has(fid):
+		line = LazyFx.g("Friends").greeting(fid)
 	elif not fk.is_empty():
-		line = Talk.fit(self, WorldFolk.line(fk, self, String(line)))   # kalıcı sivil: kendini tanıtır, yakınından söz eder, seni hatırlar
-		WorldFolk.talked(fk, self)
+		line = LazyFx.g("Talk").fit(self, LazyFx.g("WorldFolk").line(fk, self, String(line)))   # kalıcı sivil: kendini tanıtır, yakınından söz eder, seni hatırlar
+		LazyFx.g("WorldFolk").talked(fk, self)
 	elif has_meta("world_person"):
 		var rg: Dictionary = WorldDay.regard_node(self)
 		if String(rg.get("k", "")) in ["nefret", "minnet", "kage"]:
@@ -255,7 +255,7 @@ func talk() -> void:
 	var extra = []
 	if has_meta("jinchuriki_of"):   # köyün jinchūriki'si: saldırılabilir; yenilince canavar bedeninden fışkırır (mühürle / salıver)
 		extra.append({"label": "Saldır! (içindeki canavarı al — köyde suç)", "cb": func(): TailedBeasts.attack_host(self)})
-	Hud.dialog(display, line, Friends.options_for(self) + (Friends.small_talk(self) if fid == "" else []) + extra + ([] if has_meta("jinchuriki_of") or not HomeLife.kid_of(self).is_empty() else Crime.attack_option(self)))
+	Hud.dialog(display, line, LazyFx.g("Friends").options_for(self) + (LazyFx.g("Friends").small_talk(self) if fid == "" else []) + extra + ([] if has_meta("jinchuriki_of") or not HomeLife.kid_of(self).is_empty() else LazyFx.g("Crime").attack_option(self)))
 
 
 ## Kafanın üstünde kısa konuşma balonu. important=false: ortam sözü (satıcı çağrısı, selam, top / antrenman nidası) —
@@ -467,7 +467,7 @@ class LanternRig extends Node:
 			bs.add("cyl", Vector3(0, STICK_L * 0.5, 0), Vector3(0.022, STICK_L, 0.022), wood, Vector3.ZERO, 6)
 			bs.add("cyl", Vector3(0, -0.02, 0), Vector3(0.03, 0.05, 0.03), wood.darkened(0.3), Vector3.ZERO, 6)   # sap ucu
 			bs.add("torus", Vector3(0, STICK_L - 0.015, 0), Vector3(0.05, 0.25, 0.05), Color(0.12, 0.1, 0.08), Vector3(90, 0, 0), 8)   # asma halkası
-			_stick_mesh = bs.build(Props.toon())
+			_stick_mesh = bs.build(LazyFx.g("Props").toon())
 			# fener iskeleti: tepe / dip ahşap kapaklar, asma ipi, kâğıdın üstündeki bambu kaburgalar
 			var bf = MB.new()
 			var cap = Color(0.16, 0.11, 0.07)
@@ -480,7 +480,7 @@ class LanternRig extends Node:
 				var y = -ry + (k + 0.5) * (2.0 * ry / 9.0)
 				var r = 0.135 * sqrt(maxf(0.0, 1.0 - (y / ry) * (y / ry)))
 				bf.add("torus", Vector3(0, BODY_Y + y, 0), Vector3(r * 2.0 + 0.008, 0.12, r * 2.0 + 0.008), Color(0.25, 0.14, 0.08), Vector3.ZERO, 16)
-			_frame_mesh = bf.build(Props.toon())
+			_frame_mesh = bf.build(LazyFx.g("Props").toon())
 		var cname = "red" if randf() < 0.5 else "cream"
 		if not _paper.has(cname):
 			var col = Color(0.82, 0.16, 0.1) if cname == "red" else Color(1.0, 0.88, 0.66)
@@ -653,7 +653,7 @@ func _seat_fix() -> void:
 					var an := TAU * k / 3.0
 					b.add("cyl", Vector3(cos(an) * 0.13, -0.22, sin(an) * 0.13), Vector3(0.05, 0.42, 0.05), wood.darkened(0.15), Vector3(cos(an) * 8.0, 0, -sin(an) * 8.0), 6)
 				b.add("torus", Vector3(0, -0.28, 0), Vector3(0.3, 0.3, 0.3), wood.darkened(0.25), Vector3.ZERO, 10)   # ayak bağı
-				_stool_mesh = b.build(Props.toon())
+				_stool_mesh = b.build(LazyFx.g("Props").toon())
 			_stool = MeshInstance3D.new()
 			_stool.mesh = _stool_mesh
 			_stool.top_level = true
@@ -775,14 +775,14 @@ func _physics_process(dt: float) -> void:
 			return
 		_new_goal()
 		return
-	var mv = NpcNav.steer(self, v.normalized(), dt)
+	var mv = LazyFx.g("NpcNav").steer(self, v.normalized(), dt)
 	if role == "drunk":
 		var wob = sin(Time.get_ticks_msec() * 0.003 + home.x) * 0.9
 		mv = mv.rotated(Vector3.UP, wob)
 		_call(dt, dist)
 	step_move(mv * speed + _sep() * 1.8, dt)
 	model.play("run" if speed > 5.0 else "walk", 0.2, 0.75 if role == "drunk" else 1.0)
-	if NpcNav.stuck(self, goal, dt):
+	if LazyFx.g("NpcNav").stuck(self, goal, dt):
 		_unstick(dist)
 
 
@@ -799,7 +799,7 @@ func _follow(dt: float) -> void:
 		step_move(_sep() * 1.5, dt, false)
 		model.play("idle", 0.3)
 		return
-	step_move(NpcNav.steer(self, tv.normalized(), dt) * minf(speed * 1.3, tv.length() * 2.5 + 0.6) + _sep() * 1.8, dt)
+	step_move(LazyFx.g("NpcNav").steer(self, tv.normalized(), dt) * minf(speed * 1.3, tv.length() * 2.5 + 0.6) + _sep() * 1.8, dt)
 	model.play("walk", 0.2)
 
 
@@ -823,7 +823,7 @@ func _dest_goal() -> void:
 			near.append(qp)
 	near.sort_custom(func(a, b): return a.distance_to(dest) < b.distance_to(dest))
 	cands.append_array(near.slice(0, 6))
-	var pq = NpcNav.pick_clear(self, cands)
+	var pq = LazyFx.g("NpcNav").pick_clear(self, cands)
 	if pq != null:
 		goal = pq
 	else:
@@ -832,10 +832,10 @@ func _dest_goal() -> void:
 		goal = global_position + base * minf(left, 28.0)
 		for ang in [0.0, 0.5, -0.5, 1.0, -1.0, 1.5, -1.5]:
 			var q = global_position + base.rotated(Vector3.UP, ang) * minf(left, 26.0)
-			if NpcNav.ray_clear(self, global_position, q):
+			if LazyFx.g("NpcNav").ray_clear(self, global_position, q):
 				goal = q
 				break
-	NpcNav.reset(self)
+	LazyFx.g("NpcNav").reset(self)
 
 
 func _wander_small(dt: float) -> void:
@@ -860,9 +860,9 @@ func _wander_small(dt: float) -> void:
 		goal = home + Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)) * maxf(1.0, wander_r)
 		wait = randf_range(2.5, 6.0)
 		return
-	step_move(NpcNav.steer(self, tv.normalized(), dt) * 1.2 + _sep() * 1.2, dt)
+	step_move(LazyFx.g("NpcNav").steer(self, tv.normalized(), dt) * 1.2 + _sep() * 1.2, dt)
 	model.play("walk", 0.2)
-	if NpcNav.stuck(self, goal, dt):
+	if LazyFx.g("NpcNav").stuck(self, goal, dt):
 		goal = home
 		wait = randf_range(1.0, 3.0)
 
@@ -1052,9 +1052,9 @@ func _shop(dt: float) -> void:
 	if v.length() < 0.9:
 		wait = randf_range(6.0, 14.0)
 		return
-	step_move(NpcNav.steer(self, v.normalized(), dt) * 2.4 + _sep() * 1.8, dt)
+	step_move(LazyFx.g("NpcNav").steer(self, v.normalized(), dt) * 2.4 + _sep() * 1.8, dt)
 	model.play("walk", 0.2)
-	if NpcNav.stuck(self, goal, dt):
+	if LazyFx.g("NpcNav").stuck(self, goal, dt):
 		if int(nav.get("n", 0)) >= 3 and global_position.distance_to(Game.player.global_position) > 30.0:
 			global_position = goal  # görünmezken sıkıştıysa yerine al
 			nav["n"] = 0
@@ -1112,7 +1112,7 @@ func _new_goal() -> void:
 			var ks: Array = []
 			for k in 4:
 				ks.append(home + Vector3(randf_range(-14, 14), 0, randf_range(-14, 14)))
-			var kq = NpcNav.pick_clear(self, ks)
+			var kq = LazyFx.g("NpcNav").pick_clear(self, ks)
 			goal = kq if kq != null else home
 			wait = randf_range(0.0, 0.6)
 			if randf() < 0.15:
@@ -1135,7 +1135,7 @@ func _new_goal() -> void:
 						cands.append(qp)
 					if cands.size() >= 5:
 						break
-			var pq = NpcNav.pick_clear(self, cands)
+			var pq = LazyFx.g("NpcNav").pick_clear(self, cands)
 			if pq != null:
 				goal = pq
 			elif not cands.is_empty():
@@ -1144,7 +1144,7 @@ func _new_goal() -> void:
 				goal = home
 			wait = randf_range(0.5, 6.0) if role == "walker" else randf_range(0.0, 1.0)
 	_claim(goal)
-	NpcNav.reset(self)
+	LazyFx.g("NpcNav").reset(self)
 
 
 ## Takıldı: önce yeni hedef; art arda takılırsa başladığı sokak noktasına dön; görünmezken hâlâ
@@ -1169,7 +1169,7 @@ func _unstick(dist: float) -> void:
 		_new_goal()
 	elif k >= 2:
 		goal = home
-		NpcNav.reset(self)
+		LazyFx.g("NpcNav").reset(self)
 	else:
 		_new_goal()
 

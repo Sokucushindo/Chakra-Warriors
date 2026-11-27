@@ -26,7 +26,7 @@ func vanish() -> void:
 		return
 	dead = true
 	if not has_meta("no_smoke"):   # kâğıt klon (Kami Bunshin) kâğıda dağılır, duman çıkarmaz
-		AcademyFX.poof(global_position + Vector3.UP, 0.9)   # kanon klon dumanı (kendi topakları; hazır duman yok)
+		LazyFx.g("AcademyFX").poof(global_position + Vector3.UP, 0.9)   # kanon klon dumanı (kendi topakları; hazır duman yok)
 	queue_free()
 
 
@@ -58,7 +58,7 @@ func _physics_process(dt: float) -> void:
 				var pt = global_position + Vector3.UP * 1.1 + face_dir() * (radius + 0.8)
 				if has_meta("illusion"):
 					pass   # Bunshin (kanon): yalnız yanılsama — savurur ama gövdesi yok, hasar vermez
-				elif not Combat.hit_sphere(self, pt, 0.8, {"dmg": 2.6 * Stats.melee_mult(Game.profile) * (1.0 + Stats.skill(Game.profile, "squad")), "knock": 1.5, "kind": "light", "flinch": randf() < 0.4}).is_empty():
+				elif not Combat.hit_sphere(self, pt, 0.8, {"dmg": 2.6 * LazyFx.g("Stats").melee_mult(Game.profile) * (1.0 + LazyFx.g("Stats").skill(Game.profile, "squad")), "knock": 1.5, "kind": "light", "flinch": randf() < 0.4}).is_empty():
 					FX.hit_spark(pt, Color(1, 0.85, 0.5), 0.6)
 					Sfx.play("punch", pt)
 	elif Game.player:

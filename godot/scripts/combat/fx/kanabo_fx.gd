@@ -51,8 +51,8 @@ static func model(b: MB) -> void:
 	var stud = Color(0.38, 0.38, 0.41)
 	var cloth = Color(0.72, 0.6, 0.4)
 	var pts = [Vector3(0, 0, -0.42), Vector3(0, 0, 0.26), Vector3(0, 0, 0.55), Vector3(0, 0, 0.98), Vector3(0, 0, 1.3)]
-	Loft.tube(b, pts, [0.034, 0.038, 0.062, 0.105, 0.118], iron, 12, 4)
-	Loft.tube(b, [Vector3(0, 0, -0.44), Vector3(0, 0, 0.3)], [0.042, 0.046], cloth, 10, 2, false, false)
+	LazyFx.g("Loft").tube(b, pts, [0.034, 0.038, 0.062, 0.105, 0.118], iron, 12, 4)
+	LazyFx.g("Loft").tube(b, [Vector3(0, 0, -0.44), Vector3(0, 0, 0.3)], [0.042, 0.046], cloth, 10, 2, false, false)
 	for k in 8:
 		b.add("cyl", Vector3(0, 0, -0.4 + k * 0.095), Vector3(0.095, 0.01, 0.095), cloth.darkened(0.28), Vector3(90 + (k % 2) * 6.0, 0, 0), 10)
 	var rng = RandomNumberGenerator.new()
@@ -91,7 +91,7 @@ static func _node(who: Node3D) -> MeshInstance3D:
 	if m == null or not (m is CharacterModel):
 		return null
 	for w in m.weapons:
-		if Gear.base_id(String(w["id"])) == ID and is_instance_valid(w["node"]) and w["node"] is MeshInstance3D:
+		if LazyFx.g("Gear").base_id(String(w["id"])) == ID and is_instance_valid(w["node"]) and w["node"] is MeshInstance3D:
 			return w["node"]
 	return null
 

@@ -381,7 +381,7 @@ static func element_mat(el: String, col: Color) -> Material:
 		"yoton":
 			return lava_mat("molten")
 		"bakuton":
-			return Props.toon_color(Color(0.95, 0.94, 0.9))   # beyaz patlayıcı kil
+			return LazyFx.g("Props").toon_color(Color(0.95, 0.94, 0.9))   # beyaz patlayıcı kil
 		"suiton":
 			return mat_water()
 		"futton":
@@ -397,7 +397,7 @@ static func element_mat(el: String, col: Color) -> Material:
 		"ranton":
 			return mat_storm()
 		"doton", "mokuton", "jiton", "shoton":
-			return Props.toon_color(col.darkened(0.05))
+			return LazyFx.g("Props").toon_color(col.darkened(0.05))
 	var m = mat_spiral(col.lightened(0.5), col, 4.0, 2.0, 4.0, 1.4)
 	return m
 
@@ -455,7 +455,7 @@ static func fireball(size := 1.0, preset := "fire") -> Node3D:
 	size *= epic
 	# 2026-11-24: ateş topları Katon'un yeni opak ateş topu (sarmal gövde + taç); kara / mavi alev kendi paletiyle
 	if preset in ["fire", "blue", "black"]:
-		return KatonLib.fireball_node(size * 0.55, {"fire": KatonLib.PAL_FIRE, "blue": KatonLib.PAL_BLUE, "black": KatonLib.PAL_BLACK}[preset], 1.0)
+		return LazyFx.g("KatonLib").fireball_node(size * 0.55, {"fire": LazyFx.g("KatonLib").PAL_FIRE, "blue": LazyFx.g("KatonLib").PAL_BLUE, "black": LazyFx.g("KatonLib").PAL_BLACK}[preset], 1.0)
 	var root = Node3D.new()
 	var outer = _mi(_sphere(0.5, 28, 14), mat_fire(preset, 2.6, 2.2, 0.5, 1.3, 0.16, Vector3(0, 0.4, 1)))
 	outer.scale = Vector3.ONE * size * 1.15
@@ -488,7 +488,7 @@ static func wind_ball(size := 1.0) -> Node3D:
 	size *= epic
 	# saydam küre kabuk yapay duruyordu: dönen akım çizgileri + soluk çekirdek (WindFX)
 	var root = Node3D.new()
-	WindFX.bullet(root, size)
+	LazyFx.g("WindFX").bullet(root, size)
 	return root
 
 
@@ -676,7 +676,7 @@ static func cracks(pos: Vector3, size := 4.0, col := Color(0.12, 0.09, 0.07, 0.9
 	if WaterWaves.ground_on_water(pos, size * 0.5, "decal"):   # suda yarık olmaz: yüzey halkalanır
 		return
 	if zone and size >= 1.5:   # yarık zemin: üstünden geçen yavaşlar (3-5 sn)
-		GroundFX.add(pos, "cracked", size * 0.6, clampf(dur, 3.0, 5.0))
+		LazyFx.g("GroundFX").add(pos, "cracked", size * 0.6, clampf(dur, 3.0, 5.0))
 	if busy():
 		return
 	var mi = _card(2, col, col, float(randi_range(6, 9)), false)
@@ -722,7 +722,7 @@ static func water_chunks(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
 	var d: Vector3 = cfg.get("dir", Vector3.UP)
 	var spr = deg_to_rad(float(cfg.get("spread", 45.0))) * 0.6
 	var vm = float(cfg.get("vmax", 6.0))
-	WaterArt.drops(pos, n * 2, clampf(sz * 1.6, 0.4, 6.0), clampf(vm, 3.0, 30.0), d if d.y < 0.95 else Vector3.ZERO, clampf(spr, 0.1, 0.9))
+	LazyFx.g("WaterArt").drops(pos, n * 2, clampf(sz * 1.6, 0.4, 6.0), clampf(vm, 3.0, 30.0), d if d.y < 0.95 else Vector3.ZERO, clampf(spr, 0.1, 0.9))
 	return null
 
 
@@ -790,7 +790,7 @@ static func debris(pos: Vector3, col := Color(0.5, 0.42, 0.32), n := 14, speed :
 	if not _cache.has(key):
 		var b = MB.new()
 		b.add("sphere", Vector3.ZERO, Vector3(1.0, 0.7, 0.85), col, Vector3.ZERO, 5)
-		_cache[key] = b.build(Props.toon())
+		_cache[key] = b.build(LazyFx.g("Props").toon())
 	p.draw_pass_1 = _cache[key]
 	p.transform = p.transform.scaled(Vector3.ONE * size)
 	p.visibility_aabb = AABB(Vector3(-20, -20, -20), Vector3(40, 40, 40))
@@ -814,7 +814,7 @@ static func _splash(pos: Vector3, size := 2.0) -> void:
 	# Naruto Storm su sıçraması: 3B kıvrık yapraklı su tacı + yay çizip düşen gövdeli damlalar + ince su sisi
 	if busy():
 		return
-	WaterArt.splash(pos, size * 0.8)   # yalnız 3B su (taç + gövdeli damlalar); 2D duman/sis sprite'ı yok (kullanıcı: "2D efektler iğrenç")
+	LazyFx.g("WaterArt").splash(pos, size * 0.8)   # yalnız 3B su (taç + gövdeli damlalar); 2D duman/sis sprite'ı yok (kullanıcı: "2D efektler iğrenç")
 
 
 ## Yapışkan damla / parça (lav, Mei çamuru, kurbağa yağı): malzemeli ağır topaklar yay çizip düşer, yere değince yassılaşıp
@@ -962,7 +962,7 @@ static func element_trail(target: Node3D, el: String, col: Color, width: float) 
 		"bakuton":
 			blob_trail(target, width * 0.6, Color(1, 1, 0.97), Color(0.9, 0.88, 0.84), Color(0.7, 0.68, 0.66))
 		"suiton":
-			WaterArt.drop_trail(target, width)
+			LazyFx.g("WaterArt").drop_trail(target, width)
 		"hyoton":
 			blob_trail(target, width * 0.4, Color(1, 1, 1), Color(0.82, 0.94, 1.0), Color(0.6, 0.82, 1.0))
 		"fuuton", "futton", "jinton", "raiton", "ranton":
@@ -1014,7 +1014,7 @@ static func _explosion(pos: Vector3, s := 1.0, col := Color(1.0, 0.55, 0.15)) ->
 	if pos.y - g.y < 3.0 * s:
 		cracks(g, 3.5 * s, Color(0.1, 0.06, 0.04, 0.85), 6.0, false)
 		if preset != "black":
-			GroundFX.add(g, "burning", 1.2 * s + 0.8, 4.0)   # yanan zemin: içindekiler tutuşur
+			LazyFx.g("GroundFX").add(g, "burning", 1.2 * s + 0.8, 4.0)   # yanan zemin: içindekiler tutuşur
 	FX.light(pos, pr[1], 10.0 * s, 22.0 * s, 0.45)
 	if Game.world:
 		Game.world.env.add_shake(0.7 * s)
@@ -1047,9 +1047,9 @@ static func black_flames(size := 1.0) -> Node3D:
 static func _black_tongue3d(sc: Node, base: Vector3, size: float) -> void:
 	var mi = MeshInstance3D.new()
 	mi.mesh = _tongue_mesh(randi() % 3)
-	mi.material_override = KatonLib._mat("fireball", KatonLib.FIREBALL_SHADER)
+	mi.material_override = LazyFx.g("KatonLib")._mat("fireball", LazyFx.g("KatonLib").FIREBALL_SHADER)
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	for kv in [["swirl", 0.15], ["lump", 1.0], ["seed", randf() * 10.0], ["heat", 1.1], ["pal", KatonLib.PAL_BLACK], ["spin", 1.0], ["fade", 1.0]]:
+	for kv in [["swirl", 0.15], ["lump", 1.0], ["seed", randf() * 10.0], ["heat", 1.1], ["pal", LazyFx.g("KatonLib").PAL_BLACK], ["spin", 1.0], ["fade", 1.0]]:
 		mi.set_instance_shader_parameter(kv[0], kv[1])
 	sc.add_child(mi)
 	var a = randf() * TAU
@@ -1137,7 +1137,7 @@ static func _tongue_mesh(v: int) -> ArrayMesh:
 		pts.append(Vector3(sin(y * 3.4 + ph) * curl * y, y, cos(y * 2.6 + ph) * curl * 0.5 * y))
 		var r = 0.5 * pow(1.0 - y, 0.85) * (0.75 + 0.25 * sin(y * PI * 0.9 + 0.3)) + 0.004
 		rr.append(Vector2(r, r * 0.75))
-	Loft.tube(mb, pts, rr, Color.WHITE, 10, 2, false, true, Callable(), Vector3.FORWARD)
+	LazyFx.g("Loft").tube(mb, pts, rr, Color.WHITE, 10, 2, false, true, Callable(), Vector3.FORWARD)
 	var m = mb.build(null)
 	_tongue_cache[v] = m
 	return m
@@ -1254,8 +1254,8 @@ static func warmup() -> void:
 	for el in ["hyoton", "doton", "mokuton", "fuuton", "suiton", "raiton", ""]:
 		put.call(element_core(el, Color(0.5, 0.7, 1.0), 0.8))
 	for v in ["dragon", "shark", "bird", "beast", "needles", "disc", ""]:
-		put.call(JutsuEngine.shape_mesh(v, Color(1, 0.5, 0.1), 0.6, "katon"))
-	put.call(VfxSerpent.dragon_head(mat_water(), 0.6))
+		put.call(LazyFx.g("JutsuEngine").shape_mesh(v, Color(1, 0.5, 0.1), 0.6, "katon"))
+	put.call(LazyFx.g("VfxSerpent").dragon_head(mat_water(), 0.6))
 	put.call(Projectile.energy_mesh(Color.WHITE, Color(0.3, 0.6, 1.0), 0.8))
 	for k in 3:
 		var cd = _card(k, Color(1, 0.6, 0.2), Color.WHITE, 8.0, k != 2)
@@ -1343,7 +1343,7 @@ static func smoke_ring(pos: Vector3, size := 3.0, col := Color(0.3, 0.27, 0.25))
 static func explosion(pos: Vector3, s := 1.0, col := Color(1.0, 0.55, 0.15)) -> void:
 	Dangle.blast(pos, 40.0 * s, 6.0 * s)   # yakındaki saç/kumaş dışa savrulur
 	if col.r > 0.8 and col.b < 0.35 and col.g < 0.8 and Game.world:   # ateş patlaması: Katon'un Storm patlaması (parlama, alev mantarı, duman, yanık)
-		KatonLib.fireball_impact(Game.world.get_tree().current_scene, pos, 1.1 * s * epic, KatonLib.PAL_FIRE)
+		LazyFx.g("KatonLib").fireball_impact(Game.world.get_tree().current_scene, pos, 1.1 * s * epic, LazyFx.g("KatonLib").PAL_FIRE)
 		Game.world.env.add_shake(0.7 * s)
 		Sfx.play("boom", pos)
 		return
@@ -1501,7 +1501,7 @@ static func linger(pos: Vector3, el: String, col: Color, g: float, dur := 3.0) -
 				sh.rotation = Vector3(randf_range(-0.4, 0.4), 0, randf_range(-0.4, 0.4))
 				root.add_child(sh)
 		"doton", "mokuton", "jiton", "shoton":
-			var rm = Props.toon_color(col.darkened(0.25) if el != "shoton" else col)
+			var rm = LazyFx.g("Props").toon_color(col.darkened(0.25) if el != "shoton" else col)
 			for k in n:
 				var rk = _mi(_sphere(0.5, 7, 5), rm)
 				var a = randf() * TAU
@@ -1721,7 +1721,7 @@ static func dust_cube(size := 1.0) -> Node3D:
 static func clay_orb(size := 1.0) -> Node3D:
 	size *= epic
 	var root = Node3D.new()
-	var body = _mi(_sphere(0.45 * size, 14, 10), Props.toon_color(Color(0.95, 0.94, 0.9)))
+	var body = _mi(_sphere(0.45 * size, 14, 10), LazyFx.g("Props").toon_color(Color(0.95, 0.94, 0.9)))
 	root.add_child(body)
 	var e = GPUParticles3D.new()
 	e.amount = 10

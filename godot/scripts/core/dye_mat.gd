@@ -8,13 +8,13 @@ static var _mats := {}
 
 static func mat(src: Color, dst: Color) -> Material:
 	if src.is_equal_approx(dst):
-		return Props.toon()
+		return LazyFx.g("Props").toon()
 	var k := src.to_html(false) + ">" + dst.to_html(false)
 	if _mats.has(k):
 		return _mats[k]
 	if _mats.size() > 400:
 		_mats.clear()
-	var m: ShaderMaterial = Props.toon().duplicate()
+	var m: ShaderMaterial = LazyFx.g("Props").toon().duplicate()
 	m.set_shader_parameter("dye_a", Vector4(src.r, src.g, src.b, 1.0))
 	m.set_shader_parameter("dye_a_to", Vector4(dst.r, dst.g, dst.b, 1.0))
 	_mats[k] = m

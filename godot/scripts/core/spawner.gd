@@ -47,7 +47,7 @@ func maruta_near(parent: Node3D, at: Vector3) -> void:
 		if (m as Node3D).global_position.distance_to(at) < 25.0:
 			return
 	var q = Missions.open_ground(at + Vector3(0, 0, -5.5), 5.0)
-	var tm = TsuriMaruta.new()
+	var tm = LazyFx.g("TsuriMaruta").new()
 	parent.add_child(tm)
 	tm.global_position = q
 	marutas.append(tm)
@@ -61,7 +61,7 @@ func flush(parent: Node3D) -> void:
 	for p in pending:
 		match p[0]:
 			"dummy":
-				var d = TrainingDummy.new()
+				var d = LazyFx.g("TrainingDummy").new()
 				parent.add_child(d)
 				d.global_position = p[1]
 				maruta_near(parent, p[1])

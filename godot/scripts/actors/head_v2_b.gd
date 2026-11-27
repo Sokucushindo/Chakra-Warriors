@@ -329,7 +329,7 @@ static func _hang(m, mb: MB, chains: Array, stiff: float, nm: String, grav := 0.
 			return [[best, bs, 1.0]]
 	var pack := Dangle.build(null, defs, fn, [arr])
 	if not pack.is_empty():
-		m.add_dangle("Head", pack, Props.toon(), Transform3D.IDENTITY, nm)
+		m.add_dangle("Head", pack, LazyFx.g("Props").toon(), Transform3D.IDENTITY, nm)
 
 
 ## Baş çevresinde kumaş / kâğıt perde: komşu zincirler arasında ağırlıklı, bütün halinde salınır. Açılar 0..TAU.
@@ -371,7 +371,7 @@ static func _chin_cord(mb: MB, m, f: Fit, y0: float, c: Color, r := 0.0035) -> V
 static func _glyph(m, mi: Node3D, ch: String, p: Vector3, th: float, roll: float, c: Color, px := 0.00105, tilt := 0.0) -> void:
 	var l := Label3D.new()
 	l.text = ch
-	l.font = KageAttire._font()
+	l.font = LazyFx.g("KageAttire")._font()
 	l.font_size = 64
 	l.pixel_size = px
 	l.modulate = c

@@ -530,7 +530,7 @@ static func build(m, s, fg: Color) -> bool:
 	if not _cache.has(key):
 		var k := Mk.new(fg)
 		_design(k, s)
-		_cache[key] = k.mb.build(Props.toon())
+		_cache[key] = k.mb.build(LazyFx.g("Props").toon())
 	var hc: Vector3 = m._head_center()
 	var ab: AABB = m.head_ab
 	var hw := clampf(ab.size.x, 0.16, 0.26) if ab.size.x > 0.05 else 0.2

@@ -227,11 +227,11 @@ func _person(nm: String, look: Dictionary, at: Vector3, face_to: Vector3, role :
 
 
 func _kage_npc(at: Vector3, face_to: Vector3, with_hat := true) -> Villager:
-	var lk: Dictionary = KageAttire.look(vid)
+	var lk: Dictionary = LazyFx.g("KageAttire").look(vid)
 	lk["village"] = vid
 	var k = _person(Kage.kage_name(vid), lk, at, face_to)
 	if with_hat:
-		KageAttire.hat(k.model, vid)
+		LazyFx.g("KageAttire").hat(k.model, vid)
 	return k
 
 
@@ -250,7 +250,7 @@ func _crowd(center: Vector3, toward: Vector3, n: int, r0 := 7.0) -> Array:
 		if i % 3 == 2:
 			v = _person("", {}, p, toward, "walker")   # sivil
 		else:
-			var lk = Outfits.uniform(["genin", "chunin", "chunin", "jonin"][i % 4], vid)
+			var lk = LazyFx.g("Outfits").uniform(["genin", "chunin", "chunin", "jonin"][i % 4], vid)
 			lk["gender"] = ["m", "f", "m"][i % 3]
 			lk["age"] = "adult" if i % 5 != 4 else "teen"
 			v = _person("", lk, p, toward)
@@ -280,7 +280,7 @@ func _band_mesh(slashed := false) -> MeshInstance3D:
 
 
 func _hat_mesh() -> MeshInstance3D:
-	var c: Color = KageAttire.COLOR.get(vid, KageAttire.COLOR["konoha"])
+	var c: Color = LazyFx.g("KageAttire").COLOR.get(vid, LazyFx.g("KageAttire").COLOR["konoha"])
 	var white = Color(0.97, 0.96, 0.93)
 	var b = MB.new()
 	b.add("cone", Vector3(0, 0.06, 0), Vector3(0.62, 0.19, 0.62), white, Vector3.ZERO, 24)
@@ -493,7 +493,7 @@ func _genin() -> void:
 	var mates: Array = []
 	for f in get_tree().get_nodes_in_group("fighters"):
 		if f is Enemy and is_instance_valid(f) and f.has_meta("teammate") and not f.is_dead() and f.global_position.distance_to(pl.global_position) < 60.0:
-			if String(f.get_meta("friend_id", "")) == GeninSquad.fid("sensei"):
+			if String(f.get_meta("friend_id", "")) == LazyFx.g("GeninSquad").fid("sensei"):
 				sensei = f
 			elif mates.size() < 2:
 				mates.append(f)
@@ -504,8 +504,8 @@ func _genin() -> void:
 	pin = pl.global_position
 	if sensei == null:
 		var sl = {"top": Color(0.22, 0.3, 0.22), "vest": Color(0.3, 0.38, 0.22), "gender": "m", "age": "adult", "hair_style": "dağınık", "hair": Color(0.15, 0.12, 0.1)}
-		GeninSquad.dress_sensei(sl)
-		sensei = _person(GeninSquad.sensei_name(), sl, here + fd * 6.0, here)
+		LazyFx.g("GeninSquad").dress_sensei(sl)
+		sensei = _person(LazyFx.g("GeninSquad").sensei_name(), sl, here + fd * 6.0, here)
 	else:
 		borrowed.append([sensei, sensei.is_physics_processing()])
 		sensei.set_physics_process(false)
@@ -570,7 +570,7 @@ func _chunin() -> void:
 	pl.global_position = here + Vector3.UP * 0.05
 	pin = pl.global_position
 	var kg = _kage_npc(here + fd * 7.0, here)
-	var proctor = _person("Sınav Gözetmeni", Outfits.uniform("jonin", vid), here + fd * 7.0 + side * 1.6, here)
+	var proctor = _person("Sınav Gözetmeni", LazyFx.g("Outfits").uniform("jonin", vid), here + fd * 7.0 + side * 1.6, here)
 	var cands = _crowd(here - fd * 0.5, here + fd * 3.0, 8, 3.2)
 	_cine_on()
 	_cam_shot(here - fd * 5.0 + side * 2.5 + Vector3.UP * 2.2, here + fd * 3.0 + Vector3.UP * 1.7)
@@ -602,8 +602,8 @@ func _jonin() -> void:
 	pl.global_position = here + Vector3.UP * 0.05
 	pin = pl.global_position
 	var kg = _kage_npc(here + fd * 6.0, here)
-	var j1 = _person("Jōnin Kefili", Outfits.uniform("jonin", vid), here + fd * 6.0 + side * 1.8, here)
-	var j2 = _person("Jōnin Kefili", Outfits.uniform("jonin", vid), here + fd * 6.0 - side * 1.8, here)
+	var j1 = _person("Jōnin Kefili", LazyFx.g("Outfits").uniform("jonin", vid), here + fd * 6.0 + side * 1.8, here)
+	var j2 = _person("Jōnin Kefili", LazyFx.g("Outfits").uniform("jonin", vid), here + fd * 6.0 - side * 1.8, here)
 	_cine_on()
 	_cam_shot(here - fd * 3.4 + side * 1.8 + Vector3.UP * 1.9, here + fd * 3.0 + Vector3.UP * 1.7)
 	_go_w(j1, here + fd * 1.8 + side * 1.6, 1.5)
@@ -715,8 +715,8 @@ func _pardon() -> void:
 	pl.global_position = here + Vector3.UP * 0.05
 	pin = pl.global_position
 	var kg = _kage_npc(here + fd * 6.5, here)
-	var g1 = _person("Kapı Nöbetçisi", Outfits.uniform("chunin", vid), here + fd * 6.5 + side * 1.6, here)
-	var g2 = _person("Kapı Nöbetçisi", Outfits.uniform("chunin", vid), here + fd * 6.5 - side * 1.6, here)
+	var g1 = _person("Kapı Nöbetçisi", LazyFx.g("Outfits").uniform("chunin", vid), here + fd * 6.5 + side * 1.6, here)
+	var g2 = _person("Kapı Nöbetçisi", LazyFx.g("Outfits").uniform("chunin", vid), here + fd * 6.5 - side * 1.6, here)
 	_cine_on()
 	_cine_k = 0.3
 	_cam_shot(here - fd * 3.2 + side * 1.8 + Vector3.UP * 1.9, here + fd * 3.0 + Vector3.UP * 1.7)

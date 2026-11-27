@@ -1454,7 +1454,7 @@ static func build(m, s, fg: Color) -> bool:
 	if e == null:
 		var k := Y.new(m)
 		_design(k, String(s), fg)
-		e = [k.mb.build(Props.toon()), k.post, fg]
+		e = [k.mb.build(LazyFx.g("Props").toon()), k.post, fg]
 		if key != "":
 			if _cache.size() >= CACHE_MAX:
 				_cache.clear()

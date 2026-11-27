@@ -144,9 +144,9 @@ func spend_stamina(n: float) -> void:
 func apply_profile_stats() -> void:
 	if Game.profile.is_empty():
 		return
-	max_hp = Stats.max_hp(Game.profile)
-	max_chakra = Stats.max_chakra(Game.profile)
-	max_stamina = Stats.max_stamina(Game.profile)
+	max_hp = LazyFx.g("Stats").max_hp(Game.profile)
+	max_chakra = LazyFx.g("Stats").max_chakra(Game.profile)
+	max_stamina = LazyFx.g("Stats").max_stamina(Game.profile)
 	hp = minf(hp, max_hp)
 	chakra = minf(chakra, max_chakra)
 	stamina = minf(stamina, max_stamina)
@@ -170,7 +170,7 @@ func _unhandled_input(e: InputEvent) -> void:
 		elif e.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			cam_dist = minf(cam_range.y, cam_dist + cam_range.y * 0.04)
 	# Kai: genjutsu/sersemletmeyi chakrayla boz
-	if e.is_action_pressed("substitute") and (has_status("stun") or has_status("fear") or has_status("kokuangyo")) and Stats.has_unlock(Game.profile, "kai") and chakra >= 12.0:
+	if e.is_action_pressed("substitute") and (has_status("stun") or has_status("fear") or has_status("kokuangyo")) and LazyFx.g("Stats").has_unlock(Game.profile, "kai") and chakra >= 12.0:
 		chakra -= 12.0
 		statuses.erase("stun")
 		statuses.erase("fear")
@@ -196,7 +196,7 @@ func _unhandled_input(e: InputEvent) -> void:
 		velocity = -face_dir() * 6.0 + Vector3.UP * 5.0   # sıyrılıp geri sıçrar
 		Combat.popup_text(global_position + Vector3.UP * 2.2, "Nawanuke!", Color(0.9, 0.85, 0.6))
 		Sfx.play("whoosh", global_position, 1.3)
-		Mastery.gain(Game.profile, "ninjutsu", 0.05)
+		LazyFx.g("Mastery").gain(Game.profile, "ninjutsu", 0.05)
 		return
 	if fly_src != "":
 		# uçarken Space/Ctrl yükselip alçalır (_fly_move); havada zıplamada kanatlı Susanoo da burada değil
@@ -307,7 +307,7 @@ func _jump() -> void:
 		Sfx.play("jump", global_position)
 		model.play("jump", 0.05, 1.3, true)
 		FX.dust(global_position, 0.6)
-	elif jumps < 2 + int(Stats.skill(Game.profile, "jumps")):
+	elif jumps < 2 + int(LazyFx.g("Stats").skill(Game.profile, "jumps")):
 		if _try_evade():
 			return
 		velocity.y = JUMP * 0.92 * Cheats.jump_mul()
@@ -427,7 +427,7 @@ func _leap(power := 1.0) -> void:
 	if wall_n != Vector3.ZERO:
 		_jump()
 		return
-	if not (grounded or swimming or jumps < 2 + int(Stats.skill(Game.profile, "jumps"))):
+	if not (grounded or swimming or jumps < 2 + int(LazyFx.g("Stats").skill(Game.profile, "jumps"))):
 		return
 	var d = wish_dir()
 	if d.length() < 0.1:
@@ -435,7 +435,7 @@ func _leap(power := 1.0) -> void:
 	d = d.normalized()
 	var air = not (grounded or swimming)
 	var k = clampf(power, 0.0, 1.0)
-	var lm = 1.0 + Stats.skill(Game.profile, "leap")
+	var lm = 1.0 + LazyFx.g("Stats").skill(Game.profile, "leap")
 	# 2x mesafe ve 2x yükseklik: aynı yerçekiminde yatay ve dikey hız √2 katı
 	velocity = d * lerpf(24.0, 56.0, k) * 1.414 * lm + Vector3.UP * lerpf(12.0, 22.5, k) * 1.414 * sqrt(lm) * (0.8 if air else 1.0)
 	flip_kind = ""
@@ -467,11 +467,11 @@ func _show_leap_ui(on: bool) -> void:
 		leap_ui.set_anchors_preset(Control.PRESET_CENTER)
 		leap_ui.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		cl.add_child(leap_ui)
-		leap_bar = UI.bar(Color(0.3, 0.85, 1.0), 180, 10)
+		leap_bar = LazyFx.g("UI").bar(Color(0.3, 0.85, 1.0), 180, 10)
 		leap_bar.max_value = 1.0
 		leap_bar.position = Vector2(-90, 60)
 		leap_ui.add_child(leap_bar)
-		var l = UI.label("SÜPER ZIPLAMA", 13, Color(0.75, 0.95, 1.0), HORIZONTAL_ALIGNMENT_CENTER)
+		var l = LazyFx.g("UI").label("SÜPER ZIPLAMA", 13, Color(0.75, 0.95, 1.0), HORIZONTAL_ALIGNMENT_CENTER)
 		l.position = Vector2(-90, 40)
 		l.size = Vector2(180, 18)
 		leap_ui.add_child(l)
@@ -515,7 +515,7 @@ func _update_leap_charge(dt: float) -> void:
 	model.overlay.set_pose("charge", 1.0)
 	model.overlay.snap("ninja_run", 0.0)
 	# iniş yayı: balistik yörünge araziye çarpana kadar
-	var lmul = 1.0 + Stats.skill(Game.profile, "leap")
+	var lmul = 1.0 + LazyFx.g("Stats").skill(Game.profile, "leap")
 	var v = d * lerpf(24.0, 56.0, leap_charge) * lmul + Vector3.UP * lerpf(14.0, 27.0, leap_charge) * sqrt(lmul)
 	var p = global_position + Vector3.UP * 0.3
 	var im: ImmediateMesh = leap_arc.mesh
@@ -555,7 +555,7 @@ func _air_dash() -> void:
 		return
 	chakra -= 6.0
 	air_dash_used += 1
-	air_dash_ok = air_dash_used < 1 + int(Stats.skill(Game.profile, "air_dash"))
+	air_dash_ok = air_dash_used < 1 + int(LazyFx.g("Stats").skill(Game.profile, "air_dash"))
 	dash_t = 0.24
 	var d = wish_dir()
 	if d.length() < 0.1:
@@ -587,7 +587,7 @@ func _physics_process(dt: float) -> void:
 	wall_cd -= dt
 	_tick_status(dt)
 	land_t -= dt
-	var regen = 1.5 * (1.0 + Stats.skill(Game.profile, "regen_chakra")) * (1.0 + Mastery.get_v(Game.profile, "chakra") * 0.02)
+	var regen = 1.5 * (1.0 + LazyFx.g("Stats").skill(Game.profile, "regen_chakra")) * (1.0 + LazyFx.g("Mastery").get_v(Game.profile, "chakra") * 0.02)
 	# anime yaşam gücü: Uzumaki dev chakra ve hızlı toparlanma, Senju güçlü beden (yaralar hızla kapanır)
 	var clan = String(Game.profile.get("clan", ""))
 	if clan == "uzumaki":
@@ -595,10 +595,10 @@ func _physics_process(dt: float) -> void:
 	chakra = minf(max_chakra, chakra + regen * dt)
 	# stamina: nefeslenince dolar; harcadıktan 1.5 sn sonra hızlanır, dayanıklılık ustalığı hızlandırır
 	_stam_rest += dt
-	var sreg = (3.0 if _stam_rest < 2.0 else 7.0) * (1.0 + Mastery.get_v(Game.profile, "dayaniklilik") * 0.015)   # dolum 6/16 idi: taijutsu bedava kalıyordu (ölçüldü)
+	var sreg = (3.0 if _stam_rest < 2.0 else 7.0) * (1.0 + LazyFx.g("Mastery").get_v(Game.profile, "dayaniklilik") * 0.015)   # dolum 6/16 idi: taijutsu bedava kalıyordu (ölçüldü)
 	stamina = minf(max_stamina, stamina + sreg * dt)
 	if hp > 0.0 and not Buffs.has("rinne_bedel"):   # Rinne Tensei bedeli: iyileşme yok
-		var hreg = 0.5 * (1.0 + Stats.skill(Game.profile, "regen_hp"))
+		var hreg = 0.5 * (1.0 + LazyFx.g("Stats").skill(Game.profile, "regen_hp"))
 		if clan == "senju" or Eyes.has_senju_dna(Game.profile):   # Saisei Nōryoku: Hashirama hücresi taşıyan herkes (nakil dahil) hızlı iyileşir
 			hreg *= 3.0
 		elif clan == "uzumaki":
@@ -648,9 +648,9 @@ func _ground_air_move(dt: float) -> void:
 	elif dash_t > 0.0:
 		dash_t -= dt
 	else:
-		var spd_mul = Buffs.mod("speed") * (1.0 + Stats.skill(Game.profile, "speed") + Mastery.get_v(Game.profile, "hiz") * 0.003) * (1.0 + Gear.stat(Game.profile, "speed") + Stats.clan_bonus(Game.profile, "speed")) * status_speed()
+		var spd_mul = Buffs.mod("speed") * (1.0 + LazyFx.g("Stats").skill(Game.profile, "speed") + LazyFx.g("Mastery").get_v(Game.profile, "hiz") * 0.003) * (1.0 + LazyFx.g("Gear").stat(Game.profile, "speed") + LazyFx.g("Stats").clan_bonus(Game.profile, "speed")) * status_speed()
 		if sprint and wish.length() > 0.1:
-			Mastery.gain(Game.profile, "hiz", dt * 0.025)   # koştukça hız (0.005 idi: sürekli koşsan 1 puan ~20 dk)
+			LazyFx.g("Mastery").gain(Game.profile, "hiz", dt * 0.025)   # koştukça hız (0.005 idi: sürekli koşsan 1 puan ~20 dk)
 		spd_mul *= Cheats.speed_mul()
 		var target = wish * ((DASH * 1.35 if turbo else DASH) if sprint else (WALK if walking else RUN)) * spd_mul   # tam hız (5 sn Shift) 2x; Caps Lock: yürüyüş
 		if walking and not sprint:
@@ -701,9 +701,9 @@ func _ground_air_move(dt: float) -> void:
 	if on_water and not swimming:
 		ground = wl
 		if not on_deck:
-			chakra -= 1.5 * maxf(0.1, 1.0 + Stats.skill(Game.profile, "water_cost")) * dt  # su üstünde durmak chakra ister
+			chakra -= 1.5 * maxf(0.1, 1.0 + LazyFx.g("Stats").skill(Game.profile, "water_cost")) * dt  # su üstünde durmak chakra ister
 		if not on_deck:
-			Mastery.gain(Game.profile, "chakra", dt * 0.03)   # su üstünde yürüme: chakra kontrolü antrenmanı (0.005 idi: 1 puan ~20 dk, neredeyse gelişmiyordu)
+			LazyFx.g("Mastery").gain(Game.profile, "chakra", dt * 0.03)   # su üstünde yürüme: chakra kontrolü antrenmanı (0.005 idi: 1 puan ~20 dk, neredeyse gelişmiyordu)
 		if chakra <= 0.0 and wl - terr > 1.0:   # sığ suda (dere, gölet) yüzülmez: dibe basılır
 			swimming = true
 			leaping = false
@@ -973,7 +973,7 @@ func _terrain_wall_move(dt: float) -> void:
 	var wish = wish_dir()
 	var up_amt = wish.dot(-n)
 	var side_amt = wish.dot(side)
-	var spd = WALL_SPEED * (1.4 if Input.is_action_pressed("dash") else 1.0) * (1.0 + Stats.skill(Game.profile, "wall_run"))
+	var spd = WALL_SPEED * (1.4 if Input.is_action_pressed("dash") else 1.0) * (1.0 + LazyFx.g("Stats").skill(Game.profile, "wall_run"))
 	if has_meta("train_top"):
 		# tırmanma eğitimi (Ki / Gake Nobori): kendiliğinden yukarı; ustalığın yettiği yükseklikte ayak / el kayar
 		up_amt = 1.0
@@ -984,7 +984,7 @@ func _terrain_wall_move(dt: float) -> void:
 			_leave_wall()
 			wall_cd = 1.0
 			return
-	Mastery.gain(Game.profile, "chakra", dt * 0.02)   # ağaç/duvar tırmanma: chakra kontrolü antrenmanı (0.004 idi)
+	LazyFx.g("Mastery").gain(Game.profile, "chakra", dt * 0.02)   # ağaç/duvar tırmanma: chakra kontrolü antrenmanı (0.004 idi)
 	if wall_boost_t > 0.0:
 		wall_boost_t -= dt
 		spd *= 2.3
@@ -1068,7 +1068,7 @@ func _wall_move(dt: float) -> void:
 	var wish = wish_dir()
 	var up_amt = wish.dot(-n)
 	var side_amt = wish.dot(side)
-	var spd = WALL_SPEED * (1.4 if Input.is_action_pressed("dash") else 1.0) * (1.0 + Stats.skill(Game.profile, "wall_run"))
+	var spd = WALL_SPEED * (1.4 if Input.is_action_pressed("dash") else 1.0) * (1.0 + LazyFx.g("Stats").skill(Game.profile, "wall_run"))
 	if has_meta("train_top"):
 		# tırmanma eğitimi (Ki / Gake Nobori): kendiliğinden yukarı; ustalığın yettiği yükseklikte ayak / el kayar
 		up_amt = 1.0
@@ -1262,7 +1262,7 @@ func _mantle_move(dt: float) -> void:
 
 func _leave_wall() -> void:
 	if has_meta("train_top"):   # Ki / Gake Nobori eğitimi: durduğun / kaydığın yere kunai işareti (PathJutsu.climb_mark)
-		PathJutsu.climb_mark(self, wall_n)
+		LazyFx.g("PathJutsu").climb_mark(self, wall_n)
 	wall_stall = 0.0
 	terrain_wall = false
 	wall_n = Vector3.ZERO
@@ -1283,14 +1283,14 @@ func _footstep(_sp: float, sprint: bool) -> void:
 	var surf = on_water and global_position.y < wl + 0.12   # köprü tabliyesinde halka / şıpırtı yok
 	if model.footstep_cross(_step_ph):
 		Game.play_step(global_position, randf_range(0.92, 1.08), 0.32 if sprint else 0.26)
-		GroundMarks.step(self, surf, wl)   # suda halka dalga, kumda/karda ayak izi
+		LazyFx.g("GroundMarks").step(self, surf, wl)   # suda halka dalga, kumda/karda ayak izi
 	_step_ph = model.anim_progress() if model.current in CharacterModel.FOOT_PHASES else -1.0
 	# suyun üstünde dururken de ayak altından ara ara halka yayılır
 	if surf and Vector2(velocity.x, velocity.z).length() < 0.5:
 		_ripple_t -= get_physics_process_delta_time()
 		if _ripple_t <= 0.0:
 			_ripple_t = 1.3
-			GroundMarks.ripple(Vector3(global_position.x, wl + 0.03, global_position.z), 1.2)
+			LazyFx.g("GroundMarks").ripple(Vector3(global_position.x, wl + 0.03, global_position.z), 1.2)
 
 
 func _animate(sp: float, sprint: bool) -> void:
@@ -1423,7 +1423,7 @@ func take_hit(info: Dictionary) -> void:
 		combat.sub_bars += 1.0          # jutsu bedeli zaten ödendi: hak ve chakra yemesin
 		chakra += Combat.KAWARIMI_COST
 		combat.substitute()
-		PathJutsu.kawa_trap(self, at)
+		LazyFx.g("PathJutsu").kawa_trap(self, at)
 		return
 	if Combat.shirahadori_catch(self, info):   # çıplak avuçla bıçak yakalama (Shinken Shirahadori)
 		return
@@ -1473,8 +1473,8 @@ func apply_status(n: String, d: float) -> void:
 	if n in ["fear", "kokuangyo"] and Game.now() < float(get_meta("togarashi_until", 0.0)):
 		return   # biber tozu içinde genjutsu tutmaz
 	if n in ["stun", "bind", "fear", "kokuangyo"]:
-		d /= 1.0 + Stats.skill(Game.profile, "gen_resist")  # genjutsu direnci
-		if n != "bind" and Stats.has_unlock(Game.profile, "kai") and not statuses.has("_kai_tip"):
+		d /= 1.0 + LazyFx.g("Stats").skill(Game.profile, "gen_resist")  # genjutsu direnci
+		if n != "bind" and LazyFx.g("Stats").has_unlock(Game.profile, "kai") and not statuses.has("_kai_tip"):
 			statuses["_kai_tip"] = 30.0
 			Hud.msg("Genjutsu! [Q] Kai ile çöz", Color(0.8, 0.6, 1.0), 2.0)
 	d = Combat.cc_dur(self, n, d)
@@ -1499,7 +1499,7 @@ func _tick_status(dt: float) -> void:
 	if has_status("poison"):
 		load("res://scripts/combat/fx/doku_fx.gd").tick(self, dt)
 	if has_status("burn"):
-		hp -= 4.0 * clampf(1.0 - Stats.skill(Game.profile, "poison_resist"), 0.2, 1.0) * dt
+		hp -= 4.0 * clampf(1.0 - LazyFx.g("Stats").skill(Game.profile, "poison_resist"), 0.2, 1.0) * dt
 		if randf() < dt * 8.0:
 			FX.burst(global_position + Vector3.UP * randf_range(0.3, 1.6), {"amount": 3, "life": 0.5, "size": 0.6, "vmin": 1, "vmax": 2, "gravity": Vector3(0, 3, 0),
 				"colors": [Color(1, 0.8, 0.3, 1), Color(1, 0.3, 0.05, 0)]})

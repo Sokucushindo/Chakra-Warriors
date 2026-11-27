@@ -180,7 +180,7 @@ func _enemy(kind: String, at: Vector3, i := 0, mods := {}, arch := {}) -> Enemy:
 		a["hp"] = float(a["hp"]) * (1.0 + a["level"] * 0.04)
 		a["power"] = float(a["power"]) * (1.0 + a["level"] * 0.015)
 	else:
-		Stats.npc_ninja(a, int(a["level"]))   # yol ninjası: ortak eğri (eskiden 70 x (1 + L*0.04): Güç 30'da 154 can, kâğıt gibi)
+		LazyFx.g("Stats").npc_ninja(a, int(a["level"]))   # yol ninjası: ortak eğri (eskiden 70 x (1 + L*0.04): Güç 30'da 154 can, kâğıt gibi)
 	a.merge(mods, true)
 	var e := Enemy.new()
 	e.setup(a)
@@ -296,7 +296,7 @@ func _start_lone_rogue(c: Vector3) -> void:
 	var lb = MB.new()
 	lb.add("cyl", Vector3(0, 0.2, 0), Vector3(0.4, 1.3, 0.4), Color(0.36, 0.25, 0.15), Vector3(90, 0, 0), 8)
 	var log_m = MeshInstance3D.new()
-	log_m.mesh = lb.build(Props.toon())
+	log_m.mesh = lb.build(LazyFx.g("Props").toon())
 	get_tree().current_scene.add_child(log_m)
 	log_m.global_position = at
 	cur["nodes"].append(log_m)
@@ -311,7 +311,7 @@ func _start_lone_rogue(c: Vector3) -> void:
 	for k in 5:
 		fb.add("cyl", Vector3(0, 0.1, 0), Vector3(0.1, 0.9, 0.1), Color(0.32, 0.22, 0.13), Vector3(80, k * 36, 0), 5)
 	var fm = MeshInstance3D.new()
-	fm.mesh = fb.build(Props.toon())
+	fm.mesh = fb.build(LazyFx.g("Props").toon())
 	get_tree().current_scene.add_child(fm)
 	fm.global_position = fire_at
 	cur["nodes"].append(fm)
@@ -337,7 +337,7 @@ func _start_lone_rogue(c: Vector3) -> void:
 
 
 func _start_merchant(c: Vector3) -> void:
-	var m := _npc("Pusuya Düşmüş Tüccar", c, Outfits.roll("merchant", Outfits.village_near(c)), "cower")
+	var m := _npc("Pusuya Düşmüş Tüccar", c, LazyFx.g("Outfits").roll("merchant", LazyFx.g("Outfits").village_near(c)), "cower")
 	var bandits := []
 	for i in 3:
 		bandits.append(_enemy("bandit", _around(c, 4.5, i, 3), i, {"name": "Yol Kesen Haydut"}))
@@ -349,7 +349,7 @@ func _start_merchant(c: Vector3) -> void:
 		if _alive(cur.get("foes", [])).is_empty():
 			var ryo := 120 + _lv() * 12
 			_reward(ryo, 30 + _lv() * 6, "Tüccarı kurtardın")
-			remember({"k": "merchant", "name": "Tüccar " + ["Daikoku", "Hanbei", "Gonza", "Mameshiba", "Tōkichi", "Okuni"].pick_random(), "vid": Outfits.village_near(n.global_position)})
+			remember({"k": "merchant", "name": "Tüccar " + ["Daikoku", "Hanbei", "Gonza", "Mameshiba", "Tōkichi", "Okuni"].pick_random(), "vid": LazyFx.g("Outfits").village_near(n.global_position)})
 			Missions._rep(Progress.home(), 2)
 			Hud.dialog(n.display, "Hayatımı kurtardın! Al, bu kesemin yarısı. Köye vardığımda adını herkese anlatacağım.", [])
 			n.mode = "idle"
@@ -378,7 +378,7 @@ func _start_wounded(c: Vector3) -> void:
 	if Orgs.is_rogue():
 		_start_wounded_rogue(c)
 		return
-	var w := _npc("Yaralı Ninja", c, Outfits.roll("chunin", Outfits.village_near(c)), "cower")
+	var w := _npc("Yaralı Ninja", c, LazyFx.g("Outfits").roll("chunin", LazyFx.g("Outfits").village_near(c)), "cower")
 	_marker(c, "+", Color(0.6, 1.0, 0.6))
 	FX.burst(c + Vector3.UP * 0.3, {"amount": 10, "life": 2.0, "add": false, "size": 0.4, "vmin": 0.1, "vmax": 0.4, "colors": [Color(0.55, 0.05, 0.05, 0.9), Color(0.4, 0, 0, 0)]})
 	Hud.msg("%s inleyen birini görüyorsun." % _dir_text(c).capitalize(), Color(0.7, 1, 0.7))
@@ -457,7 +457,7 @@ func _start_hunter(c: Vector3) -> void:
 
 ## Kaçak oyuncu için: av ninjalarının pusuya düşürdüğü yaralı bir kaçak (yardım edersen avcılar geri döner)
 func _start_wounded_rogue(c: Vector3) -> void:
-	var lk := Outfits.roll("rogue", Outfits.village_near(c))
+	var lk = LazyFx.g("Outfits").roll("rogue", LazyFx.g("Outfits").village_near(c))
 	lk["band_style"] = "slashed"
 	var w := _npc("Yaralı Kaçak", c, lk, "cower")
 	_marker(c, "+", Color(0.6, 1.0, 0.6))
@@ -506,8 +506,8 @@ func _start_patrol(c: Vector3) -> void:
 
 
 func _start_performers(c: Vector3) -> void:
-	var f := _npc("Gezgin Falcı", c, Outfits.roll("traveler", Outfits.village_near(c)), "idle")
-	var fire := _npc("Ateş Yutan Gösterici", c + Vector3(3.5, 0, 1), Outfits.roll("civ", Outfits.village_near(c)), "idle")
+	var f := _npc("Gezgin Falcı", c, LazyFx.g("Outfits").roll("traveler", LazyFx.g("Outfits").village_near(c)), "idle")
+	var fire := _npc("Ateş Yutan Gösterici", c + Vector3(3.5, 0, 1), LazyFx.g("Outfits").roll("civ", LazyFx.g("Outfits").village_near(c)), "idle")
 	for i in 4:
 		var lp := c + Vector3(cos(i * 1.6) * 4.5, 2.2, sin(i * 1.6) * 4.5)
 		var lan := MeshInstance3D.new()
@@ -531,7 +531,7 @@ func _start_performers(c: Vector3) -> void:
 		pm.bottom_radius = 0.07
 		pm.height = 2.9
 		pole.mesh = pm
-		pole.material_override = Props.toon_color(Color(0.42, 0.3, 0.2))
+		pole.material_override = LazyFx.g("Props").toon_color(Color(0.42, 0.3, 0.2))
 		get_tree().current_scene.add_child(pole)
 		pole.global_position = Vector3(lp.x + 0.4, gy + 1.45, lp.z)
 		cur["nodes"].append(pole)
@@ -575,12 +575,12 @@ func _start_shrine(c: Vector3) -> void:
 	get_tree().current_scene.add_child(root)
 	root.global_position = Vector3(c.x, Game.ground_height(c.x, c.z), c.z)
 	cur["nodes"].append(root)
-	var red := Props.toon_color(Color(0.86, 0.16, 0.1))
-	var black := Props.toon_color(Color(0.12, 0.1, 0.1))
-	var wood := Props.toon_color(Color(0.5, 0.35, 0.22))
-	var roofm := Props.toon_color(Color(0.22, 0.24, 0.3))
-	var stone := Props.toon_color(Color(0.64, 0.63, 0.6))
-	var paper := Props.toon_color(Color(0.97, 0.96, 0.9))
+	var red = LazyFx.g("Props").toon_color(Color(0.86, 0.16, 0.1))
+	var black = LazyFx.g("Props").toon_color(Color(0.12, 0.1, 0.1))
+	var wood = LazyFx.g("Props").toon_color(Color(0.5, 0.35, 0.22))
+	var roofm = LazyFx.g("Props").toon_color(Color(0.22, 0.24, 0.3))
+	var stone = LazyFx.g("Props").toon_color(Color(0.64, 0.63, 0.6))
+	var paper = LazyFx.g("Props").toon_color(Color(0.97, 0.96, 0.9))
 	# taş zemin (iki basamak) ve yol taşları
 	_box(root, Vector3(0, 0.12, -1.6), Vector3(4.4, 0.24, 3.6), stone)
 	_box(root, Vector3(0, 0.3, -2.3), Vector3(3.0, 0.2, 2.0), stone)
@@ -602,7 +602,7 @@ func _start_shrine(c: Vector3) -> void:
 	for sx in [-1, 1]:
 		_box(root, Vector3(sx * 0.38, 2.12, -2.6), Vector3(0.9, 0.08, 1.3), roofm, 0.0, sx * -32.0)
 	_box(root, Vector3(0, 2.35, -2.6), Vector3(0.1, 0.1, 1.35), black)
-	var rope := _cyl(root, Vector3(0, 1.82, -2.12), 0.06, 0.06, 1.2, Props.toon_color(Color(0.85, 0.75, 0.5)))
+	var rope := _cyl(root, Vector3(0, 1.82, -2.12), 0.06, 0.06, 1.2, LazyFx.g("Props").toon_color(Color(0.85, 0.75, 0.5)))
 	rope.rotation_degrees = Vector3(0, 0, 90)
 	for sx in [-0.35, 0.0, 0.35]:
 		_box(root, Vector3(sx, 1.62, -2.1), Vector3(0.08, 0.3, 0.02), paper, 0.0, 12.0)
@@ -629,7 +629,7 @@ func _start_shrine(c: Vector3) -> void:
 		om.omni_range = 6.0
 		root.add_child(om)
 		om.position = Vector3(sx, 1.7, -0.6)
-	var k := _npc("Tapınak Bekçisi", c + Vector3(1.5, 0, -2.6), Outfits.roll("monk", Outfits.village_near(c)), "idle")
+	var k := _npc("Tapınak Bekçisi", c + Vector3(1.5, 0, -2.6), LazyFx.g("Outfits").roll("monk", LazyFx.g("Outfits").village_near(c)), "idle")
 	_marker(c, "⛩", Color(1, 0.6, 0.5))
 	Hud.msg("%s yol kenarında küçük bir tapınak var." % _dir_text(c).capitalize(), Color(1, 0.8, 0.7))
 	k.on_talk = func(n):
@@ -671,7 +671,7 @@ func _cyl(root: Node3D, pos: Vector3, top: float, bottom: float, h: float, mat: 
 
 
 func _start_rumor(c: Vector3) -> void:
-	var t := _npc("Telaşlı Yolcu", c, Outfits.roll("traveler", Outfits.village_near(c)), "idle")
+	var t := _npc("Telaşlı Yolcu", c, LazyFx.g("Outfits").roll("traveler", LazyFx.g("Outfits").village_near(c)), "idle")
 	_marker(c, "?")
 	Hud.msg("%s bir yolcu sana el sallıyor." % _dir_text(c).capitalize(), Color(0.9, 0.9, 1))
 	t.on_talk = func(n):
@@ -744,7 +744,7 @@ func _start_lost_child(c: Vector3) -> void:
 		cur = {"kind": "patrol", "nodes": [], "t": 0.0, "center": c}
 		_start_patrol(c)
 		return
-	var lk := Outfits.roll("kid", best["id"])
+	var lk = LazyFx.g("Outfits").roll("kid", best["id"])
 	lk["age"] = "child"
 	var k := _npc("Kayıp Çocuk", c, lk, "cower")
 	k.look["age"] = "child"
@@ -1111,18 +1111,18 @@ func _escape(e: Enemy) -> void:
 
 func _start_merchant_return(c: Vector3) -> void:
 	var d := _take("merchant")
-	var m := _npc(d.get("name", "Tüccar"), c, Outfits.roll("merchant", d.get("vid", "konoha")), "idle")
+	var m := _npc(d.get("name", "Tüccar"), c, LazyFx.g("Outfits").roll("merchant", d.get("vid", "konoha")), "idle")
 	for i in 2:
-		var g := _npc("Kervan Muhafızı", c + Vector3(2.5 * (1 if i else -1), 0, 2.0), Outfits.roll("guard", d.get("vid", "konoha")), "idle")
+		var g := _npc("Kervan Muhafızı", c + Vector3(2.5 * (1 if i else -1), 0, 2.0), LazyFx.g("Outfits").roll("guard", d.get("vid", "konoha")), "idle")
 		g.line = "Patron senden çok bahsetti."
 	_marker(c, "★")
 	Hud.msg("%s tanıdık bir kervan: %s!" % [_dir_text(c).capitalize(), d.get("name", "Tüccar")], Color(1, 0.85, 0.5))
 	m.on_talk = func(n):
-		var gid: String = Gear.random_reward(2)
+		var gid: String = LazyFx.g("Gear").random_reward(2)
 		var txt := "Ah, kurtarıcım! O günden beri işlerim açıldı. Bunu sana sakladım."
-		if gid != "" and not Gear.item(gid).is_empty():
-			Gear.grant(Game.profile, gid)
-			txt += "\n\n[%s aldın]" % Gear.item(gid)["name"]
+		if gid != "" and not LazyFx.g("Gear").item(gid).is_empty():
+			LazyFx.g("Gear").grant(Game.profile, gid)
+			txt += "\n\n[%s aldın]" % LazyFx.g("Gear").item(gid)["name"]
 		Hud.dialog(n.display, txt, [])
 		_reward(0, 40 + _lv() * 5, "Eski dost tüccar")
 		finish(20.0)
@@ -1163,7 +1163,7 @@ func _start_toll_revenge(c: Vector3) -> void:
 
 func _start_contact(c: Vector3) -> void:
 	var d := _take("contact")
-	var k := _npc(d.get("name", "Eski Dost"), c, Outfits.roll("chunin", Outfits.village_near(c)), "idle")
+	var k := _npc(d.get("name", "Eski Dost"), c, LazyFx.g("Outfits").roll("chunin", LazyFx.g("Outfits").village_near(c)), "idle")
 	_marker(c, "★", Color(0.7, 1, 0.7))
 	Hud.msg("%s bir ninja el sallıyor — kurtardığın yaralı!" % _dir_text(c).capitalize(), Color(0.7, 1, 0.7))
 	k.on_talk = func(n):
@@ -1179,7 +1179,7 @@ func _start_contact(c: Vector3) -> void:
 func _start_child_gift(c: Vector3) -> void:
 	var d := _take("child")
 	var v := Game.village(d.get("vid", "konoha"))
-	var lk := Outfits.roll("kid", d.get("vid", "konoha"))
+	var lk = LazyFx.g("Outfits").roll("kid", d.get("vid", "konoha"))
 	lk["age"] = "child"
 	var k := _npc("Tanıdık Çocuk", c, lk, "kid")
 	_marker(c, "♥", Color(1, 0.7, 0.8))

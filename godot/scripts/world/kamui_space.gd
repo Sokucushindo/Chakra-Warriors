@@ -281,7 +281,7 @@ func enter_player(how_: String) -> void:
 	ret_pos = pl.global_position
 	ret_yaw = float(pl.yaw)
 	_place_over(ret_pos)
-	MsArts.kamui_vortex(eye_point(pl), 1.9, 1.0)
+	LazyFx.g("MsArts").kamui_vortex(eye_point(pl), 1.9, 1.0)
 	Sfx.play("kamui_in", ret_pos, 1.0)
 	pass
 	_shrink(pl, 0.45)
@@ -298,7 +298,7 @@ func enter_player(how_: String) -> void:
 	Interiors.inst._teleport(arrival(), ret_yaw)
 	if pl.combat:
 		pl.combat.action = ""
-	MsArts.kamui_vortex(eye_point(pl), 1.9, 0.7, {"pull": -0.5})
+	LazyFx.g("MsArts").kamui_vortex(eye_point(pl), 1.9, 0.7, {"pull": -0.5})
 	_shrink(pl, 0.35, true)   # boyutta burgaçtan açılarak belirir
 	_spawn_held()
 	if how == "self":
@@ -307,7 +307,7 @@ func enter_player(how_: String) -> void:
 	else:
 		rift_t = RIFT_DELAY
 	await Interiors.inst._fade(0.0, 0.35)
-	MsArts.kamui_vortex(eye_point(pl), 1.9, 0.8, {"pull": -0.5})
+	LazyFx.g("MsArts").kamui_vortex(eye_point(pl), 1.9, 0.8, {"pull": -0.5})
 	if how == "self":
 		Hud.banner("KAMUI KŪKAN", "Boyuttasın. Çıkmak için Kamui'yi yeniden kullan ya da girdaba gir [F] — bıraktığın yere dönersin.", Color(0.7, 0.8, 0.95))
 	else:
@@ -321,7 +321,7 @@ func leave_player() -> void:
 	if pl == null or busy or not player_in:
 		return
 	busy = true
-	MsArts.kamui_vortex(eye_point(pl), 1.9, 0.8)
+	LazyFx.g("MsArts").kamui_vortex(eye_point(pl), 1.9, 0.8)
 	Sfx.play("kamui_in", pl.global_position, 1.0)
 	_shrink(pl, 0.4)
 	await get_tree().create_timer(0.4).timeout
@@ -334,7 +334,7 @@ func leave_player() -> void:
 		pl.set_meta("kamui_pull_immune", Game.now() + PULL_IMMUNE)
 	if pl.combat:
 		pl.combat.invuln = maxf(pl.combat.invuln, 0.8)   # çıkışta üstüne kurulu tuzaktan kısa koruma (giriş anıyla aynı)
-	MsArts.kamui_vortex(eye_point(pl), 1.9, 0.8, {"pull": -0.5})
+	LazyFx.g("MsArts").kamui_vortex(eye_point(pl), 1.9, 0.8, {"pull": -0.5})
 	_shrink(pl, 0.4, true)   # burgaçtan açılarak çıkar
 	await Interiors.inst._fade(0.0, 0.3)
 	busy = false
@@ -357,7 +357,7 @@ func _close_inside() -> void:
 
 func _open_rift(at: Vector3) -> void:
 	_close_rift()
-	rift = MsArts.kamui_vortex(at, 1.5, 1e6)
+	rift = LazyFx.g("MsArts").kamui_vortex(at, 1.5, 1e6)
 	exit_item = {"pos": at, "radius": 3.5, "kind": "kamui_exit", "label": "Kamui: boyuttan çık"}
 	Interact.add(exit_item)
 
@@ -435,7 +435,7 @@ static func swallow(c: Node3D, h: Node3D, center: Vector3, dur: float, on_gone: 
 	if h == null or not is_instance_valid(h):
 		return
 	var hh = float(h.get("height")) if h.get("height") != null else 1.8
-	MsArts.kamui_vortex(center, hh * 1.7, dur + 0.45, {"pull": 0.6, "twist": 1.2})   # anime: hedefin çevresindeki geniş uzay burkulur
+	LazyFx.g("MsArts").kamui_vortex(center, hh * 1.7, dur + 0.45, {"pull": 0.6, "twist": 1.2})   # anime: hedefin çevresindeki geniş uzay burkulur
 	if h is Enemy and h.has_meta("kamui_prisoner"):
 		twist_into(h, center, dur)
 		h.get_tree().create_timer(dur + 0.02).timeout.connect(func():
@@ -538,7 +538,7 @@ static func release(e: Node3D) -> void:
 	var p: Vector3 = Interiors.inst._exit_floor(to) if Interiors.inst else to
 	var w = _emerge(rec, p, float(rec.get("yaw", 0.0)))
 	if w and Game.player:
-		Combat.popup_text(Game.player.global_position + Vector3.UP * 2.4, Lang.t("%s boyuttan salındı") % String(w.display_name), Color(0.75, 0.6, 0.95))
+		Combat.popup_text(Game.player.global_position + Vector3.UP * 2.4, LazyFx.g("Lang").t("%s boyuttan salındı") % String(w.display_name), Color(0.75, 0.6, 0.95))
 
 
 ## Boyuttan çıkan tutsağın içerideki düğümü: hemen gizlenir / dövüş dışı kalır, birkaç sn sonra silinir (havadaki aletlerinin
@@ -571,7 +571,7 @@ static func _emerge(rec: Dictionary, p: Vector3, yaw: float) -> Enemy:
 	if w.has_method("reset_physics_interpolation"):
 		w.reset_physics_interpolation()
 	WorldPeople.on_kamui_released(String(a.get("world_person", "")))
-	MsArts.kamui_vortex(eye_point(w), 1.8, 1.0, {"pull": -0.5})
+	LazyFx.g("MsArts").kamui_vortex(eye_point(w), 1.8, 1.0, {"pull": -0.5})
 	twist_into(w, eye_point(w), 0.5, true)
 	Sfx.play("kamui_out", p, 0.9)
 	return w
@@ -612,7 +612,7 @@ static func absorb_projectile(c: Node3D, r := 8.0) -> bool:
 	best.set_physics_process(false)
 	best.set("vel", (best.get("vel") as Vector3) * 0.0 if best.get("vel") is Vector3 else Vector3.ZERO)
 	var at = best.global_position
-	MsArts.kamui_vortex(at, 1.0, 0.7, {"pull": 0.6})
+	LazyFx.g("MsArts").kamui_vortex(at, 1.0, 0.7, {"pull": 0.6})
 	Sfx.play("kamui_in", at, 1.1)
 	var s0: Vector3 = best.scale
 	var tw = best.create_tween()
@@ -666,7 +666,7 @@ static func release_out(c: Node3D, t: Node3D) -> bool:
 		if pr.has_method("look_at"):
 			pr.look_at(at + aim, Vector3.UP if absf(aim.y) < 0.95 else Vector3.RIGHT)
 		pr.set_physics_process(true)
-		MsArts.kamui_vortex(at, 1.0, 0.6, {"pull": -0.6})
+		LazyFx.g("MsArts").kamui_vortex(at, 1.0, 0.6, {"pull": -0.6})
 		Sfx.play("kamui_out", at, 1.0)
 		Combat.popup_text(at + Vector3.UP * 0.6, "Kamui: Hōshutsu", Color(0.75, 0.6, 0.95))
 		return true
@@ -705,7 +705,7 @@ static func release_out(c: Node3D, t: Node3D) -> bool:
 	w.target = near if near else c
 	if near:
 		w.state = "chase"
-	Combat.popup_text(to + Vector3.UP * 2.4, Lang.t("%s boyuttan salındı") % String(w.display_name), Color(0.75, 0.6, 0.95))
+	Combat.popup_text(to + Vector3.UP * 2.4, LazyFx.g("Lang").t("%s boyuttan salındı") % String(w.display_name), Color(0.75, 0.6, 0.95))
 	return true
 
 
@@ -725,7 +725,7 @@ static func retreat(e: Node3D) -> bool:
 	if not ks.player_in:
 		ks._place_over(e.global_position)
 	var from = e.global_position
-	MsArts.kamui_vortex(eye_point(e), 1.8, 0.9)
+	LazyFx.g("MsArts").kamui_vortex(eye_point(e), 1.8, 0.9)
 	Combat.popup_text(from + Vector3.UP * 2.6, "Kamui!", Color(0.75, 0.6, 0.9))
 	Sfx.play("kamui_in", from, 0.9)
 	_shrink(e, 0.4)
@@ -742,7 +742,7 @@ static func retreat(e: Node3D) -> bool:
 		if e.has_method("reset_physics_interpolation"):
 			e.reset_physics_interpolation()
 		if ks.player_in:
-			MsArts.kamui_vortex(e.global_position + Vector3.UP, 1.2, 0.8))
+			LazyFx.g("MsArts").kamui_vortex(e.global_position + Vector3.UP, 1.2, 0.8))
 	ks.away.append({"e": e, "until": Game.now() + RETREAT_TIME, "from": from})
 	return true
 
@@ -765,7 +765,7 @@ func _return_away(a: Dictionary) -> void:
 	e.velocity = Vector3.ZERO
 	if e.has_method("reset_physics_interpolation"):
 		e.reset_physics_interpolation()
-	MsArts.kamui_vortex(eye_point(e), 1.8, 0.8, {"pull": -0.5})
+	LazyFx.g("MsArts").kamui_vortex(eye_point(e), 1.8, 0.8, {"pull": -0.5})
 	_shrink(e, 0.4, true)   # burgaçtan açılarak çıkar (oyuncuyla aynı)
 	Sfx.play("kamui_out", to, 0.9)
 

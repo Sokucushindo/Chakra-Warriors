@@ -33,7 +33,7 @@ func other_space(target: Node, info: Dictionary) -> bool:
 
 func power_of(n: Node) -> float:
 	if n is Player:
-		return float(Mastery.power(Game.profile)) if not Game.profile.is_empty() else 1.0
+		return float(LazyFx.g("Mastery").power(Game.profile)) if not Game.profile.is_empty() else 1.0
 	var lv = n.get("level") if is_instance_valid(n) else null
 	return float(lv) if lv != null else 1.0
 
@@ -91,7 +91,7 @@ func speed_dodge(target: Node, info: Dictionary) -> bool:
 	target.global_position = p1
 	for q in 3:
 		var o = Vector3.UP * (0.4 + q * 0.5)
-		WindFX.streak(func(u: float) -> Vector3: return p0.lerp(p1, u) + o, 0.15, 0.05, Color(0.95, 0.97, 1.0, 0.7), 0.0, 5)
+		LazyFx.g("WindFX").streak(func(u: float) -> Vector3: return p0.lerp(p1, u) + o, 0.15, 0.05, Color(0.95, 0.97, 1.0, 0.7), 0.0, 5)
 	popup_text(p1 + Vector3.UP * 2.1, "Iska!", Color(0.75, 0.9, 1.0))
 	Sfx.play("whoosh", p1, 1.7)
 	return true
@@ -108,7 +108,7 @@ func shirahadori_catch(target: Node, info: Dictionary) -> bool:
 		var lk = atk.get("look")
 		armed = lk is Dictionary and String(lk.get("weapon_r", "")) != ""
 	if not armed and atk is Player:
-		armed = not Gear.weapon(Game.profile).is_empty() and bool(Game.profile.get("weapon_drawn", false))
+		armed = not LazyFx.g("Gear").weapon(Game.profile).is_empty() and bool(Game.profile.get("weapon_drawn", false))
 	if not armed:
 		return false
 	target.remove_meta("shirahadori_t")
@@ -307,7 +307,7 @@ func block_pass(info: Dictionary, melee_pass: float) -> float:
 
 
 func element_mult(atk: String, dfn: String) -> float:
-	return Elements.mult(atk, dfn) * Elements.env_mult(atk)
+	return LazyFx.g("Elements").mult(atk, dfn) * LazyFx.g("Elements").env_mult(atk)
 
 
 ## Bir noktanın savaşçının kapsülüne (boyutuna göre) değip değmediği
@@ -330,14 +330,14 @@ func kawarimi_log(at: Vector3, push := Vector3.ZERO) -> void:
 	var body = MeshInstance3D.new()
 	var c = CylinderMesh.new()
 	c.top_radius = 0.2; c.bottom_radius = 0.22; c.height = 1.1; c.radial_segments = 12
-	c.material = Props.toon_color(Color(0.42, 0.28, 0.16))
+	c.material = LazyFx.g("Props").toon_color(Color(0.42, 0.28, 0.16))
 	body.mesh = c
 	root.add_child(body)
 	for sy in [-1.0, 1.0]:
 		var cap = MeshInstance3D.new()
 		var cm = CylinderMesh.new()
 		cm.top_radius = 0.185 if sy > 0.0 else 0.205; cm.bottom_radius = cm.top_radius; cm.height = 0.02; cm.radial_segments = 12
-		cm.material = Props.toon_color(Color(0.84, 0.7, 0.46))
+		cm.material = LazyFx.g("Props").toon_color(Color(0.84, 0.7, 0.46))
 		cap.mesh = cm
 		cap.position.y = sy * 0.555
 		root.add_child(cap)

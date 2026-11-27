@@ -54,7 +54,7 @@ static func _sparks(p: Vector3, f: Vector3, n: int) -> void:
 	var m = Kit.cached_mesh("tekko_kivilcim", func():
 		var b = MB.new()
 		b.add("box", Vector3.ZERO, Vector3(0.008, 0.008, 0.05), Color(1.0, 0.76, 0.34))
-		return b.build(Props.toon()))
+		return b.build(LazyFx.g("Props").toon()))
 	for k in n:
 		var mi = MeshInstance3D.new()
 		mi.mesh = m

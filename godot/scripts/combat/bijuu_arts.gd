@@ -301,9 +301,9 @@ static func _corrode(f: Node3D, dur: float, dps: float, col: Color, label := "A�
 		f.hp -= dps * 0.5
 		Combat.damage_number(f.global_position + Vector3.UP * f.height, dps * 0.5, col)
 		if col.s < 0.15:
-			BijuKokuoFX.cloud(f.global_position + Vector3.UP * f.height * 0.6, 0.4, 0.5, 0.8)
+			LazyFx.g("BijuKokuoFX").cloud(f.global_position + Vector3.UP * f.height * 0.6, 0.4, 0.5, 0.8)
 		else:
-			BijuSaikenFX.fizz(f.global_position + Vector3.UP * f.height * 0.6, col)
+			LazyFx.g("BijuSaikenFX").fizz(f.global_position + Vector3.UP * f.height * 0.6, col)
 		if f.hp <= 0.0 and f.has_method("die"):
 			f.hp = 0.0
 			f.die({})
@@ -645,14 +645,14 @@ static func _renkudan(user: Node3D, c: Dictionary) -> void:
 	var s: float = c["s"]
 	var from: Vector3 = c["from"]
 	var dir = (c["aim"] - from).normalized()
-	BijuShukakuFX.air_launch(from, dir, s)
+	LazyFx.g("BijuShukakuFX").air_launch(from, dir, s)
 	Sfx.play("wind", from, 0.6)
-	var vis = BijuShukakuFX.air_bullet(1.4 * s)
+	var vis = LazyFx.g("BijuShukakuFX").air_bullet(1.4 * s)
 	var st = {"r": 0.0}
 	var dmg: float = c["dmg"]
 	var info = {"dmg": dmg, "element": "fuuton", "knock": 30.0, "launch": 7.0, "kind": "heavy", "hitstop": 0.08}
 	var boom = func(pos: Vector3, _t: Node3D) -> void:
-		BijuShukakuFX.air_boom(pos, s)
+		LazyFx.g("BijuShukakuFX").air_boom(pos, s)
 		# patlama doğrudan vurulanı ikinci kez vurmaz (eskiden mermi + patlama aynı hedefe x1.6)
 		var ex = st["pr"].hit_list if st.has("pr") and is_instance_valid(st["pr"]) else []
 		_hit(user, pos, 6.0 * s, {"dmg": dmg * 0.5, "element": "fuuton", "knock": 42.0, "launch": 10.0, "kind": "heavy"}, ex)
@@ -665,7 +665,7 @@ static func _renkudan(user: Node3D, c: Dictionary) -> void:
 		st["r"] += dt
 		if st["r"] > 0.07:
 			st["r"] = 0.0
-			BijuShukakuFX.air_wake(p.global_position, p.vel.normalized(), s)
+			LazyFx.g("BijuShukakuFX").air_wake(p.global_position, p.vel.normalized(), s)
 
 
 static func _sabaku_taiso(user: Node3D, c: Dictionary) -> void:
@@ -697,7 +697,7 @@ static func _sabaku_taiso(user: Node3D, c: Dictionary) -> void:
 				tw.tween_property(m, "scale", Vector3(W * 0.75, 5.0 * s * randf_range(0.85, 1.2), W * 0.65), 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 				tw.tween_property(m, "scale", Vector3(W * 0.85, 1.4 * s, W * 0.75), 0.5)
 				_fade_free(m, 3.5)
-			BijuShukakuFX.wave_spray(p + Vector3.UP * 2.0 * s, W, s, dir)
+			LazyFx.g("BijuShukakuFX").wave_spray(p + Vector3.UP * 2.0 * s, W, s, dir)
 			var hits = _hit(user, p + Vector3.UP * s, W, {"dmg": dmg / 3.0, "element": "doton", "knock": 4.0, "kind": "light"}, hitlist)
 			for f in hits:
 				hitlist.append(f)
@@ -719,7 +719,7 @@ static func _sand_coffin(f: Node3D, t: float, label := true) -> void:
 	tw.tween_interval(t * (0.55 if f is Player else 1.0))
 	tw.tween_callback(func():
 		if is_instance_valid(m):
-			BijuShukakuFX.sand_fall(m.global_position, 1.0)
+			LazyFx.g("BijuShukakuFX").sand_fall(m.global_position, 1.0)
 			m.queue_free())
 	if label:
 		Combat.popup_text(f.global_position + Vector3.UP * (float(f.height) + 1.0), "KUMA GÖMÜLDÜ!", SAND)
@@ -736,7 +736,7 @@ static func _suna_tate(user: Node3D, c: Dictionary) -> void:
 	dome.scale = Vector3.ONE * 0.1
 	var tw = dome.create_tween()
 	tw.tween_property(dome, "scale", Vector3(r * 2.0, r * 1.7, r * 2.0), 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	BijuShukakuFX.dome_grains(root, r)
+	LazyFx.g("BijuShukakuFX").dome_grains(root, r)
 	if user is Player:
 		Buffs.add("suna_tate", dur, {"armor": 0.5})
 	Sfx.play("earth", user.global_position, 0.9)
@@ -752,7 +752,7 @@ static func _suna_tate(user: Node3D, c: Dictionary) -> void:
 		for pr in _tree().get_nodes_in_group("projectiles"):
 			if pr is Projectile and not pr.dead and pr.shooter != user and is_instance_valid(pr.shooter) and Combat.hostile(user, pr.shooter):
 				if pr.global_position.distance_to(cpos) < r * 1.05:
-					BijuShukakuFX.sand_fall(pr.global_position, s, 10)
+					LazyFx.g("BijuShukakuFX").sand_fall(pr.global_position, s, 10)
 					Sfx.play("block", pr.global_position, 0.7)
 					pr.queue_free()
 		if el >= dur - 0.1:
@@ -768,9 +768,9 @@ const BLUE := Color(0.3, 0.5, 1.0)
 
 static func _claw_marks(pos: Vector3, dir: Vector3, s: float, preset := "blue") -> void:
 	if preset == "blue":
-		BijuMatatabiFX.claw_marks(pos, dir, s)
+		LazyFx.g("BijuMatatabiFX").claw_marks(pos, dir, s)
 	else:
-		BijuKuramaFX.claw_marks(pos, dir, s, Color(1.0, 0.45, 0.1))
+		LazyFx.g("BijuKuramaFX").claw_marks(pos, dir, s, Color(1.0, 0.45, 0.1))
 
 
 static func _neko_pounce(user: Node3D, c: Dictionary) -> void:
@@ -786,11 +786,11 @@ static func _neko_pounce(user: Node3D, c: Dictionary) -> void:
 	var step = func(_k: float, p: Vector3) -> void:
 		st["r"] += 1
 		if int(st["r"]) % 2 == 0:
-			BijuMatatabiFX.wisp(p + Vector3.UP * s, s)
+			LazyFx.g("BijuMatatabiFX").wisp(p + Vector3.UP * s, s)
 	var land = func(p: Vector3) -> void:
 		_claw_marks(p + d * 1.5 * s + Vector3.UP * 1.2 * s, d, s)
 		_hit(user, p + d * 1.8 * s + Vector3.UP * s, 3.8 * s, {"dmg": dmg, "element": "katon", "burn": 3.0, "knock": 16.0, "launch": 5.0, "kind": "heavy", "dir": d, "hitstop": 0.07})
-		BijuMatatabiFX.land_ring(p, s)
+		LazyFx.g("BijuMatatabiFX").land_ring(p, s)
 		Sfx.play("hit_heavy", p, 0.9)
 		_shake(0.35)
 	_move(user, end, 0.5, 5.0 * s, step, land)
@@ -802,7 +802,7 @@ static func _blue_patch(user: Node3D, pos: Vector3, s: float, dps: float, dur :=
 		return
 	var gp = _gp(pos)
 	var col = BLUE if preset == "blue" else Color(1.0, 0.45, 0.1)
-	BijuMatatabiFX.burn_patch(gp, s, dur)
+	LazyFx.g("BijuMatatabiFX").burn_patch(gp, s, dur)
 	_ticker(gp, dur, 0.5, func(_n: Node3D, _e: float) -> void:
 		_hit(user, gp + Vector3.UP * s, 2.4 * s, {"dmg": dps * 0.5, "element": "katon", "burn": 2.0, "knock": 0.0, "kind": "light"}))
 
@@ -823,9 +823,9 @@ static func _aobi_dama(user: Node3D, c: Dictionary) -> void:
 			var g = 22.0
 			var vel = (tg - from) / tt + Vector3.UP * g * tt * 0.5
 			var oh = func(pos: Vector3, _t: Node3D) -> void:
-				BijuMatatabiFX.pop(pos, s)
+				LazyFx.g("BijuMatatabiFX").pop(pos, s)
 				_blue_patch(user, pos, s, dmg * 0.12)
-			_shot(user, from, vel, 0.7 * s, {"dmg": dmg * 0.45, "element": "katon", "burn": 3.0, "knock": 10.0, "launch": 3.0, "kind": "heavy"}, BijuMatatabiFX.fireball(0.8 * s), oh, g, 3.0))
+			_shot(user, from, vel, 0.7 * s, {"dmg": dmg * 0.45, "element": "katon", "burn": 3.0, "knock": 10.0, "launch": 3.0, "kind": "heavy"}, LazyFx.g("BijuMatatabiFX").fireball(0.8 * s), oh, g, 3.0))
 
 
 ## Byōen Hōka (kanon: Yugito, Matatabi'ye tam dönüşmüşken): dev canavarın ağzından tek, dev ateş topu; Gōkakyū'nün ateş topu
@@ -839,12 +839,12 @@ static func _byoen_hoka(user: Node3D, c: Dictionary) -> void:
 	var dir = (aim - from).normalized()
 	Sfx.play("roar", from, 1.0)
 	Sfx.play("fire", from, 0.6)
-	KatonLib.flash_ball(user.get_tree().current_scene, from + dir * R, R * 1.2, KatonLib.PAL_FIRE)
-	var ball = KatonLib.fireball_node(R, KatonLib.PAL_FIRE, 1.0)
+	LazyFx.g("KatonLib").flash_ball(user.get_tree().current_scene, from + dir * R, R * 1.2, LazyFx.g("KatonLib").PAL_FIRE)
+	var ball = LazyFx.g("KatonLib").fireball_node(R, LazyFx.g("KatonLib").PAL_FIRE, 1.0)
 	var host = user.get_tree().current_scene
 	var oh = func(pos: Vector3, _t: Node3D) -> void:
-		KatonLib.fireball_impact(host, pos, R * 1.2, KatonLib.PAL_FIRE)
-		KatonLib.scorch(host, KatonLib.floor_at(pos), R * 2.2, 8.0)
+		LazyFx.g("KatonLib").fireball_impact(host, pos, R * 1.2, LazyFx.g("KatonLib").PAL_FIRE)
+		LazyFx.g("KatonLib").scorch(host, LazyFx.g("KatonLib").floor_at(pos), R * 2.2, 8.0)
 		WorldDamage.impact(pos, R * 1.6, {"dmg": dmg, "element": "katon", "kind": "heavy"})
 		if Game.world:
 			Game.world.env.add_shake(0.9)
@@ -855,7 +855,7 @@ static func _byoen_hoka(user: Node3D, c: Dictionary) -> void:
 		pr.on_tick = func(pp: Projectile, dt: float) -> void:
 			if old_tick.is_valid():
 				old_tick.call(pp, dt)
-			KatonLib.fireball_tick(host, ball, pp.global_position, pp.vel, R, tst, dt, KatonLib.PAL_FIRE)
+			LazyFx.g("KatonLib").fireball_tick(host, ball, pp.global_position, pp.vel, R, tst, dt, LazyFx.g("KatonLib").PAL_FIRE)
 
 
 static func _kaen_breath(user: Node3D, c: Dictionary) -> void:
@@ -868,7 +868,7 @@ static func _kaen_breath(user: Node3D, c: Dictionary) -> void:
 	if user is Player:
 		user.input_locked = maxf(user.input_locked, dur)
 	var hitc = {"n": 0}
-	var jet = _stream(BijuMatatabiFX.breath_mat(), 3.2 * s)
+	var jet = _stream(LazyFx.g("BijuMatatabiFX").breath_mat(), 3.2 * s)
 	var tk = _ticker(fixed_from, dur, 0.04, func(_n: Node3D, el: float) -> void:
 		if not is_instance_valid(user):
 			return
@@ -877,7 +877,7 @@ static func _kaen_breath(user: Node3D, c: Dictionary) -> void:
 		_aim_stream(jet, from + dir * 0.6 * s, dir, 17.0 * s * minf(1.0, el / 0.2), clampf(minf(el / 0.15, (dur - el) / 0.2), 0.05, 1.0))
 		if int(el / 0.04) % 2 == 1:
 			return
-		BijuMatatabiFX.breath_tongues(from + dir * 6.0 * s, dir, s)
+		LazyFx.g("BijuMatatabiFX").breath_tongues(from + dir * 6.0 * s, dir, s)
 		hitc["n"] += 1
 		if int(hitc["n"]) % 2 == 0:
 			for k in 3:
@@ -945,7 +945,7 @@ static func _sango(user: Node3D, c: Dictionary) -> void:
 			var rr = R * sqrt(randf())
 			var p = _gp(center + Vector3(cos(a), 0, sin(a)) * rr)
 			_coral(p + Vector3.DOWN * 0.3 * s, randf_range(2.2, 4.2) * s, 8.0, CORAL if i % 3 else CORAL2))
-	BijuIsobuFX.sango_burst(center + Vector3.UP * s, R, s)
+	LazyFx.g("BijuIsobuFX").sango_burst(center + Vector3.UP * s, R, s)
 	var hits = _hit(user, center + Vector3.UP * s, R, {"dmg": dmg * 0.75, "element": "suiton", "knock": 3.0, "launch": 6.0, "kind": "heavy"})
 	for f in hits:
 		_bind(f, 3.0)
@@ -1013,7 +1013,7 @@ static func _shell_roll(user: Node3D, c: Dictionary) -> void:
 		st["n"] += 1
 		if true:   # her adımda yokla: küçük kabuk yakındaki rakibin içinden atlayıp geçmesin (vurulan listede, iki kez işlemez)
 			if int(st["n"]) % 9 == 0:
-				BijuIsobuFX.splash(_gp(p - d * 2.0 * s), 0.6 * s)
+				LazyFx.g("BijuIsobuFX").splash(_gp(p - d * 2.0 * s), 0.6 * s)
 			var hits = _hit(user, p + Vector3.UP * maxf(s, R * 0.6), maxf(maxf(2.6 * s, R * 1.3), float(c.get("hit_r", 0.0))), {"dmg": dmg * 0.7, "element": "suiton", "knock": float(c.get("knock", 30.0)), "launch": 9.0, "kind": "heavy", "dir": d, "hitstop": 0.05, "stun": float(c.get("stun", 0.0)), "hard_down": bool(c.get("hard_down", false))}, hitlist)
 			hitlist.append_array(hits)
 	var done = func(p: Vector3) -> void:
@@ -1023,7 +1023,7 @@ static func _shell_roll(user: Node3D, c: Dictionary) -> void:
 			user.model.visible = mv
 		if is_instance_valid(rig):
 			rig.visible = true
-		BijuIsobuFX.splash(_gp(p + d * 2.0 * s), 1.4 * s)
+		LazyFx.g("BijuIsobuFX").splash(_gp(p + d * 2.0 * s), 1.4 * s)
 		_shake(0.4)
 	_move(user, end, 0.9, 0.0, step, done)
 
@@ -1036,7 +1036,7 @@ static func _kiri_genjutsu(user: Node3D, c: Dictionary) -> void:
 	Sfx.play("genjutsu", center, 0.7)
 	var fooled := {}
 	_fog(center, R, Color(0.75, 0.95, 0.95), 0.42, dur)
-	BijuIsobuFX.mist(center, R, s, dur)
+	LazyFx.g("BijuIsobuFX").mist(center, R, s, dur)
 	_ticker(center, dur, 0.5, func(_n: Node3D, el: float) -> void:
 		for f in _foes(user, center + Vector3.UP * s, R):
 			f.apply_status("slow", 1.0)
@@ -1060,7 +1060,7 @@ static func _lava_pool(user: Node3D, pos: Vector3, s: float, dps: float, dur := 
 	if _fields >= MAX_FIELDS:
 		return
 	var gp = _gp(pos)
-	var disc = _mi(_sph(0.5, 20, 6), BijuSonGokuFX.lava_mat(0.0))   # sarı-turuncu erimiş lav, içinde kırık kaya
+	var disc = _mi(_sph(0.5, 20, 6), LazyFx.g("BijuSonGokuFX").lava_mat(0.0))   # sarı-turuncu erimiş lav, içinde kırık kaya
 	_scene().add_child(disc)
 	disc.global_position = gp + Vector3.UP * 0.05
 	disc.scale = Vector3(0.2, 0.05, 0.2)
@@ -1086,9 +1086,9 @@ static func _kakogan(user: Node3D, c: Dictionary) -> void:
 			var tt = clampf(from.distance_to(tg) / 40.0, 0.5, 1.6)
 			var g = 26.0
 			var vel = (tg - from) / tt + Vector3.UP * g * tt * 0.5
-			var vis = BijuSonGokuFX.lava_rock(1.1 * s)   # ateş topu değil: pürüzlü lav kayası
+			var vis = LazyFx.g("BijuSonGokuFX").lava_rock(1.1 * s)   # ateş topu değil: pürüzlü lav kayası
 			var oh = func(pos: Vector3, _t: Node3D) -> void:
-				BijuSonGokuFX.splash(pos, 0.9 * s)
+				LazyFx.g("BijuSonGokuFX").splash(pos, 0.9 * s)
 				_lava_pool(user, pos, s * 0.8, dmg * 0.14)
 			_shot(user, from, vel, 0.6 * s, {"dmg": dmg * 0.5, "element": "yoton", "burn": 3.0, "knock": 12.0, "launch": 4.0, "kind": "heavy"}, vis, oh, g, 3.5))
 
@@ -1105,12 +1105,12 @@ static func _funkatsu(user: Node3D, c: Dictionary) -> void:
 	for i in pts.size():
 		var p: Vector3 = pts[i]
 		_tree().create_timer(0.14 * i).timeout.connect(func():
-			BijuSonGokuFX.fissure(p, 3.0 * s, 3.0))
+			LazyFx.g("BijuSonGokuFX").fissure(p, 3.0 * s, 3.0))
 		_tree().create_timer(0.14 * i + 0.45).timeout.connect(func():
 			if not is_instance_valid(user):
 				return
 			# yerden fışkıran lav sütunu: koni mesh/alev yok — yapışkan lav seli yukarı fışkırır, lav parçaları ve kırık kaya saçılır
-			BijuSonGokuFX.geyser(p, 11.0 * s, 1.4 * s)
+			LazyFx.g("BijuSonGokuFX").geyser(p, 11.0 * s, 1.4 * s)
 			_hit(user, p + Vector3.UP * 1.5 * s, 2.6 * s, {"dmg": dmg * 0.4, "element": "yoton", "burn": 4.0, "knock": 4.0, "launch": 18.0, "kind": "heavy"})
 			Sfx.play("boom", p, 1.1)
 			_shake(0.3))
@@ -1128,7 +1128,7 @@ static func _yoton_yoroi(user: Node3D, c: Dictionary) -> void:
 		# lav zırhı: alev dilleri değil — bedene yapışmış pürüzlü erimiş lav kütleleri (içinde kırık kaya)
 		var lb = MB.new()
 		lb.add("boulder", Vector3.ZERO, Vector3.ONE, Color.WHITE, Vector3.ZERO, k % 6)
-		var t = _mi(lb.build(null), BijuSonGokuFX.lava_mat(0.45))
+		var t = _mi(lb.build(null), LazyFx.g("BijuSonGokuFX").lava_mat(0.45))
 		var a = k * TAU / 7.0
 		t.position = Vector3(cos(a) * 0.45 * s, h * (0.2 + 0.1 * (k % 3)), sin(a) * 0.45 * s)
 		t.position = Vector3(cos(a) * (0.45 * s if not big else h * 0.3), h * (0.2 + 0.1 * (k % 3)), sin(a) * (0.45 * s if not big else h * 0.3))
@@ -1137,11 +1137,11 @@ static func _yoton_yoroi(user: Node3D, c: Dictionary) -> void:
 	if user is Player:
 		Buffs.add("yoton_yoroi", dur, {"armor": 0.6, "melee": 1.3})
 	Sfx.play("fire", user.global_position, 0.5)
-	BijuSonGokuFX.heat_ring(user.global_position, 5.0 * s)
+	LazyFx.g("BijuSonGokuFX").heat_ring(user.global_position, 5.0 * s)
 	_ticker(user.global_position, dur, 0.4, func(_n: Node3D, el: float) -> void:
 		if not is_instance_valid(user):
 			return
-		BijuSonGokuFX.drip(user.global_position + Vector3.UP * h * 0.6, s * 0.8)   # zırhtan damlayan lav
+		LazyFx.g("BijuSonGokuFX").drip(user.global_position + Vector3.UP * h * 0.6, s * 0.8)   # zırhtan damlayan lav
 		_hit(user, user.global_position + Vector3.UP * h * 0.5, maxf(2.3 * s, h * 0.45 if big else 0.0), {"dmg": dmg * 0.05, "element": "yoton", "burn": 3.0, "knock": 3.0, "kind": "light"})
 		if el >= dur - 0.4 and is_instance_valid(root):
 			root.queue_free())
@@ -1152,7 +1152,7 @@ const STEAM := Color(0.97, 0.95, 0.92)
 
 
 static func _steam_cloud(pos: Vector3, s: float, R: float, life: float) -> void:
-	BijuKokuoFX.cloud(pos, s, R, life)
+	LazyFx.g("BijuKokuoFX").cloud(pos, s, R, life)
 
 
 static func _futton_boil(user: Node3D, c: Dictionary) -> void:
@@ -1163,7 +1163,7 @@ static func _futton_boil(user: Node3D, c: Dictionary) -> void:
 	var dur = 7.0
 	var dmg: float = c["dmg"]
 	Sfx.play("water", center, 0.5)
-	BijuKokuoFX.ring(center, R * 2.0)
+	LazyFx.g("BijuKokuoFX").ring(center, R * 2.0)
 	_fog(center, R, Color(1.0, 0.95, 0.93), 0.5, dur)
 	_steam_cloud(center + Vector3.UP * s, s, R, 1.8)
 	_ticker(center, dur, 0.5, func(_n: Node3D, el: float) -> void:
@@ -1189,7 +1189,7 @@ static func _horn_ram(user: Node3D, c: Dictionary) -> void:
 		var hits = _hit(user, p + d * 1.5 * s + Vector3.UP * s, 2.8 * s, {"dmg": dmg, "element": "futton", "knock": 45.0, "launch": 12.0, "kind": "heavy", "dir": d, "hitstop": 0.1}, hitlist)
 		if not hits.is_empty():
 			hitlist.append_array(hits)
-			BijuKokuoFX.flash(p + d * 2.0 * s + Vector3.UP * s, 3.0 * s)
+			LazyFx.g("BijuKokuoFX").flash(p + d * 2.0 * s + Vector3.UP * s, 3.0 * s)
 			_shake(0.6)
 	var done = func(p: Vector3) -> void:
 		_steam_cloud(p + Vector3.UP * s, s, 4.0 * s, 1.4)
@@ -1201,8 +1201,8 @@ static func _steam_burst(user: Node3D, c: Dictionary) -> void:
 	var o = user.global_position + Vector3.UP * s
 	var R = 8.0 * s
 	var dmg: float = c["dmg"]
-	BijuKokuoFX.flash(o, 3.0 * s, 0.3)
-	BijuKokuoFX.ring(_gp(o), R * 2.2, 0.45)
+	LazyFx.g("BijuKokuoFX").flash(o, 3.0 * s, 0.3)
+	LazyFx.g("BijuKokuoFX").ring(_gp(o), R * 2.2, 0.45)
 	for k in 3:
 		_tree().create_timer(0.08 * k).timeout.connect(func(): _steam_cloud(o, s * (1.0 + k * 0.3), R * (0.4 + k * 0.3), 1.6))
 	Sfx.play("boom", o, 1.3)
@@ -1234,7 +1234,7 @@ static func _fukuso(user: Node3D, c: Dictionary) -> void:
 			core.scale = Vector3.ONE * 0.3 * s
 			vis.add_child(core)
 			var oh = func(pos: Vector3, _t: Node3D) -> void:
-				BijuSaikenFX.acid_pop(pos, s)
+				LazyFx.g("BijuSaikenFX").acid_pop(pos, s)
 				Sfx.play("water", pos, 1.6, 0.6)
 				for f in _hit(user, pos, 2.6 * s, {"dmg": dmg * 0.2, "element": "suiton", "knock": 3.0, "kind": "light"}):
 					_corrode(f, 5.0, dmg * 0.06, ACID)
@@ -1262,12 +1262,12 @@ static func _slime(user: Node3D, c: Dictionary) -> void:
 	var tw = pool.create_tween()
 	tw.tween_property(pool, "scale", Vector3(R * 2.0, 0.25 * s, R * 2.0), 0.4).set_ease(Tween.EASE_OUT)
 	_fade_free(pool, dur, true)
-	BijuSaikenFX.splash(center, s)
+	LazyFx.g("BijuSaikenFX").splash(center, s)
 	Sfx.play("water", center, 0.4)
 	_ticker(center, dur, 0.4, func(_n: Node3D, el: float) -> void:
 		if randf() < 0.5:
 			var a = randf() * TAU
-			BijuSaikenFX.bubble(center + Vector3(cos(a), 0.3, sin(a)) * R * randf() * 0.8, s)
+			LazyFx.g("BijuSaikenFX").bubble(center + Vector3(cos(a), 0.3, sin(a)) * R * randf() * 0.8, s)
 		for f in _foes(user, center + Vector3.UP * 0.5, R):
 			f.apply_status("mud", 0.6)
 			f.apply_status("slow", 0.6)
@@ -1287,7 +1287,7 @@ static func _acid_mist(user: Node3D, c: Dictionary) -> void:
 	_fog(center, R, Color(0.65, 0.95, 0.4), 0.38, dur)
 	var acid_puff = {"amount": 16, "life": 1.8, "size": 2.4 * s, "radius": R * 0.75, "vmin": 0.2, "vmax": 1.2, "gravity": Vector3(0, 0.6, 0),
 		"colors": [Color(0.8, 1, 0.6, 0.8), Color(0.7, 0.95, 0.45, 0.6), Color(0.5, 0.8, 0.3, 0.0)], "glow": 1.0, "outline_col": Color(0.2, 0.35, 0.1)}
-	BijuSaikenFX.acid_mist(center, R, s, dur)
+	LazyFx.g("BijuSaikenFX").acid_mist(center, R, s, dur)
 	_ticker(center, dur, 0.5, func(_n: Node3D, el: float) -> void:
 		for f in _hit(user, center + Vector3.UP * s, R, {"dmg": dmg * 0.06, "element": "suiton", "knock": 0.0, "kind": "light"}):
 			_corrode(f, 3.0, dmg * 0.05, ACID))
@@ -1348,7 +1348,7 @@ static func _hane_flight(user: Node3D, c: Dictionary) -> void:
 		user.velocity.y = 12.0
 		Buffs.add("hane", 7.0, {"speed": 1.35})
 		Sfx.play("wind", user.global_position, 1.5)
-		BijuChomeiFX.wing_gust(user.global_position, 1.0)
+		LazyFx.g("BijuChomeiFX").wing_gust(user.global_position, 1.0)
 		return
 	# dev Chōmei / düşman: havaya yükselir, sonra hedefe dalış
 	var tgt = _pick(user, c, 60.0 * s)
@@ -1356,13 +1356,13 @@ static func _hane_flight(user: Node3D, c: Dictionary) -> void:
 	var up = user.global_position + Vector3.UP * 8.0 * s
 	var dmg: float = c["dmg"]
 	Sfx.play("wind", user.global_position, 0.6)
-	BijuChomeiFX.wing_gust(_gp(user.global_position) + Vector3.UP, s, Vector3.UP)
+	LazyFx.g("BijuChomeiFX").wing_gust(_gp(user.global_position) + Vector3.UP, s, Vector3.UP)
 	var tw = user.create_tween()
 	tw.tween_property(user, "global_position", up, 0.7).set_ease(Tween.EASE_OUT)
 	tw.tween_interval(0.5)
 	tw.tween_property(user, "global_position", to, 0.45).set_ease(Tween.EASE_IN)
 	tw.tween_callback(func():
-		BijuChomeiFX.landing(to, s)
+		LazyFx.g("BijuChomeiFX").landing(to, s)
 		_hit(user, to + Vector3.UP * s, 6.0 * s, {"dmg": dmg, "element": "fuuton", "knock": 34.0, "launch": 10.0, "kind": "heavy"})
 		Sfx.play("boom", to, 0.6)
 		_shake(1.0))
@@ -1375,12 +1375,12 @@ static func _rinpun(user: Node3D, c: Dictionary) -> void:
 	var R = 16.0 * s
 	var dmg: float = c["dmg"]
 	Sfx.play("wind", from, 1.3)
-	BijuChomeiFX.scale_spray(from, dir, s)
+	LazyFx.g("BijuChomeiFX").scale_spray(from, dir, s)
 	_tree().create_timer(0.35).timeout.connect(func():
 		if not is_instance_valid(user):
 			return
 		var ctr = from + dir * R * 0.6
-		BijuChomeiFX.blind_flash(ctr, s)
+		LazyFx.g("BijuChomeiFX").blind_flash(ctr, s)
 		Sfx.play("chidori", ctr, 1.6, 0.6)
 		for f in _hit(user, ctr, R * 0.6, {"dmg": dmg * 0.4, "element": "fuuton", "knock": 4.0, "kind": "light"}):
 			_blind(f, 3.0))
@@ -1397,9 +1397,9 @@ static func _mushi_swarm(user: Node3D, c: Dictionary) -> void:
 			if not is_instance_valid(user):
 				return
 			var dir = ((c["aim"] - from).normalized() + Vector3(randf_range(-0.6, 0.6), randf_range(-0.2, 0.5), randf_range(-0.6, 0.6))).normalized()
-			var vis = BijuChomeiFX.bug(0.7 * sqrt(s))
+			var vis = LazyFx.g("BijuChomeiFX").bug(0.7 * sqrt(s))
 			var oh = func(pos: Vector3, t: Node3D) -> void:
-				BijuChomeiFX.bite(pos)
+				LazyFx.g("BijuChomeiFX").bite(pos)
 				if t and is_instance_valid(user) and user is Player:
 					user.chakra = minf(user.max_chakra, user.chakra + 1.5)   # böcekler chakra emip getirir
 			var pr = _shot(user, from, dir * 28.0, 0.35 * s, {"dmg": dmg * 0.08, "element": "fuuton", "knock": 1.0, "kind": "light"}, vis, oh, 0.0, 3.5)
@@ -1437,14 +1437,14 @@ static func _sumi(user: Node3D, c: Dictionary) -> void:
 		user.input_locked = maxf(user.input_locked, dur)
 	Sfx.play("water", fixed_from, 0.6)
 	var blinded := {}
-	var jet = _stream(BijuGyukiFX.ink_mat(), 2.4 * s)
+	var jet = _stream(LazyFx.g("BijuGyukiFX").ink_mat(), 2.4 * s)
 	var tk = _ticker(fixed_from, dur, 0.08, func(_n: Node3D, el: float) -> void:
 		if not is_instance_valid(user):
 			return
 		var from = _live_from(user, c, s)
 		var dir = (aim - from).normalized()
 		_aim_stream(jet, from + dir * 0.5 * s, dir, 20.0 * s * minf(1.0, el / 0.2), clampf(minf(el / 0.15, (dur - el) / 0.2), 0.05, 1.0))
-		BijuGyukiFX.ink_spray(from + dir * s, dir, s)
+		LazyFx.g("BijuGyukiFX").ink_spray(from + dir * s, dir, s)
 		if fmod(el, 0.4) < 0.08:
 			_ink_puddle(from + dir * randf_range(8.0, 18.0) * s, s * 0.8, 6.0)
 		for k in 3:
@@ -1475,7 +1475,7 @@ static func _tako_ude(user: Node3D, c: Dictionary) -> void:
 	Sfx.play("whoosh", user.global_position, 0.6)
 	var grab = func(tip: Vector3) -> Node3D:
 			var hits = _hit(user, tip, 2.2 * s, {"dmg": dmg * 0.25, "element": "raiton", "knock": 0.0, "kind": "light"})
-			BijuGyukiFX.grab_hit(tip, s)
+			LazyFx.g("BijuGyukiFX").grab_hit(tip, s)
 			for f in hits:
 				if not _is_giant(f):
 					_bind(f, 1.0)
@@ -1488,7 +1488,7 @@ static func _tako_ude(user: Node3D, c: Dictionary) -> void:
 			var p = user.global_position + _fwd(user) * 2.5 * s
 			if g and is_instance_valid(g):
 				p = g.global_position
-			BijuGyukiFX.slam(_gp(p), s * 1.1)
+			LazyFx.g("BijuGyukiFX").slam(_gp(p), s * 1.1)
 			_hit(user, p + Vector3.UP * s, 3.5 * s, {"dmg": dmg * 0.5, "element": "raiton", "knock": 26.0, "launch": 14.0, "kind": "heavy", "hitstop": 0.12})
 			Combat.popup_text(p + Vector3.UP * 3.0 * s, "LARIAT!", Color(0.9, 0.6, 1.0))
 			Sfx.play("hit_heavy", p, 0.7)
@@ -1499,7 +1499,7 @@ static func _tako_ude(user: Node3D, c: Dictionary) -> void:
 static func _tako_bunshin(user: Node3D, c: Dictionary) -> void:
 	var s: float = c["s"]
 	var o = user.global_position
-	BijuGyukiFX.ink_cloud(o + Vector3.UP * 1.5 * s, s)
+	LazyFx.g("BijuGyukiFX").ink_cloud(o + Vector3.UP * 1.5 * s, s)
 	_ink_puddle(o, s, 6.0)
 	Sfx.play("poof", o, 0.8)
 	# yakındaki düşmanlar hedefini kaybeder
@@ -1550,7 +1550,7 @@ static func _chakra_kaina(user: Node3D, c: Dictionary) -> void:
 	Sfx.play("rasengan", user.global_position, 0.5, 0.6)
 	var grab = func(tip: Vector3) -> Node3D:
 			var hits = _hit(user, tip, 2.4 * s, {"dmg": dmg * 0.25, "element": "katon", "knock": 0.0, "kind": "light"})
-			BijuKuramaFX.grab_flash(tip, col, s)
+			LazyFx.g("BijuKuramaFX").grab_flash(tip, col, s)
 			for f in hits:
 				if not _is_giant(f):
 					_bind(f, 1.0)
@@ -1561,7 +1561,7 @@ static func _chakra_kaina(user: Node3D, c: Dictionary) -> void:
 				return
 			if g and is_instance_valid(g):
 				var p = g.global_position
-				BijuKuramaFX.slam(_gp(p), col, s)
+				LazyFx.g("BijuKuramaFX").slam(_gp(p), col, s)
 				_hit(user, p + Vector3.UP * s, 3.5 * s, {"dmg": dmg * 0.65, "element": "katon", "burn": 2.0, "knock": 20.0, "launch": 12.0, "kind": "heavy", "hitstop": 0.12})
 				Sfx.play("hit_heavy", p, 0.6)
 				_shake(0.7)
@@ -1581,7 +1581,7 @@ static func _biju_hoko(user: Node3D, c: Dictionary) -> void:
 			if not is_instance_valid(user):
 				return
 			var p = from + dir * (3.0 + k * 5.0) * s
-			BijuKuramaFX.roar_wave(p, col.lightened(0.3) if k % 2 == 0 else Color(1, 1, 1), (4.0 + k * 3.0) * s, dir)
+			LazyFx.g("BijuKuramaFX").roar_wave(p, col.lightened(0.3) if k % 2 == 0 else Color(1, 1, 1), (4.0 + k * 3.0) * s, dir)
 			for f in _hit(user, p, (2.0 + k * 1.6) * s, {"dmg": dmg * 0.3, "element": "fuuton", "knock": 40.0, "launch": 6.0, "kind": "heavy", "dir": dir}):
 				if not _is_giant(f):
 					f.apply_status("stun", 1.0 if not f is Player else 0.4))
@@ -1597,7 +1597,7 @@ static func _bijudama_rasengan(user: Node3D, c: Dictionary) -> void:
 	var col: Color = c.get("col", FOX)
 	# Bijūdama'nın koyu topu + çevresinde canavar chakrası renginde dönen Rasengan halkası (Naruto: Bijūdama Rasengan)
 	var vis = BijudamaFX.ball(1.6 * s)
-	var ring = BijuKuramaFX.rasen_ring(2.3 * s, col.lightened(0.2))
+	var ring = LazyFx.g("BijuKuramaFX").rasen_ring(2.3 * s, col.lightened(0.2))
 	ring.scale = Vector3(1.0, 0.35, 1.0)
 	vis.add_child(ring)
 	Sfx.play("rasengan", from, 0.5)
@@ -1663,7 +1663,7 @@ static func _ryusa_soso(user: Node3D, c: Dictionary) -> void:
 				tw.tween_property(m, "scale", Vector3(2.8 * s, 4.5 * s * randf_range(0.7, 1.3), 2.8 * s), 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 				tw.tween_property(m, "scale", Vector3(3.2 * s, 0.9 * s, 3.2 * s), 0.6)
 				_fade_free(m, 8.0)
-			BijuShukakuFX.flood_ring(ctr, rr, s))
+			LazyFx.g("BijuShukakuFX").flood_ring(ctr, rr, s))
 	var caught: Array = []
 	_later(0.55, user, func():
 		for f in _hit(user, ctr + Vector3.UP * s, R, {"dmg": dmg * 0.5, "element": "doton", "knock": 2.0, "kind": "light"}):
@@ -1671,13 +1671,13 @@ static func _ryusa_soso(user: Node3D, c: Dictionary) -> void:
 			caught.append(f))
 	_later(2.3, user, func():
 		# Sabaku Sōsō: kum sıkışır — gömülenler ezilir
-		BijuShukakuFX.crush(ctr, R, s)
+		LazyFx.g("BijuShukakuFX").crush(ctr, R, s)
 		Sfx.play("boom", ctr, 0.6)
 		_shake(1.0)
 		for f in caught:
 			if is_instance_valid(f) and not f.is_dead():
 				_hit(user, f.global_position + Vector3.UP * float(f.height) * 0.5, 1.2, {"dmg": dmg * 1.4, "element": "doton", "knock": 6.0, "launch": 4.0, "kind": "heavy", "hitstop": 0.12})
-				BijuShukakuFX.sand_fall(f.global_position + Vector3.UP, s, 20)
+				LazyFx.g("BijuShukakuFX").sand_fall(f.global_position + Vector3.UP, s, 20)
 				Combat.popup_text(f.global_position + Vector3.UP * (float(f.height) + 1.0), "SABAKU SŌSŌ!", SAND))
 	# kum çölü: alan uzun süre gevşek kum — içindekiler yavaşlar
 	_later(0.7, user, func():
@@ -1711,8 +1711,8 @@ static func _aobi_rinkaku(user: Node3D, c: Dictionary) -> void:
 		_later(0.035 * i, user, func():
 			var a = TAU * i / n
 			var p = ctr + Vector3(cos(a), 0, sin(a)) * R
-			BijuMatatabiFX.pillar(p, s)
-			BijuMatatabiFX.burn_patch(_gp(p), s, 9.0))
+			LazyFx.g("BijuMatatabiFX").pillar(p, s)
+			LazyFx.g("BijuMatatabiFX").burn_patch(_gp(p), s, 9.0))
 	# halka: kenardan geçen yanar (alan sayacını tek tek doldurmasın diye tek ticker)
 	_ticker(ctr, 9.0, 0.5, func(_n: Node3D, _e: float) -> void:
 		for f in _foes(user, ctr + Vector3.UP * s, R + 2.0 * s):
@@ -1720,7 +1720,7 @@ static func _aobi_rinkaku(user: Node3D, c: Dictionary) -> void:
 			if absf(d - R) < 2.6 * s:
 				_hit(user, f.global_position + Vector3.UP, 0.8, {"dmg": dmg * 0.12, "element": "katon", "burn": 2.5, "knock": 6.0, "kind": "light"}))
 	_later(0.9, user, func():
-		BijuMatatabiFX.blast(ctr, s, R)
+		LazyFx.g("BijuMatatabiFX").blast(ctr, s, R)
 		_hit(user, ctr + Vector3.UP * s, R * 0.8, {"dmg": dmg * 1.2, "element": "katon", "burn": 5.0, "knock": 10.0, "launch": 8.0, "kind": "heavy"})
 		_shake(0.8))
 
@@ -1742,7 +1742,7 @@ static func _sango_mori(user: Node3D, c: Dictionary) -> void:
 	var s: float = c["s"]
 	var ctr = _center(user, c, 60.0 * s)
 	var dmg: float = c["dmg"]
-	BijuIsobuFX.sango_burst(ctr, 6.0 * s, s)
+	LazyFx.g("BijuIsobuFX").sango_burst(ctr, 6.0 * s, s)
 	Sfx.play("earth", ctr, 0.6)
 	var n = 22
 	for i in n:
@@ -1751,7 +1751,7 @@ static func _sango_mori(user: Node3D, c: Dictionary) -> void:
 			var r = (0.8 + i * 0.5) * s
 			var p = _gp(ctr + Vector3(cos(a), 0, sin(a)) * r)
 			_coral(p, randf_range(3.0, 6.0) * s, 10.0, CORAL if i % 2 else CORAL2)
-			BijuIsobuFX.splash(p, 0.8 * s)
+			LazyFx.g("BijuIsobuFX").splash(p, 0.8 * s)
 			for f in _hit(user, p + Vector3.UP * s, 2.0 * s, {"dmg": dmg * 0.18, "element": "suiton", "knock": 3.0, "launch": 6.0, "kind": "heavy"}):
 				_bind(f, 2.5)
 				Combat.popup_text(f.global_position + Vector3.UP * (float(f.height) + 1.0), "MERCANA SIKIŞTI!", CORAL))
@@ -1768,7 +1768,7 @@ static func _suiro_kyudan(user: Node3D, c: Dictionary) -> void:
 	ball.global_position = ctr + Vector3.UP * R * 0.6
 	ball.scale = Vector3.ONE * 0.2
 	ball.create_tween().tween_property(ball, "scale", Vector3.ONE * R * 2.0, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	BijuIsobuFX.splash(ctr, 3.0 * s)
+	LazyFx.g("BijuIsobuFX").splash(ctr, 3.0 * s)
 	Sfx.play("water", ctr, 0.5)
 	var held = _foes(user, ball.global_position, R)
 	for f in held:
@@ -1780,7 +1780,7 @@ static func _suiro_kyudan(user: Node3D, c: Dictionary) -> void:
 				_hit(user, f.global_position + Vector3.UP, 0.6, {"dmg": dmg * 0.07, "element": "suiton", "knock": 0.0, "kind": "light"}))
 	_later(3.3, user, func():
 		if is_instance_valid(ball):
-			BijuIsobuFX.prison_burst(ball.global_position, R, s)
+			LazyFx.g("BijuIsobuFX").prison_burst(ball.global_position, R, s)
 			_hit(user, ball.global_position, R * 1.3, {"dmg": dmg * 0.8, "element": "suiton", "knock": 30.0, "launch": 10.0, "kind": "heavy"})
 			ball.queue_free()
 		_shake(0.6))
@@ -1793,14 +1793,14 @@ static func _kazan_u(user: Node3D, c: Dictionary) -> void:
 	var dmg: float = c["dmg"]
 	var R = 14.0 * s
 	Sfx.play("fire", user.global_position, 0.4)
-	BijuSonGokuFX.spew(_live_from(user, c, s), s, 24)   # ağızdan göğe lav fışkırması
+	LazyFx.g("BijuSonGokuFX").spew(_live_from(user, c, s), s, 24)   # ağızdan göğe lav fışkırması
 	for i in 16:
 		_later(0.6 + 0.11 * i, user, func():
 			var tg = _gp(ctr + Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)) * R)
 			var from = tg + Vector3(randf_range(-6, 6) * s, 34.0 * s, randf_range(-6, 6) * s)
-			var vis = BijuSonGokuFX.lava_rock(1.3 * s)
+			var vis = LazyFx.g("BijuSonGokuFX").lava_rock(1.3 * s)
 			var oh = func(pos: Vector3, _t: Node3D) -> void:
-				BijuSonGokuFX.splash(pos, 1.1 * s)
+				LazyFx.g("BijuSonGokuFX").splash(pos, 1.1 * s)
 				if i % 3 == 0:
 					_lava_pool(user, pos, s * 0.9, dmg * 0.14, 8.0)
 				_shake(0.25)
@@ -1816,9 +1816,9 @@ static func _yoton_funka(user: Node3D, c: Dictionary) -> void:
 	for i in 9:
 		var p = _gp(o + dir * (5.0 + i * 4.5) * s)
 		_later(0.09 * i, user, func():
-			BijuSonGokuFX.fissure(p, 3.5 * s, 4.0))
+			LazyFx.g("BijuSonGokuFX").fissure(p, 3.5 * s, 4.0))
 		_later(0.09 * i + 0.5, user, func():
-			BijuSonGokuFX.geyser(p, 14.0 * s, 1.7 * s)
+			LazyFx.g("BijuSonGokuFX").geyser(p, 14.0 * s, 1.7 * s)
 			_hit(user, p + Vector3.UP * 2.0 * s, 3.2 * s, {"dmg": dmg * 0.45, "element": "yoton", "burn": 4.0, "knock": 6.0, "launch": 20.0, "kind": "heavy"})
 			if i % 3 == 2:
 				_lava_pool(user, p, s, dmg * 0.12, 7.0)
@@ -1836,7 +1836,7 @@ static func _futton_mojo(user: Node3D, c: Dictionary) -> void:
 	for k in 4:
 		_later(0.15 * k, user, func():
 			_steam_cloud(o + Vector3.UP * (1.0 + k) * s, s * (1.2 + k * 0.3), R * (0.4 + k * 0.2), 2.5)
-			BijuKokuoFX.ring(o, R * (0.6 + k * 0.4), 0.4))
+			LazyFx.g("BijuKokuoFX").ring(o, R * (0.6 + k * 0.4), 0.4))
 	_hit(user, o + Vector3.UP * s, R * 0.7, {"dmg": dmg * 0.9, "element": "futton", "knock": 40.0, "launch": 10.0, "kind": "heavy", "hitstop": 0.1})
 	_shake(1.0)
 	_ticker(o, 7.0, 0.5, func(_n: Node3D, el: float) -> void:
@@ -1875,7 +1875,7 @@ static func _nenko_shinshoku(user: Node3D, c: Dictionary) -> void:
 	var o = _gp(user.global_position)
 	var dir = _flat(c["aim"] - o)
 	var dmg: float = c["dmg"]
-	BijuSaikenFX.splash(o + dir * 4.0 * s, 1.5 * s)
+	LazyFx.g("BijuSaikenFX").splash(o + dir * 4.0 * s, 1.5 * s)
 	Sfx.play("water", o, 0.4)
 	for k in 3:
 		_later(0.25 * k, user, func():
@@ -1896,7 +1896,7 @@ static func _rinpun_kosen(user: Node3D, c: Dictionary) -> void:
 		_later(0.25 * k, user, func():
 			var a = TAU * k / 6.0
 			var p = ctr + Vector3(cos(a), 0, sin(a)) * R * 0.45 + Vector3.UP * 3.0 * s
-			BijuChomeiFX.blind_flash(p, s * 0.85)
+			LazyFx.g("BijuChomeiFX").blind_flash(p, s * 0.85)
 			for f in _hit(user, p, R * 0.4, {"dmg": dmg * 0.25, "element": "fuuton", "knock": 4.0, "kind": "light"}):
 				_blind(f, 3.5))
 	Sfx.play("chidori", ctr, 1.6, 0.6)
@@ -1926,7 +1926,7 @@ static func _sumi_nami(user: Node3D, c: Dictionary) -> void:
 			for k in 3:
 				var q = p + side * (k - 1) * 5.0 * s
 				_ink_puddle(q, s * 1.3, 8.0)
-				BijuGyukiFX.ink_splash(_gp(q) + Vector3.UP * 2.0 * s, s, dir)
+				LazyFx.g("BijuGyukiFX").ink_splash(_gp(q) + Vector3.UP * 2.0 * s, s, dir)
 			for f in _hit(user, p + Vector3.UP * 2.0 * s, 8.0 * s, {"dmg": dmg * 0.3, "element": "suiton", "knock": 22.0, "launch": 4.0, "kind": "heavy", "dir": dir}, hitlist):
 				hitlist.append(f)
 				_blind(f, 3.0, Color(0, 0, 0, 0.85))
@@ -1958,7 +1958,7 @@ static func _hachi_ude(user: Node3D, c: Dictionary) -> void:
 			tw.tween_property(arm, "scale", Vector3(0.6, L * 0.05, 0.6), 0.2)
 			tw.tween_callback(arm.queue_free)
 			_later(0.12, user, func():
-				BijuGyukiFX.slam(p, s)
+				LazyFx.g("BijuGyukiFX").slam(p, s)
 				_hit(user, p + Vector3.UP * s, 3.2 * s, {"dmg": dmg * 0.35, "element": "raiton", "knock": 16.0, "launch": 9.0, "kind": "heavy", "hitstop": 0.06})
 				Sfx.play("hit_heavy", p, 0.7)
 				_shake(0.3)))
@@ -1975,7 +1975,7 @@ static func _kyubi_biso(user: Node3D, c: Dictionary) -> void:
 		_later(0.11 * k, user, func():
 			var a = atan2(fwd.x, fwd.z) + (k - 4) * 0.42
 			var p = _gp(o + Vector3(sin(a), 0, cos(a)) * 11.0 * s)
-			BijuKuramaFX.tail_slam(p, col, s)
+			LazyFx.g("BijuKuramaFX").tail_slam(p, col, s)
 			_hit(user, p + Vector3.UP * s, 4.0 * s, {"dmg": dmg * 0.4, "element": "katon", "burn": 2.0, "knock": 35.0, "launch": 12.0, "kind": "heavy", "dir": (p - o).normalized()})
 			Sfx.play("boom", p, 0.8)
 			_shake(0.35))
@@ -2034,7 +2034,7 @@ static func _jubi_bijudama(user: Node3D, c: Dictionary) -> void:
 			BijudamaFX.explode(pos, R)
 			_hit(user, pos, R, {"dmg": float(c["dmg"]) * 2.4, "knock": 55.0, "launch": 16.0, "kind": "heavy", "attacker": user})
 			var g = _gp(pos)
-			BijuJubiFX.crater(g, R)
+			LazyFx.g("BijuJubiFX").crater(g, R)
 			_shake(2.2)
 		var prb = _shot(user, from + dir * 2.0 * s, dir * float(c.get("speed", 75.0)), 2.2 * s, {"dmg": float(c["dmg"]) * 0.6, "knock": 30.0, "kind": "heavy"}, vis, boom, 0.0, 5.0)
 		BijudamaFX.launch(from + dir * 2.0 * s, dir, size, prb)
@@ -2067,9 +2067,9 @@ static func _tenpenchii(user: Node3D, c: Dictionary) -> void:
 		for q in 2:
 			var a = randf() * TAU
 			var at = _gp((near if q == 0 else center) + Vector3(cos(a), 0, sin(a)) * (randf_range(0.0, 5.0 * s) if q == 0 else randf_range(0.0, R)))
-			BijuJubiFX.pre_strike(at + Vector3.UP * 0.3, s)
+			LazyFx.g("BijuJubiFX").pre_strike(at + Vector3.UP * 0.3, s)
 			_later(0.45, user, func():
-				BijuJubiFX.bolt(at + Vector3(randf_range(-6, 6), 70.0, randf_range(-6, 6)), at, 0.9 * s)
+				LazyFx.g("BijuJubiFX").bolt(at + Vector3(randf_range(-6, 6), 70.0, randf_range(-6, 6)), at, 0.9 * s)
 				_hit(user, at + Vector3.UP * s, 3.2 * s, {"dmg": dmg * 0.9, "element": "raiton", "knock": 14.0, "launch": 6.0, "kind": "heavy", "stun": 0.5, "attacker": user})
 				Sfx.play("thunder", at, 0.5, 0.25)
 				_shake(0.5))
@@ -2077,14 +2077,14 @@ static func _tenpenchii(user: Node3D, c: Dictionary) -> void:
 		for tw in twisters:
 			tw["a"] = float(tw["a"]) + float(tw["w"]) * 0.3
 			var tp = _gp(center + Vector3(cos(float(tw["a"])), 0, sin(float(tw["a"]))) * float(tw["r"]))
-			BijuJubiFX.tornado(tp, 3.2 * s, 16.0 * s, 0.55)
+			LazyFx.g("BijuJubiFX").tornado(tp, 3.2 * s, 16.0 * s, 0.55)
 			for f in _foes(user, tp + Vector3.UP * 2.0 * s, 4.2 * s):
 				f.take_hit({"dmg": dmg * 0.25, "element": "fuuton", "knock": 6.0, "launch": 9.0, "kind": "heavy", "attacker": user, "dir": Vector3.UP})
 		# deprem: 1.5 sn'de bir yer yarılır
 		if fmod(el, 1.5) < 0.3:
 			var a2 = randf() * TAU
 			var qp = _gp(near + Vector3(cos(a2), 0, sin(a2)) * randf_range(0.0, 8.0 * s))
-			BijuJubiFX.quake(qp, s)
+			LazyFx.g("BijuJubiFX").quake(qp, s)
 			for f in _foes(user, qp + Vector3.UP, 5.0 * s):
 				if f.has_method("is_on_floor") and f.is_on_floor():
 					f.take_hit({"dmg": dmg * 0.4, "element": "doton", "knock": 4.0, "launch": 8.0, "kind": "heavy", "attacker": user})
@@ -2106,29 +2106,29 @@ static func melee(user: Node3D, id: String, pt: Vector3, r: float, dmg: float, d
 	var s = r / 3.0
 	match String(m[2]):
 		"sand":
-			BijuShukakuFX.sand_fall(pt, s, 20)
+			LazyFx.g("BijuShukakuFX").sand_fall(pt, s, 20)
 		"burn":
 			_claw_marks(pt, dir, s * 0.8, "blue" if id == "matatabi" else "fire")
 		"coral":
-			BijuIsobuFX.splash(pt, 1.2 * s)
+			LazyFx.g("BijuIsobuFX").splash(pt, 1.2 * s)
 			for k in 3:
 				_coral(_gp(pt + Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)) * r * 0.6), r * 0.6, 3.0, CORAL if k % 2 else CORAL2)
 		"steam":
 			_steam_cloud(pt, s * 0.6, r * 0.6, 1.2)
 		"acid":
-			BijuSaikenFX.acid_pop(pt, s)
+			LazyFx.g("BijuSaikenFX").acid_pop(pt, s)
 			for f in hits:
 				_corrode(f, 3.0, dmg * 0.04, ACID)
 		"wind":
 			for k in 3:
-				BijuChomeiFX.wing_gust(pt + dir * k * r * 0.4, s, dir)
+				LazyFx.g("BijuChomeiFX").wing_gust(pt + dir * k * r * 0.4, s, dir)
 		"ink":
-			BijuGyukiFX.ink_splash(pt, s, dir)
+			LazyFx.g("BijuGyukiFX").ink_splash(pt, s, dir)
 			for f in hits:
 				f.apply_status("slow", 2.0)
 		"shock":
-			BijuJubiFX.shock(pt, s)
-	BeastFX.paw_hit(pt, col, maxf(0.6, s * 0.5))
+			LazyFx.g("BijuJubiFX").shock(pt, s)
+	LazyFx.g("BeastFX").paw_hit(pt, col, maxf(0.6, s * 0.5))
 	return hits
 
 

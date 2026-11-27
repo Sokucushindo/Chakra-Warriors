@@ -45,7 +45,7 @@ static func _tip() -> Mesh:
 	return Kit.cached_mesh("garian_uc", func():
 		var b = MB.new()
 		b.add_slab(PackedVector2Array([Vector2(-0.032, -0.02), Vector2(0.032, -0.02), Vector2(0.032, 0.1), Vector2(0.0, 0.24), Vector2(-0.032, 0.1)]), 0.016, BLUE)
-		return b.build(Props.toon()))
+		return b.build(LazyFx.g("Props").toon()))
 
 
 static func _plate() -> Mesh:
@@ -53,14 +53,14 @@ static func _plate() -> Mesh:
 		var b = MB.new()
 		b.add("box", Vector3.ZERO, Vector3(0.082, 0.05, 0.014), BLUE)
 		b.add("box", Vector3(0, 0, 0.008), Vector3(0.05, 0.022, 0.004), BLUE_L)
-		return b.build(Props.toon()))
+		return b.build(LazyFx.g("Props").toon()))
 
 
 static func _dragon_body() -> Mesh:
 	return Kit.cached_mesh("garian_govde", func():
 		var b = MB.new()
 		b.add("sphere", Vector3.ZERO, Vector3(0.12, 0.2, 0.2), PALE, Vector3.ZERO, 8)
-		return b.build(Props.toon()))
+		return b.build(LazyFx.g("Props").toon()))
 
 
 ## Ejder başı (+Z ileri): uzun yassı burun, tepe boynuzu, diş sırası, yeşil göz
@@ -74,7 +74,7 @@ static func _dragon_head() -> Mesh:
 			b.add("sphere", Vector3(sx * 0.115, 0.05, 0.2), Vector3(0.03, 0.04, 0.05), Color(0.2, 0.68, 0.46), Vector3.ZERO, 8)
 			for k in 6:
 				b.add("cone", Vector3(sx * (0.085 - k * 0.008), -0.05, 0.1 + k * 0.05), Vector3(0.024, 0.05, 0.024), Color(0.96, 0.97, 1.0), Vector3(180, 0, 0), 4)
-		return b.build(Props.toon()))
+		return b.build(LazyFx.g("Props").toon()))
 
 
 static func _node(who: Node3D) -> MeshInstance3D:

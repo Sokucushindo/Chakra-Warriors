@@ -40,7 +40,7 @@ static func _mesh() -> Mesh:
 	return Kit.cached_mesh("mesu", func():
 		var b = MB.new()
 		model(b)
-		return b.build(Props.toon()))
+		return b.build(LazyFx.g("Props").toon()))
 
 
 static func _nick(p: Vector3) -> void:

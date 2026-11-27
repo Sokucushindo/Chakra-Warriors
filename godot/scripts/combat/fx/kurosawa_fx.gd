@@ -207,8 +207,8 @@ static func parry(t: Node3D, info: Dictionary) -> bool:
 	_arc(ax[2], ax[0], ax[1], 1.7, -0.9, 0.9, 0.09)
 	Sfx.play("clash", t.global_position + Vector3.UP, 1.35, 0.7)
 	Combat.popup_text(t.global_position + Vector3.UP * 2.2, "Karşılandı", Color(0.85, 0.92, 1.0))
-	var w: Dictionary = Gear.weapon_of(t)
-	var mul = Stats.melee_mult(Game.profile) if t is Player else float(t.get("power")) if t.get("power") != null else 1.0
+	var w: Dictionary = LazyFx.g("Gear").weapon_of(t)
+	var mul = LazyFx.g("Stats").melee_mult(Game.profile) if t is Player else float(t.get("power")) if t.get("power") != null else 1.0
 	var dmg = float(w.get("hit", 6.0)) * mul * 1.7
 	_later(t, 0.08, func():
 		if U.alive(atk):

@@ -47,15 +47,15 @@ static func form(announce: bool) -> void:
 	for cc in Data.clans:
 		if cc != "none" and not cc in Progress.UNPLAYABLE_CLANS and vid in Data.clans[cc].get("villages", []):
 			clans.append(cc)
-	var fs = Friends.all()
+	var fs = LazyFx.g("Friends").all()
 	var names = []
 	for i in 3:
 		var female = rng.randf() < 0.45
 		var nm = ChuninExam.gen_name(female, rng)
 		var clan = String(clans[rng.randi() % clans.size()]) if not clans.is_empty() and rng.randf() < 0.5 else ""
 		var look = {"gender": "f" if female else "m", "hair_style": styles[rng.randi() % styles.size()], "hair": hairs[rng.randi() % hairs.size()], "top": tops[rng.randi() % tops.size()], "age": "teen"}
-		fs[ids()[i]] = {"name": nm.split(" ")[-1], "role": "spar", "ninja": true, "look": Friends._ser(look), "bond": 15, "village": vid, "party": false,
-			"last_talk": 0.0, "element": els[i], "clan": clan, "eye": [0, 0], "rank": 0, "family": Friends._family(clan, female, 0), "status": "", "log": [],
+		fs[ids()[i]] = {"name": nm.split(" ")[-1], "role": "spar", "ninja": true, "look": LazyFx.g("Friends")._ser(look), "bond": 15, "village": vid, "party": false,
+			"last_talk": 0.0, "element": els[i], "clan": clan, "eye": [0, 0], "rank": 0, "family": LazyFx.g("Friends")._family(clan, female, 0), "status": "", "log": [],
 			"news": "", "title": "Öğrencin", "pupil": true, "pupil_lv": 6.0 + rng.randf_range(0.0, 2.0), "taught": []}
 		names.append(nm.split(" ")[-1])
 	p["pupils"] = {"state": "active", "follow": true, "missions": 0}
@@ -67,7 +67,7 @@ static func form(announce: bool) -> void:
 
 # ------------------------------------------------------------------ dost menüsü seçenekleri (Friends._friend_opts çağırır)
 static func options(id: String) -> Array:
-	var f: Dictionary = Friends.all().get(id, {})
+	var f: Dictionary = LazyFx.g("Friends").all().get(id, {})
 	if not f.get("pupil", false) or String(f.get("status", "")) != "":
 		return []
 	var d = data()
@@ -84,12 +84,12 @@ static func options(id: String) -> Array:
 
 
 static func _teach_menu(id: String) -> void:
-	var f: Dictionary = Friends.all()[id]
+	var f: Dictionary = LazyFx.g("Friends").all()[id]
 	var taught: Array = f.get("taught", [])
 	var lv = float(f.get("pupil_lv", 6.0))
 	var opts = []
 	for jid in pr().get("learned", []):
-		if jid in taught or not GeninSquad._teachable(String(jid)):
+		if jid in taught or not LazyFx.g("GeninSquad")._teachable(String(jid)):
 			continue
 		var j: Dictionary = Data.jutsu.get(jid, {})
 		if j.is_empty() or int(j.get("level", 1)) > int(lv) + 6:
@@ -101,13 +101,13 @@ static func _teach_menu(id: String) -> void:
 			taught.append(jid)
 			f["taught"] = taught
 			f["pupil_lv"] = lv + 0.3
-			Friends.add_bond(id, 3, true)
-			Journal.add("%s'e %s tekniğini öğrettin." % [f["name"], String(j["name"]).split(" (")[0]], "milestone")
+			LazyFx.g("Friends").add_bond(id, 3, true)
+			LazyFx.g("Journal").add("%s'e %s tekniğini öğrettin." % [f["name"], String(j["name"]).split(" (")[0]], "milestone")
 			Hud.dialog(String(f["name"]), "İzledim hocam... bir kez daha! — Tamam, oldu! Bundan sonra savaşta kullanırım.", [])})
 		if opts.size() >= 8:
 			break
 	if opts.is_empty():
-		Hud.dialog(String(f["name"]), "Şu an öğretebileceğiniz bir şey yok hocam (benim doğam: %s, seviyem %d). Önce biraz daha gelişeyim." % [Elements.NAMES.get(String(f.get("element", "")), "—"), int(lv)], [])
+		Hud.dialog(String(f["name"]), "Şu an öğretebileceğiniz bir şey yok hocam (benim doğam: %s, seviyem %d). Önce biraz daha gelişeyim." % [LazyFx.g("Elements").NAMES.get(String(f.get("element", "")), "—"), int(lv)], [])
 		return
 	opts.append({"label": "Sonra", "cb": func(): pass})
 	Hud.dialog(String(f["name"]), "Hangi tekniği göstereceksiniz hocam?", opts)
@@ -115,7 +115,7 @@ static func _teach_menu(id: String) -> void:
 
 ## İdman maçı bitti (Friends._spar_end): öğrenci gelişir
 static func on_spar(id: String, player_won: bool) -> void:
-	var f: Dictionary = Friends.all().get(id, {})
+	var f: Dictionary = LazyFx.g("Friends").all().get(id, {})
 	if not f.get("pupil", false) and not f.get("child", false):
 		return
 	_grow(f, SPAR_GAIN + (0.2 if not player_won else 0.0))
@@ -131,12 +131,12 @@ static func _grow(f: Dictionary, amt: float) -> void:
 		f["rank"] = 1
 		f["title"] = "Öğrencin (Chūnin)" if not f.get("child", false) else String(f.get("title", "")) + " (Chūnin)"
 		Hud.banner("%s CHŪNİN OLDU" % String(f["name"]).to_upper(), "Senin öğrencin Chūnin yeleğini giydi." if not f.get("child", false) else "Çocuğun Chūnin yeleğini giydi.", Color(0.7, 0.95, 0.7))
-		Journal.add("Öğrencim %s Chūnin oldu." % f["name"], "milestone")
+		LazyFx.g("Journal").add("Öğrencim %s Chūnin oldu." % f["name"], "milestone")
 
 
 ## Savaşçı arketipi: Friends.arch öğrencinin kendi seviyesini (pupil_lv) ve öğrendiği teknikleri kullanır (idman maçıyla aynı)
 static func arch_of(f: Dictionary) -> Dictionary:
-	return Friends.arch(f)
+	return LazyFx.g("Friends").arch(f)
 
 
 # ------------------------------------------------------------------ dünyada eşlik
@@ -157,7 +157,7 @@ func _active() -> bool:
 
 
 func _spawn(id: String) -> Node:
-	var f: Dictionary = Friends.all()[id]
+	var f: Dictionary = LazyFx.g("Friends").all()[id]
 	var e = Enemy.new()
 	e.setup(arch_of(f))
 	e.team = "player"
@@ -201,7 +201,7 @@ func _process(dt: float) -> void:
 		return
 	if members.is_empty():
 		for id in ids():
-			if Friends.all().has(id) and String(Friends.all()[id].get("status", "")) == "":
+			if LazyFx.g("Friends").all().has(id) and String(LazyFx.g("Friends").all()[id].get("status", "")) == "":
 				members.append({"id": id, "node": null, "down": 0.0})
 	var pp = Game.player.global_position
 	var i = 0
@@ -220,7 +220,7 @@ func _process(dt: float) -> void:
 		elif n != null and (not is_instance_valid(n) or n.is_dead()):
 			m["node"] = null
 			m["down"] = RETURN_T
-			Hud.msg("%s yaralandı ve geri çekildi. Biraz sonra yanına döner." % String(Friends.all()[m["id"]]["name"]), Color(1, 0.75, 0.5))
+			Hud.msg("%s yaralandı ve geri çekildi. Biraz sonra yanına döner." % String(LazyFx.g("Friends").all()[m["id"]]["name"]), Color(1, 0.75, 0.5))
 		elif float(m["down"]) > 0.0:
 			m["down"] = float(m["down"]) - 0.4
 		else:
@@ -243,10 +243,10 @@ func _mission_end_tick() -> void:
 		if tot >= _mdone:
 			var g = float(MISSION_GAIN.get(_mkey, 0.6))
 			for id in ids():
-				var f: Dictionary = Friends.all().get(id, {})
+				var f: Dictionary = LazyFx.g("Friends").all().get(id, {})
 				if not f.is_empty() and String(f.get("status", "")) == "":
 					_grow(f, g)
-					Friends.add_bond(id, 3, true)
+					LazyFx.g("Friends").add_bond(id, 3, true)
 			data()["missions"] = int(data().get("missions", 0)) + 1
 			Hud.msg("Öğrencilerin görevden tecrübeyle döndü.", Color(0.7, 0.95, 0.7), 4.0)
 		_mkey = ""

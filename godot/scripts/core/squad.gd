@@ -23,7 +23,7 @@ static func data() -> Dictionary:
 	if p.is_empty():
 		return {}
 	var sq: Dictionary = p.get("squad", {})
-	if not sq.is_empty() and not Friends.all().has("sq_sensei"):
+	if not sq.is_empty() and not LazyFx.g("Friends").all().has("sq_sensei"):
 		register_friends()   # eski kayıt: takım kalıcı dost olarak kaydolur
 	return sq
 
@@ -113,7 +113,7 @@ static func register_friends() -> void:
 	var sq: Dictionary = p.get("squad", {})
 	if sq.is_empty():
 		return
-	var fs = Friends.all()
+	var fs = LazyFx.g("Friends").all()
 	for key in ["m0", "m1", "sensei"]:
 		var id = fid(key)
 		if fs.has(id):
@@ -124,21 +124,21 @@ static func register_friends() -> void:
 		var female = String(lk.get("gender", "m")) == "f"
 		var nm = _name_of_static(key)
 		var rank = 2 if key == "sensei" else 0
-		fs[id] = {"name": nm, "role": "teacher" if key == "sensei" else "spar", "ninja": true, "look": Friends._ser(lk), "bond": 10 if key == "sensei" else 20,
+		fs[id] = {"name": nm, "role": "teacher" if key == "sensei" else "spar", "ninja": true, "look": LazyFx.g("Friends")._ser(lk), "bond": 10 if key == "sensei" else 20,
 			"village": Progress.home(), "party": false, "last_talk": 0.0, "element": String((sq["sensei"] if key == "sensei" else sq["mates"][int(key.substr(1))]).get("element", ELS[absi(hash(key)) % ELS.size()])),
 			"clan": "" if key == "sensei" else String(sq["mates"][int(key.substr(1))].get("clan", "")),
-			"eye": [0, 0] if key == "sensei" else [int(ClanWorld.EYE_KIND.get(String(sq["mates"][int(key.substr(1))].get("clan", "")), 0)), 1], "rank": rank, "family": Friends._family("", female, rank), "status": "", "log": [], "news": "",
+			"eye": [0, 0] if key == "sensei" else [int(ClanWorld.EYE_KIND.get(String(sq["mates"][int(key.substr(1))].get("clan", "")), 0)), 1], "rank": rank, "family": LazyFx.g("Friends")._family("", female, rank), "status": "", "log": [], "news": "",
 			"title": "Jōnin hocan" if key == "sensei" else "Takım arkadaşın", "squad_key": key}
 
 
 ## Ölen takım arkadaşı gözlü bir klandansa ve aranız iyiyse (yakınlık >= 30) yanında ölürken bir gözünü sana bırakır.
 ## Göz kavanoza konur; nakil hastanede (Eyes / EyeSurgery sistemi). Bir arkadaş yalnız bir kez.
 func _bequeath_eye(id: String, node) -> void:
-	var f: Dictionary = Friends.all().get(id, {})
+	var f: Dictionary = LazyFx.g("Friends").all().get(id, {})
 	if f.is_empty() or f.get("eye_given", false):
 		return
 	var ek = int(ClanWorld.EYE_KIND.get(String(f.get("clan", "")), 0))
-	if ek <= 0 or Friends.closeness(id) < 30:
+	if ek <= 0 or LazyFx.g("Friends").closeness(id) < 30:
 		return
 	var pl = Game.player
 	if pl == null or (node is Node3D and is_instance_valid(node) and (node as Node3D).global_position.distance_to(pl.global_position) > 40.0):
@@ -148,7 +148,7 @@ func _bequeath_eye(id: String, node) -> void:
 		return
 	f["eye_given"] = true
 	var lvl = clampi(1 + int(pr().get("level", 1)) / 25, 1, 3)
-	Gear.grant(pr(), gid, "", null, null, {"lvl": lvl, "origin": "nakil", "from": String(f.get("name", ""))})
+	LazyFx.g("Gear").grant(pr(), gid, "", null, null, {"lvl": lvl, "origin": "nakil", "from": String(f.get("name", ""))})
 	Hud.dialog(String(f.get("name", "")), "Gözüm... al onu. Ben göremeyeceğim ama sen... benim yerime gör.", [])
 	Hud.msg("%s gözünü sana bıraktı — Tab > Gözler > Saklanan Gözler; nakil hastanede." % String(f.get("name", "")), Color(1, 0.55, 0.55), 7.0)
 
@@ -162,7 +162,7 @@ static func _name_of_static(key: String) -> String:
 
 ## Üye yaşıyor ve köyde mi (ölü / uzun görevde / kaçak değil)
 static func alive_here(key: String) -> bool:
-	var f: Dictionary = Friends.all().get(fid(key), {})
+	var f: Dictionary = LazyFx.g("Friends").all().get(fid(key), {})
 	return f.is_empty() or String(f.get("status", "")) == ""
 
 
@@ -179,7 +179,7 @@ static func request_mission() -> void:
 		return
 	var done = int(sq.get("missions", 0))
 	var rank = "D" if done < 2 else "C"
-	var specs = MissionGen.specs(Progress.home(), [rank], 1)
+	var specs = LazyFx.g("MissionGen").specs(Progress.home(), [rank], 1)
 	if specs.is_empty():
 		Hud.dialog(who, "Bugün masada bize uygun bir iş yok. Yarın tekrar sor.", [])
 		return
@@ -233,8 +233,8 @@ func _mission_tick() -> void:
 	sq["on_mission"] = false
 	sq["missions"] = int(sq.get("missions", 0)) + 1
 	for key in ["m0", "m1", "sensei"]:
-		if Friends.all().has(fid(key)):
-			Friends.add_bond(fid(key), 4, true)   # birlikte görev: bağ güçlenir
+		if LazyFx.g("Friends").all().has(fid(key)):
+			LazyFx.g("Friends").add_bond(fid(key), 4, true)   # birlikte görev: bağ güçlenir
 	Hud.msg("Görev bitti, takım dağıldı. %s: \"İyi iş çıkardınız. Yeni bir iş olunca size haber veririm.\"" % String(sq["sensei"]["name"]), Color(0.6, 1.0, 0.7), 5.0)
 	if int(sq["missions"]) == 2:
 		Hud.msg("Hocan artık C-rank görevler alacak.", Color(1, 0.85, 0.5), 5.0)
@@ -312,7 +312,7 @@ static func sensei_arch(level: int) -> Dictionary:
 	L["band_style"] = "head"
 	L["band"] = hi["band"]
 	L["village"] = Progress.home()
-	Outfits.village_set(L, Progress.home())
+	LazyFx.g("Outfits").village_set(L, Progress.home())
 	return a
 
 
@@ -375,7 +375,7 @@ func _spawn(key: String) -> Node:
 	var lv = int(pr().get("level", 1))
 	var a: Dictionary
 	if key == "sensei":
-		var srk = int(Friends.all().get(fid("sensei"), {}).get("rank", 2))
+		var srk = int(LazyFx.g("Friends").all().get(fid("sensei"), {}).get("rank", 2))
 		a = sensei_arch(clampi(lv + 25 + (srk - 2) * 10, 40, 95))   # jōnin hoca: en az Sv.40; Elit Jōnin olunca güçlenir
 	else:
 		a = mate_arch(int(key.substr(1)), maxi(5, lv - 1 + randi_range(0, 2)))
@@ -447,11 +447,11 @@ func _process(dt: float) -> void:
 		elif n != null and (not is_instance_valid(n) or n.is_dead()):
 			# düştü: geri çekilir, sonra döner
 			var nm = _name_of(m["key"])
-			var f: Dictionary = Friends.all().get(fid(m["key"]), {})
+			var f: Dictionary = LazyFx.g("Friends").all().get(fid(m["key"]), {})
 			if not f.is_empty() and randf() < (0.03 if m["key"] == "sensei" else 0.05):
 				# kalıcı ölüm (nadir): Friends kaydı ölür; yakın ölüm Mangekyō uyanışını tetikleyebilir
 				_bequeath_eye(fid(m["key"]), n)   # gözlü arkadaş: son nefesinde bir gözünü sana bırakır (aranız iyiyse)
-				KinDrama.slain(fid(m["key"]), n, [], Game.player.global_position, "Takım görevinde senin yanında öldü")
+				LazyFx.g("KinDrama").slain(fid(m["key"]), n, [], Game.player.global_position, "Takım görevinde senin yanında öldü")
 				m["node"] = null
 				m["down"] = 1e9
 			else:
@@ -500,7 +500,7 @@ func _talk(key: String) -> void:
 	if mates.size() > 1 and not mates.any(func(m): return bool(m.get("medic", false))):
 		mates[1]["medic"] = true
 	if key != "sensei" and bool(mates[int(key.substr(1))].get("medic", false)):
-		var mf: Dictionary = Friends.all().get(fid(key), {})
+		var mf: Dictionary = LazyFx.g("Friends").all().get(fid(key), {})
 		EyeSurgery.medic_lv = float(mf.get("pupil_lv", mf.get("level", maxf(5.0, float(pr().get("level", 10)) - 1.0))))
 		var eo = EyeSurgery.options("medic")
 		if not eo.is_empty():
@@ -510,7 +510,7 @@ func _talk(key: String) -> void:
 		extra.append({"label": "Bana bir teknik öğretir misin?", "cb": func(): _lesson_menu()})
 		extra.append({"label": "Görev var mı, hocam?", "cb": func(): request_mission()})
 	var fd = fid(key)
-	if Friends.all().has(fd):
+	if LazyFx.g("Friends").all().has(fd):
 		var nd = null
 		for mm in members:
 			if mm["key"] == key:
@@ -518,7 +518,7 @@ func _talk(key: String) -> void:
 		var seen := {}   # hoca aynı zamanda tanıdık: aynı seçenek iki kez yazılmasın
 		for o in extra:
 			seen[o["label"]] = true
-		for o in Friends._friend_opts(fd, nd):
+		for o in LazyFx.g("Friends")._friend_opts(fd, nd):
 			if not seen.has(o["label"]):
 				extra.append(o)
 	Hud.dialog(who, txt, extra + [
@@ -662,7 +662,7 @@ func _teach(jid: String) -> void:
 		if away.length() < 0.5:
 			away = -Game.player.face_dir()
 		away = away.normalized()
-		var mark = TrainingDummy.new()   # hoca bir kukla diker ve tekniği ona gösterir
+		var mark = LazyFx.g("TrainingDummy").new()   # hoca bir kukla diker ve tekniği ona gösterir
 		mark.position = e.global_position + away * 10.0
 		get_tree().current_scene.add_child(mark)
 		FX.smoke_puff(mark.global_position + Vector3.UP, 0.7, 8)
@@ -685,5 +685,5 @@ func _teach(jid: String) -> void:
 	else:
 		await get_tree().create_timer(0.8).timeout
 	if Progress.learn(jid):
-		Journal.add("%s bana %s tekniğini öğretti." % [who, jn], "milestone")
+		LazyFx.g("Journal").add("%s bana %s tekniğini öğretti." % [who, jn], "milestone")
 		Hud.dialog(who, "Şimdi sen dene. İlk denemede olmazsa üzülme; ben de yüz kere yaktım ellerimi. Çalıştıkça ustalaşırsın.", [])

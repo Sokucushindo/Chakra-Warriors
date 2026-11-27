@@ -51,7 +51,7 @@ func _ready() -> void:
 	root = Control.new()
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.theme = UI.theme()
+	root.theme = LazyFx.g("UI").theme()
 	add_child(root)
 	game_hud = Control.new()
 	game_hud.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -60,8 +60,8 @@ func _ready() -> void:
 	root.add_child(game_hud)
 	map_tex = Game.world_map_tex()
 	Game.map_ready.connect(func(): map_tex = Game.world_map_tex())
-	Icons.ensure(self)
-	Thumbs.ensure(self)
+	LazyFx.g("Icons").ensure(self)
+	LazyFx.g("Thumbs").ensure(self)
 	_build_vitals()
 	_build_slots()
 	_build_texts()
@@ -148,27 +148,27 @@ func _build_vitals() -> void:
 	buff_lbl.add_theme_constant_override("outline_size", 4)
 	buff_lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
 	game_hud.add_child(buff_lbl)
-	fps_lbl = UI.label("", 13, Color(0.7, 0.9, 0.7))
+	fps_lbl = LazyFx.g("UI").label("", 13, Color(0.7, 0.9, 0.7))
 	fps_lbl.position = Vector2(26, 190)
 	game_hud.add_child(fps_lbl)
-	cheat_lbl = UI.label("", 13, Color(1.0, 0.5, 0.35), HORIZONTAL_ALIGNMENT_LEFT, true)
+	cheat_lbl = LazyFx.g("UI").label("", 13, Color(1.0, 0.5, 0.35), HORIZONTAL_ALIGNMENT_LEFT, true)
 	cheat_lbl.position = Vector2(26, 208)
 	game_hud.add_child(cheat_lbl)
 	# takım paneli (sol): takım arkadaşlarının adı + canı
-	party_box = UI.vbox(6)
+	party_box = LazyFx.g("UI").vbox(6)
 	party_box.position = Vector2(30, 330)
 	party_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	game_hud.add_child(party_box)
-	party_box.add_child(UI.label("TAKIM", 12, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
+	party_box.add_child(LazyFx.g("UI").label("TAKIM", 12, LazyFx.g("UI").GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
 	for i in 6:
-		var prow = UI.vbox(1)
+		var prow = LazyFx.g("UI").vbox(1)
 		prow.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var nl = UI.label("", 13, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true)
+		var nl = LazyFx.g("UI").label("", 13, LazyFx.g("UI").TEXT, HORIZONTAL_ALIGNMENT_LEFT, true)
 		prow.add_child(nl)
-		var hb = UI.hbox(6)
-		var pbar = UI.bar(Color(0.4, 0.9, 0.45), 170, 7)
+		var hb = LazyFx.g("UI").hbox(6)
+		var pbar = LazyFx.g("UI").bar(Color(0.4, 0.9, 0.45), 170, 7)
 		hb.add_child(pbar)
-		var tl = UI.label("", 11, UI.MUTED)
+		var tl = LazyFx.g("UI").label("", 11, LazyFx.g("UI").MUTED)
 		hb.add_child(tl)
 		prow.add_child(hb)
 		party_box.add_child(prow)
@@ -285,7 +285,7 @@ func _build_slots() -> void:
 	var top_y = -(dock_h + DOCK_BOTTOM) + PAD
 	# çubuğun ortak cam zemini (yan yuvalar + 9 jutsu tek parça görünsün); iç boşluk dört yanda eşit
 	var dock = Panel.new()
-	var dsb = UI.ink_panel(0.8, 0, Color(0.02, 0.018, 0.016))   # yırtık kenarlı mürekkep zemin (oyuncu çerçevesiyle aynı dil)
+	var dsb = LazyFx.g("UI").ink_panel(0.8, 0, Color(0.02, 0.018, 0.016))   # yırtık kenarlı mürekkep zemin (oyuncu çerçevesiyle aynı dil)
 	dock.add_theme_stylebox_override("panel", dsb)
 	dock.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	# mürekkep dokusunun yırtık kenarı ~18 px saydam: zemin yuvaların dışına taşsın diye dört yandan büyütülür
@@ -295,13 +295,13 @@ func _build_slots() -> void:
 	game_hud.add_child(dock)
 	for sgn in [-1.0, 1.0]:
 		var dv = ColorRect.new()
-		dv.color = Color(UI.ACCENT, 0.55)
+		dv.color = Color(LazyFx.g("UI").ACCENT, 0.55)
 		dv.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 		dv.size = Vector2(1, SLOT_PX)
 		dv.position = Vector2(sgn * (sw * 0.5 + GROUP_GAP * 0.5), top_y)
 		dv.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		game_hud.add_child(dv)
-	slots_box = UI.hbox(int(SLOT_GAP))
+	slots_box = LazyFx.g("UI").hbox(int(SLOT_GAP))
 	slots_box.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	slots_box.position = Vector2(-sw * 0.5, top_y)
 	game_hud.add_child(slots_box)
@@ -309,18 +309,18 @@ func _build_slots() -> void:
 		slot_nodes.append(_make_slot(slots_box, _draw_slot.bind(i)))
 		slot_state.append({"el": "", "cd": 0.0, "max": 1.0, "ok": true, "empty": true})
 	# sol: atılabilir alet (R) + değiştir (T), sağ: merhem (H) + hap (Y); jutsu yuvalarıyla aynı cam kare dili
-	var left_box = UI.hbox(int(SLOT_GAP))
+	var left_box = LazyFx.g("UI").hbox(int(SLOT_GAP))
 	left_box.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	left_box.position = Vector2(-sw * 0.5 - GROUP_GAP - side_w, top_y)
 	game_hud.add_child(left_box)
-	var right_box = UI.hbox(int(SLOT_GAP))
+	var right_box = LazyFx.g("UI").hbox(int(SLOT_GAP))
 	right_box.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	right_box.position = Vector2(sw * 0.5 + GROUP_GAP, top_y)
 	game_hud.add_child(right_box)
 	for i in SIDE_KEYS.size():
 		side_nodes.append(_make_slot(left_box if i < 2 else right_box, _draw_side.bind(i)))
-		side_state.append({"empty": true, "icon": "", "col": UI.ELEMENT_COLORS[""], "cd": 0.0, "max": 1.0, "ok": true, "badge": "", "badge_col": Color.WHITE, "alt": ""})
-	seal_box = UI.hbox(6)
+		side_state.append({"empty": true, "icon": "", "col": LazyFx.g("UI").ELEMENT_COLORS[""], "cd": 0.0, "max": 1.0, "ok": true, "badge": "", "badge_col": Color.WHITE, "alt": ""})
+	seal_box = LazyFx.g("UI").hbox(6)
 	seal_box.set_anchors_preset(Control.PRESET_CENTER)
 	seal_box.position = Vector2(-150, 120)
 	game_hud.add_child(seal_box)
@@ -332,7 +332,7 @@ func _make_slot(parent: Control, draw_cb: Callable) -> Array:
 	p.custom_minimum_size = Vector2(SLOT_PX, SLOT_PX)
 	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	p.draw.connect(draw_cb)
-	var nm = UI.label("", 11, Color(0.93, 0.95, 1.0), HORIZONTAL_ALIGNMENT_CENTER, true)
+	var nm = LazyFx.g("UI").label("", 11, Color(0.93, 0.95, 1.0), HORIZONTAL_ALIGNMENT_CENTER, true)
 	nm.position = Vector2(2, SLOT_PX - 18.0)
 	nm.size = Vector2(SLOT_PX - 4.0, 16)
 	nm.clip_text = true
@@ -340,7 +340,7 @@ func _make_slot(parent: Control, draw_cb: Callable) -> Array:
 	nm.add_theme_constant_override("outline_size", 3)
 	nm.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
 	p.add_child(nm)
-	var cd = UI.label("", 17, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, true)
+	var cd = LazyFx.g("UI").label("", 17, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, true)
 	cd.position = Vector2(0, SLOT_PX * 0.5 - 12.0)
 	cd.size = Vector2(SLOT_PX, 24)
 	cd.add_theme_constant_override("outline_size", 6)
@@ -406,14 +406,14 @@ func _paint_slot(p: Control, st: Dictionary, key_text: String) -> void:
 				p.draw_colored_polygon(PackedVector2Array([Vector2(34, 17) + o, Vector2(34, 45) + o, Vector2(13, 31) + o]), cc)
 				p.draw_colored_polygon(PackedVector2Array([Vector2(46, 17) + o, Vector2(46, 45) + o, Vector2(67, 31) + o]), cc)
 		else:
-			p.draw_texture_rect(Icons.tex(st["icon"]), Rect2(icr.position + Vector2(1.5, 2.5), icr.size), false, Color(0, 0, 0, 0.5))
-			p.draw_texture_rect(Icons.tex(st["icon"]), icr, false, ec.lerp(Color.WHITE, 0.35) if st["ok"] else col)
+			p.draw_texture_rect(LazyFx.g("Icons").tex(st["icon"]), Rect2(icr.position + Vector2(1.5, 2.5), icr.size), false, Color(0, 0, 0, 0.5))
+			p.draw_texture_rect(LazyFx.g("Icons").tex(st["icon"]), icr, false, ec.lerp(Color.WHITE, 0.35) if st["ok"] else col)
 	else:
 		_rr_fill(p, box, 2.0, Color(0, 0, 0, 0.25), Color(0, 0, 0, 0.4))
 	# kenarlık: ince açık mürekkep çizgi; hazırsa element renginde; altta element rengi fırça şeridi
 	if is_ready:
 		_rr_line(p, box.grow(1.0), 2.0, Color(ec, 0.35), 3.0)
-	_rr_line(p, box.grow(-0.75), 2.0, Color(UI.TEXT, 0.4) if not empty else Color(UI.TEXT, 0.16), 1.5)
+	_rr_line(p, box.grow(-0.75), 2.0, Color(LazyFx.g("UI").TEXT, 0.4) if not empty else Color(LazyFx.g("UI").TEXT, 0.16), 1.5)
 	if not empty:
 		p.draw_rect(Rect2(Vector2(3, 74), Vector2(74, 3)), Color(ec, 0.95))
 	if st["cd"] > 0.0:
@@ -436,26 +436,26 @@ func _paint_slot(p: Control, st: Dictionary, key_text: String) -> void:
 	if fl > 0.0 and not empty:
 		_rr_fill(p, box, 2.0, Color(1, 1, 1, fl * 0.42), Color(ec, fl * 0.2))
 		_rr_line(p, box.grow(1.0), 2.0, Color(1, 1, 1, fl * 0.9), 3.0)
-	var f = UI.font(true)
+	var f = LazyFx.g("UI").font(true)
 	# tuş rozeti: koyu hap, ince çerçeve (uzun tuş adı küçülür)
 	var fs = 12
 	if _txt_w(f, key_text, fs) > 30.0:
 		fs = 9
 	var bw = maxf(21.0, _txt_w(f, key_text, fs) + 11.0)
-	p.draw_style_box(UI._box(Color(0.03, 0.035, 0.05, 0.94), Color(1, 1, 1, 0.38 if not empty else 0.12), 1, 7, 0), Rect2(Vector2(3, 3), Vector2(bw, 20)))
-	_txt_c(p, f, Vector2(3 + bw * 0.5, 13), key_text, fs, Color(UI.TEXT, 1.0 if not empty else 0.45))
+	p.draw_style_box(LazyFx.g("UI")._box(Color(0.03, 0.035, 0.05, 0.94), Color(1, 1, 1, 0.38 if not empty else 0.12), 1, 7, 0), Rect2(Vector2(3, 3), Vector2(bw, 20)))
+	_txt_c(p, f, Vector2(3 + bw * 0.5, 13), key_text, fs, Color(LazyFx.g("UI").TEXT, 1.0 if not empty else 0.45))
 	# ikinci tuş (ör. hap değiştirme): sağ üstte küçük altın rozet
 	var alt: String = st.get("alt", "")
 	if alt != "" and not empty:
 		var ax = 3.0 + bw + 12.0
 		p.draw_circle(Vector2(ax, 13), 9.5, Color(0, 0, 0, 0.55))
-		p.draw_circle(Vector2(ax, 13), 8.5, Color(UI.ACCENT, 0.97))
-		_txt_c(p, f, Vector2(ax, 13), alt, 10, UI.CREAM)
+		p.draw_circle(Vector2(ax, 13), 8.5, Color(LazyFx.g("UI").ACCENT, 0.97))
+		_txt_c(p, f, Vector2(ax, 13), alt, 10, LazyFx.g("UI").CREAM)
 	# köşe rozeti (sağ üst): enerji bedeli / stok
 	var bt: String = st.get("badge", "")
 	if bt != "" and not empty:
 		var tw = _txt_w(f, bt, 12) + 11.0
-		p.draw_style_box(UI._box(Color(0.02, 0.025, 0.035, 0.85), Color(st.get("badge_col", Color.WHITE), 0.55), 1, 8, 0), Rect2(Vector2(77 - tw, 4), Vector2(tw, 18)))
+		p.draw_style_box(LazyFx.g("UI")._box(Color(0.02, 0.025, 0.035, 0.85), Color(st.get("badge_col", Color.WHITE), 0.55), 1, 8, 0), Rect2(Vector2(77 - tw, 4), Vector2(tw, 18)))
 		_txt_c(p, f, Vector2(77 - tw * 0.5, 13), bt, 12, st.get("badge_col", Color.WHITE))
 	p.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
@@ -481,8 +481,8 @@ func _txt_c(p: Control, f: Font, c: Vector2, t: String, fs: int, col: Color) -> 
 func _draw_slot(i: int) -> void:
 	var st: Dictionary = slot_state[i]
 	var d = st.duplicate()
-	d["col"] = UI.ELEMENT_COLORS.get(st["el"], UI.ELEMENT_COLORS[""])
-	d["icon"] = UI.ELEMENT_ICONS.get(st["el"], "chakra")
+	d["col"] = LazyFx.g("UI").ELEMENT_COLORS.get(st["el"], LazyFx.g("UI").ELEMENT_COLORS[""])
+	d["icon"] = LazyFx.g("UI").ELEMENT_ICONS.get(st["el"], "chakra")
 	var cost := int(roundf(float(st.get("cost", 0.0))))
 	d["badge"] = str(cost) if cost > 0 else ""
 	d["badge_col"] = (Color(1.0, 0.72, 0.35) if st.get("tai", false) else Color(0.55, 0.78, 1.0)) if st["ok"] else Color(1.0, 0.45, 0.4)
@@ -506,17 +506,17 @@ func _update_side(pl: Node, pr: Dictionary) -> void:
 	var tool: String = pr.get("throw_sel", "kunai")
 	var tcd = float(pl.combat.tool_cd.get(tool, 0.0)) if pl.combat else 0.0
 	var tn = int(inv.get(tool, 0))
-	_set_side(0, Lang.t(String(Data.items.get(tool, {"name": tool})["name"])), TOOL_ICONS.get(tool, "kunai"), Color(0.85, 0.88, 0.95), tcd, tn > 0, ("∞" if Stats.unlimited(tool) else str(tn)) if tn > 0 else "0")
-	_set_side(1, Lang.t("Alet değiştir"), "swap", Color(0.62, 0.65, 0.72), 0.0, true, "")
+	_set_side(0, LazyFx.g("Lang").t(String(Data.items.get(tool, {"name": tool})["name"])), TOOL_ICONS.get(tool, "kunai"), Color(0.85, 0.88, 0.95), tcd, tn > 0, ("∞" if LazyFx.g("Stats").unlimited(tool) else str(tn)) if tn > 0 else "0")
+	_set_side(1, LazyFx.g("Lang").t("Alet değiştir"), "swap", Color(0.62, 0.65, 0.72), 0.0, true, "")
 	var scd = float(scene.salve_cooldown()) if scene.has_method("salve_cooldown") else 0.0
 	var sn_ = int(inv.get("salve", 0))
-	_set_side(2, Lang.t("Merhem"), "potion", Color(0.5, 0.9, 0.55), scd, sn_ > 0, str(sn_))
-	var psel = ClanMech.pill_sel()
+	_set_side(2, LazyFx.g("Lang").t("Merhem"), "potion", Color(0.5, 0.9, 0.55), scd, sn_ > 0, str(sn_))
+	var psel = LazyFx.g("ClanMech").pill_sel()
 	var pcd = float(scene.pill_cooldown()) if scene.has_method("pill_cooldown") else 0.0
 	if psel != "pill":
-		pcd = ClanMech.aki_pill_left(psel)
-	var many = ClanMech.pill_list().size() > 1
-	_set_side(3, Lang.t(String(ClanMech.AKI_PILL_NAMES.get(psel, "Asker Hapı"))).split("(")[0].strip_edges(), "pill", PILL_COLS.get(psel, PILL_COLS["pill"]), pcd, true, "∞" if psel == "pill" else "", Keys.name("pill_next") if many else "")
+		pcd = LazyFx.g("ClanMech").aki_pill_left(psel)
+	var many = LazyFx.g("ClanMech").pill_list().size() > 1
+	_set_side(3, LazyFx.g("Lang").t(String(LazyFx.g("ClanMech").AKI_PILL_NAMES.get(psel, "Asker Hapı"))).split("(")[0].strip_edges(), "pill", PILL_COLS.get(psel, PILL_COLS["pill"]), pcd, true, "∞" if psel == "pill" else "", Keys.name("pill_next") if many else "")
 
 
 ## Yan yuvayı güncelle; görünüm değiştiyse yeniden çizdirir
@@ -537,7 +537,7 @@ func _set_side(i: int, nm: String, icon: String, col: Color, cd: float, ok: bool
 
 
 func _build_texts() -> void:
-	msg_lbl = UI.label("", 22, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER)
+	msg_lbl = LazyFx.g("UI").label("", 22, LazyFx.g("UI").TEXT, HORIZONTAL_ALIGNMENT_CENTER)
 	msg_lbl.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	msg_lbl.position = Vector2(-600, -210)
 	msg_lbl.size = Vector2(1200, 30)
@@ -546,26 +546,26 @@ func _build_texts() -> void:
 	game_hud.add_child(msg_lbl)
 	# etkileşim ipucu: tuş rozeti + metin, mürekkep hap
 	prompt_box = PanelContainer.new()
-	var psb = UI.brush(Color(0, 0, 0, 0.72), "s", 7)
+	var psb = LazyFx.g("UI").brush(Color(0, 0, 0, 0.72), "s", 7)
 	psb.content_margin_left = 12; psb.content_margin_right = 34
 	prompt_box.add_theme_stylebox_override("panel", psb)
 	prompt_box.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	prompt_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var ph = UI.hbox(10)
+	var ph = LazyFx.g("UI").hbox(10)
 	prompt_box.add_child(ph)
-	prompt_key = UI.key_badge("F", 19)
+	prompt_key = LazyFx.g("UI").key_badge("F", 19)
 	ph.add_child(prompt_key)
-	prompt_lbl = UI.label("", 21, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true)
+	prompt_lbl = LazyFx.g("UI").label("", 21, LazyFx.g("UI").TEXT, HORIZONTAL_ALIGNMENT_LEFT, true)
 	ph.add_child(prompt_lbl)
 	prompt_box.visible = false
 	game_hud.add_child(prompt_box)
-	region_lbl = UI.label("", 40, UI.CREAM, HORIZONTAL_ALIGNMENT_CENTER)
+	region_lbl = LazyFx.g("UI").label("", 40, LazyFx.g("UI").CREAM, HORIZONTAL_ALIGNMENT_CENTER)
 	region_lbl.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	region_lbl.position = Vector2(-400, 122)
 	region_lbl.size = Vector2(800, 60)
 	region_lbl.modulate.a = 0.0
 	game_hud.add_child(region_lbl)
-	doom_lbl = UI.label("", 24, Color(1.0, 0.32, 0.3), HORIZONTAL_ALIGNMENT_CENTER)
+	doom_lbl = LazyFx.g("UI").label("", 24, Color(1.0, 0.32, 0.3), HORIZONTAL_ALIGNMENT_CENTER)
 	doom_lbl.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	doom_lbl.position = Vector2(-300, 84)
 	doom_lbl.size = Vector2(600, 32)
@@ -573,22 +573,22 @@ func _build_texts() -> void:
 	game_hud.add_child(doom_lbl)
 	# görev paneli (sağda, minimap altında)
 	var obj = PanelContainer.new()
-	var osb = UI._box(Color(0.03, 0.027, 0.025, 0.5), Color(0, 0, 0, 0), 0, 2, 14)
+	var osb = LazyFx.g("UI")._box(Color(0.03, 0.027, 0.025, 0.5), Color(0, 0, 0, 0), 0, 2, 14)
 	osb.border_width_left = 3
-	osb.border_color = Color(UI.ACCENT, 0.9)
+	osb.border_color = Color(LazyFx.g("UI").ACCENT, 0.9)
 	obj.add_theme_stylebox_override("panel", osb)
 	obj.anchor_left = 1.0; obj.anchor_right = 1.0
 	obj.offset_left = -392; obj.offset_right = -18; obj.offset_top = 312
 	obj.custom_minimum_size = Vector2(374, 0)
 	obj.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var ov = UI.vbox(4)
+	var ov = LazyFx.g("UI").vbox(4)
 	obj.add_child(ov)
-	ov.add_child(UI.icon_label("mission", "GÖREV", 13, UI.ACCENT))
-	objective_lbl = UI.label("", 14, Color(UI.TEXT, 0.92))
+	ov.add_child(LazyFx.g("UI").icon_label("mission", "GÖREV", 13, LazyFx.g("UI").ACCENT))
+	objective_lbl = LazyFx.g("UI").label("", 14, Color(LazyFx.g("UI").TEXT, 0.92))
 	objective_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	objective_lbl.custom_minimum_size = Vector2(346, 0)
 	ov.add_child(objective_lbl)
-	obj_progress_lbl = UI.label("", 14, UI.GOOD)
+	obj_progress_lbl = LazyFx.g("UI").label("", 14, LazyFx.g("UI").GOOD)
 	obj_progress_lbl.visible = false
 	ov.add_child(obj_progress_lbl)
 	game_hud.add_child(obj)
@@ -621,7 +621,7 @@ func _build_minimap() -> void:
 	ring.draw.connect(func():
 		ring.draw_circle(Vector2(120, 124), 126, Color(0, 0, 0, 0.3))
 		ring.draw_circle(Vector2(120, 120), 124, Color(0.04, 0.035, 0.03, 0.85))
-		ring.draw_arc(Vector2(120, 120), 121, 0.0, TAU, 96, Color(UI.ACCENT, 0.85), 2.0, true))
+		ring.draw_arc(Vector2(120, 120), 121, 0.0, TAU, 96, Color(LazyFx.g("UI").ACCENT, 0.85), 2.0, true))
 	minimap.add_child(ring)
 	var tr = TextureRect.new()
 	tr.texture = map_tex
@@ -660,13 +660,13 @@ void fragment(){
 	minimap.set_meta("over", over)
 	# bölge adı şeridi (haritanın altında)
 	var rp = PanelContainer.new()
-	var rsb = UI._box(Color(0.04, 0.05, 0.07, 0.7), Color(1, 1, 1, 0.08), 1, 14, 5, 0.0)
+	var rsb = LazyFx.g("UI")._box(Color(0.04, 0.05, 0.07, 0.7), Color(1, 1, 1, 0.08), 1, 14, 5, 0.0)
 	rsb.content_margin_left = 14; rsb.content_margin_right = 14
 	rp.add_theme_stylebox_override("panel", rsb)
 	rp.position = Vector2(10, 236)
 	rp.custom_minimum_size = Vector2(220, 0)
 	rp.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	mm_region = UI.label("", 14, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, true)
+	mm_region = LazyFx.g("UI").label("", 14, LazyFx.g("UI").TEXT, HORIZONTAL_ALIGNMENT_CENTER, true)
 	mm_region.clip_text = true
 	rp.add_child(mm_region)
 	minimap.add_child(rp)
@@ -682,7 +682,7 @@ func _build_compass() -> void:
 	compass.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	compass.draw.connect(_draw_compass)
 	game_hud.add_child(compass)
-	compass_lbl = UI.label("", 18, Color(1, 0.92, 0.6), HORIZONTAL_ALIGNMENT_CENTER)
+	compass_lbl = LazyFx.g("UI").label("", 18, Color(1, 0.92, 0.6), HORIZONTAL_ALIGNMENT_CENTER)
 	compass_lbl.position = Vector2(0, 62)
 	compass_lbl.size = Vector2(340, 28)
 	compass.add_child(compass_lbl)
@@ -716,7 +716,7 @@ func _update_objective_pointer(pl: Node3D) -> void:
 		compass_dir = _target_screen_dir(pl, wp)
 		var dist = Vector2(wp.x - pl.global_position.x, wp.z - pl.global_position.z).length()
 		var nm: String = Missions.target_name if Missions.target_name != "" else "Hedef"
-		compass_lbl.text = "%s — %d m" % [Lang.t(nm), int(dist)] if dist > 6.0 else Lang.t("%s — buradasın") % Lang.t(nm)
+		compass_lbl.text = "%s — %d m" % [LazyFx.g("Lang").t(nm), int(dist)] if dist > 6.0 else LazyFx.g("Lang").t("%s — buradasın") % LazyFx.g("Lang").t(nm)
 		compass.position.y = 84.0 if boss_box.visible else 14.0
 		compass.queue_redraw()
 	# dünyadaki ışık sütunu
@@ -747,12 +747,12 @@ func _update_objective_pointer(pl: Node3D) -> void:
 
 
 func _build_boss() -> void:
-	boss_box = UI.vbox(3)
+	boss_box = LazyFx.g("UI").vbox(3)
 	boss_box.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	boss_box.position = Vector2(-310, 22)
-	boss_lbl = UI.label("", 22, Color(1, 0.62, 0.5), HORIZONTAL_ALIGNMENT_CENTER)
+	boss_lbl = LazyFx.g("UI").label("", 22, Color(1, 0.62, 0.5), HORIZONTAL_ALIGNMENT_CENTER)
 	boss_lbl.custom_minimum_size = Vector2(620, 0)
-	boss_bar_pb = UI.bar(Color(0.9, 0.16, 0.2), 620, 20)
+	boss_bar_pb = LazyFx.g("UI").bar(Color(0.9, 0.16, 0.2), 620, 20)
 	boss_box.add_child(boss_lbl)
 	boss_box.add_child(boss_bar_pb)
 	boss_box.visible = false
@@ -775,7 +775,7 @@ func msg(text: String, col := Color(1, 1, 1), dur := 3.5) -> void:
 
 
 func float_text(text: String, col: Color) -> void:
-	var l = UI.label(text, 24, col, HORIZONTAL_ALIGNMENT_CENTER)
+	var l = LazyFx.g("UI").label(text, 24, col, HORIZONTAL_ALIGNMENT_CENTER)
 	l.add_theme_constant_override("outline_size", 8)
 	l.set_anchors_preset(Control.PRESET_CENTER)
 	l.position = Vector2(120 + randf_range(-30, 30), -40 + randf_range(-20, 20))
@@ -824,11 +824,11 @@ func banner(title: String, sub: String, col: Color) -> void:
 		ln.size = Vector2(340, 2)
 		ln.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		root.add_child(ln)
-	var t = UI.label(title, 30, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, true)
+	var t = LazyFx.g("UI").label(title, 30, LazyFx.g("UI").TEXT, HORIZONTAL_ALIGNMENT_CENTER, true)
 	t.position = Vector2(-560, 5)
 	t.size = Vector2(1120, 38)
 	root.add_child(t)
-	var s2 = UI.label(sub, 14, col.lightened(0.25), HORIZONTAL_ALIGNMENT_CENTER, true)
+	var s2 = LazyFx.g("UI").label(sub, 14, col.lightened(0.25), HORIZONTAL_ALIGNMENT_CENTER, true)
 	s2.position = Vector2(-560, 46)
 	s2.size = Vector2(1120, 22)
 	root.add_child(s2)
@@ -847,7 +847,7 @@ func show_seals(seals: Array) -> void:
 	for c in seal_box.get_children():
 		c.queue_free()
 	for i in seals.size():
-		var l = UI.label(seals[i], 18, Color(1, 0.9, 0.7), HORIZONTAL_ALIGNMENT_CENTER)
+		var l = LazyFx.g("UI").label(seals[i], 18, Color(1, 0.9, 0.7), HORIZONTAL_ALIGNMENT_CENTER)
 		l.modulate.a = 0.0
 		seal_box.add_child(l)
 		var tw = l.create_tween()
@@ -865,7 +865,7 @@ func objective_changed() -> void:
 	var t: String = Progress.objective_text()
 	var m: Dictionary = Game.profile.get("active_mission", {})
 	if not m.is_empty():
-		t += "\n\n[%s] %s: %s (%d/%d)" % [m["rank"], Lang.t(String(m["title"])), Lang.t(String(m["desc"])), m.get("progress", 0), m["count"]]
+		t += "\n\n[%s] %s: %s (%d/%d)" % [m["rank"], LazyFx.g("Lang").t(String(m["title"])), LazyFx.g("Lang").t(String(m["desc"])), m.get("progress", 0), m["count"]]
 	objective_lbl.text = t
 	obj_progress_lbl.text = ""
 	obj_progress_lbl.visible = false
@@ -931,24 +931,24 @@ func dialog(title: String, text: String, options: Array) -> void:
 	root.add_child(grad)
 	var many = options.size() > 4
 	var box = PanelContainer.new()
-	box.add_theme_stylebox_override("panel", UI.ink_panel(0.88, 22))
+	box.add_theme_stylebox_override("panel", LazyFx.g("UI").ink_panel(0.88, 22))
 	box.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	box.custom_minimum_size = Vector2(1180, 230)
 	box.position = Vector2(-590, -280 - (180 if many else 0))
 	box.grow_vertical = Control.GROW_DIRECTION_BEGIN   # içerik uzarsa kutu yukarı büyür (seçenekler ekran dışına kaçmaz)
 	root.add_child(box)
-	var h = UI.hbox(24)
+	var h = LazyFx.g("UI").hbox(24)
 	box.add_child(h)
 	h.add_child(_dialog_portrait(title))
-	var v = UI.vbox(10)
+	var v = LazyFx.g("UI").vbox(10)
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	h.add_child(v)
-	var plate = UI.label(title, 24, UI.CREAM, HORIZONTAL_ALIGNMENT_LEFT, true)
+	var plate = LazyFx.g("UI").label(title, 24, LazyFx.g("UI").CREAM, HORIZONTAL_ALIGNMENT_LEFT, true)
 	v.add_child(plate)
-	var pl = UI.brush_line(110)
+	var pl = LazyFx.g("UI").brush_line(110)
 	pl.custom_minimum_size.y = 10
 	v.add_child(pl)
-	var body = UI.label(text, 19, UI.TEXT)
+	var body = LazyFx.g("UI").label(text, 19, LazyFx.g("UI").TEXT)
 	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	body.custom_minimum_size = Vector2(560 if not many else 900, 0)
 	if text.length() > 420 or text.count("
@@ -973,7 +973,7 @@ func dialog(title: String, text: String, options: Array) -> void:
 		var sp = forced_speaker if (forced_speaker != null and is_instance_valid(forced_speaker)) else _near_talker(Game.player)
 		forced_speaker = null
 		if sp:
-			var tc = TalkCam.ensure()
+			var tc = LazyFx.g("TalkCam").ensure()
 			tc.begin(sp, talk_dur)
 			if not options.is_empty():
 				tw.tween_callback(func(): if is_instance_valid(tc): tc.to_player()).set_delay(0.9)
@@ -987,12 +987,12 @@ func dialog(title: String, text: String, options: Array) -> void:
 		sc.custom_minimum_size = Vector2(900, 200)
 		sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 		v.add_child(sc)
-		var ov = UI.vbox(8)
+		var ov = LazyFx.g("UI").vbox(8)
 		ov.custom_minimum_size = Vector2(880, 0)
 		sc.add_child(ov)
 		opt_parent = ov
 	else:
-		var ov = UI.vbox(8)
+		var ov = LazyFx.g("UI").vbox(8)
 		ov.custom_minimum_size = Vector2(380, 0)
 		ov.alignment = BoxContainer.ALIGNMENT_CENTER
 		h.add_child(ov)
@@ -1024,15 +1024,15 @@ func _pill(text: String, cb: Callable, w: float, muted := false) -> Button:
 	b.custom_minimum_size = Vector2(w, 44)
 	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	b.clip_text = true
-	b.add_theme_font_override("font", UI.font(not muted))
+	b.add_theme_font_override("font", LazyFx.g("UI").font(not muted))
 	b.add_theme_font_size_override("font_size", 16)
-	var n = UI.brush(Color(0, 0, 0, 0.3 if muted else 0.6), "a", 8)
+	var n = LazyFx.g("UI").brush(Color(0, 0, 0, 0.3 if muted else 0.6), "a", 8)
 	n.content_margin_left = 22
-	var hv = UI.brush(UI.ACCENT, "a", 8)
+	var hv = LazyFx.g("UI").brush(LazyFx.g("UI").ACCENT, "a", 8)
 	hv.content_margin_left = 22
 	for k in [["normal", n], ["hover", hv], ["pressed", hv], ["focus", hv]]:
 		b.add_theme_stylebox_override(k[0], k[1])
-	b.add_theme_color_override("font_color", UI.MUTED if muted else UI.TEXT)
+	b.add_theme_color_override("font_color", LazyFx.g("UI").MUTED if muted else LazyFx.g("UI").TEXT)
 	b.add_theme_color_override("font_hover_color", Color(1, 0.97, 0.93))
 	b.add_theme_color_override("font_focus_color", Color(1, 0.97, 0.93))
 	b.add_theme_color_override("font_pressed_color", Color(1, 0.97, 0.93))
@@ -1047,7 +1047,7 @@ func _pill(text: String, cb: Callable, w: float, muted := false) -> Button:
 func _dialog_portrait(title: String) -> Control:
 	var frame = Panel.new()
 	frame.custom_minimum_size = Vector2(170, 170)
-	frame.add_theme_stylebox_override("panel", UI._box(Color(0.03, 0.027, 0.025, 0.9), Color(UI.ACCENT, 0.85), 2, 85, 0))
+	frame.add_theme_stylebox_override("panel", LazyFx.g("UI")._box(Color(0.03, 0.027, 0.025, 0.9), Color(LazyFx.g("UI").ACCENT, 0.85), 2, 85, 0))
 	frame.clip_contents = true
 	var who: Node = null
 	if Game.player:
@@ -1064,7 +1064,7 @@ func _dialog_portrait(title: String) -> Control:
 		if mdl:
 			mdl.play("talk")
 	else:
-		var ic = Icons.view("person" if title.length() < 26 else "scroll", 86, Color(UI.GOLD, 0.8))
+		var ic = LazyFx.g("Icons").view("person" if title.length() < 26 else "scroll", 86, Color(LazyFx.g("UI").GOLD, 0.8))
 		ic.position = Vector2(42, 36)
 		frame.add_child(ic)
 	return frame
@@ -1107,9 +1107,9 @@ func shop(title: String, items: Array) -> void:
 				locked = true
 				lock_text = "Bunu zaten biliyorsun."
 		var iid = id
-		entries.append({"id": id, "name": it["name"], "price": Stats.price(int(it["price"])), "desc": it.get("desc", ""), "stats": "",
-			"locked": locked, "lock_text": lock_text, "owned": int(Game.profile["inventory"].get(id, 0)), "unlimited": Stats.unlimited(id), "rarity": 1 if it.get("kind", "") == "scroll" else 0,
-			"view": func(): return Thumbs.item_view(iid, 96)})
+		entries.append({"id": id, "name": it["name"], "price": LazyFx.g("Stats").price(int(it["price"])), "desc": it.get("desc", ""), "stats": "",
+			"locked": locked, "lock_text": lock_text, "owned": int(Game.profile["inventory"].get(id, 0)), "unlimited": LazyFx.g("Stats").unlimited(id), "rarity": 1 if it.get("kind", "") == "scroll" else 0,
+			"view": func(): return LazyFx.g("Thumbs").item_view(iid, 96)})
 	Menus.shop_screen(title, entries, func(id): _buy(id, title, items), _sell_cb(title, func(): shop(title, items)))
 
 
@@ -1127,29 +1127,29 @@ func _sell_cb(title: String, back: Callable) -> Callable:
 ## Ekipman dükkânı: silah ve kıyafetler (alınca Tab > Ekipman'dan giyilir)
 func gear_shop(title: String, ids: Array) -> void:
 	var pr = Game.profile
-	Gear.ensure(pr)
+	LazyFx.g("Gear").ensure(pr)
 	var entries = []
 	for id in ids:
-		var it = Gear.item(id)
+		var it = LazyFx.g("Gear").item(id)
 		if it.is_empty():
 			continue
 		var have = 0
 		for g in pr["gear"]:
 			if g["id"] == id:
 				have += 1
-		var why: String = Gear.req_text(id, pr)   # rütbe, köy, klan: giyemeyeceğin şey satın alınamaz
+		var why: String = LazyFx.g("Gear").req_text(id, pr)   # rütbe, köy, klan: giyemeyeceğin şey satın alınamaz
 		var locked = why != ""
 		var gid = id
-		entries.append({"id": id, "name": it["name"], "price": Stats.price(int(it.get("price", 0))), "desc": it.get("desc", ""), "stats": Gear.stats_text(id),
-			"locked": locked, "lock_text": why, "try_on": func(): return Gear.try_on_look(gid), "owned": have, "rarity": UI.rarity_of_gear(id),
-			"view": func(): return Thumbs.gear_view(gid, 96)})
+		entries.append({"id": id, "name": it["name"], "price": LazyFx.g("Stats").price(int(it.get("price", 0))), "desc": it.get("desc", ""), "stats": LazyFx.g("Gear").stats_text(id),
+			"locked": locked, "lock_text": why, "try_on": func(): return LazyFx.g("Gear").try_on_look(gid), "owned": have, "rarity": LazyFx.g("UI").rarity_of_gear(id),
+			"view": func(): return LazyFx.g("Thumbs").gear_view(gid, 96)})
 	Menus.shop_screen(title, entries, func(id):
-		var it = Gear.item(id)
-		if int(pr["ryo"]) < Stats.price(int(it["price"])):
+		var it = LazyFx.g("Gear").item(id)
+		if int(pr["ryo"]) < LazyFx.g("Stats").price(int(it["price"])):
 			msg("Yeterli Ryō yok!", Color(1, 0.5, 0.4))
 		else:
-			Progress.add_ryo(-Stats.price(int(it["price"])))
-			Gear.grant(pr, id)
+			Progress.add_ryo(-LazyFx.g("Stats").price(int(it["price"])))
+			LazyFx.g("Gear").grant(pr, id)
 			if it.has("unique"):   # benzersiz: bir kez satılır
 				if not pr.has("unique_bought"):
 					pr["unique_bought"] = []
@@ -1162,7 +1162,7 @@ func gear_shop(title: String, ids: Array) -> void:
 
 func _buy(id: String, title: String, items: Array) -> void:
 	var it: Dictionary = Data.items[id]
-	if int(Game.profile["ryo"]) < Stats.price(int(it["price"])):
+	if int(Game.profile["ryo"]) < LazyFx.g("Stats").price(int(it["price"])):
 		msg("Yeterli Ryō yok!", Color(1, 0.5, 0.4))
 	else:
 		if it["kind"] == "scroll":
@@ -1180,9 +1180,9 @@ func _buy(id: String, title: String, items: Array) -> void:
 				msg("Bunu zaten biliyorsun.", Color(1, 0.8, 0.5))
 				shop(title, items)
 				return
-			Progress.add_ryo(-Stats.price(int(it["price"])))
+			Progress.add_ryo(-LazyFx.g("Stats").price(int(it["price"])))
 			Progress.learn(jid)
-		elif Stats.unlimited(id):
+		elif LazyFx.g("Stats").unlimited(id):
 			# aletler bir kez alınır, sonra sınırsız (her birinin 30 sn bekleme süresi var); Asker Hapı zaten bitmez
 			if id == "pill":
 				msg("Asker Hapı bitmez: bekleme süresiyle kullanılır.", Color(1, 0.85, 0.5))
@@ -1192,17 +1192,17 @@ func _buy(id: String, title: String, items: Array) -> void:
 				msg("%s zaten sende (sınırsız, 30 sn bekleme)." % it["name"], Color(1, 0.85, 0.5))
 				shop(title, items)
 				return
-			Progress.add_ryo(-Stats.price(int(it["price"])))
+			Progress.add_ryo(-LazyFx.g("Stats").price(int(it["price"])))
 			Game.profile["inventory"][id] = 1
 			Game.profile["throw_sel"] = id
 			Sfx.play("coin")
 			msg("%s alındı — artık sınırsız! [R] fırlat, [T] değiştir." % it["name"], Color(0.6, 1, 0.6))
 		else:
-			Progress.add_ryo(-Stats.price(int(it["price"])))
+			Progress.add_ryo(-LazyFx.g("Stats").price(int(it["price"])))
 			var n = 5 if id in ["kunai", "shuriken"] else 1
-			var cap = Stats.carry_cap(Game.profile, id)
+			var cap = LazyFx.g("Stats").carry_cap(Game.profile, id)
 			if int(Game.profile["inventory"].get(id, 0)) >= cap:
-				Progress.add_ryo(Stats.price(int(it["price"])))  # iade
+				Progress.add_ryo(LazyFx.g("Stats").price(int(it["price"])))  # iade
 				msg("Çantan dolu (en fazla %d). Fūin Depolama yeteneği kapasiteyi artırır." % cap, Color(1, 0.7, 0.4))
 				shop(title, items)
 				return
@@ -1271,11 +1271,11 @@ func _process(dt: float) -> void:
 		xhair.queue_redraw()
 	var rname: String = Data.RANKS[int(pr.get("rank", 0))]
 	if Orgs.is_rogue():
-		rname = "%s (%s-rank)" % [Lang.t(Orgs.rogue_rank_name()), String(Orgs.ROGUE_RANKS[Orgs.rogue_rank()][2])]   # kaçakta köy rütbesi yok
+		rname = "%s (%s-rank)" % [LazyFx.g("Lang").t(Orgs.rogue_rank_name()), String(Orgs.ROGUE_RANKS[Orgs.rogue_rank()][2])]   # kaçakta köy rütbesi yok
 	if buff_lbl:
 		var bl = []
 		for ln in Buffs.lines():
-			bl.append("[color=#ffd27a]%s[/color]%s: %s" % [Lang.t(String(ln[0])), (" (%ds)" % int(ln[2])) if ln[2] >= 0.0 else "", Lang.t(String(ln[1]))])
+			bl.append("[color=#ffd27a]%s[/color]%s: %s" % [LazyFx.g("Lang").t(String(ln[0])), (" (%ds)" % int(ln[2])) if ln[2] >= 0.0 else "", LazyFx.g("Lang").t(String(ln[1]))])
 		buff_lbl.text = "\n".join(bl)
 	_update_party(dt)
 	var hk = clampf(pl.hp / maxf(1.0, pl.max_hp), 0.0, 1.0)
@@ -1284,15 +1284,15 @@ func _process(dt: float) -> void:
 	if Engine.get_process_frames() % 60 == 0:
 		_refresh_portrait()
 	var elm: String = pr.get("elements", [""])[0] if not pr.get("elements", []).is_empty() else ""
-	vit.el_col = UI.ELEMENT_COLORS.get(elm, UI.GOLD)
-	var cm = ClanMech.meter()
+	vit.el_col = LazyFx.g("UI").ELEMENT_COLORS.get(elm, LazyFx.g("UI").GOLD)
+	var cm = LazyFx.g("ClanMech").meter()
 	var clan := {}
 	if not cm.is_empty():
-		clan = {"label": Lang.t(String(cm["label"])), "v": cm["v"], "max": cm["max"], "col": cm["col"]}
+		clan = {"label": LazyFx.g("Lang").t(String(cm["label"])), "v": cm["v"], "max": cm["max"], "col": cm["col"]}
 	var combat = pl.combat
-	vit.set_state({"name": String(pr.get("name", "")), "rank_txt": Lang.t("%s  •  Güç %d") % [Lang.upper(Lang.t(rname)), int(pr.get("level", 1))],
+	vit.set_state({"name": String(pr.get("name", "")), "rank_txt": LazyFx.g("Lang").t("%s  •  Güç %d") % [LazyFx.g("Lang").upper(LazyFx.g("Lang").t(rname)), int(pr.get("level", 1))],
 		"hp": pl.hp, "hp_max": pl.max_hp, "hp_col": hcol, "trail": hp_trail_v, "ck": pl.chakra, "ck_max": pl.max_chakra,
-		"sta": pl.stamina, "sta_max": pl.max_stamina, "xp": Mastery.power_progress(pr), "ryo": int(pr.get("ryo", 0)),
+		"sta": pl.stamina, "sta_max": pl.max_stamina, "xp": LazyFx.g("Mastery").power_progress(pr), "ryo": int(pr.get("ryo", 0)),
 		"subs": combat.sub_bars if combat else 0, "rk": int(pr.get("rank", 0)), "clan": clan})
 	var comb = pl.combat
 	(vignette.material as ShaderMaterial).set_shader_parameter("amount", clampf(1.0 - pl.hp / pl.max_hp * 2.5, 0.0, 0.8))
@@ -1309,14 +1309,14 @@ func _process(dt: float) -> void:
 				st["empty"] = true; st["cd"] = 0.0
 				sn[0].queue_redraw()
 			continue
-		if (jid in SpecialSlots.EYE_IDS or ((jid in SpecialSlots.BIJUU_IDS or jid in SpecialSlots.SUS_IDS) and not Data.jutsu.has(jid))) and Time.get_ticks_msec() > _ss_t:   # göz yuvası: tarz değişince ad da değişsin
+		if (jid in LazyFx.g("SpecialSlots").EYE_IDS or ((jid in LazyFx.g("SpecialSlots").BIJUU_IDS or jid in LazyFx.g("SpecialSlots").SUS_IDS) and not Data.jutsu.has(jid))) and Time.get_ticks_msec() > _ss_t:   # göz yuvası: tarz değişince ad da değişsin
 			_ss_t = Time.get_ticks_msec() + 2000
-			SpecialSlots.refresh(pr)
+			LazyFx.g("SpecialSlots").refresh(pr)
 		var j: Dictionary = Data.jutsu.get(jid, {})
-		sn[1].text = Lang.t(String(j.get("name", jid))).split(":")[-1].split("(")[0].strip_edges()
-		var cd: float = SpecialSlots.cooldown(pl, jid) if j.has("virtual") else (comb.cooldowns.get(jid, 0.0) if comb else 0.0)
+		sn[1].text = LazyFx.g("Lang").t(String(j.get("name", jid))).split(":")[-1].split("(")[0].strip_edges()
+		var cd: float = LazyFx.g("SpecialSlots").cooldown(pl, jid) if j.has("virtual") else (comb.cooldowns.get(jid, 0.0) if comb else 0.0)
 		var cost = PlayerCombat.cast_cost(j)
-		var tai = Stats.is_taijutsu(j)
+		var tai = LazyFx.g("Stats").is_taijutsu(j)
 		var ok = (pl.stamina if tai else pl.chakra) >= cost
 		sn[2].text = ("%.1f" % cd) if cd > 0.0 else ""
 		sn[2].add_theme_color_override("font_color", Color(1, 1, 1))
@@ -1339,11 +1339,11 @@ func _process(dt: float) -> void:
 	var tk = _near_talker(pl) if it.is_empty() and not catch and qn == null else null
 	if qn != null:
 		tk = qn
-	var ptxt = (String(catch.get("catch_label")) if catch.get("catch_label") != null else "Yakala!") if catch else (it.get("label", "") if not it.is_empty() else (Lang.t("Konuş: %s") % tk.display if tk else ""))
+	var ptxt = (String(catch.get("catch_label")) if catch.get("catch_label") != null else "Yakala!") if catch else (it.get("label", "") if not it.is_empty() else (LazyFx.g("Lang").t("Konuş: %s") % tk.display if tk else ""))
 	# önce tam metin çevrilir (sözlükte "[F] ..." ile kayıtlı), sonra [F] atılır — eskiden önce atılıyor, çeviri bulunmuyordu
-	var ptr = Lang.t(String(ptxt))
+	var ptr = LazyFx.g("Lang").t(String(ptxt))
 	if ptr == String(ptxt):
-		ptr = Lang.t(String(ptxt).replace("[F] ", "").replace("[F]", "").strip_edges())
+		ptr = LazyFx.g("Lang").t(String(ptxt).replace("[F] ", "").replace("[F]", "").strip_edges())
 	ptxt = ptr.replace("[F] ", "").replace("[F]", "").strip_edges()
 	prompt_box.visible = ptxt != ""
 	if prompt_box.visible:
@@ -1508,7 +1508,7 @@ func _draw_minimap_markers(c: Control) -> void:
 	if Game.has_meta("kamui_space"):
 		draw_kamui_map(c, pl, Vector2(120, 120), 120.0, 150.0)
 		return
-	var sense_r = Stats.sense_radius(Game.profile)
+	var sense_r = LazyFx.g("Stats").sense_radius(Game.profile)
 	for f in get_tree().get_nodes_in_group("fighters"):
 		if Combat.hostile(pl, f) and f.get("team") != "dummy" and not f.is_dead():
 			if f.global_position.distance_to(pl.global_position) > sense_r:
@@ -1530,8 +1530,8 @@ func _draw_minimap_markers(c: Control) -> void:
 		c.draw_arc(q, 7.5, 0, TAU, 16, lm["col"], 1.6)
 		c.draw_string(fnt, q + Vector2(-4, 4.5), lm["glyph"], HORIZONTAL_ALIGNMENT_LEFT, -1, 11, lm["col"])
 		if lm["pos"].distance_to(pl.global_position) < 90.0:
-			c.draw_string_outline(fnt, q + Vector2(9, 4), Lang.t(String(lm["name"])), HORIZONTAL_ALIGNMENT_LEFT, -1, 11, 3, Color(0, 0, 0, 0.9))
-			c.draw_string(fnt, q + Vector2(9, 4), Lang.t(String(lm["name"])), HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(1, 1, 1))
+			c.draw_string_outline(fnt, q + Vector2(9, 4), LazyFx.g("Lang").t(String(lm["name"])), HORIZONTAL_ALIGNMENT_LEFT, -1, 11, 3, Color(0, 0, 0, 0.9))
+			c.draw_string(fnt, q + Vector2(9, 4), LazyFx.g("Lang").t(String(lm["name"])), HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(1, 1, 1))
 	if Missions.has_marker:
 		var q: Vector2 = to_mm.call(Missions.target_marker)
 		var dv = q - Vector2(R, R)
@@ -1555,4 +1555,4 @@ func _draw_minimap_markers(c: Control) -> void:
 	c.draw_polyline(PackedVector2Array([tip, l, r, tip]), Color(0.1, 0.05, 0.0), 2.0)
 	var npos = Vector2(R, R) + Vector2(0, -1).rotated(rot) * (R - 14)
 	c.draw_circle(npos, 10, Color(0.1, 0.06, 0.04, 0.85))
-	c.draw_string(ThemeDB.fallback_font, npos + Vector2(-5, 6), "N" if Lang.is_en() else "K", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1, 0.6, 0.3))
+	c.draw_string(ThemeDB.fallback_font, npos + Vector2(-5, 6), "N" if LazyFx.g("Lang").is_en() else "K", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1, 0.6, 0.3))

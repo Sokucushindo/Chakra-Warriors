@@ -57,18 +57,18 @@ func _process(dt: float) -> void:
 	if Game.paused:
 		return
 	Aging.tick(dt)
-	WorldKin.tick(dt)
-	WorldNews.tick(dt)
+	LazyFx.g("WorldKin").tick(dt)
+	LazyFx.g("WorldNews").tick(dt)
 	WorldDay.tick(dt)
-	WorldAmbition.tick(dt)
-	WorldRelations.tick(dt)   # köyler arası ilişki, savaş, ittifak
+	LazyFx.g("WorldAmbition").tick(dt)
+	LazyFx.g("WorldRelations").tick(dt)   # köyler arası ilişki, savaş, ittifak
 	_t -= dt
 	if _t > 0.0:
 		return
 	_t = TICK
 	world_tick()
-	WorldKin.world_tick(TICK)
-	WorldAmbition.world_tick()   # güce takmış kişiler hedeflerine doğru adım atar
+	LazyFx.g("WorldKin").world_tick(TICK)
+	LazyFx.g("WorldAmbition").world_tick()   # güce takmış kişiler hedeflerine doğru adım atar
 
 
 # ------------------------------------------------------------------ nüfus
@@ -127,8 +127,8 @@ static func new_person(vid: String, rank: int, force_clan := "") -> Dictionary:
 					clan = String(c)
 					break
 	var nat = []
-	for k in KgPaths.SOY:
-		var s: Dictionary = KgPaths.SOY[k]
+	for k in LazyFx.g("KgPaths").SOY:
+		var s: Dictionary = LazyFx.g("KgPaths").SOY[k]
 		if vid in s.get("villages", []) and randf() < float(s.get("chance", 0.07)):   # klansız kan soyu: köyünde nadiren doğar (Darui, Kurotsuchi, Pakura gibi)
 			nat.append(String(s["nature"]))
 			break
@@ -174,7 +174,7 @@ static func _make_look(p: Dictionary) -> Dictionary:
 		lk = ClanWorld.clan_look(String(p["clan"]), arch, vid, bool(p["female"]))
 	else:
 		lk = CharacterModel.default_look()
-		lk.merge(Outfits.roll(arch, vid), true)
+		lk.merge(LazyFx.g("Outfits").roll(arch, vid), true)
 		lk["hair"] = [Color(0.08, 0.07, 0.07), Color(0.3, 0.2, 0.12), Color(0.55, 0.35, 0.18), Color(0.85, 0.7, 0.4), Color(0.55, 0.55, 0.6), Color(0.6, 0.15, 0.12), Color(0.2, 0.25, 0.4)].pick_random()
 	lk["gender"] = "f" if p["female"] else "m"
 	var hs = CharacterModel.hair_styles_for(lk["gender"]).filter(func(h): return CharacterModel.AnimeHair.has(h))
@@ -198,16 +198,16 @@ static func look_of(p: Dictionary) -> Dictionary:
 	var lk = Missions._bb_look({"look": p.get("look", {})})
 	lk["keep_hair"] = true
 	if not is_rogue(p) and lk.get("set_id") in [null, ""]:
-		var uni = Outfits.type_set(String(p.get("clan", "")), String(p.get("village", "")), int(p.get("rank", 0)), String(p.get("id", "")), bool(p.get("female", false)))
+		var uni = LazyFx.g("Outfits").type_set(String(p.get("clan", "")), String(p.get("village", "")), int(p.get("rank", 0)), String(p.get("id", "")), bool(p.get("female", false)))
 		if uni != "":
-			lk = Outfits.wear_set(lk, uni)
+			lk = LazyFx.g("Outfits").wear_set(lk, uni)
 			lk["keep_hair"] = true
-		elif int(p.get("rank", 0)) >= 1 and Outfits.has_uniform(String(p.get("village", ""))):
+		elif int(p.get("rank", 0)) >= 1 and LazyFx.g("Outfits").has_uniform(String(p.get("village", ""))):
 			# chūnin ve üstü köyünün üniformasını giyer (azı kendi kıyafetiyle: kanonda da öyle)
 			var rng = RandomNumberGenerator.new()
 			rng.seed = hash(String(p.get("id", "")) + "|uniforma")
 			if rng.randf() < 0.85:
-				Outfits.village_set(lk, String(p["village"]), int(p["rank"]) >= 2)
+				LazyFx.g("Outfits").village_set(lk, String(p["village"]), int(p["rank"]) >= 2)
 	Aging.dress_person(lk, p)
 	return lk
 
@@ -319,14 +319,14 @@ static func _life(p: Dictionary) -> void:
 			_learn(p)
 			log_event(p, "%s doğasını uyandırdı (%s)" % [["", "İkinci", "Üçüncü", "Dördüncü", "Beşinci"][mini(el_n, 4)], ", ".join(p["els"])])
 		elif int(p["level"]) >= 120 and randf() < 0.12:
-			for kn in KgPaths.RECIPES:
-				var rc: Array = KgPaths.RECIPES[kn]
+			for kn in LazyFx.g("KgPaths").RECIPES:
+				var rc: Array = LazyFx.g("KgPaths").RECIPES[kn]
 				if rc[0] in p["els"] and rc[1] in p["els"] and not kn in p.get("nat", []):
 					if not p.has("nat"):
 						p["nat"] = []
 					(p["nat"] as Array).append(kn)
 					_learn(p)
-					log_event(p, "İki doğasını birleştirdi (%s)" % String(KgPaths.NAMES.get(kn, kn)))
+					log_event(p, "İki doğasını birleştirdi (%s)" % String(LazyFx.g("KgPaths").NAMES.get(kn, kn)))
 					break
 	elif r < 0.30 + _defect_p(p):   # görev ölümleri artık yaşanan görevden gelir (WorldDay.resolve)
 		defect(p, _defect_reason(p))
@@ -335,7 +335,7 @@ static func _life(p: Dictionary) -> void:
 	elif r < 0.42 and _grow_eye(p):
 		pass
 	elif r < 0.62:
-		WorldKin.life(p)   # evlilik, çocuk
+		LazyFx.g("WorldKin").life(p)   # evlilik, çocuk
 
 
 static func _make_look_keep(p: Dictionary) -> Dictionary:
@@ -374,9 +374,9 @@ static func _die(p: Dictionary, why: String) -> void:
 	p["status"] = "öldü"
 	p["missing"] = false
 	log_event(p, why)
-	WorldKin.on_death(p)   # aile yası, intikam
+	LazyFx.g("WorldKin").on_death(p)   # aile yası, intikam
 	WorldDay.on_death(p, why)
-	WorldNews.on_death(p, why)
+	LazyFx.g("WorldNews").on_death(p, why)
 	var cid = String(p.get("close", ""))
 	if cid == "" or not all().has(cid):
 		return
@@ -415,7 +415,7 @@ static func _rogue_life(p: Dictionary, r: float) -> void:
 		var crime = ["%s yakınında bir kervanı soydu" % vname(near), "%s sınır karakoluna saldırdı" % vname(near), "%s'den bir ninjayı öldürdü" % vname(near),
 			"%s'de bir yasak parşömenin izini sürdü" % vname(near), "%s'de bir evi ateşe verdi" % vname(near)][ci]
 		log_event(p, crime)
-		WorldNews.on_crime(p, ci, near, crime)
+		LazyFx.g("WorldNews").on_crime(p, ci, near, crime)
 		var cr: Array = p.get("crimes", [])
 		cr.append(crime)
 		p["crimes"] = cr.slice(maxi(0, cr.size() - 5))
@@ -537,16 +537,16 @@ static func defect(p: Dictionary, why: String) -> Dictionary:
 	log_event(p, why)
 	p["crimes"] = [why, "%s köyünden kaçtı" % vname(String(p["village"]))]
 	var lk: Dictionary = p["look"]
-	var rog = Outfits.roll("rogue", String(p["village"]))
+	var rog = LazyFx.g("Outfits").roll("rogue", String(p["village"]))
 	var keep = {}
 	for k in ["gender", "hair", "hair_style", "skin", "eye", "face", "face_id", "face_cut", "face_v", "eye_art", "beard", "face_mark"]:
 		if lk.has(k):
 			keep[k] = lk[k]
 	var nl = CharacterModel.default_look()
 	nl.merge(rog, true)
-	var sid = Outfits.rogue_set(String(p["clan"]), String(p["village"]), p["els"], p.get("nat", []), bool(p["female"]), String(p["id"]))
+	var sid = LazyFx.g("Outfits").rogue_set(String(p["clan"]), String(p["village"]), p["els"], p.get("nat", []), bool(p["female"]), String(p["id"]))
 	if sid != "":
-		nl = Outfits.wear_set(nl, sid)   # karakterine uyan gerçek set (klan / kan soyu / doğa / köy)
+		nl = LazyFx.g("Outfits").wear_set(nl, sid)   # karakterine uyan gerçek set (klan / kan soyu / doğa / köy)
 		nl["band"] = rog.get("band")
 	p["set"] = sid
 	nl = _ser(nl)
@@ -558,7 +558,7 @@ static func defect(p: Dictionary, why: String) -> Dictionary:
 	p["alias"] = ALIAS.pick_random()
 	var e = make_bingo(p)
 	Missions._bingo()["list"].append(e)
-	WorldNews.on_defect(p)
+	LazyFx.g("WorldNews").on_defect(p)
 	if randf() < 0.6:
 		Hud.msg("Haber: %s köyünden %s kaçtı — Bingo Kitabı'nda «%s»" % [vname(String(p["village"])), String(p["name"]), String(p["alias"])], Color(1, 0.6, 0.5), 6.0)
 	return e
@@ -578,7 +578,7 @@ static func make_bingo(p: Dictionary) -> Dictionary:
 	var e = {"id": int(bb["next"]), "name": String(p["name"]), "alias": String(p.get("alias", ALIAS.pick_random())), "village": String(p["village"]),
 		"rank": rank, "bounty": int(randi_range(int(rd[0]), int(rd[1])) / 50) * 50, "crimes": [],
 		"element": String((p["els"] as Array)[0]), "hide": hide, "area": [hide[0] + randf_range(-300, 300), hide[1] + randf_range(-300, 300)],
-		"known": 450.0, "status": "alive", "tracked": false, "level": lv, "hp": 260.0 + lv * 24.0, "power": Stats.npc_power(lv),
+		"known": 450.0, "status": "alive", "tracked": false, "level": lv, "hp": 260.0 + lv * 24.0, "power": LazyFx.g("Stats").npc_power(lv),
 		"escorts": int(rd[4]), "escort_kind": rd[5], "look": (p["look"] as Dictionary).duplicate(), "person_id": String(p["id"])}
 	bb["next"] = int(bb["next"]) + 1
 	# suçları: gerçekten yaptıkları (kaçış sebebi + kaçaklıkta işledikleri); kaçışın arka planı (yas) sebepte zaten var
@@ -593,13 +593,13 @@ static func make_bingo(p: Dictionary) -> Dictionary:
 static func rogue_dress(p: Dictionary) -> void:
 	if p.has("set") or not is_rogue(p):
 		return
-	var sid = Outfits.rogue_set(String(p["clan"]), String(p["village"]), p["els"], p.get("nat", []), bool(p["female"]), String(p["id"]))
+	var sid = LazyFx.g("Outfits").rogue_set(String(p["clan"]), String(p["village"]), p["els"], p.get("nat", []), bool(p["female"]), String(p["id"]))
 	p["set"] = sid
 	if sid == "":
 		return
 	var lk = Missions._bb_look({"look": p.get("look", {})})
 	lk.erase("keep_hair")
-	var nl = _ser(Outfits.wear_set(lk, sid))
+	var nl = _ser(LazyFx.g("Outfits").wear_set(lk, sid))
 	nl["band_style"] = "slashed"
 	p["look"] = nl
 
@@ -611,7 +611,7 @@ static func _sync_bingo(p: Dictionary, e: Dictionary) -> void:
 	var lv = int(p["level"])
 	e["level"] = lv
 	e["hp"] = 260.0 + lv * 24.0
-	e["power"] = Stats.npc_power(lv)
+	e["power"] = LazyFx.g("Stats").npc_power(lv)
 	var rk = rank_letter(lv)
 	if rk != String(e.get("rank", "C")):
 		e["rank"] = rk
@@ -685,7 +685,7 @@ static func arch_of(p: Dictionary, outfit := "") -> Dictionary:
 	if is_rogue(p):
 		# av ninjalarından sağ kurtulmuş kaçak: en az C-rank gücünde ve Bingo kaçakları gibi elit dövüşür
 		lv = maxi(lv, 35)
-		Stats.npc_ninja(a, lv, 1.3)
+		LazyFx.g("Stats").npc_ninja(a, lv, 1.3)
 		a["guard"] = 0.55
 		a["sub"] = 0.4
 		a["skill"] = clampf(0.18 + lv * 0.0045, 0.3, 0.85)
@@ -695,10 +695,10 @@ static func arch_of(p: Dictionary, outfit := "") -> Dictionary:
 			if not jid in a.get("jutsu", []):
 				a["jutsu"] = (a.get("jutsu", []) as Array) + [jid]
 	else:
-		Stats.npc_ninja(a, lv)
+		LazyFx.g("Stats").npc_ninja(a, lv)
 	a["look"] = look_of(p)
 	a["world_person"] = String(p["id"])
-	WorldAmbition.arch(a, p)   # bedenine canavar mühürlüyse jinchūriki olarak dövüşür
+	LazyFx.g("WorldAmbition").arch(a, p)   # bedenine canavar mühürlüyse jinchūriki olarak dövüşür
 	WorldAkatsuki.dress(a, p)  # Akatsuki üyesi: kızıl bulutlu pelerin
 	return a
 
@@ -796,7 +796,7 @@ static func on_enemy_ready(e: Node) -> void:
 	if e.has_meta("eyes") and int(eye[0]) > 0:
 		e.set_meta("eyes", {"kind": int(eye[0]), "lvl": int(eye[1])})   # Sharingan seviyesi kişininki (klan varsayılanı değil)
 	e.set_meta("world_person", String(p["id"]))
-	WorldAmbition.arm(e, p)   # güce takmış kişi / Kage: Susanoo kademesi, emrindeki canavarlar
+	LazyFx.g("WorldAmbition").arm(e, p)   # güce takmış kişi / Kage: Susanoo kademesi, emrindeki canavarlar
 
 
 ## Kamui boyutuna yutuldu: ölmedi, kayıp (dünya akışlarının dışında); boyuttan salınınca on_kamui_released geri getirir

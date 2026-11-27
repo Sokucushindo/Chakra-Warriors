@@ -88,7 +88,7 @@ func _spawn(pp: Vector3) -> void:
 		return
 	var dest = start - side * randf_range(220.0, 320.0) + fw * randf_range(-40.0, 40.0)
 	dest.y = Game.ground_height(dest.x, dest.z)
-	var vid = Outfits.village_near(start)
+	var vid = LazyFx.g("Outfits").village_near(start)
 	var hi: Dictionary = Progress.HOME_VILLAGES.get(vid, Progress.HOME_VILLAGES["konoha"])
 	# köyün kalıcı takımlarından biri (isimleri, görünüşleri, rütbeleri kayıtlı; tanışınca dost olurlar)
 	var ros: Array = roster(vid)
@@ -108,26 +108,26 @@ func _spawn(pp: Vector3) -> void:
 	for pi in people.size():
 		var person: Dictionary = people[pi]
 		var fid = String(person.get("fid", ""))
-		var f: Dictionary = Friends.all().get(fid, {})
+		var f: Dictionary = LazyFx.g("Friends").all().get(fid, {})
 		if not f.is_empty() and (String(f.get("status", "")) != "" or f.get("party", false)):
 			continue   # ölmüş / kaçmış / senin takımında: bu yürüyüşte yok
 		var wp0 = WorldPeople.get_p(String(person.get("wid", "")))
 		if not wp0.is_empty() and (not WorldPeople.alive(wp0) or WorldPeople.is_rogue(wp0)):
 			continue   # dünyada ölmüş ya da köyünden kaçmış
 		var rank = int(f.get("rank", person["rank"])) if not f.is_empty() else int(person["rank"])
-		var look = Friends.look_of({"look": person["look"], "rank": rank})
+		var look = LazyFx.g("Friends").look_of({"look": person["look"], "rank": rank})
 		look["band"] = hi["band"]
 		look["band_style"] = "head"
 		look["village"] = vid
 		look["age"] = "adult" if rank >= 1 else "teen"
 		if rank >= 1:
 			# köyün kendi chūnin/jōnin seti (yelek modeli, üst/alt, koruyucular): eskiden yalnız yelek RENGİ köyün, modeli Konoha'nındı
-			Outfits.village_set(look, vid, rank >= 2)
+			LazyFx.g("Outfits").village_set(look, vid, rank >= 2)
 		await CharacterModel.ready_turn(self, look)   # yüzü / saçı arka planda hazırlanır, üyeler ayrı karelerde kurulur (donma olmasın)
 		var n = EncounterNPC.new()
 		n.team = "neutral"
 		var nm = String(f.get("name", person["name"])) if not f.is_empty() else String(person["name"])
-		n.display = "%s (%s)" % [nm, Friends.RANKS[clampi(rank, 0, 3)] if rank < 2 else "Jōnin"]
+		n.display = "%s (%s)" % [nm, LazyFx.g("Friends").RANKS[clampi(rank, 0, 3)] if rank < 2 else "Jōnin"]
 		n.mode = "march"
 		n.speed = 4.0
 		var lk = CharacterModel.default_look()
@@ -190,9 +190,9 @@ static func roster(vid: String) -> Array:
 					var nn = _unique_name(fem2, seen)
 					pe["name"] = nn
 					var fid0 = String(pe.get("fid", ""))
-					if fid0 != "" and Friends.all().has(fid0):
-						Friends.all()[fid0]["name"] = nn
-						Friends.all()[fid0]["title"] = "%s takımı" % String(tm["people"][0]["name"])
+					if fid0 != "" and LazyFx.g("Friends").all().has(fid0):
+						LazyFx.g("Friends").all()[fid0]["name"] = nn
+						LazyFx.g("Friends").all()[fid0]["title"] = "%s takımı" % String(tm["people"][0]["name"])
 				seen[String(pe["name"])] = true
 		return p["vteams"][vid]
 	var out = []
@@ -215,7 +215,7 @@ static func roster(vid: String) -> Array:
 			var rank = 1 if chunin else (2 if i == 0 else 0)
 			var look = {"gender": "f" if female else "m", "hair_style": ["kısa", "uzun", "kase", "dağınık", "topuz", "diken", "atkuyruğu"].pick_random(),
 				"hair": Color(randf_range(0.05, 0.9), randf_range(0.05, 0.7), randf_range(0.05, 0.6)), "top": Color(randf_range(0.15, 0.8), randf_range(0.15, 0.7), randf_range(0.15, 0.7))}
-			people.append({"name": nm, "rank": rank, "look": Friends._ser(look), "fid": ""})
+			people.append({"name": nm, "rank": rank, "look": LazyFx.g("Friends")._ser(look), "fid": ""})
 		out.append({"people": people})
 	p["vteams"][vid] = out
 	return out
@@ -230,11 +230,11 @@ func _talk(n: Node) -> void:
 	var ros: Array = roster(String(vt[0]))
 	var person: Dictionary = ros[int(vt[1])]["people"][int(vt[2])]
 	var fid = String(person.get("fid", ""))
-	if fid != "" and Friends.all().has(fid):
-		var f: Dictionary = Friends.all()[fid]
-		var opts = Friends._friend_opts(fid, null)
+	if fid != "" and LazyFx.g("Friends").all().has(fid):
+		var f: Dictionary = LazyFx.g("Friends").all()[fid]
+		var opts = LazyFx.g("Friends")._friend_opts(fid, null)
 		opts.append({"label": "Nereye gidiyorsunuz?", "cb": func(): Hud.dialog(String(f["name"]), n.line, [])})
-		Hud.dialog(String(f["name"]), Friends.greeting(fid), opts)
+		Hud.dialog(String(f["name"]), LazyFx.g("Friends").greeting(fid), opts)
 		return
 	var nm = String(person["name"])
 	var tm_of = func() -> Dictionary:
@@ -257,11 +257,11 @@ func _talk(n: Node) -> void:
 			if not tm3.is_empty():
 				_team_attack(tm3, true)},
 		{"label": "Kendini tanıt", "cb": func():
-			var lk = Friends.look_of({"look": person["look"], "rank": person["rank"]})
+			var lk = LazyFx.g("Friends").look_of({"look": person["look"], "rank": person["rank"]})
 			lk["gender"] = String(lk.get("gender", "m"))
-			var id = Friends.add_person(nm, lk, int(person["rank"]), "patrol", String(vt[0]), n.global_position, "%s takımı" % String(ros[int(vt[1])]["people"][0]["name"]))
+			var id = LazyFx.g("Friends").add_person(nm, lk, int(person["rank"]), "patrol", String(vt[0]), n.global_position, "%s takımı" % String(ros[int(vt[1])]["people"][0]["name"]))
 			person["fid"] = id
-			Hud.dialog(nm, "Ben %s, %s. Takımımla göreve gidiyoruz — köyde görürsen selam ver!" % [nm, Friends.RANKS[clampi(int(person["rank"]), 0, 3)]], [])},
+			Hud.dialog(nm, "Ben %s, %s. Takımımla göreve gidiyoruz — köyde görürsen selam ver!" % [nm, LazyFx.g("Friends").RANKS[clampi(int(person["rank"]), 0, 3)]], [])},
 		{"label": "Kolay gelsin.", "cb": func(): pass}])
 
 
@@ -293,7 +293,7 @@ func _team_attack(tm: Dictionary, crime: bool) -> void:
 		else:
 			a = Orgs._village_arch(String(vt[0]), int(vt[2]), "jonin" if rank >= 2 else "chunin")
 			a["no_clan"] = true
-			Stats.npc_ninja(a, [15, 35, 60][clampi(rank, 0, 2)] + randi_range(0, 10))   # genin ~15, chūnin ~35, jōnin ~60   # ortak NPC eğrisi (köy jōnin'iyle aynı)
+			LazyFx.g("Stats").npc_ninja(a, [15, 35, 60][clampi(rank, 0, 2)] + randi_range(0, 10))   # genin ~15, chūnin ~35, jōnin ~60   # ortak NPC eğrisi (köy jōnin'iyle aynı)
 		a["name"] = String(n.display)
 		a["respawn"] = false
 		a["look"] = (n.look as Dictionary).duplicate()
@@ -313,7 +313,7 @@ func _team_attack(tm: Dictionary, crime: bool) -> void:
 		n.queue_free()
 	tm["nodes"] = []
 	if crime:
-		Crime.commit(Crime.ATTACK, "Yoldaki köy takımına saldırdın", at0, String(tm.get("key", "konoha:0")).split(":")[0])   # takım tanık: köyleri bilir
+		LazyFx.g("Crime").commit(LazyFx.g("Crime").ATTACK, "Yoldaki köy takımına saldırdın", at0, String(tm.get("key", "konoha:0")).split(":")[0])   # takım tanık: köyleri bilir
 
 
 ## Dostça düello: tek üye kendi rütbesinin gücüyle dövüşür, canı %25'e inince pes eder; kazanırsan tanışırsınız (bağ +6)
@@ -328,7 +328,7 @@ func _spar(n: Node, person: Dictionary, vid: String) -> void:
 	else:
 		a = Orgs._village_arch(vid, 0, "jonin" if rank >= 2 else "chunin")
 		a["no_clan"] = true
-		Stats.npc_ninja(a, [15, 35, 60][clampi(rank, 0, 2)])
+		LazyFx.g("Stats").npc_ninja(a, [15, 35, 60][clampi(rank, 0, 2)])
 	a["name"] = "%s (düello)" % String(person["name"])
 	a["respawn"] = false
 	a["look"] = (n.look as Dictionary).duplicate()
@@ -359,10 +359,10 @@ func _spar(n: Node, person: Dictionary, vid: String) -> void:
 		if won:
 			Progress.add_xp(20 + int(a["level"]) * 6)
 			var fid = String(person.get("fid", ""))
-			if fid == "" or not Friends.all().has(fid):
-				var lk = Friends.look_of({"look": person["look"], "rank": person["rank"]})
-				fid = Friends.add_person(String(person["name"]), lk, rank, "patrol", vid, at, "")
+			if fid == "" or not LazyFx.g("Friends").all().has(fid):
+				var lk = LazyFx.g("Friends").look_of({"look": person["look"], "rank": person["rank"]})
+				fid = LazyFx.g("Friends").add_person(String(person["name"]), lk, rank, "patrol", vid, at, "")
 				person["fid"] = fid
-			Friends.add_bond(fid, 6)
+			LazyFx.g("Friends").add_bond(fid, 6)
 			Hud.dialog(String(person["name"]), "İyi dövüştün! Bir dahaki sefere ben kazanacağım. Yolun açık olsun.", [])
 	Hud.banner("DOSTÇA DÜELLO", String(person["name"]), Color(0.9, 0.85, 0.55))

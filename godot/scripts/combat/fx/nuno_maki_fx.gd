@@ -226,7 +226,7 @@ static func _bind(who: Node3D, t: Node3D) -> void:
 		b.add("box", Vector3.ZERO, Vector3(0.22, 0.28, 0.006), Color(0.72, 0.1, 0.14))
 		for k in 3:
 			b.add("box", Vector3(-0.05 + k * 0.05, 0.0, 0.005), Vector3(0.018, 0.2, 0.003), Color(0.08, 0.05, 0.05))
-		return b.build(Props.toon())
+		return b.build(LazyFx.g("Props").toon())
 	seal_new.mesh = Kit.cached_mesh("nuno_seal", make_seal)
 	root.add_child(seal_new)
 	seal_new.visible = false

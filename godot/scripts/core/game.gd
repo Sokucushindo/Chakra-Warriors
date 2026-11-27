@@ -122,7 +122,7 @@ func _notification(what: int) -> void:
 func _exit_tree() -> void:
 	if world and is_instance_valid(world) and world.get("vegetation"):
 		world.vegetation.finish_tasks()   # bitki iş parçacıkları oyun verisi silinmeden bitsin
-	Lang.shutdown()
+	LazyFx.g("Lang").shutdown()
 
 
 func _ready() -> void:
@@ -989,6 +989,9 @@ func apply_graphics() -> void:
 		RenderingServer.directional_shadow_atlas_set_size([1024, 2048, 2048][q], true)
 		if env.post:
 			env.post.visible = bool(settings["outline"])
+			# normal dokusu yalnız Forward+'ta: telefonda (Mobile / Uyumluluk) derinlik çizgili kopya; derlenemeyen gölgelendirici çiziciyi çökertiyordu
+			if RenderingServer.get_current_rendering_method() != "forward_plus" and env.post_mat and env.post_mat.shader and not env.post_mat.shader.resource_path.ends_with("_mobile.gdshader"):
+				env.post_mat.shader = load("res://shaders/outline_post_mobile.gdshader")
 		env.set_dreamy(bool(settings.get("dreamy", true)))
 		# dolgu yükü (yaprak kartları üst üste biner: ormanda kare hızını çözünürlük + kenar yumuşatma + ortam gölgesi belirler):
 		# Yüksek aynen; Orta'da kenar yumuşatma hafif yönteme geçer, ortam gölgesi kapanır; Düşük'te ayrıca %75 çözünürlük
@@ -1070,9 +1073,9 @@ func resolution_options() -> Array:
 func resolution_label(r: String) -> String:
 	if r == "":
 		if win_mode() == "window":
-			return Lang.t("Ekranı kapla")
+			return LazyFx.g("Lang").t("Ekranı kapla")
 		var scr = DisplayServer.screen_get_size(DisplayServer.window_get_current_screen())
-		return Lang.t("%d × %d (ekran)") % [scr.x, scr.y]
+		return LazyFx.g("Lang").t("%d × %d (ekran)") % [scr.x, scr.y]
 	return r.replace("x", " × ")
 
 
@@ -1110,7 +1113,7 @@ func apply_settings() -> void:
 		DisplayServer.window_set_size(want)
 		DisplayServer.window_set_position(scr.position + (scr.size - want) / 2)
 	apply_audio()
-	Lang.apply(lang())
+	LazyFx.g("Lang").apply(lang())
 	get_tree().root.content_scale_factor = float(settings.get("ui_scale", 1.0))   # arayüz ölçeği (yalnız 2B arayüz; 3B görüntü etkilenmez)
 	apply_frame()
 	apply_graphics()   # tam ekranda çözünürlük = 3B çizim ölçeği
@@ -1119,7 +1122,7 @@ func apply_settings() -> void:
 ## Arayüz dili: ayardaki; ilk kurulumda İngilizce (load_settings), eski kayıtta boşsa bilgisayarın dili
 func lang() -> String:
 	var l := String(settings.get("lang", ""))
-	if l in Lang.CODES:
+	if l in LazyFx.g("Lang").CODES:
 		return l
 	return "tr" if OS.get_locale_language() == "tr" else "en"
 
@@ -1255,8 +1258,8 @@ func _migrate_jutsu_ids() -> void:
 			learned.append(nj)
 	profile["learned"] = learned
 	for j in learned:
-		if String(j).begins_with("bashosen_") and not "bashosen" in Gear.owned_ids(profile):
-			Gear.grant(profile, "bashosen")
+		if String(j).begins_with("bashosen_") and not "bashosen" in LazyFx.g("Gear").owned_ids(profile):
+			LazyFx.g("Gear").grant(profile, "bashosen")
 			break
 	var slots: Array = profile.get("slots", [])
 	for i in slots.size():

@@ -99,7 +99,7 @@ static func _build_orca() -> Mesh:
 		b.add("box", Vector3(0.26 * sx, -0.08, -0.14), Vector3(0.26, 0.02, 0.14), black, Vector3(0, 0, -20 * sx))
 		b.add("sphere", Vector3(0.14 * sx, 0.07, -0.42), Vector3(0.09, 0.05, 0.11), white, Vector3.ZERO, 6)
 	b.add("box", Vector3(0, 0, 0.62), Vector3(0.36, 0.025, 0.12), black)
-	return b.build(Props.toon())
+	return b.build(LazyFx.g("Props").toon())
 
 
 static func _build_crescent() -> Mesh:

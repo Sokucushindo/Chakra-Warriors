@@ -32,7 +32,7 @@ var jin_host: Node3D = null   # bir düşman jinchūriki'nin tam dönüşümüys
 
 func setup(beast_id: String) -> void:
 	id = beast_id
-	info = BeastModels.INFO.get(id, BeastModels.INFO["kurama"])
+	info = LazyFx.g("BeastModels").INFO.get(id, LazyFx.g("BeastModels").INFO["kurama"])
 	num = int(info["num"])
 	display_name = info["name"]
 	team = "enemy"
@@ -51,7 +51,7 @@ func setup(beast_id: String) -> void:
 		level = 260
 		max_hp = 150000.0
 		hp = max_hp
-	power = Stats.npc_power(level) * 1.2   # aynı Güç'teki ninjadan sert (eskiden Shukaku 4.7 < Güç 100 ninja 5.5)
+	power = LazyFx.g("Stats").npc_power(level) * 1.2   # aynı Güç'teki ninjadan sert (eskiden Shukaku 4.7 < Güç 100 ninja 5.5)
 	poise = 99.0
 
 
@@ -63,7 +63,7 @@ var leap_to := Vector3.ZERO
 
 func _build_body() -> void:
 	# dev gövde: kapsül yerine model + tırmanılabilir parça çarpıştırıcıları
-	rig = BeastModels.build(id, height)
+	rig = LazyFx.g("BeastModels").build(id, height)
 	add_child(rig)
 
 
@@ -89,7 +89,7 @@ func take_hit(inf: Dictionary) -> void:
 			if is_instance_valid(w) and atk_node.global_position.distance_to(w.global_position) < maxf(6.0, height * 0.12):
 				dmg *= 3.0
 				Combat.popup_text(w.global_position + Vector3.UP * 2.0, "ZAYIF NOKTA!", Color(1, 0.85, 0.3))
-				BeastFX.weak_hit(w.global_position)
+				LazyFx.g("BeastFX").weak_hit(w.global_position)
 				break
 	if subdued:
 		dmg = 0.0
@@ -101,7 +101,7 @@ func take_hit(inf: Dictionary) -> void:
 	var sub_at: float = SUBDUE if jin_host != null else load("res://scripts/combat/fx/shodai_kubikazari_fx.gd").subdue_at(SUBDUE)   # İlk Hokage kolyesi
 	if hp <= max_hp * sub_at + 0.01 and not subdued:
 		if jin_host != null:
-			EnemyJin.form_broken(self)   # jinchūriki dönüşümü: mühürleme yok, form dağılır
+			LazyFx.g("EnemyJin").form_broken(self)   # jinchūriki dönüşümü: mühürleme yok, form dağılır
 			return
 		_subdue()
 
@@ -174,7 +174,7 @@ func show_cmd() -> void:
 		cmd_label.modulate = Color(1.0, 0.85, 0.5)
 		add_child(cmd_label)
 	cmd_label.position = Vector3(0, height * 1.05, 0)
-	cmd_label.text = "[%s]" % Lang.t(Summon.CMD_NAMES[Summon.command_of(ally_owner)])
+	cmd_label.text = "[%s]" % LazyFx.g("Lang").t(Summon.CMD_NAMES[Summon.command_of(ally_owner)])
 	cmd_label.visible = true
 	var tw = cmd_label.create_tween()
 	tw.tween_interval(2.5)
@@ -231,7 +231,7 @@ func _physics_process(dt: float) -> void:
 		ally_life -= dt
 		if ally_life <= 0.0 or not is_instance_valid(ally_owner) or hp < max_hp * 0.15:
 			dead = true
-			BeastFX.vanish(global_position + Vector3.UP * height * 0.5, height, info["chakra"])
+			LazyFx.g("BeastFX").vanish(global_position + Vector3.UP * height * 0.5, height, info["chakra"])
 			Sfx.play("poof", global_position, 0.5)
 			queue_free()
 			return
@@ -375,9 +375,9 @@ func _begin(a: String, dur: float) -> void:
 		"elem":
 			# teknik başta seçilir: hareketi ona göre (şaha kalkma / nefes / fırlatma / siper / kuyruk kamçısı), etkisi hareketin vuruş anında
 			var pl0 = _foe()
-			elem_key = BijuuArts.pick_key(id, (pl0.global_position - global_position).length(), clampf(height / 14.0, 2.0, 3.5)) if pl0 != null else ""
+			elem_key = LazyFx.g("BijuuArts").pick_key(id, (pl0.global_position - global_position).length(), clampf(height / 14.0, 2.0, 3.5)) if pl0 != null else ""
 			if elem_key != "":
-				var an: Array = BijuuArts.anim(elem_key)
+				var an: Array = LazyFx.g("BijuuArts").anim(elem_key)
 				d = float(an[1]) + 0.3
 				elem_rel = float(an[1]) * float(an[2]) / d
 				rig.play_action(String(an[0]), float(an[1]))
@@ -396,7 +396,7 @@ func _begin(a: String, dur: float) -> void:
 func _claw_hit(mul: float) -> void:
 	var fwd = face_dir()
 	var pt = global_position + fwd * height * 0.45 + Vector3.UP * height * 0.15
-	BijuuArts.melee(self, id, pt, height * 0.28, _dmg(26.0) * mul, fwd)
+	LazyFx.g("BijuuArts").melee(self, id, pt, height * 0.28, _dmg(26.0) * mul, fwd)
 	Sfx.play("whoosh", pt, 0.5)
 
 
@@ -420,7 +420,7 @@ func _run_attack(_dt: float) -> void:
 			if k > 0.42 and not atk_hit:
 				atk_hit = true
 				var pt = global_position + fwd * height * 0.45 + Vector3.UP * height * 0.15
-				BijuuArts.melee(self, id, pt, height * 0.28, _dmg(34.0), fwd)   # canavara özgü pençe: kum, mavi alev, lav, asit...
+				LazyFx.g("BijuuArts").melee(self, id, pt, height * 0.28, _dmg(34.0), fwd)   # canavara özgü pençe: kum, mavi alev, lav, asit...
 				Sfx.play("whoosh", pt, 0.5)
 		"combo":
 			# 0-0.55 sn sol pençe, 0.55-1.1 sağ pençe, 1.1-2.3 bitiriş: dört ayaklı ısırık + kuyruk savuruşu, dik canavar iki elle yere çakar
@@ -441,18 +441,18 @@ func _run_attack(_dt: float) -> void:
 				atk_stage = 5
 				if rig.quadruped:
 					var pt = rig.mouth_pos() + fwd * height * 0.15
-					BijuuArts.melee(self, id, pt, height * 0.3, _dmg(40.0), fwd)
+					LazyFx.g("BijuuArts").melee(self, id, pt, height * 0.3, _dmg(40.0), fwd)
 					Sfx.play("hit_heavy", pt, 0.6)
 				else:
 					var c2 = global_position + fwd * height * 0.4
-					Combat.hit_sphere(self, c2 + Vector3.UP * 2.0, height * 0.5, {"dmg": _dmg(44.0), "knock": 30.0, "launch": 14.0, "kind": "heavy", "element": BijuuArts.MELEE.get(id, BijuuArts.MELEE["kurama"])[0]})
-					BijuuArts.melee(self, id, c2 + Vector3.UP * height * 0.05, height * 0.35, _dmg(10.0), fwd)
+					Combat.hit_sphere(self, c2 + Vector3.UP * 2.0, height * 0.5, {"dmg": _dmg(44.0), "knock": 30.0, "launch": 14.0, "kind": "heavy", "element": LazyFx.g("BijuuArts").MELEE.get(id, LazyFx.g("BijuuArts").MELEE["kurama"])[0]})
+					LazyFx.g("BijuuArts").melee(self, id, c2 + Vector3.UP * height * 0.05, height * 0.35, _dmg(10.0), fwd)
 					_shockwave(c2, height * 0.8)
 			elif atk_stage == 5 and tt > 1.75 and rig.quadruped:
 				atk_stage = 6
 				rig.play_action("tail", 0.55)
 				Combat.hit_sphere(self, global_position + Vector3.UP * height * 0.2, height * 0.7, {"dmg": _dmg(26.0), "knock": 38.0, "launch": 8.0, "kind": "heavy"})
-				BeastFX.tail_sweep(global_position, info["chakra"], height * 1.4)
+				LazyFx.g("BeastFX").tail_sweep(global_position, info["chakra"], height * 1.4)
 		"leap":
 			# sıçrayış yayı: çömelme (0-0.22), uçuş (0.22-0.84), iniş darbesi
 			var u = clampf((k - 0.22) / 0.62, 0.0, 1.0)
@@ -469,7 +469,7 @@ func _run_attack(_dt: float) -> void:
 			if k > 0.35 and not atk_hit:
 				atk_hit = true
 				Combat.hit_sphere(self, global_position + Vector3.UP * height * 0.2, height * 0.75, {"dmg": _dmg(30.0), "knock": 34.0, "launch": 8.0, "kind": "heavy"})
-				BeastFX.tail_sweep(global_position, info["chakra"], height * 1.5)
+				LazyFx.g("BeastFX").tail_sweep(global_position, info["chakra"], height * 1.5)
 				Sfx.play("whoosh", global_position, 0.35)
 				if Game.world:
 					Game.world.env.add_shake(0.8)
@@ -478,7 +478,7 @@ func _run_attack(_dt: float) -> void:
 				atk_hit = true
 				Sfx.play("roar", global_position, 0.55)
 				Combat.hit_sphere(self, global_position + Vector3.UP * height * 0.4, height * 0.9, {"dmg": _dmg(10.0), "knock": 40.0, "launch": 10.0, "kind": "heavy"})
-				BeastFX.roar(rig.mouth_pos(), info["chakra"], height * 1.2, fwd)
+				LazyFx.g("BeastFX").roar(rig.mouth_pos(), info["chakra"], height * 1.2, fwd)
 				if Game.world:
 					Game.world.env.add_shake(1.2)
 		"elem":
@@ -495,7 +495,7 @@ func _run_attack(_dt: float) -> void:
 
 ## Yere vuruş: halka şok dalgası + krater izi
 func _shockwave(c: Vector3, r: float) -> void:
-	BeastFX.stomp(c, r * 0.5)
+	LazyFx.g("BeastFX").stomp(c, r * 0.5)
 	_crater(c, r * 0.35)
 	Sfx.play("boom", c, 0.5)
 	if Game.world:
@@ -528,11 +528,11 @@ func _element_attack() -> void:
 	var dist = (pl.global_position - global_position).length()
 	# teknik ölçeği: dev ama oyuncunun ekranını kaplamayacak kadar (alan teknikleri oyuncunun çevresine iner)
 	var ts = clampf(height / 14.0, 2.0, 3.5)
-	var key = elem_key if elem_key != "" else BijuuArts.pick_key(id, dist, ts)
+	var key = elem_key if elem_key != "" else LazyFx.g("BijuuArts").pick_key(id, dist, ts)
 	elem_key = ""
 	if key != "":
-		var td = BijuuArts.tech(id, key)
-		BijuuArts.use(self, id, key, {"s": ts, "dmg": _dmg(30.0), "from": rig.mouth_pos(), "aim": pl.global_position + Vector3.UP, "tgt": pl, "col": info["chakra"]})
+		var td = LazyFx.g("BijuuArts").tech(id, key)
+		LazyFx.g("BijuuArts").use(self, id, key, {"s": ts, "dmg": _dmg(30.0), "from": rig.mouth_pos(), "aim": pl.global_position + Vector3.UP, "tgt": pl, "col": info["chakra"]})
 		Combat.popup_text(rig.mouth_pos() + Vector3.UP * 6.0, String(td.get("name", "")), info["chakra"].lightened(0.3))
 		Sfx.play("roar", rig.mouth_pos(), 0.8, 0.5)
 		return
@@ -573,7 +573,7 @@ func _element_attack_old() -> void:
 			tw.tween_property(self, "global_position", end, 0.6)
 			tw.tween_callback(func():
 				Combat.hit_zone(self, global_position, face_dir(), height * 0.9, 50.0, height, {"dmg": _dmg(40.0), "knock": 40.0, "launch": 10.0, "kind": "heavy", "element": "futton"})
-				BeastFX.steam(global_position + Vector3.UP * height * 0.3, height))
+				LazyFx.g("BeastFX").steam(global_position + Vector3.UP * height * 0.3, height))
 		"saiken":  # aşındırıcı sümük alanı
 			_field(pl.global_position, height * 0.25, Color(0.75, 0.95, 0.85), 7.0, _dmg(6.0), "suiton")
 		"chomei":  # pul tozu: görüşü bulandırır + hücum
@@ -604,14 +604,14 @@ func _proj(from: Vector3, dir: Vector3, spd: float, r: float, el: String, col: C
 	pr.life = 4.0
 	pr.info = {"dmg": dmg, "element": el, "knock": 18.0, "launch": 5.0, "kind": "heavy", "hitstop": 0.06}
 	if el == "yoton":   # Son Gokū lav kayası: enerji küresi/ateş patlaması değil
-		pr.add_child(BeastFX.lava_ball(maxf(1.5, r * 2.0)))
+		pr.add_child(LazyFx.g("BeastFX").lava_ball(maxf(1.5, r * 2.0)))
 	else:
-		pr.add_child(BeastFX.shot_ball(maxf(1.5, r * 2.0), col, el))
+		pr.add_child(LazyFx.g("BeastFX").shot_ball(maxf(1.5, r * 2.0), col, el))
 	pr.on_hit = func(pos: Vector3, _t: Node3D) -> void:
 		if el == "yoton":
-			BeastFX.lava_hit(pos, maxf(1.5, r * 0.8))
+			LazyFx.g("BeastFX").lava_hit(pos, maxf(1.5, r * 0.8))
 		else:
-			BeastFX.shot_hit(pos, maxf(1.0, r * 0.6), col, el)
+			LazyFx.g("BeastFX").shot_hit(pos, maxf(1.0, r * 0.6), col, el)
 		Combat.hit_sphere(self, pos, maxf(4.0, r * 2.5), {"dmg": dmg * 0.5, "element": el, "knock": 14.0, "kind": "heavy"}, pr.hit_list)
 	get_tree().current_scene.add_child(pr)
 	pr.global_position = from
@@ -623,7 +623,7 @@ func _field(c: Vector3, r: float, col: Color, dur: float, dps: float, el: String
 	var n = Node3D.new()
 	get_tree().current_scene.add_child(n)
 	n.global_position = c
-	BeastFX.field(c, r, col, dur, id)
+	LazyFx.g("BeastFX").field(c, r, col, dur, id)
 	var t = {"v": 0.0}
 	var tm = Timer.new()
 	tm.wait_time = 0.5
@@ -645,7 +645,7 @@ var elem_rel := 0.5       # tekniğin çıktığı an (saldırı süresine oranl
 ## Anime Bijūdama: top ağzın önünde başı kadar büyür, canavar yutar, fırlatır
 func _ball_start() -> void:
 	Combat.popup_text(rig.mouth_pos() + Vector3.UP * 4.0, "Bijūdama!", Color(0.8, 0.5, 1.0))
-	BijudamaFX.charge(rig.mouth, height * 0.34, 4.2 * 0.86)
+	LazyFx.g("BijudamaFX").charge(rig.mouth, height * 0.34, 4.2 * 0.86)
 
 
 func _ball_tick(k: float) -> void:
@@ -654,7 +654,7 @@ func _ball_tick(k: float) -> void:
 		var pl = _foe()
 		if pl == null:
 			return
-		var from = BijudamaFX.muzzle(rig.mouth, height * 0.34 * 0.4)
+		var from = LazyFx.g("BijudamaFX").muzzle(rig.mouth, height * 0.34 * 0.4)
 		var aim = (pl.global_position + Vector3.UP - from).normalized()
 		TailedBeasts.fire_ball(self, from, aim, height * 0.17, info["chakra"], _dmg(110.0), 75.0)
 
@@ -676,13 +676,13 @@ func _minions() -> void:
 		p.y = Game.ground_height(p.x, p.z)
 		e.global_position = p
 		e.home = p
-		BeastFX.minion(p + Vector3.UP, info["chakra"])
+		LazyFx.g("BeastFX").minion(p + Vector3.UP, info["chakra"])
 
 
 # ------------------------------------------------------------------ boyun eğme / mühürleme
 func _subdue() -> void:
 	subdued = true
-	subdued_t = 30.0 * (1.0 + Stats.skill(Game.profile, "fuin")) * load("res://scripts/combat/fx/shodai_kubikazari_fx.gd").hold_mult()
+	subdued_t = 30.0 * (1.0 + LazyFx.g("Stats").skill(Game.profile, "fuin")) * load("res://scripts/combat/fx/shodai_kubikazari_fx.gd").hold_mult()
 	atk = ""
 	if ball and is_instance_valid(ball):
 		ball.queue_free()
@@ -710,7 +710,7 @@ func sealed_away(into: Node3D) -> void:
 	Interact.items.erase(seal_item)
 	_end_fight()
 	var tgt = into.global_position + Vector3.UP if into else global_position
-	BeastFX.sealed(global_position + Vector3.UP * height * 0.5, height, info["chakra"], tgt)
+	LazyFx.g("BeastFX").sealed(global_position + Vector3.UP * height * 0.5, height, info["chakra"], tgt)
 	var tw = create_tween()
 	tw.tween_property(rig, "scale", Vector3.ONE * 0.01, 1.6).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
 	tw.tween_callback(queue_free)

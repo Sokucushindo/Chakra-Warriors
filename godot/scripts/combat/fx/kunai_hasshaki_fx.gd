@@ -30,7 +30,7 @@ static func build(b: MB) -> void:
 	var dark = Color(0.17, 0.16, 0.13)
 	var pale = Color(0.72, 0.67, 0.5)
 	b.add("box", Vector3(0, 0, 0.14), Vector3(0.07, 0.085, 0.42), body)
-	Loft.tube(b, [Vector3(0, 0.015, 0.3), Vector3(0, 0.015, 0.52), Vector3(0, 0.015, 0.66)], [0.034, 0.04, 0.066], pale, 10, 2)
+	LazyFx.g("Loft").tube(b, [Vector3(0, 0.015, 0.3), Vector3(0, 0.015, 0.52), Vector3(0, 0.015, 0.66)], [0.034, 0.04, 0.066], pale, 10, 2)
 	b.add("cyl", MUZZLE, Vector3(0.09, 0.01, 0.06), dark, Vector3(90, 0, 0), 10)
 	b.add("box", Vector3(0, 0.09, -0.02), Vector3(0.05, 0.12, 0.13), body.darkened(0.15))   # üstteki şarjör
 	b.add("box", Vector3(0, 0.155, -0.02), Vector3(0.058, 0.014, 0.14), dark)
@@ -45,7 +45,7 @@ static func _kunai() -> Mesh:
 		var k = MB.new()
 		CharacterModel._kunai_mesh(k)
 		b.add_mesh(k, Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * 0.72), Vector3.ZERO))
-		return b.build(Props.toon()))
+		return b.build(LazyFx.g("Props").toon()))
 
 
 static func _ammo(who: Node3D) -> int:

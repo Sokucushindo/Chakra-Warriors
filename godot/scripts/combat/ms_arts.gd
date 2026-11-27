@@ -236,13 +236,13 @@ static func _black_mesh(mb: MB) -> MeshInstance3D:
 # ================================================================== ITACHI
 ## Magen: Karasu Bunshin — beden karga sürüsüne dağılır, hedefin arkasında yeniden toplanır; hedef yanılsamada kalır
 static func m_magen_karasu_bunshin(c: Node3D, t: Node3D) -> void:
-	DojutsuFXD.magen_karasu_bunshin(_pj(), c, t)
+	LazyFx.g("DojutsuFXD").magen_karasu_bunshin(_pj(), c, t)
 
 
 # ================================================================== SASUKE
 ## Enton: Kagutsuchi no Tsurugi — elde kara alevden kılıç biçimlenir, ileri atılıp yay çizen kesik; kesik yanmaya devam eder
 static func m_enton_kagutsuchi_no_tsurugi(c: Node3D, t: Node3D) -> void:
-	KatonFXF.enton_kagutsuchi_no_tsurugi(null, c, t)
+	LazyFx.g("KatonFXF").enton_kagutsuchi_no_tsurugi(null, c, t)
 
 
 # ================================================================== SUSANOO TEKNİKLERİ (gerçek Susanoo)
@@ -318,7 +318,7 @@ static func _sus_flare(sn: Susanoo, at: Vector3, s: float) -> void:
 
 # ------------------------------------------------------------------ Susanoo (çağırma)
 static func m_susanoo(c: Node3D, t: Node3D) -> void:
-	DojutsuFXB.susanoo(_pj(), c, t)
+	LazyFx.g("DojutsuFXB").susanoo(_pj(), c, t)
 
 
 # ------------------------------------------------------------------ Totsuka no Tsurugi (Itachi)
@@ -352,7 +352,7 @@ static func _blade_mesh() -> ArrayMesh:
 
 
 static func m_totsuka_no_tsurugi(c: Node3D, t: Node3D) -> void:
-	DojutsuFXD.totsuka_no_tsurugi(_pj(), c, t)
+	LazyFx.g("DojutsuFXD").totsuka_no_tsurugi(_pj(), c, t)
 
 
 ## Ruh izleri: hedeften testinin ağzına akan Susanoo renginde sıvı-alev damlaları
@@ -401,7 +401,7 @@ static func _totsuka_seal(c: Node3D, sn: Susanoo, h: Node3D, gourd: Node3D, col:
 ## Kanon: Susanoo'nun sol kolundaki ayna kalkan; niteliğini saldırıya göre değiştirip her saldırıyı etkisiz kılar.
 ## Oyunda: 6 sn boyunca gelen hasar %95 azalır (oyuncu ve düşman aynı); her darbe kalkanda dalgalanır ve önündekileri iter.
 static func m_yata_no_kagami(c: Node3D, t: Node3D) -> void:
-	DojutsuFXD.yata_no_kagami(_pj(), c, t)
+	LazyFx.g("DojutsuFXD").yata_no_kagami(_pj(), c, t)
 
 
 # ------------------------------------------------------------------ Susanoo yayı: Enton: Susanoo Kagutsuchi (Sasuke) / Indora'nın Oku
@@ -573,7 +573,7 @@ static func _fire_kagutsuchi(c: Node3D, sn: Susanoo, arrow: Node3D, from: Vector
 		_later(4.0, func(): if is_instance_valid(fl): fl.queue_free())
 		VFX.shockwave(to, Color(0.22, 0.0, 0.3), 5.0 + H * 0.2, 0.5)
 		VFX.black_smolder(g, 3.0 + H * 0.06, 7.0)
-		KatonLib.embers(Game.world, to, 30, 0.4, KatonLib.PAL_BLACK, {"vmin": 8.0 * 0.4, "vmax": 8.0, "life": 1.1})
+		LazyFx.g("KatonLib").embers(Game.world, to, 30, 0.4, LazyFx.g("KatonLib").PAL_BLACK, {"vmin": 8.0 * 0.4, "vmax": 8.0, "life": 1.1})
 		_shake(0.8))
 
 
@@ -616,7 +616,7 @@ static func m_indora_no_ya(c: Node3D, t: Node3D) -> void:
 ## Susanoo'nun sağ eli aşağıda dev Chidori'yi doldurur (yere sürten şimşekler, cıvıltı), sonra kol hedefe uzanır ve
 ## şimşek mızrak gibi elden fırlar.
 static func m_susanoo_chidori(c: Node3D, t: Node3D) -> void:
-	RaitonFXF.susanoo_chidori(MsArts._pj(), c, t)
+	LazyFx.g("RaitonFXF").susanoo_chidori(MsArts._pj(), c, t)
 
 
 # ------------------------------------------------------------------ Yasaka no Magatama (Itachi) / Enton: Yasaka no Magatama (Sasuke)
@@ -759,13 +759,13 @@ static func m_enton_yasaka_no_magatama(c: Node3D, t: Node3D) -> void:
 
 # ------------------------------------------------------------------ Susanoo: Kobushi (yumruk)
 static func m_susanoo_kobushi(c: Node3D, t: Node3D) -> void:
-	DojutsuFXB.susanoo_kobushi(_pj(), c, t)
+	LazyFx.g("DojutsuFXB").susanoo_kobushi(_pj(), c, t)
 
 
 # ------------------------------------------------------------------ Susanoo: Gōkakyū
 ## Susanoo nefes alıp geriye yaslanır, ağzında alev toplanır; öne eğilip dev ateş topunu üfler.
 static func m_susanoo_gokakyu(c: Node3D, t: Node3D) -> void:
-	KatonFXF.susanoo_gokakyu(null, c, t)
+	LazyFx.g("KatonFXF").susanoo_gokakyu(null, c, t)
 
 
 # ------------------------------------------------------------------ Susanoo: Hōzan
@@ -829,7 +829,7 @@ static func m_susanoo_hozan(c: Node3D, t: Node3D) -> void:
 # ------------------------------------------------------------------ Susanoo: Tsukumo
 ## Susanoo iki elini kaldırır, ellerinin çevresinde onlarca chakra oku biçimlenir ve hedefe yağar.
 static func m_susanoo_tsukumo(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXG.susanoo_tsukumo(_pj(), c, t)
+	LazyFx.g("NinjutsuFXG").susanoo_tsukumo(_pj(), c, t)
 
 
 # ================================================================== KAMUI (Kakashi / Obito) — ortak boyut çekişi
@@ -977,13 +977,13 @@ static func m_kamui_shuriken(c: Node3D, t: Node3D) -> void:
 ## Kyōsō Enbu (kanon, Madara): Susanoo'ya bürünmüş Madara chakra kılıcını shuriken gibi döndürerek fırlatır; yolundakileri biçer,
 ## hedefte döner durur, sonra Susanoo'nun eline geri gelir. GERÇEK Susanoo'nun kılıcı kullanılır.
 static func m_kyoso_enbu(c: Node3D, t: Node3D) -> void:
-	DojutsuFXB.kyoso_enbu(_pj(), c, t)
+	LazyFx.g("DojutsuFXB").kyoso_enbu(_pj(), c, t)
 
 
 # ------------------------------------------------------------------ Susanoo: Kai (ref Narutopedia "Susanoo: Crush")
 ## Susanoo'nun eli rakibe uzanır, onu kavrar ve yumruğunun içinde ezer; sonra yere fırlatır
 static func m_susanoo_kai(c: Node3D, t: Node3D) -> void:
-	DojutsuFXD.susanoo_kai(_pj(), c, t)
+	LazyFx.g("DojutsuFXD").susanoo_kai(_pj(), c, t)
 
 
 # ================================================================== SHISUI (Shunshin no Shisui)
@@ -1094,30 +1094,30 @@ static func _ms_disc(c: Node3D, size: float, billboard: bool) -> MeshInstance3D:
 ## Zanzō Bunshin (残像分身, anime 454): Shunshin'le hedefin çevresinde beş art görüntü bırakır; her art görüntü kendi yerinden
 ## tantō kesiği atar (kütlesi vardır), art görüntüye gelen saldırı boşa gider. Sonunda hedefin arkasında gerçek beden belirir.
 static func m_zanzo_bunshin(c: Node3D, t: Node3D) -> void:
-	DojutsuFXC.zanzo_bunshin(MsArts._pj(), c, t)
+	LazyFx.g("DojutsuFXC").zanzo_bunshin(MsArts._pj(), c, t)
 
 
 ## Bunshun (分瞬, Storm Revolution): iki kage bunshin iki yandan hedefe atılıp çarpar, gerçek Shisui arkalarından tek kesikle bitirir
 static func m_bunshun(c: Node3D, t: Node3D) -> void:
-	DojutsuFXC.bunshun(MsArts._pj(), c, t)
+	LazyFx.g("DojutsuFXC").bunshun(MsArts._pj(), c, t)
 
 
 ## Uchiha Ryū: Higasa no Mai (うちは流・日暈の舞, Storm Revolution): tantō alevle kaplanır, tek hızlı savuruşla öne doğru
 ## genişleyen alev halesi (güneş halesi yayı) salınır; değdiğini yakar
 static func m_uchiha_ryu_higasa_no_mai(c: Node3D, t: Node3D) -> void:
-	KatonFXC.uchiha_ryu_higasa_no_mai(_pj(), c, t)
+	LazyFx.g("KatonFXC").uchiha_ryu_higasa_no_mai(_pj(), c, t)
 
 
 ## Kotoamatsukami: Kōbō (別天神・光芒, Storm Revolution): hedef genjutsuya düşer; tepesinde dev bir Mangekyō belirir ve gözden
 ## inen ışık huzmeleri onu vurur. Genjutsu olduğu için göz göze gelmeyen / direnen hedefte tutmaz.
 static func m_kotoamatsukami_kobo(c: Node3D, t: Node3D) -> void:
-	DojutsuFXC.kotoamatsukami_kobo(MsArts._pj(), c, t)
+	LazyFx.g("DojutsuFXC").kotoamatsukami_kobo(MsArts._pj(), c, t)
 
 
 ## Kotoamatsukami: Zankō (別天神・残光, Shinobi Striker): çevredeki bütün düşmanlara aynı anda uygulanır; hareketleri karışır,
 ## görüşleri kapanır (hedeflerini yitirirler). Hasar vermez.
 static func m_kotoamatsukami_zanko(c: Node3D, _t: Node3D) -> void:
-	DojutsuFXC.kotoamatsukami_zanko(MsArts._pj(), c, _t)
+	LazyFx.g("DojutsuFXC").kotoamatsukami_zanko(MsArts._pj(), c, _t)
 
 
 ## Susanoo'nun matkap mızrağı (Shisui'nin Susanoo'su): el hizasında, aim'e doğru
@@ -1139,13 +1139,13 @@ static func _sus_drill(sn: Susanoo, S: float, fire: bool) -> MeshInstance3D:
 
 ## Susanoo: Kaien (須佐能乎・廻炎, Storm 4): Susanoo'nun matkap mızrağı alev alır; dönerek hedefe saplanır, döndükçe deler ve yakar
 static func m_susanoo_kaien(c: Node3D, t: Node3D) -> void:
-	KatonFXC.susanoo_kaien(_pj(), c, t)
+	LazyFx.g("KatonFXC").susanoo_kaien(_pj(), c, t)
 
 
 ## Kanseitai Susanoo: Kishin (完成体須佐能乎・鬼神, Shinobi Striker): Mükemmel Susanoo göğe sıçrar ve matkap kılıcını
 ## aşağı çevirip hedefin üstüne iner; indiği yer çöker
 static func m_kanseitai_susanoo_kishin(c: Node3D, t: Node3D) -> void:
-	DojutsuFXD.kanseitai_susanoo_kishin(_pj(), c, t)
+	LazyFx.g("DojutsuFXD").kanseitai_susanoo_kishin(_pj(), c, t)
 
 
 # ================================================================== OBITO (Kamui: geçirgenlik, ışınlanma, bilek zincirleri)
@@ -1222,29 +1222,29 @@ static func _phase(c: Node3D, dur: float) -> void:
 ## Saten (鎖天, Storm): Obito geçirgen hâlde rakibin içinden geçer; bileklerindeki zincir rakibe dolanır. Zincirle havaya
 ## fırlatır, Kamui ile tepesine ışınlanıp yumrukla yere çakar. (Kanon: maskeli adamın Minato'ya karşı zinciri.)
 static func m_saten(c: Node3D, t: Node3D) -> void:
-	DojutsuFXC.saten(MsArts._pj(), c, t)
+	LazyFx.g("DojutsuFXC").saten(MsArts._pj(), c, t)
 
 
 ## Sain (鎖引, Storm): bilek zinciri uzaktaki rakibe dolanır; Obito onu zincirle iki kez yere savurur, sonra Kamui ile arkasına
 ## ve üstüne ışınlanıp dönen tekmeyle indirir
 static func m_sain(c: Node3D, t: Node3D) -> void:
-	DojutsuFXC.sain(MsArts._pj(), c, t)
+	LazyFx.g("DojutsuFXC").sain(MsArts._pj(), c, t)
 
 
 ## Muzan (無惨, Storm): Obito Kamui ile kaybolur, rakibin tam tepesinde belirir ve üstüne çöküp kunaiyi saplar. Uzaktan başlar.
 static func m_muzan(c: Node3D, t: Node3D) -> void:
-	DojutsuFXC.muzan(MsArts._pj(), c, t)
+	LazyFx.g("DojutsuFXC").muzan(MsArts._pj(), c, t)
 
 
 ## Mekkyaku (滅却, Storm): Obito yumruk ve tekme yağdırır; her darbenin arasında geçirgenleşir, rakibin karşılığı içinden geçer
 static func m_mekkyaku(c: Node3D, t: Node3D) -> void:
-	DojutsuFXC.mekkyaku(MsArts._pj(), c, t)
+	LazyFx.g("DojutsuFXC").mekkyaku(MsArts._pj(), c, t)
 
 
 ## Tensō (転葬, Storm): rakip Kamui boyutuna çekilir; Obito çevreye kibaku fuda saçar ve rakibi patlayan mühürlerin tam
 ## ortasına geri bırakır. Dev hedef boyuta sığmaz: yalnız mühürler patlar.
 static func m_tenso(c: Node3D, t: Node3D) -> void:
-	DojutsuFXC.tenso(MsArts._pj(), c, t)
+	LazyFx.g("DojutsuFXC").tenso(MsArts._pj(), c, t)
 
 
 # ================================================================== KAKASHI (Raikiri + Kamui)
@@ -1289,24 +1289,24 @@ static func _rai_burst(at: Vector3, n: int, r: float) -> void:
 
 ## Raikiri: Sōsenkō (雷切・双穿光, Storm): iki elde birer Raikiri; hedefe koşar, birini saplar, hemen ardından ötekini
 static func m_raikiri_sosenko(c: Node3D, t: Node3D) -> void:
-	RaitonFXE.raikiri_sosenko(_pj(), c, t)
+	LazyFx.g("RaitonFXE").raikiri_sosenko(_pj(), c, t)
 
 
 ## Raikiri Issen (雷切一閃, Storm): Raikiri ile göz açıp kapayana dek rakibe varır, onu kavrayıp şimşekle yerde uzun uzun
 ## sürükler ve sonunda fırlatır
 static func m_raikiri_issen(c: Node3D, t: Node3D) -> void:
-	RaitonFXE.raikiri_issen(_pj(), c, t)
+	LazyFx.g("RaitonFXE").raikiri_issen(_pj(), c, t)
 
 
 ## Raijū Hashiri no Jutsu: Sō (雷獣走りの術・双, Storm): iki şimşek tazısı iki yana açılıp koşar, hedefe yanlardan saldırır
 static func m_raiju_hashiri_so(c: Node3D, t: Node3D) -> void:
-	RaitonFXE.raiju_hashiri_so(_pj(), c, t)
+	LazyFx.g("RaitonFXE").raiju_hashiri_so(_pj(), c, t)
 
 
 ## Susanoo: Kamui Raikiri (須佐能乎・神威雷切, Storm): Susanoo'nun yumruğunda Raikiri toplanır, çevresinde Kamui girdabı döner;
 ## yumruk saplandığı yeri hem deler hem boyuta çeker
 static func m_susanoo_kamui_raikiri(c: Node3D, t: Node3D) -> void:
-	DojutsuFXC.susanoo_kamui_raikiri(MsArts._pj(), c, t)
+	LazyFx.g("DojutsuFXC").susanoo_kamui_raikiri(MsArts._pj(), c, t)
 
 
 # ================================================================== MADARA (Susanoo kılıçları)
@@ -1330,25 +1330,25 @@ static func _sus_sword(sn: Susanoo, S: float, right: bool, dur: float, look_fn: 
 ## Susanoo: Dan (須佐能乎・断, Storm): dirsek darbesiyle açar, Susanoo kılıcıyla ardı ardına biçer ve tepeden inen tek bir
 ## kesikle yeri yarar
 static func m_susanoo_dan(c: Node3D, t: Node3D) -> void:
-	DojutsuFXC.susanoo_dan(MsArts._pj(), c, t)
+	LazyFx.g("DojutsuFXC").susanoo_dan(MsArts._pj(), c, t)
 
 
 ## Susanoo: Retsu (須佐能乎・裂, Storm): Susanoo kılıcı alttan savrulup rakibi havaya kaldırır; düşerken iki kılıç çapraz iner
 static func m_susanoo_retsu(c: Node3D, t: Node3D) -> void:
-	DojutsuFXC.susanoo_retsu(MsArts._pj(), c, t)
+	LazyFx.g("DojutsuFXC").susanoo_retsu(MsArts._pj(), c, t)
 
 
 ## Susanoo: Nitō no Mai (須佐能乎・二刀の舞, Storm): Susanoo iki kılıcını sırayla savurur; her savuruş uzağa giden bir chakra
 ## dalgası bırakır
 static func m_susanoo_nito_no_mai(c: Node3D, t: Node3D) -> void:
-	DojutsuFXC.susanoo_nito_no_mai(MsArts._pj(), c, t)
+	LazyFx.g("DojutsuFXC").susanoo_nito_no_mai(MsArts._pj(), c, t)
 
 
 # ================================================================== ITACHI
 ## Totsuka no Tsurugi: Renzokugiri (十拳剣・連続斬り, Storm): Totsuka kılıcıyla iki yatay kesik, bir saplama; Itachi ateş
 ## topuyla bitirir
 static func m_totsuka_renzokugiri(c: Node3D, t: Node3D) -> void:
-	DojutsuFXC.totsuka_renzokugiri(MsArts._pj(), c, t)
+	LazyFx.g("DojutsuFXC").totsuka_renzokugiri(MsArts._pj(), c, t)
 
 
 ## Zemine oturan disk örgüsü (eğimde toprağın altında kalmasın): merkez c, yarıçap R; UV düzlemsel
@@ -1377,16 +1377,16 @@ static func _ground_disc(center: Vector3, R: float) -> ArrayMesh:
 ## Tsukuyomi Mōdo (月読モード, Ultimate Ninja): Tsukuyomi bir alana yayılır; içindeki rakipler görünmez bir engele takılmış gibi
 ## ağırlaşır (bedenleri değil zihinleri tutulur). Açık kaldıkça kullanıcının canı ve chakrası erir.
 static func m_tsukuyomi_mode(c: Node3D, _t: Node3D) -> void:
-	DojutsuFXC.tsukuyomi_mode(MsArts._pj(), c, _t)
+	LazyFx.g("DojutsuFXC").tsukuyomi_mode(MsArts._pj(), c, _t)
 
 
 # ================================================================== SASUKE (Enton)
 ## Enton: Honoikazuchi (炎遁・火雷, anime): Amaterasu bedeni sarar, sonra dikenlere dönüşüp çevredeki herkesi deler
 static func m_enton_honoikazuchi(c: Node3D, _t: Node3D) -> void:
-	KatonFXC.enton_honoikazuchi(_pj(), c, _t)
+	LazyFx.g("KatonFXC").enton_honoikazuchi(_pj(), c, _t)
 
 
 ## Amaterasu: Zanka (天照・残火, Storm): Susanoo'nun eli dev bir kara alev küresi tutar; küreden kopan küçük küreler çevreye
 ## saçılır ve bir süre tuzak olarak bekler, değene patlayıp Amaterasu bulaştırır
 static func m_amaterasu_zanka(c: Node3D, t: Node3D) -> void:
-	KatonFXC.amaterasu_zanka(_pj(), c, t)
+	LazyFx.g("KatonFXC").amaterasu_zanka(_pj(), c, t)

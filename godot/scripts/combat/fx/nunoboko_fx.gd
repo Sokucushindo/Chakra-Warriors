@@ -54,7 +54,7 @@ static func model(b: MB) -> void:
 			var r = _r(u)
 			pts.append(Vector3(cos(a) * r, sin(a) * r, 0.14 + u * L))
 			rad.append(lerpf(0.03, 0.062, sin(u * PI)))
-		Loft.tube(b, pts, rad, black, 8, 1)
+		LazyFx.g("Loft").tube(b, pts, rad, black, 8, 1)
 	for k in 10:
 		var u = (k + 0.5) / 10.0
 		var a = u * TAU * 2.25
@@ -69,7 +69,7 @@ static func model(b: MB) -> void:
 		var a = u * TAU
 		tail.append(Vector3(cos(a) * 0.016, sin(a) * 0.016, -0.1 - u * 0.5))
 		tr.append(lerpf(0.024, 0.006, u))
-	Loft.tube(b, tail, tr, black, 6, 1)
+	LazyFx.g("Loft").tube(b, tail, tr, black, 6, 1)
 
 
 # ------------------------------------------------------------------ şart

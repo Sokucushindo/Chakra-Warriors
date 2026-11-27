@@ -443,7 +443,7 @@ static func prewarm_missing(parent: Node, progress: Callable = Callable()) -> vo
 		return
 	var jobs := []
 	var sids := []
-	for e in Outfits.TYPE_WEAR:
+	for e in LazyFx.g("Outfits").TYPE_WEAR:
 		sids.append(String(e["set"]))
 	var ps = Game.profile.get("equip", {}).get("set") if Game.profile.get("equip") is Dictionary else null
 	if ps is Dictionary and ps.has("id"):
@@ -452,7 +452,7 @@ static func prewarm_missing(parent: Node, progress: Callable = Callable()) -> vo
 		if not has(sid):
 			continue
 		for g in ["m", "f"]:
-			if Outfits._fits(sid, g == "f") and not FileAccess.file_exists(_disk_path(sid, g)) and not _cache.has("%s|%s" % [sid, g]):
+			if LazyFx.g("Outfits")._fits(sid, g == "f") and not FileAccess.file_exists(_disk_path(sid, g)) and not _cache.has("%s|%s" % [sid, g]):
 				jobs.append([sid, g])
 	if jobs.is_empty():
 		return
@@ -463,7 +463,7 @@ static func prewarm_missing(parent: Node, progress: Callable = Callable()) -> vo
 	for i in jobs.size():
 		var lk = CharacterModel.default_look()
 		lk["gender"] = jobs[i][1]
-		lk = Outfits.wear_set(lk, jobs[i][0])
+		lk = LazyFx.g("Outfits").wear_set(lk, jobs[i][0])
 		var cm = CharacterModel.new()
 		holder.add_child(cm)
 		cm.setup(lk)
@@ -530,9 +530,9 @@ static func _disk_path(sid: String, gender: String) -> String:
 static func has(sid) -> bool:
 	if sid == null or String(sid) == "":
 		return false
-	sid = Gear.MERGED_SETS.get(String(sid), sid)   # birleştirilen kopya setin eski kimliği (NPC görünüşlerinde kalmış olabilir)
-	if Gear.REMOVED_SETS.has(String(sid)):   # kaldırılan set: temel setle kurulur
-		sid = Gear.REMOVED_TO
+	sid = LazyFx.g("Gear").MERGED_SETS.get(String(sid), sid)   # birleştirilen kopya setin eski kimliği (NPC görünüşlerinde kalmış olabilir)
+	if LazyFx.g("Gear").REMOVED_SETS.has(String(sid)):   # kaldırılan set: temel setle kurulur
+		sid = LazyFx.g("Gear").REMOVED_TO
 	if sid in SETS or MAP.has(sid):
 		return true
 	if OS.has_feature("template") or OS.get_environment("EL_MAP") != "":
@@ -548,9 +548,9 @@ const CANON_SKIN := Color(0.9, 0.72, 0.58)
 
 
 static func build(m, sid: String, g: Dictionary) -> void:
-	sid = String(Gear.MERGED_SETS.get(sid, sid))
-	if Gear.REMOVED_SETS.has(sid):
-		sid = Gear.REMOVED_TO
+	sid = String(LazyFx.g("Gear").MERGED_SETS.get(sid, sid))
+	if LazyFx.g("Gear").REMOVED_SETS.has(sid):
+		sid = LazyFx.g("Gear").REMOVED_TO
 	var box := Vector3(m._bp("Neck").y + 0.015, m._bp("LeftFoot").y + 0.075, absf(m._bp("LeftHand").x) - 0.012)
 	var ua: Vector3 = m._bp("LeftUpperArm")
 	var keep := Vector4(ua.y, absf(ua.x) - 0.05, -0.03, 0.085)   # sırtta boyun arkası genişliği: 0.055 boynun yanlarını kesiyordu, oyun kamerasından boyun saydam görünüyordu   # iki omuz eklemi arası boyun dibi çizilir: yaka ve omuz kenarından yer görünmesin (kollar ve sırt derisi gizli kalır)
@@ -570,7 +570,7 @@ static func build(m, sid: String, g: Dictionary) -> void:
 		m.skel.add_child(mi)
 		mi.skin = m.body_mesh.skin
 		mi.skeleton = mi.get_path_to(m.skel)
-		mi.material_override = Props.toon()
+		mi.material_override = LazyFx.g("Props").toon()
 		_personalize(mi, m)
 		A._dangles(m, e[1])
 		return
@@ -730,7 +730,7 @@ static func _personalize(mi: MeshInstance3D, m) -> void:
 			params[nm + "_to"] = Vector4(dst.r, dst.g, dst.b, 1.0)
 	if params.is_empty():
 		return
-	var mt: ShaderMaterial = Props.toon().duplicate()
+	var mt: ShaderMaterial = LazyFx.g("Props").toon().duplicate()
 	for pn in params:
 		mt.set_shader_parameter(pn, params[pn])
 	mi.material_override = mt

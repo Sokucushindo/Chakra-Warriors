@@ -49,7 +49,7 @@ static func _build_dart() -> Mesh:
 	for k in 6:
 		var a = TAU * k / 6.0
 		b.add("cone", Vector3(cos(a) * 0.014, sin(a) * 0.014, -0.11), Vector3(0.022, 0.08, 0.008), Color(0.62, 0.6, 0.5), Vector3(-90 + sin(a) * 18.0, 0, -cos(a) * 18.0), 3)
-	return b.build(Props.toon())
+	return b.build(LazyFx.g("Props").toon())
 
 
 static func _build_beam() -> Mesh:

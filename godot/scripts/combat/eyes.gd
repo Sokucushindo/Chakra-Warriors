@@ -61,7 +61,7 @@ static func ms_styles(pr: Dictionary) -> Array:
 	var out = []
 	var ems = false
 	for slot in ["sag_goz", "sol_goz"]:
-		var g = Gear.equipped(pr, slot)
+		var g = LazyFx.g("Gear").equipped(pr, slot)
 		if String(g.get("id", "")) == "goz_ems":
 			ems = true
 		var s = ms_style_of(g)
@@ -153,7 +153,7 @@ func _ems() -> bool:
 
 
 func _lvl(side: String) -> int:
-	var g = Gear.equipped(Game.profile, "sag_goz" if side == "sag" else "sol_goz")
+	var g = LazyFx.g("Gear").equipped(Game.profile, "sag_goz" if side == "sag" else "sol_goz")
 	if not g.is_empty():
 		return int(g.get("lvl", 3))
 	var e = eye(side)
@@ -187,10 +187,10 @@ static func design_vecs(d: Dictionary) -> Array:
 
 ## Takılı Mangekyō/EMS gözünün desen sözlüğü (yoksa üretip kaydeder)
 static func design_for(pr: Dictionary, slot: String) -> Dictionary:
-	var g = Gear.equipped(pr, slot)
+	var g = LazyFx.g("Gear").equipped(pr, slot)
 	if g.is_empty():
 		return {}
-	var kind = int(Gear.item(g["id"]).get("eye", {}).get("kind", 0))
+	var kind = int(LazyFx.g("Gear").item(g["id"]).get("eye", {}).get("kind", 0))
 	if not kind in [4, 5]:
 		return {}
 	if not g.has("design"):
@@ -457,7 +457,7 @@ func _eye_buff() -> void:
 	var desc = []
 	if r in [1, 4, 5] or l in [1, 4, 5]:
 		mods["jutsu"] = 1.0 + 0.015 * maxi(_lvl("sag"), _lvl("sol")) + (0.05 if (r >= 4 and r <= 5) or (l >= 4 and l <= 5) else 0.0)
-		desc.append(Lang.t("Kaçınma %%%d" % int(dodge_chance() * 100.0)))   # birleşik açıklama parça parça çevrilirken "%15" kalıbı bölünüyordu: kaynağında çevir
+		desc.append(LazyFx.g("Lang").t("Kaçınma %%%d" % int(dodge_chance() * 100.0)))   # birleşik açıklama parça parça çevrilirken "%15" kalıbı bölünüyordu: kaynağında çevir
 		desc.append("dünya yavaşlar (hareketleri okursun)")
 		if r == 5 or l == 5:
 			desc.append("ağır saldırıları da okursun")
@@ -544,7 +544,7 @@ func _ms_eye_jutsu(side: String) -> String:
 static func ms_eye_jutsu_of(pr: Dictionary, side: String, k: int) -> String:
 	if not k in [4, 5]:
 		return ""
-	var st = ms_style_of(Gear.equipped(pr, side + "_goz"))
+	var st = ms_style_of(LazyFx.g("Gear").equipped(pr, side + "_goz"))
 	if k == 4:
 		var all = ms_styles(pr)
 		st = all[0] if not all.is_empty() else st   # normal Mangekyō: iki göz tek tarz
@@ -566,7 +566,7 @@ static func eye_skill_label(pr: Dictionary, side: String, k: int) -> String:
 # ------------------------------------------------------------------ teknikler
 ## Yetenek ağacı "Göz Gücü / Göz Efendisi": göz tekniklerinin hasar çarpanı
 func _eye_pow() -> float:
-	return 1.0 + Stats.skill(Game.profile, "eye_power")
+	return 1.0 + LazyFx.g("Stats").skill(Game.profile, "eye_power")
 
 
 func use_skill(side: String) -> void:
@@ -584,12 +584,12 @@ func use_skill(side: String) -> void:
 		Hud.msg("Gözlerin kör: Mangekyō teknikleri kullanılamaz. Ebedi Mangekyō gerek.", Color(1, 0.45, 0.45))
 		return
 	var sk: Array = SKILLS[k][0 if side == "sag" else 1]
-	var cost: float = sk[1] * _transplant_mult() * maxf(0.3, 1.0 + Stats.skill(Game.profile, "eye_cost"))
+	var cost: float = sk[1] * _transplant_mult() * maxf(0.3, 1.0 + LazyFx.g("Stats").skill(Game.profile, "eye_cost"))
 	if p.chakra < cost:
 		Hud.msg("Yeterli chakra yok.", Color(0.6, 0.7, 1))
 		return
 	p.chakra -= cost
-	cd[side] = sk[2] * maxf(0.3, 1.0 + Stats.skill(Game.profile, "eye_cd")) * (1.0 + blind() * 1.2)   # bozulan göz: teknikler gecikir
+	cd[side] = sk[2] * maxf(0.3, 1.0 + LazyFx.g("Stats").skill(Game.profile, "eye_cd")) * (1.0 + blind() * 1.2)   # bozulan göz: teknikler gecikir
 	Combat.popup_text(p.global_position + Vector3.UP * 2.4, _skill_name(side), Color(1, 0.5, 0.5) if k != 2 else Color(0.85, 0.9, 1))
 	var t = Combat.nearest_enemy(p, 30.0, p.face_dir(), 0.3)
 	if t == null:
@@ -665,8 +665,8 @@ func _genjutsu_gaze(t: Node3D, stun: float, dmg: float) -> void:
 	if t == null:
 		Hud.msg("Göz göze gelecek hedef yok.", Color(0.8, 0.8, 0.8))
 		return
-	var gm = 1.0 + Stats.skill(Game.profile, "gen_power")
-	var gmas = Mastery.get_v(Game.profile, "genjutsu")   # genjutsu ustalığı göz genjutsusunu da büyütür (hasar + süre)
+	var gm = 1.0 + LazyFx.g("Stats").skill(Game.profile, "gen_power")
+	var gmas = LazyFx.g("Mastery").get_v(Game.profile, "genjutsu")   # genjutsu ustalığı göz genjutsusunu da büyütür (hasar + süre)
 	t.apply_status("stun", stun * gm * (1.0 + minf(gmas * 0.01, 0.8)))
 	dmg *= gm * (1.0 + gmas * 0.045)
 	if dmg > 0.0:
@@ -688,7 +688,7 @@ func _air_palm() -> void:
 	var dir = p.face_dir()
 	for i in 6:
 		var pt = p.global_position + Vector3.UP * 1.1 + dir * (1.5 + i * 1.6)
-		Combat.hit_sphere(p, pt, 1.3, {"dmg": (18.0 * Stats.melee_mult(Game.profile)) * _eye_pow(), "knock": 14.0, "kind": "heavy", "dir": dir})
+		Combat.hit_sphere(p, pt, 1.3, {"dmg": (18.0 * LazyFx.g("Stats").melee_mult(Game.profile)) * _eye_pow(), "knock": 14.0, "kind": "heavy", "dir": dir})
 	FX.ring(p.global_position + Vector3.UP * 1.1 + dir * 2.0, Color(0.85, 0.9, 1), 2.5, 0.3, false, dir)
 	FX.speed_lines(p.global_position + Vector3.UP, dir)
 	Sfx.play("wind", p.global_position, 1.3)
@@ -778,20 +778,20 @@ func _start_susanoo() -> void:
 	var h = Susanoo.TIER_HEIGHT[sn.tier]
 	if sn.tier >= 2:
 		# kamera Susanoo boyuna göre; kullanıcı Susanoo'nun içinde (göğüs / alın) süzülür
-		BeastSus.cam(p)
+		LazyFx.g("BeastSus").cam(p)
 		p.model_lift = h * Susanoo.USER_SEAT[sn.tier] if sn.tier >= 4 else 0.0   # İnsansı: kullanıcı yerde durur (uçmaz)
 	# kanatlı tam Susanoo: havadayken Space ile uçuşa geç
 	if sn.tier >= 5 and Susanoo.config(Game.profile).get("wings", true) and p.has_method("start_flight"):
 		p.set_meta("wing_flight", {"speed": 24.0, "lift": 13.0, "drain": 1.2, "name": "Susanoo kanatları", "land_stop": true})
 		Hud.msg("Kanatlar: havadayken Space ile uç", Color(0.8, 0.9, 1.0))
-	BeastSus.sync(p)   # tam dönüşümdeki canavar Susanoo'yu zırh olarak giyer
+	LazyFx.g("BeastSus").sync(p)   # tam dönüşümdeki canavar Susanoo'yu zırh olarak giyer
 
 
 func _end_susanoo() -> void:
 	susanoo = false
-	BeastSus.sync(p)
+	LazyFx.g("BeastSus").sync(p)
 	p.model_lift = 0.0
-	BeastSus.cam(p)
+	LazyFx.g("BeastSus").cam(p)
 	if p.has_meta("wing_flight"):
 		p.remove_meta("wing_flight")
 	if p.has_method("flight_source") and p.flight_source() == "susanoo":
@@ -819,7 +819,7 @@ static func give_enemy_eyes(f: Node, kind: int, lvl := 3) -> void:
 func _take_cells(f: Node3D) -> void:
 	f.set_meta("cells_taken", true)
 	cell_target = null
-	Crime.on_eyes_taken(f)   # köy ninjasının bedenine dokunmak: aynı suç
+	LazyFx.g("Crime").on_eyes_taken(f)   # köy ninjasının bedenine dokunmak: aynı suç
 	var fl: Dictionary = Game.profile["flags"]
 	fl["senju_jar"] = int(fl.get("senju_jar", 0)) + 1
 	VFX.debris(f.global_position + Vector3.UP * 0.6, Color(0.6, 0.05, 0.05), 6, 2.0, 0.15)
@@ -831,19 +831,19 @@ func _steal(f: Node3D) -> void:
 	var e: Dictionary = f.get_meta("eyes")
 	f.set_meta("eyes_taken", true)
 	steal_target = null
-	Crime.on_eyes_taken(f)   # köy ninjasının gözü: suç
+	LazyFx.g("Crime").on_eyes_taken(f)   # köy ninjasının gözü: suç
 	var id = {1: "goz_sharingan", 2: "goz_byakugan", 3: "goz_ketsuryugan", 4: "goz_mangekyo", 5: "goz_ems", 6: "goz_rinnegan", 7: "goz_tenseigan", 8: "goz_jogan"}.get(int(e["kind"]), "goz_sharingan")
 	var n_eyes = 1 if f.has_meta("eye_share") else 2
 	var extra = {"lvl": int(e.get("lvl", 3)), "origin": "nakil"}
 	var ffid = String(f.get_meta("friend_id", ""))
 	if ffid != "":
-		var fr: Dictionary = Friends.all().get(ffid, {})
+		var fr: Dictionary = LazyFx.g("Friends").all().get(ffid, {})
 		if fr.has("kin") or bool(fr.get("child", false)):
 			extra["kin"] = true   # kan akrabanın gözü (kanon: Ebedi Mangekyō yalnız kardeş / yakın kan gözüyle)
 	if id in ["goz_mangekyo", "goz_ems"]:
 		extra["ms_style"] = MS_STYLES.keys()[randi() % MS_STYLES.size()]   # sahibinin tarzı: iki göz aynı, kişiden kişiye rastgele
 	for i in n_eyes:
-		Gear.grant(Game.profile, id, "", null, null, extra.duplicate())
+		LazyFx.g("Gear").grant(Game.profile, id, "", null, null, extra.duplicate())
 	Game.profile["flags"]["goz_hirsizi"] = int(Game.profile["flags"].get("goz_hirsizi", 0)) + 1
 	if n_eyes == 1:
 		Hud.dialog(String(f.get_meta("eye_share")), "Dur! Diğer göz bana lazım. Yardım ettiğin için bölüşelim: biri senin, biri benim.", [])
@@ -887,7 +887,7 @@ func _on_jutsu_cast(caster: Node, id: String) -> void:
 		Progress.learn(id)
 		Hud.msg("SHARINGAN KOPYALADI: %s" % Data.jutsu[id].get("name", id), Color(1, 0.35, 0.35))
 		FX.ring(p.global_position + Vector3.UP * 1.6, Color(0.9, 0.1, 0.12), 1.4, 0.4, false)
-		Journal.add("Sharingan ile kopyaladım: %s" % Data.jutsu[id].get("name", id), "jutsu")
+		LazyFx.g("Journal").add("Sharingan ile kopyaladım: %s" % Data.jutsu[id].get("name", id), "jutsu")
 
 
 # ------------------------------------------------------------------ güncelleme
@@ -918,12 +918,12 @@ func _process(dt: float) -> void:
 			Hud.banner("SUSANOO USTALIĞI", "Yeni kademe açıldı: %s" % Susanoo.TIER_NAMES[Susanoo.max_tier(Game.profile)], Color(0.8, 0.6, 1.0))
 	if active:
 		var ems = _ems()
-		var drain = 2.0 * _transplant_mult() * (0.6 if ems else 1.0) * maxf(0.3, 1.0 + Stats.skill(Game.profile, "eye_cost"))
+		var drain = 2.0 * _transplant_mult() * (0.6 if ems else 1.0) * maxf(0.3, 1.0 + LazyFx.g("Stats").skill(Game.profile, "eye_cost"))
 		if susanoo and is_instance_valid(susanoo_node):
 			# Susanoo azami chakranın yüzdesini yer (sabit miktar yüksek seviyede yenilenmeye yenik düşüp sonsuz açık kalıyordu):
 			# kademe 1 ~%1.6/sn (~60 sn), kademe 5 ~%3.2/sn (~30 sn); EMS ve yetenek indirimi en fazla %35 hafifletir
 			var pct = 0.012 + 0.004 * susanoo_node.tier
-			drain += p.max_chakra * pct * (0.8 if ems else 1.0) * maxf(0.65, 1.0 + Stats.skill(Game.profile, "eye_cost"))
+			drain += p.max_chakra * pct * (0.8 if ems else 1.0) * maxf(0.65, 1.0 + LazyFx.g("Stats").skill(Game.profile, "eye_cost"))
 		p.chakra -= drain * dt
 		if p.chakra <= 0.0:
 			p.chakra = 0.0
@@ -992,9 +992,9 @@ func check_awaken(dt: float) -> void:
 		_awaken_cd = 5.0
 		if randf() < 0.5:
 			pr["flags"].erase("dormant_eye")
-			Gear.grant(pr, dormant, "sag_goz", null, null, {"lvl": 1, "origin": "dogustan", "xp": 0.0})
-			Gear.grant(pr, dormant, "sol_goz", null, null, {"lvl": 1, "origin": "dogustan", "xp": 0.0})
-			Gear.apply_look(pr)
+			LazyFx.g("Gear").grant(pr, dormant, "sag_goz", null, null, {"lvl": 1, "origin": "dogustan", "xp": 0.0})
+			LazyFx.g("Gear").grant(pr, dormant, "sol_goz", null, null, {"lvl": 1, "origin": "dogustan", "xp": 0.0})
+			LazyFx.g("Gear").apply_look(pr)
 			p.rebuild_model()
 			Hud.banner("SHARINGAN UYANDI", "Ölümün eşiğinde gözlerin açıldı", Color(1, 0.2, 0.2))
 			Sfx.play("genjutsu", p.global_position, 1.3)
@@ -1004,7 +1004,7 @@ func check_awaken(dt: float) -> void:
 	# tomoe ilerlemesi: gözler açıkken dövüş
 	if active and not _enemies_in(25.0).is_empty():
 		for slot in ["sag_goz", "sol_goz"]:
-			var g = Gear.equipped(pr, slot)
+			var g = LazyFx.g("Gear").equipped(pr, slot)
 			if g.is_empty() or g["id"] != "goz_sharingan" or int(g.get("lvl", 1)) >= 3:
 				continue
 			g["xp"] = float(g.get("xp", 0.0)) + dt
@@ -1012,7 +1012,7 @@ func check_awaken(dt: float) -> void:
 				g["xp"] = 0.0
 				g["lvl"] = int(g.get("lvl", 1)) + 1
 				Hud.banner("SHARINGAN GELİŞTİ", "%d tomoe" % int(g["lvl"]), Color(1, 0.3, 0.3))
-				Gear.apply_look(pr)  # görünüm sözlüğü (eye_r/eye_l lvl) güncellensin, yoksa göz eski tomoe'da kalır
+				LazyFx.g("Gear").apply_look(pr)  # görünüm sözlüğü (eye_r/eye_l lvl) güncellensin, yoksa göz eski tomoe'da kalır
 				refresh_visual()
 
 
@@ -1031,7 +1031,7 @@ func on_ally_died(ally: Node3D, fid := "") -> void:
 		return
 	if fid == "":
 		fid = String(ally.get_meta("friend_id", ""))
-	if fid == "" or Friends.closeness(fid) < 60:
+	if fid == "" or LazyFx.g("Friends").closeness(fid) < 60:
 		return
 	if ally.global_position.distance_to(p.global_position) > 40.0:
 		return
@@ -1047,7 +1047,7 @@ func _awaken_mangekyo() -> bool:
 	var ok = false
 	var style = MS_STYLES.keys()[randi() % MS_STYLES.size()]   # iki göz aynı acıyla, aynı tarzda uyanır
 	for slot in ["sag_goz", "sol_goz"]:
-		var g = Gear.equipped(pr, slot)
+		var g = LazyFx.g("Gear").equipped(pr, slot)
 		if not g.is_empty() and g["id"] == "goz_sharingan" and int(g.get("lvl", 1)) >= 3:
 			g["id"] = "goz_mangekyo"
 			g.erase("design")
@@ -1058,7 +1058,7 @@ func _awaken_mangekyo() -> bool:
 		if not sts.is_empty():
 			var st: Dictionary = MS_STYLES[sts[0]]
 			Hud.msg("Mangekyō tarzın: %s — %s" % [st["name"], st["theme"]], Color(1, 0.5, 0.5), 7.0)
-		Gear.apply_look(pr)
+		LazyFx.g("Gear").apply_look(pr)
 		p.rebuild_model()
 		Hud.banner("MANGEKYŌ SHARINGAN", "Acı, gözlerini sonsuza dek değiştirdi", Color(0.8, 0.05, 0.1))
 		Sfx.play("roar", p.global_position, 0.7, 0.5)
@@ -1068,11 +1068,11 @@ func _awaken_mangekyo() -> bool:
 
 ## Hastanede nakil: saklanan bir gözü seçilen yuvaya takar (eski göz kavanoza)
 static func transplant(pr: Dictionary, uid: int, slot: String) -> void:
-	var g = Gear.find(pr, uid)
+	var g = LazyFx.g("Gear").find(pr, uid)
 	if g.is_empty():
 		return
 	# Mangekyō sahibine başka bir Mangekyō nakli = Ebedi Mangekyō
-	var cur = Gear.equipped(pr, slot)
+	var cur = LazyFx.g("Gear").equipped(pr, slot)
 	# kanon (Sasuke–Itachi, Madara–Izuna): kendi uyandırdığın Mangekyō'nun yerine KAN AKRABANIN Mangekyō'su; nakil MS üstüne nakil MS
 	# olmaz, yabancı Uchiha'nın Mangekyō'su Ebedi yapmaz (yalnız Mangekyō olarak takılır)
 	if not cur.is_empty() and String(cur.get("origin", "dogustan")) == "dogustan":
@@ -1089,7 +1089,7 @@ static func transplant(pr: Dictionary, uid: int, slot: String) -> void:
 		Hud.banner("EBEDİ MANGEKYŌ", "Gözlerin artık hiç kararmayacak", Color(0.9, 0.2, 0.3))
 	pr["equip"][slot] = uid
 	Buffs.add("nakil", 120.0, {"speed": 0.85, "melee": 0.85})
-	Gear.apply_look(pr)
+	LazyFx.g("Gear").apply_look(pr)
 	if Game.player:
 		Game.player.rebuild_model()
 
@@ -1102,7 +1102,7 @@ func dodge_chance() -> float:
 	for s in ["sag", "sol"]:
 		var k = _kind(s)
 		if k in [1, 4, 5]:
-			best = maxf(best, dodge_for(k, _lvl(s)) + Stats.skill(Game.profile, "eye_dodge") * 0.5)
+			best = maxf(best, dodge_for(k, _lvl(s)) + LazyFx.g("Stats").skill(Game.profile, "eye_dodge") * 0.5)
 	return best
 
 
@@ -1137,7 +1137,7 @@ func counter_strike(_info: Dictionary) -> void:
 		p.combat.face_to(t)
 	p.model.play("cross", 0.05, 2.4, true)
 	FX.ring(t.global_position + Vector3.UP, Color(1, 0.2, 0.2), 2.0, 0.25, false)
-	t.take_hit({"dmg": 22.0 * Stats.melee_mult(Game.profile) * _eye_pow(), "knock": 10.0, "kind": "heavy", "dir": (t.global_position - p.global_position).normalized(), "element": ""})
+	t.take_hit({"dmg": 22.0 * LazyFx.g("Stats").melee_mult(Game.profile) * _eye_pow(), "knock": 10.0, "kind": "heavy", "dir": (t.global_position - p.global_position).normalized(), "element": ""})
 
 
 # ------------------------------------------------------------------ anime evrim zincirleri
@@ -1179,11 +1179,11 @@ func _both_slots_kind(kind: int) -> bool:
 func _replace_eyes(new_id: String, slots: Array, lvl := 1) -> void:
 	var pr = Game.profile
 	for slot in slots:
-		Gear.grant(pr, new_id, slot, null, null, {"lvl": lvl, "origin": "uyanis", "xp": 0.0})
-	Gear.apply_look(pr)
+		LazyFx.g("Gear").grant(pr, new_id, slot, null, null, {"lvl": lvl, "origin": "uyanis", "xp": 0.0})
+	LazyFx.g("Gear").apply_look(pr)
 	p.rebuild_model()
 	Progress.clan_unlocks(true)
-	SpecialSlots.refresh(pr)
+	LazyFx.g("SpecialSlots").refresh(pr)
 	refresh_visual()
 
 
@@ -1194,7 +1194,7 @@ func evolve_tick(dt: float) -> void:
 	# 1) Byakugan / Ketsuryūgan ustalığı: açıkken dövüştükçe gelişir
 	if fighting:
 		for slot in ["sag_goz", "sol_goz"]:
-			var g = Gear.equipped(pr, slot)
+			var g = LazyFx.g("Gear").equipped(pr, slot)
 			if g.is_empty() or not g["id"] in ["goz_byakugan", "goz_ketsuryugan"] or int(g.get("lvl", 1)) >= 3:
 				continue
 			g["xp"] = float(g.get("xp", 0.0)) + dt
@@ -1228,7 +1228,7 @@ func evolve_tick(dt: float) -> void:
 	# 5) Jōgan: Uzumaki soyunda nadir, Sv.20+ her 2 sn'de çok düşük olasılık (yalnız gözsüz sağ yuva)
 	if false and String(pr.get("clan", "")) == "uzumaki" and lv >= 20 and not pr.get("flags", {}).get("jogan_rolled_%d" % lv, false):   # Jōgan Ōtsutsuki bölümüne kadar kapalı
 		pr["flags"]["jogan_rolled_%d" % lv] = true
-		if Gear.equipped(pr, "sag_goz").is_empty() and randf() < 0.12:
+		if LazyFx.g("Gear").equipped(pr, "sag_goz").is_empty() and randf() < 0.12:
 			_replace_eyes("goz_jogan", ["sag_goz"], 1)
 			Hud.banner("JŌGAN", "Sağ gözün mavi parladı: görünmeyeni görüyorsun", Color(0.4, 0.65, 1.0))
 
@@ -1258,7 +1258,7 @@ func add_blind(amount: float) -> void:
 			Hud.msg(th[1], Color(1, 0.4, 0.4), 6.0)
 	if before < 1.0 and now >= 1.0:
 		Hud.banner("GÖZLERİN KARARDI", "Mangekyō'nun bedeli: körsün. Ebedi Mangekyō (yakınının gözü) ışığı geri getirir.", Color(0.5, 0.05, 0.08))
-		Journal.add("Mangekyō gözlerimi kör etti.", "milestone")
+		LazyFx.g("Journal").add("Mangekyō gözlerimi kör etti.", "milestone")
 		if susanoo:
 			_end_susanoo()
 
@@ -1293,19 +1293,19 @@ func izanagi_cost(tech := "İzanagi") -> void:
 	var pr = Game.profile
 	var slot = ""
 	for s in ["sol_goz", "sag_goz"]:
-		var g = Gear.equipped(pr, s)
-		if not g.is_empty() and int(Gear.item(g["id"]).get("eye", {}).get("kind", 0)) in [1, 4, 5]:
+		var g = LazyFx.g("Gear").equipped(pr, s)
+		if not g.is_empty() and int(LazyFx.g("Gear").item(g["id"]).get("eye", {}).get("kind", 0)) in [1, 4, 5]:
 			slot = s
 			break
 	if slot == "":
 		return
-	var g2 = Gear.equipped(pr, slot)
+	var g2 = LazyFx.g("Gear").equipped(pr, slot)
 	pr["equip"].erase(slot)
 	pr["gear"] = (pr.get("gear", []) as Array).filter(func(x): return int(x["uid"]) != int(g2["uid"]))
 	pr["flags"]["izanagi_used"] = int(pr["flags"].get("izanagi_used", 0)) + 1
-	Gear.apply_look(pr)
+	LazyFx.g("Gear").apply_look(pr)
 	Hud.banner("%s'NİN BEDELİ" % tech.to_upper(), "%s gözün sonsuza dek ışığını kaybetti" % ("Sol" if slot == "sol_goz" else "Sağ"), Color(0.75, 0.05, 0.08))
-	Journal.add("%s kullandım; bir gözüm sonsuza dek karardı." % tech, "milestone")
+	LazyFx.g("Journal").add("%s kullandım; bir gözüm sonsuza dek karardı." % tech, "milestone")
 	Sfx.play("genjutsu", p.global_position, 0.6, 0.9)
 	if not has_eyes() and active:
 		_close()
@@ -1321,7 +1321,7 @@ func start_hatred() -> void:
 	pr["flags"]["hatred"] = true
 	_apply_hatred_buff()
 	Hud.msg("Kaybın içinde bir nefret uyandırdı. Gözlerin güçlü ama ruhun karanlık... (Bir tapınakta huzur bulabilirsin)", Color(0.85, 0.35, 0.4), 8.0)
-	Journal.add("Nefretin Laneti: kaybım gözlerimi uyandırdı ama içimi kararttı.", "milestone")
+	LazyFx.g("Journal").add("Nefretin Laneti: kaybım gözlerimi uyandırdı ama içimi kararttı.", "milestone")
 
 
 func _apply_hatred_buff() -> void:
@@ -1334,7 +1334,7 @@ static func clear_hatred() -> bool:
 		return false
 	pr["flags"].erase("hatred")
 	Buffs.remove("hatred")
-	Journal.add("Tapınakta dua ettim; nefret yerini huzura bıraktı.", "milestone")
+	LazyFx.g("Journal").add("Tapınakta dua ettim; nefret yerini huzura bıraktı.", "milestone")
 	return true
 
 
@@ -1369,7 +1369,7 @@ static func warn_attack(e: Node3D) -> void:
 ## Sharingan sahibine atılan genjutsu (göz göze sersemletme) kısalır; 3 tomoe / Mangekyō hemen kırar
 ## Genjutsu ustalığı: genjutsuyu tanıyıp chakra akışını bozarak (Kai) çözme — oyuncuya tutan genjutsunun etkisi azalır (60 ustalıkta yarı)
 static func _gen_mastery_resist() -> float:
-	return 1.0 / (1.0 + Mastery.get_v(Game.profile, "genjutsu") / 60.0)
+	return 1.0 / (1.0 + LazyFx.g("Mastery").get_v(Game.profile, "genjutsu") / 60.0)
 
 
 static func genjutsu_resist(t: Node) -> float:
@@ -1473,7 +1473,7 @@ func _kamui_absorb(t: Node3D) -> void:
 			if is_instance_valid(tg) and tg.is_dead():
 				KS.capture(p, tg))   # boyutta tutsak kalır
 		return
-	MsArts.kamui_vortex(at, MsArts._hh(tg) * 1.4, 1.3, {"pull": 0.5})
+	LazyFx.g("MsArts").kamui_vortex(at, LazyFx.g("MsArts")._hh(tg) * 1.4, 1.3, {"pull": 0.5})
 	KS.twist_into(tg, at, 1.1, false, 0.3)   # direnir: beden burgaca doğru çekilip geri yaylanır
 	get_tree().create_timer(1.15).timeout.connect(func():
 		if not is_instance_valid(tg) or tg.is_dead():
@@ -1497,7 +1497,7 @@ func _kamui_warp(t: Node3D) -> void:
 		dest = from + f.normalized() * 22.0
 	dest.y = Game.jutsu_floor_at(dest).y
 	var KS = preload("res://scripts/world/kamui_space.gd")
-	MsArts.kamui_vortex(KS.eye_point(p), 1.8, 0.75, {"pull": 0.55})
+	LazyFx.g("MsArts").kamui_vortex(KS.eye_point(p), 1.8, 0.75, {"pull": 0.55})
 	KS.twist_into(p, KS.eye_point(p), 0.38)   # sağ göze doğru burgaca akar (dönmez)
 	add_blind(0.02 * minf(2.0, from.distance_to(dest) / 15.0))
 	if p.combat:
@@ -1512,7 +1512,7 @@ func _kamui_warp(t: Node3D) -> void:
 			var d0 = t.global_position - dest
 			d0.y = 0
 			p.facing = atan2(-d0.x, -d0.z)
-		MsArts.kamui_vortex(KS.eye_point(p), 1.8, 0.7, {"pull": -0.5})
+		LazyFx.g("MsArts").kamui_vortex(KS.eye_point(p), 1.8, 0.7, {"pull": -0.5})
 		KS.twist_into(p, KS.eye_point(p), 0.32, true)   # varışta gözdeki burgaçtan açılarak belirir
 		if t and is_instance_valid(t):
 			var d = t.global_position - dest
@@ -1559,7 +1559,7 @@ func _phase_start() -> void:
 	phase_t = 0.0
 	if p.combat:
 		p.combat.invuln = maxf(p.combat.invuln, 0.12)   # ilk karede de geçirgen
-	MsArts.kamui_ripple(p)   # anime: geçirgenlik sürekli girdap değil; darbe geçtikçe küçük burkulma (PlayerCombat.take_hit)
+	LazyFx.g("MsArts").kamui_ripple(p)   # anime: geçirgenlik sürekli girdap değil; darbe geçtikçe küçük burkulma (PlayerCombat.take_hit)
 	_set_phase_look(true)
 	Sfx.play("genjutsu", p.global_position, 1.4, 0.5)
 

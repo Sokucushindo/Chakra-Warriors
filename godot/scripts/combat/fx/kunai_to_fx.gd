@@ -47,7 +47,7 @@ static func _link() -> Mesh:
 	return Kit.mesh("kunai_halka", func():
 		var b = MB.new()
 		b.add("torus", Vector3.ZERO, Vector3(0.05, 0.05, 0.085), Color(0.24, 0.24, 0.27), Vector3.ZERO, 8)
-		return b.build(Props.toon()))
+		return b.build(LazyFx.g("Props").toon()))
 
 
 static func _weight() -> Mesh:
@@ -56,7 +56,7 @@ static func _weight() -> Mesh:
 		var c = Color(0.18, 0.18, 0.2)
 		b.add("cyl", Vector3.ZERO, Vector3(0.08, 0.11, 0.08), c, Vector3.ZERO, 8)
 		b.add("cone", Vector3(0, -0.09, 0), Vector3(0.08, 0.07, 0.08), c, Vector3(180, 0, 0), 8)
-		return b.build(Props.toon()))
+		return b.build(LazyFx.g("Props").toon()))
 
 
 ## Eldeki silah: halkadan sarkan kısa zincir + ağırlık (ikincil hareket)

@@ -101,7 +101,7 @@ static func credit(who: Node3D, tgt: Node3D) -> void:
 		return
 	if who is Player:
 		Progress.on_hit_landed(tgt)
-		Mastery.gain(Game.profile, "shurikenjutsu", 0.02)
+		LazyFx.g("Mastery").gain(Game.profile, "shurikenjutsu", 0.02)
 
 
 ## Gerçek mermi. o: g, r, life, stick, pierce, info, hit (func(pos, tgt)), tick (func(proj, dt)), vis (Node3D, -Z uçuş yönü)

@@ -52,7 +52,7 @@ static func ignite(owner: Node3D, target: Node3D, pos: Vector3, dur: float, info
 	var sc = _tree().current_scene
 	for k in 9:   # tutuşma anı: odakta ince kara alev dilleri fışkırır (topak değil: kaynakta kara alev hep tel tel dildir)
 		var a = randf() * TAU
-		KatonLib.tongue(sc, pos + Vector3(cos(a), 0, sin(a)) * randf_range(0.1, 0.5) + Vector3.UP * 0.2, randf_range(1.6, 2.6), 0.3, 0.55, Vector3(cos(a) * 0.2, 1, sin(a) * 0.2), Vector3.UP * 2.5, KatonLib.PAL_BLACK, 2, 1.15)
+		LazyFx.g("KatonLib").tongue(sc, pos + Vector3(cos(a), 0, sin(a)) * randf_range(0.1, 0.5) + Vector3.UP * 0.2, randf_range(1.6, 2.6), 0.3, 0.55, Vector3(cos(a) * 0.2, 1, sin(a) * 0.2), Vector3.UP * 2.5, LazyFx.g("KatonLib").PAL_BLACK, 2, 1.15)
 	spots.append(spot)
 	_schedule(spot)
 	return spot
@@ -91,7 +91,7 @@ static func _tick(spot: Dictionary) -> void:
 					inf["dir"] = Vector3.UP
 					tg.take_hit(inf)
 				if randf() < 0.3:
-					KatonLib.embers(_tree().current_scene, p + Vector3.UP, 2, 0.3, KatonLib.PAL_BLACK, {"vmin": 1.0, "vmax": 2.5, "life": 0.7})
+					LazyFx.g("KatonLib").embers(_tree().current_scene, p + Vector3.UP, 2, 0.3, LazyFx.g("KatonLib").PAL_BLACK, {"vmin": 1.0, "vmax": 2.5, "life": 0.7})
 	else:
 		# yerdeki alev: içine giren tutuşur (yayılır)
 		if _alive(owner):

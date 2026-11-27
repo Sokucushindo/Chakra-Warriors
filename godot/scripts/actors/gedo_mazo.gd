@@ -68,10 +68,10 @@ func _build() -> void:
 	var pb = MB.new()
 	var psp = [Vector3(0, -0.45, 0.05), Vector3(0, -0.1, 0.0), Vector3(0, 0.35, 0.0)]
 	var prd = [Vector2(0.62, 0.48), Vector2(0.78, 0.55), Vector2(0.66, 0.48)]
-	Loft.tube(pb, psp, prd, SKIN, 18, 3)
+	LazyFx.g("Loft").tube(pb, psp, prd, SKIN, 18, 3)
 	_mi(hips, pb)
-	BeastModels._grain(rig, hips, psp, prd, 18, 701, GRAIN, 0.026)
-	BeastModels._swirls(rig, hips, psp, prd, 2, 702, GRAIN, 0.03, 1.2)
+	LazyFx.g("BeastModels")._grain(rig, hips, psp, prd, 18, 701, GRAIN, 0.026)
+	LazyFx.g("BeastModels")._swirls(rig, hips, psp, prd, 2, 702, GRAIN, 0.03, 1.2)
 	torso = rig._pivot(hips, Vector3(0, 0.3, 0), "govde")
 	_build_torso()
 	_build_back()
@@ -82,9 +82,9 @@ func _build() -> void:
 		_build_arm(s)
 		_build_leg(s)
 	root.scale = Vector3.ONE * rig.design_scale()
-	var bm = BeastModels.beast_material(1, Color(0.36, 0.27, 0.4))
+	var bm = LazyFx.g("BeastModels").beast_material(1, Color(0.36, 0.27, 0.4))
 	for mi in root.find_children("*", "MeshInstance3D", true, false):
-		if mi.material_override == null and mi.mesh and mi.mesh.get_surface_count() > 0 and mi.mesh.surface_get_material(0) == Props.toon():
+		if mi.material_override == null and mi.mesh and mi.mesh.get_surface_count() > 0 and mi.mesh.surface_get_material(0) == LazyFx.g("Props").toon():
 			mi.material_override = bm
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if mi.get_aabb().size.length() > 1.0 else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
@@ -94,20 +94,20 @@ func _build_torso() -> void:
 	var spine = [Vector3(0, -0.1, 0.02), Vector3(0, 0.8, 0.08), Vector3(0, 1.7, 0.16), Vector3(0, 2.55, 0.18), Vector3(0, 3.1, 0.05)]
 	var rad = [Vector2(0.82, 0.56), Vector2(0.88, 0.6), Vector2(1.22, 0.82), Vector2(1.42, 0.85), Vector2(0.62, 0.46)]
 	var mb = MB.new()
-	Loft.tube(mb, spine, rad, SKIN, 22, 4)
+	LazyFx.g("Loft").tube(mb, spine, rad, SKIN, 22, 4)
 	for s in [-1.0, 1.0]:
 		# omuz/deltoid: iri yuvarlak kütle (protrüzyonların kökü)
-		Loft.blob(mb, Vector3(s * 1.4, 2.55, 0.1), Vector3(s * 0.45, -1, 0.1), 1.5, [Vector2(0.25, 0.25), Vector2(0.66, 0.62), Vector2(0.6, 0.56), Vector2(0.25, 0.25)], SKIN, 14)
-		Loft.blob(mb, Vector3(s * 0.55, 2.1, -0.62), Vector3(s * 1, -0.35, 0), 1.0, [Vector2(0.12, 0.1), Vector2(0.42, 0.24), Vector2(0.36, 0.2), Vector2(0.1, 0.08)], SKIN, 12)
+		LazyFx.g("Loft").blob(mb, Vector3(s * 1.4, 2.55, 0.1), Vector3(s * 0.45, -1, 0.1), 1.5, [Vector2(0.25, 0.25), Vector2(0.66, 0.62), Vector2(0.6, 0.56), Vector2(0.25, 0.25)], SKIN, 14)
+		LazyFx.g("Loft").blob(mb, Vector3(s * 0.55, 2.1, -0.62), Vector3(s * 1, -0.35, 0), 1.0, [Vector2(0.12, 0.1), Vector2(0.42, 0.24), Vector2(0.36, 0.2), Vector2(0.1, 0.08)], SKIN, 12)
 		for k in 4:   # kaburga çıkıntıları (aç, kemikli karın)
 			var y = 1.0 + k * 0.22
-			Loft.tube(mb, [Vector3(s * 0.12, y, -0.52), Vector3(s * 0.48, y + 0.05, -0.47), Vector3(s * 0.8, y + 0.1, -0.26)], [0.035, 0.05, 0.03], SKIN.darkened(0.05), 6, 3)
+			LazyFx.g("Loft").tube(mb, [Vector3(s * 0.12, y, -0.52), Vector3(s * 0.48, y + 0.05, -0.47), Vector3(s * 0.8, y + 0.1, -0.26)], [0.035, 0.05, 0.03], SKIN.darkened(0.05), 6, 3)
 	_mi(torso, mb)
 	var nb = MB.new()
-	Loft.tube(nb, [Vector3(0, 2.85, 0.05), Vector3(0, 3.15, -0.1), Vector3(0, 3.45, -0.25)], [Vector2(0.5, 0.42), Vector2(0.42, 0.38), Vector2(0.36, 0.34)], SKIN, 14, 3)
+	LazyFx.g("Loft").tube(nb, [Vector3(0, 2.85, 0.05), Vector3(0, 3.15, -0.1), Vector3(0, 3.45, -0.25)], [Vector2(0.5, 0.42), Vector2(0.42, 0.38), Vector2(0.36, 0.34)], SKIN, 14, 3)
 	_mi(torso, nb)
-	BeastModels._grain(rig, torso, spine, rad, 70, 711, GRAIN, 0.028)
-	BeastModels._swirls(rig, torso, spine, rad, 6, 712, GRAIN, 0.03, 1.3)
+	LazyFx.g("BeastModels")._grain(rig, torso, spine, rad, 70, 711, GRAIN, 0.028)
+	LazyFx.g("BeastModels")._swirls(rig, torso, spine, rad, 6, 712, GRAIN, 0.03, 1.3)
 
 
 ## Sırt çıkıntıları: kürek kemikleri ve omuz tepelerinden yukarı-dışa açılan dokuz kütük; ortadaki başın arkasında en uzun.
@@ -134,17 +134,17 @@ func _build_back() -> void:
 		var p3 = base + dir * L + radial * 0.15
 		var pts = [base - dir * 0.35, p1, p2, p3]
 		var rr = [Vector2(r0 * 1.45, r0 * 1.3), Vector2(r0 * 1.05, r0 * 0.95), Vector2(r0 * 0.9, r0 * 0.85), Vector2(r0 * 0.8, r0 * 0.78)]
-		Loft.tube(mb, pts, rr, SKIN, 12, 3, true, false)
+		LazyFx.g("Loft").tube(mb, pts, rr, SKIN, 12, 3, true, false)
 		if rng.randf() < 0.5:   # dal kökü: kısa, küt yan çıkıntı
 			var q = base + dir * L * rng.randf_range(0.35, 0.6)
 			var sd = (side * (1.0 if rng.randf() < 0.5 else -1.0) + dir * 0.6).normalized()
-			Loft.tube(mb, [q, q + sd * 0.35, q + sd * 0.55], [r0 * 0.5, r0 * 0.38, r0 * 0.32], SKIN, 8, 2, true, false)
+			LazyFx.g("Loft").tube(mb, [q, q + sd * 0.35, q + sd * 0.55], [r0 * 0.5, r0 * 0.38, r0 * 0.32], SKIN, 8, 2, true, false)
 			tips.add("cyl", q + sd * 0.55, Vector3(r0 * 0.64, 0.03, r0 * 0.64), Color(0.16, 0.13, 0.16), Basis(Quaternion(Vector3.UP, sd)).get_euler() * (180.0 / PI), 10)
 		# eğik kesik uç: kesit diski uç yönünden biraz sapık
 		var td: Vector3 = ((p3 - p2).normalized() + side * rng.randf_range(-0.35, 0.35)).normalized()
 		var cap = r0 * 0.8
 		tips.add("cyl", p3, Vector3(cap * 2.0, 0.04, cap * 2.0), Color(0.16, 0.13, 0.16), Basis(Quaternion(Vector3.UP, td)).get_euler() * (180.0 / PI), 12)
-		BeastModels._grain(rig, torso, pts, rr, 10, 720 + i, GRAIN, 0.026)
+		LazyFx.g("BeastModels")._grain(rig, torso, pts, rr, 10, 720 + i, GRAIN, 0.026)
 	_mi(torso, mb)
 	_mi(torso, tips)
 
@@ -152,18 +152,18 @@ func _build_back() -> void:
 func _build_head() -> void:
 	var mb = MB.new()
 	# kubbe kafatası: uzun, arkaya doğru; dikey oluklar
-	Loft.blob(mb, Vector3(0, 0.62, 0.02), Vector3(0, 1, 0.12), 1.05, [Vector2(0.3, 0.28), Vector2(0.5, 0.46), Vector2(0.52, 0.5), Vector2(0.44, 0.42), Vector2(0.18, 0.16)], SKIN, 18)
+	LazyFx.g("Loft").blob(mb, Vector3(0, 0.62, 0.02), Vector3(0, 1, 0.12), 1.05, [Vector2(0.3, 0.28), Vector2(0.5, 0.46), Vector2(0.52, 0.5), Vector2(0.44, 0.42), Vector2(0.18, 0.16)], SKIN, 18)
 	for k in 7:
 		var a = lerpf(-1.25, 1.25, k / 6.0)
 		var pts = []
 		for q in 6:
 			var v = lerpf(-0.2, 1.35, q / 5.0)
 			pts.append(Vector3(sin(a) * cos(v) * 0.5, 0.62 + sin(v) * 0.5, -cos(a) * cos(v) * 0.47 + 0.02))
-		Loft.tube(mb, pts, [0.02, 0.03, 0.03, 0.03, 0.025, 0.015], GRAIN.lightened(0.1), 5, 2)
+		LazyFx.g("Loft").tube(mb, pts, [0.02, 0.03, 0.03, 0.03, 0.025, 0.015], GRAIN.lightened(0.1), 5, 2)
 	# üst çene: bandın altında daralan, öne çıkık kemik (dudak yok: dişler açıkta, sırıtış); yanlarda çökük yanak
-	Loft.blob(mb, Vector3(0, 0.33, -0.08), Vector3(0, 1, 0.15), 0.42, [Vector2(0.34, 0.3), Vector2(0.44, 0.4), Vector2(0.48, 0.44)], SKIN, 16)
+	LazyFx.g("Loft").blob(mb, Vector3(0, 0.33, -0.08), Vector3(0, 1, 0.15), 0.42, [Vector2(0.34, 0.3), Vector2(0.44, 0.4), Vector2(0.48, 0.44)], SKIN, 16)
 	for sx in [-1.0, 1.0]:
-		Loft.tube(mb, [Vector3(sx * 0.42, 0.42, -0.2), Vector3(sx * 0.4, 0.28, -0.3), Vector3(sx * 0.3, 0.2, -0.38)], [0.05, 0.06, 0.04], SKIN.darkened(0.08), 6, 2)
+		LazyFx.g("Loft").tube(mb, [Vector3(sx * 0.42, 0.42, -0.2), Vector3(sx * 0.4, 0.28, -0.3), Vector3(sx * 0.3, 0.2, -0.38)], [0.05, 0.06, 0.04], SKIN.darkened(0.08), 6, 2)
 	_mi(head, mb)
 	# göz bandı: başı saran yassı bez şerit
 	var bb = MB.new()
@@ -173,7 +173,7 @@ func _build_head() -> void:
 		var a = TAU * k / 24.0
 		ring.append(Vector3(sin(a) * 0.53, 0.56, -cos(a) * 0.5 + 0.02))
 		rr.append(Vector2(0.03, 0.17))
-	Loft.tube(bb, ring, rr, CLOTH, 6, 2, false, false)
+	LazyFx.g("Loft").tube(bb, ring, rr, CLOTH, 6, 2, false, false)
 	_mi(head, bb)
 	# dokuz göz: bandın önünde yay boyunca, ortadaki ortada; sağa-sola iki sıra (V biçimli)
 	var eb = MB.new()
@@ -202,7 +202,7 @@ func _build_head() -> void:
 	for s in [-1.0, 1.0]:
 		var top = Vector3(s * 0.5, 0.42, -0.1)
 		var bot = Vector3(s * 0.52, -0.55, -0.16)
-		Loft.tube(rb, [top, top.lerp(bot, 0.5) + Vector3(s * 0.02, 0, 0), bot], [0.028, 0.026, 0.024], ROPE, 6, 3)
+		LazyFx.g("Loft").tube(rb, [top, top.lerp(bot, 0.5) + Vector3(s * 0.02, 0, 0), bot], [0.028, 0.026, 0.024], ROPE, 6, 3)
 		for k in 3:
 			rb.add("cyl", top.lerp(bot, 0.3 + k * 0.22), Vector3(0.07, 0.05, 0.07), ROPE.darkened(0.2), Vector3.ZERO, 8)
 		rb.add("cone", bot + Vector3(0, -0.06, 0), Vector3(0.08, 0.14, 0.08), ROPE, Vector3(180, 0, 0), 8)
@@ -223,10 +223,10 @@ func _build_head() -> void:
 	# alt çene: uzun, dikey oluklu, aşağı sivrilen (Kuchiyose karesi); alt diş sırası üsttekine kapanır
 	jaw = rig._pivot(head, Vector3(0, 0.2, 0.15), "cene")
 	var jb = MB.new()
-	Loft.tube(jb, [Vector3(0, -0.12, -0.12), Vector3(0, -0.34, -0.42), Vector3(0, -0.62, -0.5), Vector3(0, -0.9, -0.46)], [Vector2(0.42, 0.13), Vector2(0.36, 0.14), Vector2(0.22, 0.12), Vector2(0.08, 0.07)], SKIN, 14, 3)
+	LazyFx.g("Loft").tube(jb, [Vector3(0, -0.12, -0.12), Vector3(0, -0.34, -0.42), Vector3(0, -0.62, -0.5), Vector3(0, -0.9, -0.46)], [Vector2(0.42, 0.13), Vector2(0.36, 0.14), Vector2(0.22, 0.12), Vector2(0.08, 0.07)], SKIN, 14, 3)
 	for k in 7:
 		var x = lerpf(-0.24, 0.24, k / 6.0)
-		Loft.tube(jb, [Vector3(x, -0.18, -0.53), Vector3(x * 0.75, -0.5, -0.62), Vector3(x * 0.4, -0.84, -0.55)], [0.01, 0.014, 0.008], GRAIN, 4, 2)
+		LazyFx.g("Loft").tube(jb, [Vector3(x, -0.18, -0.53), Vector3(x * 0.75, -0.5, -0.62), Vector3(x * 0.4, -0.84, -0.55)], [0.01, 0.014, 0.008], GRAIN, 4, 2)
 	for k in 11:
 		var a = lerpf(-1.0, 1.0, k / 10.0)
 		var p = Vector3(sin(a) * 0.37, -0.08, -cos(a) * 0.37 - 0.2)
@@ -239,14 +239,14 @@ func _build_arm(s: float) -> void:
 	var mb = MB.new()
 	var up = [Vector3(0, 0.15, 0), Vector3(s * 0.05, -0.85, 0), Vector3(0, -1.8, 0)]
 	var ur = [Vector2(0.55, 0.55), Vector2(0.48, 0.44), Vector2(0.34, 0.32)]
-	Loft.tube(mb, up, ur, SKIN, 14, 3)
+	LazyFx.g("Loft").tube(mb, up, ur, SKIN, 14, 3)
 	_mi(sh, mb)
-	BeastModels._grain(rig, sh, up, ur, 16, 730 + int(s), GRAIN, 0.022)
+	LazyFx.g("BeastModels")._grain(rig, sh, up, ur, 16, 730 + int(s), GRAIN, 0.022)
 	var el = rig._pivot(sh, Vector3(0, -1.8, 0), "dirsek")
 	var fb = MB.new()
 	var fp = [Vector3(0, 0.08, 0), Vector3(0, -0.8, -0.03), Vector3(0, -1.65, 0)]
 	var fr = [Vector2(0.36, 0.34), Vector2(0.33, 0.29), Vector2(0.23, 0.2)]
-	Loft.tube(fb, fp, fr, SKIN, 12, 3)
+	LazyFx.g("Loft").tube(fb, fp, fr, SKIN, 12, 3)
 	# kırık pranga: kalın demir bilezik (dikey çizgili), kopuk zincir halkaları
 	fb.add("cyl", Vector3(0, -1.42, 0), Vector3(0.62, 0.4, 0.58), IRON, Vector3.ZERO, 16)
 	for k in 10:
@@ -255,11 +255,11 @@ func _build_arm(s: float) -> void:
 	fb.add("torus", Vector3(0, -1.66, 0.3), Vector3(0.11, 0.11, 0.11), IRON, Vector3(90, 0, 0), 8)
 	fb.add("torus", Vector3(0, -1.8, 0.36), Vector3(0.11, 0.11, 0.11), IRON, Vector3(0, 0, 90), 8)
 	_mi(el, fb)
-	BeastModels._grain(rig, el, fp, fr, 12, 740 + int(s), GRAIN, 0.02)
+	LazyFx.g("BeastModels")._grain(rig, el, fp, fr, 12, 740 + int(s), GRAIN, 0.02)
 	# el (bilek pivotu): geniş avuç, uzun kemikli parmaklar; -Y yönünde kurulur, pozda avuç yere yatar
 	var wr = rig._pivot(el, Vector3(0, -1.65, 0), "bilek")
 	var hb = MB.new()
-	Loft.blob(hb, Vector3(0, -0.3, 0), Vector3(0, -1, 0), 0.62, [Vector2(0.2, 0.1), Vector2(0.3, 0.12), Vector2(0.3, 0.11)], SKIN, 10)
+	LazyFx.g("Loft").blob(hb, Vector3(0, -0.3, 0), Vector3(0, -1, 0), 0.62, [Vector2(0.2, 0.1), Vector2(0.3, 0.12), Vector2(0.3, 0.11)], SKIN, 10)
 	for f in 5:
 		var thumb = f == (0 if s > 0 else 4)
 		var fx = lerpf(-0.24, 0.24, f / 4.0) * s
@@ -272,7 +272,7 @@ func _build_arm(s: float) -> void:
 			L = 0.45
 		var p1 = b0 + d * L * 0.5
 		var p2 = b0 + d * L + Vector3(0, 0, -0.08)
-		Loft.tube(hb, [b0, p1, p2], [0.075, 0.06, 0.045], SKIN, 6, 2)
+		LazyFx.g("Loft").tube(hb, [b0, p1, p2], [0.075, 0.06, 0.045], SKIN, 6, 2)
 		hb.add("sphere", p1, Vector3(0.16, 0.12, 0.16), SKIN, Vector3.ZERO, 6)   # boğum
 	_mi(wr, hb)
 	arms.append({"sh": sh, "el": el, "wr": wr, "side": s})
@@ -283,26 +283,26 @@ func _build_leg(s: float) -> void:
 	var mb = MB.new()
 	var tp = [Vector3(0, 0.15, 0), Vector3(s * 0.05, -1.1, -0.05), Vector3(0, -2.3, 0)]
 	var tr = [Vector2(0.52, 0.5), Vector2(0.48, 0.45), Vector2(0.32, 0.32)]
-	Loft.tube(mb, tp, tr, SKIN, 14, 3)
+	LazyFx.g("Loft").tube(mb, tp, tr, SKIN, 14, 3)
 	_mi(hp, mb)
-	BeastModels._grain(rig, hp, tp, tr, 18, 750 + int(s), GRAIN, 0.035)
-	BeastModels._swirls(rig, hp, tp, tr, 2, 752 + int(s), GRAIN, 0.035, 1.5)
+	LazyFx.g("BeastModels")._grain(rig, hp, tp, tr, 18, 750 + int(s), GRAIN, 0.035)
+	LazyFx.g("BeastModels")._swirls(rig, hp, tp, tr, 2, 752 + int(s), GRAIN, 0.035, 1.5)
 	var kn = rig._pivot(hp, Vector3(0, -2.3, 0), "diz")
 	var sb = MB.new()
 	var sp = [Vector3(0, 0.05, 0), Vector3(0, -1.1, 0.04), Vector3(0, -2.2, 0)]
 	var sr = [Vector2(0.33, 0.33), Vector2(0.3, 0.28), Vector2(0.2, 0.19)]
-	Loft.tube(sb, sp, sr, SKIN, 12, 3)
+	LazyFx.g("Loft").tube(sb, sp, sr, SKIN, 12, 3)
 	sb.add("cyl", Vector3(0, -1.92, 0), Vector3(0.56, 0.36, 0.54), IRON, Vector3.ZERO, 16)
 	for k in 8:
 		var a = TAU * k / 8.0
 		sb.add("box", Vector3(cos(a) * 0.28, -1.92, sin(a) * 0.275), Vector3(0.02, 0.32, 0.02), IRON.darkened(0.4), Vector3(0, -rad_to_deg(a), 0))
 	# ayak: uzun parmaklı çıplak ayak
-	Loft.blob(sb, Vector3(0, -2.32, -0.35), Vector3(0, -0.12, -1), 0.95, [Vector2(0.2, 0.14), Vector2(0.26, 0.14), Vector2(0.28, 0.1), Vector2(0.24, 0.07)], SKIN, 10)
+	LazyFx.g("Loft").blob(sb, Vector3(0, -2.32, -0.35), Vector3(0, -0.12, -1), 0.95, [Vector2(0.2, 0.14), Vector2(0.26, 0.14), Vector2(0.28, 0.1), Vector2(0.24, 0.07)], SKIN, 10)
 	for f in 5:
 		var fx = lerpf(-0.2, 0.2, f / 4.0)
 		sb.add("sphere", Vector3(fx, -2.36, -0.86 + absf(fx) * 0.3), Vector3(0.1, 0.07, 0.16), SKIN, Vector3.ZERO, 6)
 	_mi(kn, sb)
-	BeastModels._grain(rig, kn, sp, sr, 14, 760 + int(s), GRAIN, 0.028)
+	LazyFx.g("BeastModels")._grain(rig, kn, sp, sr, 14, 760 + int(s), GRAIN, 0.028)
 	legs.append({"hip": hp, "kn": kn, "side": s})
 
 

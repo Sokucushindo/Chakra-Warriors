@@ -82,7 +82,7 @@ func _ready() -> void:
 		_run_test()
 		return
 	to_main_menu()
-	var upd = Updater.new()   # ana exe: GitHub'da yeni sürüm varsa sorar, indirip kendini günceller
+	var upd = LazyFx.g("Updater").new()   # ana exe: GitHub'da yeni sürüm varsa sorar, indirip kendini günceller
 	upd.name = "Updater"
 	add_child(upd)
 	upd.check()
@@ -124,7 +124,7 @@ func _show_loading() -> void:
 
 func _loading_progress(v: float, label: String) -> void:
 	if loading:
-		(loading.find_child("L", true, false) as Label).text = Lang.t(label) + "..."   # "..." eklenince çeviri kaydı bulunmuyordu: İngilizce oyunda aşamalar Türkçe kalıyordu
+		(loading.find_child("L", true, false) as Label).text = LazyFx.g("Lang").t(label) + "..."   # "..." eklenince çeviri kaydı bulunmuyordu: İngilizce oyunda aşamalar Türkçe kalıyordu
 		(loading.find_child("B", true, false) as ProgressBar).value = v
 
 
@@ -188,7 +188,7 @@ func _creator_look() -> Dictionary:
 		eye = Color(e[0], e[1], e[2])
 	var L = {"gender": s["gender"], "hair_style": s["hair_style"], "hair": s["hair"], "skin": s["skin"], "eye": eye, "band": null, "age": "child", "village": s.get("village", "konoha"),
 		"start_set": s.get("start_set", "set_genin")}
-	Gear.preview_set_look(L, String(L["start_set"]))   # seçilen set önizlemede giyili
+	LazyFx.g("Gear").preview_set_look(L, String(L["start_set"]))   # seçilen set önizlemede giyili
 	L["top"] = s["top"]   # üst rengi: setin üst giysisi
 	L["pants"] = s.get("pants", L.get("pants", Color(0.15, 0.15, 0.17)))   # alt rengi: pantolon
 	# elle yapılmış setler rengi boyadan alır (look.top/pants'ı okumaz): seçilen üst / alt rengi önizlemede de boya olarak
@@ -313,7 +313,7 @@ func _start_new_game(from_creator := false) -> void:
 	Progress.refresh_story()
 	await _begin_game(Progress.home_spawn())
 	var vname = String(Game.village(Progress.home()).get("name", "Konoha"))
-	Hud.banner(vname.to_upper(), "Akademi öğrencisi %s'nin hikâyesi başlıyor" % s["name"], UI.ACCENT)
+	Hud.banner(vname.to_upper(), "Akademi öğrencisi %s'nin hikâyesi başlıyor" % s["name"], LazyFx.g("UI").ACCENT)
 	# %1 doğuştan jinchūriki (serbest bir canavar bebekken içine mühürlenmiş); afiş köy afişinden sonra
 	var jb = TailedBeasts.roll_birth_jinchuriki() if from_creator else ""
 	if jb != "":
@@ -323,7 +323,7 @@ func _start_new_game(from_creator := false) -> void:
 func load_slot(slot: int) -> void:
 	if not Game.load_game(slot):
 		return
-	Journal.migrate(Game.profile)   # eski kayıtlardaki Naruto hikâye adımları -> serbest oyun
+	LazyFx.g("Journal").migrate(Game.profile)   # eski kayıtlardaki Naruto hikâye adımları -> serbest oyun
 	var pos = Game.profile.get("pos")
 	var p: Vector3
 	if pos != null:
@@ -371,7 +371,7 @@ func _begin_game(pos: Vector3) -> void:
 	# doğuştan gelenler (kan soyu / klan doğası, klan teknikleri) ilk andan uyanık; kanının dövüş tarzı da kendiliğinden seçili gelir
 	Progress.clan_unlocks(false)
 	if not Game.profile.has("fight_style"):
-		var fs: Array = FightingStyles.available(Game.profile)
+		var fs: Array = LazyFx.g("FightingStyles").available(Game.profile)
 		Game.profile["fight_style"] = String(fs[1]) if fs.size() > 1 else ""
 	# JSON'dan gelen renkleri Color'a çevir
 	var look: Dictionary = Game.profile["look"]
@@ -402,12 +402,12 @@ func _begin_game(pos: Vector3) -> void:
 	while sl.size() < 9:
 		sl.append("")
 	Game.profile["slots"] = sl
-	Gear.ensure(Game.profile)
-	Stats.normalize_unlimited(Game.profile)   # sınırsız aletler / Asker Hapı sayı taşımaz
-	ClanMech.ensure(Game.profile)
+	LazyFx.g("Gear").ensure(Game.profile)
+	LazyFx.g("Stats").normalize_unlimited(Game.profile)   # sınırsız aletler / Asker Hapı sayı taşımaz
+	LazyFx.g("ClanMech").ensure(Game.profile)
 	Progress.ensure_rank_outfit()   # terfi edip rütbe kıyafeti almamış eski kayıtlar
 	Progress.clan_starter_kit(Game.profile)   # eski Shiranui kayıtlarına bir kez senbon
-	Gear.apply_look(Game.profile)
+	LazyFx.g("Gear").apply_look(Game.profile)
 	player = Player.new()
 	add_child(player)
 	player.global_position = pos
@@ -584,7 +584,7 @@ func _route(e: InputEvent) -> void:
 	elif e.is_action_pressed("pill"):
 		use_item("pill")
 	elif e.is_action_pressed("pill_next"):
-		ClanMech.next_pill()
+		LazyFx.g("ClanMech").next_pill()
 
 
 func _toggle_panel(open: Callable) -> void:
@@ -640,14 +640,14 @@ func use_item(id: String) -> void:
 			Hud.msg("Merhem için %d sn bekle." % ceili(sl), Color(0.6, 1.0, 0.65))
 			return
 		Game.profile["salve_ready_at"] = Time.get_ticks_msec() / 1000.0 + SALVE_CD
-		player.hp = minf(player.max_hp, player.hp + maxf(50.0, player.max_hp * 0.35) * (1.0 + Stats.skill(Game.profile, "heal")))
+		player.hp = minf(player.max_hp, player.hp + maxf(50.0, player.max_hp * 0.35) * (1.0 + LazyFx.g("Stats").skill(Game.profile, "heal")))
 		FX.aura(player, Color(0.5, 1, 0.6), 0.8)
 		Sfx.play("heal", player.global_position)
 		return
 	if id == "zoketsugan":
-		ClanMech.use_extra_pill(id)
+		LazyFx.g("ClanMech").use_extra_pill(id)
 		return
-	if id == "pill" and ClanMech.use_aki_pill():   # Akimichi: sıradaki renkli hap
+	if id == "pill" and LazyFx.g("ClanMech").use_aki_pill():   # Akimichi: sıradaki renkli hap
 		return
 	var inv: Dictionary = Game.profile["inventory"]
 	if id == "pill":
@@ -661,7 +661,7 @@ func use_item(id: String) -> void:
 		Buffs.add("pill", 20.0, {"melee": 1.15})
 		if String(Game.profile.get("clan", "")) == "akimichi":
 			# asker hapı (Hyōrōgan) sıkıştırılmış besin: Akimichi kalorisinin yarısını doldurur
-			Game.profile["kalori"] = minf(ClanMech.KALORI_MAX, float(Game.profile.get("kalori", ClanMech.KALORI_MAX)) + ClanMech.KALORI_MAX * 0.5)
+			Game.profile["kalori"] = minf(LazyFx.g("ClanMech").KALORI_MAX, float(Game.profile.get("kalori", LazyFx.g("ClanMech").KALORI_MAX)) + LazyFx.g("ClanMech").KALORI_MAX * 0.5)
 			Hud.msg("Asker hapı: kalori doldu (+%%%d)." % 50, Color(1.0, 0.65, 0.25))
 		FX.aura(player, Color(1, 0.7, 0.3), 0.8)
 		Sfx.play("heal", player.global_position, 0.8)
@@ -673,7 +673,7 @@ func use_item(id: String) -> void:
 	match id:
 		"salve":
 			# sabit +50 yüksek seviyede canın %10'u bile değildi: azami canın %35'i (en az 50)
-			player.hp = minf(player.max_hp, player.hp + maxf(50.0, player.max_hp * 0.35) * (1.0 + Stats.skill(Game.profile, "heal")))
+			player.hp = minf(player.max_hp, player.hp + maxf(50.0, player.max_hp * 0.35) * (1.0 + LazyFx.g("Stats").skill(Game.profile, "heal")))
 			FX.aura(player, Color(0.5, 1, 0.6), 0.8)
 			Sfx.play("heal", player.global_position)
 		"pill":
@@ -711,7 +711,7 @@ func fast_travel(vid: String) -> void:
 		BuildSites.budget_ms = 120.0
 		var t0 = Time.get_ticks_msec()
 		while not rec.get("done", false) and Time.get_ticks_msec() - t0 < 90000:
-			_loading_progress(clampf((Time.get_ticks_msec() - t0) / 15000.0, 0.05, 0.95), Lang.t("%s kuruluyor") % v["name"])
+			_loading_progress(clampf((Time.get_ticks_msec() - t0) / 15000.0, 0.05, 0.95), LazyFx.g("Lang").t("%s kuruluyor") % v["name"])
 			await get_tree().process_frame
 		BuildSites.budget_ms = 8.0
 		player.set_physics_process(true)

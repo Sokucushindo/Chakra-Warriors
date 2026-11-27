@@ -80,7 +80,7 @@ func _pivot(parent: Node3D, pos: Vector3, nm := "") -> Node3D:
 
 func _mesh(parent: Node3D, mb: MB, mat: Material = null) -> MeshInstance3D:
 	var mi = MeshInstance3D.new()
-	mi.mesh = mb.build(mat if mat else Props.toon())
+	mi.mesh = mb.build(mat if mat else LazyFx.g("Props").toon())
 	parent.add_child(mi)
 	return mi
 
@@ -90,14 +90,14 @@ static func limb(mb: MB, a: Vector3, b: Vector3, ra: float, rb: float, col: Colo
 	# pürüzsüz, kas şişkinlikli tüp (Loft) — eski silindir yığını yerine
 	if (b - a).length() < 0.001:
 		return
-	Loft.limb(mb, a, b, ra, rb, col, maxi(seg, 12))
+	LazyFx.g("Loft").limb(mb, a, b, ra, rb, col, maxi(seg, 12))
 
 
 ## Pençe/tırnak: uca doğru sivri koni
 static func claw(mb: MB, base: Vector3, dir: Vector3, length: float, r: float, col: Color) -> void:
 	var d = dir.normalized()
 	var bend = d.cross(Vector3.RIGHT if absf(d.x) < 0.9 else Vector3.UP).normalized()
-	Loft.tube(mb, [base, base + d * length * 0.55 + bend * length * 0.06, base + d * length], [r, r * 0.55, r * 0.06], col, 8, 2, true, false)
+	LazyFx.g("Loft").tube(mb, [base, base + d * length * 0.55 + bend * length * 0.06, base + d * length], [r, r * 0.55, r * 0.06], col, 8, 2, true, false)
 
 
 ## Göz: parlayan (ışıksız) badem göz + bebek
@@ -183,7 +183,7 @@ func _tail(base: Node3D, yaw_deg: float, pitch_deg: float, n: int, length: float
 				var kn = minf(1.0, float(i + 1) / max(1, n - 1))   # son segmentte 1'i aşıp negatif yarıçap veriyordu (uçta balon)
 				var rn = maxf(r0 * 0.06, lerpf(r0, r_mid, sin(minf(1.0, kn * 1.6) * PI * 0.5)) * (1.0 - pow(kn, 3.0) * 0.85) * (0.15 if i == n - 1 else 1.0))
 				var cn = col.lerp(tip, smoothstep(0.55, 1.0, kn))
-				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.15), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.15)], [r * 1.05, (r + rn) * 0.55 * 1.1, rn * 1.0], [c, c.lerp(cn, 0.5), cn], 14, 2, true, true)
+				LazyFx.g("Loft").tube(mb, [Vector3(0, 0, -seg_len * 0.15), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.15)], [r * 1.05, (r + rn) * 0.55 * 1.1, rn * 1.0], [c, c.lerp(cn, 0.5), cn], 14, 2, true, true)
 				for f in (3 if i < n - 2 else 0):
 					var fa = TAU * f / 3.0 + i
 					claw(mb, Vector3(cos(fa) * r * 0.8, sin(fa) * r * 0.8, seg_len * 0.6), Vector3(cos(fa) * 0.6, sin(fa) * 0.6, 1.0), r * 0.9, r * 0.35, c.lerp(cn, 0.5))
@@ -191,13 +191,13 @@ func _tail(base: Node3D, yaw_deg: float, pitch_deg: float, n: int, length: float
 				var kn2 = minf(1.0, float(i + 1) / max(1, n - 1))
 				var rn2 = maxf(r0 * 0.05, lerpf(r0, r_mid, sin(minf(1.0, kn2 * 1.6) * PI * 0.5)) * (1.0 - pow(kn2, 2.2) * 0.9) * (0.12 if i == n - 1 else 1.0))
 				var cn2 = col.lerp(tip, smoothstep(0.6, 1.0, kn2))
-				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.15), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.15)], [r, (r + rn2) * 0.52, rn2], [c, c.lerp(cn2, 0.5), cn2], 14, 2, true, true)
+				LazyFx.g("Loft").tube(mb, [Vector3(0, 0, -seg_len * 0.15), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.15)], [r, (r + rn2) * 0.52, rn2], [c, c.lerp(cn2, 0.5), cn2], 14, 2, true, true)
 			"sand":
 				var ink = Color(0.14, 0.18, 0.46)
 				var fn = func(tt: float, a: float, _d: Vector3) -> Color:
 					var w = sin((tt + i) * PI * 2.0 + sin(a * 3.0) * 0.6)
 					return c if w > -2.0 else ink   # köşe rengi desen lekeli görünüyordu: düz renk, desen pullarda
-				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.2), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.2)], [r, r * 0.98, r * 0.92], c, 14, 3, true, true, fn)
+				LazyFx.g("Loft").tube(mb, [Vector3(0, 0, -seg_len * 0.2), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.2)], [r, r * 0.98, r * 0.92], c, 14, 3, true, true, fn)
 				# üst üste binen sivri kum pulları (yaprak gibi geriye bakan plakalar, lacivert kenarlı)
 				for pk in 9:
 					var ang = lerpf(-2.7, 2.7, pk / 8.0) + (0.3 if i % 2 == 1 else 0.0)
@@ -208,21 +208,21 @@ func _tail(base: Node3D, yaw_deg: float, pitch_deg: float, n: int, length: float
 					mb.add_xf("cone", Transform3D(lb * Basis.from_scale(Vector3(r * 0.32, seg_len * 0.55, r * 0.1)), nrm * r * 1.06 + Vector3(0, 0, seg_len * 0.55)), ink, 5)   # pulun lacivert fırça izi
 			"shrimp":  # karides kuyruğu: üstte gri zırh plakası + iki yanda diken, altta kırmızı boğumlu et
 				var fr = Color(0.55, 0.13, 0.15)
-				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.05), Vector3(0, 0, seg_len * 0.55), Vector3(0, 0, seg_len * 1.05)], [r * 0.95, r * 1.04, r * 0.9], c, 12, 2, true, true,
+				LazyFx.g("Loft").tube(mb, [Vector3(0, 0, -seg_len * 0.05), Vector3(0, 0, seg_len * 0.55), Vector3(0, 0, seg_len * 1.05)], [r * 0.95, r * 1.04, r * 0.9], c, 12, 2, true, true,
 					func(_t: float, aa: float, _d: Vector3) -> Color: return fr.darkened(0.15 * _t) if sin(aa) < -0.25 else c)
 				mb.add_xf("sphere", Transform3D(Basis.from_scale(Vector3(r * 1.25, r * 0.55, seg_len * 0.62)), Vector3(0, r * 0.62, seg_len * 0.55)), c.lightened(0.06), 10)   # sırt plakası
 				for sv in [-1.0, 1.0]:
 					claw(mb, Vector3(sv * r * 1.05, r * 0.3, seg_len * 0.7), Vector3(sv, 0.35, 0.6).normalized(), r * 1.1, r * 0.3, c.lightened(0.1))
 				claw(mb, Vector3(0, r * 1.05, seg_len * 0.75), Vector3(0, 0.8, 0.6).normalized(), r * 0.9, r * 0.25, c.lightened(0.1))
 			"spike":  # dikenli maymun kuyruğu
-				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.2), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.2)], [r, r * 0.97, r * 0.9], c, 12, 2, true, true)
+				LazyFx.g("Loft").tube(mb, [Vector3(0, 0, -seg_len * 0.2), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.2)], [r, r * 0.97, r * 0.9], c, 12, 2, true, true)
 				# bej kemik plaka + koyu uç (Son Gokū kuyruk dikenleri)
 				var pdir = Vector3(0, 1, 0.75).normalized()
 				var pb = Vector3(0, r * 0.75, seg_len * 0.35)
 				claw(mb, pb, pdir, r * 1.25, r * 0.45, Color(0.86, 0.76, 0.58))
 				claw(mb, pb + pdir * r * 0.95, pdir, r * 0.5, r * 0.17, Color(0.12, 0.08, 0.06))
 			"tentacle":  # ahtapot kolu + vantuz
-				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.2), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.2)], [r, r * 0.97, r * 0.9], c, 12, 2, true, true)
+				LazyFx.g("Loft").tube(mb, [Vector3(0, 0, -seg_len * 0.2), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.2)], [r, r * 0.97, r * 0.9], c, 12, 2, true, true)
 				for v in 2:   # iki sıra beyaz halka vantuz (alt yüz): dış halka açık, içi koyu çukur
 					var vx = r * 0.42 * (1.0 if v == 0 else -1.0)
 					var vp = Vector3(vx, -r * 0.82, seg_len * (0.25 + v * 0.5))
@@ -232,10 +232,10 @@ func _tail(base: Node3D, yaw_deg: float, pitch_deg: float, n: int, length: float
 			"slug":  # kalın pürüzsüz sümüklü kuyruk: uca doğru yassılaşıp kaşık gibi genişler, sarkan damlalar
 				var fl = smoothstep(0.55, 1.0, k)   # uçta yassılaşma
 				var rr = maxf(r, r0 * 0.55) * (1.0 + fl * 0.5)
-				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.2), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.2)], [Vector2(rr, rr * (1.0 - fl * 0.65)), Vector2(rr, rr * (1.0 - fl * 0.65)), Vector2(rr * (0.9 if i < n - 1 else 0.5), rr * (1.0 - fl * 0.7))], c, 14, 2, true, true)
+				LazyFx.g("Loft").tube(mb, [Vector3(0, 0, -seg_len * 0.2), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.2)], [Vector2(rr, rr * (1.0 - fl * 0.65)), Vector2(rr, rr * (1.0 - fl * 0.65)), Vector2(rr * (0.9 if i < n - 1 else 0.5), rr * (1.0 - fl * 0.7))], c, 14, 2, true, true)
 				if i % 2 == 1:
 					var dl = r0 * 0.9
-					Loft.tube(mb, [Vector3(rr * 0.3, -rr * 0.8, seg_len * 0.4), Vector3(rr * 0.32, -rr * 0.8 - dl * 0.6, seg_len * 0.45), Vector3(rr * 0.3, -rr * 0.8 - dl, seg_len * 0.45)], [r0 * 0.14, r0 * 0.07, r0 * 0.11], c, 6, 2)
+					LazyFx.g("Loft").tube(mb, [Vector3(rr * 0.3, -rr * 0.8, seg_len * 0.4), Vector3(rr * 0.32, -rr * 0.8 - dl * 0.6, seg_len * 0.45), Vector3(rr * 0.3, -rr * 0.8 - dl, seg_len * 0.45)], [r0 * 0.14, r0 * 0.07, r0 * 0.11], c, 6, 2)
 			"wing":  # böcek kanadı: ince yarı saydam yaprak (tek parça, ilk segmentte)
 				if i == 0:   # yaprak kanat: uzun sivri yaprak, kalın açık yeşil orta damar + yanlara çatallanan ince damarlar (tip = damar rengi)
 					var lp: Array = []
@@ -244,20 +244,20 @@ func _tail(base: Node3D, yaw_deg: float, pitch_deg: float, n: int, length: float
 						var u = q / 6.0
 						lp.append(Vector3(0, 0, length * u))
 						lr.append(Vector2(maxf(0.05, r_mid * sin(pow(u, 0.75) * PI) * (1.0 - u * 0.25)), 0.05))
-					Loft.tube(mb, lp, lr, [c.darkened(0.25), c, c, c.lightened(0.08), c, c.darkened(0.1), c.darkened(0.3)], 10, 3, true, true)
-					Loft.tube(mb, [Vector3(0, 0.07, 0), Vector3(0, 0.07, length * 0.5), Vector3(0, 0.06, length * 0.98)], [Vector2(0.16, 0.06), Vector2(0.11, 0.05), Vector2(0.03, 0.03)], tip, 6, 3)
+					LazyFx.g("Loft").tube(mb, lp, lr, [c.darkened(0.25), c, c, c.lightened(0.08), c, c.darkened(0.1), c.darkened(0.3)], 10, 3, true, true)
+					LazyFx.g("Loft").tube(mb, [Vector3(0, 0.07, 0), Vector3(0, 0.07, length * 0.5), Vector3(0, 0.06, length * 0.98)], [Vector2(0.16, 0.06), Vector2(0.11, 0.05), Vector2(0.03, 0.03)], tip, 6, 3)
 					for q in 6:
 						var u = 0.15 + q * 0.13
 						var wd = r_mid * sin(pow(u, 0.75) * PI) * (1.0 - u * 0.25)
 						for sv in [-1.0, 1.0]:
-							Loft.tube(mb, [Vector3(0, 0.07, length * u), Vector3(sv * wd * 0.5, 0.07, length * (u + 0.06)), Vector3(sv * wd * 0.92, 0.07, length * (u + 0.1))], [0.05, 0.035, 0.015], tip.darkened(0.15), 5, 2)
+							LazyFx.g("Loft").tube(mb, [Vector3(0, 0.07, length * u), Vector3(sv * wd * 0.5, 0.07, length * (u + 0.06)), Vector3(sv * wd * 0.92, 0.07, length * (u + 0.1))], [0.05, 0.035, 0.015], tip.darkened(0.15), 5, 2)
 			"flame":  # alev kuyruğu: gövde + her segmentte dışa savrulan alev dilleri, açık mavi/koyu
-				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.2), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.2)], [r, r * 0.97, r * 0.9], c, 12, 2, true, true)
+				LazyFx.g("Loft").tube(mb, [Vector3(0, 0, -seg_len * 0.2), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.2)], [r, r * 0.97, r * 0.9], c, 12, 2, true, true)
 				for f in 4:
 					var fa = TAU * f / 4.0 + i * 0.9
 					var fd = Vector3(cos(fa), sin(fa), 0.9).normalized()
 					var fl2 = r * 1.1
-					Loft.tube(mb, [Vector3(cos(fa), sin(fa), 0) * r * 0.8 + Vector3(0, 0, seg_len * 0.4), Vector3(cos(fa), sin(fa), 0) * r * 0.8 + fd * fl2 * 0.5 + Vector3(0, 0, seg_len * 0.4), Vector3(cos(fa), sin(fa), 0) * r * 0.8 + fd * fl2 + Vector3(0, 0, seg_len * 0.8)], [r * 0.3, r * 0.18, 0.02], c.lerp(tip, 0.4) if f % 2 == 0 else Color(0.02, 0.02, 0.06), 6, 2, false, false)
+					LazyFx.g("Loft").tube(mb, [Vector3(cos(fa), sin(fa), 0) * r * 0.8 + Vector3(0, 0, seg_len * 0.4), Vector3(cos(fa), sin(fa), 0) * r * 0.8 + fd * fl2 * 0.5 + Vector3(0, 0, seg_len * 0.4), Vector3(cos(fa), sin(fa), 0) * r * 0.8 + fd * fl2 + Vector3(0, 0, seg_len * 0.8)], [r * 0.3, r * 0.18, 0.02], c.lerp(tip, 0.4) if f % 2 == 0 else Color(0.02, 0.02, 0.06), 6, 2, false, false)
 		if not mb.is_empty():
 			if style == "wing":
 				var wm = StandardMaterial3D.new()
@@ -809,7 +809,7 @@ func _footfall(right: bool, k: float) -> void:
 	if dp > 500.0:
 		return
 	var H = height_m
-	BeastFX.foot_dust(w, H, k)
+	LazyFx.g("BeastFX").foot_dust(w, H, k)
 	if Game.world and dp < H * 2.5 and get_parent() != Game.player:
 		Game.world.env.add_shake(0.12 * k * clampf(H / 40.0, 0.4, 1.5))
 
@@ -820,6 +820,6 @@ func land_fx() -> void:
 		return
 	var w = global_position
 	var H = height_m
-	BeastFX.land(w, H)
+	LazyFx.g("BeastFX").land(w, H)
 	if Game.world:
 		Game.world.env.add_shake(1.2)

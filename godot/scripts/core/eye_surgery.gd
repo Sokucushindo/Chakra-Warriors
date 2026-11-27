@@ -16,12 +16,12 @@ const OP_TIME := 5.0
 ## Kendi tıbbi ninjutsunla nakil yapabilir mi? (Shōsen bilgisi + Iryō / tıbbi ustalık 50; eskiden chakra kontrolüne bakıyordu:
 ## tıbbı 0 olan biri %90 ile göz takabiliyordu)
 static func can_self(pr: Dictionary) -> bool:
-	return "shousen" in pr.get("learned", []) and Mastery.get_v(pr, "iryo") >= 50.0
+	return "shousen" in pr.get("learned", []) and LazyFx.g("Mastery").get_v(pr, "iryo") >= 50.0
 
 
 ## Kendi ameliyatının tutma olasılığı: Iryō 50 -> %40, 100 -> %90; ileri tıbbi teknikler (Tsunade yolu) +%5'er
 static func self_chance(pr: Dictionary) -> float:
-	var c = clampf(0.4 + (Mastery.get_v(pr, "iryo") - 50.0) * 0.01, 0.4, 0.9)
+	var c = clampf(0.4 + (LazyFx.g("Mastery").get_v(pr, "iryo") - 50.0) * 0.01, 0.4, 0.9)
 	for adv in ["in_yu_shometsu", "sozo_saisei", "chakura_no_mesu"]:
 		if adv in pr.get("learned", []):
 			c += 0.05
@@ -67,7 +67,7 @@ static func canon_block(eye_kind: int, clan: String, senju_dna: bool) -> String:
 
 
 static func eye_kind_of(g: Dictionary) -> int:
-	return int(Gear.item(String(g.get("id", ""))).get("eye", {}).get("kind", 0))
+	return int(LazyFx.g("Gear").item(String(g.get("id", ""))).get("eye", {}).get("kind", 0))
 
 
 ## Oyuncunun bedenine bu göz takılamazsa nedeni
@@ -83,7 +83,7 @@ static func notes(pr: Dictionary, g: Dictionary, slot: String) -> Array:
 	if k in [1, 4, 5] and clan != "uchiha":
 		out.append("Uchiha kanın yok: bu Sharingan hiç kapanmaz, açık olmasa da chakranı durmadan emer (Kakashi).")
 	if k == 4:
-		var cur = Gear.equipped(pr, slot)
+		var cur = LazyFx.g("Gear").equipped(pr, slot)
 		if not cur.is_empty() and cur["id"] == "goz_mangekyo":
 			out.append("Mangekyō + Mangekyō: Ebedi Mangekyō olur, körlük biter.")
 	if k == 6 and not Eyes.has_senju_dna(pr):
@@ -94,7 +94,7 @@ static func notes(pr: Dictionary, g: Dictionary, slot: String) -> Array:
 
 ## Görünen ad (tomoe, Mangekyō tarzı)
 static func eye_label(g: Dictionary) -> String:
-	var nm = String(Gear.item(String(g["id"]))["name"])
+	var nm = String(LazyFx.g("Gear").item(String(g["id"]))["name"])
 	if String(g["id"]) == "goz_sharingan":
 		nm += "  (%d tomoe)" % int(g.get("lvl", 3))
 	var st = String(g.get("ms_style", ""))
@@ -108,7 +108,7 @@ static func jar_groups(pr: Dictionary) -> Array:
 	var seen := {}
 	var out = []
 	for g in pr.get("gear", []):
-		if Gear.item(g["id"]).get("slot", "") != "goz" or Gear.is_equipped(pr, g):
+		if LazyFx.g("Gear").item(g["id"]).get("slot", "") != "goz" or LazyFx.g("Gear").is_equipped(pr, g):
 			continue
 		if String(g.get("origin", "dogustan")) == "dogustan" and bool(g.get("own", false)):
 			continue   # kendi çıkardığın göz: menüden geri takılır, nakil gerekmez
@@ -124,7 +124,7 @@ static func jar_groups(pr: Dictionary) -> Array:
 ## Tek göz için yuva seçimi (ya da kanon engeli): Hud.dialog
 static func choose_slot(uid: int, kind: String) -> void:
 	var pr = Game.profile
-	var g = Gear.find(pr, uid)
+	var g = LazyFx.g("Gear").find(pr, uid)
 	if g.is_empty():
 		return
 	var why = block_reason(pr, g)
@@ -135,8 +135,8 @@ static func choose_slot(uid: int, kind: String) -> void:
 	var opts = []
 	for sl in [["sag_goz", "Sağ göze tak"], ["sol_goz", "Sol göze tak"]]:
 		var slot = sl[0]
-		var cur = Gear.equipped(pr, slot)
-		var lbl = String(sl[1]) + (("  (şimdiki: %s — kavanoza)" % String(Gear.item(cur["id"])["name"])) if not cur.is_empty() else "")
+		var cur = LazyFx.g("Gear").equipped(pr, slot)
+		var lbl = String(sl[1]) + (("  (şimdiki: %s — kavanoza)" % String(LazyFx.g("Gear").item(cur["id"])["name"])) if not cur.is_empty() else "")
 		opts.append({"label": lbl, "tip": "\n".join(notes(pr, g, slot)), "cb": func(): operate(uid, slot, kind)})
 	var price = int(s["price"])
 	var txt = "%s  •  %s\nTutma şansı %%%d%s\n%s" % [eye_label(g), String(s["title"]), int(round(float(s["chance"]) * 100.0)), (", %d Ryō" % price) if price > 0 else "",
@@ -174,7 +174,7 @@ static func field_medic() -> Node3D:
 	var sq = p.get_tree().current_scene.get_node_or_null("Actors/GeninSquad") if p.get_tree().current_scene else null
 	if sq == null:
 		return null
-	var mates: Array = GeninSquad.data().get("mates", [])
+	var mates: Array = LazyFx.g("GeninSquad").data().get("mates", [])
 	for m in sq.members:
 		var key = String(m.get("key", ""))
 		var n = m.get("node")
@@ -183,7 +183,7 @@ static func field_medic() -> Node3D:
 		var i = int(key.substr(1))
 		if i >= mates.size() or not bool(mates[i].get("medic", false)) or n.global_position.distance_to(p.global_position) > 30.0:
 			continue
-		var mf: Dictionary = Friends.all().get(GeninSquad.fid(key), {})
+		var mf: Dictionary = LazyFx.g("Friends").all().get(LazyFx.g("GeninSquad").fid(key), {})
 		medic_lv = float(mf.get("pupil_lv", mf.get("level", maxf(5.0, float(Game.profile.get("level", 10)) - 1.0))))
 		return n
 	return null
@@ -192,7 +192,7 @@ static func field_medic() -> Node3D:
 ## Gözler sekmesinden: bu kavanoz gözünü bu yuvaya kim takabilir? (kanon engeli varsa nedeni; şu an kimse yoksa nereye gidileceği)
 static func menu_offer(uid: int, slot: String) -> void:
 	var pr = Game.profile
-	var g = Gear.find(pr, uid)
+	var g = LazyFx.g("Gear").find(pr, uid)
 	if g.is_empty():
 		return
 	var why = block_reason(pr, g)
@@ -222,7 +222,7 @@ static func operate(uid: int, slot: String, kind: String) -> void:
 	var s: Dictionary = surgeons(pr)[kind]
 	var cells = slot == "senju"
 	if not cells:
-		var why = block_reason(pr, Gear.find(pr, uid))
+		var why = block_reason(pr, LazyFx.g("Gear").find(pr, uid))
 		if why != "":
 			Hud.msg(why, Color(1, 0.6, 0.4))
 			return
@@ -236,7 +236,7 @@ static func operate(uid: int, slot: String, kind: String) -> void:
 	if int(s["price"]) > 0:
 		Progress.add_ryo(-int(s["price"]) * (2 if cells else 1))
 	if not cells:
-		var g = Gear.find(pr, uid)
+		var g = LazyFx.g("Gear").find(pr, uid)
 		if g.is_empty():
 			return
 	# olay: otur, yeşil şifa chakrası gözünde (kendi ameliyatında senin ellerin, diğerlerinde cerrahın)
@@ -294,7 +294,7 @@ static func _finish(uid: int, slot: String, kind: String) -> void:
 	if slot == "senju":
 		_finish_cells(kind)
 		return
-	var g = Gear.find(pr, uid)
+	var g = LazyFx.g("Gear").find(pr, uid)
 	if g.is_empty() or p == null:
 		return
 	p.hp = maxf(1.0, p.hp - p.max_hp * float(s["hp"]))
@@ -316,7 +316,7 @@ static func _finish(uid: int, slot: String, kind: String) -> void:
 		txt += "\nRinnegan bedenini zorluyor: iyileşmen uzun sürecek."
 	Hud.dialog("Göz Nakli", txt, [])
 	if kind == "self":
-		Mastery.gain(pr, "chakra", 0.5)
+		LazyFx.g("Mastery").gain(pr, "chakra", 0.5)
 
 
 ## Senju hücresi naklinin sonucu: tutarsa Mokuton + Ashura chakrası (EMS ile Rinnegan yolu); tutmazsa doku ölür, beden ağır yıpranır

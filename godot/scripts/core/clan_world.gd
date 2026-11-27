@@ -247,7 +247,7 @@ const HOSHIGAKI_SKINS := [Color(0.5, 0.64, 0.8), Color(0.42, 0.56, 0.74), Color(
 
 static func clan_look(c: String, arch: String, vid: String, female := false, age := "adult") -> Dictionary:
 	var lk := CharacterModel.default_look()
-	lk.merge(Outfits.roll(arch, vid), true)
+	lk.merge(LazyFx.g("Outfits").roll(arch, vid), true)
 	if CharacterModel.CLAN_FACE_PAINT.has(c):
 		lk["face_paint"] = CharacterModel.CLAN_FACE_PAINT[c]   # kanon: klanın herkesi (Inuzuka dişleri, Akimichi sarmalı, Kaguya noktaları)
 	var L: Dictionary = LOOK.get(c, {})
@@ -281,9 +281,9 @@ static func clan_look(c: String, arch: String, vid: String, female := false, age
 	lk["village"] = vid
 	var rk = {"genin": 0, "chunin": 1, "jonin": 2}.get(arch, -1)
 	if age == "adult" and rk >= 0:   # klanın kanon kıyafeti (Aburame paltosu, Kaguya kimonosu, Uchiha polisi)
-		var uni = Outfits.type_set(c, vid, rk, str(randi()), female)
+		var uni = LazyFx.g("Outfits").type_set(c, vid, rk, str(randi()), female)
 		if uni != "":
-			lk = Outfits.wear_set(lk, uni)
+			lk = LazyFx.g("Outfits").wear_set(lk, uni)
 	return lk
 
 
@@ -304,7 +304,7 @@ static func make_enemy(c: String, lv: int, opts := {}) -> Dictionary:
 	var el: String = MAIN_EL.get(c, "")   # doğa jutsusu olmayan klanlar (Nara, Hyūga...) yalnız klan teknikleriyle savaşır
 	var female: bool = opts.get("female", randf() < 0.35)
 	a["element"] = el
-	Stats.npc_ninja(a, lv)   # klan ninjası: ortak eğri
+	LazyFx.g("Stats").npc_ninja(a, lv)   # klan ninjası: ortak eğri
 	a["xp"] = 40 + lv * 22
 	a["ryo"] = 30 + lv * 6
 	a["guard"] = 0.3 + (0.15 if c in ["uchiha", "hyuga"] else 0.0)
@@ -348,7 +348,7 @@ func spawn_enemy(c: String, lv: int, at: Vector3, opts := {}) -> Enemy:
 	e.home = at
 	after_spawn_enemy(e, c, lv, int(opts.get("eye", 0)))
 	if lv >= 28 and randf() < 0.3 and not e.has_meta("contract"):   # güçlü kaçaklar zor durumda hayvan çağırır
-		e.set_meta("contract", ["kurbağa", "yılan", "köpek", "şahin"].filter(func(x): return Contracts.DEFS.has(x)).pick_random())
+		e.set_meta("contract", ["kurbağa", "yılan", "köpek", "şahin"].filter(func(x): return LazyFx.g("Contracts").DEFS.has(x)).pick_random())
 	if opts.get("duel", false):
 		e.get_node("ClanTrait").duel = true
 	return e
@@ -642,9 +642,9 @@ func _resident_plan(g: Dictionary, i: int) -> Dictionary:
 	if age == "child":
 		arch = "kid"
 	var lk := clan_look(c, arch, g["vid"], female, age)
-	var fid = Friends.at_site(Friends.site_key(g["spots"][i]))
-	if fid != "" and String(Friends.all()[fid].get("clan", "")) == c:
-		lk = Friends.look_of(Friends.all()[fid])
+	var fid = LazyFx.g("Friends").at_site(LazyFx.g("Friends").site_key(g["spots"][i]))
+	if fid != "" and String(LazyFx.g("Friends").all()[fid].get("clan", "")) == c:
+		lk = LazyFx.g("Friends").look_of(LazyFx.g("Friends").all()[fid])
 	return {"female": female, "age": age, "look": lk}
 
 
@@ -665,11 +665,11 @@ func _make_resident(g: Dictionary, i: int, plan := {}) -> void:
 	r.look_extra = plan["look"]
 	r.lines_override = LORE.get(c, ["%s klanındanım. Köyümüzü korumak görevimiz." % clan_name(c)])
 	# bu yuvada tanıştığın klan üyesi varsa o (adı, görünüşü, gözleri)
-	var skey = Friends.site_key(g["spots"][i])
+	var skey = LazyFx.g("Friends").site_key(g["spots"][i])
 	r.set_meta("site_key", skey)
-	var fid = Friends.at_site(skey)
-	if fid != "" and String(Friends.all()[fid].get("clan", "")) == c:
-		var f: Dictionary = Friends.all()[fid]
+	var fid = LazyFx.g("Friends").at_site(skey)
+	if fid != "" and String(LazyFx.g("Friends").all()[fid].get("clan", "")) == c:
+		var f: Dictionary = LazyFx.g("Friends").all()[fid]
 		r.given = String(f["name"])
 		r.display_override = r.given
 		var ek: Array = f.get("eye", [0, 0])

@@ -132,7 +132,7 @@ static func on_hit(who: Node3D, i: int, h: Node3D) -> void:
 	var m = Kit.cached_mesh("ct_damla", func():
 		var b = MB.new()
 		b.add("sphere", Vector3.ZERO, Vector3(0.026, 0.04, 0.026), Color(0.62, 0.05, 0.07), Vector3.ZERO, 5)
-		return b.build(Props.toon()))
+		return b.build(LazyFx.g("Props").toon()))
 	var c = U.chest(h)
 	for k in 5:
 		var mi = MeshInstance3D.new()

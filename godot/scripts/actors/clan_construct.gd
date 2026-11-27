@@ -31,7 +31,7 @@ static var _mesh_cache := {}
 static func spawn(c: Node3D, k: String, n: int, d: Dictionary) -> Array:
 	var out = []
 	var tier = int(d.get("tier", 2))
-	var base = JutsuEngine.base_dmg(c, d)
+	var base = LazyFx.g("JutsuEngine").base_dmg(c, d)
 	var fd: Vector3 = c.face_dir() if c.has_method("face_dir") else -c.global_transform.basis.z
 	var side = fd.cross(Vector3.UP).normalized()
 	for i in n:
@@ -98,7 +98,7 @@ func _ready() -> void:
 			cm.height = 1.0
 			cm.radial_segments = 4
 			th.mesh = cm
-			th.material_override = JutsuEngine.glow_mat(Color(0.45, 0.85, 1.0), 0.85)
+			th.material_override = LazyFx.g("JutsuEngine").glow_mat(Color(0.45, 0.85, 1.0), 0.85)
 			th.top_level = true
 			add_child(th)
 			threads.append(th)
@@ -132,13 +132,13 @@ func _build_mesh() -> ArrayMesh:
 				for k in n:
 					var p0 = a.lerp(c, float(k) / n)
 					var p1 = a.lerp(c, float(k + 1) / n)
-					Loft.tube(mb, [p0.lerp(p1, 0.06), p1.lerp(p0, 0.06)], [r, r * 0.92], wood, 8, 1, true, true)
+					LazyFx.g("Loft").tube(mb, [p0.lerp(p1, 0.06), p1.lerp(p0, 0.06)], [r, r * 0.92], wood, 8, 1, true, true)
 					mb.add("sphere", p1, Vector3.ONE * r * 1.25, joint, Vector3.ZERO, 8)
 					mb.add("torus", p0.lerp(p1, 0.5), Vector3.ONE * r * 2.05, wood_d, Vector3(90, 0, 0), 8)
 			# gövde (pelerin altında ahşap fıçı)
-			Loft.tube(b, [Vector3(0, 0.8, 0.0), Vector3(0, 1.15, -0.02), Vector3(0, 1.45, -0.06)], [Vector2(0.17, 0.14), Vector2(0.2, 0.16), Vector2(0.18, 0.14)], wood_d, 12, 2, true, true)
+			LazyFx.g("Loft").tube(b, [Vector3(0, 0.8, 0.0), Vector3(0, 1.15, -0.02), Vector3(0, 1.45, -0.06)], [Vector2(0.17, 0.14), Vector2(0.2, 0.16), Vector2(0.18, 0.14)], wood_d, 12, 2, true, true)
 			# geniş yırtık pelerin: omuzdan dizin altına kadar, gövdeyi saran çan; alt kenarı ve yanları tırtıklı şeritler
-			Loft.tube(b, [Vector3(0, 1.52, -0.05), Vector3(0, 1.3, 0.0), Vector3(0, 0.9, 0.06), Vector3(0, 0.45, 0.1)],
+			LazyFx.g("Loft").tube(b, [Vector3(0, 1.52, -0.05), Vector3(0, 1.3, 0.0), Vector3(0, 0.9, 0.06), Vector3(0, 0.45, 0.1)],
 				[Vector2(0.22, 0.18), Vector2(0.44, 0.34), Vector2(0.55, 0.42), Vector2(0.6, 0.46)], cloak, 22, 4, false, false,
 				func(_t: float, a: float, _d: Vector3) -> Color: return cloak_d if fposmod(a * 3.0 + _t * 5.0, 1.0) < 0.15 else cloak)
 			for k in 22:   # alt kenar: düzensiz sarkan yırtık şeritler
@@ -170,9 +170,9 @@ func _build_mesh() -> ArrayMesh:
 					b.add("box", hc + Vector3(x, -0.15, -0.15), Vector3(0.022, 0.03, 0.01), Color(0.97, 0.96, 0.92))
 			else:
 				# uzun yassı yüz (öne-aşağı uzar), kızıl çift boynuz, sarı gözler, dişli çene, arkaya savrulan koyu saç
-				Loft.tube(b, [hc + Vector3(0, 0.1, 0.06), hc + Vector3(0, 0.0, -0.08), hc + Vector3(0, -0.22, -0.18)], [Vector2(0.14, 0.15), Vector2(0.13, 0.12), Vector2(0.11, 0.09)], wood, 12, 3, true, true)
+				LazyFx.g("Loft").tube(b, [hc + Vector3(0, 0.1, 0.06), hc + Vector3(0, 0.0, -0.08), hc + Vector3(0, -0.22, -0.18)], [Vector2(0.14, 0.15), Vector2(0.13, 0.12), Vector2(0.11, 0.09)], wood, 12, 3, true, true)
 				for sx in [-1.0, 1.0]:
-					Loft.tube(b, [hc + Vector3(0.08 * sx, 0.12, 0.0), hc + Vector3(0.2 * sx, 0.26, 0.04), hc + Vector3(0.18 * sx, 0.44, 0.0), hc + Vector3(0.1 * sx, 0.56, -0.04)], [0.035, 0.03, 0.022, 0.004], Color(0.62, 0.12, 0.12), 8, 3, true, true)
+					LazyFx.g("Loft").tube(b, [hc + Vector3(0.08 * sx, 0.12, 0.0), hc + Vector3(0.2 * sx, 0.26, 0.04), hc + Vector3(0.18 * sx, 0.44, 0.0), hc + Vector3(0.1 * sx, 0.56, -0.04)], [0.035, 0.03, 0.022, 0.004], Color(0.62, 0.12, 0.12), 8, 3, true, true)
 					b.add("sphere", hc + Vector3(0.06 * sx, 0.02, -0.12), Vector3(0.05, 0.03, 0.02), Color(0.95, 0.78, 0.2), Vector3(0, 0, -12 * sx), 6)
 					b.add("sphere", hc + Vector3(0.062 * sx, 0.02, -0.13), Vector3(0.018, 0.022, 0.01), ink, Vector3.ZERO, 6)
 				for t in 6:
@@ -205,7 +205,7 @@ func _build_mesh() -> ArrayMesh:
 			var ink = Color(0.04, 0.04, 0.06)
 			var paper = Color(0.96, 0.95, 0.9)
 			# gövde: öne yüklenmiş, karnı içe çekik yırtıcı silueti
-			Loft.tube(b, [Vector3(0, 0.82, 0.62), Vector3(0, 0.88, 0.25), Vector3(0, 0.95, -0.15), Vector3(0, 1.05, -0.45)], [Vector2(0.3, 0.3), Vector2(0.26, 0.27), Vector2(0.34, 0.36), Vector2(0.32, 0.34)], ink, 16, 3, true, true)
+			LazyFx.g("Loft").tube(b, [Vector3(0, 0.82, 0.62), Vector3(0, 0.88, 0.25), Vector3(0, 0.95, -0.15), Vector3(0, 1.05, -0.45)], [Vector2(0.3, 0.3), Vector2(0.26, 0.27), Vector2(0.34, 0.36), Vector2(0.32, 0.34)], ink, 16, 3, true, true)
 			# yele: başın çevresinde dışa savrulan sivri fırça tutamları
 			var hc = Vector3(0, 1.22, -0.72)
 			for k in 16:
@@ -213,7 +213,7 @@ func _build_mesh() -> ArrayMesh:
 				var d = Vector3(cos(a), sin(a), 0.35).normalized()
 				b.add_xf("cone", Transform3D(Basis(Quaternion(Vector3.UP, d)) * Basis.from_scale(Vector3(0.12, 0.55 + 0.15 * (k % 2), 0.08)), hc + d * 0.32 + Vector3(0, 0, 0.12)), ink, 4)
 			# baş + çene: geniş burun, açık ağız
-			Loft.tube(b, [hc + Vector3(0, 0.02, 0.12), hc + Vector3(0, 0.02, -0.12), hc + Vector3(0, -0.04, -0.35)], [Vector2(0.27, 0.25), Vector2(0.25, 0.22), Vector2(0.16, 0.13)], ink, 14, 3, true, true)
+			LazyFx.g("Loft").tube(b, [hc + Vector3(0, 0.02, 0.12), hc + Vector3(0, 0.02, -0.12), hc + Vector3(0, -0.04, -0.35)], [Vector2(0.27, 0.25), Vector2(0.25, 0.22), Vector2(0.16, 0.13)], ink, 14, 3, true, true)
 			b.add("box", hc + Vector3(0, -0.2, -0.2), Vector3(0.24, 0.07, 0.3), ink, Vector3(18, 0, 0))   # alt çene (açık)
 			for sx in [-1.0, 1.0]:
 				b.add("sphere", hc + Vector3(0.13 * sx, 0.1, -0.24), Vector3(0.1, 0.06, 0.04), paper, Vector3(0, 0, -18 * sx), 6)   # beyaz göz
@@ -233,12 +233,12 @@ func _build_mesh() -> ArrayMesh:
 					var top = Vector3(0.22 * sx, 0.85, fz)
 					var knee = top + Vector3(0.03 * sx, -0.35, -0.05 if fz < 0 else 0.1)
 					var paw = Vector3(0.24 * sx, 0.06, fz - 0.06)
-					Loft.tube(b, [top, knee, paw], [0.16, 0.09, 0.08], ink, 10, 2, true, true)
+					LazyFx.g("Loft").tube(b, [top, knee, paw], [0.16, 0.09, 0.08], ink, 10, 2, true, true)
 					for f in 3:
 						b.add("cone", paw + Vector3((f - 1) * 0.04, -0.03, -0.09), Vector3(0.025, 0.08, 0.025), paper, Vector3(-80, 0, 0), 4)   # pençe
 					b.add("sphere", paw + Vector3(0, -0.04, 0.02), Vector3(0.12, 0.03, 0.12), ink, Vector3.ZERO, 8)   # damlayan mürekkep göleti
 			# kuyruk: S kıvrımlı fırça darbesi, ucu dağınık püskül
-			Loft.tube(b, [Vector3(0, 0.9, 0.62), Vector3(0, 1.15, 0.85), Vector3(0, 1.45, 0.8), Vector3(0, 1.6, 0.55)], [0.06, 0.05, 0.045, 0.03], ink, 8, 3, true, false)
+			LazyFx.g("Loft").tube(b, [Vector3(0, 0.9, 0.62), Vector3(0, 1.15, 0.85), Vector3(0, 1.45, 0.8), Vector3(0, 1.6, 0.55)], [0.06, 0.05, 0.045, 0.03], ink, 8, 3, true, false)
 			for k in 5:
 				var a = deg_to_rad(-60 + k * 30)
 				b.add_xf("cone", Transform3D(Basis(Vector3.RIGHT, -0.8) * Basis(Vector3.BACK, a) * Basis.from_scale(Vector3(0.05, 0.25, 0.05)), Vector3(0, 1.7, 0.5)), ink, 4)
@@ -258,11 +258,11 @@ func _build_mesh() -> ArrayMesh:
 					return dk   # ince kaya çatlağı çizgisi
 				return c
 			# gövde: geniş göğüs kafesi, öne kambur sırt, dar bel, ağır kalça (pürüzsüz tek parça kütle)
-			Loft.tube(b, [Vector3(0, 1.35, 0.05), Vector3(0, 1.75, 0.0), Vector3(0, 2.45, -0.15), Vector3(0, 3.2, -0.05), Vector3(0, 3.55, 0.25)],
+			LazyFx.g("Loft").tube(b, [Vector3(0, 1.35, 0.05), Vector3(0, 1.75, 0.0), Vector3(0, 2.45, -0.15), Vector3(0, 3.2, -0.05), Vector3(0, 3.55, 0.25)],
 				[Vector2(0.62, 0.5), Vector2(0.52, 0.44), Vector2(0.85, 0.66), Vector2(0.95, 0.75), Vector2(0.6, 0.5)], st, 22, 4, true, true, rock)
 			# omuzlara gömülü küçük baş: alnı çıkık, çene kalın, parlayan göz yarıkları ve ağız çatlağı
 			var hc = Vector3(0, 3.62, -0.6)
-			Loft.tube(b, [hc + Vector3(0, -0.25, 0.2), hc + Vector3(0, 0.0, 0.0), hc + Vector3(0, 0.1, -0.2)], [Vector2(0.42, 0.38), Vector2(0.4, 0.36), Vector2(0.3, 0.24)], st2, 16, 3, true, true, rock)
+			LazyFx.g("Loft").tube(b, [hc + Vector3(0, -0.25, 0.2), hc + Vector3(0, 0.0, 0.0), hc + Vector3(0, 0.1, -0.2)], [Vector2(0.42, 0.38), Vector2(0.4, 0.36), Vector2(0.3, 0.24)], st2, 16, 3, true, true, rock)
 			b.add("boulder", hc + Vector3(0, 0.24, -0.2), Vector3(0.82, 0.26, 0.38), st, Vector3(-10, 0, 0), 3)   # çıkık alın
 			for sx in [-1.0, 1.0]:
 				b.add("box", hc + Vector3(0.14 * sx, 0.06, -0.36), Vector3(0.18, 0.05, 0.04), lava, Vector3(0, 0, 12 * sx))   # göz yarığı
@@ -279,9 +279,9 @@ func _build_mesh() -> ArrayMesh:
 				# dev kol: kalın üst kol, dirsek kayası, aşağı genişleyen ön kol, yere değen dev yumruk
 				var el = sh + Vector3(0.35 * sx, -1.05, -0.2)
 				var wr = el + Vector3(0.05 * sx, -1.0, -0.35)
-				Loft.tube(b, [sh, sh.lerp(el, 0.5) + Vector3(0.1 * sx, 0, 0), el], [0.42, 0.46, 0.36], st, 16, 3, true, true, rock)
+				LazyFx.g("Loft").tube(b, [sh, sh.lerp(el, 0.5) + Vector3(0.1 * sx, 0, 0), el], [0.42, 0.46, 0.36], st, 16, 3, true, true, rock)
 				b.add("boulder", el + Vector3(0.1 * sx, 0, 0.1), Vector3(0.55, 0.5, 0.55), st2, Vector3(0, 0, 0), 5)
-				Loft.tube(b, [el, el.lerp(wr, 0.5), wr], [0.38, 0.5, 0.58], st, 16, 3, true, true, rock)
+				LazyFx.g("Loft").tube(b, [el, el.lerp(wr, 0.5), wr], [0.38, 0.5, 0.58], st, 16, 3, true, true, rock)
 				for f in 4:
 					var fp = wr + Vector3((f - 1.5) * 0.24, -0.35, -0.2 + absf(f - 1.5) * 0.08)
 					b.add("boulder", fp, Vector3(0.28, 0.4, 0.3), st2.lerp(dk, 0.2), Vector3(-20, 0, 0), 6 + f)   # kalın parmaklar
@@ -292,7 +292,7 @@ func _build_mesh() -> ArrayMesh:
 				# kısa, kalın bacaklar + ayak kayası
 				var hp = Vector3(0.55 * sx, 1.35, 0.1)
 				var kn = hp + Vector3(0.12 * sx, -0.65, -0.1)
-				Loft.tube(b, [hp, kn, Vector3(0.7 * sx, 0.25, 0.05)], [0.5, 0.42, 0.45], st2, 16, 3, true, true, rock)
+				LazyFx.g("Loft").tube(b, [hp, kn, Vector3(0.7 * sx, 0.25, 0.05)], [0.5, 0.42, 0.45], st2, 16, 3, true, true, rock)
 				b.add("boulder", Vector3(0.72 * sx, 0.18, -0.12), Vector3(0.85, 0.4, 1.05), st2.darkened(0.1), Vector3.ZERO, 8)
 				b.add("boulder", kn + Vector3(0, 0, -0.3), Vector3(0.5, 0.45, 0.35), st, Vector3.ZERO, 9)   # diz kayası
 			# göğüs: büyük plaka + ortada parlayan chakra çekirdeği ve ondan yayılan çatlaklar
@@ -316,32 +316,32 @@ func _build_mesh() -> ArrayMesh:
 			var shell = func(_t: float, a: float, d: Vector3) -> Color:
 				return hi if d.y > 0.75 else (sh if d.y > -0.2 else dk)
 			for sx in [-1.0, 1.0]:   # iki ayrı kanat kını, aralarında yarık
-				Loft.tube(b, [Vector3(0.2 * sx, 0.55, 0.85), Vector3(0.28 * sx, 0.7, 0.35), Vector3(0.27 * sx, 0.7, -0.15), Vector3(0.18 * sx, 0.6, -0.4)], [Vector2(0.24, 0.24), Vector2(0.3, 0.3), Vector2(0.3, 0.3), Vector2(0.22, 0.2)], sh, 14, 3, true, true, shell)
+				LazyFx.g("Loft").tube(b, [Vector3(0.2 * sx, 0.55, 0.85), Vector3(0.28 * sx, 0.7, 0.35), Vector3(0.27 * sx, 0.7, -0.15), Vector3(0.18 * sx, 0.6, -0.4)], [Vector2(0.24, 0.24), Vector2(0.3, 0.3), Vector2(0.3, 0.3), Vector2(0.22, 0.2)], sh, 14, 3, true, true, shell)
 			b.add("box", Vector3(0, 0.88, 0.2), Vector3(0.03, 0.04, 1.2), dk)   # orta yarık
-			Loft.tube(b, [Vector3(0, 0.5, -0.4), Vector3(0, 0.55, -0.62), Vector3(0, 0.52, -0.8)], [Vector2(0.4, 0.28), Vector2(0.38, 0.27), Vector2(0.28, 0.22)], sh, 14, 2, true, true, shell)   # göğüs kalkanı
-			Loft.tube(b, [Vector3(0, 0.45, -0.8), Vector3(0, 0.42, -1.0)], [Vector2(0.24, 0.18), Vector2(0.2, 0.15)], dk, 12, 1)   # baş
+			LazyFx.g("Loft").tube(b, [Vector3(0, 0.5, -0.4), Vector3(0, 0.55, -0.62), Vector3(0, 0.52, -0.8)], [Vector2(0.4, 0.28), Vector2(0.38, 0.27), Vector2(0.28, 0.22)], sh, 14, 2, true, true, shell)   # göğüs kalkanı
+			LazyFx.g("Loft").tube(b, [Vector3(0, 0.45, -0.8), Vector3(0, 0.42, -1.0)], [Vector2(0.24, 0.18), Vector2(0.2, 0.15)], dk, 12, 1)   # baş
 			# çatallı boynuz
-			Loft.tube(b, [Vector3(0, 0.5, -1.0), Vector3(0, 0.75, -1.35), Vector3(0, 1.05, -1.45)], [0.08, 0.06, 0.035], sh, 8, 3, true, false)
+			LazyFx.g("Loft").tube(b, [Vector3(0, 0.5, -1.0), Vector3(0, 0.75, -1.35), Vector3(0, 1.05, -1.45)], [0.08, 0.06, 0.035], sh, 8, 3, true, false)
 			for sx in [-1.0, 1.0]:
 				b.add("cone", Vector3(0.08 * sx, 1.12, -1.45), Vector3(0.035, 0.18, 0.035), sh, Vector3(0, 0, -35 * sx), 5)
 				b.add("sphere", Vector3(0.16 * sx, 0.48, -0.98), Vector3(0.07, 0.06, 0.05), Color(0.95, 0.3, 0.1), Vector3.ZERO, 6)   # göz
-				Loft.tube(b, [Vector3(0.1 * sx, 0.5, -1.02), Vector3(0.22 * sx, 0.62, -1.25), Vector3(0.32 * sx, 0.6, -1.4)], [0.015, 0.012, 0.008], dk, 5, 2, true, false)   # anten
+				LazyFx.g("Loft").tube(b, [Vector3(0.1 * sx, 0.5, -1.02), Vector3(0.22 * sx, 0.62, -1.25), Vector3(0.32 * sx, 0.6, -1.4)], [0.015, 0.012, 0.008], dk, 5, 2, true, false)   # anten
 				b.add("cone", Vector3(0.12 * sx, 0.32, -1.06), Vector3(0.04, 0.16, 0.04), dk, Vector3(-60, 0, 25 * sx), 4)   # kıskaç
 				for fz in [-0.6, -0.25, 0.15]:   # segmentli bacaklar (yukarı kıvrık diz)
 					var hip = Vector3(0.28 * sx, 0.42, fz)
 					var knee = hip + Vector3(0.32 * sx, 0.22, fz * 0.15)
 					var foot = Vector3(0.75 * sx, 0.02, fz + fz * 0.25)
-					Loft.tube(b, [hip, knee], [0.045, 0.035], dk, 6, 1)
-					Loft.tube(b, [knee, foot], [0.035, 0.015], dk, 6, 1)
+					LazyFx.g("Loft").tube(b, [hip, knee], [0.045, 0.035], dk, 6, 1)
+					LazyFx.g("Loft").tube(b, [knee, foot], [0.035, 0.015], dk, 6, 1)
 					b.add("sphere", knee, Vector3.ONE * 0.06, sh, Vector3.ZERO, 6)
 		"bee":
 			# dev eşek arısı: tüylü toraks, ince bel, sarı-siyah çizgili sivri karın, iğne, iri bileşik gözler, damarlı yarı saydam kanatlar
 			var y = Color(0.98, 0.78, 0.12)
 			var k = Color(0.08, 0.06, 0.05)
-			Loft.tube(b, [Vector3(0, 0, -0.68), Vector3(0, 0.02, -0.5)], [Vector2(0.2, 0.18), Vector2(0.18, 0.17)], k, 12, 1)   # baş
+			LazyFx.g("Loft").tube(b, [Vector3(0, 0, -0.68), Vector3(0, 0.02, -0.5)], [Vector2(0.2, 0.18), Vector2(0.18, 0.17)], k, 12, 1)   # baş
 			for sx in [-1.0, 1.0]:
 				b.add("sphere", Vector3(0.14 * sx, 0.04, -0.62), Vector3(0.13, 0.17, 0.14), Color(0.55, 0.1, 0.06), Vector3(0, 0, -10 * sx), 8)   # bileşik göz
-				Loft.tube(b, [Vector3(0.05 * sx, 0.14, -0.74), Vector3(0.12 * sx, 0.35, -0.88), Vector3(0.2 * sx, 0.42, -0.95)], [0.014, 0.012, 0.01], k, 5, 2, true, false)   # anten
+				LazyFx.g("Loft").tube(b, [Vector3(0.05 * sx, 0.14, -0.74), Vector3(0.12 * sx, 0.35, -0.88), Vector3(0.2 * sx, 0.42, -0.95)], [0.014, 0.012, 0.01], k, 5, 2, true, false)   # anten
 				b.add("cone", Vector3(0.06 * sx, -0.12, -0.78), Vector3(0.03, 0.1, 0.03), y.darkened(0.3), Vector3(-30, 0, 20 * sx), 4)   # çene
 			b.add_grad("sphere", Vector3(0, 0.03, -0.25), Vector3(0.42, 0.4, 0.46), y.darkened(0.25), k, Vector3.ZERO, 12)   # tüylü toraks
 			b.add("cyl", Vector3(0, 0, 0.02), Vector3(0.1, 0.12, 0.1), k, Vector3(90, 0, 0), 8)   # ince bel
@@ -357,8 +357,8 @@ func _build_mesh() -> ArrayMesh:
 					b.add("box", Vector3((0.15 + wl * 0.5) * sx, 0.22 - wi * 0.02, -0.25 + wi * 0.22), Vector3(wl, 0.012, 0.3 - wi * 0.06), Color(0.82, 0.92, 1.0), Vector3(0, (8 + wi * 14) * sx, 12 * sx))
 					b.add("box", Vector3((0.15 + wl * 0.5) * sx, 0.23 - wi * 0.02, -0.25 + wi * 0.22), Vector3(wl * 0.9, 0.014, 0.012), Color(0.35, 0.3, 0.25), Vector3(0, (8 + wi * 14) * sx, 12 * sx))   # damar
 				for fz in [-0.35, -0.2, -0.05]:
-					Loft.tube(b, [Vector3(0.12 * sx, -0.12, fz), Vector3(0.22 * sx, -0.3, fz + 0.05), Vector3(0.2 * sx, -0.5, fz + 0.15)], [0.025, 0.02, 0.012], k, 5, 2, true, false)
-	return b.build(Props.toon())
+					LazyFx.g("Loft").tube(b, [Vector3(0.12 * sx, -0.12, fz), Vector3(0.22 * sx, -0.3, fz + 0.05), Vector3(0.2 * sx, -0.5, fz + 0.15)], [0.025, 0.02, 0.012], k, 5, 2, true, false)
+	return b.build(LazyFx.g("Props").toon())
 
 
 func _appear() -> void:
@@ -587,7 +587,7 @@ func _attack(dir: Vector3) -> void:
 					pr.vel = dd * 34.0
 					pr.info = {"dmg": dmg * 0.3, "knock": 1.0, "kind": "light", "burn": 2.0}
 					pr.life = 1.2
-					pr.add_child(JutsuEngine.shape_mesh("needles", Color(0.6, 1.0, 0.45), 0.35, ""))
+					pr.add_child(LazyFx.g("JutsuEngine").shape_mesh("needles", Color(0.6, 1.0, 0.45), 0.35, ""))
 					get_tree().current_scene.add_child(pr)
 					pr.global_position = global_position + Vector3.UP * 1.3 + dd * 0.6
 					pr.look_at(pr.global_position + dd, Vector3.UP)

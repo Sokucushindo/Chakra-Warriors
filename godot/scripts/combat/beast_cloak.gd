@@ -60,7 +60,7 @@ func ride_start(b) -> void:
 	p.global_position = Vector3(at.x, maxf(at.y, p.global_position.y), at.z)
 	p.velocity = Vector3.ZERO
 	set_level(6)
-	Hud.banner("BİJŪ'YA BİNDİN", "%s artık senin kontrolünde (%d sn)  •  Sol tık: pençe  •  Sağ tık / X: Kuyruklu Canavar Topu  •  F: in" % [String(BeastModels.INFO[ride_id]["name"]).split(" — ")[0], int(ride_life)], chakra_col())
+	Hud.banner("BİJŪ'YA BİNDİN", "%s artık senin kontrolünde (%d sn)  •  Sol tık: pençe  •  Sağ tık / X: Kuyruklu Canavar Topu  •  F: in" % [String(LazyFx.g("BeastModels").INFO[ride_id]["name"]).split(" — ")[0], int(ride_life)], chakra_col())
 
 
 func ride_end(respawn := true) -> void:
@@ -80,7 +80,7 @@ func ride_end(respawn := true) -> void:
 		b.global_position = q
 		b.home = q
 		b.make_ally(p, life)
-		Hud.msg("%s yanında savaşmaya devam ediyor (%d sn)." % [String(BeastModels.INFO[id]["name"]).split(" — ")[0], int(life)], chakra_col())
+		Hud.msg("%s yanında savaşmaya devam ediyor (%d sn)." % [String(LazyFx.g("BeastModels").INFO[id]["name"]).split(" — ")[0], int(life)], chakra_col())
 	else:
 		Hud.msg("Sharingan bağı çözüldü: canavar geri döndü.", Color(0.85, 0.85, 0.9))
 
@@ -98,7 +98,7 @@ func chakra_col() -> Color:
 	# Kurama ile tam bağ (Sürüm 2+): altın "Kurama Bağı" pelerini
 	if beast_id() == "kurama" and level >= 5 and TailedBeasts.trust() >= 55.0:
 		return Color(1.0, 0.82, 0.28)
-	return BeastModels.INFO.get(beast_id(), BeastModels.INFO["kurama"])["chakra"]
+	return LazyFx.g("BeastModels").INFO.get(beast_id(), LazyFx.g("BeastModels").INFO["kurama"])["chakra"]
 
 
 func handle_input(e: InputEvent) -> bool:
@@ -133,7 +133,7 @@ func _tap() -> void:
 
 ## Canavarın kuyruk sayısı
 static func beast_tails(id: String) -> int:
-	return int(BeastModels.INFO.get(id, {}).get("tails", 4))
+	return int(LazyFx.g("BeastModels").INFO.get(id, {}).get("tails", 4))
 
 
 ## Anime: Sürüm 1 pelerin canavarın kendi kuyruk sayısını geçemez (en çok 4) — iki kuyruklu canavar 1 -> 2 kuyruk -> Sürüm 2;
@@ -157,7 +157,7 @@ static func tech_need(i: int, tails: int) -> int:
 static func v2_dark(id: String) -> Color:
 	if id == "kurama":
 		return Color(0.35, 0.02, 0.02)
-	var cc: Color = BeastModels.INFO.get(id, BeastModels.INFO["kurama"])["chakra"]
+	var cc: Color = LazyFx.g("BeastModels").INFO.get(id, LazyFx.g("BeastModels").INFO["kurama"])["chakra"]
 	return cc.darkened(0.62)
 
 
@@ -186,7 +186,7 @@ func set_level(l: int) -> void:
 	if hint != "":
 		Hud.msg(hint, col.lightened(0.3), 6.0)
 	Sfx.play("roar", p.global_position, 1.3 - level * 0.08, 0.7)
-	BeastFX.cloak_pulse(p.global_position, col, 6.0 + level * 3.0)
+	LazyFx.g("BeastFX").cloak_pulse(p.global_position, col, 6.0 + level * 3.0)
 	if Game.world:
 		Game.world.env.add_shake(0.3 + level * 0.15)
 	if level == 6:
@@ -195,9 +195,9 @@ func set_level(l: int) -> void:
 		if before == 6:
 			_end_transform()
 		_ensure_cloak()
-		_set_tails(mini(level, int(BeastModels.INFO.get(beast_id(), {}).get("tails", 4))) if level <= 4 else int(BeastModels.INFO.get(beast_id(), {}).get("tails", 4)))   # iki kuyruklu canavar 4 kuyruklu pelerin çıkarmasın
+		_set_tails(mini(level, int(LazyFx.g("BeastModels").INFO.get(beast_id(), {}).get("tails", 4))) if level <= 4 else int(LazyFx.g("BeastModels").INFO.get(beast_id(), {}).get("tails", 4)))   # iki kuyruklu canavar 4 kuyruklu pelerin çıkarmasın
 		mat.set_shader_parameter("col", chakra_col())
-		mat.set_shader_parameter("dark", 0.85 if level == 5 and chakra_col() == BeastModels.INFO.get(beast_id(), {}).get("chakra", Color.BLACK) else 0.0)
+		mat.set_shader_parameter("dark", 0.85 if level == 5 and chakra_col() == LazyFx.g("BeastModels").INFO.get(beast_id(), {}).get("chakra", Color.BLACK) else 0.0)
 		mat.set_shader_parameter("dark_col", v2_dark(beast_id()))
 		mat.set_shader_parameter("grow", 0.05 + level * 0.012)
 
@@ -312,8 +312,8 @@ func _full_transform() -> void:
 		if is_instance_valid(tl[0]):
 			tl[0].visible = false
 	var id = beast_id()
-	var h = maxf(22.0, float(BeastModels.INFO[id]["height"]) * 0.4)
-	rig = BeastModels.build(id, h)
+	var h = maxf(22.0, float(LazyFx.g("BeastModels").INFO[id]["height"]) * 0.4)
+	rig = LazyFx.g("BeastModels").build(id, h)
 	p.add_child(rig)
 	rig.remove_colliders()   # oyuncunun kendi canavarı ona çarpmasın
 	rig.show_weak(false)
@@ -328,22 +328,22 @@ func _full_transform() -> void:
 			mi.material_override = fades[m]
 	p.model.visible = false
 	rig.set_meta("cam_h", h)
-	BeastSus.cam(p)   # kamera canavarın boyuna göre: omuz üstünden, tüm gövde ve önündeki alan görünür
+	LazyFx.g("BeastSus").cam(p)   # kamera canavarın boyuna göre: omuz üstünden, tüm gövde ve önündeki alan görünür
 	p.cam.far = maxf(p.cam.far, 6000.0)
 	Buffs.add("beast", 9999.0, {"melee": 1.5, "speed": 1.5, "armor": 0.6, "jutsu": 1.2})
-	BeastFX.erupt(p.global_position + Vector3.UP * h * 0.4, h, chakra_col())
-	BeastSus.sync(p)   # Susanoo açıksa canavar onu zırh olarak giyer
-	Hud.banner("KUYRUKLU CANAVAR", "%s ile tam dönüşüm!  Sol tık: pençe  •  Sağ tık / X: Kuyruklu Canavar Topu" % BeastModels.INFO[id]["name"].split(" — ")[0], chakra_col())
+	LazyFx.g("BeastFX").erupt(p.global_position + Vector3.UP * h * 0.4, h, chakra_col())
+	LazyFx.g("BeastSus").sync(p)   # Susanoo açıksa canavar onu zırh olarak giyer
+	Hud.banner("KUYRUKLU CANAVAR", "%s ile tam dönüşüm!  Sol tık: pençe  •  Sağ tık / X: Kuyruklu Canavar Topu" % LazyFx.g("BeastModels").INFO[id]["name"].split(" — ")[0], chakra_col())
 
 
 func _end_transform() -> void:
 	if is_instance_valid(rig):
-		BeastFX.vanish(p.global_position + Vector3.UP * 3.0, 8.0, chakra_col())
+		LazyFx.g("BeastFX").vanish(p.global_position + Vector3.UP * 3.0, 8.0, chakra_col())
 		rig.queue_free()
 	rig = null
-	BeastSus.sync(p)
+	LazyFx.g("BeastSus").sync(p)
 	p.model.visible = true
-	BeastSus.cam(p)
+	LazyFx.g("BeastSus").cam(p)
 	if is_instance_valid(cloak_mesh):
 		cloak_mesh.visible = true
 	if is_instance_valid(ears):
@@ -375,7 +375,7 @@ func _giant_swipe() -> void:
 		dir = dir.normalized()
 		p.facing = atan2(-dir.x, -dir.z)
 	var id = beast_id()
-	var dmg = 60.0 * Stats.melee_mult(Game.profile)
+	var dmg = 60.0 * LazyFx.g("Stats").melee_mult(Game.profile)
 	var acts = ["swipe_l", "swipe_r", "bite" if rig.quadruped else "slam", "tail"]
 	var durs = [0.55, 0.55, 0.85, 0.9]
 	var hit_at = [0.25, 0.25, 0.5 if rig.quadruped else 0.55, 0.3]
@@ -391,25 +391,25 @@ func _combo_hit(step: int, dir: Vector3, h: float, id: String, dmg: float) -> vo
 	match step:
 		0, 1:
 			var pt = p.global_position + dir * h * 0.5 + Vector3.UP * h * 0.2
-			var got = BijuuArts.melee(p, id, pt, h * 0.3, dmg, dir)
+			var got = LazyFx.g("BijuuArts").melee(p, id, pt, h * 0.3, dmg, dir)
 			Combat.hit_zone(p, p.global_position, dir, h * 0.85, 60.0, h * 1.1, {"dmg": dmg, "knock": 22.0, "launch": 4.0, "kind": "heavy", "dir": dir}, got)
 			Sfx.play("whoosh", pt, 0.5)
 		2:
 			if rig.quadruped:
 				var pt = rig.mouth_pos() + dir * h * 0.15
-				BijuuArts.melee(p, id, pt, h * 0.32, dmg * 1.4, dir)
+				LazyFx.g("BijuuArts").melee(p, id, pt, h * 0.32, dmg * 1.4, dir)
 				Sfx.play("hit_heavy", pt, 0.6)
 			else:
 				var c2 = p.global_position + dir * h * 0.45
 				c2.y = Game.ground_height(c2.x, c2.z)
 				Combat.hit_sphere(p, c2 + Vector3.UP * 2.0, h * 0.5, {"dmg": dmg * 1.5, "knock": 28.0, "launch": 14.0, "kind": "heavy"})
-				BijuuArts.melee(p, id, c2 + Vector3.UP * h * 0.05, h * 0.35, dmg * 0.3, dir)
-				BeastFX.slam_cracks(c2, h * 0.25)
+				LazyFx.g("BijuuArts").melee(p, id, c2 + Vector3.UP * h * 0.05, h * 0.35, dmg * 0.3, dir)
+				LazyFx.g("BeastFX").slam_cracks(c2, h * 0.25)
 				rig.land_fx()
 		3:
 			# kuyruk savuruşu: 360° — etrafı süpürür, en çok savuran vuruş
 			Combat.hit_sphere(p, p.global_position + Vector3.UP * h * 0.2, h * 0.8, {"dmg": dmg * 1.6, "knock": 45.0, "launch": 10.0, "kind": "heavy"})
-			BeastFX.tail_sweep(p.global_position, chakra_col(), h * 1.6)
+			LazyFx.g("BeastFX").tail_sweep(p.global_position, chakra_col(), h * 1.6)
 			Sfx.play("whoosh", p.global_position, 0.35)
 			if Game.world:
 				Game.world.env.add_shake(0.6)
@@ -445,18 +445,18 @@ func _bomb() -> void:
 	if lt and is_instance_valid(lt) and not lt.is_dead():
 		aim_b = lt.global_position + Vector3.UP * float(lt.height) * 0.5   # kilitliyse hedefe (teknikler gibi)
 	var dir = (aim_b - from).normalized()
-	var dmg = (40.0 + level * 15.0) * Stats.jutsu_mult(Game.profile)
+	var dmg = (40.0 + level * 15.0) * LazyFx.g("Stats").jutsu_mult(Game.profile)
 	if epic:
 		# anime Bijūdama: yere basar, top ağzının önünde başı kadar büyür, yutar, fırlatır — dev patlama
 		var D = rig.height_m * 0.34
 		var T = 2.4 * 0.86
 		rig.play_action("bijudama", 2.4)
 		bomb_cd = 10.0
-		BijudamaFX.charge(rig.mouth, D, T)
+		LazyFx.g("BijudamaFX").charge(rig.mouth, D, T)
 		get_tree().create_timer(T).timeout.connect(func():
 			if not is_instance_valid(rig) or level != 6 or p.is_dead():
 				return
-			var f2 = BijudamaFX.muzzle(rig.mouth, D * 0.4)
+			var f2 = LazyFx.g("BijudamaFX").muzzle(rig.mouth, D * 0.4)
 			var a2 = p.aim_point()
 			if lt and is_instance_valid(lt) and not lt.is_dead():
 				a2 = lt.global_position + Vector3.UP * float(lt.height) * 0.5
@@ -471,7 +471,7 @@ func _bomb() -> void:
 				var d3 = (aim_b - f3).normalized()
 				TailedBeasts.fire_ball(p, f3, d3, size * 0.6, chakra_col(), dmg * 0.45, 90.0))
 		return
-	BijudamaFX.gather(from, size, delay)
+	LazyFx.g("BijudamaFX").gather(from, size, delay)
 	get_tree().create_timer(delay).timeout.connect(func():
 		var f2 = rig.mouth_pos() if (level == 6 and is_instance_valid(rig)) else from
 		TailedBeasts.fire_ball(p, f2, dir, size, chakra_col(), dmg, 80.0))
@@ -480,7 +480,7 @@ func _bomb() -> void:
 # ------------------------------------------------------------------ canavarın kendi teknikleri (BijuuArts)
 ## HUD ipucu: açık teknikler ve tuşları
 func tech_hint() -> String:
-	var l = BijuuArts.techs(beast_id())
+	var l = LazyFx.g("BijuuArts").techs(beast_id())
 	var parts = []
 	for i in l.size():
 		if level >= tech_need(i, beast_tails(beast_id())):
@@ -497,7 +497,7 @@ func _scale() -> float:
 
 
 func _tech(i: int) -> void:
-	var l = BijuuArts.techs(beast_id())
+	var l = LazyFx.g("BijuuArts").techs(beast_id())
 	if i >= l.size():
 		return
 	var tdef: Dictionary = l[i]
@@ -525,7 +525,7 @@ func _tech(i: int) -> void:
 	var v = aim - p.global_position
 	p.facing = atan2(-v.x, -v.z)
 	var giant = level == 6 and is_instance_valid(rig)
-	var an: Array = BijuuArts.anim(key)   # [hareket, süre, etkinin çıktığı an]
+	var an: Array = LazyFx.g("BijuuArts").anim(key)   # [hareket, süre, etkinin çıktığı an]
 	var s = _scale()
 	var from = rig.mouth_pos() if giant else p.global_position + Vector3.UP * 1.4 + p.face_dir() * 1.0
 	if giant:
@@ -533,7 +533,7 @@ func _tech(i: int) -> void:
 		rig.play_action(String(an[0]), float(an[1]))
 	else:
 		p.model.play("throw", 0.05, 1.6, true)
-	var dmg = (30.0 + level * 8.0) * Stats.jutsu_mult(Game.profile) * (1.3 if giant else 1.0)
+	var dmg = (30.0 + level * 8.0) * LazyFx.g("Stats").jutsu_mult(Game.profile) * (1.3 if giant else 1.0)
 	var ctx = {"s": s, "dmg": dmg, "from": from, "aim": aim, "tgt": c.lock_target, "col": chakra_col()}
 	if giant:
 		ctx["base_h"] = rig.height_m * 0.45
@@ -545,11 +545,11 @@ func _tech(i: int) -> void:
 			if not is_instance_valid(rig) or level != 6 or p.is_dead():
 				return
 			ctx["from"] = rig.mouth_pos()
-			BijuuArts.use(p, beast_id(), key, ctx)
+			LazyFx.g("BijuuArts").use(p, beast_id(), key, ctx)
 			if Game.world:
 				Game.world.env.add_shake(0.55))
 		return
-	BijuuArts.use(p, beast_id(), key, ctx)
+	LazyFx.g("BijuuArts").use(p, beast_id(), key, ctx)
 	if Game.world:
 		Game.world.env.add_shake(0.15 + (0.4 if giant else 0.0))
 
@@ -567,7 +567,7 @@ func _rampage() -> void:
 		get_tree().create_timer(0.6 + i * 0.8).timeout.connect(func():
 			if level == 0: return
 			Combat.hit_sphere(p, p.global_position + Vector3.UP, 8.0 + level * 2.0, {"dmg": 30.0 + level * 10.0, "knock": 20.0, "launch": 6.0, "kind": "heavy"})
-			BeastFX.cloak_pulse(p.global_position, chakra_col(), 10.0 + level * 3.0)
+			LazyFx.g("BeastFX").cloak_pulse(p.global_position, chakra_col(), 10.0 + level * 3.0)
 			p.hp -= 4.0)
 
 

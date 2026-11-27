@@ -29,7 +29,7 @@ func _ready() -> void:
 ## İngilizcede verideki İngilizce adıdır. Türkçe asıllar "_tr" altında saklanır: dil her değiştiğinde yerinde döner.
 const LANG_FIELDS := {"jutsu": ["desc", "meaning"], "items": ["name", "desc"], "clans": ["name", "desc", "kg"]}
 func apply_lang() -> void:
-	var en := Lang.is_en()
+	var en = LazyFx.g("Lang").is_en()
 	for table in LANG_FIELDS:
 		var tb: Dictionary = get(table)
 		for id in tb:
@@ -57,7 +57,7 @@ func _lang_entry(e: Dictionary, fields: Array, en: bool, is_jutsu: bool) -> void
 		elif is_jutsu and f == "meaning" and String(e.get("name_en", "")) != "":
 			e[f] = e["name_en"]
 		else:
-			e[f] = Lang.t(tr[f])
+			e[f] = LazyFx.g("Lang").t(tr[f])
 
 
 ## 100 seviye uzun vadeli hedef: erken seviyeler hızlı, 50'den sonra yavaşlar

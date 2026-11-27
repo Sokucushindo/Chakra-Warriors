@@ -49,9 +49,9 @@ static func build(m, kind: String, bc: Color, _ch: Vector3, _hip: Vector3, toon:
 		m.skel.add_child(mi)
 		mi.skin = m.body_mesh.skin
 		mi.skeleton = mi.get_path_to(m.skel)
-		mi.material_override = Props.toon()
+		mi.material_override = LazyFx.g("Props").toon()
 	for d in e["dg"]:   # sallanan şeritler: paket ortak, fizik durumu model başına
-		var dn = Dangle.make(d[1], Props.toon())
+		var dn = Dangle.make(d[1], LazyFx.g("Props").toon())
 		if dn != null:
 			m._attach(d[0], Transform3D.IDENTITY).get_child(0).add_child(dn)
 			m._dangles.append(dn)

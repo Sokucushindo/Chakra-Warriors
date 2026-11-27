@@ -34,9 +34,9 @@ func build(progress: Callable = Callable()) -> void:
 	sites.name = "Sites"
 	add_child(sites)
 	await BuildSites.build_all(sites)
-	BuildVillageStory.build_all(sites)  # her büyük köyde hikâye binaları + Aranıyor panosu
-	ContractRealms.build_all(sites)  # gizli sözleşme diyarları (kurbağa/yılan/sümüklüböcek) + köy sözleşme ustaları
-	KgPaths.build_all(sites)  # keşiş kulübesi (Hyōton), volkan krateri (Yōton), toz tapınağı (Jinton)
+	LazyFx.g("BuildVillageStory").build_all(sites)  # her büyük köyde hikâye binaları + Aranıyor panosu
+	LazyFx.g("ContractRealms").build_all(sites)  # gizli sözleşme diyarları (kurbağa/yılan/sümüklüböcek) + köy sözleşme ustaları
+	LazyFx.g("KgPaths").build_all(sites)  # keşiş kulübesi (Hyōton), volkan krateri (Yōton), toz tapınağı (Jinton)
 	LegendPaths.build_all(sites)  # Efsane Yolları: ustaların inleri (yılan ini, demirhane...)
 	_p(progress, 0.85, "Köyler")
 	await get_tree().process_frame

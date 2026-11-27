@@ -31,7 +31,7 @@ static func build(m, sid: String, g: Dictionary) -> void:
 			m.skel.add_child(mi)
 			mi.skin = m.body_mesh.skin
 			mi.skeleton = mi.get_path_to(m.skel)
-			mi.material_override = Props.toon()
+			mi.material_override = LazyFx.g("Props").toon()
 		A._dangles(m, e[1])
 		return
 	var c = A._begin(m)

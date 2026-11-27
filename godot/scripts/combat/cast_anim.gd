@@ -131,12 +131,12 @@ const JUTSU_STYLE := {
 
 
 static func style_for(jid: String, j: Dictionary = {}) -> String:
-	if ClanJutsu.STYLE.has(jid):
-		return ClanJutsu.STYLE[jid]
-	if PathJutsu.PANIM.has(jid):
-		return String(PathJutsu.PANIM[jid].get("base", "palm"))
-	if PathJutsu.PSTYLE.has(jid):
-		return PathJutsu.PSTYLE[jid]
+	if LazyFx.g("ClanJutsu").STYLE.has(jid):
+		return LazyFx.g("ClanJutsu").STYLE[jid]
+	if LazyFx.g("PathJutsu").PANIM.has(jid):
+		return String(LazyFx.g("PathJutsu").PANIM[jid].get("base", "palm"))
+	if LazyFx.g("PathJutsu").PSTYLE.has(jid):
+		return LazyFx.g("PathJutsu").PSTYLE[jid]
 	if JUTSU_STYLE.has(jid):
 		return JUTSU_STYLE[jid]
 	var shape = String(j.get("shape", ""))
@@ -214,8 +214,8 @@ static func play(fighter: Node3D, id: String, fit := -1.0) -> CastAnim:
 	a.j = Data.jutsu.get(id, {})
 	a.style = style_for(id, a.j)
 	a.st = STYLES.get(a.style, STYLES["palm"])
-	if PathJutsu.PANIM.has(id):   # jutsuya özel koreografi: temel stilin üstüne kendi hazırlık/salınım pozu ve zamanlaması
-		var cust: Dictionary = PathJutsu.PANIM[id]
+	if LazyFx.g("PathJutsu").PANIM.has(id):   # jutsuya özel koreografi: temel stilin üstüne kendi hazırlık/salınım pozu ve zamanlaması
+		var cust: Dictionary = LazyFx.g("PathJutsu").PANIM[id]
 		var st2: Dictionary = a.st.duplicate(true)
 		for k in cust:
 			if k != "base":
@@ -223,8 +223,8 @@ static func play(fighter: Node3D, id: String, fit := -1.0) -> CastAnim:
 		a.st = st2
 	# ağızdan ateş: hepsi Gōkakyū'nün Storm 4 hareketi (yana dön + el halka ağızda → geriye kavis → öne üfle);
 	# tekniğin kendi ritmi (dönme, akış süresi) korunur (kullanıcı 2026-11-24: "ateşlerin hepsini buna göre")
-	if a.style == "breath" and String(a.j.get("element", "")) in ["katon", "enton", "yoton", "futton"] and id != "katon_goukakyuu" and PathJutsu.PANIM.has("katon_goukakyuu"):
-		var gk: Dictionary = PathJutsu.PANIM["katon_goukakyuu"]
+	if a.style == "breath" and String(a.j.get("element", "")) in ["katon", "enton", "yoton", "futton"] and id != "katon_goukakyuu" and LazyFx.g("PathJutsu").PANIM.has("katon_goukakyuu"):
+		var gk: Dictionary = LazyFx.g("PathJutsu").PANIM["katon_goukakyuu"]
 		var st3: Dictionary = a.st.duplicate(true)
 		for k in ["wind0", "wind", "rel"]:
 			st3[k] = gk[k]
@@ -247,8 +247,8 @@ func _plan(fit: float) -> void:
 	# mühür hızı: Hızlı Mühür (nin3) yetisi + seviye ile hızlanır
 	per = 0.2   # okunur mühür süresi (acemi ~0.27 sn/mühür, usta ~0.09)
 	if is_player:
-		per /= 1.0 + Stats.skill(Game.profile, "seal_speed")  # Hızlı Mühür, Tek El Mühürü
-		per *= Mastery.seal_speed(Game.profile)   # acemi yavaş ve okunur mühür yapar, usta hızlanır
+		per /= 1.0 + LazyFx.g("Stats").skill(Game.profile, "seal_speed")  # Hızlı Mühür, Tek El Mühürü
+		per *= LazyFx.g("Mastery").seal_speed(Game.profile)   # acemi yavaş ve okunur mühür yapar, usta hızlanır
 	elif fighter_skill() >= 0.0:
 		per *= lerpf(1.15, 0.5, fighter_skill())   # düşman da aynı: acemi yavaş, usta hızlı mühür dizer
 	var pre: float = st.get("pre", 0.2)
@@ -277,8 +277,8 @@ func _begin() -> void:
 	# jutsuya özel hazırlık görseli (ör. Rasenshuriken başın üstünde oluşur)
 	if Jutsu.has_method("form_" + jid):
 		Jutsu.call("form_" + jid, f, release_t)
-	elif PathJutsu.get_pinst() and PathJutsu.get_pinst().has_method("form_" + jid):
-		PathJutsu.get_pinst().call("form_" + jid, f, release_t)   # Efsane Yolu hazırlığı (ör. parşömen ele gelir)
+	elif LazyFx.g("PathJutsu").get_pinst() and LazyFx.g("PathJutsu").get_pinst().has_method("form_" + jid):
+		LazyFx.g("PathJutsu").get_pinst().call("form_" + jid, f, release_t)   # Efsane Yolu hazırlığı (ör. parşömen ele gelir)
 	if seals.size() > 0:
 		model.play("idle", 0.08)
 	else:

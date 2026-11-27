@@ -29,7 +29,7 @@ static func model(b: MB, id := "tate") -> void:
 	var wood2 = Color(0.43, 0.3, 0.18)
 	var iron = Color(0.3, 0.31, 0.33)
 	var r = 0.4   # toplam çap 0.85 altında kalsın: uzun silah bekleme eğimi kalkana uygulanmaz
-	Loft.tube(b, [Vector3(0.03, 0, 0), Vector3(0.075, 0, 0), Vector3(0.115, 0, 0)], [r, r * 0.86, r * 0.42], wood, 24, 3, false, true, Callable(), Vector3.BACK)
+	LazyFx.g("Loft").tube(b, [Vector3(0.03, 0, 0), Vector3(0.075, 0, 0), Vector3(0.115, 0, 0)], [r, r * 0.86, r * 0.42], wood, 24, 3, false, true, Callable(), Vector3.BACK)
 	for k in 7:   # tahtalar: yüzeyde koyu ek yerleri
 		var z = (k - 3) * 0.115
 		var half = sqrt(maxf(0.0, r * r - z * z)) * 0.93
@@ -61,7 +61,7 @@ static func _gear(who: Node3D) -> Dictionary:
 	if m == null or not (m is CharacterModel):
 		return {}
 	for w in m.weapons:
-		if Gear.base_id(String(w["id"])) in [ID, "tsurukame"] and is_instance_valid(w["node"]):
+		if LazyFx.g("Gear").base_id(String(w["id"])) in [ID, "tsurukame"] and is_instance_valid(w["node"]):
 			return w
 	return {}
 
@@ -151,7 +151,7 @@ static func _splinters(p: Vector3, d: Vector3, n: int) -> void:
 static func _bar(who: Node3D) -> float:
 	var now = Game.now()
 	var gw = _gear(who)
-	var mx = 8.0 if not gw.is_empty() and Gear.base_id(String(gw["id"])) == "tsurukame" else BAR_MAX   # Tsurukame: Jidanda'ya dayanan kabuk
+	var mx = 8.0 if not gw.is_empty() and LazyFx.g("Gear").base_id(String(gw["id"])) == "tsurukame" else BAR_MAX   # Tsurukame: Jidanda'ya dayanan kabuk
 	var v = minf(mx, float(who.get_meta("tate_bar", mx)) + (now - float(who.get_meta("tate_bar_t", now))) * BAR_REGEN)
 	who.set_meta("tate_bar", v)
 	who.set_meta("tate_bar_t", now)
@@ -192,11 +192,11 @@ static func block(who: Node3D, info: Dictionary) -> bool:
 	if bar < 0.0:
 		who.set_meta("tate_bar", 0.0)
 		who.set_meta("tate_down", now + DOWN_T)
-		_set_mesh(w, Gear.base_id(String(w["id"])) + "_kirik")
+		_set_mesh(w, LazyFx.g("Gear").base_id(String(w["id"])) + "_kirik")
 		_after(who, DOWN_T, func():
 			var w2 = _gear(who)
 			if not w2.is_empty():
-				_set_mesh(w2, Gear.base_id(String(w2["id"]))))
+				_set_mesh(w2, LazyFx.g("Gear").base_id(String(w2["id"]))))
 		Combat.popup_text(who.global_position + Vector3.UP * 2.3, "Kalkan Düştü!", Color(1.0, 0.6, 0.35))
 		Sfx.play("hit_heavy", c, 0.7, 0.9)
 		_splinters(c, to.normalized(), 18)
@@ -269,7 +269,7 @@ static func flail(who: Node3D, dmg: float) -> void:
 	cm.radial_segments = 5
 	cm.rings = 1
 	rope.mesh = cm
-	rope.material_override = Props.toon_color(Color(0.66, 0.56, 0.38), 0.2)
+	rope.material_override = LazyFx.g("Props").toon_color(Color(0.66, 0.56, 0.38), 0.2)
 	rope.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	root.add_child(rope)
 	var f0 = _face(who)

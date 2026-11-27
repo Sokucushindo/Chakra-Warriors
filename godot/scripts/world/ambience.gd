@@ -58,7 +58,7 @@ func _refresh_fall(p: Vector3) -> void:
 					if not int(tr[5]) in [0, 9] or absf(tr[0] - p.x) > 45.0 or absf(tr[2] - p.z) > 45.0:
 						continue
 					var top = 6.8 if int(tr[5]) == 0 else minf(15.0, 13.0 * float(tr[3]))
-					spots.append([Vector3(tr[0], tr[1] + top * (float(tr[3]) if int(tr[5]) == 0 else 1.0), tr[2]), Props.VILLAGE_TREE_LEAF[0], 3.0 * float(tr[3])])
+					spots.append([Vector3(tr[0], tr[1] + top * (float(tr[3]) if int(tr[5]) == 0 else 1.0), tr[2]), LazyFx.g("Props").VILLAGE_TREE_LEAF[0], 3.0 * float(tr[3])])
 	spots.sort_custom(func(a, b): return (a[0] as Vector3).distance_squared_to(p) < (b[0] as Vector3).distance_squared_to(p))
 	# en yakın ağaçlar (aynı ağaç iki kez sayılmasın); yayıcı ağaca bağlı kalır, sadece listeden çıkan ağacınki boşa çıkar
 	var want := {}
@@ -186,7 +186,7 @@ func _flock() -> Node3D:
 	b.add("box", Vector3(-0.35, 0, 0), Vector3(0.7, 0.03, 0.22), Color(0.15, 0.15, 0.18), Vector3(0, 0, 15))
 	b.add("box", Vector3(0.35, 0, 0), Vector3(0.7, 0.03, 0.22), Color(0.15, 0.15, 0.18), Vector3(0, 0, -15))
 	b.add("box", Vector3(0, 0, 0.05), Vector3(0.12, 0.08, 0.4), Color(0.2, 0.2, 0.22))
-	var mesh = b.build(Props.toon())
+	var mesh = b.build(LazyFx.g("Props").toon())
 	for i in randi_range(5, 9):
 		var mi = MeshInstance3D.new()
 		mi.mesh = mesh

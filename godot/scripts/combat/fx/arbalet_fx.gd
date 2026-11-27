@@ -212,7 +212,7 @@ static func _mesh(key: String, fn: Callable) -> Mesh:
 	if not _c.has(key):
 		var b = MB.new()
 		fn.call(b)
-		_c[key] = b.build(Props.toon())
+		_c[key] = b.build(LazyFx.g("Props").toon())
 	return _c[key]
 
 
@@ -351,7 +351,7 @@ static func _rope_shot(who: Node3D, from: Vector3, to: Vector3, dmg: float) -> v
 	var line = MeshInstance3D.new()
 	var b = MB.new()
 	b.add("cyl", Vector3.ZERO, Vector3(0.016, 1.0, 0.016), ROPE, Vector3.ZERO, 5)
-	line.mesh = b.build(Props.toon())
+	line.mesh = b.build(LazyFx.g("Props").toon())
 	who.get_tree().current_scene.add_child(line)
 	var guard = line.create_tween()   # atan ölürse halat sahnede kalmasın
 	guard.tween_interval(4.0)

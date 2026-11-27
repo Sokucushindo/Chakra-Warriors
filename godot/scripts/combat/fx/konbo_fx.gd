@@ -98,7 +98,7 @@ static func model(b: MB, id: String) -> void:
 static func _haft(b: MB) -> void:
 	var cloth = Color(0.9, 0.85, 0.72)
 	var shell = Color(0.55, 0.48, 0.62)
-	Loft.tube(b, [Vector3(0, 0, -0.58), Vector3(0, 0, -0.1), Vector3(0, 0, 0.16), Vector3(0, 0, 0.3)], [0.042, 0.046, 0.058, 0.09], cloth, 10, 3)
+	LazyFx.g("Loft").tube(b, [Vector3(0, 0, -0.58), Vector3(0, 0, -0.1), Vector3(0, 0, 0.16), Vector3(0, 0, 0.3)], [0.042, 0.046, 0.058, 0.09], cloth, 10, 3)
 	for k in 9:
 		b.add("cyl", Vector3(0, 0, -0.54 + k * 0.088), Vector3(0.1, 0.008, 0.1), cloth.darkened(0.2), Vector3(90 + (k % 3) * 4.0, 0, 0), 10)   # sargı kıvrımları
 	var t = MB.new()
@@ -124,7 +124,7 @@ static func _head(b: MB, id: String) -> void:
 	var pts = []
 	for z in zs:
 		pts.append(Vector3(0, 0, z))
-	Loft.tube(b, pts, rs, shell, 14, 3)
+	LazyFx.g("Loft").tube(b, pts, rs, shell, 14, 3)
 	# ortadan geçen dikiş sırtı (kaynak: gövdeyi bölen kalın kıvrım)
 	for k in 14:
 		var a = TAU * k / 14.0
@@ -198,7 +198,7 @@ static func _link() -> Mesh:
 
 static func _chain_mat() -> Material:
 	if not _c.has("cm"):
-		_c["cm"] = Props.toon_color(Color(0.13, 0.12, 0.14), 0.3)
+		_c["cm"] = LazyFx.g("Props").toon_color(Color(0.13, 0.12, 0.14), 0.3)
 	return _c["cm"]
 
 
@@ -226,7 +226,7 @@ static func _node(who: Node3D) -> MeshInstance3D:
 	if m == null or not (m is CharacterModel):
 		return null
 	for w in m.weapons:
-		if Gear.base_id(String(w["id"])) == ID and is_instance_valid(w["node"]) and w["node"] is MeshInstance3D:
+		if LazyFx.g("Gear").base_id(String(w["id"])) == ID and is_instance_valid(w["node"]) and w["node"] is MeshInstance3D:
 			return w["node"]
 	return null
 

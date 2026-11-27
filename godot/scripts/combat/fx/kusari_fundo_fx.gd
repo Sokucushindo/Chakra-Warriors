@@ -106,7 +106,7 @@ static func attach_chain(weapons: Array) -> void:
 		return
 	var c = Chain.new()
 	if not _c.has("mat:chain"):
-		_c["mat:chain"] = Props.toon_color(Color(0.17, 0.17, 0.2), 0.35)
+		_c["mat:chain"] = LazyFx.g("Props").toon_color(Color(0.17, 0.17, 0.2), 0.35)
 	c.setup(_link(), _c["mat:chain"])
 	c.a = l["node"]
 	c.b = r["node"]
@@ -116,7 +116,7 @@ static func attach_chain(weapons: Array) -> void:
 
 static func _w(weapons: Array, side: String) -> Dictionary:
 	for w in weapons:
-		if Gear.base_id(String(w["id"])) == ID and String(w["side"]) == side and is_instance_valid(w["node"]):
+		if LazyFx.g("Gear").base_id(String(w["id"])) == ID and String(w["side"]) == side and is_instance_valid(w["node"]):
 			return w
 	return {}
 

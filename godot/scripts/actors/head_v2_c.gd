@@ -470,7 +470,7 @@ static func _put(m, key: String, make: Callable) -> MeshInstance3D:
 			_mc.clear()
 		var mb := MB.new()
 		make.call(mb)
-		_mc[k] = [mb.build(Props.toon()), col0]
+		_mc[k] = [mb.build(LazyFx.g("Props").toon()), col0]
 	var e: Array = _mc[k] if _mc[k] is Array else [_mc[k], col0]
 	var mi = m._mesh_on("Head", e[0], Transform3D.IDENTITY)
 	if col0.r >= 0.0 and (e[1] as Color).r >= 0.0 and not (e[1] as Color).is_equal_approx(col0):
@@ -479,7 +479,7 @@ static func _put(m, key: String, make: Callable) -> MeshInstance3D:
 
 
 static func _hang(m, pack: Dictionary) -> void:
-	var d = Dangle.make(pack, Props.toon())
+	var d = Dangle.make(pack, LazyFx.g("Props").toon())
 	if d == null:
 		return
 	m._attach("Head", Transform3D.IDENTITY).get_child(0).add_child(d)
@@ -547,7 +547,7 @@ static func _tail(m, root: Vector3, dir: Vector3, side: Vector3, L: float, w: fl
 		_grid(mb, F1, C1, false, Vector3.ZERO, false, O1)
 		_grid(mb, B1, C1, false, Vector3.ZERO, false, O2)
 		var stf: float = o.get("stiff", 0.22)
-		_mc[key] = Dangle.build(mb.build(Props.toon()), [{"pts": ch, "stiff": stf + 0.06, "stiff_tip": stf * 0.4, "damp": 0.82, "grav": 0.7, "drag": 1.2, "air": 0.3, "follow": 0.5, "col_r": 0.012, "col_from": 1}],
+		_mc[key] = Dangle.build(mb.build(LazyFx.g("Props").toon()), [{"pts": ch, "stiff": stf + 0.06, "stiff_tip": stf * 0.4, "damp": 0.82, "grav": 0.7, "drag": 1.2, "air": 0.3, "follow": 0.5, "col_r": 0.012, "col_from": 1}],
 			func(_i, v, _si): return [[0, Dangle.project(ch, v)[0], 1.0]])
 	_hang(m, _mc[key])
 
@@ -643,7 +643,7 @@ static func _curtain(m, key: String, tops: Array, outs: Array, lens: Array, flar
 			return [[a0, s, 1.0 - f], [a1, s, f]]
 		if _mc.size() > 160:
 			_mc.clear()
-		_mc[k] = Dangle.build(mb.build(Props.toon()), defs, assign)
+		_mc[k] = Dangle.build(mb.build(LazyFx.g("Props").toon()), defs, assign)
 	_hang(m, _mc[k])
 
 

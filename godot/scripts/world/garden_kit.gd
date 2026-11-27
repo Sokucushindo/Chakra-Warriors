@@ -582,23 +582,23 @@ static func _m(key: String) -> Mesh:
 		return _mesh[key]
 	var m: Mesh = null
 	if key.begins_with("flower"):
-		m = Props.flower_mesh(int(key.substr(6)))
+		m = LazyFx.g("Props").flower_mesh(int(key.substr(6)))
 	elif key.begins_with("veg"):
-		m = Props.vegetation_mesh(int(key.substr(3)))
+		m = LazyFx.g("Props").vegetation_mesh(int(key.substr(3)))
 	elif key == "pine":
-		m = AnimeTree.mesh("pine", "pine", 1)
+		m = LazyFx.g("AnimeTree").mesh("pine", "pine", 1)
 	elif key == "pine2":
-		m = AnimeTree.mesh("pine", "pine", 2)
+		m = LazyFx.g("AnimeTree").mesh("pine", "pine", 2)
 	elif key == "fir":
-		m = AnimeTree.mesh("fir", "fir", 1)
+		m = LazyFx.g("AnimeTree").mesh("fir", "fir", 1)
 	elif key == "maple":
-		m = AnimeTree.mesh("slender", "momiji", 3)
+		m = LazyFx.g("AnimeTree").mesh("slender", "momiji", 3)
 	elif key == "sakura":
-		m = AnimeTree.mesh("broad", "sakura", 2)
+		m = LazyFx.g("AnimeTree").mesh("broad", "sakura", 2)
 	elif key == "broad":
-		m = AnimeTree.mesh("broad", "green", 1)
+		m = LazyFx.g("AnimeTree").mesh("broad", "green", 1)
 	else:
-		m = CityLandscape.mesh(key)
+		m = LazyFx.g("CityLandscape").mesh(key)
 	_mesh[key] = m
 	return m
 
@@ -730,7 +730,7 @@ static func _pond(g: G, c: Vector2, r: float, gaps := []) -> float:
 	var wy = top + 0.06
 	var q = g.p(c.x, c.y)
 	g.b.cyl(Vector3(q.x, wy - 0.5, q.y), r * 2.0 - 0.3, 0.9, Color(0.16, 0.22, 0.2), false, 20)   # koyu havuz tabanı (su saydam)
-	KageHall._water_disc(g.b, Vector3(q.x, wy, q.y), r * 2.0)
+	LazyFx.g("KageHall")._water_disc(g.b, Vector3(q.x, wy, q.y), r * 2.0)
 	var nst = int(TAU * r / 1.1)
 	for k in nst:
 		var a = k * TAU / nst
@@ -955,7 +955,7 @@ static func _fountain(g: G, c: Vector2, r := 2.0) -> void:
 		var a = (k + 0.5) * TAU / 8.0
 		var eq = g.p(c.x + cos(a) * (r - 0.12), c.y + sin(a) * (r - 0.12))
 		g.b.box(Vector3(eq.x, gy + 0.6, eq.y), Vector3(2.0 * r * tan(PI / 8.0) + 0.1, 0.24, 0.32), st.lightened(0.08), g.yaw_z(rad_to_deg(a)), false)
-	KageHall._water_disc(g.b, Vector3(q.x, gy + 0.56, q.y), r * 2.0 - 0.5)
+	LazyFx.g("KageHall")._water_disc(g.b, Vector3(q.x, gy + 0.56, q.y), r * 2.0 - 0.5)
 	g.b.cyl(Vector3(q.x, gy + 1.0, q.y), 0.45, 1.2, st, false, 8)
 	g.b.cyl(Vector3(q.x, gy + 1.65, q.y), 1.3, 0.25, st.lightened(0.05), false, 10)
 	g.b.cyl(Vector3(q.x, gy + 1.79, q.y), 1.05, 0.04, Color(0.45, 0.62, 0.7), false, 10)
