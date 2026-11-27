@@ -18,8 +18,13 @@ An open-world ninja action RPG made with Godot 4.7, set in the Naruto universe. 
 
 ## How to play
 
-1. Open the **Releases** page and download the latest `ChakraWarriors_vX.Y.Z.zip`.
-2. Unzip it and run `ChakraWarriors.exe` inside the `ChakraWarriors` folder (Windows, no install needed).
+**With the launcher (recommended):** download `ChakraWarriorsLauncher.exe` from the latest release on the **Releases** page,
+put it in an empty folder (for example `C:\Games\Chakra Warriors`) and run it. It downloads the game, installs it next to
+itself and updates it automatically every time you open it. Press **Play** to start. Your saves are kept in a separate
+folder and are never touched by updates.
+
+**Manually:** download the latest `ChakraWarriors_vX.Y.Z.zip`, unzip it and run `ChakraWarriorsLauncher.exe` (or
+`ChakraWarriors.exe`) inside the `ChakraWarriors` folder (Windows, no install needed).
 
 The game starts in English; you can switch the language in the settings.
 
@@ -49,5 +54,7 @@ The game starts in English; you can switch the language in the settings.
 
 1. Download Godot 4.7.2 and place it in the `tools/` folder.
 2. Run `python build.py main`. The exe is written to the `Oyun/` folder.
+
+The launcher (`launcher/Launcher.cs`) is built with `python tools/build_launcher.py` (it uses the .NET Framework compiler that ships with Windows).
 
 The Godot project lives in `godot/`. Tests are in `godot/tests/` and run with `--test=res://tests/<name>.gd`.

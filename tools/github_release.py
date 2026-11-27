@@ -13,7 +13,8 @@ tag = 'v' + open('VERSION').read().strip()
 zipn = 'ChakraWarriors_%s.zip' % tag
 notes = sys.argv[1] if len(sys.argv) > 1 else ''
 body = {'tag_name': tag, 'target_commitish': 'main', 'name': 'Chakra Warriors ' + tag,
-        'body': notes + '\n\nDownload: ' + zipn + ' - unzip it and run ChakraWarriors.exe inside the ChakraWarriors folder.'}
+        'body': notes + '\n\nDownload: ChakraWarriorsLauncher.exe (installs the game and keeps it updated automatically) or ' + zipn +
+                ' (unzip it and run ChakraWarriorsLauncher.exe or ChakraWarriors.exe inside the ChakraWarriors folder).'}
 req = urllib.request.Request('https://api.github.com/repos/%s/releases' % repo, data=json.dumps(body).encode(), headers=H, method='POST')
 try:
     r = json.load(urllib.request.urlopen(req))
@@ -24,3 +25,9 @@ data = open(zipn, 'rb').read()
 req = urllib.request.Request(up, data=data, headers=dict(H, **{'Content-Type': 'application/zip'}), method='POST')
 a = json.load(urllib.request.urlopen(req, timeout=3600))
 print('OK', r['html_url'], a['state'], a['size'])
+# launcher ayrıca: yeni oyuncu yalnız bu küçük exe'yi indirir, oyunu o kurar ve günceller (tools/build_launcher.py)
+ln = os.path.join('launcher', 'bin', 'ChakraWarriorsLauncher.exe')
+req = urllib.request.Request(r['upload_url'].split('{')[0] + '?name=ChakraWarriorsLauncher.exe', data=open(ln, 'rb').read(),
+                             headers=dict(H, **{'Content-Type': 'application/vnd.microsoft.portable-executable'}), method='POST')
+a = json.load(urllib.request.urlopen(req, timeout=600))
+print('OK launcher', a['state'], a['size'])
