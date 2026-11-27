@@ -31,7 +31,9 @@ open(pp, 'w', encoding='utf-8', newline='').write(s)
 src_bake = os.path.join(PC, 'godot', 'data', 'bake')
 dst_bake = os.path.join(ROOT, 'godot', 'data', 'bake')
 if os.path.isdir(src_bake):
-    shutil.copytree(src_bake, dst_bake, dirs_exist_ok=True)
+    if os.path.isdir(dst_bake):
+        shutil.rmtree(dst_bake)   # eski sürümün önbelleği kalmasın (iki kopya APK'yı şişiriyordu)
+    shutil.copytree(src_bake, dst_bake)
 
 kv = dict(l.strip().split('=', 1) for l in open(KEYS, encoding='utf-8') if '=' in l)
 env = dict(os.environ)
