@@ -24,12 +24,81 @@ static func build(b: Builder, rock: Dictionary, cliff_n: float, v: Dictionary) -
 	var cx = (x0 + x1) * 0.5
 	var gap = carve(b, rock, cliff_n, v)
 	BuildKonoha._cliff_stairs(b, -2.0 * gap - gap * 1.1, cliff_n, top, rc.darkened(0.2))
-	var ln = cliff_n + 35.0
-	b.box(Vector3(cx, BuildKonoha._gy(b, cx, ln) + 0.5, ln), Vector3(70, 1, 24), Color(0.55, 0.45, 0.35), 0, false)
-	for k in 8:
-		b.box(Vector3(cx - 34 + k * 9.7, BuildKonoha._gy(b, cx, ln) + 1.6, ln - 12), Vector3(0.3, 1.2, 0.3), Color(0.42, 0.3, 0.2), 0, false)
+	var ln = _terrace(b, cx, cliff_n, top)
 	BuildKonoha._act(b, cx, ln, 14, "lookout", "[F] Köyü seyret (kayıt)")
 	BuildKonoha._act(b, cx + 30, ln, 4, "shrine", "[F] Kayadaki küçük sunakta dua et")
+
+
+## Hokage Kayası tepesinde seyir terası (2026-11-27, kullanıcı: "adam gibi, içinden geçilmeyen manzara izlemelik bir şey";
+## eskiden uçurum kenarında 70x24 düz tahta kutu + 8 direk vardı, tarla parseli gibi görünüyordu, kenardan düşülüyordu).
+## Kenar ölçülür; taş zemin + kaide, uçurum yanında ve yanlarda çarpışmalı taş korkuluk + kırmızı lake tırabzan, köye bakan
+## banklar, köşelerde fener, bir köşede çatılı seyir köşkü, dürbün. Dönüş: terasın ortası (n)
+static func _terrace(b: Builder, cx: float, cliff_n: float, top: float) -> float:
+	var G = func(x: float, n: float) -> float: return BuildKonoha._gy(b, x, n)
+	var edge = cliff_n + 35.0
+	var nn = cliff_n
+	while nn < cliff_n + 450.0:
+		var h = G.call(cx, nn)
+		if h > top - 14.0 and absf(G.call(cx, nn + 4.0) - h) / 4.0 < 0.35:
+			edge = nn
+			break
+		nn += 2.0
+	var W = 64.0
+	var D = 22.0
+	var n0 = edge - 1.5          # ön (uçurum) kenarı
+	var nc = n0 + D * 0.5
+	var yd = -1e9
+	var ylo = 1e9
+	for ix in 9:
+		for iz in 5:
+			var gx = cx - W * 0.5 + W * ix / 8.0
+			var gz = n0 + D * iz / 4.0
+			var gh = G.call(gx, gz)
+			if iz <= 2:
+				yd = maxf(yd, gh)
+			ylo = minf(ylo, gh)
+	yd += 0.35
+	var stone = Color(0.66, 0.62, 0.56)
+	var lac = Color(0.62, 0.16, 0.12)
+	# kaide (ön kenarda zemin alçaksa altı boş kalmasın) + taş zemin
+	b.box(Vector3(cx, (ylo - 3.0 + yd - 0.5) * 0.5, nc), Vector3(W, yd - 0.5 - ylo + 3.0, D), stone.darkened(0.25), 0, true)
+	b.box(Vector3(cx, yd - 0.25, nc), Vector3(W + 0.6, 0.5, D + 0.6), stone, 0, true)
+	for k in 8:   # taş döşeme derzleri
+		b.box(Vector3(cx - W * 0.5 + W * (k + 0.5) / 8.0, yd + 0.005, nc), Vector3(0.12, 0.02, D), stone.darkened(0.12), 0, false)
+	# korkuluk: ön (uçurum) boydan boya, yanlar yarı derinlik (arka açık: giriş)
+	var rails = [[Vector3(cx, 0, n0 + 0.3), Vector3(W, 0, 0.6)], [Vector3(cx - W * 0.5 + 0.3, 0, n0 + D * 0.3), Vector3(0.6, 0, D * 0.6)],
+		[Vector3(cx + W * 0.5 - 0.3, 0, n0 + D * 0.3), Vector3(0.6, 0, D * 0.6)]]
+	for r in rails:
+		var p: Vector3 = r[0]
+		var s: Vector3 = r[1]
+		b.box(Vector3(p.x, yd + 0.55, p.z), Vector3(s.x, 1.1, s.z), stone.darkened(0.08), 0, true)
+		b.box(Vector3(p.x, yd + 1.18, p.z), Vector3(s.x + 0.2, 0.16, s.z + 0.2), lac, 0, true)
+	for k in 9:   # ön korkulukta lake dikmeler
+		b.box(Vector3(cx - W * 0.5 + W * k / 8.0, yd + 0.7, n0 + 0.3), Vector3(0.35, 1.4, 0.7), lac.darkened(0.1), 0, false)
+	# köye (güneye, -n) bakan banklar: oturak + ayaklar + arkalık
+	var wood = Color(0.45, 0.32, 0.2)
+	for bx in [-18.0, -6.0, 6.0, 18.0]:
+		var bn = n0 + 5.0
+		b.box(Vector3(cx + bx, yd + 0.45, bn), Vector3(2.6, 0.12, 0.6), wood, 0, true)
+		b.box(Vector3(cx + bx, yd + 0.85, bn + 0.3), Vector3(2.6, 0.5, 0.1), wood, 0, false)
+		for sx in [-1.0, 1.0]:
+			b.box(Vector3(cx + bx + sx * 1.1, yd + 0.2, bn), Vector3(0.12, 0.4, 0.5), wood.darkened(0.2), 0, false)
+	# fenerler (köşeler) + dürbün
+	for sx in [-1.0, 1.0]:
+		b.lantern(cx + sx * (W * 0.5 - 2.0), n0 + 2.0, yd + 3.2)
+		b.lantern(cx + sx * (W * 0.5 - 2.0), n0 + D - 2.0, yd + 3.2)
+	b.cyl(Vector3(cx - 26.0, yd + 0.6, n0 + 2.2), 0.25, 1.2, Color(0.3, 0.3, 0.32), true, 8)
+	b.box(Vector3(cx - 26.0, yd + 1.3, n0 + 2.0), Vector3(0.28, 0.28, 1.2), Color(0.55, 0.45, 0.25), 0, false, Vector3(-12, 0, 0))
+	# seyir köşkü (azumaya): dört dikme + kırma çatı, içinde bank
+	var px = cx + 24.0
+	var pn = n0 + D - 6.0
+	for sx in [-1.0, 1.0]:
+		for sz in [-1.0, 1.0]:
+			b.box(Vector3(px + sx * 3.0, yd + 1.6, pn + sz * 3.0), Vector3(0.35, 3.2, 0.35), lac.darkened(0.15), 0, true)
+	b.box(Vector3(px, yd + 3.3, pn), Vector3(7.2, 0.25, 7.2), wood.darkened(0.1), 0, false)
+	b.roof(Vector3(px, yd + 3.4, pn), Vector3(8.0, 1.8, 8.0), Color(0.3, 0.32, 0.34))
+	b.box(Vector3(px, yd + 0.45, pn - 2.4), Vector3(4.0, 0.12, 0.6), wood, 0, true)
+	return n0 + 8.0
 
 
 ## Yalnız beş baş (test de bunu çağırır). Dönüş: yüzler arası mesafe

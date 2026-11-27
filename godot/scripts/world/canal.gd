@@ -32,6 +32,19 @@ static func build(b: Builder, pts: Array, width: float, road_fn: Callable, rng: 
 	var on_road: Array = []
 	for p in smp:
 		on_road.append(bool(road_fn.call(p.x, p.y)))
+	# yola paralel uzun koşu köprü değildir (kanal boyunca yürüyen yol): yalnız kesişim (<= 8 örnek, ~24 m)
+	var ri = 0
+	while ri < on_road.size():
+		if not on_road[ri]:
+			ri += 1
+			continue
+		var rj = ri
+		while rj + 1 < on_road.size() and on_road[rj + 1]:
+			rj += 1
+		if rj - ri + 1 > 8:
+			for k in range(ri, rj + 1):
+				on_road[k] = false
+		ri = rj + 1
 	# köprü bölgeleri: yola değen örneklerin iki yanına 2 örnek pay
 	var bridge: Array = on_road.duplicate()
 	for i in smp.size():

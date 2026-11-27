@@ -191,7 +191,8 @@ static func add_bond(id: String, n: int, quiet := false) -> void:
 static func is_ninja(v: Node) -> bool:
 	if v is ClanResident:
 		return String(v.look.get("age", "adult")) != "child"
-	return v.role in NINJA_ROLES and not v.interior and v.display_override == ""
+	# tanıştığın köy ninjası (ad etiketli) yine ninjadır: eskiden ad verilince ninja sayılmıyordu (kaçağa saldırmıyordu)
+	return v.role in NINJA_ROLES and not v.interior and (v.display_override == "" or v.has_meta("friend_id"))
 
 
 ## Köylüye / klan üyesine [F]: konuşma seçenekleri (Villager.talk, ClanResident.talk)

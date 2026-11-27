@@ -232,6 +232,8 @@ func _ribbons(segs: Array, width_mul: float, colored: bool) -> ArrayMesh:
 	var street_col = Color(0.55, 0.5, 0.45, 1.0)
 	for e in segs:
 		var rl: Dictionary = Game.roads[e.x]
+		if rl.has("nopaint") and rl["nopaint"].has(e.y):
+			continue   # Hokage Kayası merdiveni: uçurum yüzüne toprak yol boyanmaz
 		var pts: PackedVector2Array = rl["pts"]
 		var a: Vector2 = pts[e.y]
 		var b: Vector2 = pts[e.y + 1]

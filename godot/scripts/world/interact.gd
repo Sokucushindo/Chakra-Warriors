@@ -37,6 +37,17 @@ const LANDMARKS := {
 	"trainer": ["Hoca", "Ö", Color(0.7, 1, 0.6)], "home_player": ["Evin", "⌂", Color(1, 1, 1)], "contract_keeper": ["Sözleşme Ustası", "Ç", Color(0.8, 0.6, 1)],
 	"chunin_exam": ["Chūnin Sınavı", "C", Color(1, 0.6, 0.2)], "shrine": ["Tapınak", "⛩", Color(1, 0.5, 0.4)],
 }
+## İngilizce oyunda harfler İngilizce adlardan (Ç / Ö gibi Türkçe harfler kalıyordu: Tea House "Ç", Training "Ö")
+const GLYPH_EN := {"weapon_shop": "W", "shop_weapons": "W", "pharmacy": "M", "shop_items": "M", "tailor": "O", "scrolls": "S",
+	"shop_scrolls": "S", "bbq": "Y", "ramen": "R", "teahouse": "T", "inn": "I", "inn_sleep": "I", "graveyard": "C",
+	"hokage": "Q", "kage": "Q", "mission_board": "Q", "bounty_board": "B", "academy": "A", "training": "D", "trainer": "D",
+	"contract_keeper": "K", "chunin_exam": "E"}
+
+
+static func glyph(key: String) -> String:
+	if Lang.is_en() and GLYPH_EN.has(key):
+		return GLYPH_EN[key]
+	return LANDMARKS[key][1]
 
 
 ## Yakındaki önemli yerler: [{pos, name, glyph, col}] (kapı + etkileşim noktaları, iç mekânlar hariç, aynı yerdekiler birleşik)
@@ -53,9 +64,9 @@ func landmarks(center: Vector3, radius: float) -> Array:
 			continue
 		var dup = false
 		for o in out:
-			if o["glyph"] == LANDMARKS[key][1] and o["pos"].distance_to(p) < 25.0:
+			if o["glyph"] == glyph(key) and o["pos"].distance_to(p) < 25.0:
 				dup = true
 				break
 		if not dup:
-			out.append({"pos": p, "name": LANDMARKS[key][0], "glyph": LANDMARKS[key][1], "col": LANDMARKS[key][2]})
+			out.append({"pos": p, "name": LANDMARKS[key][0], "glyph": glyph(key), "col": LANDMARKS[key][2]})
 	return out

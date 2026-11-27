@@ -453,6 +453,13 @@ static func dress(b: Builder) -> void:
 	rad += 25.0
 	for k in KEEP.get(b.key, [[0.0, 0.0, 85.0]]):
 		c.add_keep(c.wxz(k[0], k[1]), k[2])
+	# önemli yapıların (stadyum/arena, akademi, hastane, ANBU, antrenman, kule) alanı: evler gibi park / süs de girmez
+	# (Suna arenasının içine fenerli bank parkı konuyordu: stadyum ayrı kuruluyor, katı duvarı süs taramasında henüz yoktu)
+	if BuildVillageStory.STYLE.has(b.key):
+		var sv = Game.village(b.key)
+		if not sv.is_empty():
+			for k in BuildSites._site_clear(sv):
+				c.add_keep(c.wxz(k[0], k[1]), k[2])
 	var cen = Vector2(b.origin.x, b.origin.z)
 	for it in Interact.items:
 		var p: Vector3 = it["pos"]

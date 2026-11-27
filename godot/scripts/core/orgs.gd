@@ -748,7 +748,7 @@ func _spotted_by(_vid: String) -> int:
 			continue   # arkası dönük (yanına sokulursan yine fark eder)
 		var q = PhysicsRayQueryParameters3D.create(n.global_position + Vector3.UP * 1.5, pl.global_position + Vector3.UP * 1.2, 1)
 		if space.intersect_ray(q).is_empty():
-			if (n is Villager or n is ClanResident) and Friends.is_ninja(n) and not n.has_meta("friend_id"):
+			if (n is Villager or n is ClanResident) and Friends.is_ninja(n) and not _spared(n):
 				return 2
 			seen = 1
 	return seen
@@ -757,7 +757,9 @@ func _spotted_by(_vid: String) -> int:
 ## Köyün ninja arketipi (Konoha/Ame için Kumo şablonu + köyün kıyafeti ve doğası)
 func _village_arch(vid: String, i: int, outfit := "chunin") -> Dictionary:
 	var a = Enemy.archetype(vid if vid in ["kumo", "kiri", "iwa", "suna"] else "kumo", i)
-	a["look"].merge(Outfits.roll(outfit, vid), true)
+	# görünüş sıfırdan köyün kendi kıyafetiyle (2026-11-27, kullanıcı: "Konoha ANBU'su savaşta Kumo kıyafeti giyiyor", "kıyafet iki
+	# katman üst üste"): eskiden Kumo kalıbının görünüşüne üstten birleştiriliyordu, Kumo parçaları altta kalıyordu
+	a["look"] = Outfits.uniform(outfit, vid)
 	a["look"]["village"] = vid
 	if vid == "konoha":
 		a["element"] = ["katon", "suiton", "fuuton", "doton", "raiton"].pick_random()   # 5 doğa eşit
@@ -769,9 +771,19 @@ func _village_arch(vid: String, i: int, outfit := "chunin") -> Dictionary:
 	return a
 
 
+## Kaçağı yalnız gerçek dostları korur (Arkadaş ve üstü, yakınlık 30+). Eskiden bir kez konuşulan (tanıdık) her köy ninjası
+## "dost" sayılıp alarmda saldırmıyor, [F] ile tanışma konuşması açılıyordu (2026-11-27, kullanıcı: "adamlar yanımdan geçip gidiyor")
+static func _spared(v: Node) -> bool:
+	var id = String(v.get_meta("friend_id", ""))
+	if id == "":
+		return false
+	var f = Friends.all().get(id)
+	return f is Dictionary and int(f.get("bond", 0)) >= 30
+
+
 ## Kaçak köy ninjasıyla konuşmaya kalkarsa: konuşma yok — "Kaçak!" diye saldırır ve köy alarma geçer (dostların hariç)
 func rogue_confront(v: Node) -> bool:
-	if not is_rogue() or Game.player == null or v.has_meta("friend_id") or not Friends.is_ninja(v):
+	if not is_rogue() or Game.player == null or _spared(v) or not Friends.is_ninja(v):
 		return false
 	var m = Game.to_map(Game.player.global_position)
 	var inside = ""
@@ -803,7 +815,7 @@ func _alarm_ninjas(dt: float) -> void:
 	for v in get_tree().get_nodes_in_group("talkers"):
 		if n >= 3:
 			break
-		if not is_instance_valid(v) or not (v is Villager or v is ClanResident) or v.has_meta("friend_id") or not Friends.is_ninja(v):
+		if not is_instance_valid(v) or not (v is Villager or v is ClanResident) or _spared(v) or not Friends.is_ninja(v):
 			continue
 		if v.global_position.distance_to(pp) > 32.0:
 			continue
@@ -974,11 +986,14 @@ func hunters_at(pp: Vector3, ring: float) -> Array:
 		a["name"] = "%s — Av-Ninjası" % (ClanWorld.GIVEN_F if fem_h else ClanWorld.GIVEN_M).pick_random()
 		a["respawn"] = false
 		Stats.npc_ninja(a, randi_range(70, 85) + rogue_rank() * 4, 1.35)   # av-ninjası: ANBU dengi   # av-ninjası: ANBU eğrisi (eskiden +6/rütbe ile S'de kesilemiyordu)
-		a["look"]["face_style"] = ["anbu_kedi", "anbu_kurt", "anbu_kus"][i]
+		# köyün gizli birliğinin üniforması (Konoha Anbu, Kiri Oinin...; karargâhtakilerle aynı: SecretUnits.look). Eskiden genel
+		# kalıbın (Konoha için "rogue", diğerleri köy chūnin'i) üstüne yalnız maske takılıyordu (2026-11-27, kullanıcı: "ANBU'lar bulut
+		# köyü kıyafeti giyiyor")
+		var fem_l = a["look"].get("gender", "m")
+		a["look"] = SecretUnits.look(vid, i)
+		a["look"]["gender"] = "f" if fem_h else fem_l
 		a["look"]["village"] = vid
-		if String(a["look"].get("band_style", "")) == "slashed":   # köyün av-ninjası kaçak değil: bandı çiziksiz
-			a["look"]["band_style"] = "head"
-			a["look"]["band"] = Color(0.15, 0.22, 0.55)
+		a["look"]["band_style"] = "head"
 		if hn < base_n:
 			Enemy.toughen(a, ceili(float(base_n) / hn), "B")
 		e.setup(a)

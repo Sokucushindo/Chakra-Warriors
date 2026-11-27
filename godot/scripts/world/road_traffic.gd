@@ -181,7 +181,14 @@ class TravelGroup extends Node3D:
 		var b2: Vector2 = pts[si + 1]
 		var q = a2.lerp(b2, clampf(tt, 0.0, 1.0))
 		var fwd = (b2 - a2).normalized() * dir
-		return [q, fwd]
+		# merdiven parçası (Game._hokage_stair_roads "ys"): basamak yüksekliği; uçlarından biri merdiven değilse zemine iner
+		var yv = NAN
+		var ys = Game.roads[road].get("ys")
+		if ys is Array and si + 1 < ys.size():
+			var y0 = float(ys[si]); var y1 = float(ys[si + 1])
+			if not is_nan(y0) and not is_nan(y1):
+				yv = lerpf(y0, y1, clampf(tt, 0.0, 1.0))
+		return [q, fwd, yv]
 
 	## Deniz/göl köprüsündeyse güverteye çık (su altından yürümesin)
 	func _onto_deck(m: Vector2, w: Vector3) -> Vector3:
@@ -203,6 +210,8 @@ class TravelGroup extends Node3D:
 			var f: Vector2 = r[1]
 			var side = Vector2(f.y, -f.x) * mem[2]
 			var w = _onto_deck(q + side, Game.from_map(q + side))
+			if not is_nan(float(r[2])):
+				w = Game.from_map(q, float(r[2]))   # merdivende: basamak üstünde, yan yana değil arka arkaya
 			mem[0].global_position = w
 			mem[0].rotation.y = atan2(-f.x, f.y)
 			if mem[0].has_meta("legs"):   # öküz: adımlar (model yönü kediyle aynı: ek 180° dönüş arabaya bakmasına yol açıyordu)

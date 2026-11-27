@@ -189,6 +189,7 @@ func _load_world() -> void:
 			pts.append(Vector2(q[0], q[1]))
 		roads.append({"a": rl["a"], "b": rl["b"], "kind": rl["kind"], "pts": pts})
 	_fix_village_roads()
+	_hokage_stair_roads()
 	for ri in range(roads.size()):
 		var pts: PackedVector2Array = roads[ri]["pts"]
 		for si in range(pts.size() - 1):
@@ -437,7 +438,10 @@ func step_sound(p: Vector3) -> String:
 	var th = terrain_height(p.x, p.z)
 	if p.y > th + 1.3 and p.y > water_level(p.x, p.z, th) + 0.8:   # çatı, köprü, balkon, dal: altındaki toprağın sesi değil
 		return ("step_stone%d" % v) if b in [5, 9, 13, 14, 15] else ("step_wood%d" % v)
-	if water_level(p.x, p.z, terrain_height(p.x, p.z)) > terrain_height(p.x, p.z) + 0.02:
+	var wlv = water_level(p.x, p.z, th)
+	if wlv > th + 0.02 and p.y > wlv + 0.12:   # su üstündeki köprü / iskele tabliyesi: şıpırtı değil taş / tahta (2026-11-27)
+		return ("step_stone%d" % v) if b in [5, 9, 11, 13, 14, 15] else ("step_wood%d" % v)
+	if wlv > th + 0.02:
 		return "step_water"   # suyun içinde/üstünde yürüme: şıpırtı
 	if road_at(p.x, p.z) > 0.3:
 		if b in [14, 15]:
@@ -620,6 +624,111 @@ func region_name(p: Vector3) -> String:
 ## Köy uçlarında yol kapıdan çıkıp yeniden köyün içine dönüyor, sonra surdan kapısız geçiyordu (ör. Konoha -> Son Vadisi):
 ## kapının dışındaki köy içi noktalar atılır, gerekirse yol surun dışından yay çizerek dolanır; yakın başka kapı varsa ona oturur.
 ## Sonunda yolun sur çizgisini kestiği her açı köyün kapı listesinde olur (kapı + sur boşluğu kurulsun).
+## Hokage Kayası'nı aşan yol (Konoha -> Son Vadisi) uçurum yüzünden dümdüz çıkıyordu: yolcular yüzden aşağı "uçuyor", yol kenarı
+## ağaçları yüze diziliyor, yol beşinci yüzün içinden geçiyordu (2026-11-27). Yol uçurum dibinde kayaya oyulmuş merdivenin
+## (BuildKonoha._cliff_stairs ile aynı hesap) başına gider, kolları izleyerek tepeye çıkar. Merdiven noktalarının yüksekliği
+## "ys"te (trafik basamakta yürür), o parçalar "nopaint" (uçurum yüzüne toprak yol boyanmaz).
+func _hokage_stair_roads() -> void:
+	var v = village("konoha")
+	var rock: Dictionary = v.get("hokage_rock", {})
+	if rock.is_empty():
+		return
+	var vx = float(v["x"]); var vy = float(v["y"]); var base = float(v["base"])
+	var cliff_n = float(rock["y"]) - vy
+	var top = float(rock.get("top", base + 165.0)) - base
+	var gy = func(x: float, n: float) -> float: return terrain_height(vx + x, -(vy + n)) - base
+	var surf = func(x: float, y: float) -> float:   # BuildKonoha._cliff_surface
+		var nn = cliff_n - 140.0
+		while nn < cliff_n + 220.0:
+			if gy.call(x, nn + 8.0) > y:
+				var lo = nn
+				var hi = nn + 8.0
+				for k in 4:
+					var mid = (lo + hi) * 0.5
+					if gy.call(x, mid) > y:
+						hi = mid
+					else:
+						lo = mid
+				return hi
+			nn += 8.0
+		return cliff_n
+	# merdiven kolları (BuildKonoha._cliff_stairs ile aynı adımlar): her kolun başı / sonu + sahanlık
+	var gap = 92.0
+	var xs = -2.0 * gap - gap * 1.1
+	var y = gy.call(xs, cliff_n - 150.0)
+	var x = xs - 14.0
+	var dir = 1.0
+	var spts: Array = []   # [yerel x, n, y]
+	var guard = 0
+	while y < top + 1.0 and guard < 600:
+		guard += 1
+		var lane = 0.0 if dir > 0.0 else 5.8
+		var first = true
+		for k in 20:
+			if y >= top + 1.0:
+				break
+			y += 0.6
+			x += 1.4 * dir
+			if first or k == 19 or y >= top + 1.0:
+				spts.append([x, surf.call(x, y + 1.0) - 3.2 - lane, y])
+				first = false
+		x += dir * 2.5
+		spts.append([x, surf.call(x, y + 1.0) - 6.1, y])   # sahanlık
+		dir = -dir
+		x += dir * 2.5
+	if spts.size() < 2:
+		return
+	var rx0 = float(rock.get("x0", vx - 825.0)) - vx
+	var rx1 = float(rock.get("x1", vx + 825.0)) - vx
+	for rd in roads:
+		if rd["kind"] != "road":
+			continue
+		var p: PackedVector2Array = rd["pts"]
+		for si in range(p.size() - 1):
+			var a = p[si] - Vector2(vx, vy)
+			var bq = p[si + 1] - Vector2(vx, vy)
+			var lo_n = minf(a.y, bq.y); var hi_n = maxf(a.y, bq.y)
+			if lo_n > cliff_n + 10.0 or hi_n < cliff_n + 200.0 or maxf(a.x, bq.x) < rx0 or minf(a.x, bq.x) > rx1:
+				continue
+			var up = a.y < bq.y   # yol yukarı (kuzeye) mi gidiyor
+			var chain: Array = spts.duplicate()
+			if not up:
+				chain.reverse()
+			var ins := PackedVector2Array()
+			var ys := []
+			var foot = Vector2(xs - 14.0, cliff_n - 20.0)       # merdiven dibinin önü (köy tarafı)
+			var crest = Vector2(chain[chain.size() - 1][0] if up else chain[0][0], 0.0)
+			var top_pt: Array = spts[spts.size() - 1]
+			crest = Vector2(top_pt[0], top_pt[1] + 25.0)       # tepede kenardan içeri
+			if up:
+				ins.append(foot + Vector2(vx, vy)); ys.append(NAN)
+			else:
+				ins.append(crest + Vector2(vx, vy)); ys.append(NAN)
+			for q in chain:
+				ins.append(Vector2(q[0] + vx, q[1] + vy))
+				ys.append(float(q[2]) + base)
+			if up:
+				ins.append(crest + Vector2(vx, vy)); ys.append(NAN)
+			else:
+				ins.append(foot + Vector2(vx, vy)); ys.append(NAN)
+			var np := PackedVector2Array()
+			var nys := []
+			for k in si + 1:
+				np.append(p[k]); nys.append(NAN)
+			var s0 = np.size()
+			np.append_array(ins); nys.append_array(ys)
+			for k in range(si + 1, p.size()):
+				np.append(p[k]); nys.append(NAN)
+			rd["pts"] = np
+			rd["ys"] = nys
+			var nop := {}
+			for k in range(s0, s0 + ins.size() - 1):
+				nop[k] = true    # merdiven kolları: haritaya / araziye yol boyanmaz
+			rd["nopaint"] = nop
+			print("Hokage merdiveni yolu: %s->%s, %d merdiven noktası" % [rd["a"], rd["b"], spts.size()])
+			break
+
+
 func _fix_village_roads() -> void:
 	var vmap := {}
 	for v in world_info["villages"]:

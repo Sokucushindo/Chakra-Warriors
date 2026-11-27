@@ -30,7 +30,7 @@ static func tick(e: Enemy, dt: float) -> void:
 		return
 	var kind = int(e.get_meta("eyes").get("kind", 0))
 	if kind in [4, 5] and not e.has_meta("kamui_user"):
-		e.set_meta("kamui_user", randf() < 0.25)   # Obito tarzı Mangekyō: darbeler içinden geçer
+		e.set_meta("kamui_user", ms_style(e) in ["obito", "kakashi"])   # Kamui tarzı Mangekyō: darbeler içinden geçer
 	maybe_izanagi(e)
 	var eblind = float(e.get_meta("ms_blind", 0.0))
 	# Obito tarzı Mangekyō: canı %30'un altına inince Kamui boyutuna kaçar, RETREAT_TIME sonra rakibinin yanında belirir
@@ -102,12 +102,22 @@ static func tick(e: Enemy, dt: float) -> void:
 			ms_open(e)
 			if kind == 4:
 				_ms_strain(e, 0.12)
-			if e.get_meta("kamui_user", false) and _kamui_react(e, t, d):
-				pass   # Kamui: gelen saldırıyı yuttu / Hōshutsu ile geri çıkardı (oyuncuyla aynı kural ve sayılar)
-			elif e.get_meta("kamui_user", false) and d < 7.0 and randf() < 0.4:
-				_kamui_pull(e, t)
-				e.set_meta("ea_cd", randf_range(14.0, 18.0))
-			elif d < 9.0 and randf() < 0.45:
+			# göz teknikleri Mangekyō tarzına göre (oyuncuyla aynı Eyes.MS_STYLES; 2026-11-27, kullanıcı: "NPC hem Amaterasu hem Kamui
+			# kullanıyor"): Kamui tarzı (Obito / Kakashi) Amaterasu / Tsukuyomi kullanmaz; Amaterasu Itachi + Sasuke, Tsukuyomi Itachi
+			var sty = ms_style(e)
+			if e.get_meta("kamui_user", false):
+				if _kamui_react(e, t, d):
+					pass   # Kamui: gelen saldırıyı yuttu / Hōshutsu ile geri çıkardı (oyuncuyla aynı kural ve sayılar)
+				elif d < (20.0 if sty == "kakashi" else 7.0) and randf() < 0.4:   # Kakashi'nin Kamui'si uzak menzil
+					_kamui_pull(e, t)
+					e.set_meta("ea_cd", randf_range(14.0, 18.0))
+				return
+			if not sty in ["itachi", "sasuke"]:
+				if d < 12.0 and randf() < 0.4:   # Madara / Shisui: Sharingan genjutsusu (Shisui'de Kotoamatsukami gücünde)
+					_gaze(e, t, 2.2 if sty == "shisui" else 1.6, Color(0.7, 0.0, 0.05), "Kotoamatsukami!" if sty == "shisui" else "Genjutsu!")
+					e.set_meta("ea_cd", randf_range(12.0, 16.0))
+				return
+			if sty == "itachi" and d < 9.0 and randf() < 0.45:
 				_gaze(e, t, 2.6, Color(0.6, 0.0, 0.05), "Tsukuyomi!")
 				if t == Game.player and Game.world:
 					Game.world.env.flash_tint(Color(0.55, 0.0, 0.05, 0.5), 1.2)
@@ -226,15 +236,28 @@ static func _ms_strain(e: Enemy, amount: float) -> void:
 		e.buffs.erase("susanoo")   # kalkan Susanoo ile söner
 
 
+## NPC'nin Mangekyō tarzı (oyuncunun Eyes.MS_STYLES tarzlarından biri): göz kaydında varsa o, yoksa kişiye sabit (ad + uid)
+static func ms_style(e: Node) -> String:
+	if e.has_meta("ms_style"):
+		return String(e.get_meta("ms_style"))
+	var ey: Dictionary = e.get_meta("eyes", {})
+	var st = String(ey.get("ms_style", ""))
+	if not Eyes.MS_STYLES.has(st):
+		var keys = Eyes.MS_STYLES.keys()
+		st = keys[absi(hash(String(e.get("display_name")) + str(e.get_instance_id() if not e.has_meta("world_person") else 0) + String(e.get_meta("world_person", "")))) % keys.size()]
+	e.set_meta("ms_style", st)
+	return st
+
+
 ## Düşman İzanagi (oyuncuyla aynı kural, kanon): Sharingan sahibi düşman canı %35'in altına inince bir kez,
-## bu tekniği biliyorsa (%40) İzanagi'yi ÖNCEDEN açar — 10 sn içinde ölürse yanılsama; süre bitince gözü kararır
+## bu tekniği biliyorsa (%25, can %20 altı) İzanagi'yi ÖNCEDEN açar — 10 sn içinde ölürse yanılsama; süre bitince gözü kararır
 static func maybe_izanagi(e: Enemy) -> void:
-	if e.get_meta("izanagi_checked", false) or e.hp > e.max_hp * 0.35:
+	if e.get_meta("izanagi_checked", false) or e.hp > e.max_hp * 0.2:   # ölüme yakın (2026-11-27: %35 -> %20)
 		return
 	if not e.has_meta("eyes") or not int(e.get_meta("eyes").get("kind", 0)) in [1, 4, 5]:
 		return
 	e.set_meta("izanagi_checked", true)
-	if randf() > 0.4:
+	if randf() > 0.25:   # nadiren (%40 -> %25)
 		return
 	Jutsu.execute(e, "izanagi", null)   # oyuncunun İzanagi jutsusuyla aynı kod
 

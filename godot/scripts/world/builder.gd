@@ -1,5 +1,6 @@
 class_name Builder
 extends RefCounted
+const OccGuard = preload("res://scripts/world/occ_guard.gd")
 ## Köy/yer inşa yardımcısı. Yerel koordinat: (x=doğu, y=yukarı, n=kuzey) merkez etrafında.
 ## Görseller 128 m hücrelere göre birleştirilir, çarpışmalar StaticBody3D kutularıdır.
 
@@ -548,6 +549,7 @@ func build_occluders() -> void:
 		oi.name = "Occ_%d_%d" % [key.x, key.y]
 		oi.occluder = oc
 		root.add_child(oi)
+		(func(): OccGuard.add(oi)).call_deferred()   # kamera kutunun içine düşmesin (scripts/world/occ_guard.gd)
 
 
 static var dressing := 0
@@ -958,7 +960,8 @@ func _ground_off(x: float, n: float, rad: float) -> Vector2:
 
 
 ## Dairesel duvar halkası. gaps: [[açı, genişlik derece]]
-func wall_ring(r: float, h: float, thick: float, col: Color, gaps: Array, step := 4.0, top_col := Color(0.5, 0.2, 0.15)) -> void:
+## rise_cap >= 0: tepe en alçak zeminin en çok bu kadar üstüne çıkar (kaya dibinde sur basamak basamak yükselmesin; Konoha)
+func wall_ring(r: float, h: float, thick: float, col: Color, gaps: Array, step := 4.0, top_col := Color(0.5, 0.2, 0.15), rise_cap := -1.0) -> void:
 	var a = 0.0
 	while a < 360.0:
 		var mid = a + step * 0.5
@@ -972,7 +975,7 @@ func wall_ring(r: float, h: float, thick: float, col: Color, gaps: Array, step :
 			var L = 2.0 * PI * r * step / 360.0 + 0.4
 			var g = _ground_off(r * sin(rad), r * cos(rad), L * 0.5)
 			var bot = minf(g.x, 0.0) - 2.0
-			var top = g.y + h
+			var top = (minf(g.y, g.x + rise_cap) if rise_cap >= 0.0 else g.y) + h
 			box(Vector3(r * sin(rad), (bot + top) * 0.5, r * cos(rad)), Vector3(L, top - bot, thick), col, mid)
 			box(Vector3(r * sin(rad), top + 0.4, r * cos(rad)), Vector3(L, 0.8, thick + 0.8), top_col, mid, true)   # başlık çarpışmalı: surun tepesinde yürürken içinden geçilmesin
 		a += step

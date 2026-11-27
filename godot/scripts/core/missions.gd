@@ -2670,12 +2670,16 @@ func on_quest_npc_died(npc: QuestNPC) -> void:
 # ------------------------------------------------------------------ adım güncellemesi
 ## Tab > Görevler'den seçilen takip: "" otomatik, "story" hikâye, "waypoint" seçilen yer, "none" ok gizli
 var _track_base = null
+var _track_applied = null   # takibin koyduğu işaret (kareler arasında değişmediyse görev işareti geri konur)
 
 
 func _process(dt: float) -> void:
 	# takip başka şeyi gösterdiyse görev adımının kendi işaretini geri koy (adım mantığı onu kullanır)
 	if _track_base != null:
-		has_marker = _track_base[0]; target_marker = _track_base[1]; target_name = _track_base[2]; story_target = _track_base[3]
+		# kareler arasında başka kod (sınav, olay) yeni hedef koyduysa o kalır: eski işaret geri yazılınca Suna sınavında ok
+		# 26 km ötedeki Konoha kulesini gösteriyordu
+		if _track_applied == [has_marker, target_marker, target_name]:
+			has_marker = _track_base[0]; target_marker = _track_base[1]; target_name = _track_base[2]; story_target = _track_base[3]
 		_track_base = null
 	_process_steps(dt)
 	_aim_objective()
@@ -2819,6 +2823,7 @@ func _apply_track() -> void:
 			return
 		has_marker = true; target_marker = wv; target_name = String(wp[3]); story_target = false
 	_track_base = base
+	_track_applied = [has_marker, target_marker, target_name]
 
 
 func _process_steps(dt: float) -> void:

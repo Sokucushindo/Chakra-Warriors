@@ -644,6 +644,80 @@ static func _post_ok(b: Builder, x: float, n: float) -> bool:
 	return Game.road_edge_dist(wp.x, wp.z) > -0.5
 
 
+## Sur dışında kanalın döküldüğü göl (Antrenman Alanı göletiyle aynı yapı: koyu taban, su yüzeyi, kıyı kayaları, nilüfer, saz)
+## c: merkez (yerel), r: yarıçap, d: kanalın geliş yönü (göl bu yöne uzanır)
+static func _gate_pond(b: Builder, decor: Node3D, c: Vector2, r: float, d: Vector2, rng: RandomNumberGenerator) -> void:
+	var yaw = rad_to_deg(atan2(d.x, d.y))
+	var g = _gy(b, c.x, c.y)
+	for k in 12:   # gölün içindeki en yüksek zemin: su yüzeyi onun üstünde (altta kalınca su çimin altında görünmüyordu)
+		var a = TAU * k / 12.0
+		for rr in [0.4, 0.8]:
+			g = maxf(g, _gy(b, c.x + cos(a) * r * rr, c.y + sin(a) * r * rr * 1.25))
+	var rx = r            # kanala dik
+	var rz = r * 1.25     # kanal boyunca
+	var mi = MeshInstance3D.new()
+	var cm = CylinderMesh.new()
+	cm.top_radius = 1.0; cm.bottom_radius = 1.0; cm.height = 0.04; cm.radial_segments = 40
+	mi.mesh = cm
+	mi.material_override = Canal._water()
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	decor.add_child(mi)
+	mi.global_position = b.w(Vector3(c.x, g + 0.12, c.y))
+	mi.rotation.y = deg_to_rad(-yaw)
+	mi.scale = Vector3(rx, 1.0, rz)
+	Game.add_water(mi, Vector2(mi.global_position.x, mi.global_position.z), Vector2(rx * 2.0, rz * 2.0), atan2(d.x, -d.y), mi.global_position.y, true)
+	b._grass_clear(b.w(Vector3(c.x, 0, c.y)), Vector3(rx * 2.1, 0.1, rz * 2.1), deg_to_rad(-yaw))
+	var ns = int(r * 2.2)
+	for i in ns:
+		var a = TAU * i / ns
+		var o = Builder.rot(cos(a) * rx * 1.02, sin(a) * rz * 1.02, yaw)
+		var pp = c + o
+		if absf(fmod(rad_to_deg(a) - 270.0 + 540.0, 360.0) - 180.0) < 16.0:
+			continue   # kanalın girdiği yer açık
+		b.boulder(Vector3(pp.x, _gy(b, pp.x, pp.y) + 0.25, pp.y), Vector3(1.4, 0.7, 1.2) * rng.randf_range(0.7, 1.4), Color(0.5, 0.5, 0.48).darkened(rng.randf_range(0.0, 0.25)), i, false)
+	for i in int(r * 0.6):
+		var a = rng.randf() * TAU
+		var rr = rng.randf_range(0.2, 0.75)
+		var o2 = Builder.rot(cos(a) * rx * rr, sin(a) * rz * rr, yaw)
+		b.pack_mesh(CityLandscape.mesh("lily"), Vector3(c.x + o2.x, g + 0.15, c.y + o2.y), rng.randf() * 360.0, rng.randf_range(0.8, 1.4))
+	for i in int(r * 0.9):
+		var a = rng.randf() * TAU
+		var o3 = Builder.rot(cos(a) * (rx + 1.4), sin(a) * (rz + 1.4), yaw)
+		var sp = c + o3
+		b.pack_mesh(CityLandscape.veg(16), Vector3(sp.x, _gy(b, sp.x, sp.y), sp.y), rng.randf() * 360.0, rng.randf_range(0.8, 1.1))
+
+
+## Sur dışı göllerin yeri (harita koordinatı, yarıçap): orman / yol kenarı ağaçları göle çıkmasın. Köy önbellekten yüklense de
+## (göl kodu çalışmaz) her açılışta kaydedilir: BuildSites.build_all
+static func register_clears(v: Dictionary) -> void:
+	var rr = float(v.get("r", 1500.0)) - 40.0
+	for e in [[Vector2(-900, -1150), 26.0], [Vector2(720, -1270), 18.0]]:
+		var d: Vector2 = (e[0] as Vector2).normalized()
+		var c = d * (rr + 62.0 + float(e[1]) * 0.8)
+		Roadside._add_clear(float(v["x"]) + c.x, float(v["y"]) + c.y, float(e[1]) * 1.5)
+		var rd = rr - 8.0
+		while rd < rr + 64.0:   # surla göl arası kanal boyu (su kapısının ağzına ağaç çıkıyordu)
+			Roadside._add_clear(float(v["x"]) + d.x * rd, float(v["y"]) + d.y * rd, 10.0)
+			rd += 12.0
+
+
+## Kanalın (Catmull-Rom, Canal.build ile aynı eğri) r yarıçaplı suru kestiği nokta
+static func _canal_cross(wc: Array, r: float) -> Vector2:
+	for i in range(wc.size() - 2, -1, -1):
+		var c0: Vector2 = wc[maxi(0, i - 1)]
+		var c1: Vector2 = wc[i]
+		var c2: Vector2 = wc[i + 1]
+		var c3: Vector2 = wc[mini(wc.size() - 1, i + 2)]
+		if c1.length() >= r:
+			continue
+		for k in 120:
+			var t = k / 120.0
+			var q = 0.5 * ((2.0 * c1) + (-c0 + c2) * t + (2.0 * c0 - 5.0 * c1 + 4.0 * c2 - c3) * t * t + (-c0 + 3.0 * c1 - 3.0 * c2 + c3) * t * t * t)
+			if q.length() >= r:
+				return q
+	return wc[wc.size() - 1]
+
+
 static func _on_road(b: Builder, x: float, n: float, clear: float) -> bool:
 	var wp = b.w(Vector3(x, 0, n))
 	return Game.road_dist(wp.x, wp.z) < clear
@@ -671,34 +745,111 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	for ga in gate_angles:
 		gaps.append([float(ga), 2.4 if absf(float(ga) - 180.0) < 1.0 else 1.6])
 	# kuzey: uçurum duvarın yerini alır
-	var cliff_ang = rad_to_deg(acos(clampf(cliff_n / R, -1.0, 1.0)))
-	gaps.append([0.0, cliff_ang * 2.0 + 6.0])
+	# boşluk arazinin gerçekten kaya olduğu yere kadar (2026-11-27, kullanıcı: "duvar dağa bağlanmıyor, aralık var"): eskiden
+	# simetrik ±39.7° sabit açıydı, kaya batıda / doğuda farklı yerde bittiği için sur kayaya varmadan kesiliyordu. Her yanda
+	# kuzeyden dışa doğru zeminin sur yüksekliğinin %60'ının altına indiği ilk açı bulunur; son sur parçası kaya dibine biner
+	var side_a = [0.0, 0.0]
+	for si in 2:
+		var sg = 1.0 if si == 0 else -1.0
+		var a = 0.0
+		while a < 90.0:
+			var ar = deg_to_rad(a * sg)
+			if _gy(b, R * sin(ar), R * cos(ar)) < WALL_H * 0.6:
+				break
+			a += 0.3
+		side_a[si] = maxf(0.0, a - 1.2)   # bir parça kayaya girsin (aralık kalmasın)
+	gaps.append([(side_a[0] - side_a[1]) * 0.5, side_a[0] + side_a[1]])
+	print("Konoha sur kuzey boşluğu: doğu %.1f°, batı %.1f°" % [side_a[0], side_a[1]])
 	# su yolları (2026-11-24, kaynak: anime Konoha haritası — kayadan inen nehir şehrin içinden kıvrılır, kollar surdan çıkar):
 	# Naka Nehri kayadaki şelaleden doğar, Akademi'nin batısından şehrin batı kesimine girer, parkın doğusundan güneybatıya
 	# kıvrılıp su kapısından surdan çıkar. Doğu deresi 3. Antrenman Alanı'nın göletinden doğar, korular ve tarlalar arasından
 	# güneye akıp kendi su kapısından çıkar (eskiden gölet çıkışında 60 m sonra bitiyordu).
 	var naka_ctrl = [Vector2(-640, cliff_n - 14.0), Vector2(-700, 960), Vector2(-705, 790), Vector2(-655, 640), Vector2(-600, 470),
 		Vector2(-520, 330), Vector2(-430, 170), Vector2(-380, 0), Vector2(-380, -180), Vector2(-405, -360), Vector2(-520, -520),
-		Vector2(-680, -700), Vector2(-770, -900), Vector2(-860, -1080), Vector2(-900, -1150).normalized() * (R + 8.0)]
+		Vector2(-680, -700), Vector2(-770, -900), Vector2(-860, -1080), Vector2(-900, -1150).normalized() * (R - 45.0), Vector2(-900, -1150).normalized() * (R + 62.0)]   # son kol sura dik (su kapısından düz geçer)   # surdan çıkıp köy dışındaki göle dökülür
 	var east_ctrl = [Vector2(1124, 500), Vector2(1135, 380), Vector2(1090, 220), Vector2(1000, 40), Vector2(930, -180), Vector2(900, -420),
-		Vector2(840, -620), Vector2(800, -850), Vector2(760, -1060), Vector2(720, -1270).normalized() * (R + 8.0)]
+		Vector2(840, -620), Vector2(800, -850), Vector2(760, -1060), Vector2(720, -1270).normalized() * (R - 45.0), Vector2(720, -1270).normalized() * (R + 62.0)]
 	var water_gates: Array = []
 	for wc in [naka_ctrl, east_ctrl]:
-		var ex: Vector2 = wc[wc.size() - 1]
+		var ex: Vector2 = _canal_cross(wc, R)   # kanalın suru gerçekten kestiği nokta (son kontrol noktasının açısı değil)
 		var wa = rad_to_deg(atan2(ex.x, ex.y))
 		gaps.append([wa, 2.4])
 		water_gates.append(wa)
-	b.wall_ring(R, WALL_H, 5.0, wall_c, gaps, 1.2)
-	for wa in water_gates:   # su kapısı: suyun üstünde surla aynı renk kemer kirişi + kızıl başlık (sur kesintisiz okunur)
-		var war = deg_to_rad(float(wa))
+	b.wall_ring(R, WALL_H, 5.0, wall_c, gaps, 1.2, Color(0.5, 0.2, 0.15), 6.0)
+	# kaya ile birleşim: sur her uçta kayanın içine 45 m uzar (gömülen kısmı kayada saklı; son parça ile kaya yüzü arasında
+	# gökyüzü görünen çentik kalıyordu). Taban / tepe birleşim noktasındaki zeminden: kayanın yamacına göre yükselmez
+	for si2 in 2:
+		var sg2 = 1.0 if si2 == 0 else -1.0
+		var a_edge = side_a[si2] + 1.2
+		var re = deg_to_rad(a_edge * sg2)
+		var g_e = _gy(b, R * sin(re), R * cos(re))
+		for k in 3:
+			var am = (a_edge - 0.45 - k * 0.6) * sg2
+			var ra = deg_to_rad(am)
+			var Lb = 2.0 * PI * R * 0.6 / 360.0 + 0.6
+			b.box(Vector3(R * sin(ra), (g_e - 2.0 + g_e + WALL_H) * 0.5, R * cos(ra)), Vector3(Lb, WALL_H + 2.0, 5.0), wall_c, am)
+			b.box(Vector3(R * sin(ra), g_e + WALL_H + 0.4, R * cos(ra)), Vector3(Lb, 0.8, 5.8), Color(0.5, 0.2, 0.15), am, true)
+	var water_w = [12.0, 6.0]   # Naka Nehri, doğu deresi (Canal.build genişlikleri, aşağıda)
+	for wi in water_gates.size():   # su kapısı: suyun üstünde surla aynı renk kemer kirişi + kızıl başlık (sur kesintisiz okunur)
+		var wa = float(water_gates[wi])
+		# surdaki gerçek boşluk: wall_ring'in atladığı parçalar (1.2° adım). Kemer eskiden hedef açıya ortalanıyordu (boşluktan
+		# 15 m'ye kadar kayıyordu) ve 64 m'lik boşluğun tamamı yerden 12 m'ye kadar açıktı: 6-12 m'lik derenin iki yanı kuru
+		# çimen, surda kocaman delik görünüyordu. Şimdi yalnız su + iki yanda 4 m açık, kalanı yerden kemere kadar duvar.
+		var lo_a = 1e9; var hi_a = -1e9
+		var sa = 0.0
+		while sa < 360.0:
+			var mid = sa + 0.6
+			if absf(fmod(mid - wa + 540.0, 360.0) - 180.0) < 1.2:
+				var m2 = wa + (fmod(mid - wa + 540.0, 360.0) - 180.0)
+				lo_a = minf(lo_a, m2 - 0.6); hi_a = maxf(hi_a, m2 + 0.6)
+			sa += 1.2
+		var gc = (lo_a + hi_a) * 0.5
+		var war = deg_to_rad(gc)
 		var gp0 = Vector2(R * sin(war), R * cos(war))
 		var gyw = _gy(b, gp0.x, gp0.y)
-		var chord = 2.0 * PI * R * 2.4 / 360.0 + 3.0
-		b.box(Vector3(gp0.x, gyw + WALL_H * 0.72, gp0.y), Vector3(chord, WALL_H * 0.56, 5.4), wall_c, float(wa))
-		b.box(Vector3(gp0.x, gyw + WALL_H + 0.4, gp0.y), Vector3(chord, 0.8, 6.2), Color(0.5, 0.2, 0.15), float(wa), true)
-		for sx in [-1.0, 1.0]:   # kemer ayakları
-			var off = Vector2(cos(war), -sin(war)) * (chord * 0.5 - 0.8) * sx
-			b.box(Vector3(gp0.x + off.x, gyw + WALL_H * 0.5, gp0.y + off.y), Vector3(1.6, WALL_H, 6.0), wall_c.darkened(0.08), float(wa))
+		var chord = 2.0 * PI * R * (hi_a - lo_a) / 360.0 + 1.0
+		var tan = Vector2(cos(war), -sin(war))
+		b.box(Vector3(gp0.x, gyw + WALL_H * 0.72, gp0.y), Vector3(chord, WALL_H * 0.56, 5.4), wall_c, gc)
+		b.box(Vector3(gp0.x, gyw + WALL_H + 0.4, gp0.y), Vector3(chord, 0.8, 6.2), Color(0.5, 0.2, 0.15), gc, true)
+		# suyun surdan geçtiği yer (derenin son kontrol noktası surun hemen dışında): açıklık ona ortalanır
+		var wc: Array = naka_ctrl if wi == 0 else east_ctrl
+		# derenin suru kestiği nokta (|p| = R): kanalın kendi Catmull-Rom eğrisiyle (aşağıdaki Canal.build ile aynı); düz çizgi
+		# doğu deresinde açıklığı kanalın yanına kaydırıyordu
+		var wcross: Vector2 = _canal_cross(wc, R)
+		var woff = clampf((wcross - gp0).dot(tan), -chord * 0.3, chord * 0.3)
+		var open = float(water_w[wi]) + 8.0
+		var beam_bot = gyw + WALL_H * 0.44 + 0.3
+		for sx in [-1.0, 1.0]:
+			var e0 = woff + open * 0.5 * sx          # açıklığın kenarı
+			var e1 = chord * 0.5 * sx                 # boşluğun ucu (sur parçasına biner)
+			var sw = absf(e1 - e0)
+			if sw > 0.5:
+				var sc = (e0 + e1) * 0.5
+				var lo = gyw
+				for k in 7:
+					var q = gp0 + tan * lerpf(e0, e1, k / 6.0)
+					lo = minf(lo, _gy(b, q.x, q.y))
+				var cp = gp0 + tan * sc
+				b.box(Vector3(cp.x, (lo - 2.0 + beam_bot) * 0.5, cp.y), Vector3(sw, beam_bot - lo + 2.0, 5.0), wall_c, gc)
+			var fp = gp0 + tan * (e0 + 0.8 * sx)     # kemer ayağı: açıklığın kenarında
+			b.box(Vector3(fp.x, gyw + WALL_H * 0.5, fp.y), Vector3(1.6, WALL_H, 6.0), wall_c.darkened(0.08), gc)
+		# su kapısı parmaklığı (2026-11-27, kullanıcı: "adam gibi bişey yap"): su geçer, insan geçmez — koyu demir dikmeler
+		# (0.9 m aralık) + yatay kuşaklar, açıklığın tamamında, surun orta düzleminde; üstte iki yüzde "水門" levhası
+		var iron = Color(0.16, 0.15, 0.15)
+		var g_lo = gyw - 1.2
+		var nb = int(open / 0.9)
+		for k in nb + 1:
+			var bp = gp0 + tan * (woff - open * 0.5 + open * k / float(nb))
+			b.box(Vector3(bp.x, (g_lo + beam_bot) * 0.5, bp.y), Vector3(0.3, beam_bot - g_lo, 0.3), iron, gc, true)
+		for hy in [gyw + 1.6, gyw + 5.0, beam_bot - 1.2]:
+			var hp = gp0 + tan * woff
+			b.box(Vector3(hp.x, hy, hp.y), Vector3(open, 0.32, 0.45), iron.lightened(0.08), gc, true)
+		var radial = Vector2(sin(war), cos(war))
+		for io in [-1.0, 1.0]:   # dış yüz (io=1) / iç yüz
+			var lp = gp0 + tan * woff + radial * 2.85 * io
+			b.box(Vector3(lp.x, beam_bot + 2.6, lp.y), Vector3(7.0, 2.6, 0.25), Color(0.93, 0.9, 0.82), gc, false)
+			var kp = gp0 + tan * woff + radial * 3.0 * io
+			b.kanji(Vector3(kp.x, beam_bot + 2.6, kp.y), "水門", 1.9, Color(0.62, 0.12, 0.1), gc + (180.0 if io > 0.0 else 0.0))
 	for ga in gate_angles:
 		if absf(float(ga) - 180.0) < 1.0:
 			_aun_gate(b, decor)
@@ -1193,7 +1344,7 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	naka.append(ctrl[ctrl.size() - 1])
 	var crng = RandomNumberGenerator.new()
 	crng.seed = 777
-	Canal.build(b, naka, 12.0, func(x, n): return _on_road(b, x, n, 0.5), crng)
+	Canal.build(b, naka, 12.0, func(x, n): return _on_road(b, x, n, 4.0), crng)   # 4 m: açılı kesişen yol 3 m örnek aralığında 0.5 m'ye hiç düşmüyor, köprüsüz kalıyordu
 	_fish_sites(b, naka, 6.0)
 	# doğu deresi (Antrenman Alanı göletinden)
 	var east: Array = []
@@ -1206,7 +1357,13 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 			var t = k / 8.0
 			east.append(0.5 * ((2.0 * q1) + (-q0 + q2) * t + (2.0 * q0 - 5.0 * q1 + 4.0 * q2 - q3) * t * t + (-q0 + 3.0 * q1 - 3.0 * q2 + q3) * t * t * t))
 	east.append(east_ctrl[east_ctrl.size() - 1])
-	Canal.build(b, east, 6.0, func(x, n): return _on_road(b, x, n, 0.5), crng)
+	Canal.build(b, east, 6.0, func(x, n): return _on_road(b, x, n, 4.0), crng)
+	# 2026-11-27 (kullanıcı: "su kaynağı bir yere bağlanmıyor, köyün biraz dışına küçük göl"): iki kanal surdan çıkıp kendi gölüne dökülür
+	for wc2 in [[naka_ctrl, 26.0], [east_ctrl, 18.0]]:
+		var ce: Array = wc2[0]
+		var pr: float = wc2[1]
+		var pd: Vector2 = (ce[ce.size() - 1] as Vector2).normalized()
+		_gate_pond(b, decor, pd * ((ce[ce.size() - 1] as Vector2).length() + pr * 0.8), pr, pd, crng)
 	load("res://scripts/world/naka_falls.gd").build(b, decor, ctrl[0], cliff_n)   # 2026-11-25: üst üste kutu şelale yerine kayayı izleyen akan su + köpüklü havuz
 
 	# ---- evler: sokak boylarına dizili (merkezde 3 sıra, dışarıda 1-2 sıra), her biri sokağa bakar
