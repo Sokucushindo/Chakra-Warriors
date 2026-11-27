@@ -25,6 +25,15 @@ pp = os.path.join(ROOT, 'godot', 'export_presets.cfg')
 s = open(pp, encoding='utf-8', newline='').read()
 s = re.sub(r'version/code=\d+', 'version/code=%d' % (a * 100000 + b * 100 + c), s)
 s = re.sub(r'version/name="[^"]*"', 'version/name="%s"' % version, s)
+EMU = os.environ.get('EMU', '') != ''   # yalnız emülatör testi: x86_64 kütüphanesi de eklenir (yayınlanan APK'da yok)
+s = re.sub(r'architectures/x86_64=(true|false)', 'architectures/x86_64=%s' % ('true' if EMU else 'false'), s)
+# emülatör testi: EMU_ARGS ile ek komut satırı (ör. --verbose); yayın APK'sında boş
+s = re.sub(r'\ncommand_line/extra_args="[^"]*"', '', s)
+s = s.replace('[preset.1.options]' + chr(10), '[preset.1.options]' + chr(10) + 'command_line/extra_args="%s"' % (os.environ.get('EMU_ARGS', '') if EMU else '') + chr(10), 1)
+# betik biçimi (Android ön ayarı): SCRIPT_MODE=0 düz metin, 1 ikili jeton, 2 sıkıştırılmış ikili jeton
+i1 = s.index('[preset.1]')
+s1 = re.sub(r'\nscript_export_mode=\d+', '', s[i1:])
+s = s[:i1] + s1.replace('\nplatform="Android"', '\nplatform="Android"\nscript_export_mode=%s' % os.environ.get('SCRIPT_MODE', '2'), 1)
 open(pp, 'w', encoding='utf-8', newline='').write(s)
 
 # köy önbelleği PC klasöründen (git dışı)
@@ -71,12 +80,19 @@ env.update({
 })
 out_dir = os.path.join(ROOT, 'Android')
 os.makedirs(out_dir, exist_ok=True)
-apk = os.path.join(out_dir, 'ChakraWarriors_v%s.apk' % version)
+apk = os.path.join(out_dir, 'ChakraWarriors_v%s%s.apk' % (version, '_emu' if EMU else ''))
 if os.path.exists(apk):
     os.remove(apk)
+# emülatör testi: pencere olmadan Vulkan görüntü basamıyor (her karede bellek sızıyor) -> test APK'sı OpenGL ES ile;
+# yayınlanan APK'ya dokunulmaz (proje dosyası derlemeden sonra geri yazılır)
+proj = os.path.join(ROOT, 'godot', 'project.godot')
+proj_src = open(proj, encoding='utf-8', newline='').read()
+if EMU and os.environ.get('EMU_GL', '0') == '1' and 'rendering_method.mobile' not in proj_src:
+    open(proj, 'w', encoding='utf-8', newline='').write(proj_src.replace('[rendering]' + chr(10), '[rendering]' + chr(10) + 'renderer/rendering_method.mobile="gl_compatibility"' + chr(10), 1))
 cmd = [GODOT, '--headless', '--path', os.path.join(ROOT, 'godot'), '--export-release', 'Android', apk,
        '--log-file', os.path.join(ROOT, '_tmp', 'android_export.log')]
 r = subprocess.run(cmd, env=env, capture_output=True, text=True, encoding='utf-8', errors='replace')
+open(proj, 'w', encoding='utf-8', newline='').write(proj_src)   # proje dosyası eski hali
 json.dump({'build': 'dev', 'version': version}, open(build_json, 'w'))   # geliştirme koşuları kendi klasörüne pişirsin
 tail = (r.stdout + r.stderr).strip().splitlines()[-15:]
 if not os.path.exists(apk):
