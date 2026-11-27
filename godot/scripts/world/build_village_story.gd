@@ -94,6 +94,28 @@ static func _sites(v: Dictionary) -> Dictionary:
 ## silindirlerden kule — geniş kaide, şişkin yuvarlak bantlar, sıra sıra yuvarlak delikler, üst katta altın çerçeveli beyaz
 ## diskte kırmızı "医" arması, kubbe tepede iki küçük top; solda kare pencereli alçak yuvarlak ek bina. Kapı yerel -n (güney) yüzünde.
 static func _suna_hospital(b: Builder, vn: String) -> void:
+	# yer: kule + ek bina ~21 m yarıçap; hiçbir yol / sokak (yarı genişlik 8 m + 3 m pay) değmeyene kadar yoldan uzağa kayar
+	# (2026-11-27, kullanıcı: "hastaneyi yolun ortasına koymuşsun": eski 18x12 kutunun yerine ölçmeden kondu)
+	var rd = func(lp: Vector2) -> float:
+		var wp = b.w(Vector3(lp.x, 0, lp.y))
+		return Game.road_dist(wp.x, wp.z)
+	var off = Vector2.ZERO
+	for it in 60:
+		var hit = false
+		for k in 24:
+			var a = TAU * k / 24.0
+			for rr in [0.0, 11.0, 21.0]:
+				if rd.call(off + Vector2(cos(a), sin(a)) * rr) < 11.0:
+					hit = true
+		if not hit:
+			break
+		var gx = rd.call(off + Vector2(3, 0)) - rd.call(off - Vector2(3, 0))
+		var gn = rd.call(off + Vector2(0, 3)) - rd.call(off - Vector2(0, 3))
+		var gdir = Vector2(gx, gn)
+		off += (gdir.normalized() if gdir.length() > 0.01 else Vector2(0, 1)) * 2.0
+	if off != Vector2.ZERO:
+		var nw = b.w(Vector3(off.x, 0, off.y))
+		b.origin = Vector3(nw.x, Game.terrain_height(nw.x, nw.z), nw.z)
 	var body = Color(0.84, 0.62, 0.36)       # oker kerpiç
 	var band = Color(0.9, 0.7, 0.44)         # açık, şişkin bantlar
 	var dark = Color(0.86, 0.62, 0.36).darkened(0.12)

@@ -332,15 +332,17 @@ static func _along_segment(b: Builder, k: Vector2i, e: Vector2i, t_from := 0.0, 
 				continue
 			var bio := Game.biome_at(p.x, -p.y)
 			if vnear < 700.0:
-				# köye giden yol: iki yanda taş fener ve sıra ağaç
+				# köye giden yol: ara sıra taş fener; ağaçlar sıra değil seyrek ve düzensiz (2026-11-27, kullanıcı: "ağaçlar random
+				# dağılmamış, eskiden yol olduğu belli": iki yanda her 23 m'de karşılıklı ağaç dizisi vardı)
 				for sd in [-1.0, 1.0]:
-					var q: Vector2 = p + side * 9.0 * sd
-					if (h % 3) == 0:
-						_stone_lantern(b, q.x, q.y)
-					elif bio in [2, 6, 7, 4]:
-						var rng := RandomNumberGenerator.new()
-						rng.seed = h + int(sd)
-						b.tree(q.x, q.y + side.y * 3.0 * sd, rng.randf_range(0.8, 1.15), rng, _g(q.x, q.y))
+					var rng := RandomNumberGenerator.new()
+					rng.seed = h + int(sd) * 7919
+					if (h % 4) == 0 and sd > 0.0:
+						var ql: Vector2 = p + side * 9.0 * sd
+						_stone_lantern(b, ql.x, ql.y)
+					elif bio in [2, 6, 7, 4] and rng.randf() < 0.3:
+						var q: Vector2 = p + side * rng.randf_range(11.0, 26.0) * sd + dir * rng.randf_range(-9.0, 9.0)
+						b.tree(q.x, q.y, rng.randf_range(0.75, 1.2), rng, _g(q.x, q.y))
 				continue
 			if (h % 5) == 0 and bio in [2, 4, 6, 7, 10]:
 				var sd2 := 1.0 if (h >> 4) % 2 == 0 else -1.0

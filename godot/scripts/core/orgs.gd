@@ -812,12 +812,12 @@ func _alarm_ninjas(dt: float) -> void:
 	_alarm_t = 1.0
 	var pp = Game.player.global_position
 	var n = 0
-	for v in get_tree().get_nodes_in_group("talkers"):
-		if n >= 3:
+	for v in get_tree().get_nodes_in_group("talkers"):   # yakındaki bütün köy ninjaları (eskiden saniyede 3 kişi, 32 m: kalanlar izliyordu)
+		if n >= 12:
 			break
 		if not is_instance_valid(v) or not (v is Villager or v is ClanResident) or _spared(v) or not Friends.is_ninja(v):
 			continue
-		if v.global_position.distance_to(pp) > 32.0:
+		if v.global_position.distance_to(pp) > 60.0:
 			continue
 		n += 1
 		Combat.popup_text(v.global_position + Vector3.UP * 2.3, "Kaçak! Durdurun onu!", Color(1, 0.4, 0.35))

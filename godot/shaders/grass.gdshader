@@ -63,6 +63,10 @@ void vertex() {
 	ok *= 1.0 - road;                       // yol / maske
 	ok *= 1.0 - step(0.5, bio.b);           // ıslak
 	ok *= step(0.6, h);                     // su altı
+	// uçurum yüzü / dik yamaç: çimen yok (2026-11-27, kullanıcı: "şu duvarda artık çimen çıkmasın"; Hokage Kayası yüzü)
+	float slp = max(abs(world_height(root.xz + vec2(1.5, 0.0)) - world_height(root.xz - vec2(1.5, 0.0))),
+		abs(world_height(root.xz + vec2(0.0, 1.5)) - world_height(root.xz - vec2(0.0, 1.5)))) / 3.0;
+	ok *= 1.0 - smoothstep(0.75, 1.0, slp);
 	float rnd = hash(floor(root.xz * 3.0));
 	ok *= step(rnd, 0.985);   // seyrek boşluk (kesik kesik görünmesin)
 	float d = distance(root.xz, player_pos.xz);

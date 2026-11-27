@@ -211,7 +211,7 @@ class TravelGroup extends Node3D:
 			var side = Vector2(f.y, -f.x) * mem[2]
 			var w = _onto_deck(q + side, Game.from_map(q + side))
 			if not is_nan(float(r[2])):
-				w = Game.from_map(q, float(r[2]))   # merdivende: basamak üstünde, yan yana değil arka arkaya
+				w = Game.from_map(q, maxf(float(r[2]), Game.terrain_height(q.x, -q.y)))   # merdivende: basamak üstünde, yan yana değil arka arkaya
 			mem[0].global_position = w
 			mem[0].rotation.y = atan2(-f.x, f.y)
 			if mem[0].has_meta("legs"):   # öküz: adımlar (model yönü kediyle aynı: ek 180° dönüş arabaya bakmasına yol açıyordu)

@@ -344,6 +344,12 @@ class Ctx:
 					return false
 		if road_clear > 0.0 and road_near(p)[0] < road_clear:
 			return false
+		# eğimli zemin / uçurum kenarı: park, gölet, bank buraya konmaz (2026-11-27: uçurum kenarına taşan gölet ve park)
+		var h0 = Game.terrain_height(p.x, p.y)
+		for k in 8:
+			var a = TAU * k / 8.0
+			if absf(Game.terrain_height(p.x + cos(a) * (r + 2.0), p.y + sin(a) * (r + 2.0)) - h0) > maxf(1.6, (r + 2.0) * 0.18):
+				return false
 		if on_lane(p, r):
 			return false
 		return b.area_free(p, r)
@@ -1004,6 +1010,9 @@ static func _street_trees(c: Ctx, rad: float) -> void:
 				var tt: int = types[c.rng.randi() % types.size()]
 				var s = c.rng.randf_range(1.05, 1.45) if tt != 7 else c.rng.randf_range(0.9, 1.1)
 				var tp: Vector2 = c.wxz(lx, ln)
+				if absf(Game.terrain_height(tp.x, tp.y) - b.origin.y) > 12.0:
+					continue   # köy zemininin çok üstü / altı (Hokage Kayası platosu, uçurum): sokak ağacı dizisi yok (2026-11-27,
+					# kullanıcı: "ağaçlar random dağılmamış, eskiden yol olduğu belli")
 				# sokak ağaçları arası en az 11 m (komşu / kesişen yol parçaları aynı kaldırıma sık sık ağaç dikiyordu), diğer ağaçlarla gövde payı
 				var roomy = not Builder.tree_crowded(tp, s, 1.9, 11.0)
 				if roomy and c.open(lx, ln, 1.6, half + 0.4):

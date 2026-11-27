@@ -2217,7 +2217,7 @@ static func settings(back: Callable) -> void:
 		"sound":
 			var a = _set_section(body, "sound", "Ses Düzeyi")
 			slider.call(a, "Ana ses", "master", 0.0, 1.0, 0.05, true)
-			# oyunda müzik yok (2026-11-21 tüm müzikler kaldırıldı): etkisiz Müzik kaydırıcısı gösterilmez
+			slider.call(a, "Müzik", "music", 0.0, 1.0, 0.05, true)   # 2026-11-27: müzikler geri geldi (assets/music)
 			slider.call(a, "Efektler", "sfx", 0.0, 1.0, 0.05, true)
 			slider.call(a, "Arayüz sesleri", "ui_vol", 0.0, 1.0, 0.05, true)
 			toggle.call(a, "Oyun arka plandayken sesi kapat", "bg_mute", false)
