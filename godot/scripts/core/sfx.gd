@@ -209,7 +209,8 @@ func music(name: String) -> void:
 	name = {"koy": "koy", "gece": "gece", "savas": "savas", "boss": "boss", "menu": "menu"}.get(name, name)
 	if not music_groups.has(name):
 		# kendi parçası olmayan yer (Suna / Kiri / Kumo / Iwa / küçük köy / iç mekân): doğa-yolculuk müziği (Konoha teması sürmesin)
-		name = {"suna": "doga", "kiri": "doga", "kumo": "doga", "iwa": "doga", "koy": "doga", "kar": "doga", "magara": "gece"}.get(name, name)
+		name = {"konoha": "koy", "suna": "koy", "kiri": "koy", "kumo": "koy", "iwa": "koy", "kar": "doga", "magara": "doga", "dukkan": "koy",
+			"menu": "koy", "gece": "doga"}.get(name, name)
 	if name == music_name or not music_groups.has(name):
 		return
 	music_name = name

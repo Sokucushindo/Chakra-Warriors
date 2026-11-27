@@ -262,6 +262,83 @@ func _raid_rally() -> void:
 		(raid["allies"] as Array).append(d)
 
 
+## Köyünde dövüşürken köy ninjaları yardıma gelir (2026-11-27, kullanıcı: "ben savaşırken izliyorlar"): baskın dışında da,
+## oyuncu kendi köyünde ve kaçak değilken 35 m içinde onu hedef almış yabancı düşman varsa 50 m içindeki köy ninjaları (en çok 6)
+## baskındaki gibi müttefike döner; düşman 6 sn görünmezse sokaktaki hallerine dönerler. Köyün kendi insanı (suç sonrası),
+## düello / antrenman rakibi ve sınav dövüşleri hariç.
+var assist := {}
+func _assist_tick(dt: float) -> void:
+	if not raid.is_empty() or Game.player == null:
+		return
+	var pp: Vector3 = Game.player.global_position
+	var home = Progress.home()
+	var hv = Game.village(home)
+	var inside = not hv.is_empty() and Vector2(pp.x, -pp.z).distance_to(Vector2(hv["x"], hv["y"])) < float(hv["r"]) * 1.05
+	var threats: Array = []
+	if inside and not Orgs.is_rogue() and int(ChuninExam.stage) == 0 and Exams.cur == "" and not (Interiors.inst and Interiors.inst.inside != ""):
+		for e in get_tree().get_nodes_in_group("fighters"):
+			if not e is Enemy or e.dead or e.team != "enemy" or e.target != Game.player:
+				continue
+			if String(e.get_meta("faction", "")) in [home, "duel"] or e.global_position.distance_to(pp) > 35.0:
+				continue
+			threats.append(e)
+	if threats.is_empty():
+		if not assist.is_empty():
+			assist["calm"] = float(assist.get("calm", 0.0)) + dt
+			if float(assist["calm"]) > 6.0:
+				for d in assist.get("allies", []):
+					if is_instance_valid(d):
+						FX.smoke_puff(d.global_position + Vector3.UP, 0.8, 10)
+						d.queue_free()
+				for vg in assist.get("rallied", []):
+					if is_instance_valid(vg):
+						vg.visible = true
+						vg.process_mode = Node.PROCESS_MODE_INHERIT
+				assist = {}
+		return
+	if assist.is_empty():
+		assist = {"allies": [], "rallied": [], "t": 0.0, "calm": 0.0}
+	assist["calm"] = 0.0
+	assist["t"] = float(assist["t"]) - dt
+	if float(assist["t"]) <= 0.0 and (assist["rallied"] as Array).size() < 6:
+		assist["t"] = 0.8
+		var lv = int(p().get("level", 1))
+		for vg in get_tree().get_nodes_in_group("talkers"):
+			if (assist["rallied"] as Array).size() >= 6:
+				break
+			if not vg is Villager or not vg.visible or vg.get("interior") or not Friends.is_ninja(vg) or vg.global_position.distance_to(pp) > 50.0:
+				continue
+			var lk = vg.get("look")
+			var rw = WorldPeople.get_p(String(vg.get_meta("world_person", "")))
+			var d: Enemy
+			if not rw.is_empty() and WorldDay._free(rw):
+				d = _real_ninja(rw, "player")
+			else:
+				d = _ninja_of(home, (assist["rallied"] as Array).size(), lv + randi_range(-3, 2), "player", lk if lk is Dictionary else {})
+				d.display_name = String(vg.get("display")) if vg.get("display") else d.display_name
+			get_tree().current_scene.add_child(d)
+			d.global_position = vg.global_position
+			d.home = vg.global_position
+			vg.visible = false
+			vg.process_mode = Node.PROCESS_MODE_DISABLED
+			(assist["rallied"] as Array).append(vg)
+			(assist["allies"] as Array).append(d)
+			Combat.popup_text(d.global_position + Vector3.UP * 2.3, "Köyde saldırı! Yardıma geldim!", Color(0.6, 0.9, 1.0))
+	for d in assist["allies"]:
+		if not is_instance_valid(d) or d.is_dead() or (d.target != null and is_instance_valid(d.target) and not d.target.is_dead()):
+			continue
+		var best: Node3D = null
+		var bd = 1e9
+		for e in threats:
+			var dd = d.global_position.distance_to(e.global_position)
+			if dd < bd:
+				bd = dd; best = e
+		if best != null:
+			d.home = best.global_position
+			d.target = best
+			d.state = "chase"
+
+
 ## Oyuncu baskında öldü: baskıncılar kazanır — köyü yağmalayıp çekilir (itibar ve kasa kaybı), olay biter
 func lose_raid() -> void:
 	if raid.is_empty():
@@ -1078,6 +1155,7 @@ func _process(dt: float) -> void:
 		return
 	_reign_tick(dt)
 	_raid_tick(dt)
+	_assist_tick(dt)
 	if not is_kage():
 		if Exams.flags().get("kage_elect", false) and int(p().get("level", 1)) >= 200:
 			Exams.flags().erase("kage_elect")
