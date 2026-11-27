@@ -72,7 +72,7 @@ static func weapon_ids(c: Node3D) -> Array:
 		for s in ["sag", "sol"]:
 			var g = Gear.equipped(Game.profile, s)
 			if not g.is_empty():
-				out.append(String(g.get("id", "")))
+				out.append(Gear.visual_id(String(g.get("id", ""))))   # özel silah tabanıyla (Uchiha Gunbai = gunbai), NPC look ile aynı
 	elif c != null and c.get("look") is Dictionary:
 		for k in ["weapon_r", "weapon_l"]:
 			if c.look.get(k) != null:

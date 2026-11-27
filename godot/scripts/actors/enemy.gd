@@ -325,6 +325,9 @@ func setup(a: Dictionary) -> void:
 	# Shiranui (Genma'nın ailesi) senbon iğneleriyle savaşır — oyuncunun başlangıç silahıyla aynı (AI eşitliği)
 	if String(a.get("clan", "")) == "shiranui" and look is Dictionary and String(look.get("weapon_r", "") if look.get("weapon_r") != null else "") == "":
 		look["weapon_r"] = "senbon"
+	# Uchiha gunbai taşıyorsa ailenin yelpazesi görünür (oyuncunun yadigârıyla aynı)
+	if String(a.get("clan", "")) == "uchiha" and look is Dictionary and String(look.get("weapon_r", "") if look.get("weapon_r") != null else "") == "gunbai":
+		look["weapon_skin_r"] = "uchiha_gunbai"
 
 
 ## Rastgele klan: köyün klanlarından biri (kaçaklar herhangi bir köyden); klan teknikleri jutsu listesinin başına

@@ -579,7 +579,9 @@ static func build(m, s, _fg: Color) -> bool:
 	if s == "uzu_kamen":
 		return _cap(m, s)
 	if s in ["rinne_kamen", "rinne_kamen_ware"]:
-		return _cap(m, s)   # 2026-11-26: sırt eşyası yöntemi (ölçülen kesit halkaları) ile kafayı saran kabuk
+		# 2026-11-27: kafayı saran kabuk oyunda "yumurta" gibi duruyordu; Rinne bir YÜZ maskesi (ref: önü kapatan kapsül plaka) —
+		# beğenilen plaka sürümü (kapsül dış hat, ölçülen yanak / çene / kafa tepesi, halkalar, çerçeveli gözler)
+		return _tobi(m, "rinne_ware" if s == "rinne_kamen_ware" else "rinne")
 	var hc: Vector3 = m._head_center()
 	var ab: AABB = m.head_ab
 	var hw := clampf(ab.size.x, 0.16, 0.26) if ab.size.x > 0.05 else 0.2
@@ -724,14 +726,25 @@ static func _tobi(m, kind := "tobi") -> bool:
 static var _pe := 2.0
 
 
+## Çeneye doğru daralma (Rinne, ref: alt yarı yuvarlakça incelir; düz kapsül çenede kaba duruyordu): alt yarıda genişlik çarpanı
+static var _taper := 0.0
+
+
+static func _aw(a: float, y: float, b: float, yc: float) -> float:
+	if _taper <= 0.0 or y >= yc:
+		return a
+	var u := clampf((yc - y) / b, 0.0, 1.0)
+	return a * (1.0 - _taper * pow(u, 1.6))
+
+
 static func _rho2(x: float, y: float, a: float, b: float, yc: float) -> float:
-	return pow(absf(x / a), _pe) + pow(absf((y - yc) / b), _pe)
+	return pow(absf(x / _aw(a, y, b, yc)), _pe) + pow(absf((y - yc) / b), _pe)
 
 
 ## Kabuk yüzeyi: oval içinde (ρ <= 1) z = ze + D·sqrt(1 - ρ²)
 static func _tz(x: float, y: float, a: float, b: float, yc: float, ze: float, D: float) -> float:
 	var r2 := _rho2(x, y, a, b, yc)
-	var k := clampf((absf(x) / a - 0.62) / 0.38, 0.0, 1.0)   # yan kenarlar yanağa doğru geri kıvrılır (çapraz bakışta ten boşluğu kalmaz)
+	var k := clampf((absf(x) / _aw(a, y, b, yc) - 0.62) / 0.38, 0.0, 1.0)   # yan kenarlar yanağa doğru geri kıvrılır (çapraz bakışta ten boşluğu kalmaz)
 	return ze + D * sqrt(maxf(0.0, 1.0 - r2)) - 0.034 * k * k
 
 
@@ -763,7 +776,8 @@ static func _tobi_build(pts: PackedVector3Array, eye: Vector3, kind := "tobi", e
 				top = maxf(top, q.y)
 		a = cheek + 0.006
 		y0 = chin - 0.004
-		_pe = 2.9
+		_pe = 2.6
+		_taper = 0.24
 	var y1 := y0 + a * 2.0 * (1.28 if kind == "tobi" else 1.36)   # Shima (ref o_2) biraz daha uzun
 	# Rinne (ref crops1/crops2): halka merkezi gözlerin üstünde; dış halka gözlerden geçer; tepe noktası plakanın üst ucunda
 	var rc := Vector2.ZERO
@@ -844,8 +858,8 @@ static func _tobi_build(pts: PackedVector3Array, eye: Vector3, kind := "tobi", e
 		var rr := float(ri) / NR
 		for ai in NA:
 			var ang := TAU * ai / NA
-			var x := a * rr * signf(cos(ang)) * pow(absf(cos(ang)), 2.0 / _pe)
 			var y := yc + b * rr * signf(sin(ang)) * pow(absf(sin(ang)), 2.0 / _pe)
+			var x := _aw(a, y, b, yc) * rr * signf(cos(ang)) * pow(absf(cos(ang)), 2.0 / _pe)
 			row.append(Vector3(x, y, _tz(x, y, a, b, yc, ze, D)))
 		grid.append(row)
 	var inner := BASE.darkened(0.6)
@@ -897,6 +911,7 @@ static func _tobi_build(pts: PackedVector3Array, eye: Vector3, kind := "tobi", e
 		var meshr := mb.commit()
 		meshr.surface_set_material(0, Props.toon())
 		_pe = 2.0
+		_taper = 0.0
 		return [meshr, ze + 0.004]
 	if kind == "shima":
 		_shima_rings(mb, hx, hole_r, a, b, yc, ze, D, INK)
@@ -997,7 +1012,7 @@ static func _shima_rings(mb: SurfaceTool, hx: Vector2, hole_r: float, a: float, 
 	var f := func(p: Vector2) -> float:
 		var d := p - hx
 		var t := clampf(d.x * far_s / (a * 1.5), 0.0, 1.0)
-		var kx := lerpf(1.0, 0.3, t * t * (3.0 - 2.0 * t))
+		var kx := lerpf(1.0, 0.12, t * t * (3.0 - 2.0 * t))   # güçlü yassılma: göz çevresinde 2 kapalı halka, ötesi kenara uzanan şerit (ok ucu gibi kapanmaz)
 		return sqrt(pow(d.x * kx, 2) + d.y * d.y)
 	var spacing := 0.0175
 	for li in 10:
@@ -1007,26 +1022,73 @@ static func _shima_rings(mb: SurfaceTool, hx: Vector2, hole_r: float, a: float, 
 		var have := false
 		var N := 260
 		var pts2: Array = []
-		for k in N + 1:
-			var th := TAU * k / N
-			var dir := Vector2(cos(th), sin(th))
-			var lo := 0.0
-			var hi := a * 4.0
-			for it in 22:
-				var mid := (lo + hi) * 0.5
-				if f.call(hx + dir * mid) < L:
-					lo = mid
-				else:
-					hi = mid
-			var r := lo * (1.0 + 0.045 * sin(th * 5.0 + li * 1.3) * clampf(float(li) / 3.0, 0.0, 1.0))   # dış halkalar dalgalı
-			pts2.append(hx + dir * r)
+		if li < 2:   # göz çevresindeki kapalı halkalar (tam daire; yassılma onları "C" gibi açıyordu)
+			for k in N + 1:
+				var th := TAU * k / N
+				pts2.append(hx + Vector2(cos(th), sin(th)) * L)
+		else:
+			# ref: göz yanında yarım daire, iki kolu karşı kenara kadar uzanan dalgalı yatay şerit (ışınla örnekleme kenarda nokta
+			# kaçırıp şeritleri yarıda bırakıyordu): üst kol kenardan göze, gözün arkasında yarım daire, alt kol gözden kenara
+			var wav := func(x: float) -> float:
+				return 0.0028 * sin(x * 70.0 + li * 1.7) * clampf(float(li - 1) / 2.0, 0.0, 1.0)
+			var reach := a * 2.2
+			var M := 90
+			var upper: Array = []
+			var lower: Array = []
+			for k in M + 1:
+				var dx := reach * float(k) / M
+				var t := clampf(dx / (a * 1.5), 0.0, 1.0)
+				var kx := lerpf(1.0, 0.12, t * t * (3.0 - 2.0 * t))
+				var q := L * L - pow(dx * kx, 2)
+				if q < 0.0:
+					break
+				var dy := sqrt(q)
+				var x := hx.x + far_s * dx
+				upper.append(Vector2(x, hx.y + dy + wav.call(x)))
+				lower.append(Vector2(x, hx.y - dy + wav.call(x)))
+			upper.reverse()
+			pts2.append_array(upper)
+			for k in range(1, 40):
+				var th := PI * 0.5 + PI * float(k) / 40.0   # gözün arka yanı (uzak tarafın tersi)
+				pts2.append(hx + Vector2(far_s * cos(th), sin(th)) * L)
+			pts2.append_array(lower)
+		# 2026-11-27 "yarım kalmış çizgiler": şerit plakanın dış hattına kadar uzanır (0.975'te, kenar kıvrımından önce bitiyordu);
+		# plaka içinde kalan parçalar ayrı ayrı çizilir, kenarda kalan kısa kırıntılar (< 7 nokta) atılır
+		var segs: Array = []
+		var cur: Array = []
+		var N2 := pts2.size()
+		var start := 0
+		for k in N2:   # halka kapalı: dışarıda kalan bir noktadan başla ki içerideki parça ikiye bölünmesin
+			if _rho2((pts2[k] as Vector2).x, (pts2[k] as Vector2).y, a, b, yc) > 0.997:
+				start = k
+				break
+		for kk in N2 + 1:
+			var p3: Vector2 = pts2[(start + kk) % N2]
+			if _rho2(p3.x, p3.y, a, b, yc) > 0.997:
+				if cur.size() >= 12:
+					segs.append(cur)
+				cur = []
+			else:
+				cur.append(p3)
+		if cur.size() >= 12:
+			segs.append(cur)
+		pts2 = []
+		for sg in segs:
+			var rim := 0.0   # kenara yapışık parça (dış halkanın plaka kenarını takip eden kesik dikey çizgisi) atılır
+			for q in sg:
+				rim += _rho2((q as Vector2).x, (q as Vector2).y, a, b, yc)
+			if rim / sg.size() > 0.86:
+				continue
+			pts2.append_array(sg)
+			pts2.append(Vector2.INF)   # parça sonu
 		for k in pts2.size():
 			var p2: Vector2 = pts2[k]
-			var r2 := _rho2(p2.x, p2.y, a, b, yc)
-			if r2 > 0.975:
+			if p2 == Vector2.INF:
 				have = false
 				continue
 			var q2: Vector2 = pts2[mini(k + 1, pts2.size() - 1)]
+			if q2 == Vector2.INF:
+				q2 = p2 + (p2 - (pts2[maxi(k - 1, 0)] as Vector2))
 			var tg := (q2 - p2).normalized() if q2 != p2 else Vector2.RIGHT
 			var nrm := Vector2(tg.y, -tg.x)
 			var w := 0.0033

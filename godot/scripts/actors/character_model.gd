@@ -13239,42 +13239,147 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			# göbek: eski beyaz göbek boyunda halka, ortası DELİK (deliğin arkasındaki gök mavi diye mavi disk yapılmıştı)
 			b.add("torus", H, Vector3(0.15, 0.15, 0.15), white, Vector3(0, 0, 90), 20)
 		"gunbai":
-			# Madara gunbai'si (kaynak gunbaielde.png / gunbaisirt.png): su kabağı (8) biçimli yelpaze — sapa yakın küçük, uçta büyük
-			# yuvarlak lob, belde boğum; kalın koyu gri çerçeve, krem-beyaz yüz, iki lobda 3'er kırmızı tomoe; yüzün ortasından
-			# boydan boya geçen ince krem sap (uçta topuz), dipte zincir halkaları. Yüz normali +X (sırta yassı yaslanır).
-			var rimc = Color(0.3, 0.3, 0.33)
-			var facec = Color(0.93, 0.92, 0.87)
-			var polec = Color(0.9, 0.87, 0.78)
-			var tomo = Color(0.78, 0.08, 0.08)
-			var c1 = 1.16; var r1 = 0.36   # sapa yakın küçük lob
-			var c2 = 1.84; var r2 = 0.48   # uçtaki büyük lob (belde boğum)
+			# Sıradan savaş gunbai'si (Uchiha işaretsiz; Uchiha olanı "uchiha_gunbai"): tek büyük yumurta kürek (sapa doğru daralır),
+			# siyah lake kalın çerçeve, koyu kızıl lake yüz, ortada altın güneş halkası; koyu sap, krem sargılı kabza, dipte topuz.
+			# Yüz normali +X (aynı tutuş / taşıma).
+			var rimc = Color(0.08, 0.07, 0.07)
+			var facec = Color(0.5, 0.1, 0.08)
+			var polec = Color(0.25, 0.2, 0.17)
+			var gold = Color(0.85, 0.66, 0.22)
+			var cz = 1.5; var hz = 0.72; var rr = 0.5
+			var wfn = func(z: float, inset: float) -> float:
+				var u = clampf((z - cz) / (hz - inset), -1.0, 1.0)
+				var w = (rr - inset) * sqrt(maxf(0.0, 1.0 - u * u))
+				return w * (1.0 - 0.32 * maxf(0.0, -u))   # sapa doğru daralan yumurta
+			var outline = func(inset: float) -> PackedVector2Array:
+				var right = []
+				for k in 49:
+					var u = 0.5 - 0.5 * cos(PI * k / 48.0)
+					var z = lerpf(cz - hz + inset, cz + hz - inset, u)
+					right.append(Vector2(wfn.call(z, inset), z))
+				var o = PackedVector2Array()
+				for q in right:
+					o.append(q)
+				for i in range(right.size() - 2, 0, -1):
+					o.append(Vector2(-right[i].x, right[i].y))
+				return o
+			b.add_slab(outline.call(0.0), 0.06, rimc)
+			b.add_slab(outline.call(0.07), 0.072, facec)
+			for sx in [1.0, -1.0]:   # altın güneş halkası + ortada disk
+				b.add("torus", Vector3(sx * 0.038, 0, cz + 0.12), Vector3(0.36, 0.36, 0.36), gold, Vector3(0, 0, 90), 28)
+				b.add("cyl", Vector3(sx * 0.037, 0, cz + 0.12), Vector3(0.13, 0.004, 0.13), gold, Vector3(0, 0, 90), 20)
+			var p0 = -0.16
+			var p1 = cz + hz + 0.05
+			b.add("cyl", Vector3(0, 0, (p0 + p1) * 0.5), Vector3(0.048, p1 - p0, 0.048), polec, Vector3(90, 0, 0), 10)
+			b.add("sphere", Vector3(0, 0, p1), Vector3(0.07, 0.07, 0.07), gold, Vector3.ZERO, 10)
+			for k in 6:
+				b.add("cyl", Vector3(0, 0, p0 + 0.04 + k * 0.045), Vector3(0.058, 0.026, 0.058), Color(0.88, 0.84, 0.72) if k % 2 == 0 else Color(0.7, 0.66, 0.56), Vector3(90, 0, 0), 10)
+			b.add("sphere", Vector3(0, 0, p0), Vector3(0.06, 0.06, 0.06), gold, Vector3.ZERO, 10)
+		"uchiha_gunbai":
+			# Uchiha gunbai'si (kullanıcı ref'i _tmp/gunbairef/kullanici.png, Obito): iki loblu su kabağı yelpaze, kalın koyu gri
+			# çerçeve, lavanta-gri yüz; her lobda sapın iki yanında üçer koyu bordo tomoe (yuvarlak baş + kıvrık incelen kuyruk);
+			# yüzün üstünden boydan boya geçen ince gri metal sap; iki lobun belinde birkaç tur krem ip; altta koyu sargılı tutamak
+			# ve uçta halka. Yüz normali +X (gunbai ile aynı tutuş / taşıma).
+			var rimc = Color(0.2, 0.2, 0.23)
+			var facec = Color(0.64, 0.61, 0.73)
+			var polec = Color(0.55, 0.56, 0.6)
+			var tomc = Color(0.16, 0.03, 0.12)
+			var ropec = Color(0.88, 0.85, 0.74)
+			var gripc = Color(0.13, 0.13, 0.15)
+			var c1 = 1.12; var r1 = 0.43
+			var c2 = 1.8; var r2 = 0.5
 			var wfn = func(z: float, inset: float) -> float:
 				var w1 = sqrt(maxf(0.0, (r1 - inset) * (r1 - inset) - (z - c1) * (z - c1)))
 				var w2 = sqrt(maxf(0.0, (r2 - inset) * (r2 - inset) - (z - c2) * (z - c2)))
 				return maxf(w1, w2)
 			var outline = func(inset: float) -> PackedVector2Array:
-				var z0 = c1 - r1 + inset
-				var z1 = c2 + r2 - inset
 				var right = []
-				for k in 49:
-					var u = 0.5 - 0.5 * cos(PI * k / 48.0)   # uçlarda sık örnek: yuvarlak biter
-					var z = lerpf(z0, z1, u)
+				for k in 61:
+					var u = 0.5 - 0.5 * cos(PI * k / 60.0)
+					var z = lerpf(c1 - r1 + inset, c2 + r2 - inset, u)
 					right.append(Vector2(wfn.call(z, inset), z))
 				var o = PackedVector2Array()
-				for p in right:
-					o.append(p)
+				for q in right:
+					o.append(q)
 				for i in range(right.size() - 2, 0, -1):
 					o.append(Vector2(-right[i].x, right[i].y))
 				return o
-			b.add_slab(outline.call(0.0), 0.06, rimc)
-			b.add_slab(outline.call(0.075), 0.072, facec)
-			# sap: yüzün ortasından boydan boya, uçta topuz; dipte halka ve zincir
-			var p0 = -0.16
+			b.add_slab(outline.call(0.0), 0.07, rimc)
+			b.add_slab(outline.call(0.075), 0.082, facec)
+			# tomoe: baş dairesi + baştan çıkıp dönerek uzaklaşan, incelen kuyruk (birleşik çokgen)
+			var tomoe = func(r: float) -> PackedVector2Array:
+				var head = PackedVector2Array()
+				for k in 28:
+					head.append(Vector2(cos(TAU * k / 28.0), sin(TAU * k / 28.0)) * r)
+				var lft = PackedVector2Array()
+				var rgt = PackedVector2Array()
+				var sw = 1.35
+				for k in 19:
+					var t = k / 18.0
+					var th = -t * sw
+					var rho = r * 0.3 + r * 1.9 * t
+					var w = r * 0.85 * pow(1.0 - t, 1.3) + r * 0.03
+					var tg = Vector2(r * 1.9 * cos(th) + rho * sin(th) * sw, r * 1.9 * sin(th) - rho * cos(th) * sw).normalized()
+					var nm = Vector2(-tg.y, tg.x)
+					var cp = Vector2(cos(th), sin(th)) * rho
+					lft.append(cp + nm * w)
+					rgt.append(cp - nm * w)
+				var tail = PackedVector2Array()
+				for q in rgt:
+					tail.append(q)
+				for k in range(lft.size() - 1, -1, -1):
+					tail.append(lft[k])
+				var mg = Geometry2D.merge_polygons(head, tail)
+				for pg in mg:
+					if not Geometry2D.is_polygon_clockwise(pg) or mg.size() == 1:
+						return pg
+				return head
+			var tshape: PackedVector2Array = tomoe.call(0.024)
+			for grp in [[0.21, c2, 30.0], [-0.21, c2, 30.0]]:   # yalnız uçtaki lobda, sapın iki yanında aynı hizada
+				for i in 3:
+					var ga = deg_to_rad(float(grp[2]) + 120.0 * i)
+					var gp = Vector2(float(grp[0]), float(grp[1])) + Vector2(cos(ga), sin(ga)) * 0.065
+					for sx in [1.0, -1.0]:
+						b.add_slab(tshape, 0.004, tomc, Transform3D(Basis(Vector3.RIGHT, ga + deg_to_rad(100.0)) if sx > 0.0 else Basis(Vector3.RIGHT, -ga - deg_to_rad(100.0)), Vector3(sx * 0.043, gp.x, gp.y)))
+			# sap: ince gri metal, iki yüzün üstünden görünür; ortada boydan boya, uçta küçük başlık
+			var p0 = -0.3
 			var p1 = c2 + r2 + 0.06
-			b.add("cyl", Vector3(0, 0, (p0 + p1) * 0.5), Vector3(0.042, p1 - p0, 0.042), polec, Vector3(90, 0, 0), 10)
-			b.add("sphere", Vector3(0, 0, p1), Vector3(0.07, 0.07, 0.07), polec, Vector3.ZERO, 10)
-			b.add("cyl", Vector3(0, 0, p0 + 0.02), Vector3(0.06, 0.04, 0.06), polec.darkened(0.25), Vector3(90, 0, 0), 10)
-			b.add("sphere", Vector3(0, 0, p0), Vector3(0.055, 0.055, 0.055), polec.darkened(0.25), Vector3.ZERO, 10)
+			b.add("cyl", Vector3(0, 0, (p0 + p1) * 0.5), Vector3(0.04, p1 - p0, 0.04), polec, Vector3(90, 0, 0), 10)
+			for sx in [1.0, -1.0]:
+				b.add("cyl", Vector3(sx * 0.047, 0, (c1 - r1 + c2 + r2) * 0.5), Vector3(0.022, c2 + r2 - (c1 - r1) - 0.02, 0.022), polec, Vector3(90, 0, 0), 8)
+			b.add("sphere", Vector3(0, 0, p1), Vector3(0.05, 0.05, 0.05), polec, Vector3.ZERO, 10)
+			# belde ip: iki lobun birleştiği dar yerde yelpazeyi saran birkaç tur
+			var zw = c1 + ((c2 - c1) * (c2 - c1) + r1 * r1 - r2 * r2) / (2.0 * (c2 - c1))
+			var hw = sqrt(maxf(0.0, r1 * r1 - (zw - c1) * (zw - c1)))
+			# sarım: belin kesitini (genişlik × kalınlık) saran yuvarlak ip turları, yan yana sıkı, hafif sarmal
+			var rr = 0.014
+			var turns = 6
+			for k in turns:
+				var z0 = zw + (k - (turns - 1) * 0.5) * rr * 2.0
+				var half = wfn.call(z0, 0.0) + rr * 0.6
+				var th = 0.035 + rr
+				var pts = []
+				var NS = 28
+				for q in NS + 1:
+					var an = TAU * q / NS
+					var cx = cos(an); var sy2 = sin(an)
+					# yuvarlatılmış dikdörtgen: yanlarda yay, yüzlerde düz
+					var px = clampf(cx * 1.6, -1.0, 1.0) * th
+					var py = clampf(sy2 * 1.15, -1.0, 1.0) * half
+					pts.append(Vector3(px, py, z0 + rr * 2.0 * q / NS))
+				for q in NS:
+					var pa: Vector3 = pts[q]
+					var pb: Vector3 = pts[q + 1]
+					var dv = pb - pa
+					if dv.length() < 0.0001:
+						continue
+					var bs = Basis.looking_at(dv.normalized(), Vector3.UP if absf(dv.normalized().y) < 0.95 else Vector3.RIGHT) * Basis(Vector3.RIGHT, deg_to_rad(90.0))
+					b.add("cyl", (pa + pb) * 0.5, Vector3(rr * 2.0, dv.length() + rr * 0.8, rr * 2.0), ropec if k % 2 == 0 else ropec.darkened(0.08), bs.get_euler() * (180.0 / PI), 8)
+			# tutamak: koyu sargı (boğumlu) ve dipte halka
+			b.add("cyl", Vector3(0, 0, -0.04), Vector3(0.056, 0.46, 0.056), gripc, Vector3(90, 0, 0), 10)
+			for k in 9:
+				b.add("cyl", Vector3(0, 0, -0.25 + k * 0.052), Vector3(0.064, 0.016, 0.064), gripc.lightened(0.12), Vector3(90, 0, 0), 10)
+			b.add("torus", Vector3(0, 0, p0 - 0.05), Vector3(0.11, 0.11, 0.11), polec, Vector3.ZERO, 14)
 		_:
 			b.add("box", Vector3(0, 0, 0.1), Vector3(0.02, 0.03, 0.2), steel)
 	var m = b.build(Props.toon())

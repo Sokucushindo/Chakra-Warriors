@@ -143,6 +143,8 @@ func build(pr: Dictionary, preview_tier := -1, follow_model: CharacterModel = nu
 		look["weapon_r"] = wm[0]
 		if wm[1] != "":
 			look["weapon_l"] = wm[1]
+		if wm[0] == "gunbai":
+			look["weapon_skin_r"] = "uchiha_gunbai"   # Susanoo gunbai'si Uchiha yelpazesi
 	body = CharacterModel.new()
 	add_child(body)
 	body.setup(look)
