@@ -332,12 +332,12 @@ func _ignite_tree(id: Vector3i, tr: Array, gen: int) -> void:
 				pts.append([Vector3(-cos(a) * trr * 0.8, y + 1.2, -sin(a) * trr * 0.8), fw * 0.8])
 		if t == 9:
 			var yaw: float = tr[4]
-			for br in Props.FOREST_BRANCHES:
+			for br in LazyFx.g("Props").FOREST_BRANCHES:
 				if pts.size() >= 13:
 					break
 				var a2 = deg_to_rad(br[1]) + yaw
 				var L: float = br[2]
-				var tip = Vector3(sin(a2), 0, cos(a2)) * (Props.FOREST_TRUNK_R + L * 0.8) * s + Vector3.UP * br[0] * s
+				var tip = Vector3(sin(a2), 0, cos(a2)) * (LazyFx.g("Props").FOREST_TRUNK_R + L * 0.8) * s + Vector3.UP * br[0] * s
 				pts.append([tip, randf_range(2.2, 3.0)])
 		var nc = 3 if t in [5, 9] else 3
 		for k in nc:
@@ -949,7 +949,7 @@ func _process(dt: float) -> void:
 	if Game.world == null:
 		return
 	_drain()
-	VillageRuin.tick(dt, self)   # köy saldırısından kalan kalıcı yıkıntı bölgeleri
+	LazyFx.g("VillageRuin").tick(dt, self)   # köy saldırısından kalan kalıcı yıkıntı bölgeleri
 	if _recent.size() > 256:
 		_recent.clear()
 	# yangınlar: ağaç/ev kararır, süre bitince kömür / yıkım; ağaçtan ağaca sınırlı yayılım
@@ -1146,7 +1146,7 @@ func _tint_mat(c: Color) -> ShaderMaterial:
 	var k = c.to_html()
 	if _mats.has(k):
 		return _mats[k]
-	var m: ShaderMaterial = Props.toon().duplicate()
+	var m: ShaderMaterial = LazyFx.g("Props").toon().duplicate()
 	m.set_shader_parameter("tint", c)
 	_mats[k] = m
 	if _mats.size() > 64:
@@ -1186,7 +1186,7 @@ func _char_mesh(t: int) -> ArrayMesh:
 		for i in 3:
 			var y2 = th * (0.2 + i * 0.22)
 			b.add("sphere", Vector3(tr * 0.48, y2, 0).rotated(Vector3.UP, i * 2.1), Vector3(tr * 0.12, tr * 0.5, tr * 0.12), ember, Vector3.ZERO, 4)
-	var m = b.build(Props.toon())
+	var m = b.build(LazyFx.g("Props").toon())
 	_char_meshes[t] = m
 	return m
 
@@ -1203,7 +1203,7 @@ func _stump() -> ArrayMesh:
 		var a = i * TAU / 5.0
 		b.add("cone", Vector3(cos(a) * 0.55, 1.15, sin(a) * 0.55), Vector3(0.6, 0.5 + (i % 3) * 0.2, 0.6), wood, Vector3.ZERO, 4)
 	b.add("cyl", Vector3(0, 1.0, 0), Vector3(1.85, 0.06, 1.85), wood, Vector3.ZERO, 8)
-	_stump_mesh = b.build(Props.toon())
+	_stump_mesh = b.build(LazyFx.g("Props").toon())
 	return _stump_mesh
 
 
@@ -1239,7 +1239,7 @@ func _rubble_wd(w: float, d: float, wall: Color, roof: Color) -> ArrayMesh:
 		b.add("box", Vector3(u2.x, L * 0.3, u2.y), Vector3(0.28, L, 0.28), wood, Vector3(rng.randf_range(-55, 55), rng.randf() * 360.0, rng.randf_range(-20, 20)), 4)
 	# taban: düşük toprak/moloz tümseği
 	b.add_grad("sphere", Vector3(0, 0.0, 0), Vector3(w * 1.05, 1.6, d * 1.05), wall.darkened(0.15), Color(0.5, 0.44, 0.36), Vector3.ZERO, 8)
-	var m = b.build(Props.toon())
+	var m = b.build(LazyFx.g("Props").toon())
 	_rubble_meshes[key] = m
 	return m
 

@@ -43,12 +43,12 @@ static func _is_player(who: Node3D) -> bool:
 ## Kişi ağırlık kuşanıyor mu (çıkarmış olsa da)
 static func has_set(who: Node3D) -> bool:
 	if _is_player(who):
-		var gs: Dictionary = Gear.equipped(Game.profile, "set")
-		return not gs.is_empty() and bool(Gear.item(String(gs["id"])).get("agirlik", false))
+		var gs: Dictionary = LazyFx.g("Gear").equipped(Game.profile, "set")
+		return not gs.is_empty() and bool(LazyFx.g("Gear").item(String(gs["id"])).get("agirlik", false))
 	var lk = who.get("look")
 	if not (lk is Dictionary):
 		return false
-	return lk.get("leg_warmers") is Color or bool(Gear.item(str(lk.get("set_id", ""))).get("agirlik", false))   # elle modellenmiş Gōken: tozluk kıyafetin içinde
+	return lk.get("leg_warmers") is Color or bool(LazyFx.g("Gear").item(str(lk.get("set_id", ""))).get("agirlik", false))   # elle modellenmiş Gōken: tozluk kıyafetin içinde
 
 
 static func is_off(who: Node3D) -> bool:
@@ -135,7 +135,7 @@ static func _plate_mesh() -> ArrayMesh:
 			_stroke(b, o, sz, s, ink)
 		for s in GLYPH_SHO:
 			_stroke(b, o + Vector2(0.074, 0.0), sz, s, ink)
-	var m = b.build(Props.toon())
+	var m = b.build(LazyFx.g("Props").toon())
 	_c["mesh:plate"] = m
 	return m
 

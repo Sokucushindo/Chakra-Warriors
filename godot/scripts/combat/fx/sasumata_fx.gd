@@ -58,7 +58,7 @@ static func model(b: MB) -> void:
 	b.add("sphere", Vector3(0, 0, 1.34), Vector3(0.1, 0.075, 0.12), iron, Vector3.ZERO, 8)
 	for sx in [-1.0, 1.0]:
 		var pts = [Vector3(0, 0, 1.32), Vector3(0.1 * sx, 0, 1.43), Vector3(0.215 * sx, 0, 1.58), Vector3(0.225 * sx, 0, 1.76), Vector3(0.15 * sx, 0, 1.9)]
-		Loft.tube(b, pts, [0.044, 0.04, 0.034, 0.026, 0.012], iron, 7, 3)
+		LazyFx.g("Loft").tube(b, pts, [0.044, 0.04, 0.034, 0.026, 0.012], iron, 7, 3)
 		for j in 4:   # kol dikenleri: dış ve iç yüz
 			var u = (j + 0.6) / 4.0
 			var p = _curve(pts, u)

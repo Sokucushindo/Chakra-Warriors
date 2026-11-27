@@ -124,13 +124,13 @@ class TravelGroup extends Node3D:
 		lk["top2"] = Color(lk["top"]).darkened(0.2)
 		# yol kalabalığı: hacılar keşiş, ninja kafilesi köy üniforması, kervan tüccar/gezgin/çiftçi kıyafeti
 		var oa: String = {"hacı": "monk", "ninja": "chunin"}.get(kind, ["traveler", "merchant", "farmer", "traveler"][i % 4])
-		lk.merge(Outfits.roll(oa, Outfits.village_near()), true)
+		lk.merge(LazyFx.g("Outfits").roll(oa, LazyFx.g("Outfits").village_near()), true)
 		lk["npc"] = true   # saç tutamı donması önlemi (köylülerle aynı)
 		lk["npc_strict"] = true
 		return lk
 
 	func _add_ox_cart() -> void:
-		var od: Dictionary = TownAnimals.ox()   # detaylı yük öküzü (boynuz, hörgüç, boyunduruk, sırt örtüsü)
+		var od: Dictionary = LazyFx.g("TownAnimals").ox()   # detaylı yük öküzü (boynuz, hörgüç, boyunduruk, sırt örtüsü)
 		var ox: Node3D = od["root"]
 		ox.set_meta("legs", od["legs"])
 		add_child(ox)
@@ -144,7 +144,7 @@ class TravelGroup extends Node3D:
 		for sx in [-1.0, 1.0]:
 			cb.add("cyl", Vector3(1.05 * sx, 0.7, 0), Vector3(1.4, 0.15, 1.4), wood.darkened(0.3), Vector3(0, 0, 90), 10)
 		cb.add("box", Vector3(0, 0.95, -2.3), Vector3(0.12, 0.12, 1.8), wood)
-		cart.mesh = cb.build(Props.toon())
+		cart.mesh = cb.build(LazyFx.g("Props").toon())
 		add_child(cart)
 		members.append([cart, 3.6, 0.0, false])
 

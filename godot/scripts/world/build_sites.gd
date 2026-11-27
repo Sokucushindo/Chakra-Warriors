@@ -14,13 +14,13 @@ static var _fx_done := {}          # şelale/buhar gibi kalıcı efektler bir ke
 static func build_all(parent: Node3D) -> void:
 	for v in Game.world_info["villages"]:
 		if v["id"] == "konoha":
-			BuildKonoha.register_clears(v)   # sur dışı göller: ağaç çıkmasın (önbellekten yüklense de)
-			if VillageBake.try_load(parent, "konoha") == null:
-				var snap = VillageBake.snapshot("konoha")
-				BuildKonoha.build(parent, v)
+			LazyFx.g("BuildKonoha").register_clears(v)   # sur dışı göller: ağaç çıkmasın (önbellekten yüklense de)
+			if LazyFx.g("VillageBake").try_load(parent, "konoha") == null:
+				var snap = LazyFx.g("VillageBake").snapshot("konoha")
+				LazyFx.g("BuildKonoha").build(parent, v)
 				while Builder.dressing > 0:   # peyzaj (ara arsa evleri vb.) bitmeden pişirme yok: yarım köy kaydediliyordu
 					await Engine.get_main_loop().process_frame
-				VillageBake.save(parent.get_node_or_null("Konoha"), "konoha", snap)
+				LazyFx.g("VillageBake").save(parent.get_node_or_null("Konoha"), "konoha", snap)
 	for l in Game.world_info["landmarks"]:
 		match l["id"]:
 			"valley_end": valley_end(parent, l)
@@ -48,12 +48,12 @@ class VillageStream extends Node3D:
 	func _build(node: Node3D, v: Dictionary, rec: Dictionary) -> void:
 		var id = String(v["id"])
 		var before = Interact.items.size()
-		var cached = VillageBake.try_load(node, id)
+		var cached = LazyFx.g("VillageBake").try_load(node, id)
 		if cached != null:
 			rec["inter"] = Interact.items.slice(before)
 			rec["done"] = true
 			return
-		var snap = VillageBake.snapshot(id)
+		var snap = LazyFx.g("VillageBake").snapshot(id)
 		await BuildSites.build_village(node, v, rec)
 		while Builder.dressing > 0 and is_instance_valid(node):   # peyzaj (ara arsa evleri, ağaçlar, sokaklar) bitmeden pişirme: yarım köy kaydediliyordu
 			await Engine.get_main_loop().process_frame
@@ -64,8 +64,8 @@ class VillageStream extends Node3D:
 			for ch in node.get_children():
 				ch.reparent(bake_root, false)
 			node.add_child(bake_root)
-			VillageBake.split_bodies(bake_root)
-			VillageBake.save(bake_root, id, snap)
+			LazyFx.g("VillageBake").split_bodies(bake_root)
+			LazyFx.g("VillageBake").save(bake_root, id, snap)
 		rec["done"] = true
 
 	## Hızlı seyahat: hedef köyü hemen kurmaya başla (yükleme ekranı bunu bekler)
@@ -193,7 +193,7 @@ static func _gates(parent: Node3D, v: Dictionary) -> void:
 		var side = Vector2(cos(ar), -sin(ar))
 		for sx in [-1.0, 1.0]:
 			var gp = out * (r - 9.0) + side * 17.0 * sx
-			KageHall._site(String(v["id"]), {"type": "guard", "pos": KageHall._gp(b, gp.x, gp.y), "face": atan2(-out.x, out.y)})
+			LazyFx.g("KageHall")._site(String(v["id"]), {"type": "guard", "pos": LazyFx.g("KageHall")._gp(b, gp.x, gp.y), "face": atan2(-out.x, out.y)})
 	b.finish()
 
 
@@ -529,7 +529,7 @@ static func suna(parent: Node3D, v: Dictionary) -> void:
 			if absf(wrapf(wa - 180.0, -180.0, 180.0)) < 16.0 and f > -0.1 and f < 0.4:
 				continue   # armanın önü boş
 			var o = Builder.rot(0, ry + 1.3, wa)
-			b.box(Vector3(o.x, by + 3.0, o.y), Vector3(2.6, 3.2, 0.4), VillageStyles.DARK, wa, false)
+			b.box(Vector3(o.x, by + 3.0, o.y), Vector3(2.6, 3.2, 0.4), LazyFx.g("VillageStyles").DARK, wa, false)
 	for sx in [-1.0, 1.0]:
 		b.cyl(Vector3(sx * 9.0, 101, 4.0), 6.0, 4.0, sand.darkened(0.04), false, 14)
 		b.dome(Vector3(sx * 9.0, 103, 4.0), 6.0, 2.0, sand, 12)
@@ -537,7 +537,7 @@ static func suna(parent: Node3D, v: Dictionary) -> void:
 	b.disc(Vector3(0, 56, -57.8), 26, 0.6, Color(0.82, 0.8, 0.74), 0, 28)
 	b.kanji(Vector3(0, 56, -58.3), "風", 19.0, Color(0.5, 0.16, 0.1), 0)
 	b.box(Vector3(16.0, 56, -55.2), Vector3(2.2, 14.0, 1.0), sand.darkened(0.16), 0, false)
-	b.box(Vector3(0, 3.5, -58), Vector3(12, 7, 6), VillageStyles.DARK, 0, false)
+	b.box(Vector3(0, 3.5, -58), Vector3(12, 7, 6), LazyFx.g("VillageStyles").DARK, 0, false)
 	# giriş revakı: kubbeli kemer, iki sütun, yeşil perde
 	for sx in [-1.0, 1.0]:
 		b.cyl(Vector3(sx * 8.0, 10.0, -62.0), 2.4, 12.0, sand.lightened(0.06), true, 12)
@@ -546,8 +546,8 @@ static func suna(parent: Node3D, v: Dictionary) -> void:
 	b.dome(Vector3(0, 18.6, -60.0), 12.0, 4.0, sand.lightened(0.1), 20)
 	b.box(Vector3(0, 9.0, -58.6), Vector3(9.0, 9.0, 0.3), Color(0.16, 0.45, 0.38), 0, false)
 	b.kanji(Vector3(0, 10.5, -58.9), "風影", 2.4, Color(0.98, 0.95, 0.88), 0)
-	KageHall.door(b, 0, -62.0, 4.0, "suna", "[F] Gir: Kazekage Ofisi (Kazekage ile görüş, görevler)", 6.0)
-	KageHall.plaza(b, {"vid": "suna", "front": -70.0, "hw": 34.0, "depth": 48.0, "climate": "desert", "stone": Color(0.86, 0.74, 0.56),
+	LazyFx.g("KageHall").door(b, 0, -62.0, 4.0, "suna", "[F] Gir: Kazekage Ofisi (Kazekage ile görüş, görevler)", 6.0)
+	LazyFx.g("KageHall").plaza(b, {"vid": "suna", "front": -70.0, "hw": 34.0, "depth": 48.0, "climate": "desert", "stone": Color(0.86, 0.74, 0.56),
 		"trim": Color(0.66, 0.52, 0.36), "acc": Color(0.16, 0.45, 0.38), "gate": Color(0.62, 0.48, 0.32), "kanji": "風",
 		"terrace_h": 4.0, "terrace_w": 24.0, "terrace_d": 0.6})
 	await _yield()
@@ -564,7 +564,7 @@ static func suna(parent: Node3D, v: Dictionary) -> void:
 			for j in 8:
 				var aa = 360.0 * j / 8.0 + f * 22.0
 				var oo = Builder.rot(0, 19.1, aa)
-				b.disc(Vector3(o.x + oo.x, 6 + f * 9, o.y + oo.y), 2.0, 0.3, VillageStyles.DARK, aa + 180.0, 10)
+				b.disc(Vector3(o.x + oo.x, 6 + f * 9, o.y + oo.y), 2.0, 0.3, LazyFx.g("VillageStyles").DARK, aa + 180.0, 10)
 		towers.append(Vector3(o.x, h * 0.6, o.y))
 	for k in 10:
 		var p0: Vector3 = towers[k]
@@ -589,7 +589,7 @@ static func suna(parent: Node3D, v: Dictionary) -> void:
 		b.box(Vector3(o.x, 3.4, o.y), Vector3(6, 0.15, 4), aw, a, false, Vector3(-10, 0, 0))
 		for sx in [-1.0, 1.0]:
 			var po = Builder.rot(2.6 * sx, 0, a)
-			b.box(Vector3(o.x + po.x, 1.7, o.y + po.y), Vector3(0.15, 3.4, 0.15), VillageStyles.WOOD, a, false)
+			b.box(Vector3(o.x + po.x, 1.7, o.y + po.y), Vector3(0.15, 3.4, 0.15), LazyFx.g("VillageStyles").WOOD, a, false)
 	b.interact(Vector3(0, 0, 95), 6, "shop_items", "[F] Suna Pazarı")
 	# kum yığıntıları (duvar diplerinde, sokaklarda)
 	for k in 70:
@@ -617,10 +617,10 @@ static func _kage_garden(b: Builder, vid: String, wall: Vector2, face: float, do
 static func _site_clear(v: Dictionary) -> Array:
 	# önemli yapıların her biri için boş alan: [[x, n, yarıçap], ...] köy merkezine göre
 	var out = []
-	var sites: Dictionary = BuildVillageStory._sites(v)
+	var sites: Dictionary = LazyFx.g("BuildVillageStory")._sites(v)
 	for k in sites:
 		var s: Vector2 = sites[k]
-		out.append([s.x - float(v["x"]), s.y - float(v["y"]), float(BuildVillageStory.CLEAR.get(k, 40.0))])
+		out.append([s.x - float(v["x"]), s.y - float(v["y"]), float(LazyFx.g("BuildVillageStory").CLEAR.get(k, 40.0))])
 	return out
 
 
@@ -641,7 +641,7 @@ static func _streets(b: Builder, v: Dictionary, style: String, rng: RandomNumber
 				var g = b._ground_off(o.x, o.y, 1.0).x
 				match int(d / 40.0) % 3:
 					0:
-						BuildFeatures._build(b, {"t": "lantern", "x": o.x, "y": o.y, "g": g, "yaw": a}, rng)
+						LazyFx.g("BuildFeatures")._build(b, {"t": "lantern", "x": o.x, "y": o.y, "g": g, "yaw": a}, rng)
 					1:
 						if style == "suna" or style == "ame":
 							b.cyl(Vector3(o.x, g + 2.5, o.y), 0.25, 5.0, Color(0.35, 0.3, 0.25), false, 6)
@@ -696,7 +696,7 @@ static func kiri(parent: Node3D, v: Dictionary) -> void:
 	var r = float(v["r"])
 	await _crag_ring(b, r * 0.97, 70, 130, 90, Color(0.5, 0.56, 0.58), v.get("gates", []), rng, 4.0, 5.0)
 	# kuzeyde göl + iskeleler
-	VillageStyles.water(b, Vector3(0, -0.4, r * 0.55), Vector2(r * 1.5, r * 0.7))
+	LazyFx.g("VillageStyles").water(b, Vector3(0, -0.4, r * 0.55), Vector2(r * 1.5, r * 0.7))
 	for k in 9:
 		var x = -r * 0.55 + k * r * 0.14
 		b.box(Vector3(x, 0.4, r * 0.24), Vector3(5, 0.5, 70), Color(0.42, 0.33, 0.24), 0)
@@ -752,8 +752,8 @@ static func kiri(parent: Node3D, v: Dictionary) -> void:
 	b.disc(Vector3(0, 8.2, -48.5), 16.6, 4.2, Color(0.12, 0.1, 0.11), 0, 24)
 	b.box(Vector3(0, -1.0, -47.2), Vector3(18.4, 2.0, 6.6), Color(0.62, 0.6, 0.58), 0, false)   # kemer altı yolu (yarım diskin alt yarısını gizler)
 	b.kanji(Vector3(0, 19.2, -50.3), "水影", 1.6, Color(0.95, 0.97, 1.0), 0)
-	KageHall.door(b, 0, -50.0, 0.6, "kiri", "[F] Gir: Mizukage Ofisi (Mizukage ile görüş, görevler)", 6.0)
-	KageHall.plaza(b, {"vid": "kiri", "front": -52.0, "hw": 36.0, "depth": 34.0, "climate": "mist", "stone": Color(0.68, 0.72, 0.74),
+	LazyFx.g("KageHall").door(b, 0, -50.0, 0.6, "kiri", "[F] Gir: Mizukage Ofisi (Mizukage ile görüş, görevler)", 6.0)
+	LazyFx.g("KageHall").plaza(b, {"vid": "kiri", "front": -52.0, "hw": 36.0, "depth": 34.0, "climate": "mist", "stone": Color(0.68, 0.72, 0.74),
 		"trim": Color(0.46, 0.5, 0.54), "acc": Color(0.18, 0.38, 0.72), "gate": Color(0.3, 0.36, 0.42), "kanji": "水", "terrace_h": 0.6, "terrace_w": 20.0, "terrace_d": 3.0})
 	# köyü saran sisli sivri dağ sırası (ref: arka planda sıra sıra sivri zirveler)
 	var peaks_mist = []
@@ -767,7 +767,7 @@ static func kiri(parent: Node3D, v: Dictionary) -> void:
 		for j in 3:
 			var mo = Builder.rot(rng.randf_range(-pd, pd) * 0.5, prr - pd * 0.4, pa)
 			peaks_mist.append(Vector3(mo.x, ph * rng.randf_range(0.2, 0.45), mo.y))
-	VillageStyles.mist_points(b, peaks_mist, 90.0, rng, 0.55)
+	LazyFx.g("VillageStyles").mist_points(b, peaks_mist, 90.0, rng, 0.55)
 	await _yield()
 	# yüksek boru kuleleri
 	for k in 16:
@@ -777,15 +777,15 @@ static func kiri(parent: Node3D, v: Dictionary) -> void:
 		var pn = rr * cos(a)
 		if pn > r * 0.2:
 			continue
-		VillageStyles.kiri_house(b, px, pn, rng.randf_range(14, 22), 14, rng.randi_range(5, 10), rng.randf() * 360.0, rng)
+		LazyFx.g("VillageStyles").kiri_house(b, px, pn, rng.randf_range(14, 22), 14, rng.randi_range(5, 10), rng.randf() * 360.0, rng)
 	# kanallar (radyal) + küçük köprüler
 	for k in 6:
 		var a = k * 60.0 + 30.0
 		var o = Builder.rot(0, r * 0.4, a)
-		VillageStyles.water(b, Vector3(o.x, 0.15, o.y), Vector2(7, r * 0.6), a)
+		LazyFx.g("VillageStyles").water(b, Vector3(o.x, 0.15, o.y), Vector2(7, r * 0.6), a)
 		var bo = Builder.rot(0, r * 0.3, a)
-		b.box(Vector3(bo.x, 0.8, bo.y), Vector3(10, 0.5, 4), VillageStyles.WOOD, a + 90.0)
-	VillageStyles.mist(b, 90, 0, r * 0.95, 3, 28, 40, rng, 0.3)
+		b.box(Vector3(bo.x, 0.8, bo.y), Vector3(10, 0.5, 4), LazyFx.g("VillageStyles").WOOD, a + 90.0)
+	LazyFx.g("VillageStyles").mist(b, 90, 0, r * 0.95, 3, 28, 40, rng, 0.3)
 	await _fill(b, r * 0.85, 60, 26, "kiri", rng, [[0, r * 0.55, r * 0.4], [0, -70, 40]] + _site_clear(v), 1600)
 	await _streets(b, v, "kiri", rng)
 	_kage_garden(b, "kiri", Builder.rot(0, 45.0, 20.0), 20.0, false)
@@ -858,7 +858,7 @@ static func kumo(parent: Node3D, v: Dictionary) -> void:
 			var hd = top_r * rng.randf_range(0.55, 0.8)
 			var yo = b.yoff
 			b.yoff = h + 0.4
-			VillageStyles.kumo_house(b, px + jo.x, pn + jo.y, hd, hd, rng.randi_range(2, 5), ja, rng)
+			LazyFx.g("VillageStyles").kumo_house(b, px + jo.x, pn + jo.y, hd, hd, rng.randi_range(2, 5), ja, rng)
 			b.yoff = yo
 		# yamaca tutunan ev (konsol platform + payandalar)
 		if k % 2 == 0:
@@ -869,10 +869,10 @@ static func kumo(parent: Node3D, v: Dictionary) -> void:
 			b.cyl(Vector3(px + so.x, sy, pn + so.y), 14, 1.2, Color(0.75, 0.75, 0.72), true, 12)
 			for sx in [-1.0, 1.0]:
 				var po = Builder.rot(4.0 * sx, sr - 4.0, sa)
-				b.box(Vector3(px + po.x, sy - 4, pn + po.y), Vector3(0.6, 8, 0.6), VillageStyles.WOOD, sa, false, Vector3(30, 0, 0))
+				b.box(Vector3(px + po.x, sy - 4, pn + po.y), Vector3(0.6, 8, 0.6), LazyFx.g("VillageStyles").WOOD, sa, false, Vector3(30, 0, 0))
 			var yo2 = b.yoff
 			b.yoff = sy + 0.6
-			VillageStyles.kumo_house(b, px + so.x, pn + so.y, 9, 9, 2, sa, rng)
+			LazyFx.g("VillageStyles").kumo_house(b, px + so.x, pn + so.y, 9, 9, 2, sa, rng)
 			b.yoff = yo2
 		pillars.append([px, pn, d, h])
 		if k % 4 == 3:
@@ -890,7 +890,7 @@ static func kumo(parent: Node3D, v: Dictionary) -> void:
 				var dir = Vector3(p1[0] - p0[0], 0, p1[1] - p0[1]).normalized()
 				var a0 = Vector3(p0[0], y, p0[1]) + dir * (p0[2] * 0.3)
 				var a1 = Vector3(p1[0], y, p1[1]) - dir * (p1[2] * 0.3)
-				VillageStyles.rope_bridge(b, a0, a1, 3.0, 4.0)
+				LazyFx.g("VillageStyles").rope_bridge(b, a0, a1, 3.0, 4.0)
 				break
 	await _yield()
 	# Raikage kulesi: en yüksek sütun, çevresinde sarmal merdiven, tepede beyaz kule + "雷"
@@ -940,19 +940,19 @@ static func kumo(parent: Node3D, v: Dictionary) -> void:
 	# ampulün dibinde platforma açılan kapı (yukarı tırmanan da Raikage ofisine girebilsin)
 	b.box(Vector3(0, 265.0, -17.6), Vector3(5.0, 6.0, 1.2), Color(0.12, 0.16, 0.22), 0, false)
 	b.box(Vector3(0, 268.4, -17.9), Vector3(6.2, 0.8, 1.4), yel, 0, false)
-	KageHall.door(b, 0, -22.0, 261.5, "kumo", "[F] Gir: Raikage Ofisi (Raikage ile görüş, görevler)", 6.0)
+	LazyFx.g("KageHall").door(b, 0, -22.0, 261.5, "kumo", "[F] Gir: Raikage Ofisi (Raikage ile görüş, görevler)", 6.0)
 	# kaya dibinde oyma giriş: beyaz revak, mavi saçak, sarı perde
 	b.box(Vector3(0, 6.0, -58.0), Vector3(16.0, 12.0, 8.0), Color(0.9, 0.9, 0.88))
 	b.box(Vector3(0, 12.4, -58.5), Vector3(18.0, 0.8, 9.0), Color(0.22, 0.45, 0.72), 0, false)
 	b.box(Vector3(0, 4.0, -62.1), Vector3(7.0, 8.0, 0.3), Color(0.15, 0.15, 0.18), 0, false)
 	b.box(Vector3(0, 7.2, -62.3), Vector3(7.4, 1.4, 0.1), Color(0.92, 0.74, 0.14), 0, false)
 	b.kanji(Vector3(0, 9.9, -62.4), "雷影", 1.7, Color(0.2, 0.4, 0.66), 0)
-	KageHall.door(b, 0, -64.0, 0.0, "kumo", "[F] Gir: Raikage Ofisi (Raikage ile görüş, görevler)", 6.0)
-	KageHall.plaza(b, {"vid": "kumo", "front": -62.4, "hw": 34.0, "depth": 30.0, "climate": "cloud", "stone": Color(0.82, 0.82, 0.8),
+	LazyFx.g("KageHall").door(b, 0, -64.0, 0.0, "kumo", "[F] Gir: Raikage Ofisi (Raikage ile görüş, görevler)", 6.0)
+	LazyFx.g("KageHall").plaza(b, {"vid": "kumo", "front": -62.4, "hw": 34.0, "depth": 30.0, "climate": "cloud", "stone": Color(0.82, 0.82, 0.8),
 		"trim": Color(0.55, 0.56, 0.6), "acc": Color(0.2, 0.42, 0.7), "gate": Color(0.92, 0.92, 0.9), "kanji": "雷", "terrace_h": 0.0})
 	# bulutlar sütunlar arasında
-	VillageStyles.mist(b, 70, 40, r * 0.9, 60, 200, 70, rng, 0.42)
-	VillageStyles.mist_points(b, mist_pts, 46.0, rng, 0.6)
+	LazyFx.g("VillageStyles").mist(b, 70, 40, r * 0.9, 60, 200, 70, rng, 0.42)
+	LazyFx.g("VillageStyles").mist_points(b, mist_pts, 46.0, rng, 0.6)
 	if not _fx_done.has("kumo_falls"):
 		_fx_done["kumo_falls"] = true
 		for k in 2:
@@ -989,7 +989,7 @@ static func iwa(parent: Node3D, v: Dictionary) -> void:
 			for j in 3:
 				var wa = rng.randf() * 360.0
 				var o = Builder.rot(0, rad_here, wa)
-				b.box(Vector3(px + o.x, y, pn + o.y), Vector3(2.4, 3.2, 1.0), VillageStyles.DARK, wa, false)
+				b.box(Vector3(px + o.x, y, pn + o.y), Vector3(2.4, 3.2, 1.0), LazyFx.g("VillageStyles").DARK, wa, false)
 				if j == 0:
 					var bo = Builder.rot(0, rad_here + 1.5, wa)
 					b.box(Vector3(px + bo.x, y - 1.8, pn + bo.y), Vector3(5, 0.5, 3), c.darkened(0.2), wa)
@@ -1002,7 +1002,7 @@ static func iwa(parent: Node3D, v: Dictionary) -> void:
 			var jo = Builder.rot(0, tr * 0.45 * j / 2.0, ja)
 			var yo = b.yoff
 			b.yoff = h + 0.4
-			VillageStyles.iwa_house(b, px + jo.x, pn + jo.y, tr * 0.7, tr * 0.6, rng.randi_range(1, 3), ja, rng)
+			LazyFx.g("VillageStyles").iwa_house(b, px + jo.x, pn + jo.y, tr * 0.7, tr * 0.6, rng.randi_range(1, 3), ja, rng)
 			b.yoff = yo
 		towers.append([px, pn, h, d])
 		if k % 5 == 4:
@@ -1017,7 +1017,7 @@ static func iwa(parent: Node3D, v: Dictionary) -> void:
 			if L < 160 and L > 50:
 				var y = minf(t0[2], t1[2]) * 0.6
 				var dir = Vector3(t1[0] - t0[0], 0, t1[1] - t0[1]).normalized()
-				VillageStyles.rope_bridge(b, Vector3(t0[0], y, t0[1]) + dir * t0[3] * 0.32, Vector3(t1[0], y, t1[1]) - dir * t1[3] * 0.32, 3.0, 3.5)
+				LazyFx.g("VillageStyles").rope_bridge(b, Vector3(t0[0], y, t0[1]) + dir * t0[3] * 0.32, Vector3(t1[0], y, t1[1]) - dir * t1[3] * 0.32, 3.0, 3.5)
 				break
 	await _yield()
 	# Tsuchikage kulesi (ref): alçak kaya tepesi üstünde kat kat taş davul gövde, pencere kuşakları, basamaklı halka koni çatı,
@@ -1037,7 +1037,7 @@ static func iwa(parent: Node3D, v: Dictionary) -> void:
 			for k in cnt:
 				var wa = 360.0 * k / cnt + f * 9.0
 				var o = Builder.rot(0, td * 0.5 + 0.1, wa)
-				b.box(Vector3(o.x, ty + 5.0 + f * 8.0, o.y), Vector3(2.0, 3.0, 0.3), VillageStyles.DARK, wa, false)
+				b.box(Vector3(o.x, ty + 5.0 + f * 8.0, o.y), Vector3(2.0, 3.0, 0.3), LazyFx.g("VillageStyles").DARK, wa, false)
 		ty += th + 1.4
 	var cy = ty
 	for k in 7:   # basamaklı halka koni çatı
@@ -1071,10 +1071,10 @@ static func iwa(parent: Node3D, v: Dictionary) -> void:
 			_fx_done["iwa_fall_%d" % k] = true
 			var fo = Builder.rot(0, prr - pd * 0.42, pa)
 			Waterfalls.add(b.w(Vector3(fo.x, 0, fo.y)), ph * 0.55, 10.0, pa + 180.0)
-	VillageStyles.mist_points(b, wall_mist, 80.0, rng, 0.5)
-	b.box(Vector3(0, 54.5, -30.4), Vector3(8, 9, 1.0), VillageStyles.DARK, 0, false)   # kule kapısı
+	LazyFx.g("VillageStyles").mist_points(b, wall_mist, 80.0, rng, 0.5)
+	b.box(Vector3(0, 54.5, -30.4), Vector3(8, 9, 1.0), LazyFx.g("VillageStyles").DARK, 0, false)   # kule kapısı
 	b.box(Vector3(0, 49.5, -36.0), Vector3(16.0, 1.0, 10.0), stone.darkened(0.12))   # kule kapısı önünde taş sahanlık (yamaçtan kayılmasın)
-	KageHall.door(b, 0, -34.0, 50.0, "iwa", "[F] Gir: Tsuchikage Ofisi (Tsuchikage ile görüş, görevler)", 6.0)
+	LazyFx.g("KageHall").door(b, 0, -34.0, 50.0, "iwa", "[F] Gir: Tsuchikage Ofisi (Tsuchikage ile görüş, görevler)", 6.0)
 	# taş kapı: kalın sütunlar, kırmızı katlı saçak, kanji
 	for sx in [-1.0, 1.0]:
 		b.box(Vector3(sx * 9.0, 6.0, -68.0), Vector3(3.6, 12.0, 3.6), stone.darkened(0.12))
@@ -1083,8 +1083,8 @@ static func iwa(parent: Node3D, v: Dictionary) -> void:
 	b.roof(Vector3(0, 14.4, -68.0), Vector3(27.0, 3.0, 7.0), red)
 	b.box(Vector3(0, 10.4, -70.6), Vector3(5.0, 2.2, 0.3), Color(0.9, 0.84, 0.72), 0, false)
 	b.kanji(Vector3(0, 10.4, -70.8), "土影", 1.7, Color(0.42, 0.18, 0.12), 0)
-	KageHall.door(b, 0, -68.0, 0.0, "iwa", "[F] Gir: Tsuchikage Ofisi (Tsuchikage ile görüş, görevler)", 6.0)
-	KageHall.plaza(b, {"vid": "iwa", "front": -71.0, "hw": 36.0, "depth": 32.0, "climate": "rock", "stone": Color(0.62, 0.52, 0.42),
+	LazyFx.g("KageHall").door(b, 0, -68.0, 0.0, "iwa", "[F] Gir: Tsuchikage Ofisi (Tsuchikage ile görüş, görevler)", 6.0)
+	LazyFx.g("KageHall").plaza(b, {"vid": "iwa", "front": -71.0, "hw": 36.0, "depth": 32.0, "climate": "rock", "stone": Color(0.62, 0.52, 0.42),
 		"trim": Color(0.44, 0.34, 0.26), "acc": Color(0.58, 0.24, 0.17), "gate": Color(0.5, 0.4, 0.32), "kanji": "土", "terrace_h": 0.0})
 	await _fill(b, r * 0.85, 110, 30, "iwa", rng, [[0, -96, 34]] + _site_clear(v), 1400)
 	await _streets(b, v, "iwa", rng)
@@ -1099,7 +1099,7 @@ static func ame(parent: Node3D, v: Dictionary) -> void:
 	var rng = _rng(6)
 	var metal = Color(0.36, 0.38, 0.41)
 	var r = float(v["r"])
-	VillageStyles.water(b, Vector3(0, 0.45, 0), Vector2(r * 1.85, r * 1.85))
+	LazyFx.g("VillageStyles").water(b, Vector3(0, 0.45, 0), Vector2(r * 1.85, r * 1.85))
 	# merkez kule: basamaklı gövde, borular, tepede dikenli antenler, cephede yüz
 	b.box(Vector3(0, 110, 0), Vector3(60, 220, 60), metal.darkened(0.12))
 	b.box(Vector3(0, 250, 0), Vector3(46, 60, 46), metal.darkened(0.08))
@@ -1290,7 +1290,7 @@ static func taki(parent: Node3D, v: Dictionary) -> void:
 	b.view_dist = 6000.0
 	var rng = _rng(9)
 	var r = float(v["r"])
-	VillageStyles.water(b, Vector3(0, -0.5, 0), Vector2(420, 420))
+	LazyFx.g("VillageStyles").water(b, Vector3(0, -0.5, 0), Vector2(420, 420))
 	var bark = Color(0.42, 0.29, 0.19)
 	# gövde: pürüzlü kabuk sütunu + kök payandaları
 	b.crag(Vector3(0, -6, 0), 80, 256, bark, 5, true, 0)
@@ -1330,18 +1330,18 @@ static func taki(parent: Node3D, v: Dictionary) -> void:
 			_fx_done["taki_%d" % k] = true
 			var fo = Builder.rot(0, r * 0.8 - 62, a)
 			Waterfalls.add(b.w(Vector3(fo.x, 0, fo.y)), 120.0, 40.0, a)
-	VillageStyles.mist(b, 30, 150, r * 0.8, 2, 20, 40, rng, 0.25)
+	LazyFx.g("VillageStyles").mist(b, 30, 150, r * 0.8, 2, 20, 40, rng, 0.25)
 	# ref: tacın arasından göle inen ışık huzmeleri + suyun yüzünde parıltılar
 	var shafts = []
 	for k in 22:
 		var so = Builder.rot(0, rng.randf_range(40, 170), rng.randf() * 360.0)
 		shafts.append(Vector3(so.x, rng.randf_range(80, 130), so.y))
-	VillageStyles.light_shafts(b, shafts, 210.0, 18.0, rng, Color(0.85, 1.0, 0.92, 0.22))
+	LazyFx.g("VillageStyles").light_shafts(b, shafts, 210.0, 18.0, rng, Color(0.85, 1.0, 0.92, 0.22))
 	var glints = []
 	for k in 160:
 		var go = Builder.rot(0, rng.randf_range(50, 200), rng.randf() * 360.0)
 		glints.append(Vector3(go.x, 0.3, go.y))
-	VillageStyles.mist_points(b, glints, 2.2, rng, 0.75, Color(0.8, 1.0, 0.95))
+	LazyFx.g("VillageStyles").mist_points(b, glints, 2.2, rng, 0.75, Color(0.8, 1.0, 0.95))
 	# lider evi (anime ref): ahşap iki katlı, sivri pembe-kızıl çatılı kuleler, cephede 滝 levhası, merdivenli tepe
 	var hx = -88.0
 	var hn = -232.0
@@ -1375,14 +1375,14 @@ static func yu(parent: Node3D, v: Dictionary) -> void:
 	for k in 10:
 		var a = k * 36.0
 		var o = Builder.rot(0, 110, a)
-		VillageStyles.water(b, Vector3(o.x, 0.05, o.y), Vector2(24, 24), a)
+		LazyFx.g("VillageStyles").water(b, Vector3(o.x, 0.05, o.y), Vector2(24, 24), a)
 		for j in 14:
 			var ja = j * 360.0 / 14.0
 			var jo = Builder.rot(0, 13.5, ja)
 			b.boulder(Vector3(o.x + jo.x, 0.4, o.y + jo.y), Vector3(rng.randf_range(2.5, 4.5), rng.randf_range(1.5, 2.6), rng.randf_range(2.5, 4.0)), Color(0.5, 0.48, 0.45).darkened(rng.randf() * 0.15), j, true)
 		for sx in [-1.0, 1.0]:
 			var lo = Builder.rot(16 * sx, 0, a)
-			BuildFeatures._build(b, {"t": "lantern", "x": o.x + lo.x, "y": o.y + lo.y, "g": 0.0, "yaw": a}, rng)
+			LazyFx.g("BuildFeatures")._build(b, {"t": "lantern", "x": o.x + lo.x, "y": o.y + lo.y, "g": 0.0, "yaw": a}, rng)
 		# bambu paravan
 		var so = Builder.rot(0, 17, a)
 		b.box(Vector3(o.x + so.x, 1.2, o.y + so.y), Vector3(20, 2.4, 0.3), Color(0.62, 0.55, 0.32), a)
@@ -1424,7 +1424,7 @@ static func tani(parent: Node3D, v: Dictionary) -> void:
 		for k in 30:
 			var n = -L * 0.45 + k * L * 0.9 / 30.0
 			var y = 10 + (k % 4) * 22
-			b.box(Vector3(102 * sx, y, n), Vector3(4, 8, 12), VillageStyles.DARK, 0, false)
+			b.box(Vector3(102 * sx, y, n), Vector3(4, 8, 12), LazyFx.g("VillageStyles").DARK, 0, false)
 			b.box(Vector3(99 * sx, y - 4.3, n), Vector3(9, 0.6, 16), Color(0.45, 0.33, 0.22))
 			b.box(Vector3(99 * sx, y + 4.6, n), Vector3(10, 0.4, 17), Color(0.55, 0.25, 0.18), 0, false)
 			if k % 3 == 0:
@@ -1621,7 +1621,7 @@ static func tetsu(parent: Node3D, v: Dictionary) -> void:
 		b.box(Vector3(0, y + 6, 0), Vector3(s, 12, s), white)
 		for k in int(s / 9):
 			var lx = -s * 0.5 + (k + 0.5) * s / int(s / 9)
-			b.box(Vector3(lx, y + 7, -s * 0.5 - 0.1), Vector3(2.2, 3.0, 0.3), VillageStyles.DARK, 0, false)
+			b.box(Vector3(lx, y + 7, -s * 0.5 - 0.1), Vector3(2.2, 3.0, 0.3), LazyFx.g("VillageStyles").DARK, 0, false)
 		b.roof(Vector3(0, y + 12, 0), Vector3(s + 16, 7, s + 16), roofc)
 		b.roof(Vector3(0, y + 12.4, 0), Vector3(s + 15, 6.6, s + 15), snow)
 		b.box(Vector3(0, y + 12, 0), Vector3(s + 18, 0.8, s + 18), roofc.darkened(0.2), 0, false)
@@ -1787,8 +1787,8 @@ static func _valley_look(extra: Dictionary) -> Dictionary:
 	var look = {"gender": "m", "age": "adult", "top_style": "uzun", "vest": null, "skin": Color(0.9, 0.8, 0.7), "hair": Color(0.2, 0.2, 0.2)}
 	look.merge(extra, true)
 	var fake = {"gear": [], "equip": {}, "gear_uid": 0, "look": look}
-	if Gear.grant(fake, "set_sengoku", "set") >= 0:
-		Gear.apply_look(fake)
+	if LazyFx.g("Gear").grant(fake, "set_sengoku", "set") >= 0:
+		LazyFx.g("Gear").apply_look(fake)
 	return fake["look"]
 
 

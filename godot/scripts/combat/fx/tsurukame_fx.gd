@@ -75,20 +75,20 @@ static func _build_needle() -> Mesh:
 	var b = MB.new()
 	b.add("cone", Vector3(0, 0, 0.1), Vector3(0.022, 0.3, 0.008), Color(0.84, 0.86, 0.9), Vector3(90, 0, 0), 4)
 	b.add("cone", Vector3(0, 0, -0.08), Vector3(0.018, 0.1, 0.008), Color(0.6, 0.62, 0.66), Vector3(-90, 0, 0), 4)
-	return b.build(Props.toon())
+	return b.build(LazyFx.g("Props").toon())
 
 
 static func _build_bomb() -> Mesh:
 	var b = MB.new()
 	b.add("sphere", Vector3.ZERO, Vector3(0.24, 0.24, 0.24), Color(0.1, 0.1, 0.12), Vector3.ZERO, 10)
 	b.add("cyl", Vector3(0, 0.13, 0), Vector3(0.05, 0.05, 0.05), Color(0.45, 0.35, 0.2), Vector3.ZERO, 6)
-	return b.build(Props.toon())
+	return b.build(LazyFx.g("Props").toon())
 
 
 static func _build_weight() -> Mesh:
 	var b = MB.new()
 	b.add("cyl", Vector3.ZERO, Vector3(0.09, 0.16, 0.09), Color(0.3, 0.31, 0.35), Vector3(90, 0, 0), 8)
-	return b.build(Props.toon())
+	return b.build(LazyFx.g("Props").toon())
 
 
 static func _build_link() -> Mesh:
@@ -155,7 +155,7 @@ static func _chain(who: Node3D, tg, aim: Vector3, dmg: float) -> void:
 	w.mesh = Kit.cached_mesh("tk_weight", Callable(_build_weight))
 	var link = MeshInstance3D.new()
 	link.mesh = Kit.cached_mesh("tk_link", Callable(_build_link))
-	link.material_override = Props.toon_color(Color(0.2, 0.2, 0.24), 0.3)
+	link.material_override = LazyFx.g("Props").toon_color(Color(0.2, 0.2, 0.24), 0.3)
 	link.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	link.extra_cull_margin = 20.0
 	var s = {"t": 0.0, "hit": false}

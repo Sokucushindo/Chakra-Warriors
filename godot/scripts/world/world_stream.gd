@@ -88,7 +88,7 @@ func _process(dt: float) -> void:
 		if reg != null and is_instance_valid(pq[1]) and reg["node"] == pq[1]:
 			var before := Interact.items.size()
 			var tp := Time.get_ticks_usec()
-			PoiBuilder.build(pq[1], pq[2])
+			LazyFx.g("PoiBuilder").build(pq[1], pq[2])
 			if _prof and Time.get_ticks_usec() - tp > 6000:
 				print("YER_US ", Time.get_ticks_usec() - tp, " ", str(pq[2]).left(160))
 			reg["inter"].append_array(Interact.items.slice(before))
@@ -201,11 +201,11 @@ func _build_body(k: Vector2i, with_pois: bool) -> void:
 			ff["g"] = g if f["t"] != "bridge" else 0.0
 			var before := Interact.items.size()
 			if ff["t"] == "paddy" and Game.player != null and Game.player.is_inside_tree():
-				await BuildFeatures.paddy_async(b, ff, rng)
+				await LazyFx.g("BuildFeatures").paddy_async(b, ff, rng)
 				if not is_instance_valid(node) or regions.get(k) != reg:
 					return
 			else:
-				BuildFeatures._build(b, ff, rng)
+				LazyFx.g("BuildFeatures")._build(b, ff, rng)
 			reg["inter"].append_array(Interact.items.slice(before))   # her yapının etkileşimleri ayrı (aradaki karelerde başkaları da ekler)
 			if Game.player != null and Game.player.is_inside_tree() and BuildSites.frame_busy():   # ortak kare bütçesi (yükleme ekranında beklemez)
 				await get_tree().process_frame

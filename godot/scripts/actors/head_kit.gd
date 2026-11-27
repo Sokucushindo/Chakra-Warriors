@@ -63,7 +63,7 @@ static func _cord(mb: MB, a: Vector3, b: Vector3, w: float, c: Color) -> void:
 
 
 static func _put(m, mb: MB, o: Vector3) -> MeshInstance3D:
-	return m._mesh_on("Head", mb.build(Props.toon()), Transform3D(Basis.IDENTITY, o))
+	return m._mesh_on("Head", mb.build(LazyFx.g("Props").toon()), Transform3D(Basis.IDENTITY, o))
 
 
 ## Çene ipi: şapka içinden iki yandan çene altında düğüm

@@ -43,11 +43,11 @@ func talk() -> void:
 		opts.append({"label": "Klan büyüğünden ders iste", "cb": _lesson})
 	elif friend and grown:
 		opts.append({"label": "Klan dostu olarak antrenman iste", "cb": _lesson})
-	opts.append_array(Friends.options_for(self))   # tanış / sohbet / hediye / takıma al
-	opts.append_array(Crime.attack_option(self))   # gerçek saldırı (suç)
-	var hello := Talk.clan_hello(clan, given, eye_kind)
-	if has_meta("friend_id") and Friends.all().has(String(get_meta("friend_id"))):
-		hello = Friends.greeting(String(get_meta("friend_id")))
+	opts.append_array(LazyFx.g("Friends").options_for(self))   # tanış / sohbet / hediye / takıma al
+	opts.append_array(LazyFx.g("Crime").attack_option(self))   # gerçek saldırı (suç)
+	var hello = LazyFx.g("Talk").clan_hello(clan, given, eye_kind)
+	if has_meta("friend_id") and LazyFx.g("Friends").all().has(String(get_meta("friend_id"))):
+		hello = LazyFx.g("Friends").greeting(String(get_meta("friend_id")))
 	if friend:
 		hello += "
 
@@ -78,7 +78,7 @@ func _duel() -> void:
 			if won:
 				Progress.add_xp(30 + lv * 12)
 				if has_meta("friend_id"):
-					Friends.add_bond(String(get_meta("friend_id")), 6)
+					LazyFx.g("Friends").add_bond(String(get_meta("friend_id")), 6)
 				say("İyi dövüştün! %s klanı seni tanıyacak." % ClanWorld.clan_name(clan), 3.5)
 	Hud.banner("DOSTÇA DÜELLO", "%s — %s klan teknikleri" % [given, ClanWorld.clan_name(clan)], Color(0.9, 0.85, 0.55))
 

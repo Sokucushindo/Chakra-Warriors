@@ -98,7 +98,7 @@ func spawn_teammates(at: Vector3, n := 2, level := 8) -> Array:
 		var a = Enemy.archetype("genin_rival", i)
 		var nm: Array = names[i]
 		if own and i < 2:
-			a = GeninSquad.mate_arch(i, level)
+			a = LazyFx.g("GeninSquad").mate_arch(i, level)
 			nm = [String(a["name"]).replace(" (takım)", ""), a["look"]["gender"], a["look"]["hair_style"]]
 		a["name"] = "%s (takım)" % nm[0]
 		a["respawn"] = false
@@ -176,7 +176,7 @@ func make_arena(center: Vector3, r := 34.0, stands := true) -> Node3D:
 			for t in 4:
 				mb.add("box", d * (r + 3.0 + t * 2.2) + Vector3(0, 4.6 + t * 1.6, 0), Vector3(2 * PI * (r + 3 + t * 2.2) / seg + 0.3, 0.6, 2.0), Color(0.68, 0.6, 0.48), Vector3(0, rad_to_deg(a), 0))
 	var mi = MeshInstance3D.new()
-	mi.mesh = mb.build(Props.toon())
+	mi.mesh = mb.build(LazyFx.g("Props").toon())
 	root.add_child(mi)
 	# duvar çarpışması (halka)
 	var sb = StaticBody3D.new()
@@ -206,7 +206,7 @@ func spawn_audience(center: Vector3, r: float, n := 26, tiered := false) -> void
 		q.y = Game.ground_height(center.x, center.z) + 5.2 + (i % 3) * 1.6
 		if tiered:   # Stadium tribün basamakları
 			var t = i % 5
-			q = center + Vector3(sin(a), 0, cos(a)) * (Stadium.R_FIELD + 2.2 + t * 2.4)
+			q = center + Vector3(sin(a), 0, cos(a)) * (LazyFx.g("Stadium").R_FIELD + 2.2 + t * 2.4)
 			q.y = Game.ground_height(center.x, center.z) + 9.85 + t * 1.6
 		vg.global_position = q
 		vg.home = q
@@ -220,7 +220,7 @@ func academy_talk() -> void:
 	var sensei = Progress.home_info()["s1"]
 	var f = flags()
 	if f.get("academy_passed", false):
-		Hud.dialog(sensei, "Mezuniyet sınavını geçtin ama asıl sınav jōnin hocan %s'nin takım sınavı! Antrenman alanına git." % GeninSquad.sensei_name(),
+		Hud.dialog(sensei, "Mezuniyet sınavını geçtin ama asıl sınav jōnin hocan %s'nin takım sınavı! Antrenman alanına git." % LazyFx.g("GeninSquad").sensei_name(),
 			[{"label": "Takım sınavına başla", "cb": bell_start}])
 		return
 	if cur.begins_with("academy"):
@@ -236,7 +236,7 @@ func academy_written() -> void:
 	var pool = ACADEMY_Q.duplicate()
 	pool.shuffle()
 	data = {"written": 0.0, "practical": 0, "targets": 0}
-	ExamUI.written({"title": "Akademi Mezuniyet Sınavı — Yazılı", "subtitle": "8 soru • 2 dakika • Kâğıdına odaklan.", "questions": pool.slice(0, 8), "time": 120.0, "cheat": 0}, func(r: Dictionary):
+	LazyFx.g("ExamUI").written({"title": "Akademi Mezuniyet Sınavı — Yazılı", "subtitle": "8 soru • 2 dakika • Kâğıdına odaklan.", "questions": pool.slice(0, 8), "time": 120.0, "cheat": 0}, func(r: Dictionary):
 		data["written"] = float(r["correct"]) / float(r["total"])
 		_academy_results())   # 2026-11-26: kunai / atış / oda bölümleri kalktı — yazılıdan sonra doğrudan sonuç ve takım sınavı
 
@@ -256,9 +256,9 @@ func academy_practical() -> void:
 func _practical_next(ok: bool) -> void:
 	if ok:
 		data["practical"] = int(data.get("practical", 0)) + 1
-		Combat.popup_text(Game.player.global_position + Vector3.UP * 2.4, "Başarılı!", UI.GOOD)
+		Combat.popup_text(Game.player.global_position + Vector3.UP * 2.4, "Başarılı!", LazyFx.g("UI").GOOD)
 	else:
-		Combat.popup_text(Game.player.global_position + Vector3.UP * 2.4, "Başarısız", UI.BAD)
+		Combat.popup_text(Game.player.global_position + Vector3.UP * 2.4, "Başarısız", LazyFx.g("UI").BAD)
 	match data["task"]:
 		"bunshin_no_jutsu":
 			data["task"] = "henge"
@@ -326,7 +326,7 @@ func _kawarimi_throw() -> void:
 	b.add("box", Vector3(0, 0, -0.18), Vector3(0.05, 0.02, 0.32), Color(0.6, 0.62, 0.66))
 	b.add("cyl", Vector3(0, 0, 0.08), Vector3(0.03, 0.18, 0.03), Color(0.2, 0.2, 0.22), Vector3(90, 0, 0), 6)
 	b.add("torus", Vector3(0, 0, 0.2), Vector3(0.08, 0.08, 0.08), Color(0.3, 0.3, 0.32), Vector3(90, 0, 0), 8)
-	k.mesh = b.build(Props.toon())
+	k.mesh = b.build(LazyFx.g("Props").toon())
 	get_tree().current_scene.add_child(k)
 	var from: Vector3 = t.global_position + Vector3.UP * 1.4
 	var to: Vector3 = pl.global_position + Vector3.UP * 1.1
@@ -344,7 +344,7 @@ func _kawarimi_throw() -> void:
 			k.queue_free()
 		Game.player.hp = maxf(1.0, Game.player.hp - 8.0)
 		Combat.damage_number(Game.player.global_position + Vector3.UP * 2.0, 8.0, Color(1, 0.4, 0.35))
-		Combat.popup_text(Game.player.global_position + Vector3.UP * 2.4, "Geç kaldın!", UI.BAD)
+		Combat.popup_text(Game.player.global_position + Vector3.UP * 2.4, "Geç kaldın!", LazyFx.g("UI").BAD)
 		_kawarimi_after())
 
 
@@ -359,7 +359,7 @@ func _kawarimi_dodged() -> void:
 		kt.tween_property(k, "global_position", k.global_position.lerp(pl.global_position + Vector3.UP, 0.5), 0.12)
 		kt.tween_interval(1.5)
 		kt.tween_callback(k.queue_free)
-	Combat.popup_text(pl.global_position + Vector3.UP * 2.4, "Kawarimi!", UI.GOOD)
+	Combat.popup_text(pl.global_position + Vector3.UP * 2.4, "Kawarimi!", LazyFx.g("UI").GOOD)
 	_kawarimi_after()
 
 
@@ -396,7 +396,7 @@ func academy_targets() -> void:
 	for i in TARGETS:
 		var a = TAU * i / float(TARGETS) + randf_range(-0.3, 0.3)
 		var q = Missions.open_ground(c + Vector3(sin(a), 0, cos(a)) * randf_range(8, 14), 10.0)
-		var d = TrainingDummy.new()
+		var d = LazyFx.g("TrainingDummy").new()
 		d.set_meta("exam_target", true)
 		d.set_meta("throw_only", true)
 		d.position = q
@@ -420,13 +420,13 @@ func _academy_results() -> void:
 			if Data.jutsu.has(jid) and not jid in p()["learned"]:
 				Progress.learn(jid, false)
 		Progress.add_xp(120)
-		ExamUI.scorecard("Akademi Mezuniyet Sınavı", rows, "MEZUN OLDUN! Ama alın koruyucuyu hak etmek için bir sınav daha var: jōnin hocan %s'nin takım sınavı. Antrenman alanına git." % GeninSquad.sensei_name(), true, func():
+		LazyFx.g("ExamUI").scorecard("Akademi Mezuniyet Sınavı", rows, "MEZUN OLDUN! Ama alın koruyucuyu hak etmek için bir sınav daha var: jōnin hocan %s'nin takım sınavı. Antrenman alanına git." % LazyFx.g("GeninSquad").sensei_name(), true, func():
 			Missions.target_marker = find_point(["training"])
 			Missions.has_marker = true
 			Missions.target_name = "Antrenman Alanı (Takım Sınavı)")
 		exam_finished.emit("academy", true)
 	else:
-		ExamUI.scorecard("Akademi Mezuniyet Sınavı", rows, "Bu sefer olmadı. Biraz daha çalış ve hocanla tekrar konuş.", false, func(): pass, "Tamam")
+		LazyFx.g("ExamUI").scorecard("Akademi Mezuniyet Sınavı", rows, "Bu sefer olmadı. Biraz daha çalış ve hocanla tekrar konuş.", false, func(): pass, "Tamam")
 		exam_finished.emit("academy", false)
 
 
@@ -458,13 +458,13 @@ func bell_start() -> void:
 	b.add("cyl", Vector3(0, 0.71, 0), Vector3(0.5, 0.02, 0.5), Color(0.72, 0.58, 0.4), Vector3.ZERO, 12)
 	b.add("cyl", Vector3(0, 0.8, 0), Vector3(0.12, 0.42, 0.12), Color(0.92, 0.88, 0.75), Vector3(0, 0, 90), 10)
 	b.add("cyl", Vector3(0, 0.8, 0), Vector3(0.13, 0.08, 0.13), Color(0.75, 0.15, 0.12), Vector3(0, 0, 90), 10)
-	stump.mesh = b.build(Props.toon())
+	stump.mesh = b.build(LazyFx.g("Props").toon())
 	get_tree().current_scene.add_child(stump)
 	stump.global_position = sp
 	nodes.append(stump)
 	var s = Enemy.new()
 	var a = Enemy.archetype("rogue", 0)
-	a["name"] = GeninSquad.sensei_name()
+	a["name"] = LazyFx.g("GeninSquad").sensei_name()
 	a["hp"] = 99999.0
 	a["level"] = 40
 	a["power"] = 0.25
@@ -477,8 +477,8 @@ func bell_start() -> void:
 	a["look"]["band_style"] = "head"
 	a["look"]["band"] = hi["band"]
 	a["look"]["village"] = Progress.home()
-	Outfits.village_set(a["look"], Progress.home())
-	GeninSquad.dress_sensei(a["look"])
+	LazyFx.g("Outfits").village_set(a["look"], Progress.home())
+	LazyFx.g("GeninSquad").dress_sensei(a["look"])
 	s.setup(a)
 	s.set_meta("bell_sensei", true)
 	get_tree().current_scene.add_child(s)
@@ -489,7 +489,7 @@ func bell_start() -> void:
 	nodes.append(s)
 	var team = spawn_teammates(pl.global_position, 2, 6)
 	data = {"sensei": s, "team": team, "t": 150.0, "scroll": sp, "grab": 0.0, "bound": null, "bound_at": randf_range(55.0, 80.0), "together": 0.0}
-	Hud.dialog(GeninSquad.sensei_name(), "Benim sınavım basit: şu kütüğün üstündeki parşömeni alın. 150 saniyeniz var, ben de onu koruyacağım. Tek başına gelen hiçbir şey alamaz. Başla!", [])
+	Hud.dialog(LazyFx.g("GeninSquad").sensei_name(), "Benim sınavım basit: şu kütüğün üstündeki parşömeni alın. 150 saniyeniz var, ben de onu koruyacağım. Tek başına gelen hiçbir şey alamaz. Başla!", [])
 	Hud.banner("TAKIM SINAVI", "Parşömeni al! (2.5 sn dokun — hoca korurken olmaz, arkadaşların onu oyalasın)", Color(1, 0.75, 0.3))
 	Missions.target_marker = sp
 	Missions.has_marker = true
@@ -536,7 +536,7 @@ func _bell_tick(dt: float) -> void:
 		if pl.global_position.distance_to(bm.global_position) < 2.2 and Input.is_action_just_pressed("interact"):
 			data["freed"] = true
 			bm.set_physics_process(true)
-			Combat.popup_text(bm.global_position + Vector3.UP * 2.2, "Çözüldü!", UI.GOOD)
+			Combat.popup_text(bm.global_position + Vector3.UP * 2.2, "Çözüldü!", LazyFx.g("UI").GOOD)
 	# parşömeni alma: 2.5 sn kesintisiz (vurulursan sıfırlanır — Player.hit_t kullanılmıyor, hp düşüşüyle)
 	var hp_now = pl.hp
 	if pl.global_position.distance_to(sp) < 1.6:
@@ -591,14 +591,14 @@ func _bell_result(passed: bool, why: String) -> void:
 		Missions.has_marker = false
 		# mezuniyet töreni: hocan alın koruyucunu uzatır, alnına bağlarsın, takımla hatıra fotoğrafı
 		var g_cb = func(): Progress.promote(1)
-		var d_cb = func(): Hud.dialog(GeninSquad.sensei_name(), t + "\n\nArtık %s'nin bir Genin'isin! Görevleri bundan sonra ben alacağım; takım olarak çıkacağız." % String(Game.village(Progress.home()).get("name", "Köy")), [])
+		var d_cb = func(): Hud.dialog(LazyFx.g("GeninSquad").sensei_name(), t + "\n\nArtık %s'nin bir Genin'isin! Görevleri bundan sonra ben alacağım; takım olarak çıkacağız." % String(Game.village(Progress.home()).get("name", "Köy")), [])
 		Ceremony.start("genin", {"grant": g_cb, "done": d_cb})
 		exam_finished.emit("bell", true)
 	else:
 		var why_t = {"abandon": "Parşömeni aldın ama arkadaşını bağlı bıraktın. Görevi tamamlamak için arkadaşını terk eden bir ninjayı takımımda istemem.",
 			"time": "Süre doldu. Tek başına koştunuz, birbirinizi kollamadınız.",
 			"dead": "Yere serildin; sınav bitti. Gerçek bir görevde bu ölüm demekti."}.get(why, "Olmadı.")
-		Hud.dialog(GeninSquad.sensei_name(), why_t + " Yarın tekrar dene — benimle antrenman alanında konuş.", [])
+		Hud.dialog(LazyFx.g("GeninSquad").sensei_name(), why_t + " Yarın tekrar dene — benimle antrenman alanında konuş.", [])
 		exam_finished.emit("bell", false)
 
 
@@ -657,9 +657,9 @@ func jonin_done(m: Dictionary, ok: bool) -> void:
 		# terfi töreni: Kage ve kefil iki jōnin; yelek takıldığı an jōnin olursun
 		var g_cb = func():
 			Progress.promote(3)
-			Gear.grant(p(), "set_jonin")
+			LazyFx.g("Gear").grant(p(), "set_jonin")
 		var d_cb = func():
-			Journal.add("Jōnin oldun. Artık başkalarının hayatı senin kararlarına bağlı.", "milestone")
+			LazyFx.g("Journal").add("Jōnin oldun. Artık başkalarının hayatı senin kararlarına bağlı.", "milestone")
 			Hud.dialog(Progress.home_info()["kage"], "İki jōninin tavsiyesi ve kriz yönetimin oybirliğiyle kabul edildi. Bugünden itibaren bir JŌNİN'sin. Artık bir Tokubetsu Jōnin uzmanlığı da seçebilirsin (Kage Kulesi).", [])
 			exam_finished.emit("jonin", true)
 		Ceremony.start("jonin", {"grant": g_cb, "done": d_cb})
@@ -677,7 +677,7 @@ func specialty_offer() -> void:
 		var s = _spec(p()["specialty"])
 		Hud.dialog("Uzmanlık", "Uzmanlık alanın: %s.\n%s" % [s["title"], s["desc"]], [])
 		return
-	ExamUI.choose_cards("Tokubetsu Jōnin Uzmanlığı", "Tek bir alanda jōnin yeterliliği kazan. Seçtiğin birimin 3 aşamalı ustalık görevini tamamlarsan kalıcı yetenek kazanırsın.", SPECIALTIES, func(id):
+	LazyFx.g("ExamUI").choose_cards("Tokubetsu Jōnin Uzmanlığı", "Tek bir alanda jōnin yeterliliği kazan. Seçtiğin birimin 3 aşamalı ustalık görevini tamamlarsan kalıcı yetenek kazanırsın.", SPECIALTIES, func(id):
 		Missions.accept(_spec_mission(String(id))))
 
 
@@ -791,13 +791,13 @@ func anbu_done(m: Dictionary, ok: bool) -> void:
 	var f = flags()
 	if votes >= 100:
 		f["root_member"] = true
-		Gear.grant(p(), "kok_maskesi")
+		LazyFx.g("Gear").grant(p(), "kok_maskesi")
 	elif votes >= 1:
 		f["root_reported"] = true
 		Missions._rep(Progress.home(), 25)
 	Progress.promote(4)
-	Gear.grant(p(), "anbu_kurt")
-	Journal.add("ANBU maskesini taktın. Adın artık gölgelerde.", "milestone")
+	LazyFx.g("Gear").grant(p(), "anbu_kurt")
+	LazyFx.g("Journal").add("ANBU maskesini taktın. Adın artık gölgelerde.", "milestone")
 	var t = "Maskeni tak. Artık bir ANBU'sun. ANBU Karargâhı'ndan özel görevler alabilirsin."
 	if f.get("root_reported", false):
 		t += " Kök'ü bildirdiğin için Kage sana özellikle güveniyor (+25 itibar)."
@@ -867,7 +867,7 @@ func _process(dt: float) -> void:
 					if not _bell_greeted:
 						_bell_greeted = true
 						var hi = Progress.home_info()
-						Hud.dialog(GeninSquad.sensei_name(), "Geldin demek. Ben takımımı kendi sınavımla seçerim. Hazır mısın?",
+						Hud.dialog(LazyFx.g("GeninSquad").sensei_name(), "Geldin demek. Ben takımımı kendi sınavımla seçerim. Hazır mısın?",
 							[{"label": "Takım sınavına başla", "cb": bell_start}, {"label": "Biraz sonra", "cb": func(): pass}])
 				else:
 					_bell_greeted = false

@@ -143,7 +143,7 @@ static func node_of(who: Node3D, id: String) -> Node3D:
 	if m == null or not (m is CharacterModel):
 		return null
 	for w in m.weapons:
-		if Gear.base_id(String(w["id"])) == id and is_instance_valid(w["node"]):
+		if LazyFx.g("Gear").base_id(String(w["id"])) == id and is_instance_valid(w["node"]):
 			return w["node"]
 	return null
 
@@ -155,7 +155,7 @@ static func face(who: Node3D) -> Vector3:
 
 
 static func hand(who: Node3D, right := true) -> Vector3:
-	return PathJutsu.get_pinst().live_hand(who, right)
+	return LazyFx.g("PathJutsu").get_pinst().live_hand(who, right)
 
 
 static func gp(p: Vector3) -> Vector3:

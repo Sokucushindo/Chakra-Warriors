@@ -270,7 +270,7 @@ func _npc(id: String, name: String, kind := "civ") -> Dictionary:
 		"hostage":
 			lk.merge({"top": _hex(Color(0.75, 0.72, 0.65))}, true)
 	# kıyafet seti (tüccar, yaşlı, çocuk, ninja, soylu, sivil)
-	lk.merge(Outfits.roll_hex({"merchant": "merchant", "elder": "elder", "kid": "kid", "ninja": "chunin", "vip": "noble"}.get(kind, "civ"), Progress.home()), true)
+	lk.merge(LazyFx.g("Outfits").roll_hex({"merchant": "merchant", "elder": "elder", "kid": "kid", "ninja": "chunin", "vip": "noble"}.get(kind, "civ"), Progress.home()), true)
 	return {"id": id, "name": name, "look": lk}
 
 
@@ -550,7 +550,7 @@ func _q_guard(here: String) -> Dictionary:
 ## Haber zinciri: köyün çevresindeki işaret ateşi kulelerine haberi ulaştır; her kule ateşini yakar
 func _q_relay(here: String) -> Dictionary:
 	var vn: String = Game.village(here)["name"]
-	var nw: Array = WorldNews.recent()
+	var nw: Array = LazyFx.g("WorldNews").recent()
 	var news = String(nw[nw.size() - 1]) if not nw.is_empty() else "Sınır boyunda yabancı ninja izleri görüldü"
 	var names = ["Gaku", "Tobio", "Renji", "Isamu", "Hokuto", "Shinpei"]
 	names.shuffle()
@@ -875,10 +875,10 @@ func board_limits(vid: String) -> Dictionary:
 
 ## Görev masası verisi: [{id, title, rank, village, giver, brief, objectives, rewards{ryo,xp,gear_chance,rep}, local, steps}]
 func board_missions(vid: String, refresh := false) -> Array:
-	if vid == RogueJobs.BOARD:
-		return RogueJobs.board(refresh)   # yeraltı panosu
+	if vid == LazyFx.g("RogueJobs").BOARD:
+		return LazyFx.g("RogueJobs").board(refresh)   # yeraltı panosu
 	var now = Time.get_ticks_msec()
-	if not refresh and _boards.has(vid) and now - int(_boards[vid]["t"]) < 600000 and int(_boards[vid]["rank"]) == int(Game.profile["rank"]) and _boards[vid].get("ranks", []) == board_limits(vid)["ranks"] and int(_boards[vid].get("stamp", 0)) == WorldNews.stamp(vid):
+	if not refresh and _boards.has(vid) and now - int(_boards[vid]["t"]) < 600000 and int(_boards[vid]["rank"]) == int(Game.profile["rank"]) and _boards[vid].get("ranks", []) == board_limits(vid)["ranks"] and int(_boards[vid].get("stamp", 0)) == LazyFx.g("WorldNews").stamp(vid):
 		# en yüksek rütbeli görev alındıysa (terfi şartı: ör. 3 A-rank) pano beklemeden yenilenir
 		var rk: Array = _boards[vid]["ranks"]
 		var top0 = rk[rk.size() - 1]
@@ -888,16 +888,16 @@ func board_missions(vid: String, refresh := false) -> Array:
 	var ranks: Array = lim["ranks"]
 	var out = []
 	# dünyada olanlardan doğan ilanlar (WorldNews): kayıp ninja, soyulan kervan, firari, son yadigâr, yangın
-	var st_news = WorldNews.stamp(vid)
-	for inc in WorldNews.open_for(vid):
-		if not WorldNews.rank_of(inc) in ranks and String(inc["kind"]) != "fire":
+	var st_news = LazyFx.g("WorldNews").stamp(vid)
+	for inc in LazyFx.g("WorldNews").open_for(vid):
+		if not LazyFx.g("WorldNews").rank_of(inc) in ranks and String(inc["kind"]) != "fire":
 			continue   # rütbene göre değil: başka takım gider (yangına herkes koşar)
-		var dm = WorldNews.mission_for(inc)
+		var dm = LazyFx.g("WorldNews").mission_for(inc)
 		if dm.is_empty():
 			inc["left"] = 0.0   # geçersiz (kişi öldü vb.): bir sonraki turda kapanır
 		else:
 			out.append(dm)
-	var local = (MissionLocal.POOL.get(vid, []) as Array).filter(func(x): return x["r"] in ranks)
+	var local = (LazyFx.g("MissionLocal").POOL.get(vid, []) as Array).filter(func(x): return x["r"] in ranks)
 	local = local.duplicate()
 	local.shuffle()
 	for sp in local.slice(0, 3):
@@ -911,7 +911,7 @@ func board_missions(vid: String, refresh := false) -> Array:
 		ts.shuffle()
 		gen.append_array(ts.slice(0, 1))
 	# rastgele üretilen görevler: her panoda farklı işveren, hedef, eşya, düşman (MissionGen)
-	for sp in MissionGen.specs(vid, ranks, 5 + ranks.size()):
+	for sp in LazyFx.g("MissionGen").specs(vid, ranks, 5 + ranks.size()):
 		var gm = _from_spec(vid, sp)
 		if not gm.is_empty():
 			gen.append(gm)
@@ -1010,7 +1010,7 @@ func accept(m) -> void:
 		_boards[vid]["list"] = (_boards[vid]["list"] as Array).filter(func(x): return x.get("id", "") != m.get("id", "?"))
 	m = m.duplicate(true)
 	if m.has("title"):
-		MissionGen.remember(String(m["title"]))
+		LazyFx.g("MissionGen").remember(String(m["title"]))
 	if not m.has("steps"):
 		m["steps"] = [{"kind": "goto", "at": [0, 0], "text": m.get("desc", "")}]
 	_skip_middleman(m)
@@ -1085,7 +1085,7 @@ func _rep(vid: String, n: int) -> void:
 	if not Game.profile.has("rep"):
 		Game.profile["rep"] = {}
 	if n > 0:
-		n = int(round(n * (1.0 + Stats.skill(Game.profile, "rep"))))
+		n = int(round(n * (1.0 + LazyFx.g("Stats").skill(Game.profile, "rep"))))
 	Game.profile["rep"][vid] = int(Game.profile["rep"].get(vid, 0)) + n
 
 
@@ -1444,7 +1444,7 @@ func _begin_step() -> void:
 			target_marker = kid.global_position
 			target_name = kid.display
 		"cat":
-			var c = CatNPC.new()
+			var c = LazyFx.g("CatNPC").new()
 			root.add_child(c)
 			var at = _inside(s.get("village", Progress.home()), 0.2, 0.8)
 			c.global_position = _w(at)
@@ -1600,7 +1600,7 @@ func _rank_scale(a: Dictionary, rank: String) -> void:
 	var kf = 0.75 if String(a.get("kind", "")) == "bandit" else 1.0   # haydut ninjadan biraz zayıf
 	a["level"] = maxi(int(a.get("level", 1)), lv)
 	a["hp"] = maxf(float(a.get("hp", 70.0)), (180.0 + lv * 18.0) * kf)   # Enemy.setup ayrıca x(0.75 + lv x 0.004)
-	a["power"] = maxf(float(a.get("power", 1.0)), Stats.npc_power(lv) * kf * 0.85)
+	a["power"] = maxf(float(a.get("power", 1.0)), LazyFx.g("Stats").npc_power(lv) * kf * 0.85)
 	a["npc_curve"] = true   # grup üyesi: birlikte vurdukları için %15 hafif (boss değil)
 	a["guard"] = maxf(float(a.get("guard", 0.15)), 0.3)
 	a["sub"] = maxf(float(a.get("sub", 0.0)), 0.2)
@@ -1681,7 +1681,7 @@ func _spawn_boss(b: Dictionary, kind: String, at: Vector3) -> Enemy:
 		var blv = int(round(int(RANK_LV[rk]) * 1.12))   # boss: grubunun %12 üstü
 		a["level"] = maxi(int(a["level"]), blv)
 		a["hp"] = maxf(float(a["hp"]), (180.0 + blv * 18.0) * 2.5)
-		a["power"] = maxf(float(a["power"]), Stats.npc_power(blv) * 1.15)
+		a["power"] = maxf(float(a["power"]), LazyFx.g("Stats").npc_power(blv) * 1.15)
 		a["npc_curve"] = true
 	a["xp"] = int(b.get("level", 20)) * 25
 	a["ryo"] = int(b.get("level", 20)) * 20
@@ -1689,7 +1689,7 @@ func _spawn_boss(b: Dictionary, kind: String, at: Vector3) -> Enemy:
 		a["look"] = b["look"]
 	# tarz + rütbeye göre dövüş ustalığı: her boss farklı dövüşür (aynı görev hep aynı tarz)
 	var mr = String(active().get("rank", "B"))
-	BossStyles.dress(a, String(b.get("rank", mr)), hash(String(a["name"]) + String(active().get("title", ""))), String(b.get("style", "")))
+	LazyFx.g("BossStyles").dress(a, String(b.get("rank", mr)), hash(String(a["name"]) + String(active().get("title", ""))), String(b.get("style", "")))
 	e.setup(a)
 	if b.has("contract"):
 		e.set_meta("contract", b["contract"])
@@ -1859,7 +1859,7 @@ func _camp(c: Vector3, kind := "bandit") -> Node3D:
 		var a = TAU * i / 4.0 + 0.4
 		var p = Vector3(cos(a), 0, sin(a)) * 9.0
 		p.y = Game.ground_height(c.x + p.x, c.z + p.z) - c.y
-		CampKit.tent(b, Transform3D(Basis(Vector3.UP, -a - PI * 0.5), p), Color(0.55, 0.47, 0.35).darkened(rng.randf() * 0.2), 3.2, 2.3, 3.8, rng)   # önü ateşe dönük
+		LazyFx.g("CampKit").tent(b, Transform3D(Basis(Vector3.UP, -a - PI * 0.5), p), Color(0.55, 0.47, 0.35).darkened(rng.randf() * 0.2), 3.2, 2.3, 3.8, rng)   # önü ateşe dönük
 	for i in 5:
 		var a = rng.randf() * TAU
 		var p = Vector3(cos(a), 0, sin(a)) * rng.randf_range(3, 6)
@@ -1872,11 +1872,11 @@ func _camp(c: Vector3, kind := "bandit") -> Node3D:
 		var p = Vector3(cos(a), 0, sin(a)) * 15.0
 		p.y = Game.ground_height(c.x + p.x, c.z + p.z) - c.y
 		b.add("cyl", p + Vector3(0, 1.2, 0), Vector3(0.35, 2.4, 0.35), Color(0.4, 0.3, 0.2), Vector3.ZERO, 6)
-	CampKit.campfire(b, Transform3D.IDENTITY)
+	LazyFx.g("CampKit").campfire(b, Transform3D.IDENTITY)
 	var mi = MeshInstance3D.new()
-	mi.mesh = b.build(Props.toon())
+	mi.mesh = b.build(LazyFx.g("Props").toon())
 	root.add_child(mi)
-	CampKit.fire_fx(root, c)
+	LazyFx.g("CampKit").fire_fx(root, c)
 	return root
 
 
@@ -1930,7 +1930,7 @@ func _lair_fort(c: Vector3) -> Node3D:
 		b.add("box", Vector3(-6 + k * 6, 1.2, 3), Vector3(1.6, 0.9, 0.6), Color(0.35, 0.33, 0.32))   # zırh askısı / talim kuklası
 		b.add("sphere", Vector3(-6 + k * 6, 1.9, 3), Vector3(0.5, 0.5, 0.5), Color(0.6, 0.5, 0.35))
 	var mi = MeshInstance3D.new()
-	mi.mesh = b.build(Props.toon())
+	mi.mesh = b.build(LazyFx.g("Props").toon())
 	root.add_child(mi)
 	return root
 
@@ -1963,7 +1963,7 @@ func _lair_outpost(c: Vector3) -> Node3D:
 	b.add("box", tp + Vector3(0, 4.0, 0), Vector3(3.2, 0.2, 3.2), Color(0.42, 0.3, 0.19))
 	b.add("cone", tp + Vector3(0, 0.5, 4.5), Vector3(0.7, 1.0, 0.7), Color(1.0, 0.55, 0.15), Vector3.ZERO, 7)
 	var mi = MeshInstance3D.new()
-	mi.mesh = b.build(Props.toon())
+	mi.mesh = b.build(LazyFx.g("Props").toon())
 	root.add_child(mi)
 	return root
 
@@ -1977,9 +1977,9 @@ func _lair_mouth(c: Vector3, lab: bool, room := "", label := "") -> Node3D:
 	var rng = RandomNumberGenerator.new()
 	rng.seed = int(c.x * 3 + c.z * 5)
 	var rock = Color(0.46, 0.43, 0.39)
-	var cols: Array = CampKit.cave_mouth(b, rng, rock, lab)   # düzensiz kaya tepe, kaya kemer, kararan geçit, iskele, meşaleler
+	var cols: Array = LazyFx.g("CampKit").cave_mouth(b, rng, rock, lab)   # düzensiz kaya tepe, kaya kemer, kararan geçit, iskele, meşaleler
 	var mi = MeshInstance3D.new()
-	mi.mesh = b.build(Props.toon())
+	mi.mesh = b.build(LazyFx.g("Props").toon())
 	root.add_child(mi)
 	var hv = Game.village(String(active().get("village", Progress.home())))
 	var face = Vector3(0, 0, 1)
@@ -1998,7 +1998,7 @@ func _lair_mouth(c: Vector3, lab: bool, room := "", label := "") -> Node3D:
 		cs.position = cc[0]
 		body.add_child(cs)
 	for sx in [-1.0, 1.0]:   # meşale alevleri
-		CampKit.fire_fx(root, root.global_transform * Vector3(sx * 2.6, 2.3, 0.6), 0.45)
+		LazyFx.g("CampKit").fire_fx(root, root.global_transform * Vector3(sx * 2.6, 2.3, 0.6), 0.45)
 	var door = {"pos": c + face * 0.6 + Vector3(0, 0.4, 0), "radius": 2.6, "kind": "enter", "label": label if label != "" else "[F] %s" % ("İne gir" if lab else "Mağaraya gir"),
 		"room": room if room != "" else ("lair_lab" if lab else "lair_cave"), "out": c + face * 3.0 + Vector3(0, 0.2, 0), "seed": int(c.x)}
 	Interact.add(door)
@@ -2207,7 +2207,7 @@ func _build_site(kind: String, c: Vector3) -> Node3D:
 				b.add("box", Vector3(0, gy.call(0, 0) + 6.0, 0), Vector3(3.2, 0.25, 3.2), wood)
 				b.add("prism", Vector3(0, gy.call(0, 0) + 7.2, 0), Vector3(3.6, 1.0, 3.6), Color(0.3, 0.22, 0.16))
 	var mi = MeshInstance3D.new()
-	mi.mesh = b.build(Props.toon())
+	mi.mesh = b.build(LazyFx.g("Props").toon())
 	root.add_child(mi)
 	return root
 
@@ -2220,7 +2220,7 @@ func _quest_point(pos: Vector3, label: String, idx: int) -> void:
 	var b = MB.new()
 	b.add("box", Vector3(0, 0.5, 0), Vector3(0.9, 1.0, 0.9), Color(0.5, 0.38, 0.25))
 	b.add("cyl", Vector3(0, 1.6, 0), Vector3(0.12, 1.2, 0.12), Color(1.0, 0.85, 0.3), Vector3.ZERO, 6)
-	mk.mesh = b.build(Props.toon())
+	mk.mesh = b.build(LazyFx.g("Props").toon())
 	get_tree().current_scene.add_child(mk)
 	mk.global_position = pos
 	mk.set_meta("qp", d)
@@ -2341,7 +2341,7 @@ func complete() -> void:
 	var rw: Array = REWARD[m["rank"]]
 	var bonus = 1.0
 	if m.get("flags", {}).get("haggle_ok", false):
-		bonus += 0.2 + (0.1 if Stats.skill(Game.profile, "haggle") > 0.0 else 0.0)   # pazarlık tuttu (Dil Bilen: +%10)
+		bonus += 0.2 + (0.1 if LazyFx.g("Stats").skill(Game.profile, "haggle") > 0.0 else 0.0)   # pazarlık tuttu (Dil Bilen: +%10)
 	if m.get("flags", {}).get("detected", false):
 		bonus -= 0.3
 	if m.get("flags", {}).get("wrong", false):
@@ -2353,7 +2353,7 @@ func complete() -> void:
 	Game.profile["active_mission"] = {}
 	Game.profile["missions_done"][m["rank"]] = int(Game.profile["missions_done"].get(m["rank"], 0)) + 1
 	Hud.banner("GÖREV TAMAMLANDI", "%s  (+%d Ryō)" % [m["title"], ryo], Color(0.5, 1, 0.6))
-	Friends.on_mission_done(String(m["rank"]))
+	LazyFx.g("Friends").on_mission_done(String(m["rank"]))
 	Progress.add_ryo(ryo)
 	# görev XP'si: rütbeye göre bir seviyenin belli bir payıyla sınırlı (S görevi tek başına birkaç seviye atlatmasın)
 	var plv = int(Game.profile.get("level", 1))
@@ -2363,16 +2363,16 @@ func complete() -> void:
 	if randf() < GEAR_CHANCE[m["rank"]]:
 		var gid = ""
 		if m["rank"] == "S" and randf() < 0.5:
-			gid = Gear.random_legendary()
+			gid = LazyFx.g("Gear").random_legendary()
 		else:
-			gid = Gear.random_reward(RANK_IDX[m["rank"]] + 1)
-		if gid != "" and not Gear.item(gid).is_empty():
-			Gear.grant(Game.profile, gid)
-			Hud.msg("Ödül ekipmanı: %s  [Tab > Ekipman]" % Gear.item(gid)["name"], Color(0.7, 0.9, 1.0))
+			gid = LazyFx.g("Gear").random_reward(RANK_IDX[m["rank"]] + 1)
+		if gid != "" and not LazyFx.g("Gear").item(gid).is_empty():
+			LazyFx.g("Gear").grant(Game.profile, gid)
+			Hud.msg("Ödül ekipmanı: %s  [Tab > Ekipman]" % LazyFx.g("Gear").item(gid)["name"], Color(0.7, 0.9, 1.0))
 	if str(m.get("title", "")) == "Kahraman Suyu":   # muhafızlar bir şişe bırakır (tek kaynak)
 		Game.profile["inventory"]["eiyu_mizu"] = int(Game.profile["inventory"].get("eiyu_mizu", 0)) + 1
 		Hud.msg("Muhafızlar sana bir şişe Kahraman Suyu verdi. Bedelini bil.", Color(0.7, 0.9, 1.0))
-	Journal.add("[%s] %s görevini tamamladın." % [m["rank"], m["title"]], "mission")
+	LazyFx.g("Journal").add("[%s] %s görevini tamamladın." % [m["rank"], m["title"]], "mission")
 	_call_hook(String(m.get("hook", "")), m, true)
 	Hud.objective_changed()
 	Game.save_game()
@@ -2386,14 +2386,14 @@ func _call_hook(hk: String, m: Dictionary, ok: bool) -> void:
 	var n = get_node_or_null("/root/" + parts[0])
 	# autoload olmayan işleyiciler: dostlar (sahnedeki düğüm) ve kaçak dostluk (sınıf)
 	if n == null and parts[0] == "Friends":
-		n = Friends.inst()
+		n = LazyFx.g("Friends").inst()
 	if n == null and parts[0] == "RogueBonds":
-		n = RogueBonds.new()
+		n = LazyFx.g("RogueBonds").new()
 	if parts[0] == "RogueJobs":
-		RogueJobs.done(m, ok)
+		LazyFx.g("RogueJobs").done(m, ok)
 		return
 	if n == null and parts[0] == "WorldNews":
-		WorldNews.new().mission_done(m, ok)   # düğüm değil: ertelenmiş çağrıya kadar yaşamaz
+		LazyFx.g("WorldNews").new().mission_done(m, ok)   # düğüm değil: ertelenmiş çağrıya kadar yaşamaz
 		return
 	if n and n.has_method(parts[1]):
 		n.call_deferred(parts[1], m, ok)
@@ -2557,7 +2557,7 @@ func _talk_replies(npc: QuestNPC, s: Dictionary) -> Array:
 			opts.append({"label": "Ödülü artırırsan hemen giderim.", "cb": func():
 				m["flags"]["haggle"] = true
 				var rep = int(Game.profile.get("rep", {}).get(String(m.get("village", Progress.home())), 0))
-				if randf() < clampf(0.35 + rep / 300.0 + Stats.skill(Game.profile, "haggle"), 0.15, 0.97):   # Sosyal: Dil Bilen
+				if randf() < clampf(0.35 + rep / 300.0 + LazyFx.g("Stats").skill(Game.profile, "haggle"), 0.15, 0.97):   # Sosyal: Dil Bilen
 					m["flags"]["haggle_ok"] = true
 					Hud.dialog(npc.display, "Hıh... Peki, biraz daha veririm. Ama işi iyi yap!", _talk_replies(npc, s))
 				else:
@@ -2748,10 +2748,10 @@ func track_options() -> Array:
 		out.append(["waypoint", String(wp[3])])
 	var st = story_target_for(Progress.story())
 	if not st.is_empty():
-		out.append(["story", "%s: %s" % ["İlk hedefim" if Journal.is_free() else "Hikâye", st["name"]]])
-	for gid in Journal.goals():
-		if not Journal.goal_target(String(gid)).is_empty():
-			out.append(["goal:" + String(gid), "Hedef: %s" % Journal.GOALS[gid]["name"]])
+		out.append(["story", "%s: %s" % ["İlk hedefim" if LazyFx.g("Journal").is_free() else "Hikâye", st["name"]]])
+	for gid in LazyFx.g("Journal").goals():
+		if not LazyFx.g("Journal").goal_target(String(gid)).is_empty():
+			out.append(["goal:" + String(gid), "Hedef: %s" % LazyFx.g("Journal").GOALS[gid]["name"]])
 	out.append(["none", "Takip kapalı"])
 	return out
 
@@ -2797,7 +2797,7 @@ func _apply_track() -> void:
 		if has_marker:
 			target_marker = t["pos"]; target_name = t["name"]; story_target = true
 	elif tr.begins_with("goal:"):
-		var gt = Journal.goal_target(tr.substr(5))
+		var gt = LazyFx.g("Journal").goal_target(tr.substr(5))
 		has_marker = not gt.is_empty()
 		if has_marker:
 			target_marker = gt["pos"]; target_name = gt["name"]; story_target = true
@@ -3043,7 +3043,7 @@ func _tick_stealth(dt: float, s: Dictionary) -> void:
 	var gs: Array = st["guards"]
 	var cones: Array = st["cones"]
 	var night = Game.world and (Game.world.env.time_of_day < 0.24 or Game.world.env.time_of_day > 0.78)
-	var rng = (11.0 if night else 15.0) * maxf(0.4, 1.0 - Stats.skill(Game.profile, "stealth"))
+	var rng = (11.0 if night else 15.0) * maxf(0.4, 1.0 - LazyFx.g("Stats").skill(Game.profile, "stealth"))
 	var seen = 0.0
 	for i in gs.size():
 		var e = gs[i]
@@ -3170,7 +3170,7 @@ func _tick_track(s: Dictionary) -> void:
 		b.add("sphere", Vector3(off, 0.012, 0), Vector3(0.15, 0.02, 0.3), Color(0.2, 0.14, 0.09))
 		b.add("sphere", Vector3(off, 0.014, -0.12), Vector3(0.1, 0.02, 0.1), Color(0.14, 0.1, 0.07))
 		b.add("sphere", Vector3(-off, 0.012, 0.5), Vector3(0.15, 0.02, 0.3), Color(0.2, 0.14, 0.09))
-		fp.mesh = b.build(Props.toon())
+		fp.mesh = b.build(LazyFx.g("Props").toon())
 		get_tree().current_scene.add_child(fp)
 		var p: Vector3 = prints[i]
 		var nxt: Vector3 = prints[mini(i + 1, prints.size() - 1)]
@@ -3247,7 +3247,7 @@ func _setup_legacy(m: Dictionary) -> void:
 	has_marker = true
 	match m.get("type", ""):
 		"cat":
-			var c = CatNPC.new()
+			var c = LazyFx.g("CatNPC").new()
 			root.add_child(c)
 			c.global_position = _vpos(Progress.home(), randf_range(-150, 150), randf_range(-150, 150))
 			pickups.append(c)
@@ -3293,8 +3293,8 @@ func _process_legacy(m: Dictionary) -> void:
 ## Hikâye adımının dünyadaki hedefi: {pos, name} (yoksa boş). Oyuncunun köyündeki noktalar tercih edilir.
 func story_target_for(s: int) -> Dictionary:
 	# serbest oyun: sabit hikâye yok; ok oyuncunun seçtiği ilk hedefi gösterir (seçmediyse hiçbir şeyi)
-	if s >= Journal.FREE:
-		return Journal.primary_target() if Game.player else {}
+	if s >= LazyFx.g("Journal").FREE:
+		return LazyFx.g("Journal").primary_target() if Game.player else {}
 	var home = Progress.home()
 	# Akademi geçildiyse adım 3'ün hedefi antrenman alanı (Zil Testi)
 	if s == 3 and Game.profile.get("flags", {}).get("academy_passed", false):
@@ -3419,7 +3419,7 @@ func _bb_new(force_rank := "") -> Dictionary:
 		"id": int(bb["next"]), "name": "%s %s" % [BB_FAMILY.pick_random(), BB_GIVEN.pick_random()], "alias": BB_ALIAS.pick_random(),
 		"village": vid, "rank": rank, "bounty": int(randi_range(int(rd[0]), int(rd[1])) / 50) * 50, "crimes": crimes.slice(0, 2 if rank in ["C", "B"] else 3),
 		"element": ["katon", "suiton", "fuuton", "doton", "raiton"].pick_random(), "hide": hide, "area": area, "known": 450.0, "status": "alive", "tracked": false,   # element: 5 doğa eşit
-		"level": lv, "hp": 260.0 + lv * 24.0, "power": Stats.npc_power(lv), "escorts": int(rd[4]), "escort_kind": rd[5],
+		"level": lv, "hp": 260.0 + lv * 24.0, "power": LazyFx.g("Stats").npc_power(lv), "escorts": int(rd[4]), "escort_kind": rd[5],
 		"look": {"gender": ["m", "m", "f"].pick_random(), "hair_style": ["uzun", "dağınık", "diken", "kısa", "atkuyruğu"].pick_random(),
 			"hair": _hex([Color(0.08, 0.08, 0.1), Color(0.6, 0.6, 0.62), Color(0.55, 0.15, 0.12), Color(0.2, 0.25, 0.4)].pick_random()),
 			"top": _hex([Color(0.2, 0.2, 0.24), Color(0.35, 0.15, 0.15), Color(0.25, 0.3, 0.25), Color(0.4, 0.35, 0.3)].pick_random()),
@@ -3428,7 +3428,7 @@ func _bb_new(force_rank := "") -> Dictionary:
 			"face_mark": ["burun yarası", "yanak çizgisi", "yok"].pick_random(), "age": "adult"},
 	}
 	# kaçak ninja kıyafet seti: yırtık pelerin, eski yelek, çizik bant, yıpranmışlık
-	e["look"].merge(Outfits.roll_hex("rogue", vid), true)
+	e["look"].merge(LazyFx.g("Outfits").roll_hex("rogue", vid), true)
 	e["look"]["band_style"] = "slashed"
 	# S-rank: bazen içinde kuyruklu canavar taşıyan kaçak jinchūriki (canavarın kendi teknikleriyle savaşır)
 	# (dinamik jinchūriki: canavar gerçekten o kişide — köyünden kaçan taşıyıcı; yenilince canavar serbest kalır)
@@ -3448,13 +3448,13 @@ func _bb_new(force_rank := "") -> Dictionary:
 func _bb_dress(e: Dictionary) -> void:
 	if e.has("set") or e.has("person_id") or e.has("legend") or e.has("beast") or e.has("self"):
 		return
-	var sid = Outfits.rogue_set(String(e.get("clan", "")), String(e["village"]), [String(e.get("element", ""))], e.get("nat", []), String(e["look"].get("gender", "m")) == "f", String(e["name"]))
+	var sid = LazyFx.g("Outfits").rogue_set(String(e.get("clan", "")), String(e["village"]), [String(e.get("element", ""))], e.get("nat", []), String(e["look"].get("gender", "m")) == "f", String(e["name"]))
 	e["set"] = sid
 	if sid == "":
 		return
 	var lk = _bb_look(e)
 	lk.erase("keep_hair")
-	var nl = ClanWorld._hexlook(Outfits.wear_set(lk, sid))
+	var nl = ClanWorld._hexlook(LazyFx.g("Outfits").wear_set(lk, sid))
 	nl["band_style"] = "slashed"
 	e["look"] = nl
 
@@ -3465,10 +3465,10 @@ func _bb_host(e: Dictionary, id: String, h: Dictionary) -> void:
 	e["village"] = String(h["village"])
 	e["level"] = maxi(maxi(int(e["level"]), int(h.get("level", 100))), 100)   # kaçak jinchūriki de en az Güç 100
 	e["hp"] = 260.0 + int(e["level"]) * 24.0
-	e["power"] = Stats.npc_power(int(e["level"]))
+	e["power"] = LazyFx.g("Stats").npc_power(int(e["level"]))
 	e["look"]["gender"] = String(h.get("gender", "m"))
 	e["look"]["village"] = e["village"]
-	e["crimes"].append("İçinde bir Kuyruklu Canavar taşıyor (%s)" % String(BeastModels.INFO[id]["name"]).split(" — ")[0])
+	e["crimes"].append("İçinde bir Kuyruklu Canavar taşıyor (%s)" % String(LazyFx.g("BeastModels").INFO[id]["name"]).split(" — ")[0])
 	e["crimes"].append("%s köyünden kaçtı" % Game.village(e["village"]).get("name", e["village"]))
 
 
@@ -3502,15 +3502,15 @@ func add_swordsman(id: String, h: Dictionary) -> void:
 	e.erase("beast")
 	e["mist_sword"] = id
 	e["name"] = String(h.get("name", e["name"]))
-	e["alias"] = (Swordsmen.INFO[id]["alias"] as Array).pick_random()
+	e["alias"] = (LazyFx.g("Swordsmen").INFO[id]["alias"] as Array).pick_random()
 	e["village"] = "kiri"
-	e["element"] = String(Swordsmen.INFO[id]["el"])
+	e["element"] = String(LazyFx.g("Swordsmen").INFO[id]["el"])
 	e["level"] = lv
 	e["hp"] = 300.0 + lv * 28.0
 	e["power"] = 1.3 + lv * 0.038
 	e["bounty"] = int(lv * 900 / 50) * 50
 	e["look"]["village"] = "kiri"
-	e["crimes"] = ["Sis'in Yedi Kılıç Ustası'ndan; Kirigakure'den kaçtı", "Taşıdığı kılıç: %s" % Swordsmen.sword_name(id), String(Swordsmen.INFO[id]["tech"])]
+	e["crimes"] = ["Sis'in Yedi Kılıç Ustası'ndan; Kirigakure'den kaçtı", "Taşıdığı kılıç: %s" % LazyFx.g("Swordsmen").sword_name(id), String(LazyFx.g("Swordsmen").INFO[id]["tech"])]
 	_bingo()["list"].append(e)
 
 
@@ -3572,7 +3572,7 @@ func bingo_host_spawned(id: String) -> bool:
 
 func _bingo_tick(dt: float) -> void:
 	var bb = _bingo()
-	Swordsmen.world_tick(dt)
+	LazyFx.g("Swordsmen").world_tick(dt)
 	WH.state()   # efsane silah sahipleri (oyun başına bir kez üretilir)
 	var lst: Array = bb["list"]
 	_bb_spared_fix(lst)
@@ -3622,7 +3622,7 @@ func _bingo_tick(dt: float) -> void:
 func _bb_spared_fix(lst: Array) -> void:
 	for x in lst:
 		var fid = String(x.get("friend_id", ""))
-		if x["status"] != "alive" or fid == "" or not Friends.all().get(fid, {}).has("lair"):
+		if x["status"] != "alive" or fid == "" or not LazyFx.g("Friends").all().get(fid, {}).has("lair"):
 			continue
 		x["status"] = "spared"
 		x["tracked"] = false
@@ -3655,9 +3655,9 @@ func _bb_spawn(e: Dictionary, at: Vector3) -> void:
 	if not rr.is_empty() and int(e["level"]) < int(rr[2]):
 		e["level"] = randi_range(int(rr[2]), int(rr[3]))
 		a["xp"] = int(e["level"]) * 30
-	Stats.npc_ninja(a, int(e["level"]), {"C": 1.3, "B": 1.6, "A": 2.0, "S": 2.6}.get(bb_rank, 1.6))   # Bingo kaçağı = elit: rütbe çarpanı (S = Kage canı)
+	LazyFx.g("Stats").npc_ninja(a, int(e["level"]), {"C": 1.3, "B": 1.6, "A": 2.0, "S": 2.6}.get(bb_rank, 1.6))   # Bingo kaçağı = elit: rütbe çarpanı (S = Kage canı)
 	if bb_rank in ["S", "A"]:
-		a["power"] = Stats.npc_power(int(e["level"]))   # Kage gibi: rol yalnız cana, vuruş aynı Güç'teki ninjanınki (yoksa A, S'den sert vuruyordu)
+		a["power"] = LazyFx.g("Stats").npc_power(int(e["level"]))   # Kage gibi: rol yalnız cana, vuruş aynı Güç'teki ninjanınki (yoksa A, S'den sert vuruyordu)
 	a["guard"] = 0.55
 	a["sub"] = 0.4
 	a["xp"] = int(e["level"]) * 30
@@ -3677,13 +3677,13 @@ func _bb_spawn(e: Dictionary, at: Vector3) -> void:
 		a["hp"] = (180.0 + int(e["level"]) * 18.0) * 1.8
 	if e.has("mist_sword"):
 		# Sis'in kılıç ustası: kılıcı elinde, kılıca özgü tekniklerle (Swordsmen.tick)
-		BossStyles.dress(a, String(e.get("rank", "A")), int(e["id"]) * 7919, "kenjutsu")
+		LazyFx.g("BossStyles").dress(a, String(e.get("rank", "A")), int(e["id"]) * 7919, "kenjutsu")
 		a["name"] = "«%s» %s — Sis'in Kılıç Ustası" % [e["alias"], e["name"]]
-		Swordsmen.dress(a, String(e["mist_sword"]))
+		LazyFx.g("Swordsmen").dress(a, String(e["mist_sword"]))
 	elif e.has("legend_weapon"):
 		# efsane silah sahibi: silah elinde, silahın kombosuyla (KeyedCombos: AI aynı kombo)
 		var wid = String(e["legend_weapon"])
-		BossStyles.dress(a, String(e.get("rank", "A")), int(e["id"]) * 7919, "kenjutsu")
+		LazyFx.g("BossStyles").dress(a, String(e.get("rank", "A")), int(e["id"]) * 7919, "kenjutsu")
 		a["name"] = "«%s» %s — %s" % [e["alias"], e["name"], WH.weapon_name(wid)]
 		var hlook = _bb_look({"look": WH.INFO[wid].get("look", {})})
 		for k in (WH.INFO[wid].get("look", {}) as Dictionary):   # kıyafet stili silahın tarzını ezmesin
@@ -3707,11 +3707,11 @@ func _bb_spawn(e: Dictionary, at: Vector3) -> void:
 	else:
 		ClanWorld.bingo_arch(e, a)   # klan / efsane jutsuları
 		if e.has("person_id"):
-			a["skill"] = maxf(float(a.get("skill", 0.0)), float(BossStyles.RANK_SKILL.get(String(e.get("rank", "B")), 0.55)))   # dünyadan gerçek biri: kendi öğrendikleriyle dövüşür
+			a["skill"] = maxf(float(a.get("skill", 0.0)), float(LazyFx.g("BossStyles").RANK_SKILL.get(String(e.get("rank", "B")), 0.55)))   # dünyadan gerçek biri: kendi öğrendikleriyle dövüşür
 		elif not e.has("beast") and String(a.get("clan", "")) == "":
-			BossStyles.dress(a, String(e.get("rank", "B")), int(e["id"]) * 7919, String(e.get("style", "")))
+			LazyFx.g("BossStyles").dress(a, String(e.get("rank", "B")), int(e["id"]) * 7919, String(e.get("style", "")))
 		else:
-			a["skill"] = maxf(float(a.get("skill", 0.0)), float(BossStyles.RANK_SKILL.get(String(e.get("rank", "B")), 0.55)))
+			a["skill"] = maxf(float(a.get("skill", 0.0)), float(LazyFx.g("BossStyles").RANK_SKILL.get(String(e.get("rank", "B")), 0.55)))
 	if String(a.get("clan", "")) == "":
 		a["no_clan"] = true   # bingo kaydı kalıcı kimlik: doğarken rastgele klan (saç/isim) zarlanmasın — kitaptaki adam neyse o
 	var b = Enemy.new()
@@ -3720,7 +3720,7 @@ func _bb_spawn(e: Dictionary, at: Vector3) -> void:
 	if String(e.get("rank", "")) in ["S", "A"]:
 		b.set_meta("elite_boss", String(e.get("rank", "")))   # KageArts: klan modu + yarı canda kararlılık; S jutsu yağmurunda kilitlenmez
 		if not e.has("beast") and not e.has("mist_sword") and not e.has("legend_weapon"):
-			var vj = KageArts.village_jutsu(String(e.get("village", "konoha")), 4 if String(e["rank"]) == "S" else 2)
+			var vj = LazyFx.g("KageArts").village_jutsu(String(e.get("village", "konoha")), 4 if String(e["rank"]) == "S" else 2)
 			for j in vj:
 				if not j in b.arch["jutsu"]:
 					(b.arch["jutsu"] as Array).push_front(j)
@@ -3742,9 +3742,9 @@ func _bingo_killed(boss: Node) -> void:
 			e["tracked"] = false
 			Hud.banner("ARANAN ETKİSİZ", "«%s» %s — %d Ryō ödül" % [e["alias"], e["name"], int(e["bounty"])], Color(1, 0.8, 0.3))
 			WorldPeople.on_bingo_killed(e)
-			KinDrama.on_bingo_killed(e)   # yakınının katiliyse: intikam
+			LazyFx.g("KinDrama").on_bingo_killed(e)   # yakınının katiliyse: intikam
 			if e.has("mist_sword"):   # kılıç ustası yenildi: kılıç oyuncuya geçer
-				Swordsmen.claim(String(e["mist_sword"]))
+				LazyFx.g("Swordsmen").claim(String(e["mist_sword"]))
 			if e.has("legend_weapon"):   # efsane silah sahibi yenildi: silah düşer
 				WH.claim(String(e["legend_weapon"]))
 			if e.has("beast"):   # taşıyıcı yenildi: canavar bedeninden fışkırır
@@ -3752,10 +3752,10 @@ func _bingo_killed(boss: Node) -> void:
 				var at = boss.global_position
 				get_tree().create_timer(2.5).timeout.connect(func(): TailedBeasts.release_from_host(bid, at))
 			Progress.add_ryo(int(e["bounty"]))
-			var gid = Gear.random_legendary() if e["rank"] == "S" or (e["rank"] == "A" and randf() < 0.4) else Gear.random_reward(RANK_IDX.get(e["rank"], 1) + 1)
-			if gid != "" and not Gear.item(gid).is_empty():
-				Gear.grant(Game.profile, gid)
-				Hud.msg("Ganimet: %s  [Tab > Ekipman]" % Gear.item(gid)["name"], Color(0.7, 0.9, 1.0))
+			var gid = LazyFx.g("Gear").random_legendary() if e["rank"] == "S" or (e["rank"] == "A" and randf() < 0.4) else LazyFx.g("Gear").random_reward(RANK_IDX.get(e["rank"], 1) + 1)
+			if gid != "" and not LazyFx.g("Gear").item(gid).is_empty():
+				LazyFx.g("Gear").grant(Game.profile, gid)
+				Hud.msg("Ganimet: %s  [Tab > Ekipman]" % LazyFx.g("Gear").item(gid)["name"], Color(0.7, 0.9, 1.0))
 			_rep(Progress.home(), REP_GAIN.get(e["rank"], 5) * 2)
 			Game.save_game()
 

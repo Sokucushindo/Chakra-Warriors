@@ -520,8 +520,8 @@ func _process(dt: float) -> void:
 			set_state(pid, RUMOR)
 			s = RUMOR
 			told = true
-			Hud.banner(Lang.t("SÖYLENTİ") + ": " + Lang.t(String(P["name"])).to_upper(), P["site"]["place"], P["color"])
-			Hud.msg(Lang.t(String(P["rumor"])) + "  " + Lang.t("[Tab > Yollar]"), P["color"].lightened(0.3), 8.0)
+			Hud.banner(LazyFx.g("Lang").t("SÖYLENTİ") + ": " + LazyFx.g("Lang").t(String(P["name"])).to_upper(), P["site"]["place"], P["color"])
+			Hud.msg(LazyFx.g("Lang").t(String(P["rumor"])) + "  " + LazyFx.g("Lang").t("[Tab > Yollar]"), P["color"].lightened(0.3), 8.0)
 		if s < FOUND and lairs.has(pid):
 			var lp = Game.from_map(Vector2(lairs[pid][0], lairs[pid][1]))
 			if Vector2(lp.x - Game.player.global_position.x, lp.z - Game.player.global_position.z).length() < 45.0:
@@ -672,12 +672,12 @@ func start_drill(pid: String, jid: String) -> void:
 	drill["min_d"] = float(D.get("min_d", 0.0))
 	if D["type"] == "collect" and String(D.get("look", "")) == "weapon":
 		# talimden kalan silahlar avluya eğik saplanmış: yaklaşınca toplanır (parşömene mühürlenir)
-		var pj = PathJutsu.get_pinst()
+		var pj = LazyFx.g("PathJutsu").get_pinst()
 		for k in int(D["n"]):
 			var a = TAU * k / float(D["n"]) + randf_range(-0.3, 0.3)
 			var q: Vector3 = center + Vector3(cos(a), 0, sin(a)) * randf_range(4.0, 11.0)
 			q.y = Game.ground_height(q.x, q.z)
-			var w = pj.mi_of(pj.weapon_mesh(PathJutsu.WEAPON_KINDS[k % PathJutsu.WEAPON_KINDS.size()]))
+			var w = pj.mi_of(pj.weapon_mesh(LazyFx.g("PathJutsu").WEAPON_KINDS[k % LazyFx.g("PathJutsu").WEAPON_KINDS.size()]))
 			get_tree().current_scene.add_child(w)
 			w.global_position = q + Vector3.UP * 0.6
 			w.rotation_degrees = Vector3(-90 + randf_range(-25, 25), randf() * 360.0, randf_range(-20, 20))   # ucu toprakta
@@ -799,7 +799,7 @@ func start_drill(pid: String, jid: String) -> void:
 			drill["dummies"].append(mist)
 	if D["type"] in ["hits", "throws"]:
 		for q in posts:
-			var d = TrainingDummy.new()
+			var d = LazyFx.g("TrainingDummy").new()
 			d.set_meta("drill", true)
 			if D["type"] == "throws":
 				d.set_meta("drill_throw", true)   # hedef tahtası: yalnız atış sayılır
@@ -922,7 +922,7 @@ func _drill_tick(dt: float) -> void:
 				drill["c"] = int(drill["acc"])
 				Hud.objective_progress(_drill_text())
 			if int(drill["c"]) >= int(drill["n"]):
-				Mastery.gain(pr(), "dayaniklilik", 1.5)
+				LazyFx.g("Mastery").gain(pr(), "dayaniklilik", 1.5)
 				end_drill(true)
 				return
 	if drill.is_empty():
@@ -959,7 +959,7 @@ func _rain_tick(dt: float, c: Vector3, pp: Vector3) -> void:
 	mark.material_override = mm
 	get_tree().current_scene.add_child(mark)
 	mark.global_position = q + Vector3.UP * 0.05
-	var pj = PathJutsu.get_pinst()
+	var pj = LazyFx.g("PathJutsu").get_pinst()
 	var k = pj.mi_of(pj.weapon_mesh("kunai"))
 	get_tree().current_scene.add_child(k)
 	k.scale = Vector3.ONE * 1.4
@@ -1016,15 +1016,15 @@ static func _teach(pid: String, jid: String, from_quest: bool) -> void:
 	if jid in pr().get("learned", []):
 		return
 	Progress.learn(jid)
-	if jid.begins_with("bashosen_") and not "bashosen" in Gear.owned_ids(pr()):
-		Gear.grant(pr(), "bashosen")
+	if jid.begins_with("bashosen_") and not "bashosen" in LazyFx.g("Gear").owned_ids(pr()):
+		LazyFx.g("Gear").grant(pr(), "bashosen")
 		Hud.msg("Bashōsen artık senin: Bashōsen teknikleri için yelpazeyi kuşan.", Color(1, 0.6, 0.6), 5.0)
-	if jid == "hachibi_yedi_kilic" and not "nanato" in Gear.owned_ids(pr()):
-		Gear.grant(pr(), "nanato")   # B'nin yedi kılıcı: toplama talimini bitirene verilir (Akurobatto stili)
+	if jid == "hachibi_yedi_kilic" and not "nanato" in LazyFx.g("Gear").owned_ids(pr()):
+		LazyFx.g("Gear").grant(pr(), "nanato")   # B'nin yedi kılıcı: toplama talimini bitirene verilir (Akurobatto stili)
 		Hud.msg("Nanatō artık senin: yedi kılıcı kuşan, Akurobatto ile dövüş.", Color(1, 0.4, 0.4), 5.0)
 	if pid == "kapi" and not "gates" in pr().get("skills", []):
 		pr()["skills"].append("gates")   # Sekiz Kapı modu (B) bu yolla açılır
-		Hud.msg(Lang.t("Sekiz Kapı açıldı: %s tuşuyla kapıları zorla.") % Keys.name("gates"), Color(0.5, 1, 0.5))
+		Hud.msg(LazyFx.g("Lang").t("Sekiz Kapı açıldı: %s tuşuyla kapıları zorla.") % Keys.name("gates"), Color(0.5, 1, 0.5))
 	var dark = int(P["dark"].get(jid, 0))
 	if dark > 0:
 		Missions._rep(Progress.home(), -dark)
@@ -1279,7 +1279,7 @@ static func build_all(parent: Node3D) -> void:
 		var b = Builder.new(parent, p.x, p.y, base, "Yol_%s" % pid)
 		b.view_dist = 1800.0
 		Roadside._add_clear(p.x, p.y, float(s.get("clear", 46.0)))   # inin çevresinde orman/ot açıklığı
-		var front = PathLairs.build(String(s["kind"]), b, pid, p, base)
+		var front = LazyFx.g("PathLairs").build(String(s["kind"]), b, pid, p, base)
 		b.finish()
 		lairs[pid] = [p.x, p.y + front]   # ustanın önü (yerel kuzey = harita +y)
 

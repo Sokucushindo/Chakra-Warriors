@@ -35,7 +35,7 @@ class Spin extends Node3D:
 static func model_body(b: MB) -> void:
 	var bronze = Color(0.34, 0.31, 0.26)
 	var dark = Color(0.17, 0.16, 0.14)
-	Loft.tube(b, [Vector3(0, 0, -0.16), Vector3(0, 0, -0.06), Vector3(0, 0, 0.08), Vector3(0, 0, 0.2), Vector3(0, 0, 0.27)], [0.07, 0.17, 0.2, 0.18, 0.13], bronze, 18, 3)
+	LazyFx.g("Loft").tube(b, [Vector3(0, 0, -0.16), Vector3(0, 0, -0.06), Vector3(0, 0, 0.08), Vector3(0, 0, 0.2), Vector3(0, 0, 0.27)], [0.07, 0.17, 0.2, 0.18, 0.13], bronze, 18, 3)
 	for z in [-0.03, 0.12]:
 		b.add("cyl", Vector3(0, 0, z), Vector3(0.39 if z > 0.0 else 0.36, 0.01, 0.39 if z > 0.0 else 0.36), dark, Vector3(90, 0, 0), 18)
 
@@ -48,7 +48,7 @@ static func model_head(b: MB) -> void:
 		var a = k * TAU / 5.0
 		var n = Vector3(cos(a), sin(a), 0)
 		var pts = [n * 0.11, n * 0.16 + Vector3(0, 0, 0.11), n * 0.14 + Vector3(0, 0, 0.27), n * 0.06 + Vector3(0, 0, 0.44)]
-		Loft.tube(b, pts, [0.036, 0.034, 0.025, 0.002], c, 8, 3)
+		LazyFx.g("Loft").tube(b, pts, [0.036, 0.034, 0.025, 0.002], c, 8, 3)
 		b.add("cyl", n * 0.16 + Vector3(0, 0, 0.12), Vector3(0.078, 0.012, 0.078), dark, Vector3(90, 0, 0), 8)
 
 
@@ -63,7 +63,7 @@ static func _cable() -> Mesh:
 	return Yk.mesh("doriru_kablo", func():
 		var b = MB.new()
 		b.add("cyl", Vector3.ZERO, Vector3(0.024, 0.08, 0.024), Color(0.12, 0.12, 0.13), Vector3(90, 0, 0), 5)
-		return b.build(Props.toon()))
+		return b.build(LazyFx.g("Props").toon()))
 
 
 ## Kol kurulumu: gövde sabit, el dönen ayrı düğüm

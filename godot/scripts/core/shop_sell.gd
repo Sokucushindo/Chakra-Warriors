@@ -30,8 +30,8 @@ static func buyer_text(buyer: String) -> String:
 
 
 static func _gear_cat(id: String) -> String:
-	var sl = String(Gear.item(id).get("slot", ""))
-	return "weapon" if sl in ["el", "sag", "sol"] or Gear.item(id).has("weapon") else "cloth"
+	var sl = String(LazyFx.g("Gear").item(id).get("slot", ""))
+	return "weapon" if sl in ["el", "sag", "sol"] or LazyFx.g("Gear").item(id).has("weapon") else "cloth"
 
 
 static func _item_cat(it: Dictionary) -> String:
@@ -40,13 +40,13 @@ static func _item_cat(it: Dictionary) -> String:
 
 ## Ekipmanın satılamama nedeni (kopya sayısından bağımsız); satılabilirse ""
 static func gear_block(id: String) -> String:
-	var it = Gear.item(id)
-	var b = Gear.base_id(id)
+	var it = LazyFx.g("Gear").item(id)
+	var b = LazyFx.g("Gear").base_id(id)
 	if id in HEIRLOOMS or b in HEIRLOOMS:
 		return "Aile yadigârı: satılmaz."
-	if it.get("legend", false) or id in Gear.LEGENDARY or Gear.WH.INFO.has(id):
+	if it.get("legend", false) or id in LazyFx.g("Gear").LEGENDARY or LazyFx.g("Gear").WH.INFO.has(id):
 		return "Efsanevi eşya: hiçbir tüccar alamaz."
-	if id in REGALIA or id in Gear.KAGE_SETS or id in Gear.KAGE_HATS:
+	if id in REGALIA or id in LazyFx.g("Gear").KAGE_SETS or id in LazyFx.g("Gear").KAGE_HATS:
 		return "Makam / örgüt giysisi: satılmaz."
 	return ""
 
@@ -60,7 +60,7 @@ static func item_block(id: String, buyer: String) -> String:
 		return "Görev eşyası: satılmaz."
 	if k == "clan":
 		return "Klan sırrı: dışarıya satılmaz."
-	if Stats.unlimited(id):
+	if LazyFx.g("Stats").unlimited(id):
 		return "Sınırsız alet: bir kez alınır, sahipliği kalıcıdır — satılmaz."
 	if k == "scroll" and buyer != "black" and String(Data.jutsu.get(String(it.get("jutsu", "")), {}).get("learn", "")).begins_with("kinjutsu"):
 		return "Yasak parşömen: dürüst bir dükkân bunu almaz (kara pazar alır)."
@@ -81,28 +81,28 @@ static func entries(pr: Dictionary, buyer: String) -> Array:
 	var out = []
 	if buyer == "":
 		return out
-	Gear.ensure(pr)
+	LazyFx.g("Gear").ensure(pr)
 	var by := {}
 	for g in pr.get("gear", []):
 		var gid = String(g.get("id", ""))
-		if g.get("_tmp", false) or Gear.is_eye(gid) or Gear.is_legacy_piece(gid) or Gear.item(gid).is_empty():
+		if g.get("_tmp", false) or LazyFx.g("Gear").is_eye(gid) or LazyFx.g("Gear").is_legacy_piece(gid) or LazyFx.g("Gear").item(gid).is_empty():
 			continue   # geçici (çağrılan silah), göz (eşya değil), eski parça
 		if buyer != "black" and _gear_cat(gid) != buyer:
 			continue
 		if not by.has(gid):
 			by[gid] = {"owned": 0, "eq": 0}
 		by[gid]["owned"] += 1
-		if Gear.is_equipped(pr, g):
+		if LazyFx.g("Gear").is_equipped(pr, g):
 			by[gid]["eq"] += 1
 	for gid in by:
-		var it = Gear.item(gid)
+		var it = LazyFx.g("Gear").item(gid)
 		var free = int(by[gid]["owned"]) - int(by[gid]["eq"])
 		var why = gear_block(gid)
 		if why == "" and free <= 0:
 			why = "Üstünde takılı: önce çıkar."
 		out.append({"type": "gear", "id": gid, "name": String(it.get("name", gid)), "desc": String(it.get("desc", "")),
 			"count": free if why == "" else 0, "owned": int(by[gid]["owned"]), "equipped": int(by[gid]["eq"]),
-			"price": unit_price(int(it.get("price", 0)), int(it.get("rank", 0)), buyer), "reason": why, "rarity": UI.rarity_of_gear(gid)})
+			"price": unit_price(int(it.get("price", 0)), int(it.get("rank", 0)), buyer), "reason": why, "rarity": LazyFx.g("UI").rarity_of_gear(gid)})
 	var inv: Dictionary = pr.get("inventory", {})
 	for id in inv.keys():
 		var n = int(inv[id])
@@ -113,7 +113,7 @@ static func entries(pr: Dictionary, buyer: String) -> Array:
 			continue
 		var why = item_block(String(id), buyer)
 		out.append({"type": "item", "id": String(id), "name": String(it.get("name", id)), "desc": String(it.get("desc", "")),
-			"count": n if why == "" else 0, "owned": n, "equipped": 0, "unlimited": Stats.unlimited(String(id)),
+			"count": n if why == "" else 0, "owned": n, "equipped": 0, "unlimited": LazyFx.g("Stats").unlimited(String(id)),
 			"price": unit_price(int(it.get("price", 0)), 0, buyer), "reason": why, "rarity": 1 if String(it.get("kind", "")) == "scroll" else 0})
 	# satılabilenler önce, sonra ada göre
 	out.sort_custom(func(a, b):
@@ -134,7 +134,7 @@ static func sell(pr: Dictionary, e: Dictionary, n: int) -> int:
 		# takılı olmayan kopyalar; önce ek bilgisi olmayan sade kopyalar gider
 		var cand = []
 		for g in pr.get("gear", []):
-			if String(g.get("id", "")) == id and not Gear.is_equipped(pr, g) and not g.get("_tmp", false):
+			if String(g.get("id", "")) == id and not LazyFx.g("Gear").is_equipped(pr, g) and not g.get("_tmp", false):
 				cand.append(g)
 		cand.sort_custom(func(a, b): return a.size() < b.size())
 		for i in mini(n, cand.size()):

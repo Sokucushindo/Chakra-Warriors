@@ -227,7 +227,7 @@ func tree_limbs(m: Mesh, local_pos: Vector3, rot_deg: float, sc: float) -> void:
 		cap.radius = r * sc
 		cap.height = maxf(cap.radius * 2.0 + 0.01, ((b - a).length() + r * 2.0) * sc)
 		cs.shape = cap
-		var lx = AnimeTree.limb_xf(a, b)
+		var lx = LazyFx.g("AnimeTree").limb_xf(a, b)
 		cs.transform = Transform3D(base.basis.orthonormalized() * lx.basis, base * lx.origin)
 		add_shape(cs)
 
@@ -570,7 +570,7 @@ func _finish_after_dress() -> void:
 			h2[0] = float(h2[0]) - cx
 			h2[1] = float(h2[1]) - cn
 			houses[i] = h2
-	await CityLandscape.dress(self)
+	await LazyFx.g("CityLandscape").dress(self)
 	dressing -= 1
 	if is_instance_valid(root):
 		_finish_rest()
@@ -615,11 +615,11 @@ func _finish_rest_body(spread: bool) -> void:
 			var at: Array = (pe[0] as ArrayMesh).get_meta("anime_tree")
 			var mid = maxf(near + 80.0, 600.0 * float(Game.settings["view"]))
 			if end > near + 50.0:
-				lv = [[pe[0], 0.0, near], [AnimeTree.mesh(at[0], at[1], at[2], true), near, minf(mid, end)]]
+				lv = [[pe[0], 0.0, near], [LazyFx.g("AnimeTree").mesh(at[0], at[1], at[2], true), near, minf(mid, end)]]
 				if end > mid + 50.0:
-					lv.append([AnimeTree.mesh(at[0], at[1], at[2], true, true), mid, end])
+					lv.append([LazyFx.g("AnimeTree").mesh(at[0], at[1], at[2], true, true), mid, end])
 		elif pe[0] is ArrayMesh and end > near + 50.0 and _tris(pe[0]) > 300:
-			lv = [[pe[0], 0.0, near], [AssetLib.lod(pe[0], 0.15), near, end]]
+			lv = [[pe[0], 0.0, near], [LazyFx.g("AssetLib").lod(pe[0], 0.15), near, end]]
 		for l in lv:
 			var mm = MultiMesh.new()
 			mm.transform_format = MultiMesh.TRANSFORM_3D
@@ -652,7 +652,7 @@ func _finish_rest_body(spread: bool) -> void:
 			continue
 		var mi = MeshInstance3D.new()
 		mi.layers = 2  # yapılar: sokak fenerleri (yalnız katman 1) bunları aydınlatmaz
-		mi.mesh = mb.build(Props.toon())
+		mi.mesh = mb.build(LazyFx.g("Props").toon())
 		if key is Vector3i:
 			mi.name = "K%d_%d_%d" % [key.z, key.x, key.y]
 		# görünürlük mesafesi parçanın merkezinden ölçülür: dev parçalar (Suna sur kayalıkları, uzun duvarlar) yanındayken bile
@@ -844,22 +844,22 @@ func _house_body(x: float, n: float, wdt: float, dep: float, floors: int, yaw: f
 	var hgt = floors * 4.2
 	match style:
 		"suna":
-			VillageStyles.suna_house(self, x, n, wdt, dep, floors, yaw, rng)
+			LazyFx.g("VillageStyles").suna_house(self, x, n, wdt, dep, floors, yaw, rng)
 			return
 		"kiri":
-			VillageStyles.kiri_house(self, x, n, wdt, dep, floors, yaw, rng)
+			LazyFx.g("VillageStyles").kiri_house(self, x, n, wdt, dep, floors, yaw, rng)
 			return
 		"iwa", "rock":
-			VillageStyles.iwa_house(self, x, n, wdt, dep, floors, yaw, rng)
+			LazyFx.g("VillageStyles").iwa_house(self, x, n, wdt, dep, floors, yaw, rng)
 			return
 		"ame":
-			VillageStyles.ame_house(self, x, n, wdt, dep, floors, yaw, rng)
+			LazyFx.g("VillageStyles").ame_house(self, x, n, wdt, dep, floors, yaw, rng)
 			return
 		"kumo":
-			VillageStyles.kumo_house(self, x, n, wdt, dep, floors, yaw, rng)
+			LazyFx.g("VillageStyles").kumo_house(self, x, n, wdt, dep, floors, yaw, rng)
 			return
 		"snow":
-			VillageStyles.snow_house(self, x, n, wdt, dep, floors, yaw, rng)
+			LazyFx.g("VillageStyles").snow_house(self, x, n, wdt, dep, floors, yaw, rng)
 			return
 	# konoha / ahşap: detaylı şablon evler (HouseKit)
 	var walls = [Color(0.88, 0.82, 0.7), Color(0.85, 0.77, 0.6), Color(0.9, 0.87, 0.78), Color(0.82, 0.74, 0.6), Color(0.78, 0.72, 0.62), Color(0.87, 0.79, 0.68)]   # güneşte beyaza patlamasın (eskiden 0,96-0,98)
@@ -1049,17 +1049,17 @@ func tree(x: float, n: float, s: float, rng: RandomNumberGenerator, y := 0.0) ->
 		return   # uçurum yüzüne / dik yamaca ağaç dikilmez (2026-11-27: Hokage Kayası yüzünde ağaçlar)
 	# prosedürel ağaç (hazır paket ağaçları doğal durmuyordu; kullanıcı eskisini tercih etti)
 	if _tree_meshes.is_empty():
-		for v in Props.VILLAGE_TREE_W.size():
-			_tree_meshes.append(Props.village_tree_mesh(v))   # tür başına tek mesh: hücre başına tür başına tek MultiMesh
+		for v in LazyFx.g("Props").VILLAGE_TREE_W.size():
+			_tree_meshes.append(LazyFx.g("Props").village_tree_mesh(v))   # tür başına tek mesh: hücre başına tür başına tek MultiMesh
 		_tree_mesh = _tree_meshes[0]
 	# tür: ağırlıklı rastgele (hep aynı ağaç olmasın)
 	var tot = 0
-	for wv in Props.VILLAGE_TREE_W:
+	for wv in LazyFx.g("Props").VILLAGE_TREE_W:
 		tot += wv
 	var pick = rng.randi() % tot
 	var vi = 0
-	while pick >= Props.VILLAGE_TREE_W[vi]:
-		pick -= Props.VILLAGE_TREE_W[vi]
+	while pick >= LazyFx.g("Props").VILLAGE_TREE_W[vi]:
+		pick -= LazyFx.g("Props").VILLAGE_TREE_W[vi]
 		vi += 1
 	var tm = _tree_meshes[vi]
 	if _underwater(x, n, y):
@@ -1083,7 +1083,7 @@ func tree(x: float, n: float, s: float, rng: RandomNumberGenerator, y := 0.0) ->
 		var rot = rng.randf() * 360.0
 		pack_mesh(tm, Vector3(x, y, n), rot, sc, 1.0)
 		tree_limbs(tm, Vector3(x, y, n), rot, sc)
-		leaf_spots.append([w(Vector3(x, y + Props.VILLAGE_TREE_TOP[vi] * sc, n)), Props.VILLAGE_TREE_LEAF[vi], 3.0 * sc])
+		leaf_spots.append([w(Vector3(x, y + LazyFx.g("Props").VILLAGE_TREE_TOP[vi] * sc, n)), LazyFx.g("Props").VILLAGE_TREE_LEAF[vi], 3.0 * sc])
 		add_solid(w(Vector3(x, 0, n)), 2.6 * s, 2.6 * s, 0.0)   # yerleşim için taç genişliği (gövde değil): sonradan konan evlerin içinden ağaç geçmesin
 		if tm is ArrayMesh and tm.has_meta("trunk") and is_instance_valid(body):   # gövdenin kendisi (ince/eğik gövdede kalın dik silindir boşluğa çarpıyordu)
 			var T: Array = tm.get_meta("trunk")
@@ -1093,7 +1093,7 @@ func tree(x: float, n: float, s: float, rng: RandomNumberGenerator, y := 0.0) ->
 			cap.radius = float(T[2]) * sc
 			cap.height = maxf(cap.radius * 2.0 + 0.01, ((T[1] as Vector3) - (T[0] as Vector3)).length() * sc + cap.radius * 2.0)
 			tcs.shape = cap
-			var lx = AnimeTree.limb_xf(T[0], T[1])
+			var lx = LazyFx.g("AnimeTree").limb_xf(T[0], T[1])
 			tcs.transform = Transform3D(tb.basis.orthonormalized() * lx.basis, tb * lx.origin)
 			add_shape(tcs)
 		else:
@@ -1132,11 +1132,11 @@ func prop(kind: String, p: Vector3, yaw_deg := 0.0, height := 0.0, collide := 0.
 		return true   # su altında süs yok (true: çağıran yedek prosedürel modeli de kurmasın)
 	if kind == "bamboo":   # oyunun kendi anime bambusu (orman bambusuyla aynı; yakın / orta / uzak kademeli)
 		var wpb = w(p)
-		var bm = AnimeTree.mesh("bamboo", "bamboo", absi(int(wpb.x * 7.0 + wpb.z * 13.0)) % 4)
+		var bm = LazyFx.g("AnimeTree").mesh("bamboo", "bamboo", absi(int(wpb.x * 7.0 + wpb.z * 13.0)) % 4)
 		var bh: float = bm.get_aabb().size.y
 		pack_mesh(bm, p, yaw_deg, (height if height > 0.0 else 9.0) / maxf(bh, 0.1), 0.7)
 		return true
-	var m = AssetLib.prop(kind, height)
+	var m = LazyFx.g("AssetLib").prop(kind, height)
 	if m == null:
 		return false
 	pack_mesh(m, p, yaw_deg, 1.0, 0.7)

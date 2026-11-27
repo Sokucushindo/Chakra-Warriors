@@ -76,7 +76,7 @@ static func base_look(v, lk: Dictionary) -> void:
 ## Kıyafetten sonra son dokunuş (Outfits arketipinin üstüne): tür üniforması, hasır şapka, klan görünüşü
 static func finish_look(v, lk: Dictionary) -> Dictionary:
 	var k = kind_of(v)
-	var vid = Outfits.village_near()
+	var vid = LazyFx.g("Outfits").village_near()
 	match k:
 		"farmer", "fisher":
 			if randf() < 0.85:
@@ -92,7 +92,7 @@ static func finish_look(v, lk: Dictionary) -> Dictionary:
 		var fem = randf() < 0.3
 		var cl: Dictionary = ClanWorld.clan_look("uchiha", "chunin", "konoha", fem, "adult")
 		cl["years"] = lk["years"]; cl["fat"] = lk["fat"]; cl["mus"] = lk["mus"]
-		lk = Outfits.wear_set(cl, "set_keimu") if Outfits._fits("set_keimu", fem) else cl
+		lk = LazyFx.g("Outfits").wear_set(cl, "set_keimu") if LazyFx.g("Outfits")._fits("set_keimu", fem) else cl
 		v.display = "Keimu Butai"
 	elif k == "hyuga":
 		var fem2 = randf() < 0.4
@@ -177,14 +177,14 @@ static func _walk_to(v, q: Vector3, dt: float, spd: float, anim := "walk", aspd 
 	to.y = 0.0
 	if to.length() < 0.6:
 		return true
-	var dir = NpcNav.steer(v, to.normalized(), dt)
+	var dir = LazyFx.g("NpcNav").steer(v, to.normalized(), dt)
 	v.step_move(dir * spd + v._sep() * 1.2, dt)
 	v.model.play(anim, 0.2, aspd)
-	if NpcNav.stuck(v, q, dt):
+	if LazyFx.g("NpcNav").stuck(v, q, dt):
 		# takıldı (arada bir şey var): hedefe doğrudan konar — kimse duvara yürüyüp kalmasın
 		if v.global_position.distance_to(Game.player.global_position) > 25.0:
 			v.global_position = Vector3(q.x, Game.ground_height(q.x, q.z), q.z)
-		NpcNav.reset(v)
+		LazyFx.g("NpcNav").reset(v)
 		return true
 	return false
 
@@ -429,7 +429,7 @@ static func _patrol(v, dt: float) -> void:
 		var to = want - v.global_position
 		to.y = 0.0
 		if to.length() > 0.3:
-			v.step_move(NpcNav.steer(v, to.normalized(), dt) * minf(2.6, to.length() * 2.0), dt)
+			v.step_move(LazyFx.g("NpcNav").steer(v, to.normalized(), dt) * minf(2.6, to.length() * 2.0), dt)
 			v.model.play("walk", 0.2)
 		else:
 			v.step_move(Vector3.ZERO, dt, false)
@@ -665,7 +665,7 @@ static func leave(v, door: Vector3) -> void:
 	v.going_home = true
 	v.goal = door
 	v.wait = 0.0
-	NpcNav.reset(v)
+	LazyFx.g("NpcNav").reset(v)
 
 
 ## Tek elde taşınan (parşömen, kova, pano): el kemiğine oturur, gövdenin yönünde durur
@@ -768,7 +768,7 @@ static func _mesh(name: String) -> Mesh:
 		"plank":    # kereste: kucakta enine üç tahta
 			for k in 3:
 				b.add("box", Vector3(0, 0.02 + k * 0.055, -0.05), Vector3(1.5, 0.05, 0.16), Color(0.7, 0.55, 0.34).darkened(k * 0.06))
-	var mesh = b.build(Props.toon())
+	var mesh = b.build(LazyFx.g("Props").toon())
 	_meshes[name] = mesh
 	return mesh
 

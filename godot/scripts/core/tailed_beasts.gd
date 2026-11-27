@@ -87,7 +87,7 @@ func host_of(id: String) -> Dictionary:
 
 
 func _bname(id: String) -> String:
-	return String(BeastModels.INFO[id]["name"]).split(" — ")[0]
+	return String(LazyFx.g("BeastModels").INFO[id]["name"]).split(" — ")[0]
 
 
 func _vname(vid: String) -> String:
@@ -96,7 +96,7 @@ func _vname(vid: String) -> String:
 
 func _news(title: String, text: String, col := Color(1, 0.6, 0.35)) -> void:
 	# ekranı doldurmasın: büyük başlık yok, kısa bir satır; tam metin haber listesinde
-	Hud.msg(Lang.t("Haber: ") + Lang.t(text), col.lerp(Color.WHITE, 0.3), 4.0)
+	Hud.msg(LazyFx.g("Lang").t("Haber: ") + LazyFx.g("Lang").t(text), col.lerp(Color.WHITE, 0.3), 4.0)
 	var pr = Game.profile
 	if not pr.has("beast_news"):
 		pr["beast_news"] = []
@@ -138,13 +138,13 @@ func release_from_host(id: String, at: Vector3) -> void:
 	tb.global_position = p
 	tb.home = p
 	spawned[id] = tb
-	FX.ring(p + Vector3.UP * 2.0, BeastModels.INFO[id]["chakra"], tb.height * 1.2, 1.0)
-	FX.aura(tb, BeastModels.INFO[id]["chakra"], tb.height * 0.4, Vector3(0, tb.height * 0.4, 0), 3.0)
+	FX.ring(p + Vector3.UP * 2.0, LazyFx.g("BeastModels").INFO[id]["chakra"], tb.height * 1.2, 1.0)
+	FX.aura(tb, LazyFx.g("BeastModels").INFO[id]["chakra"], tb.height * 0.4, Vector3(0, tb.height * 0.4, 0), 3.0)
 	if Game.world:
 		Game.world.env.add_shake(1.5)
 	tb.hp = tb.max_hp * TailedBeast.SUBDUE
 	tb._subdue()
-	Hud.banner("%s SERBEST KALDI" % _bname(id).to_upper(), "%s yenildi; canavar bedeninden fışkırıp yorgun düştü. Mühürle ya da salıver! [F]" % String(h.get("name", "Taşıyıcı")), BeastModels.INFO[id]["chakra"])
+	Hud.banner("%s SERBEST KALDI" % _bname(id).to_upper(), "%s yenildi; canavar bedeninden fışkırıp yorgun düştü. Mühürle ya da salıver! [F]" % String(h.get("name", "Taşıyıcı")), LazyFx.g("BeastModels").INFO[id]["chakra"])
 
 
 ## Dünya olayları: köyler canavar yakalar, taşıyıcılar kaçar, kaçaklar avlanır, taşıyıcılar kontrolü kaybeder
@@ -231,7 +231,7 @@ func set_active(id: String) -> void:
 	if Game.player and Game.player.combat and Game.player.combat.modes and Game.player.combat.modes.cloak:
 		Game.player.combat.modes.cloak.deactivate()
 	Game.profile["jinchuriki"] = id
-	Hud.msg("Aktif canavar: %s" % _bname(id), BeastModels.INFO[id]["chakra"])
+	Hud.msg("Aktif canavar: %s" % _bname(id), LazyFx.g("BeastModels").INFO[id]["chakra"])
 	jinchuriki_changed.emit(id)
 	Game.save_game()
 
@@ -248,7 +248,7 @@ func transfer_from_jar(id: String) -> void:
 	if not "jinchuriki" in Game.profile["skills"]:
 		Game.profile["skills"].append("jinchuriki")
 	Sfx.play("seal", null, 0.6)
-	Hud.banner("AKTARILDI", "%s mühür kabından senin içine geçti. (Tab > Kuyruklu Canavarlar: aktif olanı seç)" % _bname(id), BeastModels.INFO[id]["chakra"])
+	Hud.banner("AKTARILDI", "%s mühür kabından senin içine geçti. (Tab > Kuyruklu Canavarlar: aktif olanı seç)" % _bname(id), LazyFx.g("BeastModels").INFO[id]["chakra"])
 	teach_beast_arts()
 	jinchuriki_changed.emit(player_jinchuriki())
 	Game.save_game()
@@ -269,7 +269,7 @@ func add_trust(amount: float, id := "") -> void:
 	var before = int(b["trust"]) / 10
 	b["trust"] = clampf(float(b["trust"]) + amount, 0.0, 100.0)
 	if amount > 0 and int(b["trust"]) / 10 > before:
-		Hud.msg("%s ile bağın güçlendi (güven %d)" % [BeastModels.INFO.get(id, {}).get("name", id).split(" — ")[0], int(b["trust"])], Color(1, 0.75, 0.4))
+		Hud.msg("%s ile bağın güçlendi (güven %d)" % [LazyFx.g("BeastModels").INFO.get(id, {}).get("name", id).split(" — ")[0], int(b["trust"])], Color(1, 0.75, 0.4))
 
 
 ## Canavarın chakrasından gelen kekkei genkai doğası (Rōshi'nin lavı Son Gokū'dan, Han'ın buharı Kokuō'dan)
@@ -284,7 +284,7 @@ func teach_beast_arts() -> void:
 	for bid in held():
 		if BEAST_NATURE.has(bid) and not Progress.has_nature(BEAST_NATURE[bid]):
 			Progress.awaken_nature(BEAST_NATURE[bid])
-			Hud.msg("%s chakrası bedenine karıştı: %s" % [_bname(bid), Elements.NAMES.get(BEAST_NATURE[bid], BEAST_NATURE[bid])], BeastModels.INFO.get(bid, {}).get("chakra", Color(1, 0.6, 0.3)), 4.0)
+			Hud.msg("%s chakrası bedenine karıştı: %s" % [_bname(bid), LazyFx.g("Elements").NAMES.get(BEAST_NATURE[bid], BEAST_NATURE[bid])], LazyFx.g("BeastModels").INFO.get(bid, {}).get("chakra", Color(1, 0.6, 0.3)), 4.0)
 	for jid in Data.jutsu:
 		var j = Data.jutsu[jid]
 		if not j is Dictionary or jid in pr.get("learned", []):
@@ -293,7 +293,7 @@ func teach_beast_arts() -> void:
 		if not lp.begins_with("beast:") or not lp.substr(6) in held() or int(pr["level"]) < int(j.get("level", 1)):
 			continue
 		Progress.learn(jid, false)
-		Hud.msg("%s sana öğretti: %s" % [_bname(lp.substr(6)), String(j.get("name", jid))], BeastModels.INFO.get(lp.substr(6), {}).get("chakra", Color(1, 0.6, 0.3)))
+		Hud.msg("%s sana öğretti: %s" % [_bname(lp.substr(6)), String(j.get("name", jid))], LazyFx.g("BeastModels").INFO.get(lp.substr(6), {}).get("chakra", Color(1, 0.6, 0.3)))
 
 
 ## Doğuştan jinchūriki: yeni karakterin %1 ihtimalle bebekken içine bir canavar mühürlenmiştir (kanon: Naruto, Gaara, Yugito).
@@ -342,8 +342,8 @@ func birth_banner(id: String) -> void:
 	if Game.profile.is_empty() or not id in held():
 		return
 	Sfx.play("seal", null, 0.6)
-	Hud.banner("JİNCHŪRİKİ OLARAK DOĞDUN!", "Doğduğun gece %s içine mühürlendi. Köylüler sana uzaktan bakıyor." % BeastModels.INFO[id]["name"], BeastModels.INFO[id]["chakra"])
-	Hud.msg("[X] chakra pelerini • [X] basılı: zihin dünyası", BeastModels.INFO[id]["chakra"], 6.0)
+	Hud.banner("JİNCHŪRİKİ OLARAK DOĞDUN!", "Doğduğun gece %s içine mühürlendi. Köylüler sana uzaktan bakıyor." % LazyFx.g("BeastModels").INFO[id]["name"], LazyFx.g("BeastModels").INFO[id]["chakra"])
+	Hud.msg("[X] chakra pelerini • [X] basılı: zihin dünyası", LazyFx.g("BeastModels").INFO[id]["chakra"], 6.0)
 
 
 func make_jinchuriki(id: String, quiet := false) -> void:
@@ -357,7 +357,7 @@ func make_jinchuriki(id: String, quiet := false) -> void:
 		pr["skills"].append("jinchuriki")
 	teach_beast_arts()
 	if not quiet:
-		Hud.banner("JİNCHŪRİKİ", "%s artık içinde mühürlü. [X] chakra pelerini • [X] basılı: zihin dünyası%s" % [BeastModels.INFO[id]["name"].split(" — ")[0], "  •  Tab > Kuyruklu Canavarlar: aktif olanı seç" if held().size() > 1 else ""], BeastModels.INFO[id]["chakra"])
+		Hud.banner("JİNCHŪRİKİ", "%s artık içinde mühürlü. [X] chakra pelerini • [X] basılı: zihin dünyası%s" % [LazyFx.g("BeastModels").INFO[id]["name"].split(" — ")[0], "  •  Tab > Kuyruklu Canavarlar: aktif olanı seç" if held().size() > 1 else ""], LazyFx.g("BeastModels").INFO[id]["chakra"])
 	jinchuriki_changed.emit(id)
 	Game.save_game()
 
@@ -403,7 +403,7 @@ func _process(dt: float) -> void:
 			if d < SPAWN_R + 900.0 and not warned.has(id):
 				warned[id] = true
 				var lvl = int(Game.profile.get("level", 1))
-				Hud.banner("DEVASA BİR CHAKRA", "Yakında bir Kuyruklu Canavar var: %s%s" % [BeastModels.INFO[id]["name"], "  (Güç %d+ önerilir)" % MIN_LEVEL if lvl < MIN_LEVEL else ""], Color(1, 0.4, 0.3))
+				Hud.banner("DEVASA BİR CHAKRA", "Yakında bir Kuyruklu Canavar var: %s%s" % [LazyFx.g("BeastModels").INFO[id]["name"], "  (Güç %d+ önerilir)" % MIN_LEVEL if lvl < MIN_LEVEL else ""], Color(1, 0.4, 0.3))
 			if d < SPAWN_R and not (spawned.has(id) and is_instance_valid(spawned[id])):
 				_spawn(id, lair)
 		# (uzaklık canavarın bulunduğu yerden: taşıyıcıdan fışkıran canavar inden uzakta olabilir)
@@ -477,7 +477,7 @@ func summon_ms_beast(c: Node3D) -> bool:
 	if Game.world:
 		Game.world.env.add_shake(1.2)
 	Sfx.play("roar", p, 0.7)
-	Hud.banner("BİJŪ KUCHİYOSE", "%s Sharingan'ın emrinde! (40 sn)  •  Yanına gidip [F]: bin ve kendin yönet" % BeastModels.INFO[id]["name"].split(" — ")[0], BeastModels.INFO[id]["chakra"])
+	Hud.banner("BİJŪ KUCHİYOSE", "%s Sharingan'ın emrinde! (40 sn)  •  Yanına gidip [F]: bin ve kendin yönet" % LazyFx.g("BeastModels").INFO[id]["name"].split(" — ")[0], LazyFx.g("BeastModels").INFO[id]["chakra"])
 	return true
 
 
@@ -501,7 +501,7 @@ func lair_markers() -> Array:
 	var out = []
 	for id in LAIRS:
 		if beast_state(id) == "wild":
-			out.append({"id": id, "name": BeastModels.INFO[id]["name"], "x": LAIRS[id].x, "y": LAIRS[id].y})
+			out.append({"id": id, "name": LazyFx.g("BeastModels").INFO[id]["name"], "x": LAIRS[id].x, "y": LAIRS[id].y})
 	return out
 
 
@@ -515,15 +515,15 @@ func fire_ball(owner_f: Node3D, from: Vector3, dir: Vector3, size: float, col: C
 	pr.blockable = false
 	pr.info = {"dmg": dmg, "knock": 40.0, "launch": 14.0, "kind": "heavy", "hitstop": 0.15}
 	# anime Bijūdama (BijudamaFX): koyu girdaplı top, atışta şok halkaları + iz, çarpınca parlama + kubbe + dev zemin halkası
-	var vis = BijudamaFX.ball(maxf(1.0, size * 2.0))
+	var vis = LazyFx.g("BijudamaFX").ball(maxf(1.0, size * 2.0))
 	pr.add_child(vis)
 	var boom = maxf(5.0, size * 6.0)
 	pr.on_hit = func(pos: Vector3, _t: Node3D) -> void:
-		BijudamaFX.explode(pos, boom)
+		LazyFx.g("BijudamaFX").explode(pos, boom)
 		Combat.hit_sphere(owner_f, pos, boom, {"dmg": dmg * 0.6, "knock": 44.0, "launch": 16.0, "kind": "heavy"}, pr.hit_list)
 	get_tree().current_scene.add_child(pr)
 	pr.global_position = from
-	BijudamaFX.launch(from, dir.normalized(), maxf(1.0, size * 2.0), pr)
+	LazyFx.g("BijudamaFX").launch(from, dir.normalized(), maxf(1.0, size * 2.0), pr)
 	Sfx.play("roar", from, 0.7)
 	return pr
 
@@ -534,7 +534,7 @@ func interact(it: Dictionary) -> void:
 		"beast_seal":
 			_seal_dialog(it.get("beast"))
 		"jubi_revive":
-			WorldJubi.player_revive(it)
+			LazyFx.g("WorldJubi").player_revive(it)
 		"beast_talk":
 			_mind_dialog()
 		"mind_exit":
@@ -545,7 +545,7 @@ func _seal_dialog(b) -> void:
 	if b == null or not is_instance_valid(b):
 		return
 	if String(b.id) == "jubi":   # On Kuyruk kaba / bedene sığmaz: kendi penceresi
-		WorldJubi.seal_dialog(b)
+		LazyFx.g("WorldJubi").seal_dialog(b)
 		return
 	var pl = Game.player
 	var knows_seal = false
@@ -587,13 +587,13 @@ func _finish_seal(b, how: String) -> void:
 		"jar":
 			b.sealed_away(null)
 			beasts()[id]["state"] = "sealed_jar"
-			Progress.add_xp(4000 + 800 * int(BeastModels.INFO[id]["num"]))
-			Progress.add_ryo(20000 + 5000 * int(BeastModels.INFO[id]["num"]))
-			var lg = Gear.random_legendary()
+			Progress.add_xp(4000 + 800 * int(LazyFx.g("BeastModels").INFO[id]["num"]))
+			Progress.add_ryo(20000 + 5000 * int(LazyFx.g("BeastModels").INFO[id]["num"]))
+			var lg = LazyFx.g("Gear").random_legendary()
 			if lg != "":
-				Gear.grant(pr, lg)
-				Hud.msg("Efsanevi ödül: %s" % Gear.item(lg).get("name", lg), Color(1, 0.8, 0.3))
-			Hud.banner("MÜHÜRLENDİ", "%s mühür kabına hapsedildi. İstersen sonra kendi içine aktarabilirsin: Tab > Kuyruklu Canavarlar" % BeastModels.INFO[id]["name"], Color(1, 0.8, 0.4))
+				LazyFx.g("Gear").grant(pr, lg)
+				Hud.msg("Efsanevi ödül: %s" % LazyFx.g("Gear").item(lg).get("name", lg), Color(1, 0.8, 0.3))
+			Hud.banner("MÜHÜRLENDİ", "%s mühür kabına hapsedildi. İstersen sonra kendi içine aktarabilirsin: Tab > Kuyruklu Canavarlar" % LazyFx.g("BeastModels").INFO[id]["name"], Color(1, 0.8, 0.4))
 		"ms":
 			b.sealed_away(null)
 			beasts()[id]["state"] = "ms_bound"
@@ -601,7 +601,7 @@ func _finish_seal(b, how: String) -> void:
 				pr["beast_ms"] = []
 			if not id in pr["beast_ms"]:
 				pr["beast_ms"].append(id)
-			Hud.banner("BOYUN EĞDİ", "%s Mangekyō'nun iradesine bağlandı. Jutsular (K) > «Bijū Kuchiyose» yuvaya koy; gözler açıkken çağır." % BeastModels.INFO[id]["name"].split(" — ")[0], Color(0.95, 0.15, 0.15))
+			Hud.banner("BOYUN EĞDİ", "%s Mangekyō'nun iradesine bağlandı. Jutsular (K) > «Bijū Kuchiyose» yuvaya koy; gözler açıkken çağır." % LazyFx.g("BeastModels").INFO[id]["name"].split(" — ")[0], Color(0.95, 0.15, 0.15))
 		"free":
 			beasts()[id]["state"] = "free"
 			beasts()[id]["trust"] = 30.0
@@ -613,7 +613,7 @@ func _finish_seal(b, how: String) -> void:
 			tw.tween_property(b, "global_position", b.global_position + Vector3.DOWN * b.height * 1.2, 4.0)
 			tw.tween_callback(b.queue_free)
 			Interact.items.erase(b.seal_item)
-			Hud.banner("SERBEST", "%s sana uzun uzun baktı ve toprağa gömülüp kayboldu." % BeastModels.INFO[id]["name"].split(" — ")[0], Color(0.8, 0.9, 1))
+			Hud.banner("SERBEST", "%s sana uzun uzun baktı ve toprağa gömülüp kayboldu." % LazyFx.g("BeastModels").INFO[id]["name"].split(" — ")[0], Color(0.8, 0.9, 1))
 	beast_sealed.emit(id, how)
 	spawned.erase(id)
 	Game.save_game()
@@ -626,7 +626,7 @@ func enter_mindscape() -> void:
 		return
 	var pl = Game.player
 	mind_return = pl.global_position
-	mind = Mindscape.new()
+	mind = LazyFx.g("Mindscape").new()
 	mind.beast_id = id
 	mind.position = Vector3(0, 7000, 0)
 	get_tree().current_scene.add_child(mind)
@@ -691,7 +691,7 @@ func _mind_dialog() -> void:
 	var id = player_jinchuriki()
 	var b: Dictionary = beasts().get(id, {})
 	var tr = float(b.get("trust", 0.0))
-	var nm = BeastModels.INFO.get(id, {}).get("name", id).split(" — ")[0]
+	var nm = LazyFx.g("BeastModels").INFO.get(id, {}).get("name", id).split(" — ")[0]
 	var slot = int(Time.get_unix_time_from_system() / 120.0)  # gerçek 2 dakikada bir konuşma bağı +10 artırır
 	var opts = []
 	opts.append({"label": "Konuş", "tip": "Her konuşma güveni +10 artırır (2 dakikada bir)", "cb": func():
@@ -738,7 +738,7 @@ func _host_npcs() -> void:
 			vg.lines_override = ["İçimdeki %s'i kontrol etmek ömür boyu süren bir antrenman." % _bname(id), "Köyüm beni silah olarak görüyor... ama ben onu korumayı seçtim.",
 				"Bana bakan gözlerden korku okuyorum. Alıştım."]
 			# kendi köyünün ninja kıyafeti (yalnız cinsiyet/yaş verilince köylü kıyafet kurmuyordu: her köyde varsayılan Konoha yeleği)
-			var jl = Outfits.roll("jonin", vid)
+			var jl = LazyFx.g("Outfits").roll("jonin", vid)
 			jl.merge({"gender": String(h.get("gender", "m")), "age": "adult", "village": vid, "npc": true}, true)
 			vg.look_extra = jl
 			get_tree().current_scene.add_child(vg)
@@ -765,7 +765,7 @@ func attack_host(vg: Node3D) -> void:
 	var vid = String(h.get("village", "konoha"))
 	var a = Enemy.archetype("jinchuriki", 0)
 	var lv = maxi(int(h.get("level", 100 + LAIRS.keys().find(id) * 8)), 100)   # eski kayıtların zayıf taşıyıcıları da en az Güç 100
-	Stats.npc_ninja(a, lv, 1.6)
+	LazyFx.g("Stats").npc_ninja(a, lv, 1.6)
 	a["name"] = "%s (%s jinchūriki)" % [String(h.get("name", "Jinchūriki")), _bname(id)]
 	a["beast"] = id
 	a["respawn"] = false
@@ -785,9 +785,9 @@ func attack_host(vg: Node3D) -> void:
 	e.set_meta("host_beast", id)
 	host_npcs.erase(id)
 	vg.queue_free()
-	Hud.banner("JINCHŪRIKI", "%s içindeki %s'in gücünü serbest bırakıyor!" % [String(h.get("name", "")), _bname(id)], BeastModels.INFO.get(id, {}).get("chakra", Color(1, 0.6, 0.3)))
+	Hud.banner("JINCHŪRIKI", "%s içindeki %s'in gücünü serbest bırakıyor!" % [String(h.get("name", "")), _bname(id)], LazyFx.g("BeastModels").INFO.get(id, {}).get("chakra", Color(1, 0.6, 0.3)))
 	if not Orgs.is_rogue():
-		Crime.commit(Crime.ATTACK, "Köyün jinchūriki'sine saldırdın", at, vid)
+		LazyFx.g("Crime").commit(LazyFx.g("Crime").ATTACK, "Köyün jinchūriki'sine saldırdın", at, vid)
 
 
 ## Dünya haritası listesi: [ad, canavar, köy adı, köy id] (yalnız köyünde yaşayan taşıyıcılar)

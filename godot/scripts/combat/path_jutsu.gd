@@ -1600,7 +1600,7 @@ func summon_circle(pos: Vector3, r: float, col: Color, dur: float, smoke := true
 ## Sen'ei Jashu (anime: Anko / Orochimaru): kol hedefe uzatılır, yenin içinden dört yılan fırlar — kuyrukları yende kalır,
 ## gövdeleri koldan hedefe uzanır, ısırır (zehir) ve gövdesine sarılıp bağlar; sonra kullanıcı onu kendine çeker
 func p_sen_ei_jashu(c: Node3D, t: Node3D) -> void:
-	SpacetimeFXA.sen_ei_jashu(self, c, t)
+	LazyFx.g("SpacetimeFXA").sen_ei_jashu(self, c, t)
 
 
 ## Hangi el daha önde (uzatılan kol): true = sağ
@@ -1633,12 +1633,12 @@ func sleeve_snake(c: Node3D, right: bool, e: Node3D, i: int, n: int, free_off: V
 
 ## Jagei Jubaku: arkanda dev bir yılan hayali yükselir, bakışınla dehşete düşen herkes donar
 func p_jagei_jubaku(c: Node3D, t: Node3D) -> void:
-	SpacetimeFXA.jagei_jubaku(self, c, t)
+	LazyFx.g("SpacetimeFXA").jagei_jubaku(self, c, t)
 
 
 ## Yılan klonu: yerinde bir klon kalır, sen geri sıçrarsın; klon vurulunca yılan sürüsüne dağılıp çevreyi ısırır
 func p_hebi_bunshin_no_jutsu(c: Node3D, t: Node3D) -> void:
-	ArcaneFX.hebi_bunshin_no_jutsu(self, c, t)
+	LazyFx.g("ArcaneFX").hebi_bunshin_no_jutsu(self, c, t)
 
 
 ## Sen'ei Tajashu: Sen'ei Jashu'nun çok yılanlı hâli (anime: iki yenden yılan sürüsü) — her yılan menzildeki 6 düşmandan birine uzanıp sarılır
@@ -1770,7 +1770,7 @@ func p_kuchiyose_rashomon(c: Node3D, t: Node3D) -> void:
 
 
 func p_kuchiyose_sanju_rashomon(c: Node3D, t: Node3D) -> void:
-	KensumFXA.kuchiyose_sanju_rashomon(self, c, t)
+	LazyFx.g("KensumFXA").kuchiyose_sanju_rashomon(self, c, t)
 
 
 ## Kusanagi: ağızdan çıkan yılan kılıcı dişlerinde tutar, kılıç 25 m uzayıp hattı deler; sonra 15 sn elinde kalır
@@ -1788,17 +1788,17 @@ func kusanagi_blade(len_: float) -> MeshInstance3D:
 
 
 func p_kusanagi_kuchi(c: Node3D, t: Node3D) -> void:
-	FinalFX1.kusanagi_kuchi(self, c, t)
+	LazyFx.g("FinalFX1").kusanagi_kuchi(self, c, t)
 
 
 ## Gogyō Fūin: beş parmak ucunda beş element yanar; karnına bastırılan mühür chakrayı 12 sn kilitler
 func p_gogyo_fuin(c: Node3D, t: Node3D) -> void:
-	FinalFX0.gogyo_fuin(self, c, t)
+	LazyFx.g("FinalFX0").gogyo_fuin(self, c, t)
 
 
 ## Sen'ei Ranjashu: koni boyunca üç dalga halinde yerden vahşi yılanlar fışkırıp dalar
 func p_sen_ei_ranjashu(c: Node3D, t: Node3D) -> void:
-	SpacetimeFXA.sen_ei_ranjashu(self, c, t)
+	LazyFx.g("SpacetimeFXA").sen_ei_ranjashu(self, c, t)
 
 
 ## Tene çizilen desen (shader): beden toon sage_marks=kind, yüz vroid param=1; dur sonra temizlenir
@@ -1850,7 +1850,7 @@ func juin_marks(c: Node3D, col: Color, dur: float, spread: float) -> Array:
 
 ## Ten no Juin — 1. aşama: kara alev desenleri, güç ve hız; can yavaşça erir (canın %15'in altına inince söner)
 func p_ten_no_juin(c: Node3D, _t: Node3D) -> void:
-	FinalFX2.ten_no_juin(self, c, _t)
+	LazyFx.g("FinalFX2").ten_no_juin(self, c, _t)
 
 
 ## 2. aşama: ten kararır, beden biçim değiştirir (JuinForms: her parça bedenin kendi kemiğinden); güç patlar, can hızla erir
@@ -1867,27 +1867,27 @@ const JUIN_FORMS := {
 
 
 func p_juin_ni_no_dankai(c: Node3D, _t: Node3D) -> void:
-	FinalFX1.juin_ni_no_dankai(self, c, _t)
+	LazyFx.g("FinalFX1").juin_ni_no_dankai(self, c, _t)
 
 
 ## Mandara no Jin: ağızdan on binlerce yılan seli — 70° yelpazede 38 m boyunca her şeyi ısırıp sürükler
 func p_mandara_no_jin(c: Node3D, t: Node3D) -> void:
-	SpacetimeFXA.mandara_no_jin(self, c, t)
+	LazyFx.g("SpacetimeFXA").mandara_no_jin(self, c, t)
 
 
 ## Kabuk değiştirme: eski beden griye dönüp yarılır, ağzından yepyeni bedenle çıkarsın (%45 can, durumlar temizlenir)
 func p_orochimaru_ryu_no_kawarimi_no_jutsu(c: Node3D, _t: Node3D) -> void:
-	FinalFX1.orochimaru_ryu_no_kawarimi_no_jutsu(self, c, _t)
+	LazyFx.g("FinalFX1").orochimaru_ryu_no_kawarimi_no_jutsu(self, c, _t)
 
 
 ## Beyaz Yılan Bilge Modu: pullar bedeni sarar, yaralar kapanır; her 1.4 sn yakındaki düşmana beyaz yılan saldırır, düşmanlar sezilir
 func p_hakuja_sennin_modo(c: Node3D, _t: Node3D) -> void:
-	FinalFX2.hakuja_sennin_modo(self, c, _t)
+	LazyFx.g("FinalFX2").hakuja_sennin_modo(self, c, _t)
 
 
 ## Yamata no Jutsu: sekiz başlı dev yılana dönüşürsün; başlar ayrı ayrı 40 m'ye kadar dalar, sen gövdeyle yürürsün
 func p_yamata_no_jutsu(c: Node3D, _t: Node3D) -> void:
-	FinalFX1.yamata_no_jutsu(self, c, _t)
+	LazyFx.g("FinalFX1").yamata_no_jutsu(self, c, _t)
 
 
 ## Edo Tensei tabutu (ref _tmp/edoref: "Hashirama's Coffin", "The Sixth Coffin"): uzun dik kutu, açık bej-pembe tahta, koyu damar
@@ -1944,12 +1944,12 @@ func _edo_coffin(k: int) -> Node3D:
 
 ## Edo Tensei: topraktan iki tabut yükselir, kapakları düşer; çatlak tenli diriltilmiş ninjalar 30 sn senin için savaşır
 func p_kuchiyose_edo_tensei(c: Node3D, t: Node3D) -> void:
-	KensumFXA.kuchiyose_edo_tensei(self, c, t)
+	LazyFx.g("KensumFXA").kuchiyose_edo_tensei(self, c, t)
 
 
 ## Sōjasōsai: iki dev yılan seni ve hedefi sarar; canının yarısı karşılığında hedefe ölümcül darbe
 func p_sojasosai_no_jutsu(c: Node3D, t: Node3D) -> void:
-	FinalFX1.sojasosai_no_jutsu(self, c, t)
+	LazyFx.g("FinalFX1").sojasosai_no_jutsu(self, c, t)
 
 
 # ================================================================== SİLAH USTASI YOLU
@@ -2195,7 +2195,7 @@ func p_buki_kuchiyose(c: Node3D, t: Node3D) -> void:
 
 ## Demir Pençe Zinciri: zincir hedefe dolanıp onu sana çeker; hedef yoksa zemine saplanıp seni oraya çeker (kanca)
 func p_tesso_kusari(c: Node3D, t: Node3D) -> void:
-	FinalFX2.tesso_kusari(self, c, t)
+	LazyFx.g("FinalFX2").tesso_kusari(self, c, t)
 
 
 const HELIX_R := 3.4
@@ -2266,17 +2266,17 @@ void fragment() {
 ## Sōshōryū (anime): yere konan iki parşömen ikiz ejderha gibi çift sarmal çizip göğe açılır; atan aralarında 15 m yükselir,
 ## kollar iki yana açık havada döner ve dönerken iki elinden sırayla silah fırlatır — silahlar düşmanın tam üstüne yağar.
 func p_soshoryu(c: Node3D, t: Node3D) -> void:
-	WeaponFX.soshoryu(self, c, t)
+	LazyFx.g("WeaponFX").soshoryu(self, c, t)
 
 
 ## Demir Yelpaze: dev demir yelpaze açılır, 6 sn mermileri durdurur; kapanırken savurduğu rüzgar düşmanları uçurur
 func p_tekkosen(c: Node3D, t: Node3D) -> void:
-	FinalFX2.tekkosen(self, c, t)
+	LazyFx.g("FinalFX2").tekkosen(self, c, t)
 
 
 ## Telli Silah Fırtınası: 10 silah tellerle etrafında döner; her 0.45 sn ikisi en yakın düşmanlara saplanıp geri döner, tele dolanan bağlanır
 func p_ito_buki_arashi(c: Node3D, _t: Node3D) -> void:
-	FinalFX2.ito_buki_arashi(self, c, _t)
+	LazyFx.g("FinalFX2").ito_buki_arashi(self, c, _t)
 
 
 ## Dev demir topuz gövdesi (Tenten): koyu demir küre + köşeli dikenler + halka (önbellekli)
@@ -2300,7 +2300,7 @@ func _tetsuzan_mesh() -> ArrayMesh:
 
 ## Dev Demir Topuz: gökte çağırma çemberi açılır, çivili dev topuz düşüp krater açar
 func p_kuchiyose_tetsuzan(c: Node3D, t: Node3D) -> void:
-	FinalFX2.kuchiyose_tetsuzan(self, c, t)
+	LazyFx.g("FinalFX2").kuchiyose_tetsuzan(self, c, t)
 
 
 ## Bashōsen: palmiye yaprağı biçimli efsanevi yelpaze elde belirir; her sargı ayrı bir doğa — ek chakra emer
@@ -2353,19 +2353,19 @@ func bashosen_fan(c: Node3D, el_col: Color) -> Node3D:
 
 
 func p_bashosen_kaze_no_maki(c: Node3D, t: Node3D) -> void:
-	FutonFXE.bashosen_kaze_no_maki(self, c, t)
+	LazyFx.g("FutonFXE").bashosen_kaze_no_maki(self, c, t)
 
 
 func p_bashosen_hi_no_maki(c: Node3D, t: Node3D) -> void:
-	KatonFXC.bashosen_hi_no_maki(self, c, t)
+	LazyFx.g("KatonFXC").bashosen_hi_no_maki(self, c, t)
 
 
 func p_bashosen_rai_no_maki(c: Node3D, t: Node3D) -> void:
-	RaitonFXF.bashosen_rai_no_maki(self, c, t)
+	LazyFx.g("RaitonFXF").bashosen_rai_no_maki(self, c, t)
 
 
 func p_bashosen_mizu_no_maki(c: Node3D, t: Node3D) -> void:
-	SuitonFXF.bashosen_mizu_no_maki(self, c, t)
+	LazyFx.g("SuitonFXF").bashosen_mizu_no_maki(self, c, t)
 
 
 # ================================================================== Şifacı Yolu (Tıbbi Ninja)
@@ -2374,42 +2374,42 @@ const MED := Color(0.45, 0.95, 0.6)
 
 ## Toprak Gizlenmesi: yere gömülür (görünmez, darbe almaz), 3 sn sonra hedefin dibinden yukarı fırlayıp çene darbesi
 func p_senpuku(c: Node3D, t: Node3D) -> void:
-	DotonFXB.senpuku(self, c, t)
+	LazyFx.g("DotonFXB").senpuku(self, c, t)
 
 
 ## Ceset Diriltme: solgun, dikişli bir ceset ayağa kalkar ve 20 sn senin için savaşır
 func p_shikon_no_jutsu(c: Node3D, t: Node3D) -> void:
-	SpacetimeFXA.shikon_no_jutsu(self, c, t)
+	LazyFx.g("SpacetimeFXA").shikon_no_jutsu(self, c, t)
 
 
 ## Zehir Çekme: avuçta dönen su küresi bedenden mor zehri çeker; zehir/yavaşlama/bağ biter, can yenilenir
 func p_saikan_chushutsu_no_jutsu(c: Node3D, _t: Node3D) -> void:
-	SpacetimeFXA.saikan_chushutsu_no_jutsu(self, c, _t)
+	LazyFx.g("SpacetimeFXA").saikan_chushutsu_no_jutsu(self, c, _t)
 
 
 ## Zehir Sisi: ağızdan mor sis yelpazesi; 7 sn yerde kalır, içindekiler zehirlenir ve yavaşlar
 func p_dokugiri(c: Node3D, t: Node3D) -> void:
-	SpacetimeFXA.dokugiri(self, c, t)
+	LazyFx.g("SpacetimeFXA").dokugiri(self, c, t)
 
 
 ## Sinir Karıştırma: elektrikli yeşil avuç darbesi; hedefin sinirleri karışır (3 sn sersem, sonra yavaş)
 func p_ranshinsho(c: Node3D, t: Node3D) -> void:
-	RaitonFXB.ranshinsho(self, c, t)
+	LazyFx.g("RaitonFXB").ranshinsho(self, c, t)
 
 
 ## Chakra Neşteri: iki elde mavi parlayan bıçak (12 sn); yakın dövüş güçlenir, vurulan kas kesilir (yavaşlar)
 func p_chakura_no_mesu(c: Node3D, _t: Node3D) -> void:
-	SpacetimeFXA.chakura_no_mesu(self, c, _t)
+	LazyFx.g("SpacetimeFXA").chakura_no_mesu(self, c, _t)
 
 
 ## Hücre Yenileme: bedeni saran yeşil ışık, 15 sn her saniye %4 can
 func p_in_yu_shometsu(c: Node3D, _t: Node3D) -> void:
-	SpacetimeFXA.in_yu_shometsu(self, c, _t)
+	LazyFx.g("SpacetimeFXA").in_yu_shometsu(self, c, _t)
 
 
 ## Yaradılış Yenilenmesi: alında elmas mühür açılır, yüze/kollara mühür çizgileri yayılır; tam iyileşme + 20 sn güçlü yenilenme
 func p_sozo_saisei(c: Node3D, _t: Node3D) -> void:
-	SpacetimeFXA.sozo_saisei(self, c, _t)
+	LazyFx.g("SpacetimeFXA").sozo_saisei(self, c, _t)
 
 
 # ================================================================== Sekiz Kapı Yolu
@@ -2477,12 +2477,12 @@ func lotus_no_target(c: Node3D, jname: String) -> void:
 
 ## Ön Lotus: hedefe atıl, çeneden yukarı tekmele, havada sargıyla sar ve başaşağı yere çak
 func p_omote_renge(c: Node3D, t: Node3D) -> void:
-	ArcaneFX.omote_renge(self, c, t)
+	LazyFx.g("ArcaneFX").omote_renge(self, c, t)
 
 
 ## Arka Lotus: üçüncü kapı; hedefi havaya savurup arkasından görünerek 6 hızlı vuruş, son yumrukla yere çakar
 func p_ura_renge(c: Node3D, t: Node3D) -> void:
-	KinjutsuFXA.ura_renge(self, c, t)
+	LazyFx.g("KinjutsuFXA").ura_renge(self, c, t)
 
 
 ## Kapı yükseltme anı: buhar patlaması, zemin çatlağı; 8. kapı (Ölüm) kızıl buhar ve sonunda beden tükenir
@@ -2505,17 +2505,17 @@ func _gate_burst(c: Node3D, g: int) -> void:
 
 ## Sekiz Kapı Açılışı: yeşil buhar fışkırır, ten kızarır; 25 sn büyük güç ve hız, can yavaşça erir
 func p_hachimon_tonko_no_jin(c: Node3D, _t: Node3D) -> void:
-	KinjutsuFXA.hachimon_tonko_no_jin(self, c, _t)
+	LazyFx.g("KinjutsuFXA").hachimon_tonko_no_jin(self, c, _t)
 
 
 ## Sabah Tavuskuşu: altıncı kapı; sürtünmeden alev alan yumruklar tavuskuşu kuyruğu gibi yelpazelenir
 func p_asakujaku(c: Node3D, t: Node3D) -> void:
-	KinjutsuFXA.asakujaku(self, c, t)
+	LazyFx.g("KinjutsuFXA").asakujaku(self, c, t)
 
 
 ## Gündüz Kaplanı: yedinci kapı; avuç ileri, kaplan başı biçiminde dev hava basıncı topu (her şeyi savurur)
 func p_hirudora(c: Node3D, t: Node3D) -> void:
-	ClanFX.hirudora(self, c, t)
+	LazyFx.g("ClanFX").hirudora(self, c, t)
 
 
 ## Hirudora kaplan başı (-Z ileri): kafatası + burun + açık alt çene + dişler + kulaklar (hava malzemesi), parlak gözler
@@ -2562,13 +2562,13 @@ func _tiger_head(s: float) -> Node3D:
 
 ## Akşam Fili: sekizinci kapı; beş ardışık süpersonik yumruk, her biri öne uzanan hava şoku
 func p_sekizo(c: Node3D, t: Node3D) -> void:
-	KinjutsuFXA.sekizo(self, c, t)
+	LazyFx.g("KinjutsuFXA").sekizo(self, c, t)
 
 
 ## Gece Gayı: sekizinci kapının son tekmesi; kızıl ejderha biçimli buhar, uzayı büken tek hamlede hedefin içinden geç.
 ## Bedeli: canın %10'a iner, 12 sn bitkin (yavaş)
 func p_yagai(c: Node3D, t: Node3D) -> void:
-	KinjutsuFXA.yagai(self, c, t)
+	LazyFx.g("KinjutsuFXA").yagai(self, c, t)
 
 
 # ================================================================== Kâğıt Yolu
@@ -2787,7 +2787,7 @@ func _paper_star() -> MB:
 
 ## Kâğıt Shuriken: elden yelpaze gibi açılan 5 katlanmış kâğıt yıldız; dönerek uçar, hedefe hafif yönelir, arkasında kâğıt kırpıntıları
 func p_kami_shuriken(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXC.kami_shuriken(self, c, t)
+	LazyFx.g("NinjutsuFXC").kami_shuriken(self, c, t)
 
 
 # ================================================================== Akademi / genel teknikler (kendi koreografisi)
@@ -2827,7 +2827,7 @@ func _face(c: Node3D, tt: Node3D) -> Vector3:
 
 ## Yaprak Kasırgası (Senpū): zıplayıp dönen yüksek tekme — çevresindeki herkesi savurur, yapraklar uçuşur
 func p_konoha_senpu(c: Node3D, t: Node3D) -> void:
-	TaijutsuFXA.konoha_senpu(self, c, t)
+	LazyFx.g("TaijutsuFXA").konoha_senpu(self, c, t)
 
 
 ## Yaprak Kasırgası (Reppū): kayarak alçak süpürme tekmesi — ayağını alır, yere serer
@@ -2849,12 +2849,12 @@ func p_konoha_reppu(c: Node3D, t: Node3D) -> void:
 
 ## Dinamik Giriş: uçan çift ayak tekmesi — hedefe atılır, çarpınca uzağa savurur
 func p_dainamikku_entori(c: Node3D, t: Node3D) -> void:
-	TaijutsuFXA.dainamikku_entori(self, c, t)
+	LazyFx.g("TaijutsuFXA").dainamikku_entori(self, c, t)
 
 
 ## Bin Yıllık Ölüm: hedefin arkasında belirip iki parmakla dürter — hedef havaya fırlar
 func p_sennen_goroshi(c: Node3D, t: Node3D) -> void:
-	TaijutsuFXB.sennen_goroshi(self, c, t)
+	LazyFx.g("TaijutsuFXB").sennen_goroshi(self, c, t)
 
 
 ## PSTYLE: doton_renga_no_jutsu=ground doton_sazareishi=palm doton_shinju_zanshu_no_jutsu=ground kasumi_jusha_no_jutsu=sense oboro_bunshin_no_jutsu=clone doton_tobi_tsubute=ground doton_dosekiryu=ground doton_retsudo_tensho=ground futon_reppusho=palm futon_kazekiri_no_jutsu=palm katon_endan=breath
@@ -2877,7 +2877,7 @@ const WIND := Color(0.85, 1.0, 0.95)
 
 ## Erken Kurban: hedefi yakalar, havaya kaldırıp sırtüstü yere çakar
 func p_hayanie(c: Node3D, t: Node3D) -> void:
-	TaijutsuFXA.hayanie(self, c, t)
+	LazyFx.g("TaijutsuFXA").hayanie(self, c, t)
 
 
 ## Büyük Yaprak Kasırgası: art arda üç dönen tekme, her biri daha yüksek
@@ -2899,7 +2899,7 @@ func p_konoha_daisenpu(c: Node3D, t: Node3D) -> void:
 
 ## Yaprak Düşüşü: havaya sıçrayıp yukarıdan topukla iner — yer çatlar
 func p_konoha_otoshi(c: Node3D, t: Node3D) -> void:
-	TaijutsuFXB.konoha_otoshi(self, c, t)
+	LazyFx.g("TaijutsuFXB").konoha_otoshi(self, c, t)
 
 
 ## PSTYLE: futon_hanachiri_mai=spin genjutsu_suzune_bunshin=sense kage_buyo=rush karasu_bunshin_no_jutsu=clone kawazu_kumite=power kawazu_tataki=rush konoha_shofu=rush kumo_ryu_omotegiri=rush kumo_ryu_uragiri=rush kumo_shibari=palm kumo_soka=palm kumogakure_taijutsu_okami_ringu=spin kyomeisen=palm mizuame_teppo=breath nekozume=rush okasho=rush raigeki=rush raigyaku_suihei_choppu=rush raikyu=palm raiton_ikazuchi_unagi=palm raiton_raiju_tsuiga=palm rakanken=rush shikomishindan=throw shishi_rendan=rush
@@ -2947,7 +2947,7 @@ func p_kage_buyo(c: Node3D, t: Node3D) -> void:
 
 ## Kurbağa Vuruşu: doğa enerjili tek ağır yumruk — dokunmadan önce aura çarpar, uzağa uçurur
 func p_kawazu_tataki(c: Node3D, t: Node3D) -> void:
-	SenjutsuFXA.kawazu_tataki(self, c, t)
+	LazyFx.g("SenjutsuFXA").kawazu_tataki(self, c, t)
 
 
 ## Yükselen Yaprak Rüzgârı: çömelip yukarı tekme — hedef dik havaya fırlar
@@ -3094,7 +3094,7 @@ func p_rakanken(c: Node3D, t: Node3D) -> void:
 
 ## Aslan Kombosu: tekmeyle havaya atar, gölge gibi arkasından sıçrar, art arda tekmeler ve havadan yere çakar
 func p_shishi_rendan(c: Node3D, t: Node3D) -> void:
-	TaijutsuFXB.shishi_rendan(self, c, t)
+	LazyFx.g("TaijutsuFXB").shishi_rendan(self, c, t)
 ## PSTYLE: gofu_kekkai=seal mizu_bunshin_no_jutsu=clone nan_no_kaizo=power narikawari_no_jutsu=clone sanzengarasu_no_jutsu=sense sly_mind_affect_technique=sense sosai_no_ne=palm soshujin=throw suiken=rush suiton_homatsu_rappa=breath suiton_kokuu_no_jutsu=breath suiton_mizu_shibari=palm suiton_mizu_shuriken=throw suiton_mizuame_nabara=breath suiton_mizurappa=breath suiton_suiben=palm suiton_suidan_no_jutsu=breath suiton_suisandan=breath suiton_takitsubo_no_jutsu=ground suiton_teppodama=breath tsukikage=rush tsutenkyaku=rush uchi_naru_sakura=power water_release_wild_water_wave=breath zankukyokuha=two_palm zessenbaku=palm zessenzan=palm
 
 # ------------------------------------------------------------------ Grup 5: su / mühür / ses / genjutsu / kurbağa dili / ağır taijutsu
@@ -3190,7 +3190,7 @@ func p_suiton_suiben(c: Node3D, t: Node3D) -> void:
 
 ## Hiken: Tsukikage (anime, Hayate Gekkō): rakibe çok hızlı atılıp yatay tek kılıç kesiği; hız arkada ardıl görüntüler bırakır
 func p_tsukikage(c: Node3D, t: Node3D) -> void:
-	TaijutsuFXB.tsukikage(self, c, t)
+	LazyFx.g("TaijutsuFXB").tsukikage(self, c, t)
 
 
 ## Elindeki silahın kimliği; silahsızsa (null/boş) yedek
@@ -3207,7 +3207,7 @@ func _trail_ghost(c: Node3D, alpha: float, life: float) -> void:
 
 ## Göğü Delen Topuk: havaya sıçrayıp topukla iner, yer patlar
 func p_tsutenkyaku(c: Node3D, t: Node3D) -> void:
-	TaijutsuFXA.tsutenkyaku(self, c, t)
+	LazyFx.g("TaijutsuFXA").tsutenkyaku(self, c, t)
 
 
 # ================================================================== ORTAK DETAYLI EFEKT KATMANI (VFX kütüphanesi: shader çekirdek + iz + toplanma + çarpma + kalıcı iz)
@@ -3313,12 +3313,12 @@ func melee_fx(c: Node3D, at: Vector3, col: Color, s := 1.0, ground := false) -> 
 
 ## Alev Mermisi: ağızda alev toplanır, katmanlı dönen alev küresi uçar; çarpınca patlama, kor, yerde yanan alev dilleri
 func p_katon_endan(c: Node3D, t: Node3D) -> void:
-	KatonFXA.katon_endan(self, c, t)
+	LazyFx.g("KatonFXA").katon_endan(self, c, t)
 
 
 ## Kasırga Avuç: avuçta dönen hava küresi (kırılan kabuk + iç spiral) — çarpınca yatay şok halkası, toz halkası
 func p_futon_reppusho(c: Node3D, t: Node3D) -> void:
-	FutonFXA.futon_reppusho(self, c, t)
+	LazyFx.g("FutonFXA").futon_reppusho(self, c, t)
 
 
 ## Su seli (mesh yok): ağızdan/elden ileri fışkıran, uzaklaştıkça genişleyen mavi cel su kütlesi (koyu mavi kontur),
@@ -3346,22 +3346,22 @@ func _water_jet_fx(c: Node3D, from: Vector3, d: Vector3, L: float, W: float, dur
 
 ## Dev Su Mermisi: ağızda su toplanır, akan su dokulu dev küre; çarpınca dev sıçrama, dalga halkası, yerde su birikintisi
 func p_suiton_teppodama(c: Node3D, t: Node3D) -> void:
-	SuitonFXA.suiton_teppodama(self, c, t)
+	LazyFx.g("SuitonFXA").suiton_teppodama(self, c, t)
 
 
 ## Şimşek Küresi: avuçta çatırdayan parlak çekirdek ve titreyen kalın arklar; çarpınca dallanan şimşekler, yanık iz
 func p_raikyu(c: Node3D, t: Node3D) -> void:
-	RaitonFXA.raikyu(self, c, t)
+	LazyFx.g("RaitonFXA").raikyu(self, c, t)
 
 
 ## Rüzgâr Kesici: kol yatay savrulur, rüzgâr dokulu ince hilal bıçak (iz bırakır) uçar ve deler; değdiği yerde kesik şok halkası
 func p_futon_kazekiri_no_jutsu(c: Node3D, t: Node3D) -> void:
-	FutonFXA.futon_kazekiri_no_jutsu(self, c, t)
+	LazyFx.g("FutonFXA").futon_kazekiri_no_jutsu(self, c, t)
 
 
 ## Kiraz Çiçeği Darbesi: havaya sıçrar, yumruğunda çakra parlar, iner — zemin örümcek ağı gibi çatlar, kayalar fırlar, toz halkası, ekran sarsılır
 func p_okasho(c: Node3D, t: Node3D) -> void:
-	TaijutsuFXA.okasho(self, c, t)
+	LazyFx.g("TaijutsuFXA").okasho(self, c, t)
 
 
 ## Akış (su seli / rüzgâr seli): ağızdan büyüyerek uzanan, akan dokulu koni; uçta sıçrama/toz; dur sonra söner
@@ -3519,22 +3519,22 @@ func _windmat(alpha := 0.7) -> Material:
 
 ## Su Mermisi: ağızda su toplanır, akan su küresi; çarpınca sıçrama
 func p_suiton_suidan_no_jutsu(c: Node3D, t: Node3D) -> void:
-	SuitonFXA.suiton_suidan_no_jutsu(self, c, t)
+	LazyFx.g("SuitonFXA").suiton_suidan_no_jutsu(self, c, t)
 
 
 ## Yayılan Su Mermileri: art arda beş akan su küresi, yelpaze
 func p_suiton_suisandan(c: Node3D, t: Node3D) -> void:
-	SuitonFXA.suiton_suisandan(self, c, t)
+	LazyFx.g("SuitonFXA").suiton_suisandan(self, c, t)
 
 
 ## Su Shurikeni: avuçta su toplanır, akan su dokulu dört kanatlı şuriken döner; çarpınca sıçrama
 func p_suiton_mizu_shuriken(c: Node3D, t: Node3D) -> void:
-	SuitonFXA.suiton_mizu_shuriken(self, c, t)
+	LazyFx.g("SuitonFXA").suiton_mizu_shuriken(self, c, t)
 
 
 ## Su Dalgası Atışı: ağızdan genişleyen akan su seli (dalga), uçta dev sıçrama
 func p_suiton_mizurappa(c: Node3D, t: Node3D) -> void:
-	SuitonFXA.suiton_mizurappa(self, c, t)
+	LazyFx.g("SuitonFXA").suiton_mizurappa(self, c, t)
 
 
 ## Vahşi Su Dalgası: uzun süren, kalın akan su akıntısı — önündekileri sürükler; zemine su birikir
@@ -3556,31 +3556,31 @@ func p_water_release_wild_water_wave(c: Node3D, t: Node3D) -> void:
 
 ## Köpük Dalgası: ağızdan kabaran köpük seli (su dokulu yarı saydam koni + köpük kabarcıkları) — kayganlaştırır
 func p_suiton_homatsu_rappa(c: Node3D, t: Node3D) -> void:
-	SuitonFXA.suiton_homatsu_rappa(self, c, t)
+	LazyFx.g("SuitonFXA").suiton_homatsu_rappa(self, c, t)
 
 
 func p_suiton_takitsubo_no_jutsu(c: Node3D, t: Node3D) -> void:
-	SuitonFXA.suiton_takitsubo_no_jutsu(self, c, t)
+	LazyFx.g("SuitonFXA").suiton_takitsubo_no_jutsu(self, c, t)
 
 
 ## Su Bağı: yerden dönen su hortumu yükselir ve hedefi içine hapseder (akan dokulu)
 func p_suiton_mizu_shibari(c: Node3D, t: Node3D) -> void:
-	SuitonFXA.suiton_mizu_shibari(self, c, t)
+	LazyFx.g("SuitonFXA").suiton_mizu_shibari(self, c, t)
 
 
 ## Büyük Atılım: ağızdan dev rüzgâr seli (rüzgâr dokulu koni + hız çizgileri), yolda toz halkaları
 func p_futon_toppa(c: Node3D, t: Node3D) -> void:
-	FutonFXA.futon_toppa(self, c, t)
+	LazyFx.g("FutonFXA").futon_toppa(self, c, t)
 
 
 ## Toz Bulutu: ağızdan toz ve kumla dolu rüzgâr seli, ardından alanı kaplayan yoğun toz bulutu — içindekiler göremez
 func p_futon_fujin_no_jutsu(c: Node3D, t: Node3D) -> void:
-	FutonFXA.futon_fujin_no_jutsu(self, c, t)
+	LazyFx.g("FutonFXA").futon_fujin_no_jutsu(self, c, t)
 
 
 ## Orak Gelincik: dev savuruş — rüzgâr dokulu geniş yelpaze dalgası; havada parlak kesikler, yerde kesik izleri
 func p_kamaitachi_no_jutsu(c: Node3D, t: Node3D) -> void:
-	FutonFXA.kamaitachi_no_jutsu(self, c, t)
+	LazyFx.g("FutonFXA").kamaitachi_no_jutsu(self, c, t)
 
 
 ## Kasırga hunisi (Storm 4 Kamatari kasırgası): dipte dar, tepede geniş; yumuşak gri-beyaz dönen perdeler + birkaç ince çizgi,
@@ -3605,22 +3605,22 @@ func _funnel(at: Vector3, h: float, r0: float, r1: float) -> void:
 
 ## Canavar Yırtan Avuç: dönerek kendi etrafında rüzgâr hortumu (rüzgâr dokulu dönen huni) — içine giren savrulur
 func p_juha_sho(c: Node3D, t: Node3D) -> void:
-	FutonFXA.juha_sho(self, c, t)
+	LazyFx.g("FutonFXA").juha_sho(self, c, t)
 
 
 ## Çiçek Saçan Dans: rüzgâr dokulu dönen akış içinde binlerce pembe yaprak ve çiçek — her şeyi keser
 func p_futon_hanachiri_mai(c: Node3D, t: Node3D) -> void:
-	FutonFXA.futon_hanachiri_mai(self, c, t)
+	LazyFx.g("FutonFXA").futon_hanachiri_mai(self, c, t)
 
 
 ## Kesici Hava Dalgası: avuçlardan üç genişleyen, rüzgâr dokulu basınç halkası; yolda toz kazır
 func p_zankuha(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXB.zankuha(self, c, t)
+	LazyFx.g("NinjutsuFXB").zankuha(self, c, t)
 
 
 ## Büyük Hava Basıncı Dalgası: iki avuçtan dev basınç akışı — rüzgâr dokulu geniş koni, zemini kazır, ardışık şok halkaları
 func p_zankukyokuha(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXB.zankukyokuha(self, c, t)
+	LazyFx.g("NinjutsuFXB").zankukyokuha(self, c, t)
 
 
 ## Toprak çıkışı: yerden kaya sökülürken çatlak, toz halkası, moloz
@@ -3632,37 +3632,37 @@ func _earth_burst(at: Vector3, s := 1.0) -> void:
 
 ## Toprak Tuğla: avuç yere vurulur, zemin çatlar; büyük tuğla blokları sökülüp sırayla fırlar, çarpınca parçalanır
 func p_doton_renga_no_jutsu(c: Node3D, t: Node3D) -> void:
-	DotonFXA.renga_no_jutsu(self, c, t)
+	LazyFx.g("DotonFXA").renga_no_jutsu(self, c, t)
 
 
 ## Toprak Çakıl: avuçtan toz bulutuyla birlikte yüzlerce çakıl saçması
 func p_doton_sazareishi(c: Node3D, t: Node3D) -> void:
-	DotonFXA.sazareishi(self, c, t)
+	LazyFx.g("DotonFXA").sazareishi(self, c, t)
 
 
 ## Çift İntihar Başkesme: yere dalar (toz halkası), hedefin altından çatlakla çıkar, onu boynuna kadar toprağa çeker
 func p_doton_shinju_zanshu_no_jutsu(c: Node3D, t: Node3D) -> void:
-	DotonFXA.shinju_zanshu_no_jutsu(self, c, t)
+	LazyFx.g("DotonFXA").shinju_zanshu_no_jutsu(self, c, t)
 
 
 ## Uçan Taşlar: yer çatlayıp büyük kayalar havaya kalkar, etrafında döner; sonra toz izleriyle hedefe yağar
 func p_doton_tobi_tsubute(c: Node3D, t: Node3D) -> void:
-	DotonFXA.tobi_tsubute(self, c, t)
+	LazyFx.g("DotonFXA").tobi_tsubute(self, c, t)
 
 
 ## Çamur Kayması: önündeki zemin akan çamur seline döner (çamur dokulu akış), içindekileri sürükler ve yavaşlatır
 func p_doton_dosekiryu(c: Node3D, t: Node3D) -> void:
-	DotonFXA.dosekiryu(self, c, t)
+	LazyFx.g("DotonFXA").dosekiryu(self, c, t)
 
 
 ## Toprak Yırtan Avuç: avuç yere basılır, çevre zemin dönerek yarılır — dev çatlak ağı, halka halka şok, havaya kalkan moloz
 func p_doton_retsudo_tensho(c: Node3D, t: Node3D) -> void:
-	DotonFXA.retsudo_tensho(self, c, t)
+	LazyFx.g("DotonFXA").retsudo_tensho(self, c, t)
 
 
 ## Kaya Sığınağı: zemin çatlar, büyük kaya plakaları dönerek yükselir ve kubbe olur; içindekiler korunur
 func p_earth_release_rock_shelter(c: Node3D, _t: Node3D) -> void:
-	DotonFXA.earth_release_rock_shelter(self, c, _t)
+	LazyFx.g("DotonFXA").earth_release_rock_shelter(self, c, _t)
 
 
 ## Şimşek elde: avuçta kalın arklı şimşek küresi belirir (dur sn)
@@ -3677,22 +3677,22 @@ func _rai_hand(c: Node3D, dur: float) -> void:
 
 ## Şimşek Darbesi: avuçta şimşek küresi toplanır, atılıp vurur — çarpınca kalın dallar, yıldız, yanık çatlak, felç
 func p_raigeki(c: Node3D, t: Node3D) -> void:
-	RaitonFXA.raigeki(self, c, t)
+	LazyFx.g("RaitonFXA").raigeki(self, c, t)
 
 
 ## Şimşek Yatay El Bıçağı: el şimşekle kaplanır, yatay savrulur — parlayan şimşek yayı, yay boyunca arklar
 func p_raigyaku_suihei_choppu(c: Node3D, t: Node3D) -> void:
-	RaitonFXA.raigyaku_suihei_choppu(self, c, t)
+	LazyFx.g("RaitonFXA").raigyaku_suihei_choppu(self, c, t)
 
 
 ## Şimşek Yılan Balığı: elden kalın, kıvrılan şimşek akımı uzanır; hedefi sarar ve sürekli çarpar (kıvılcım, felç)
 func p_raiton_ikazuchi_unagi(c: Node3D, t: Node3D) -> void:
-	RaitonFXA.ikazuchi_unagi(self, c, t)
+	LazyFx.g("RaitonFXA").ikazuchi_unagi(self, c, t)
 
 
 ## Şimşek Tazısı: avuçtan şimşek dokulu bir tazı fırlar, yerde koşarak hedefi izler; çarpınca dev şimşek patlaması
 func p_raiton_raiju_tsuiga(c: Node3D, t: Node3D) -> void:
-	RaitonFXA.raiju_tsuiga(self, c, t)
+	LazyFx.g("RaitonFXA").raiju_tsuiga(self, c, t)
 
 
 ## Yakın dövüş vuruşu + isabette detaylı darbe efekti (yıldız, yönlü şok halkası, kıvılcım; ağırsa çatlak/toz)
@@ -3738,17 +3738,17 @@ func _fuma(s := 1.0) -> Node3D:
 
 ## Gölge Shuriken: dev fuma şuriken döner; gölgesinde saklı ikinci şuriken hedefe yaklaşınca yerden ayrılıp başka açıdan vurur
 func p_kage_shuriken_no_jutsu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXD.kage_shuriken_no_jutsu(self, c, t)
+	LazyFx.g("NinjutsuFXD").kage_shuriken_no_jutsu(self, c, t)
 
 
 ## Gölge Senbon: zilli senbon çifti — ilki görünür, ikincisi gölgesinde gizli; zil sesiyle şaşırtır
 func p_kage_senbon(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXD.kage_senbon(self, c, t)
+	LazyFx.g("NinjutsuFXD").kage_senbon(self, c, t)
 
 
 ## Geçici Felç: el mührü, gözler parlar; hedefin üstüne kırmızı-mor felç halkaları iner, beden kaskatı (bağ çizgileri)
 func p_kanashibari_no_jutsu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXE.kanashibari_no_jutsu(self, c, t)
+	LazyFx.g("NinjutsuFXE").kanashibari_no_jutsu(self, c, t)
 
 
 ## Sis klonu ortak: yoğun sis bulutundan yarı saydam kopyalar
@@ -3784,57 +3784,57 @@ func p_oboro_bunshin_no_jutsu(c: Node3D, t: Node3D) -> void:
 
 ## Köpük Klonu: ağızdan sabun köpüğü yağar, saydam yanardöner köpük bir beden yükselir; dokununca patlar
 func p_bubble_clone_technique(c: Node3D, _t: Node3D) -> void:
-	SuitonFXA.bubble_clone_technique(self, c, _t)
+	LazyFx.g("SuitonFXA").bubble_clone_technique(self, c, _t)
 
 
 ## Tuzak: yere teller gerilir, patlayıcı etiketler gizlenir; basan düşmana dört yandan kunai yağar ve etiketler patlar
 func p_bubitorappu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXA.bubitorappu(self, c, t)
+	LazyFx.g("NinjutsuFXA").bubitorappu(self, c, t)
 
 
 ## Çakra Bağı: avuçtan kırmızı çakra bantları fırlar, hedefin bedenini X şeklinde sarar — kıpırdayamaz
 func p_chakura_kontororu_baku(c: Node3D, t: Node3D) -> void:
-	FuinjutsuFXA.chakura_kontororu_baku(self, c, t)
+	LazyFx.g("FuinjutsuFXA").chakura_kontororu_baku(self, c, t)
 
 
 ## Hızlı Rüzgâr Duvarı: kullanıcının etrafında dönen beyaz rüzgâr kubbesi — mermileri savurur, yaklaşanı iter
 func p_fujinheki(c: Node3D, _t: Node3D) -> void:
-	FutonFXA.fujinheki(self, c, _t)
+	LazyFx.g("FutonFXA").fujinheki(self, c, _t)
 
 
 ## Genjutsu Bağı: göz göze gelince hedefin etrafında kırmızı genjutsu girdabı döner, olduğu yerde donar
 func p_genjutsu_shibari(c: Node3D, t: Node3D) -> void:
-	GenjutsuFXA.genjutsu_shibari(self, c, t)
+	LazyFx.g("GenjutsuFXA").genjutsu_shibari(self, c, t)
 
 
 ## Senbon Yağmuru: göğe atılan şemsiye dönerek açılır, hedefin üstünde iğne yağmuru bırakır
 func p_jouro_senbon(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXD.jouro_senbon(self, c, t)
+	LazyFx.g("NinjutsuFXD").jouro_senbon(self, c, t)
 
 
 ## Kurbağaya Dönüştürme: hedefin üstünde mühür çemberi, büyük duman patlaması; hedef küçük bir kurbağaya döner
 func p_kaeru_kaeru_no_jutsu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXE.kaeru_kaeru_no_jutsu(self, c, t)
+	LazyFx.g("NinjutsuFXE").kaeru_kaeru_no_jutsu(self, c, t)
 
 
 ## Zil Sesi Klonu: zil sesi halka halka yayılır, hedefin çevresinde sıra sıra sahte kopyalar belirir
 func p_genjutsu_suzune_bunshin(c: Node3D, t: Node3D) -> void:
-	GenjutsuFXA.genjutsu_suzune_bunshin(self, c, t)
+	LazyFx.g("GenjutsuFXA").genjutsu_suzune_bunshin(self, c, t)
 
 
 ## Karga Klonu: beden onlarca kargaya patlar (siyah tüyler, duman), sürü düşmanı sarar; asıl beden yanda belirir
 func p_karasu_bunshin_no_jutsu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXB.karasu_bunshin_no_jutsu(self, c, t)
+	LazyFx.g("NinjutsuFXB").karasu_bunshin_no_jutsu(self, c, t)
 
 
 ## Kurbağa Kata: doğa enerjisi toplanır (turuncu girdap), gözlerde bilge pigmenti; 12 sn aura vuruşlara eşlik eder
 func p_kawazu_kumite(c: Node3D, _t: Node3D) -> void:
-	SenjutsuFXA.kawazu_kumite(self, c, _t)
+	LazyFx.g("SenjutsuFXA").kawazu_kumite(self, c, _t)
 
 
 ## Örümcek Ağı Bağı: avuçtan parlak ağ topu fırlar, hedefte ışınsal bir ağa açılıp onu yere yapıştırır
 func p_kumo_shibari(c: Node3D, t: Node3D) -> void:
-	HidenFXA.kumo_shibari(self, c, t)
+	LazyFx.g("HidenFXA").kumo_shibari(self, c, t)
 
 
 ## Işınsal örümcek ağı modeli (r yarıçap): parlak ışınlar + halkalar
@@ -3870,72 +3870,72 @@ func _syrup_mat() -> Material:
 
 ## Çiçek Ağı: avuçlardan üç çiçek biçimli ağ fırlar, uçarken açılır; hedefe ve çevresine yapışır
 func p_kumo_soka(c: Node3D, t: Node3D) -> void:
-	HidenFXA.kumo_soka(self, c, t)
+	LazyFx.g("HidenFXA").kumo_soka(self, c, t)
 
 
 ## Yankı Matkabı: yumruktaki düzenek ses dalgasını titreştirir — vuruş anında iç içe ses halkaları, iç kulak sarsılır
 func p_kyomeisen(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXC.kyomeisen(self, c, t)
+	LazyFx.g("NinjutsuFXC").kyomeisen(self, c, t)
 
 
 ## Şurup Mermileri: ağızdan kıvamlı açık şurup akıntısı — değdiği hedef ve zemin yapışkan
 func p_mizuame_teppo(c: Node3D, t: Node3D) -> void:
-	SuitonFXD.mizuame_teppo(self, c, t)
+	LazyFx.g("SuitonFXD").mizuame_teppo(self, c, t)
 
 
 ## Gizli İğne Fırlatıcı: bilekteki boru düzeneğinden sessiz zehirli iğne seli (yeşil zehir izi), isabette zehir buharı
 func p_shikomishindan(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXE.shikomishindan(self, c, t)
+	LazyFx.g("NinjutsuFXE").shikomishindan(self, c, t)
 
 
 ## Beş Mühür Bariyeri: «禁» yazılı beş etiket yere çakılır, aralarında mor mühür duvarı örülür — içerideki kapanır
 func p_gofu_kekkai(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXB.gofu_kekkai(self, c, t)
+	LazyFx.g("NinjutsuFXB").gofu_kekkai(self, c, t)
 
 
 ## Lastik Beden: beden yumuşar, kollar-bacaklar uzar; gerilme dalgası
 func p_nan_no_kaizo(c: Node3D, _t: Node3D) -> void:
-	HidenFXA.nan_no_kaizo(self, c, _t)
+	LazyFx.g("HidenFXA").nan_no_kaizo(self, c, _t)
 
 
 ## İkame Beden: deri kabuk gibi soyulur, içindeki beden geri sıçrar; kabuk darbeyi alır
 func p_narikawari_no_jutsu(c: Node3D, _t: Node3D) -> void:
-	NinjutsuFXD.narikawari_no_jutsu(self, c, _t)
+	LazyFx.g("NinjutsuFXD").narikawari_no_jutsu(self, c, _t)
 
 
 ## Bin Karga: gökyüzü kararır, yüzlerce karga hedefin etrafında kapkara bir fırtına olur — göremez, saldıramaz
 func p_sanzengarasu_no_jutsu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXC.sanzengarasu_no_jutsu(self, c, t)
+	LazyFx.g("NinjutsuFXC").sanzengarasu_no_jutsu(self, c, t)
 
 
 ## Yol Kaybettirme: hedefin ayaklarının altında yeşil-mor dönen halkalar; düz yürüdüğünü sanıp daire çizer
 func p_sly_mind_affect_technique(c: Node3D, t: Node3D) -> void:
-	GenjutsuFXA.sly_mind_affect_technique(self, c, t)
+	LazyFx.g("GenjutsuFXA").sly_mind_affect_technique(self, c, t)
 
 
 ## Ses Bastırma: flütten karşı ses dalgası — halka halka yayılır, mermileri ve ses tekniklerini söndürür
 func p_sosai_no_ne(c: Node3D, _t: Node3D) -> void:
-	GenjutsuFXA.sosai_no_ne(self, c, _t)
+	LazyFx.g("GenjutsuFXA").sosai_no_ne(self, c, _t)
 
 
 ## İpli Bıçaklar: çakra telleriyle havaya kalkan kunailer kullanıcının etrafında bekler, sonra her yandan hedefe saplanır
 func p_soshujin(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXC.soshujin(self, c, t)
+	LazyFx.g("NinjutsuFXC").soshujin(self, c, t)
 
 
 ## Kara Yağmur: ağızdan göğe kara yağ fışkırır, kara bulut olur; yoğun yağlı damlalar alana yağar (ateşle tutuşur)
 func p_suiton_kokuu_no_jutsu(c: Node3D, t: Node3D) -> void:
-	SuitonFXA.suiton_kokuu_no_jutsu(self, c, t)
+	LazyFx.g("SuitonFXA").suiton_kokuu_no_jutsu(self, c, t)
 
 
 ## Şurup Gölü: ağızdan yere kıvamlı şurup dalgası akar, geniş yapışkan göl olur
 func p_suiton_mizuame_nabara(c: Node3D, t: Node3D) -> void:
-	SuitonFXA.suiton_mizuame_nabara(self, c, t)
+	LazyFx.g("SuitonFXA").suiton_mizuame_nabara(self, c, t)
 
 
 ## İç Ses: içindeki öfkeli ikinci benlik genjutsuyu parçalar — pembe patlama, "KAI!"; sersemlik/bağ biter, kısa bağışıklık
 func p_uchi_naru_sakura(c: Node3D, _t: Node3D) -> void:
-	GenjutsuFXA.uchi_naru_sakura(self, c, _t)
+	LazyFx.g("GenjutsuFXA").uchi_naru_sakura(self, c, _t)
 
 
 ## Kalın kurbağa dili şeridi (kabarcıklı pembe)
@@ -3945,12 +3945,12 @@ func _tongue_mat() -> Material:
 
 ## Kurbağa Dili Bağı: ağızdan kalın, kabarcıklı dil fırlar, hedefe dolanıp sana doğru çeker
 func p_zessenbaku(c: Node3D, t: Node3D) -> void:
-	SenjutsuFXA.zessenbaku(self, c, t)
+	LazyFx.g("SenjutsuFXA").zessenbaku(self, c, t)
 
 
 ## Kurbağa Dili Kesiği: ağızdan ince, sertleşmiş dil ışık hızında yatay savrulur — keskin iz bırakır
 func p_zessenzan(c: Node3D, t: Node3D) -> void:
-	FinalFX2.zessenzan(self, c, t)
+	LazyFx.g("FinalFX2").zessenzan(self, c, t)
 
 
 ## Kâğıt yaprağı (gerçek düzlem, iki yüz)
@@ -3991,7 +3991,7 @@ func paper_storm(from: Vector3, to: Vector3, n: int, dur := 0.6, spread := 1.5, 
 
 ## Kâğıt Klonu: beden yüzlerce yaprağa dağılıp yanında yeniden birleşir; klon patlayıcı kâğıt — vurulunca patlar
 func p_kami_bunshin(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXC.kami_bunshin(self, c, t)
+	LazyFx.g("NinjutsuFXC").kami_bunshin(self, c, t)
 
 
 ## Kâğıt Kelebekler (ref: Konan): kolların ucundan kâğıt kelebekler kopar (iki çift kanat, mor kenarlı), sürü halinde
@@ -4084,7 +4084,7 @@ func p_kami_chocho(c: Node3D, t: Node3D) -> void:
 
 ## Shiki Dansı: kollar kâğıda dağılır — iki koldan akan kâğıt seli etrafında döner (kalkan), sonra hepsi kâğıt şuriken olup hedefe yağar
 func p_shikigami_no_mai(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXB.shikigami_no_mai(self, c, t)
+	LazyFx.g("NinjutsuFXB").shikigami_no_mai(self, c, t)
 
 
 ## Kâğıt Mızrak Ormanı (ref: Shikigami no Mai: Batsu): kollardan akan kâğıt seli hedefin çevresine yağar ve zeminden
@@ -4133,17 +4133,17 @@ func p_kami_yari(c: Node3D, t: Node3D) -> void:
 
 ## Kâğıt Tanrının Yolu: gökyüzü ve zemin patlayıcı etiketlerden oluşan bir kâğıt denizine döner, sonra zincirleme dev patlamalar
 func p_kami_no_shisha_no_jutsu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXC.kami_no_shisha_no_jutsu(self, c, t)
+	LazyFx.g("NinjutsuFXC").kami_no_shisha_no_jutsu(self, c, t)
 
 
 ## Kurbağa Yağı Mermisi: ağızdan benekli kalın yağ seli fışkırır; değdiği yerde kaygan yağ gölü
 func p_gamayudan(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXE.gamayudan(self, c, t)
+	LazyFx.g("NinjutsuFXE").gamayudan(self, c, t)
 
 
 ## Saç İğneleri: saç diken diken uzar (başın etrafında uzun sivri tutamlar), sonra yüzlerce iğne yağdırır
 func p_kebari_senbon(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXB.kebari_senbon(self, c, t)
+	LazyFx.g("NinjutsuFXB").kebari_senbon(self, c, t)
 
 
 ## Dalgalı tel: a→b arasında 12 parçalı, yana ve yukarı salınan sinüs eğrisi (saç teli, ip); uçlar sabit
@@ -4192,7 +4192,7 @@ func wavy_tether(a_fn: Callable, b_fn: Callable, w: float, mat: Material, dur: f
 ## Aslan Yelesi (ref refs/gama/Wild_Lion_s_Mane): saç KAFADAN ince teller halinde dalga dalga uzanır, hedefin gövdesine ve bacaklarına
 ## farklı açılarda ince halkalarla + sarmal telle dolanıp sıkar; kafadan hedefe birkaç ince tel bağ süresince gerili kalır
 func p_ranjishigami_no_jutsu(c: Node3D, t: Node3D) -> void:
-	FlowFX.ranjishigami_no_jutsu(self, c, t)
+	LazyFx.g("FlowFX").ranjishigami_no_jutsu(self, c, t)
 
 
 ## Diken Bekçisi: saç bedeni saran sert dikenli kozaya döner; yaklaşan batar
@@ -4226,7 +4226,7 @@ func p_hari_jizo(c: Node3D, _t: Node3D) -> void:
 
 ## Kurbağa Midesi Bağı: çevre dev bir kurbağanın etli, kıvrımlı mide tüneline döner — içindekiler yapışıp erir
 func p_kuchiyose_gamaguchi_shibari(c: Node3D, t: Node3D) -> void:
-	KensumFXA.kuchiyose_gamaguchi_shibari(self, c, t)
+	LazyFx.g("KensumFXA").kuchiyose_gamaguchi_shibari(self, c, t)
 
 
 ## Dev hayvan midesi: etli, kıvrımlı (halka katlı) iç yüzeyli tünel yerden açılıp hedefi içine alır, hold sn sonra kapanır
@@ -4289,12 +4289,12 @@ func p_katon_gamayu_endan(c: Node3D, t: Node3D) -> void:
 			return
 		anim(c, "push", 1.2)
 		fire_stream(_mouth_pos(c), (d - Vector3.UP * 0.05).normalized(), 24.0, 5.5, 12)
-		after(0.5, func(): KatonLib.fireball_impact(get_tree().current_scene, gp(c.global_position + d * 22.0) + Vector3.UP, 2.4, KatonLib.PAL_FIRE))
+		after(0.5, func(): LazyFx.g("KatonLib").fireball_impact(get_tree().current_scene, gp(c.global_position + d * 22.0) + Vector3.UP, 2.4, LazyFx.g("KatonLib").PAL_FIRE))
 		Sfx.play("fire", c.global_position, 0.6)
 		Combat.hit_zone(c, c.global_position, d, 24.0, 26.0, 4.0, inf(c, "katon_gamayu_endan", 1.6, {"element": "katon", "burn": 3.0, "knock": 8.0, "kind": "heavy"}))
 		var pool_at = gp(c.global_position + d * 12.0)
-		KatonLib.burn_patch(get_tree().current_scene, pool_at, 3.5, 5.0, KatonLib.PAL_FIRE, 0.08, 1.8)   # yanan yağ gölü
-		KatonLib.scorch(get_tree().current_scene, pool_at, 5.0, 16.0)
+		LazyFx.g("KatonLib").burn_patch(get_tree().current_scene, pool_at, 3.5, 5.0, LazyFx.g("KatonLib").PAL_FIRE, 0.08, 1.8)   # yanan yağ gölü
+		LazyFx.g("KatonLib").scorch(get_tree().current_scene, pool_at, 5.0, 16.0)
 		every(5.0, 0.5, func(_i, _k):
 			for e in enemies_near(c, pool_at, 4.0):
 				e.take_hit(inf(c, "katon_gamayu_endan", 0.12, {"element": "katon", "burn": 1.0, "knock": 0.0, "kind": "light"})), Callable())
@@ -4307,7 +4307,7 @@ func p_katon_gamayu_endan(c: Node3D, t: Node3D) -> void:
 
 ## Bilge Sanatı: Kurbağa Çağrısı — omuzlardaki iki bilge kurbağa birlikte öter; turuncu ses halkaları yayılır, duyan herkes donar
 func p_senpo_kawazu_naki(c: Node3D, _t: Node3D) -> void:
-	FinalFX2.senpo_kawazu_naki(self, c, _t)
+	LazyFx.g("FinalFX2").senpo_kawazu_naki(self, c, _t)
 
 
 ## Alev seli: ağızdan büyüyerek ilerleyen katmanlı alev küreleri zinciri (gerçek alev shader'ı), kor ve duman
@@ -4324,10 +4324,10 @@ func fire_stream(from: Vector3, d: Vector3, length: float, max_size: float, n: i
 			var u = pow(randf(), 0.8)
 			var sz = lerpf(0.35, max_size * 0.45, u)
 			var p = from + d * (u * reach) + side * randf_range(-0.5, 0.5) * sz + Vector3.UP * randf_range(-0.3, 0.3) * sz
-			KatonLib.fire_puff(host, p, sz * 0.45, sz, 0.35, d * 9.0 + Vector3.UP * 0.8, KatonLib.PAL_FIRE, 1.15, 0.6), func():
-		KatonLib.fire_burst(host, from + d * length, max_size * 0.3, max_size * 0.75, 0.8, 8, KatonLib.PAL_FIRE)
-		KatonLib.scorch(host, KatonLib.floor_at(from + d * length * 0.6), max_size * 1.2, 14.0))
-	KatonLib.embers(host, from + d * length * 0.4, 40, max_size * 0.4, KatonLib.PAL_FIRE, {"dir": d, "spread": 40.0, "vmin": 6.0, "vmax": 14.0, "life": 1.0})
+			LazyFx.g("KatonLib").fire_puff(host, p, sz * 0.45, sz, 0.35, d * 9.0 + Vector3.UP * 0.8, LazyFx.g("KatonLib").PAL_FIRE, 1.15, 0.6), func():
+		LazyFx.g("KatonLib").fire_burst(host, from + d * length, max_size * 0.3, max_size * 0.75, 0.8, 8, LazyFx.g("KatonLib").PAL_FIRE)
+		LazyFx.g("KatonLib").scorch(host, LazyFx.g("KatonLib").floor_at(from + d * length * 0.6), max_size * 1.2, 14.0))
+	LazyFx.g("KatonLib").embers(host, from + d * length * 0.4, 40, max_size * 0.4, LazyFx.g("KatonLib").PAL_FIRE, {"dir": d, "spread": 40.0, "vmin": 6.0, "vmax": 14.0, "life": 1.0})
 
 
 # ================================================================== Yeni jutsular A (Sv.10): referansla, detaylı efekt
@@ -4350,102 +4350,102 @@ func _earth_mass(s: float) -> MeshInstance3D:
 
 ## Demir Pençe: hedefin başını kavrar, havaya kaldırıp sıkar — sonra yere çakar
 func p_aian_kuro(c: Node3D, t: Node3D) -> void:
-	TaijutsuFXB.aian_kuro(self, c, t)
+	LazyFx.g("TaijutsuFXB").aian_kuro(self, c, t)
 
 
 ## Suikast Tekniği: sessizce arkasında belirir, tek hilal kılıç darbesi — beyaz kesik izi, kanama
 func p_ansatsu_jutsu(c: Node3D, t: Node3D) -> void:
-	TaijutsuFXA.ansatsu_jutsu(self, c, t)
+	LazyFx.g("TaijutsuFXA").ansatsu_jutsu(self, c, t)
 
 
 ## Patlama Yumruğu: yumruk çarpar, çarpışma noktasında beyaz flaşlı patlayıcı çakra patlaması
 func p_bakuton_shogeki(c: Node3D, t: Node3D) -> void:
-	BakutonFXB.bakuton_shogeki(self, c, t)
+	LazyFx.g("BakutonFXB").bakuton_shogeki(self, c, t)
 
 
 ## Kedi Alevi Kükremesi: mavi alevden dev bir kedi başı belirir, ağzından turuncu ateş topları yağdırır
 func p_byoen_hoka(c: Node3D, t: Node3D) -> void:
-	KatonFXB.byoen_hoka(self, c, t)
+	LazyFx.g("KatonFXB").byoen_hoka(self, c, t)
 
 
 ## Büyük Kedi Pençesi: elde mavi çakradan dev kedi pençesi, girdap çizerek savrulur
 func p_daibyo_sogeki(c: Node3D, t: Node3D) -> void:
-	TaijutsuFXA.daibyo_sogeki(self, c, t)
+	LazyFx.g("TaijutsuFXA").daibyo_sogeki(self, c, t)
 
 
 ## Büyük Yılan Saplaması: uzanan kol yılana dönüşür, ağzı açık hedefe saplanır
 func p_daijatsuki(c: Node3D, t: Node3D) -> void:
-	SenjutsuFXA.daijatsuki(self, c, t)
+	LazyFx.g("SenjutsuFXA").daijatsuki(self, c, t)
 
 
 ## Büyük Orak Gelincik: dev yelpazenin tam açık savuruşu — devasa rüzgâr duvarı, içinde onlarca kesik, toz fırtınası
 func p_daikamaitachi_no_jutsu(c: Node3D, t: Node3D) -> void:
-	FutonFXA.daikamaitachi_no_jutsu(self, c, t)
+	LazyFx.g("FutonFXA").daikamaitachi_no_jutsu(self, c, t)
 
 
 ## Ters Karınca Aslanı: hedefin altında zemin huni gibi yükselip onu beline kadar toprağa hapseder
 func p_doton_dorojigoku(c: Node3D, t: Node3D) -> void:
-	DotonFXB.dorojigoku(self, c, t)
+	LazyFx.g("DotonFXB").dorojigoku(self, c, t)
 
 
 ## Toprak Mezarı: zeminden dev bir toprak kütlesi koparılıp başın üstüne kaldırılır, hedefin üstüne çakılır
 func p_doton_doryo_dango(c: Node3D, t: Node3D) -> void:
-	DotonFXB.doryo_dango(self, c, t)
+	LazyFx.g("DotonFXB").doryo_dango(self, c, t)
 
 
 ## Toprak Sur: önünde zeminden uzun, yüksek bir kaya surunu yükseltir — mermileri durdurur
 func p_doton_doryu_joheki(c: Node3D, t: Node3D) -> void:
-	DotonFXB.doryu_joheki(self, c, t)
+	LazyFx.g("DotonFXB").doryu_joheki(self, c, t)
 
 
 ## Toprak Nehri: zemin akan çamur nehrine döner, hedefleri sürükleyip yıkar
 func p_doton_doryu_taiga(c: Node3D, t: Node3D) -> void:
-	DotonFXC.doryu_taiga(self, c, t)
+	LazyFx.g("DotonFXC").doryu_taiga(self, c, t)
 
 
 ## Kaya Sütun Mızrakları: avuç ileri, yerden hedefe doğru sıra sıra sivri kaya mızrakları fışkırır
 func p_doton_ganchuso(c: Node3D, t: Node3D) -> void:
-	DotonFXC.ganchuso(self, c, t)
+	LazyFx.g("DotonFXC").ganchuso(self, c, t)
 
 
 ## Toprak Klonu: yerden çamur kabarıp senin kopyana döner; dayanıklı, kırılınca toprağa dağılır
 func p_doton_kage_bunshin(c: Node3D, _t: Node3D) -> void:
-	DotonFXC.kage_bunshin(self, c, _t)
+	LazyFx.g("DotonFXC").kage_bunshin(self, c, _t)
 
 
 ## Açılan Toprak: hedefin altında zemin dağ gibi kabarır, sonra yarılıp fırlatır
 func p_doton_kaido_shokutsu(c: Node3D, t: Node3D) -> void:
-	DotonFXB.kaido_shokutsu(self, c, t)
+	LazyFx.g("DotonFXB").kaido_shokutsu(self, c, t)
 
 
 ## Toprak Kubbe Bariyeri: hedefin üstüne kaya kubbe kapanır, içindekinin çakrasını emer
 func p_doton_kekkai_doro_domu(c: Node3D, t: Node3D) -> void:
-	DotonFXB.kekkai_doro_domu(self, c, t)
+	LazyFx.g("DotonFXB").kekkai_doro_domu(self, c, t)
 
 
 ## Süper Kaya Yumruk: yumruk kaya ile kaplanır (12 sn); her vuruş ağır, sarsıcı
 func p_doton_kengan_no_jutsu(c: Node3D, _t: Node3D) -> void:
-	DotonFXB.kengan_no_jutsu(self, c, _t)
+	LazyFx.g("DotonFXB").kengan_no_jutsu(self, c, _t)
 
 
 ## Sandviç: hedefin iki yanından dev kaya duvarlar yükselir ve ezer
 func p_doton_sando_no_jutsu(c: Node3D, t: Node3D) -> void:
-	DotonFXB.sando_no_jutsu(self, c, t)
+	LazyFx.g("DotonFXB").sando_no_jutsu(self, c, t)
 
 
 ## Dipsiz Bataklık: zemin geniş bir çamur bataklığına döner; içindekiler dizlerine kadar batar
 func p_doton_sokonashi_numa(c: Node3D, t: Node3D) -> void:
-	DotonFXB.sokonashi_numa(self, c, t)
+	LazyFx.g("DotonFXB").sokonashi_numa(self, c, t)
 
 
 ## Dört Sütun Bağı: hedefin çevresinde dört taş sütun fışkırır, aralarında şimşek ağı kurulur
 func p_four_pillar_bind(c: Node3D, t: Node3D) -> void:
-	RaitonFXB.four_pillar_bind(self, c, t)
+	LazyFx.g("RaitonFXB").four_pillar_bind(self, c, t)
 
 
 ## Kaplan Mührü: fırçayla havaya çizilen mürekkep kaplan atılır, hedefi yakalayıp mühürle sarar
 func p_fuinjutsu_koshi_tandan(c: Node3D, t: Node3D) -> void:
-	FuinjutsuFXA.fuinjutsu_koshi_tandan(self, c, t)
+	LazyFx.g("FuinjutsuFXA").fuinjutsu_koshi_tandan(self, c, t)
 
 
 # ================================================================== Yeni jutsular B (Sv.10): rüzgâr, mühür, taijutsu
@@ -4463,12 +4463,12 @@ func _wind_hand(c: Node3D, dur: float, s := 0.5, col := Color(0.6, 0.85, 1.0)) -
 
 ## Karanlık Mühür Yöntemi: hedefin çevresinde etiketli siyah mühür çukuru açılır, zincir yazılarla kapanır — uzun bağ
 func p_fukoku_hoin(c: Node3D, t: Node3D) -> void:
-	FuinjutsuFXA.fukoku_hoin(self, c, t)
+	LazyFx.g("FuinjutsuFXA").fukoku_hoin(self, c, t)
 
 
 ## Basınç Hasarı: ağızdan dev bir rüzgâr küresi büyür, tüm alanı yutar ve içindekileri parçalar
 func p_futon_atsugai(c: Node3D, t: Node3D) -> void:
-	FutonFXB.futon_atsugai(self, c, t)
+	LazyFx.g("FutonFXB").futon_atsugai(self, c, t)
 
 
 ## Rüzgâr Kılıcı: elde görünmez, uzun rüzgâr kılıcı belirir (titreyen hava çizgisi) — ileri uzanıp keser
@@ -4496,92 +4496,92 @@ func p_futon_fuhakujin(c: Node3D, t: Node3D) -> void:
 
 ## Rüzgâr Kalkanı: önünde dönen, çatırdayan rüzgâr perdesi — gelen mermileri saptırır
 func p_futon_fuhakujun(c: Node3D, t: Node3D) -> void:
-	FutonFXA.futon_fuhakujun(self, c, t)
+	LazyFx.g("FutonFXA").futon_fuhakujun(self, c, t)
 
 
 ## Büyük Rüzgâr Duvarı: önünde dönen toz fırtınasından dev bir duvar yükselir — görüşü keser, yaklaşanı iter
 func p_futon_gofu_boheki(c: Node3D, t: Node3D) -> void:
-	FutonFXB.futon_gofu_boheki(self, c, t)
+	LazyFx.g("FutonFXB").futon_gofu_boheki(self, c, t)
 
 
 ## Kasırga Yumruk: yumruk mavi rüzgâr girdabıyla sarılır, çarpınca hortum gibi savurur
 func p_futon_senpuken(c: Node3D, t: Node3D) -> void:
-	FutonFXB.futon_senpuken(self, c, t)
+	LazyFx.g("FutonFXB").futon_senpuken(self, c, t)
 
 
 ## Fūton: Shinkū Renpa (kanon, Danzō): başını hızla farklı yönlere savurarak ağızdan farklı açılarda art arda vakum bıçakları
 func p_futon_shinku_renpa(c: Node3D, t: Node3D) -> void:
-	FutonFXD.futon_shinku_renpa(self, c, t)
+	LazyFx.g("FutonFXD").futon_shinku_renpa(self, c, t)
 
 
 ## Fūton: Shinkūgyoku (kanon, Danzō): nefesle çok sayıda küçük vakum küresi farklı yönlere saçılır; ete saplanıp delip geçer
 func p_futon_shinkugyoku(c: Node3D, t: Node3D) -> void:
-	FutonFXD.futon_shinkugyoku(self, c, t)
+	LazyFx.g("FutonFXD").futon_shinkugyoku(self, c, t)
 
 
 ## Dev Vakum Küresi: ağızda büyük vakum küresi toplanır, fırlar — yol boyunca zemini kazır, dev patlama
 func p_futon_shinku_taigyoku(c: Node3D, t: Node3D) -> void:
-	FutonFXD.futon_shinku_taigyoku(self, c, t)
+	LazyFx.g("FutonFXD").futon_shinku_taigyoku(self, c, t)
 
 
 ## Fūton: Shinkūha (kanon, Danzō): derin nefes, ağızdan ileri doğru keskin vakum dalgaları — yolundaki her şeyi keser, uzun menzil
 func p_futon_shinkuha(c: Node3D, t: Node3D) -> void:
-	FutonFXD.futon_shinkuha(self, c, t)
+	LazyFx.g("FutonFXD").futon_shinkuha(self, c, t)
 
 
 ## Vakum Bıçağı: kunainin etrafında yeşil vakum halkaları döner (uzar), hızlı çapraz kesik
 func p_futon_shinkujin(c: Node3D, t: Node3D) -> void:
-	FutonFXD.futon_shinkujin(self, c, t)
+	LazyFx.g("FutonFXD").futon_shinkujin(self, c, t)
 
 
 ## Parlayan Boynuz Mızrağı: kol sertleşip sivri boynuza döner, ileri atılarak saplanır
 func p_gekito_yokaku(c: Node3D, t: Node3D) -> void:
-	TaijutsuFXB.gekito_yokaku(self, c, t)
+	LazyFx.g("TaijutsuFXB").gekito_yokaku(self, c, t)
 
 
 ## Hayalet Ateş: hedefin önünde alevden dev bir canavar belirir (yanılsama) — korkudan donar
 func p_genjutsu_rinka(c: Node3D, t: Node3D) -> void:
-	KatonFXA.genjutsu_rinka(self, c, t)
+	LazyFx.g("KatonFXA").genjutsu_rinka(self, c, t)
 
 
 ## Güçlü Yumruk: ileri atılan güçlü düz yumruk — yeşil hız çizgileri, ağır darbe
 func p_goken(c: Node3D, t: Node3D) -> void:
-	TaijutsuFXB.goken(self, c, t)
+	LazyFx.g("TaijutsuFXB").goken(self, c, t)
 
 
 ## Sekiz Trigram Vakum Avucu: avuç ileri itilir, öne doğru dev bir vakum şok dalgası fırlar
 func p_hakke_kusho(c: Node3D, t: Node3D) -> void:
-	KekkeiFXA.hakke_kusho(self, c, t)
+	LazyFx.g("KekkeiFXA").hakke_kusho(self, c, t)
 
 
 ## Pul Gizlenmesi: kanatlardan parıldayan pul tozu saçılır — alan kör edici ışıltıyla dolar
 func p_hiden_rinpungakure_no_jutsu(c: Node3D, t: Node3D) -> void:
-	HidenFXA.hiden_rinpungakure_no_jutsu(self, c, t)
+	LazyFx.g("HidenFXA").hiden_rinpungakure_no_jutsu(self, c, t)
 
 
 ## Uçan Kırlangıç: bıçağa rüzgâr çakrası akar — mavi çakra namlusu uzar (15 sn menzil ve kesicilik)
 func p_hien(c: Node3D, _t: Node3D) -> void:
-	TaijutsuFXA.hien(self, c, _t)
+	LazyFx.g("TaijutsuFXA").hien(self, c, _t)
 
 
 ## Taş İğneler: parmaklardan mavi çakralı taş iğne seli
 func p_hijutsu_ishibari(c: Node3D, t: Node3D) -> void:
-	HidenFXA.hijutsu_ishibari(self, c, t)
+	LazyFx.g("HidenFXA").hijutsu_ishibari(self, c, t)
 
 
 ## Uçan Gök Gürültüsü Kesiği: işaretten işarete ışınlanır — sarı çizgiyle hedefin yanında belirip kesik
 func p_hiraishingiri(c: Node3D, t: Node3D) -> void:
-	SpacetimeFXA.hiraishingiri(self, c, t)
+	LazyFx.g("SpacetimeFXA").hiraishingiri(self, c, t)
 
 
 ## Sülük Boşluğu: ağızdan yapışkan sülük sıvısı fışkırır — hedefe yapışır, çok yavaşlatır
 func p_hiruma(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXC.hiruma(self, c, t)
+	LazyFx.g("NinjutsuFXC").hiruma(self, c, t)
 
 
 ## Uçan Dönen Kılıç: dev kılıç fırlatılır, dönerek uçar ve bumerang gibi geri döner — gidiş ve dönüşte keser
 func p_hisenken(c: Node3D, t: Node3D) -> void:
-	TaijutsuFXA.hisenken(self, c, t)
+	LazyFx.g("TaijutsuFXA").hisenken(self, c, t)
 
 
 # ================================================================== Yeni jutsular C (Sv.10): kılıç, mühür, ateş, bariyer, kristal
@@ -4591,41 +4591,41 @@ const CRYSTAL := Color(0.75, 0.9, 1.0)
 
 ## Iaidō: kın tutuşundan ışık hızında çekip kesme — tek beyaz çizgi, sonra kesik açılır
 func p_iaido(c: Node3D, t: Node3D) -> void:
-	TaijutsuFXA.iaido(self, c, t)
+	LazyFx.g("TaijutsuFXA").iaido(self, c, t)
 
 
 ## Işık İpi Formasyonu: zeminde parlayan yazılı ip halkaları belirir — içine giren takılır ve çakrası çekilir
 func p_isshi_tojin(c: Node3D, t: Node3D) -> void:
-	FuinjutsuFXB.isshi_tojin(self, c, t)
+	LazyFx.g("FuinjutsuFXB").isshi_tojin(self, c, t)
 
 
 ## Kaya Klonu: yerden iki sert kaya kopya yükselir (dayanıklı), kırılınca kayaya dağılır
 func p_iwa_bunshin_no_jutsu(c: Node3D, _t: Node3D) -> void:
-	DotonFXC.iwa_bunshin_no_jutsu(self, c, _t)
+	LazyFx.g("DotonFXC").iwa_bunshin_no_jutsu(self, c, _t)
 
 
 ## Kendini Lanetleme Mührü: hedefin bedenine siyah lanet çizgileri yayılır — kilitlenir, jutsu yapamaz
 func p_jigo_jubaku_no_in(c: Node3D, t: Node3D) -> void:
-	FuinjutsuFXA.jigo_jubaku_no_in(self, c, t)
+	LazyFx.g("FuinjutsuFXA").jigo_jubaku_no_in(self, c, t)
 
 
 ## Buhar Atılışı: sırttan buhar basıncı patlar, büyük hızla öne fırlar — yoldaki herkesi savurur
 func p_joki_bakushin(c: Node3D, t: Node3D) -> void:
-	FuttonFXA.joki_bakushin(self, c, t)
+	LazyFx.g("FuttonFXA").joki_bakushin(self, c, t)
 
 ## Kötülüğü Serbest Bırakma: kullanıcının ağzından mor gölge yılanlar fışkırıp hedefi sarar, lanetini sızdırır
 func p_kaija_hoin(c: Node3D, t: Node3D) -> void:
-	FuinjutsuFXB.kaija_hoin(self, c, t)
+	LazyFx.g("FuinjutsuFXB").kaija_hoin(self, c, t)
 
 
 ## Piston Yumruk: kol piston gibi kalınlaşıp uzar, ateşlenir — dev ve hızlı darbe
 func p_kassokuken(c: Node3D, t: Node3D) -> void:
-	SenjutsuFXA.kassokuken(self, c, t)
+	LazyFx.g("SenjutsuFXA").kassokuken(self, c, t)
 
 
 ## Patlama Dalgası Çılgın Dansı: ağızdan dönen dev ateş girdabı — sarmal alev seli
 func p_katon_bakufu_ranbu(c: Node3D, t: Node3D) -> void:
-	KatonFXC.katon_bakufu_ranbu(self, c, t)
+	LazyFx.g("KatonFXC").katon_bakufu_ranbu(self, c, t)
 
 
 ## Alev seli (kabuk küre yok): ağızdan ileri fışkıran, uzaklaştıkça genişleyen cel alev topakları + kor + üstten koyu duman
@@ -4648,17 +4648,17 @@ func _flame_jet(c: Node3D, from: Vector3, d: Vector3, L: float, W: float, dur: f
 
 ## Büyük Alev Mermisi: ağızdan kalın, uzun alev akımı
 func p_katon_dai_endan(c: Node3D, t: Node3D) -> void:
-	KatonFXB.katon_dai_endan(self, c, t)
+	LazyFx.g("KatonFXB").katon_dai_endan(self, c, t)
 
 
 ## Büyük Alev Çiçeği: ağızdan art arda çok sayıda iri ateş topu, geniş yelpaze
 func p_katon_goenka(c: Node3D, t: Node3D) -> void:
-	KatonFXA.katon_goenka(self, c, t)
+	LazyFx.g("KatonFXA").katon_goenka(self, c, t)
 
 
 ## Alev Göktaşları: göğe atılan ateş topları hedef bölgeye göktaşı gibi yağar
 func p_katon_homuranagase(c: Node3D, t: Node3D) -> void:
-	KatonFXA.katon_homuranagase(self, c, t)
+	LazyFx.g("KatonFXA").katon_homuranagase(self, c, t)
 
 
 ## Alev hortumu (koni/silindir mesh yok): üç sarmal kol boyunca dönerek yükselen cel alev topakları, yukarı genişleyen huni,
@@ -4708,7 +4708,7 @@ func _fire_storm(c: Node3D, at: Vector3, R: float, H: float, dur: float, id: Str
 
 ## Alev Kasırgası: kendi etrafında dönen ateş girdabı — yakındakileri yakar ve savurur
 func p_katon_kaen_senpu(c: Node3D, t: Node3D) -> void:
-	KatonFXA.katon_kaen_senpu(self, c, t)
+	LazyFx.g("KatonFXA").katon_kaen_senpu(self, c, t)
 
 
 ## Alev Ejderi: ağızdan ejder biçiminde kıvrılan alev seli — başı hedefe dalar
@@ -4751,12 +4751,12 @@ func p_katon_karyu_endan(c: Node3D, t: Node3D) -> void:
 
 ## Alev Ejderi Mermileri: ejder başından art arda alev mermileri
 func p_katon_karyudan(c: Node3D, t: Node3D) -> void:
-	KatonFXA.katon_karyudan(self, c, t)
+	LazyFx.g("KatonFXA").katon_karyudan(self, c, t)
 
 
 ## Büyük Ateş Cennet Hapsi: hedefin çevresinde alev parmaklıkları yükselir — kafeste yanar
 func p_katon_tenro(c: Node3D, t: Node3D) -> void:
-	KatonFXA.katon_tenro(self, c, t)
+	LazyFx.g("KatonFXA").katon_tenro(self, c, t)
 
 
 ## Akıllı Çalışma: ağızdan devasa alev patlaması — önündeki her şey ateş topunun içinde kalır
@@ -4784,22 +4784,22 @@ func p_katon_zukokku(c: Node3D, t: Node3D) -> void:
 
 ## Kurbağa Su Kabağı Hapsi: hedef kırmızı kurbağa biçimli dev bir su kabağının içine çekilip mühürlenir
 func p_kekkai_gama_hyoro(c: Node3D, t: Node3D) -> void:
-	SpacetimeFXA.kekkai_gama_hyoro(self, c, t)
+	LazyFx.g("SpacetimeFXA").kekkai_gama_hyoro(self, c, t)
 
 
 ## Bariyer Formasyonu: dört köşede ışık direği, aralarında mor bariyer kutusu — içeri/dışarı geçilmez
 func p_kekkai_hojin(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXA.kekkai_hojin(self, c, t)
+	LazyFx.g("NinjutsuFXA").kekkai_hojin(self, c, t)
 
 
 ## Zırhlı Göz Tılsımı: yüzün önünde altıgen tılsım plakaları belirir — 8 sn gelen hasarın çoğunu emer
 func p_kekkaifu_gansoko(c: Node3D, _t: Node3D) -> void:
-	FuinjutsuFXA.kekkaifu_gansoko(self, c, _t)
+	LazyFx.g("FuinjutsuFXA").kekkaifu_gansoko(self, c, _t)
 
 
 ## Kristal Altıgen Shuriken Fırtınası: kar tanesine benzeyen kristal shurikenler yağmur gibi fırlar
 func p_kessho_rokkaku_shuriken_ranbu(c: Node3D, t: Node3D) -> void:
-	ShotonFXA.kessho_rokkaku_shuriken_ranbu(self, c, t)
+	LazyFx.g("ShotonFXA").kessho_rokkaku_shuriken_ranbu(self, c, t)
 
 
 # ================================================================== Yeni jutsular D (Sv.10)
@@ -4808,79 +4808,79 @@ const GOLD := Color(0.95, 0.75, 0.25)
 
 ## Kızıl Sis Bariyeri: alanı koyu kırmızı sis kaplar — içindekiler yönünü şaşırır, yavaşlar
 func p_komu_kekkaijutsu(c: Node3D, t: Node3D) -> void:
-	SuitonFXB.komu_kekkaijutsu(self, c, t)
+	LazyFx.g("SuitonFXB").komu_kekkaijutsu(self, c, t)
 
 
 ## Elmas Hapis Duvarı: dev asa dönüşür — altın halkalı siyah parmaklıklardan kafes hedefin üstüne iner
 func p_kongo_roheki(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXA.kongo_roheki(self, c, t)
+	LazyFx.g("NinjutsuFXA").kongo_roheki(self, c, t)
 
 
 ## Yaprak Güçlü Kasırgası: rüzgâr çakralı, art arda dönen güçlü tekmeler — mavi hava halkaları
 func p_konoha_goriki_senpu(c: Node3D, t: Node3D) -> void:
-	TaijutsuFXA.konoha_goriki_senpu(self, c, t)
+	LazyFx.g("TaijutsuFXA").konoha_goriki_senpu(self, c, t)
 
 
 ## Toprak İz Dişleri Çağrısı: parşömen yere — topraktan ninja köpekleri fırlayıp hedefi her yandan ısırıp tutar
 func p_kuchiyose_doton_tsuiga_no_jutsu(c: Node3D, t: Node3D) -> void:
-	DotonFXD.kuchiyose_doton_tsuiga_no_jutsu(self, c, t)
+	LazyFx.g("DotonFXD").kuchiyose_doton_tsuiga_no_jutsu(self, c, t)
 
 
 ## Kuchiyose: Gama Mise no Jutsu (kanon, Jiraiya): dükkân kurbağası masum bir dükkâna dönüşür, yakındakiler içeri çekilir;
 ## mühürle yapı birkaç saniyede kurbağaya döner, içindekiler midesinde hapsolur (bağlı, görünmez, mide asidi), sonra kurbağa
 ## küçülüp onları tükürür. Gerçek model: GamaMise (actors/gama_mise.gd). Dev hedefler (bijū, dev çağrı) sığmaz.
 func p_kuchiyose_gama_mise_no_jutsu(c: Node3D, t: Node3D) -> void:
-	KensumFXA.kuchiyose_gama_mise_no_jutsu(self, c, t)
+	LazyFx.g("KensumFXA").kuchiyose_gama_mise_no_jutsu(self, c, t)
 
 
 ## Hızlı Başkesme: dev orak gelincik çağrılır, orağıyla dev kesici rüzgâr savurur
 func p_kuchiyose_kirikiri_mai(c: Node3D, t: Node3D) -> void:
-	FutonFXD.kuchiyose_kirikiri_mai(self, c, t)
+	LazyFx.g("FutonFXD").kuchiyose_kirikiri_mai(self, c, t)
 
 
 ## Seyyar Tezgâh Yıkıcı: gökten dev bir kurbağa düşer, hedefi ezer — yer çöker
 func p_kuchiyose_yatai_kuzushi_no_jutsu(c: Node3D, t: Node3D) -> void:
-	KensumFXA.kuchiyose_yatai_kuzushi_no_jutsu(self, c, t)
+	LazyFx.g("KensumFXA").kuchiyose_yatai_kuzushi_no_jutsu(self, c, t)
 
 
 ## Altın Ağ Okları: ağızdan çıkan yapışkan altın, yayla sertleşip ok olur — delip geçer
 func p_kumo_nenkin(c: Node3D, t: Node3D) -> void:
-	HidenFXA.kumo_nenkin(self, c, t)
+	LazyFx.g("HidenFXA").kumo_nenkin(self, c, t)
 
 
 ## Bulut Stili Alev Kesik: kılıca ateş çakrası akar — dönerek alev halkası çizen kesik
 func p_kumo_ryu_kaengiri(c: Node3D, t: Node3D) -> void:
-	KatonFXA.kumo_ryu_kaengiri(self, c, t)
+	LazyFx.g("KatonFXA").kumo_ryu_kaengiri(self, c, t)
 
 
 ## Bulut Stili Hilal Kesik: havada takla atıp aşağı dev beyaz hilal savurur
 func p_kumo_ryu_mikazukigiri(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXA.kumo_ryu_mikazukigiri(self, c, t)
+	LazyFx.g("NinjutsuFXA").kumo_ryu_mikazukigiri(self, c, t)
 
 
 ## Örümcek Ağı Alanı: parmaklardan yere ince ağ telleri yayılır — basanı algılar ve yapıştırır
 func p_kumo_sokei(c: Node3D, t: Node3D) -> void:
-	HidenFXA.kumo_sokei(self, c, t)
+	LazyFx.g("HidenFXA").kumo_sokei(self, c, t)
 
 
 ## Kusanagi Chidori Kılıcı: kılıç şimşekle kaplanır, saplanan şimşek akımı uzar ve deler
 func p_kusanagi_no_tsurugi_chidorigatana(c: Node3D, t: Node3D) -> void:
-	RaitonFXD.kusanagi_no_tsurugi_chidorigatana(self, c, t)
+	LazyFx.g("RaitonFXD").kusanagi_no_tsurugi_chidorigatana(self, c, t)
 
 
 ## Zincir: doğa enerjisiyle kollar zincir gibi uzar, hedefe dolanıp sıkar
 func p_kusari(c: Node3D, t: Node3D) -> void:
-	SenjutsuFXA.kusari(self, c, t)
+	LazyFx.g("SenjutsuFXA").kusari(self, c, t)
 
 
 ## Şeytani İllüzyon: hedefin gördüğü dünya kâbusa döner — gökten dev bir alev güneşi üstüne iner (yanılsama)
 func p_magen_jigoku_koka_no_jutsu(c: Node3D, t: Node3D) -> void:
-	GenjutsuFXA.magen_jigoku_koka_no_jutsu(self, c, t)
+	LazyFx.g("GenjutsuFXA").magen_jigoku_koka_no_jutsu(self, c, t)
 
 
 ## Balta: doğa enerjisiyle kol dev baltaya dönüşür — yukarıdan ağır savuruş, yer yarılır
 func p_masakari(c: Node3D, t: Node3D) -> void:
-	SenjutsuFXA.masakari(self, c, t)
+	LazyFx.g("SenjutsuFXA").masakari(self, c, t)
 
 
 ## Şeytani Flüt: Yanılsama Savaşçıları — flüt ezgisiyle duman içinden iki iblis savaşçı belirir, hedefe saldırır
@@ -4888,27 +4888,27 @@ func p_masakari(c: Node3D, t: Node3D) -> void:
 ## hareket eder; ezgi sürdükçe rakibe yürür, gürzle ezer, kemik bıçaklarla tırmıklar, ağızlardan ruh solucanları salar.
 ## Gerçek modeller: Doki (scripts/actors/doki.gd, ~5 m). Çağıranın elinde Mateki flütü belirir (oyuncu/düşman aynı).
 func p_mateki_genbu_sokyoku(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXB.mateki_genbu_sokyoku(self, c, t)
+	LazyFx.g("NinjutsuFXB").mateki_genbu_sokyoku(self, c, t)
 
 
 ## Şeytani Flüt: Hayalet Ses Zincirleri — flüt ezgisi kırmızı ses halkalarıyla yayılır, duyanları kırmızı zincirler bağlar
 func p_mateki_mugen_onsa(c: Node3D, t: Node3D) -> void:
-	GenjutsuFXA.mateki_mugen_onsa(self, c, t)
+	LazyFx.g("GenjutsuFXA").mateki_mugen_onsa(self, c, t)
 
 
 ## Nadeshiko Sert Yumruk: rüzgâr çakralı yumruk — parlayan yumruk çarpınca ileri rüzgâr patlaması
 func p_nadeshiko_ryu_koha_reppuken(c: Node3D, t: Node3D) -> void:
-	FutonFXB.nadeshiko_ryu_koha_reppuken(self, c, t)
+	LazyFx.g("FutonFXB").nadeshiko_ryu_koha_reppuken(self, c, t)
 
 
 ## Kil Klon: beyaz patlayıcı kilden kopya — yanına gelen düşmanla birlikte patlar
 func p_nendo_bunshin(c: Node3D, _t: Node3D) -> void:
-	DotonFXD.nendo_bunshin(self, c, _t)
+	LazyFx.g("DotonFXD").nendo_bunshin(self, c, _t)
 
 
 ## Altın Zırh: ağızdan yapışkan altın akar, bedeni sarıp parlayan zırh olur (15 sn çok dayanıklı)
 func p_nenkin_no_yoroi(c: Node3D, _t: Node3D) -> void:
-	HidenFXA.nenkin_no_yoroi(self, c, _t)
+	LazyFx.g("HidenFXA").nenkin_no_yoroi(self, c, _t)
 
 
 # ================================================================== Yeni jutsular E (Sv.10): şimşek, kil, kum, köpük
@@ -4929,52 +4929,52 @@ func _clay_fig(kind: String, s := 1.0) -> Node3D:
 
 ## Fare Tüy Topu: ağızdan art arda mavi alevli, fare biçimli ateş topları
 func p_nezumi_kedama(c: Node3D, t: Node3D) -> void:
-	KatonFXA.nezumi_kedama(self, c, t)
+	LazyFx.g("KatonFXA").nezumi_kedama(self, c, t)
 
 
 ## Patlayıcı Kil Bebekler: avuçtan beyaz kil bebekler zıplayarak koşar, hedefe ulaşınca patlar
 func p_ningyo_kibaku_nendo(c: Node3D, t: Node3D) -> void:
-	BakutonFXB.ningyo_kibaku_nendo(self, c, t)
+	LazyFx.g("BakutonFXB").ningyo_kibaku_nendo(self, c, t)
 
 
 ## Kumaş Bağlama: çakralı uzun kumaş şeritleri hedefe dolanıp onu kozaya sarar ve sıkar
 func p_nunoshibari_no_jutsu(c: Node3D, t: Node3D) -> void:
-	FuinjutsuFXA.nunoshibari_no_jutsu(self, c, t)
+	LazyFx.g("FuinjutsuFXA").nunoshibari_no_jutsu(self, c, t)
 
 
 ## Şimşek Parıltısı: şimşek yüklü şurikenler mavi ark izleriyle fırlar
 func p_raisen(c: Node3D, t: Node3D) -> void:
-	RaitonFXA.raisen(self, c, t)
+	LazyFx.g("RaitonFXA").raisen(self, c, t)
 
 
 ## Şimşek Örümcek Ağı: yere avuç — çevreye parlayan şimşek ağı yayılır, basanı felç eder
 func p_raiton_amigumo(c: Node3D, t: Node3D) -> void:
-	RaitonFXA.amigumo(self, c, t)
+	LazyFx.g("RaitonFXA").amigumo(self, c, t)
 
 
 ## Şimşek Yılanı: elden kıvrılarak giden parlak şimşek yılanı — hedefi kovalar
 func p_raiton_hebi_ikazuchi(c: Node3D, t: Node3D) -> void:
-	RaitonFXA.hebi_ikazuchi(self, c, t)
+	LazyFx.g("RaitonFXA").hebi_ikazuchi(self, c, t)
 
 
 ## Şimşek Çubuğu: avuçta şimşek çubuğu oluşur, hedefe saplanır — gövdesinden çevreye şimşek fışkırır
 func p_raiton_hiraishin(c: Node3D, t: Node3D) -> void:
-	RaitonFXA.hiraishin(self, c, t)
+	LazyFx.g("RaitonFXA").hiraishin(self, c, t)
 
 
 ## Şimşek Ok: avuçtan beyaz-mavi şimşek oku ışık hızında deler
 func p_raiton_jinraisen(c: Node3D, t: Node3D) -> void:
-	RaitonFXA.jinraisen(self, c, t)
+	LazyFx.g("RaitonFXA").jinraisen(self, c, t)
 
 
 ## Şimşek Bağı: hedefin çevresinde şimşek zincirleri belirir, kıpırdatmadan çarpar
 func p_raiton_kaminari_shibari(c: Node3D, t: Node3D) -> void:
-	RaitonFXA.kaminari_shibari(self, c, t)
+	LazyFx.g("RaitonFXA").kaminari_shibari(self, c, t)
 
 
 ## İlham Dalgası: kol savrulur, yatay geniş bir şimşek dalgası ileri yayılır
 func p_raiton_kangekiha(c: Node3D, t: Node3D) -> void:
-	LightningFX.kangekiha(self, c, t)
+	LazyFx.g("LightningFX").kangekiha(self, c, t)
 
 
 ## Darui kara şimşek panteri (siyah-beyaz): yerde dörtnala koşan opak kara panter, beyaz çatırtılar, çarpınca siyah-beyaz şimşek patlaması
@@ -5006,47 +5006,47 @@ func _black_burst(p: Vector3, s := 1.0) -> void:
 
 ## Kara Panter: elden kara şimşekten dev bir panter fırlar, dişleri hedefe kapanır — felç
 func p_raiton_kuropansa(c: Node3D, t: Node3D) -> void:
-	RaitonFXD.raiton_kuropansa(self, c, t)
+	LazyFx.g("RaitonFXD").raiton_kuropansa(self, c, t)
 
 
 ## Gökten Şimşek: hedefin üstünde kara bulut toplanır, kalın şimşek düşer
 func p_raiton_raiga(c: Node3D, t: Node3D) -> void:
-	RaitonFXD.raiton_raiga(self, c, t)
+	LazyFx.g("RaitonFXD").raiton_raiga(self, c, t)
 
 
 ## Şimşek Hayalet Işık Sütunu: göz kamaştırıcı ışık patlaması — hedef sahte şimşeklerle kör edilir ve donar
 func p_raiton_raigen_raikochu(c: Node3D, t: Node3D) -> void:
-	RaitonFXA.raigen_raikochu(self, c, t)
+	LazyFx.g("RaitonFXA").raigen_raikochu(self, c, t)
 
 
 ## Şimşek Düz Yumruk: şimşek kaplı yumrukla ışık hızında düz vuruş
 func p_raitoningu_sutoreto(c: Node3D, t: Node3D) -> void:
-	RaitonFXA.raitoningu_sutoreto(self, c, t)
+	LazyFx.g("RaitonFXA").raitoningu_sutoreto(self, c, t)
 
 
 ## Şiddetli Kasırga: önünde geniş, toz yutan dev kasırga — hedefleri havaya savurur
 func p_ressenpu(c: Node3D, t: Node3D) -> void:
-	FutonFXB.ressenpu(self, c, t)
+	LazyFx.g("FutonFXB").ressenpu(self, c, t)
 
 
 ## Çöl Eli: yerden dev bir kum eli yükselip hedefi kavrar ve sıkar
 func p_sabaku_hando(c: Node3D, t: Node3D) -> void:
-	SabakuFXA.sabaku_hando(self, c, t)
+	LazyFx.g("SabakuFXA").sabaku_hando(self, c, t)
 
 
 ## Sabun Köpüğü Ninjutsu: flütten çok sayıda yanardöner köpük yayılır; değince patlar ve asitle yakar
 func p_shabondama_no_ninjutsu(c: Node3D, t: Node3D) -> void:
-	SuitonFXB.shabondama_no_ninjutsu(self, c, t)
+	LazyFx.g("SuitonFXB").shabondama_no_ninjutsu(self, c, t)
 
 
 ## C1: avuçtaki kil kuş ve örümcekler canlanır, hedefe uçup patlar
 func p_shi_wan(c: Node3D, t: Node3D) -> void:
-	BakutonFXA.shi_wan(self, c, t)
+	LazyFx.g("BakutonFXA").shi_wan(self, c, t)
 
 
 ## Ceset Klonu: duman içinden bir ceset senin kılığında kalkar — düşman ona saldırır
 func p_shikabane_bunshin_no_jutsu(c: Node3D, _t: Node3D) -> void:
-	KinjutsuFXA.shikabane_bunshin_no_jutsu(self, c, _t)
+	LazyFx.g("KinjutsuFXA").shikabane_bunshin_no_jutsu(self, c, _t)
 
 
 ## Aslan kılıfı yüz deseni (koddan çizilir, önbellekli): koyu lacivert çizgiler + ak parlayan gözler, saydam zemin
@@ -5210,7 +5210,7 @@ func _lion_shroud(c: Node3D, bone: String, dur: float) -> Node3D:
 
 ## Avuç Kökü: avuç kökü ile yoğun çakra darbesi — temasta beyaz çakra patlaması, geriye fırlatır
 func p_shotei(c: Node3D, t: Node3D) -> void:
-	KekkeiFXA.shotei(self, c, t)
+	LazyFx.g("KekkeiFXA").shotei(self, c, t)
 
 
 # ================================================================== Yeni jutsular F (Sv.10): kristal, su, kum, ahşap
@@ -5244,101 +5244,101 @@ func _crystal_cluster(s: float, col: Color) -> MeshInstance3D:
 
 ## Kristal Salınım: elde kristal kılıç; savuruşta önünden pembe kristal sütunlar fışkırıp hedefi içine hapseder
 func p_shoton_suishoto(c: Node3D, t: Node3D) -> void:
-	ShotonFXA.shoton_suishoto(self, c, t)
+	LazyFx.g("ShotonFXA").shoton_suishoto(self, c, t)
 
 
 ## Yeşim Kristal Klonu: yeşil kristal kabuk içinde kopyalar belirir, kristal kırılınca dağılır
 func p_suisho_bunshin_no_jutsu(c: Node3D, _t: Node3D) -> void:
-	ShotonFXA.suisho_bunshin_no_jutsu(self, c, _t)
+	LazyFx.g("ShotonFXA").suisho_bunshin_no_jutsu(self, c, _t)
 
 
 ## Kudurmuş Denizanası: su denizanaları belirir, dokunaçlarıyla süzülüp hedefin üstünde patlar
 func p_suiton_abare_kurage(c: Node3D, t: Node3D) -> void:
-	SuitonFXB.suiton_abare_kurage(self, c, t)
+	LazyFx.g("SuitonFXB").suiton_abare_kurage(self, c, t)
 
 
 ## Yağmur İğneleri: gökten yağan yağmur damlaları iğneye dönüşüp alanı delik deşik eder
 func p_suiton_amefuribari(c: Node3D, t: Node3D) -> void:
-	SuitonFXB.suiton_amefuribari(self, c, t)
+	LazyFx.g("SuitonFXB").suiton_amefuribari(self, c, t)
 
 
 ## Büyük Patlayan Su Şoku: ağızdan devasa su dalgası — tüm alanı göle çevirir
 func p_suiton_bakusui_shoha(c: Node3D, t: Node3D) -> void:
-	SuitonFXC.suiton_bakusui_shoha(self, c, t)
+	LazyFx.g("SuitonFXC").suiton_bakusui_shoha(self, c, t)
 
 
 ## Yırtan Sel: avuçta dönen su sarmalı (girdap) oluşur, delici bir akıntı olarak fırlatılır
 func p_suiton_hahonryu(c: Node3D, t: Node3D) -> void:
-	SuitonFXC.suiton_hahonryu(self, c, t)
+	LazyFx.g("SuitonFXC").suiton_hahonryu(self, c, t)
 
 
 ## Kabaran Deniz: yerden yükselen dalga akıntısı ileri koşar — üstündekileri havaya savurur
 func p_suiton_hato(c: Node3D, t: Node3D) -> void:
-	SuitonFXC.suiton_hato(self, c, t)
+	LazyFx.g("SuitonFXC").suiton_hato(self, c, t)
 
 
 ## Yılan Ağzı: yerden koyu sudan dev bir yılan ağzı çıkar, hedefi yutup hapseder
 func p_suiton_ja_no_kuchi(c: Node3D, t: Node3D) -> void:
-	SuitonFXC.suiton_ja_no_kuchi(self, c, t)
+	LazyFx.g("SuitonFXC").suiton_ja_no_kuchi(self, c, t)
 
 
 ## Su Dişi Mermisi: hedefin çevresinde yerden dönen su sivrileri fışkırır, ortada birleşip deler
 func p_suiton_suigadan(c: Node3D, t: Node3D) -> void:
-	SuitonFXC.suiton_suigadan(self, c, t)
+	LazyFx.g("SuitonFXC").suiton_suigadan(self, c, t)
 
 
 ## Su Oluşum Duvarı Sütunu: hedefin altından dev su sütunu fışkırır, onu havaya fırlatır
 func p_suiton_suijinchu(c: Node3D, t: Node3D) -> void:
-	SuitonFXC.suiton_suijinchu(self, c, t)
+	LazyFx.g("SuitonFXC").suiton_suijinchu(self, c, t)
 
 
 ## Canavar Kum Kolu: sırttan dev pençeli kum kolu uzanır, hedefi kavrayıp sıkar
 func p_suna_no_kaiwan(c: Node3D, t: Node3D) -> void:
-	SabakuFXA.suna_no_kaiwan(self, c, t)
+	LazyFx.g("SabakuFXA").suna_no_kaiwan(self, c, t)
 
 
 ## Ahtapot Bacağı Klonu: sırttan çıkan ahtapot kolu kopar, sana dönüşüp klon olur
 func p_takoashi_bunshin_no_jutsu(c: Node3D, _t: Node3D) -> void:
-	NinjutsuFXE.takoashi_bunshin_no_jutsu(self, c, _t)
+	LazyFx.g("NinjutsuFXE").takoashi_bunshin_no_jutsu(self, c, _t)
 
 
 ## Gök Cezası: göğüsteki mühür açılır — yüzlerce kunai ve bıçak gökten alana yağar
 func p_tenchu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXE.tenchu(self, c, t)
+	LazyFx.g("NinjutsuFXE").tenchu(self, c, t)
 
 
 ## Gök Ağlaması: ağızdan tükürülen tek, iğne gibi sessiz su damlası — ışık çizgisi gibi deler
 func p_tenkyu(c: Node3D, t: Node3D) -> void:
-	SuitonFXB.tenkyu(self, c, t)
+	LazyFx.g("SuitonFXB").tenkyu(self, c, t)
 
 
 func p_thunderbolt(c: Node3D, t: Node3D) -> void:
-	RaitonFXB.thunderbolt(self, c, t)
+	LazyFx.g("RaitonFXB").thunderbolt(self, c, t)
 
 
 ## Boynuz Kırma: kum kaplı boğa boynuzlu hücum — öne atılıp çarpar
 func p_tsunoori(c: Node3D, t: Node3D) -> void:
-	TaijutsuFXA.tsunoori(self, c, t)
+	LazyFx.g("TaijutsuFXA").tsunoori(self, c, t)
 
 
 ## Geçici: göz teması olmadan hafif genjutsu — hedefin etrafında solgun dalgalanma, kısa süre şaşkın
 func p_utakata(c: Node3D, t: Node3D) -> void:
-	GenjutsuFXA.utakata(self, c, t)
+	LazyFx.g("GenjutsuFXA").utakata(self, c, t)
 
 
 ## Uzumaki Kombosu: dört klon belirir — biri hedefi havaya tekmeler, diğerleri sırayla vurur, sonuncusu yere çakar
 func p_uzumaki_naruto_rendan(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXC.uzumaki_naruto_rendan(self, c, t)
+	LazyFx.g("NinjutsuFXC").uzumaki_naruto_rendan(self, c, t)
 
 
 ## Hava Mermileri: avuçlar birleşir, ağızdan sıkıştırılmış hava mermileri — çarpınca patlayıp iter
 func p_wind_release_air_bullets(c: Node3D, t: Node3D) -> void:
-	FutonFXB.wind_release_air_bullets(self, c, t)
+	LazyFx.g("FutonFXB").wind_release_air_bullets(self, c, t)
 
 
 ## Ahşap Pranga: yerden ahşap kütükler fışkırıp hedefin boynunu ve kollarını prangaya alır
 func p_wood_release_stocks(c: Node3D, t: Node3D) -> void:
-	MokutonFXB.wood_release_stocks(self, c, t)
+	LazyFx.g("MokutonFXB").wood_release_stocks(self, c, t)
 
 
 # ================================================================== Yeni jutsular G (Sv.10-18)
@@ -5359,17 +5359,17 @@ func _hand_blade(c: Node3D, dur: float, col := Color(0.82, 0.85, 0.9), len_ := 0
 
 ## Ardıl Işık: hedefin yanından ışık hızıyla geçerken tek kesik — arkasında uzun ışık izi kalır, sonra kesik açılır
 func p_zanko(c: Node3D, t: Node3D) -> void:
-	TaijutsuFXA.zanko(self, c, t)
+	LazyFx.g("TaijutsuFXA").zanko(self, c, t)
 
 
 ## Lanetli Dil Mührü: hedefin dilinde siyah çizgili mühür belirir — sessizleşir (jutsu yapamaz, sersem)
 func p_zekka_konzetsu_no_in(c: Node3D, t: Node3D) -> void:
-	FuinjutsuFXA.zekka_konzetsu_no_in(self, c, t)
+	LazyFx.g("FuinjutsuFXA").zekka_konzetsu_no_in(self, c, t)
 
 
 ## Dil Dişi Yapışkan Asit: ağızdan sarı-yeşil asit seli — değdiği yer ve hedef erir
 func p_zesshi_nensan(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXE.zesshi_nensan(self, c, t)
+	LazyFx.g("NinjutsuFXE").zesshi_nensan(self, c, t)
 
 
 ## Akurobatto (kanon, Killer B): Nanatō şart — yedi kılıç ağızda, boyunda, koltuk altında, dirseklerde, dizde ve karında
@@ -5378,8 +5378,8 @@ func p_akurobatto(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.2)
 	var tt = tg(c, t, 6.0)
 	var d = _face(c, tt)
-	NanatoFX.draw_real(c)
-	NanatoFX.play_step(c, 3, 1.15)
+	LazyFx.g("NanatoFX").draw_real(c)
+	LazyFx.g("NanatoFX").play_step(c, 3, 1.15)
 	every(1.0, 0.1, func(_i, k):
 		if not live(c):
 			return
@@ -5387,7 +5387,7 @@ func p_akurobatto(c: Node3D, t: Node3D) -> void:
 			c.velocity = d * 5.0 + Vector3.UP * (2.0 if k < 0.2 else 0.0)
 		var at = c.global_position + Vector3.UP * 1.1
 		var a0 = k * TAU * 3.0
-		NanatoFX.arc(at + Vector3.UP * (0.4 * sin(a0)), d, d.cross(Vector3.UP).normalized(), 1.5, a0, a0 + 2.2, 0.14, 0.2)
+		LazyFx.g("NanatoFX").arc(at + Vector3.UP * (0.4 * sin(a0)), d, d.cross(Vector3.UP).normalized(), 1.5, a0, a0 + 2.2, 0.14, 0.2)
 		hit(c, at, 2.4, inf(c, "akurobatto", 0.3, {"knock": 3.0, "kind": "light", "bleed": 2.0}), [])
 	)
 	Sfx.play("clink", c.global_position, 1.0)
@@ -5395,81 +5395,81 @@ func p_akurobatto(c: Node3D, t: Node3D) -> void:
 
 ## Mayın Yumruğu: yumruk çarptığı anda patlayıcı çakra içeri boşalır — dev beyaz patlama
 func p_bakuton_jiraiken(c: Node3D, t: Node3D) -> void:
-	BakutonFXA.bakuton_jiraiken(self, c, t)
+	LazyFx.g("BakutonFXA").bakuton_jiraiken(self, c, t)
 
 
 ## Bölünme: beden ortadan ikiye ayrılır — iki gerçek beden (biri klon) dağılır
 func p_bunretsu_no_jutsu(c: Node3D, _t: Node3D) -> void:
-	NinjutsuFXB.bunretsu_no_jutsu(self, c, _t)
+	LazyFx.g("NinjutsuFXB").bunretsu_no_jutsu(self, c, _t)
 
 
 ## Klon Büyük Patlaması: gölge klon düşmana koşar, temas anında dev patlama
 func p_bunshin_daibakuha(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXA.bunshin_daibakuha(self, c, t)
+	LazyFx.g("NinjutsuFXA").bunshin_daibakuha(self, c, t)
 
 
 ## Klon Gövde Darbesi: klon zinciri — klonlar birbirini fırlatarak toplu halde hedefe çarpar
 func p_bunshin_taiatari(c: Node3D, t: Node3D) -> void:
-	TaijutsuFXA.bunshin_taiatari(self, c, t)
+	LazyFx.g("TaijutsuFXA").bunshin_taiatari(self, c, t)
 
 
 ## Chidori Keskin Mızrak: elde Chidori; şimşek uzun, keskin bir mızrağa uzayıp hedefi uzaktan deler
 func p_chidori_eiso(c: Node3D, t: Node3D) -> void:
-	RaitonFXB.chidori_eiso(self, c, t)
+	LazyFx.g("RaitonFXB").chidori_eiso(self, c, t)
 
 
 ## Chidori Akımı: bedenden her yöne şimşek akımı boşalır — çevredekiler felç olur
 func p_chidori_nagashi(c: Node3D, _t: Node3D) -> void:
-	RaitonFXB.chidori_nagashi(self, c, _t)
+	LazyFx.g("RaitonFXB").chidori_nagashi(self, c, _t)
 
 
 ## Chidori Senbon: şimşek iğneler yelpaze halinde fırlar; değdiği yeri felç eder
 func p_chidori_senbon(c: Node3D, t: Node3D) -> void:
-	RaitonFXB.chidori_senbon(self, c, t)
+	LazyFx.g("RaitonFXB").chidori_senbon(self, c, t)
 
 
 ## Süper Titreşimli Şimşek Kılıcı: kılıç şimşekle titreşir, art arda dört hızlı kesik
 func p_cho_biburato_raitonto(c: Node3D, t: Node3D) -> void:
-	RaitonFXE.cho_biburato_raitonto(self, c, t)
+	LazyFx.g("RaitonFXE").cho_biburato_raitonto(self, c, t)
 
 
 ## Sıçrayan Mermi Kabuk Kulesi: dev kabuğa bürünüp havaya sıçrar, gülle gibi yere düşer
 func p_chodan_koro(c: Node3D, t: Node3D) -> void:
-	TaijutsuFXB.chodan_koro(self, c, t)
+	LazyFx.g("TaijutsuFXB").chodan_koro(self, c, t)
 
 
 ## Büyük Kükreme: dev kükreme ileri halka halka ses şoku olarak yayılır — zemin kazınır, her şey savrulur
 func p_daihoko(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXB.daihoko(self, c, t)
+	LazyFx.g("NinjutsuFXB").daihoko(self, c, t)
 
 
 ## Yırtan Matkap Dişi: yumruk toprak matkabıyla kaplanır, dönerek yeri parçalar ve hedefe girer
 func p_doton_ressenga(c: Node3D, t: Node3D) -> void:
-	DotonFXD.ressenga(self, c, t)
+	LazyFx.g("DotonFXD").ressenga(self, c, t)
 
 
 ## Diş Hücumu: iki elde şimşek kılıçlar, ileri koşup çapraz çift kesik
 func p_fang_s_rush(c: Node3D, t: Node3D) -> void:
-	RaitonFXE.fang_s_rush(self, c, t)
+	LazyFx.g("RaitonFXE").fang_s_rush(self, c, t)
 
 
 ## Aslan Kapanı Mührü: kukla gövdesinin kapakları açılır, hedefi içine çekip mühürler — 封 işareti
 func p_fuinjutsu_shishi_heiko(c: Node3D, t: Node3D) -> void:
-	FuinjutsuFXA.fuinjutsu_shishi_heiko(self, c, t)
+	LazyFx.g("FuinjutsuFXA").fuinjutsu_shishi_heiko(self, c, t)
 
 
 ## Fışkıran İtiş Yumruğu: dirsekten buhar patlar, yumruk büyük hızla fırlar — patlamalı darbe
 func p_funsuiken(c: Node3D, t: Node3D) -> void:
-	FuttonFXA.funsuiken(self, c, t)
+	LazyFx.g("FuttonFXA").funsuiken(self, c, t)
 
 ## Rüzgâr Rasengan: avuçta dönen mavi Rasengan, etrafında keskin rüzgâr halkası — saplanınca kesici girdap
 func p_futon_rasengan(c: Node3D, t: Node3D) -> void:
-	FutonFXC.futon_rasengan(self, c, t)
+	LazyFx.g("FutonFXC").futon_rasengan(self, c, t)
 
 
 ## Buhar Patlaması: bedeni saran basınçlı buhar bir anda patlar — çevreye kaynar buhar dalgası
 func p_futton_joki_bakuhatsu(c: Node3D, _t: Node3D) -> void:
-	FuttonFXA.futton_joki_bakuhatsu(self, c, _t)
+	LazyFx.g("FuttonFXA").futton_joki_bakuhatsu(self, c, _t)
 
 # ================================================================== Yeni jutsular H (Sv.18): buhar, buz, mühür, kılıç, mıknatıs
 const ICE := Color(0.7, 0.9, 1.0)
@@ -5489,60 +5489,60 @@ func _ice_spike(h: float, r: float) -> MeshInstance3D:
 
 ## Eşsiz Güç: buhar bedeni sarar (dirseklerden, sırttan fışkırır) — 15 sn yumruk ve tekmeler buhar itişli
 func p_futton_kairiki_muso(c: Node3D, _t: Node3D) -> void:
-	FuttonFXA.futton_kairiki_muso(self, c, _t)
+	LazyFx.g("FuttonFXA").futton_kairiki_muso(self, c, _t)
 
 ## Usta Sis: ağızdan asitli buhar sisi yayılır — alanı kaplar, içindekiler yavaşça erir
 func p_futton_komu_no_jutsu(c: Node3D, t: Node3D) -> void:
-	FuttonFXA.futton_komu_no_jutsu(self, c, t)
+	LazyFx.g("FuttonFXA").futton_komu_no_jutsu(self, c, t)
 
 ## Kurbağa Kılıcı Biçme: dev kurbağa kılıcı çağrılır, yatay dev bir yay ile biçer
 func p_gamadosuzan(c: Node3D, t: Node3D) -> void:
-	TaijutsuFXB.gamadosuzan(self, c, t)
+	LazyFx.g("TaijutsuFXB").gamadosuzan(self, c, t)
 
 
 ## Beş Element Çözme: parmak uçlarında beş element yazısı mavi alevle yanar, karna bastırılır — kendi üstündeki mühürler/bağlar çözülür
 func p_gogyo_kaiin(c: Node3D, _t: Node3D) -> void:
-	FuinjutsuFXA.gogyo_kaiin(self, c, _t)
+	LazyFx.g("FuinjutsuFXA").gogyo_kaiin(self, c, _t)
 
 
 ## Karşılıklı Çoğalan Patlayıcı Etiketler: elden binlerce patlayıcı etiket fışkırır, hedef bölgeyi kaplar — zincirleme dev patlama
 func p_gojo_kibaku_fuda(c: Node3D, t: Node3D) -> void:
-	KinjutsuFXA.gojo_kibaku_fuda(self, c, t)
+	LazyFx.g("KinjutsuFXA").gojo_kibaku_fuda(self, c, t)
 
 
 ## Sekiz Kapı Sistemi: ilk üç kapı tek seferde açılır — yeşil aura, yer çatlar, beden hızlanır (15 sn)
 func p_hachimon(c: Node3D, _t: Node3D) -> void:
-	NinjutsuFXF.hachimon(self, c, _t)
+	LazyFx.g("NinjutsuFXF").hachimon(self, c, _t)
 
 
 ## Sekiz Trigram Vakum Duvar Avucu: iki avuç birden — önündeki geniş alanı süpüren dev vakum duvarı
 func p_hakke_kuhekisho(c: Node3D, t: Node3D) -> void:
-	KekkeiFXA.hakke_kuhekisho(self, c, t)
+	LazyFx.g("KekkeiFXA").hakke_kuhekisho(self, c, t)
 
 
 ## Uçan Gök Gürültüsü Tanrısı İkinci Adım: işaretli kunai fırlatılır; kunainin yanına sarı ışıkla ışınlanıp kesik
 func p_hiraishin_ni_no_dan(c: Node3D, t: Node3D) -> void:
-	SpacetimeFXA.hiraishin_ni_no_dan(self, c, t)
+	LazyFx.g("SpacetimeFXA").hiraishin_ni_no_dan(self, c, t)
 
 
 ## Kesin Ölüm Buz Mızrakları: havadaki nem donar — yüzlerce buz mızrağı her yönden hedefe saplanır
 func p_hissatsu_hyoso(c: Node3D, t: Node3D) -> void:
-	HyotonFXA.hissatsu_hyoso(self, c, t)
+	LazyFx.g("HyotonFXA").hissatsu_hyoso(self, c, t)
 
 
 ## Buz Kaya Kubbesi: hedefin üstüne kalın buz kubbe kapanır, içinde donar
 func p_hyoton_hyogan_domu(c: Node3D, t: Node3D) -> void:
-	HyotonFXA.hyoton_hyogan_domu(self, c, t)
+	LazyFx.g("HyotonFXA").hyoton_hyogan_domu(self, c, t)
 
 
 ## On Bin Buz Yaprağı: avuçlardan sayısız keskin buz yaprağı fırtına gibi savrulur
 func p_hyoton_mangehyo(c: Node3D, t: Node3D) -> void:
-	HyotonFXA.hyoton_mangehyo(self, c, t)
+	LazyFx.g("HyotonFXA").hyoton_mangehyo(self, c, t)
 
 
 ## Kristal Buz Duvarı: önünde yerden dev buz kristalleri fışkırır — kalkan, mermileri durdurur
 func p_hyoton_suishoheki(c: Node3D, t: Node3D) -> void:
-	HyotonFXA.hyoton_suishoheki(self, c, t)
+	LazyFx.g("HyotonFXA").hyoton_suishoheki(self, c, t)
 
 
 ## Hyūga Sōke no Juinjutsu (kanon): ana ailenin tek el mührü — yalnız alnına Kafes Kuş Mührü vurulmuş YAN AİLE üyesine
@@ -5553,7 +5553,7 @@ func _caged_bird(t: Node3D) -> bool:
 
 
 func p_hyuga_soke_no_juinjutsu(c: Node3D, t: Node3D) -> void:
-	FinalFX0.hyuga_soke_no_juinjutsu(self, c, t)
+	LazyFx.g("FinalFX0").hyuga_soke_no_juinjutsu(self, c, t)
 
 
 ## Kafes Kuş Mührü deseni: alında yatay iki çizginin arasında bir X — yeşil yanar (başa yapışık)
@@ -5591,37 +5591,37 @@ func _caged_bird_seal(tt: Node3D) -> Node3D:
 
 ## Iai Başkesme: kın içinden ani çekiş — önünde mor-beyaz dev bir kesik dalgası açılır
 func p_iaigiri(c: Node3D, t: Node3D) -> void:
-	TaijutsuFXA.iaigiri(self, c, t)
+	LazyFx.g("TaijutsuFXA").iaigiri(self, c, t)
 
 
 ## Tek Çizgi: göz açıp kapayana kadar — sarı ışık kıvılcımıyla hedefin arkasında belirip tek kesik
 func p_issen(c: Node3D, t: Node3D) -> void:
-	TaijutsuFXB.issen(self, c, t)
+	LazyFx.g("TaijutsuFXB").issen(self, c, t)
 
 
 ## Kendini Patlatan Klon: gölge kil klonla yer değiştirir — klon yakalandığı anda patlar
 func p_jibaku_bunshin(c: Node3D, t: Node3D) -> void:
-	BakutonFXB.jibaku_bunshin(self, c, t)
+	LazyFx.g("BakutonFXB").jibaku_bunshin(self, c, t)
 
 
 ## Zamanı Geri Sarma: hedefin gözünde yeşil girdap halkaları döner, geçmiş anılara sürüklenir — uzun donma
 func p_jigyaku_no_jutsu(c: Node3D, t: Node3D) -> void:
-	GenjutsuFXA.jigyaku_no_jutsu(self, c, t)
+	LazyFx.g("GenjutsuFXA").jigyaku_no_jutsu(self, c, t)
 
 
 ## Mıknatıs Demir Kum Mühür Avucu: demir kumu avuçta toplanır, hedefe yapışıp onu kilitleyen kara kum kabuğu olur
 func p_jitetsu_ryufusho(c: Node3D, t: Node3D) -> void:
-	JitonFXA.jitetsu_ryufusho(self, c, t)
+	LazyFx.g("JitonFXA").jitetsu_ryufusho(self, c, t)
 
 
 ## Altın Toz İmparatorluk Cenazesi: dev altın tozu dalgası yükselip hedefin üstüne çöker — ezer
 func p_jiton_sakin_taiso(c: Node3D, t: Node3D) -> void:
-	JitonFXA.jiton_sakin_taiso(self, c, t)
+	LazyFx.g("JitonFXA").jiton_sakin_taiso(self, c, t)
 
 
 ## Buharlı Tehlike Tiranı: buhar saçan dev su klonu oluşur — yakına gelen düşmanla birlikte buhar patlaması
 func p_joki_boi(c: Node3D, _t: Node3D) -> void:
-	SuitonFXD.joki_boi(self, c, _t)
+	LazyFx.g("SuitonFXD").joki_boi(self, c, _t)
 
 
 # ================================================================== Yeni jutsular I (Sv.18): aslan yumruk, ateş, rüzgâr, kristal, ahşap
@@ -5735,62 +5735,62 @@ func _branch(L: float, r: float) -> MeshInstance3D:
 ## boyunda, yarı saydam mavi, kenarı ak parlayan, üstü alev dilli; önünde koyu çizgili aslan yüzü (ak gözler, zikzak dişler).
 ## Kılıf eli izler, yüzü kullanıcının baktığı yöne döner. 15 sn: yakın dövüş ve menzil artar, vuruşlar chakra emer.
 func p_juho_soshiken(c: Node3D, _t: Node3D) -> void:
-	KekkeiFXA.juho_soshiken(self, c, _t)
+	LazyFx.g("KekkeiFXA").juho_soshiken(self, c, _t)
 
 
 ## Büyük Ateş Yıkımı: ağızdan geniş, alanı yutan alev dalgası (çok sayıda alev küresi), arkasında yanan zemin
 func p_katon_goka_messhitsu(c: Node3D, t: Node3D) -> void:
-	KatonFXB.katon_goka_messhitsu(self, c, t)
+	LazyFx.g("KatonFXB").katon_goka_messhitsu(self, c, t)
 
 
 ## Büyük Ateş Hortumu: rüzgâr ve ateş birleşir — hedefin üstünde yükselen dev alev hortumu
 func p_katon_goka_senpu(c: Node3D, t: Node3D) -> void:
-	KatonFXB.katon_goka_senpu(self, c, t)
+	LazyFx.g("KatonFXB").katon_goka_senpu(self, c, t)
 
 
 ## Patlayan Alev Alanı: hedefin çevresine etiketler serpilir, bariyer kurulur — içinde alev dalgaları patlar
 func p_katon_kibaku_enjin(c: Node3D, t: Node3D) -> void:
-	KatonFXB.katon_kibaku_enjin(self, c, t)
+	LazyFx.g("KatonFXB").katon_kibaku_enjin(self, c, t)
 
 
 ## Ejder Alevi Gürültüsü: ağızdan sivri dişli ejder başı biçiminde çok sayıda alev mermisi
 func p_katon_ryuen_hoka_no_jutsu(c: Node3D, t: Node3D) -> void:
-	KatonFXB.katon_ryuen_hoka_no_jutsu(self, c, t)
+	LazyFx.g("KatonFXB").katon_ryuen_hoka_no_jutsu(self, c, t)
 
 
 ## Rüzgâr Bıçağı: iki parmaktan çıkan görünmez rüzgâr bıçağı uzaktan hedefi keser (havada ince titreşen çizgi)
 func p_kaze_no_yaiba(c: Node3D, t: Node3D) -> void:
-	FutonFXC.kaze_no_yaiba(self, c, t)
+	LazyFx.g("FutonFXC").kaze_no_yaiba(self, c, t)
 
 
 ## Sözleşme Mührü: avuç hedefe basılır, mühür çizgileri yayılır — çağrısı/dönüşümü kilitlenir, kısa felç
 func p_keiyaku_fuin(c: Node3D, t: Node3D) -> void:
-	FuinjutsuFXA.keiyaku_fuin(self, c, t)
+	LazyFx.g("FuinjutsuFXA").keiyaku_fuin(self, c, t)
 
 
 ## Kristal Zırh: bedeni pembe kristal plakalar kaplar (15 sn) — darbeler kristalde kırılır
 func p_kessho_no_yoroi(c: Node3D, _t: Node3D) -> void:
-	ShotonFXA.kessho_no_yoroi(self, c, _t)
+	LazyFx.g("ShotonFXA").kessho_no_yoroi(self, c, _t)
 
 
 ## Kaybolan Rasengan: fırlatılan Rasengan görünmez olur, hedefin yanında aniden yeniden belirip çarpar
 func p_kieru_rasengan(c: Node3D, t: Node3D) -> void:
-	RaitonFXE.kieru_rasengan(self, c, t)
+	LazyFx.g("RaitonFXE").kieru_rasengan(self, c, t)
 
 
 ## Garip Maske Patlayan Alev: ateş ve rüzgâr birleşir — alev topu rüzgârla devleşip patlar
 func p_kimen_no_bakuen(c: Node3D, t: Node3D) -> void:
-	ElementFX.kimen_no_bakuen(self, c, t)
+	LazyFx.g("ElementFX").kimen_no_bakuen(self, c, t)
 
 
 ## Örümcek Savaş Yayı: Korkunç Yarılma — altın yay gerilir, devasa delici altın ok her şeyi delip geçer
 func p_kumo_senkyu_suzaku(c: Node3D, t: Node3D) -> void:
-	HidenFXA.kumo_senkyu_suzaku(self, c, t)
+	LazyFx.g("HidenFXA").kumo_senkyu_suzaku(self, c, t)
 
 
 ## Kara Şimşek: avuçtan kapkara, kalın şimşek akımı hedefi delip geçer
 func p_kuroi_kaminari(c: Node3D, t: Node3D) -> void:
-	RaitonFXB.kuroi_kaminari(self, c, t)
+	LazyFx.g("RaitonFXB").kuroi_kaminari(self, c, t)
 
 
 ## ================================================================ Dış Yol (kanon)
@@ -5823,29 +5823,29 @@ func _receiver_pierce(c: Node3D, h: Node3D, dur: float) -> void:
 ## Kuroki Jushinki (kanon): Rinnegan'a özgü kara alıcılar — çakra sinyali taşıyan çubuklar elde belirip fırlatılır;
 ## saplandığı bedenin çakra akışını bozar (jutsu yapamaz, yavaşlar), çubuk bedende kalır. Oyuncu ve AI aynı fonksiyon.
 func p_kuroki_jushinki(c: Node3D, t: Node3D) -> void:
-	DojutsuFXA.kuroki_jushinki(self, c, t)
+	LazyFx.g("DojutsuFXA").kuroki_jushinki(self, c, t)
 
 
 
 ## Aynalı Ani Saldırgan: yeşil yansıtılmış bir kopya belirir, hedefin yönünü şaşırtır
 func p_kyomen_shuja_no_jutsu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXC.kyomen_shuja_no_jutsu(self, c, t)
+	LazyFx.g("NinjutsuFXC").kyomen_shuja_no_jutsu(self, c, t)
 
 
 ## Konoha-Ryū Mikazuki no Mai (kanon, Hayate Gekkō): kullanıcı ve iki gölge klonu kılıçla hilal düzeninde havaya sıçrayıp
 ## üç ayrı yönden AYNI ANDA keser (hangisinin gerçek olduğu anlaşılmaz) — kılıç gerekir
 func p_mikazuki_no_mai(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXB.mikazuki_no_mai(self, c, t)
+	LazyFx.g("NinjutsuFXB").mikazuki_no_mai(self, c, t)
 
 
 ## Mini Rasenşuriken: avuçta küçük dönen rüzgâr shurikeni — çarpınca içine çeken kesici rüzgâr küresi
 func p_mini_rasenshuriken(c: Node3D, t: Node3D) -> void:
-	FutonFXD.mini_rasenshuriken(self, c, t)
+	LazyFx.g("FutonFXD").mini_rasenshuriken(self, c, t)
 
 
 ## Ahşap Klon: bedenden ahşap tomurcuk filizlenip kopyana dönüşür — sağlam, kırılınca ahşaba döner
 func p_moku_bunshin_no_jutsu(c: Node3D, _t: Node3D) -> void:
-	MokutonFXA.moku_bunshin_no_jutsu(self, c, _t)
+	LazyFx.g("MokutonFXA").moku_bunshin_no_jutsu(self, c, _t)
 
 
 ## Büyük Mızrak Ağacı: kollardan sivri dallar mızrak gibi uzayıp hedefi delip geçer
@@ -5884,7 +5884,7 @@ func p_mokuton_daisoju(c: Node3D, t: Node3D) -> void:
 
 ## Ağaçlar Dünyası Duvarı: önünde yerden kalın, örülü ağaç gövdelerinden dev duvar yükselir
 func p_mokuton_jukai_heki(c: Node3D, t: Node3D) -> void:
-	MokutonFXB.mokuton_jukai_heki(self, c, t)
+	LazyFx.g("MokutonFXB").mokuton_jukai_heki(self, c, t)
 
 
 ## Ağaçların Doğuşu: çevrede dev bir orman fışkırır — ağaçlar düşmanları savurur ve dallarıyla sarar
@@ -5939,7 +5939,7 @@ func _ras_hand(c: Node3D, dur: float, s := 0.4, side := "RightHand") -> void:
 
 ## Ahşap Kilit Duvarı: yerden kemerli ahşap kubbe yükselir, içindekileri korur
 func p_mokuton_mokujoheki(c: Node3D, _t: Node3D) -> void:
-	MokutonFXA.mokuton_mokujoheki(self, c, _t)
+	LazyFx.g("MokutonFXA").mokuton_mokujoheki(self, c, _t)
 
 
 ## Ahşap Bağlama: yerden kalın ahşap kollar çıkıp hedefi sarar ve sıkar
@@ -5965,7 +5965,7 @@ func p_mokuton_mokusatsu_shibari_no_jutsu(c: Node3D, t: Node3D) -> void:
 
 ## Kesme Tekniği: koldan keskin ahşap mızraklar fışkırıp hedefe saplanır
 func p_mokuton_sashiki_no_jutsu(c: Node3D, t: Node3D) -> void:
-	MokutonFXB.mokuton_sashiki_no_jutsu(self, c, t)
+	LazyFx.g("MokutonFXB").mokuton_sashiki_no_jutsu(self, c, t)
 
 
 ## Dört Sütun Hapsi: hedefin etrafında yerden ahşap sütunlar fışkırıp dev bir kafes evi oluşturur
@@ -6030,78 +6030,78 @@ func p_nehan_shoja_no_jutsu(c: Node3D, _t: Node3D) -> void:
 
 ## Büyük Toplu Seri Rasengan: düzinelerce klon belirir, hepsi elinde dev Rasenganla bölgeye dalar — alan bombardımanı
 func p_odama_rasen_tairengan(c: Node3D, t: Node3D) -> void:
-	KinjutsuFXA.odama_rasen_tairengan(self, c, t)
+	LazyFx.g("KinjutsuFXA").odama_rasen_tairengan(self, c, t)
 
 
 ## Orochimaru'nun Lanet Mührü: ani ısırık — hedefin boynunda üç tomoe biçimli lanet işareti yanar, zehirler
 func p_orochimaru_no_juinjutsu(c: Node3D, t: Node3D) -> void:
-	SenjutsuFXA.orochimaru_no_juinjutsu(self, c, t)
+	LazyFx.g("SenjutsuFXA").orochimaru_no_juinjutsu(self, c, t)
 
 
 ## Raiden (kanon, Kakashi): Kakashi ve gölge klonu iki ayrı elde Raikiri açar, aralarını keskin bir şimşek ipiyle bağlar;
 ## ikisi hedefin iki yanından geçerken ip hedefi biçer ve sarıp bağlar (kuyruklu canavar kollarını kesecek güçte).
 func p_raiden(c: Node3D, t: Node3D) -> void:
-	RaitonFXE.raiden(self, c, t)
+	LazyFx.g("RaitonFXE").raiden(self, c, t)
 
 
 ## Elektromanyetik Şimşek: avuçtan yoğun, mor-beyaz şimşek ışını uzun süre akar
 func p_raiton_jibashi(c: Node3D, t: Node3D) -> void:
-	RaitonFXC.jibashi(self, c, t)
+	LazyFx.g("RaitonFXC").jibashi(self, c, t)
 
 
 ## Şimşek Gölge Klonu: şimşek çakralı klon — dokunan düşmanı elektrik çarpar
 func p_raiton_kage_bunshin_no_jutsu(c: Node3D, _t: Node3D) -> void:
-	RaitonFXC.kage_bunshin(self, c, _t)
+	LazyFx.g("RaitonFXC").kage_bunshin(self, c, _t)
 
 
 ## Mor Şimşek: avuçta mor şimşek toplanır, uzun menzilli tek ışın — uçta patlama
 func p_raiton_shiden(c: Node3D, t: Node3D) -> void:
-	RaitonFXB.raiton_shiden(self, c, t)
+	LazyFx.g("RaitonFXB").raiton_shiden(self, c, t)
 
 
 ## Rasengan «Uzuhiko»: sıkıştırılmış görünmez Rasengan fırlatılır — hedefte birden büyüyüp patlar
 func p_rasengan_uzuhiko(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXF.rasengan_uzuhiko(self, c, t)
+	LazyFx.g("NinjutsuFXF").rasengan_uzuhiko(self, c, t)
 
 
 ## Sarmal Emici Küre: avuçta Rasengan; gelen ninjutsu mermilerini içine emer, emdikçe büyür (8 sn)
 func p_rasenkyugan(c: Node3D, _t: Node3D) -> void:
-	NinjutsuFXD.rasenkyugan(self, c, _t)
+	LazyFx.g("NinjutsuFXD").rasenkyugan(self, c, _t)
 
 
 ## Sarmal Çekişme Küreleri: etrafında onlarca Rasengan belirir ve hepsi hedeflere yağar
 func p_rasenrangan(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXD.rasenrangan(self, c, t)
+	LazyFx.g("NinjutsuFXD").rasenrangan(self, c, t)
 
 
 ## Sarmal Seri Küreler: iki elde birer Rasengan — sırayla iki dev darbe
 func p_rasenrengan(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXD.rasenrengan(self, c, t)
+	LazyFx.g("NinjutsuFXD").rasenrengan(self, c, t)
 
 
 ## Akan Kum Çağlayanı: yerden dev kum seli kabarır, hedeflerin üstüne şelale gibi çöker
 func p_ryusa_bakuryu(c: Node3D, t: Node3D) -> void:
-	SabakuFXA.ryusa_bakuryu(self, c, t)
+	LazyFx.g("SabakuFXA").ryusa_bakuryu(self, c, t)
 
 
 ## Çöl Dalgası: önünde dev kum duvarı dalgası yükselip ileri süpürür
 func p_sabakuha(c: Node3D, t: Node3D) -> void:
-	SabakuFXA.sabakuha(self, c, t)
+	LazyFx.g("SabakuFXA").sabakuha(self, c, t)
 
 
 ## Mercan Avucu: dokunulan hedef hızla büyüyen kırmızı mercana gömülür
 func p_sangosho(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXA.sangosho(self, c, t)
+	LazyFx.g("NinjutsuFXA").sangosho(self, c, t)
 
 
 ## Demir Kum Toplanma Saldırısı: demir kumu havada dev sivri bir yapıya toplanır ve hedefe çakılır
 func p_satetsu_kesshu(c: Node3D, t: Node3D) -> void:
-	JitonFXA.satetsu_kesshu(self, c, t)
+	LazyFx.g("JitonFXA").satetsu_kesshu(self, c, t)
 
 
 ## Demir Kum Kara Demir Kanatları: sırttan dev siyah demir kumu kanatlar açılır — kalkan olur, 15 sn uçuş
 func p_satetsu_kurogane_no_tsubasa(c: Node3D, _t: Node3D) -> void:
-	JitonFXA.satetsu_kurogane_no_tsubasa(self, c, _t)
+	LazyFx.g("JitonFXA").satetsu_kurogane_no_tsubasa(self, c, _t)
 
 
 # ================================================================== Yeni jutsular K (Sv.18): demir kum, kristal, Rasengan, lav
@@ -6111,27 +6111,27 @@ const QUICKLIME := Color(0.92, 0.9, 0.85)
 
 ## Demir Kum Çisentisi: havada demir kumu bulutu toplanır, hedefin üstüne iğne yağmuru olarak yağar
 func p_satetsu_shigure(c: Node3D, t: Node3D) -> void:
-	JitonFXA.satetsu_shigure(self, c, t)
+	LazyFx.g("JitonFXA").satetsu_shigure(self, c, t)
 
 
 ## Hafıza Gizleyen Manipülasyon: avuçtan ışıltılı kum çizgileri yıldız gibi hedefin başına uzanır — kafası karışır
 func p_senno_sosa_no_jutsu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXC.senno_sosa_no_jutsu(self, c, t)
+	LazyFx.g("NinjutsuFXC").senno_sosa_no_jutsu(self, c, t)
 
 
 ## Bilge Sanatı Çoklu Ultra Büyük Rasengan: klonlar dev bir Rasengan kümesi oluşturur, hepsi bölgeye çöker
 func p_senpo_choodama_rasen_tarengan(c: Node3D, t: Node3D) -> void:
-	FinalFX2.senpo_choodama_rasen_tarengan(self, c, t)
+	LazyFx.g("FinalFX2").senpo_choodama_rasen_tarengan(self, c, t)
 
 
 ## C2: avuçtan dev kil ejderha çağrılır; ağzından güdümlü kil füzeler fırlatır, yere kil mayınları bırakır
 func p_shi_tsu(c: Node3D, t: Node3D) -> void:
-	BakutonFXA.shi_tsu(self, c, t)
+	LazyFx.g("BakutonFXA").shi_tsu(self, c, t)
 
 
 ## Her Yöne Shuriken: klonlar hedefin etrafında daire kurar, hepsi aynı anda ortaya Rasenşuriken fırlatır
 func p_shihohappo_shuriken(c: Node3D, t: Node3D) -> void:
-	KinjutsuFXA.shihohappo_shuriken(self, c, t)
+	LazyFx.g("KinjutsuFXA").shihohappo_shuriken(self, c, t)
 
 
 ## Kristal hapis (ortak): hedef etrafında pembe kristal sütunlar
@@ -6179,12 +6179,12 @@ func p_shoton_kessho_gokakuro(c: Node3D, t: Node3D) -> void:
 
 ## Yeşim Kristal Ayna: etrafında kristal ayna altıgenleri belirir — gelen mermiler saldırgana yansır
 func p_shoton_suisho_kyo(c: Node3D, _t: Node3D) -> void:
-	ShotonFXA.shoton_suisho_kyo(self, c, _t)
+	LazyFx.g("ShotonFXA").shoton_suisho_kyo(self, c, _t)
 
 
 ## Yeşim Kristal Altıgen Sütunlar: hedefin çevresinde yerden kristal sütunlar fışkırır
 func p_shoton_suisho_rokkakuchu(c: Node3D, t: Node3D) -> void:
-	ShotonFXA.shoton_suisho_rokkakuchu(self, c, t)
+	LazyFx.g("ShotonFXA").shoton_suisho_rokkakuchu(self, c, t)
 
 
 ## Yeşim Kristal Hapis: hedef dokunulan yerden yayılan kristalle kaplanıp donar
@@ -6202,7 +6202,7 @@ func p_shoton_suishoro_no_jutsu(c: Node3D, t: Node3D) -> void:
 
 ## Çift Diş: kılıçla birleşik güç ve hız — atılırken çift kesik, ardından topuk tekmesi
 func p_soshuga(c: Node3D, t: Node3D) -> void:
-	TaijutsuFXB.soshuga(self, c, t)
+	LazyFx.g("TaijutsuFXB").soshuga(self, c, t)
 
 
 ## Ani Ağaç Çağırma: duman içinde hedefin dibinden dev bir ağaç fışkırıp onu gövdesine sıkıştırır
@@ -6232,27 +6232,27 @@ func p_spontaneous_tree_summoning(c: Node3D, t: Node3D) -> void:
 ## kullanıcı onu 90° çevirip dikleştirir — aynadan RAKİBİN yansıması çıkar, onun saldırısını aynısıyla karşılar ve suya dağılır.
 ## Ayna dikken rakibin attığı mermiler yansımaya çarpıp söner.
 func p_suiton_mizukagami_no_jutsu(c: Node3D, t: Node3D) -> void:
-	SuitonFXF.suiton_mizukagami_no_jutsu(self, c, t)
+	LazyFx.g("SuitonFXF").suiton_mizukagami_no_jutsu(self, c, t)
 
 
 ## Su Kesme Dalgası: ağızdan çok ince, yüksek basınçlı su jeti — yatay savrulup her şeyi keser
 func p_suiton_suidanha(c: Node3D, t: Node3D) -> void:
-	SuitonFXD.suiton_suidanha(self, c, t)
+	LazyFx.g("SuitonFXD").suiton_suidanha(self, c, t)
 
 
 ## Çoklu Gölge Klonu: yüzlerce klon duman bulutlarıyla belirip alanı kaplar — düşmanlar şaşırır, klonlar saldırır
 func p_taju_kage_bunshin_no_jutsu(c: Node3D, _t: Node3D) -> void:
-	KinjutsuFXA.taju_kage_bunshin_no_jutsu(self, c, _t)
+	LazyFx.g("KinjutsuFXA").taju_kage_bunshin_no_jutsu(self, c, _t)
 
 
 ## Göksel Aktarım: kullanıcı mühürlü kavanoza dönüşür gibi beyaz şimşekle uzağa aktarılır — hedef yanında belirir
 func p_tenso_no_jutsu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXB.tenso_no_jutsu(self, c, t)
+	LazyFx.g("NinjutsuFXB").tenso_no_jutsu(self, c, t)
 
 
 ## Gezegen Rasengan: ortadaki Rasenganın etrafında üç küçük Rasengan yörüngede döner — hedefe art arda çarpar
 func p_wakusei_rasengan(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXC.wakusei_rasengan(self, c, t)
+	LazyFx.g("NinjutsuFXC").wakusei_rasengan(self, c, t)
 
 
 ## Dans Eden Bıçak Riski: kılıç sıra dışı açılardan savrulur — mor izli, öngörülemez beş kesik
@@ -6278,17 +6278,17 @@ func p_yojinbo(c: Node3D, t: Node3D) -> void:
 
 ## Kül Taşı Mühürü: ağızdan gri kireçli lav kütlesi tükürülür — değdiği yeri ve hedefi taşlaştırır
 func p_yoton_kaisekifu_no_jutsu(c: Node3D, t: Node3D) -> void:
-	YotonFXA.yoton_kaisekifu_no_jutsu(self, c, t)
+	LazyFx.g("YotonFXA").yoton_kaisekifu_no_jutsu(self, c, t)
 
 
 ## Sönmemiş Kireç: ağızdan beyaz kireç sıvısı püskürür — hedefe değer değmez sertleşip dondurur
 func p_yoton_sekkaigyo_no_jutsu(c: Node3D, t: Node3D) -> void:
-	YotonFXA.yoton_sekkaigyo_no_jutsu(self, c, t)
+	LazyFx.g("YotonFXA").yoton_sekkaigyo_no_jutsu(self, c, t)
 
 
 ## Kavurucu Zırh Yumruğu: yumruk lavla kaplanır — eritici darbe, çarptığı yerde lav sıçrar
 func p_yoton_shakugaikoken(c: Node3D, t: Node3D) -> void:
-	YotonFXA.yoton_shakugaikoken(self, c, t)
+	LazyFx.g("YotonFXA").yoton_shakugaikoken(self, c, t)
 
 
 # ================================================================== Yeni jutsular L (Sv.18-28): lav, emici küre, uzay-zaman, canavar topları, efsanevi
@@ -6303,22 +6303,22 @@ func _bijuball(s: float) -> Node3D:
 
 ## Kavurucu Ejder Kayası: ağızdan art arda erimiş, kor saçan kaya mermileri
 func p_yoton_shakugaryugan_no_jutsu(c: Node3D, t: Node3D) -> void:
-	YotonFXA.yoton_shakugaryugan_no_jutsu(self, c, t)
+	LazyFx.g("YotonFXA").yoton_shakugaryugan_no_jutsu(self, c, t)
 
 
 ## Eriten Görünüm: ağızdan kızgın lav seli püskürür — değdiği yerde lav gölü kalır
 func p_yoton_yokai_no_jutsu(c: Node3D, t: Node3D) -> void:
-	YotonFXA.yoton_yokai_no_jutsu(self, c, t)
+	LazyFx.g("YotonFXA").yoton_yokai_no_jutsu(self, c, t)
 
 
 ## Emici Küre: avuçların önünde mavi halkalı siyah küreler — gelen ninjutsuyu yutar (8 sn)
 func p_abusobu_sufia(c: Node3D, _t: Node3D) -> void:
-	NinjutsuFXE.abusobu_sufia(self, c, _t)
+	LazyFx.g("NinjutsuFXE").abusobu_sufia(self, c, _t)
 
 
 ## Amanohabaya: elden uzayan dev mor hilal çakra kılıcı — tek yatay biçme, çok uzun menzil
 func p_amanohabaya(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXA.amanohabaya(self, c, t)
+	LazyFx.g("NinjutsuFXA").amanohabaya(self, c, t)
 
 
 ## Amenominaka: ortam bir anda başka boyuta döner (lav denizi) — hedefler lavın içinde bulur kendini
@@ -6352,7 +6352,7 @@ func p_amenominaka(c: Node3D, t: Node3D) -> void:
 ## Amenotejikara (kanon, Sasuke'nin Rinnegan'ı): menzildeki kişi ya da nesneyle anında yer değiştirir (bakmak bile gerekmez);
 ## bağlıyken kullanılırsa bağdan kurtulur, rakip onun yerine bağlanır. Kısa menzil; Rinnegan peş peşe kullanamaz (bekleme).
 func p_amenotejikara(c: Node3D, t: Node3D) -> void:
-	DojutsuFXA.amenotejikara(self, c, t)
+	LazyFx.g("DojutsuFXA").amenotejikara(self, c, t)
 
 
 ## Banbutsu Sōzō (kanon, Hagoromo; Narutopedia "Creation of All Things"): Yin chakrası (hayal gücü, ruhsal enerji) boşluktan biçim
@@ -6360,7 +6360,7 @@ func p_amenotejikara(c: Node3D, t: Node3D) -> void:
 ## birleşince yaratılan varlık animedeki gibi minicik, magatama biçimli yeşil enerji kozası içinde belirir, sonra büyüyüp çağıranın
 ## yanında savaşır. Yaratık gerçek çağrı sistemiyle (Summon) — hayal gücü sınır tanımaz: oyundaki tüm çağrı varlıklarından biri.
 func p_banbutsu_sozo_no_jutsu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXF.banbutsu_sozo_no_jutsu(self, c, t)
+	LazyFx.g("NinjutsuFXF").banbutsu_sozo_no_jutsu(self, c, t)
 
 
 ## Evrensel Çekim: avuç uzatılır — görünmez çekim hedefi havada kullanıcıya doğru çeker, ardından yumruk
@@ -6370,12 +6370,12 @@ func p_bansho_ten_in(c: Node3D, t: Node3D) -> void:
 
 ## Baryon Modu: canavarla birleşme — kırmızı tavşan kulaklı alev aurası; vuruşlar düşmanın ömrünü yakar (12 sn)
 func p_barion_modo(c: Node3D, _t: Node3D) -> void:
-	NinjutsuFXA.barion_modo(self, c, _t)
+	LazyFx.g("NinjutsuFXA").barion_modo(self, c, _t)
 
 
 ## Kuyruklu Canavar Mühürleme: hedefin çevresinde yeşil mühür yazılı halkalar kapanır — uzun süre bağlı kalır
 func p_biju_fuin(c: Node3D, t: Node3D) -> void:
-	FuinjutsuFXB.biju_fuin(self, c, t)
+	LazyFx.g("FuinjutsuFXB").biju_fuin(self, c, t)
 
 
 ## Kuyruklu Canavar Topu: ağzın önünde siyah-mor çakra küresi sıkıştırılır, fırlar — dev patlama kubbesi
@@ -6405,22 +6405,22 @@ func p_bijudama(c: Node3D, t: Node3D) -> void:
 
 ## Genişleyen Arayış Topu: siyah arayış topu dev bir küreye şişer — içindeki her şeyi siler
 func p_bocho_gudodama(c: Node3D, t: Node3D) -> void:
-	KatonFXF.bocho_gudodama(self, c, t)
+	LazyFx.g("KatonFXF").bocho_gudodama(self, c, t)
 
 
 ## Yüz Mühür Gücü: alında mor elmas açılır, bedene mühür çizgileri yayılır — tam iyileşme, 20 sn hızlı yenilenme
 func p_byakugo_no_in(c: Node3D, _t: Node3D) -> void:
-	FuinjutsuFXB.byakugo_no_in(self, c, _t)
+	LazyFx.g("FuinjutsuFXB").byakugo_no_in(self, c, _t)
 
 
 ## Toprak Lanet Mührü: bedene kahverengi lanet desenleri yayılır, ten taşlaşır — 15 sn güç ve dayanıklılık
 func p_chi_no_juin(c: Node3D, _t: Node3D) -> void:
-	SenjutsuFXA.chi_no_juin(self, c, _t)
+	LazyFx.g("SenjutsuFXA").chi_no_juin(self, c, _t)
 
 
 ## Chibaku Tensei: göğe siyah çekim küresi fırlatılır — çevredeki toprak ve hedefler ona çekilip dev kaya kütlesine gömülür
 func p_chibaku_tensei(c: Node3D, t: Node3D) -> void:
-	DojutsuFXA.chibaku_tensei(self, c, t)
+	LazyFx.g("DojutsuFXA").chibaku_tensei(self, c, t)
 
 
 static var _corona: ImageTexture
@@ -6458,7 +6458,7 @@ func _corona_tex() -> ImageTexture:
 ## çubuklarla delinmiş; çağıranın gözünü paylaşırlar. Kullanım: art arda çağrı bombardımanı — Çok Başlı Dev Köpek (her darbede
 ## bölünür) ve Matkap Gagalı Dev Kuş (gökten dalar). Ölen çağrı yeniden çağrılabilir. Gerçek müttefik (Summon), AI da aynı.
 func p_chikushodo(c: Node3D, t: Node3D) -> void:
-	DojutsuFXA.chikushodo(self, c, t)
+	LazyFx.g("DojutsuFXA").chikushodo(self, c, t)
 
 
 ## Dev Bukalemun: çağıranı içine alıp görünmez kılar (8 sn) — düşmanlar hedefi kaybeder; bukalemun da yarı saydam
@@ -6509,17 +6509,17 @@ func _rinnegan_mark(s: Node3D, h: float) -> void:
 
 ## Bilge Kurt Çürümesi: çakra kaplı canavar saldırısı — pembe-beyaz enerji dalgası ileri yıkar
 func p_chirokyu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXF.chirokyu(self, c, t)
+	LazyFx.g("NinjutsuFXF").chirokyu(self, c, t)
 
 
 ## Süper Mini Kuyruklu Canavar Topu: avuçta küçük ama yoğun siyah küre — hızla fırlar, çarpınca mor patlama
 func p_cho_mini_bijudama(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXE.cho_mini_bijudama(self, c, t)
+	LazyFx.g("NinjutsuFXE").cho_mini_bijudama(self, c, t)
 
 
 ## Büyük Top Rasengan: iki elle tutulan dev Rasengan — dalarak yere/hedefe çakılır, kubbe gibi patlar
 func p_choodama_rasengan(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXE.choodama_rasengan(self, c, t)
+	LazyFx.g("NinjutsuFXE").choodama_rasengan(self, c, t)
 
 
 ## Daikokuten: cep boyutundaki dev siyah küpler ve direkler anında hedefin üstüne/yanına belirir — ezer
@@ -6590,7 +6590,7 @@ func _black_ball(s: float) -> MeshInstance3D:
 
 ## Hayalet Dokuz Ejder Mührü: gökten dokuz mavi hayalet ejder kıvrılarak iner, hedefe dolanır — çakrasını söküp bağlar
 func p_fuinjutsu_genryu_kyufujin(c: Node3D, t: Node3D) -> void:
-	FuinjutsuFXA.fuinjutsu_genryu_kyufujin(self, c, t)
+	LazyFx.g("FuinjutsuFXA").fuinjutsu_genryu_kyufujin(self, c, t)
 
 
 ## Gövde boyunca uzayan iz (projektil olmayan düğümler için)
@@ -6600,7 +6600,7 @@ func _etrail_node(n: Node3D, col: Color, w: float) -> void:
 
 ## Engelleyici Emme Mührü: Rinnegan önünde dev mavi emme kubbesi açılır — kubbeye giren ninjutsu yutulur, çakra olur (6 sn)
 func p_fujutsu_kyuin(c: Node3D, _t: Node3D) -> void:
-	DojutsuFXA.fujutsu_kyuin(self, c, _t)
+	LazyFx.g("DojutsuFXA").fujutsu_kyuin(self, c, _t)
 
 
 ## Aç Ruh Yolu: avuç açılır — çevredeki düşmanlardan beyaz çakra akıntıları sökülüp avuca akar; can ve çakra emilir
@@ -6608,13 +6608,13 @@ func p_fujutsu_kyuin(c: Node3D, _t: Node3D) -> void:
 ## çakrasını (düşmanda yaşam gücünü) emer; kendisi iyileşir, chakra kazanır. Emerken vurulursa kavrayış kopar. Senjutsu
 ## çakralı hedef (doğa enerjisi) emilirse kullanıcı taşlaşır. Oyuncu ve AI aynı fonksiyon.
 func p_gakido(c: Node3D, t: Node3D) -> void:
-	DojutsuFXB.gakido(self, c, t)
+	LazyFx.g("DojutsuFXB").gakido(self, c, t)
 
 
 ## Gedō (kanon, Dış Yol): kullanıcı çakrasını kara alıcılara aktarır; hedefin çevresinde yerden fışkıran alıcılar onu
 ## her yönden saplar ve Dış Yol'un gücüyle bağlar (kıpırdayamaz, çakrası bozulur). Oyuncu ve AI aynı fonksiyon.
 func p_gedo(c: Node3D, t: Node3D) -> void:
-	DojutsuFXB.gedo(self, c, t)
+	LazyFx.g("DojutsuFXB").gedo(self, c, t)
 
 
 
@@ -6622,43 +6622,43 @@ func p_gedo(c: Node3D, t: Node3D) -> void:
 ## bedenlerine döner ve yakın zamanda ölmüş müttefikler dirilir. Bedeli kullanıcının yaşamıdır (Nagato'nun saçı ağardı ve öldü):
 ## burada çağıranın canı 1'e iner, 60 sn iyileşemez ve ağırlaşır (düşman çağıran aynı bedeli öder).
 func p_gedo_rinne_tensei_no_jutsu(c: Node3D, _t: Node3D) -> void:
-	ArcaneFX.gedo_rinne_tensei_no_jutsu(self, c, _t)
+	LazyFx.g("ArcaneFX").gedo_rinne_tensei_no_jutsu(self, c, _t)
 
 
 
 ## Arayış Topu: sırtta dönen dokuz siyah küre — biri mızrağa, biri sopaya döner, art arda hedefe fırlar; çarptığını siler
 func p_gudodama(c: Node3D, t: Node3D) -> void:
-	KatonFXC.gudodama(self, c, t)
+	LazyFx.g("KatonFXC").gudodama(self, c, t)
 
 
 ## Arayış Şemsiyesi: arayış topu önde siyah şemsiyeye açılır — her şeyi engeller (5 sn), kapanırken dalga savurur
 func p_gudokasa(c: Node3D, _t: Node3D) -> void:
-	KatonFXC.gudokasa(self, c, _t)
+	LazyFx.g("KatonFXC").gudokasa(self, c, _t)
 
 
 ## Uçan Yıldırım Tanrısı Yönlendirmesi: hedefin etrafında mor uzay-zaman küresi kapanır — hedef yutulup gökyüzüne ışınlanır, düşer
 func p_hiraishin_dorai(c: Node3D, t: Node3D) -> void:
-	SpacetimeFXA.hiraishin_dorai(self, c, t)
+	LazyFx.g("SpacetimeFXA").hiraishin_dorai(self, c, t)
 
 
 ## Hokage Usulü Kakuan Nitten Suishu: hedefin çevresine çember halinde dev ahşap kazıklar fırlar, her birinden tahta eller uzayıp sıkar
 func p_hokage_shiki_jijun_jutsu_kakuan_nitten_suishu(c: Node3D, t: Node3D) -> void:
-	MokutonFXA.hokage_shiki_jijun_jutsu_kakuan_nitten_suishu(self, c, t)
+	LazyFx.g("MokutonFXA").hokage_shiki_jijun_jutsu_kakuan_nitten_suishu(self, c, t)
 
 
 ## Spor Tekniği: bedenden pamuk gibi beyaz spor klonları kopar, düşmanlara yapışıp şişer — çakralarını emer
 func p_hoshi_no_jutsu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXD.hoshi_no_jutsu(self, c, t)
+	LazyFx.g("NinjutsuFXD").hoshi_no_jutsu(self, c, t)
 
 
 ## Yin Mührü Çözülüşü: alındaki elmas patlar, siyah desenler yüze ve bedene yayılır — anında iyileşme + 6 sn hücre yenilenmesi (ölmez)
 func p_infuin_kai(c: Node3D, _t: Node3D) -> void:
-	FuinjutsuFXB.infuin_kai(self, c, _t)
+	LazyFx.g("FuinjutsuFXB").infuin_kai(self, c, _t)
 
 
 ## Her Şey Acıdır: ahşap fırtınası ile alev dalgası iç içe — dev dallar ve yanan ağaçlar ileriye yığılır
 func p_issai_kaiku(c: Node3D, t: Node3D) -> void:
-	MokutonFXA.issai_kaiku(self, c, t)
+	LazyFx.g("MokutonFXA").issai_kaiku(self, c, t)
 
 
 ## İzanagi: bir göz kapanır, ışığı söner — 5 sn sonra gerçeklik yeniden yazılır: o sürede kaybedilen can geri gelir
@@ -6666,7 +6666,7 @@ const IZANAGI_DUR := 10.0   # animede ~1 dk / göz; oyunda 10 sn (yoksa ölüms�
 
 
 func p_izanagi(c: Node3D, _t: Node3D) -> void:
-	DojutsuFXA.izanagi(self, c, _t)
+	LazyFx.g("DojutsuFXA").izanagi(self, c, _t)
 
 
 ## İzanagi süresi içinde ölümcül darbe: ölüm yanılsamaya döner — kullanıcı yeniden yazılmış gerçekte (biraz ötede, açılış canıyla) belirir
@@ -6695,7 +6695,7 @@ static func izanagi_rewrite(c: Node3D) -> bool:
 ## yalnız kaderini kabul ederek çıkar (Kabuto Edo Tensei'yi bıraktı). Bedeli: kullanıcının bir gözü sonsuza dek kararır.
 ## Oyunda: 6 sn döngü (her 1 sn başa sarılır), sonunda boss olmayan düşman savaşmayı bırakır; boss/oyuncu ağır sersemler.
 func p_izanami(c: Node3D, t: Node3D) -> void:
-	ArcaneFX.izanami(self, c, t)
+	LazyFx.g("ArcaneFX").izanami(self, c, t)
 
 
 ## Izanami anı: kurbanın o anki pozu donmuş, ak-yarı saydam bir kopya olarak dünyada kalır (iskelet pozundan pişirilir)
@@ -6867,27 +6867,27 @@ func _hand_tongue(parent: Node3D, a: Vector3, b: Vector3) -> MeshInstance3D:
 ## 2) ONARIM: hedef yoksa Kral kullanıcıyı yutar, birkaç saniye sonra onarılmış hâlde geri çıkarır (can, durum bozuklukları).
 ## Oyuncu ve AI aynı fonksiyon.
 func p_jigokudo(c: Node3D, t: Node3D) -> void:
-	DojutsuFXB.jigokudo(self, c, t)
+	LazyFx.g("DojutsuFXB").jigokudo(self, c, t)
 
 
 ## Toprak Kin Korkusu: bedenden yüzlerce siyah iplik dokunaç gibi fışkırır — yakındaki düşmanları delip canlarını çalar
 func p_jiongu(c: Node3D, t: Node3D) -> void:
-	HidenFXA.jiongu(self, c, t)
+	LazyFx.g("HidenFXA").jiongu(self, c, t)
 
 
 ## Ölüm Mahkumiyeti Laneti: hedefin kanı yalanır, kanla yere üçgenli lanet çemberi çizilir, beden siyah-beyaza döner — kendine saplanan her mızrak hedefi deler
 func p_jujutsu_shiji_hyoketsu(c: Node3D, t: Node3D) -> void:
-	HidenFXA.jujutsu_shiji_hyoketsu(self, c, t)
+	LazyFx.g("HidenFXA").jujutsu_shiji_hyoketsu(self, c, t)
 
 
 ## Ağaç Denizi Aşınması: yerden yüzlerce kök ve dal bütün alanı örter — içindeki herkes sarılır, boğulur
 func p_jukai_shinshoku(c: Node3D, t: Node3D) -> void:
-	MokutonFXA.jukai_shinshoku(self, c, t)
+	LazyFx.g("MokutonFXA").jukai_shinshoku(self, c, t)
 
 
 ## Beş Doğa Büyük Kombosu: klonlar yan yana dizilir — ateş, rüzgâr, su, şimşek ve toprak aynı anda tek dev akıntıda birleşir
 func p_goton_dairendan_no_jutsu(c: Node3D, t: Node3D) -> void:
-	ElementFX.goton_dairendan_no_jutsu(self, c, t)
+	LazyFx.g("ElementFX").goton_dairendan_no_jutsu(self, c, t)
 
 
 # ================================================================== Yeni jutsular N (Sv.28): Kamui, Susanoo dansı, lotus kolosu, ahşap ormanlar, iblis heykeli
@@ -6930,7 +6930,7 @@ func _chain_links(n: int, col: Color) -> Node3D:
 
 ## Kuyruk Söküm Yöntemi: hedefin altında su yansımalı mühür havuzu, çakrası yukarı sökülür — çakra emilir, bağlanır
 func p_kaibi_hoin(c: Node3D, t: Node3D) -> void:
-	FuinjutsuFXB.kaibi_hoin(self, c, t)
+	LazyFx.g("FuinjutsuFXB").kaibi_hoin(self, c, t)
 
 
 ## ================================================================ Shuradō (kanon, Asura Yolu)
@@ -6958,13 +6958,13 @@ func _asura_fist() -> MeshInstance3D:
 ## Kaiwan no Hiya (kanon): bilek yarığında yoğunlaşan çakra bırakılır, kopan el (yumruk) korkunç bir güçle fırlar —
 ## kalın kaya tabakasını deler; el çakrayla korunur, iş bitince bilekteki çakra onu mıknatıs gibi geri çeker.
 func p_kaiwan_no_hiya(c: Node3D, t: Node3D) -> void:
-	DojutsuFXA.kaiwan_no_hiya(self, c, t)
+	LazyFx.g("DojutsuFXA").kaiwan_no_hiya(self, c, t)
 
 
 
 ## Çiçek Meyve Dağı: lavla kaplı yumruk ve bedenle hücum — ileri atılır, yumruklar erimiş kaya dalgası bırakır
 func p_kakazan(c: Node3D, t: Node3D) -> void:
-	YotonFXA.kakazan(self, c, t)
+	LazyFx.g("YotonFXA").kakazan(self, c, t)
 
 
 ## Karma: avuçtaki siyah elmas mühür açılır, çizgiler bedene yayılır — çakra emer, güç artar (15 sn)
@@ -7000,7 +7000,7 @@ func p_kama(c: Node3D, _t: Node3D) -> void:
 ## Kamui Raikiri (kanon, Kakashi): Kamui gücüyle dolan Raikiri — deldiği şey anında Kamui boyutuna gider; yaklaşırken
 ## Kamui geçirgenliği karşı saldırıyı boşa çıkarır (atılma boyunca dokunulmaz).
 func p_kamui_raikiri(c: Node3D, t: Node3D) -> void:
-	RaitonFXF.kamui_raikiri(self, c, t)
+	LazyFx.g("RaitonFXF").kamui_raikiri(self, c, t)
 
 
 ## (Kamui Shuriken artık MsArts.m_kamui_shuriken: gerçek Susanoo)
@@ -7011,29 +7011,29 @@ func _p_kamui_shuriken_unused() -> void:
 ## Kamuibashiri (kanon adı Storm 4, Obito): Kamui geçirgenliğiyle hedefe atılır — saldırılar içinden geçer — ve kolundan
 ## fışkıran Mokuton dallarıyla hedefi şişler (Hashirama hücreleri).
 func p_kamuibashiri(c: Node3D, t: Node3D) -> void:
-	DojutsuFXB.kamuibashiri(self, c, t)
+	LazyFx.g("DojutsuFXB").kamuibashiri(self, c, t)
 
 
 ## Kanzeon Renge-Ō (kanon, Tobi/Zetsu; Yamato araç): ~160 m ayakta tahta heykel çağıranın ardında yükselir (gerçek model:
 ## actors/kanzeon.gd). Issai Kaiku: başını çevreleyen beş küçük baş aynı anda beş doğayı salar (ateş, su, şimşek, rüzgâr, toprak);
 ## sonra haleden açılan kollar hedefe yağar (Chōjō Kebutsu). Heykel toprağa gömülür.
 func p_kanzeon_renge_o(c: Node3D, t: Node3D) -> void:
-	FlowFX.kanzeon_renge_o(self, c, t)
+	LazyFx.g("FlowFX").kanzeon_renge_o(self, c, t)
 
 
 ## Sümüklüböcek Büyük Bölünmesi: dev sümüklüböcek binlerce minik parçaya ayrılıp alana yayılır — yandaşları sürekli iyileştirir
 func p_katsuyu_daibunretsu(c: Node3D, _t: Node3D) -> void:
-	NinjutsuFXD.katsuyu_daibunretsu(self, c, _t)
+	LazyFx.g("NinjutsuFXD").katsuyu_daibunretsu(self, c, _t)
 
 
 ## Yasak Tekil Lanet Etiketi: yazılı kâğıt etiket hedefin alnına fırlatılır, yapışır — ruhu bağlanır, uzun süre hareketsiz
 func p_kinkoju_no_fuda(c: Node3D, t: Node3D) -> void:
-	FuinjutsuFXA.kinkoju_no_fuda(self, c, t)
+	LazyFx.g("FuinjutsuFXA").kinkoju_no_fuda(self, c, t)
 
 
 ## Kendi Yaşamıyla Yeniden Doğuş: yerde yeşil çakra halkaları, avuçlarda mavi ışık — kullanıcı can verir, tamamen yenilenir ve kalkan kazanır
 func p_kisho_tensei(c: Node3D, _t: Node3D) -> void:
-	KinjutsuFXA.kisho_tensei(self, c, _t)
+	LazyFx.g("KinjutsuFXA").kisho_tensei(self, c, _t)
 
 
 ## Kotoamatsukami (kanon, Shisui): en güçlü genjutsu — kurbanın zihnine girer, iradesini O FARK ETMEDEN değiştirir.
@@ -7041,7 +7041,7 @@ func p_kisho_tensei(c: Node3D, _t: Node3D) -> void:
 ## ve eski dostlarına saldırır (boss 6 sn tereddüt eder). Düşman kullanırsa senin müttefikini (çağrı/yoldaş) kendine çevirir,
 ## müttefik yoksa seni bir an yanılsamaya düşürür. Kanonda yeniden kullanım çok uzun: bekleme süresi uzun.
 func p_kotoamatsukami(c: Node3D, t: Node3D) -> void:
-	DojutsuFXA.kotoamatsukami(self, c, t)
+	LazyFx.g("DojutsuFXA").kotoamatsukami(self, c, t)
 
 
 ## Kuchiyose: Gedō Mazō (kanon): yalnız Rinnegan ile çağrılır. Kan sunusu yerine çağıranın YAŞAM GÜCÜNÜ emer: heykelin
@@ -7051,7 +7051,7 @@ func p_kotoamatsukami(c: Node3D, t: Node3D) -> void:
 ## çakrasını/ruhunu anında söker (Hanzō'nun adamları yara almadan öldü). Güçlüler (boss/oyuncu) ölmez: çakra sıfır, ağır hasar,
 ## sersemleme. Açık göz sayısı = mühürlenmiş kuyruklu canavar sayısı. Boy ayakta ~100 m (GedoMazo). AI aynı fonksiyonu kullanır.
 func p_kuchiyose_gedo_mazo(c: Node3D, _t: Node3D) -> void:
-	DojutsuFXB.kuchiyose_gedo_mazo(self, c, _t)
+	LazyFx.g("DojutsuFXB").kuchiyose_gedo_mazo(self, c, _t)
 
 
 func _player_eye_kinds() -> Array:
@@ -7246,14 +7246,14 @@ func _p_kyoso_enbu_unused() -> void:
 
 ## Dokuz Kuyruk Çakra Modu: bedeni altın alev örtüsü sarar, kara mühür çizgileri, karnında spiral — 20 sn hız, güç, çakra kolları
 func p_kyubi_chakura_modo(c: Node3D, _t: Node3D) -> void:
-	NinjutsuFXC.kyubi_chakura_modo(self, c, _t)
+	LazyFx.g("NinjutsuFXC").kyubi_chakura_modo(self, c, _t)
 
 
 ## Magen: Kyō Tenchi-ten (kanon): Sharingan genjutsuyu anında çözer ve AYNISINI saldırana uygular (ayna). 6 sn duruş:
 ## bu sürede sana yapılan her genjutsu (Sharingan bakışı, Kasegui, Iatsu, düşman göz genjutsusu...) saldırana döner
 ## (Eyes.genjutsu_land). Hasar değil, yalnız genjutsu yansıtır.
 func p_magen_kyo_tenchi_ten(c: Node3D, t: Node3D) -> void:
-	DojutsuFXB.magen_kyo_tenchi_ten(self, c, t)
+	LazyFx.g("DojutsuFXB").magen_kyo_tenchi_ten(self, c, t)
 
 
 ## Mazō no Kusari (kanon; kullanıcılar: Gedō Mazō, Madara, Obito — Nagato DEĞİL): Dış Yol'un çakra zincirleri. Referans:
@@ -7262,7 +7262,7 @@ func p_magen_kyo_tenchi_ten(c: Node3D, t: Node3D) -> void:
 ## canavarlar). Heykel yoksa Obito gibi elden tek zincir. Lanet mührü kuyruklu canavar gücünü bastırır (canavar/jinchūriki
 ## mühürlenir), kurbana büyük acı verir. AI aynı fonksiyonu kullanır.
 func p_mazo_no_kusari(c: Node3D, t: Node3D) -> void:
-	DojutsuFXA.mazo_no_kusari(self, c, t)
+	LazyFx.g("DojutsuFXA").mazo_no_kusari(self, c, t)
 
 
 ## Zincir: iri oval halkalar (sırayla 90° dönük, birbirine geçer), her halkanın sırtında diken; uçta ejder başı. sc: ölçek
@@ -7367,7 +7367,7 @@ func _mazo_collar(tt: Node3D, sc: float, mat: Material) -> void:
 
 ## Ahşap Büyük Orman: kollardan fışkıran kalın ağaç gövdeleri dalga halinde ileri sarmallanır — yolundakileri ezer
 func p_mokuton_daijurin_no_jutsu(c: Node3D, t: Node3D) -> void:
-	MokutonFXA.mokuton_daijurin_no_jutsu(self, c, t)
+	LazyFx.g("MokutonFXA").mokuton_daijurin_no_jutsu(self, c, t)
 
 
 ## Ahşap Gizli Sanat Ağaç Dünyası Doğuşu: yerden dev ağaçlar ve kökler fışkırıp orman kurar — alan kontrolü, düşmanlar yavaşlar ve ezilir
@@ -7392,7 +7392,7 @@ func p_mokuton_hijutsu_jukai_kotan(c: Node3D, t: Node3D) -> void:
 
 ## Ahşap Ağaç Hapsi: hedefin etrafında ahşap kubbe, içinde sarmal bağlayan dallar — yüzde ahşap mühür deseni; çakrası bastırılır
 func p_mokuton_hobi_no_jutsu(c: Node3D, t: Node3D) -> void:
-	MokutonFXB.mokuton_hobi_no_jutsu(self, c, t)
+	LazyFx.g("MokutonFXB").mokuton_hobi_no_jutsu(self, c, t)
 
 ## Kubbe (yarıçap R, ön yüz -z) yüzeyine parça koyar: (x, y) ön görünüşte konum, off yüzeyden dışarı taşma; parça normale hizalanır
 func _dome_put(b: MB, kind: String, x: float, y: float, off: float, size: Vector3, col: Color, R: float, seg := 8) -> void:
@@ -7458,7 +7458,7 @@ func _magatama_ring(c: Node3D, col: Color) -> Node3D:
 
 ## Ahşap Hotei: yerdeki dev ahşap mühürden mavi çakra ruh-ejder yükselir, hedefi sarar — çakrasını emip kilitler
 func p_mokuton_hotei_no_jutsu(c: Node3D, t: Node3D) -> void:
-	MokutonFXB.mokuton_hotei_no_jutsu(self, c, t)
+	LazyFx.g("MokutonFXB").mokuton_hotei_no_jutsu(self, c, t)
 
 
 ## Dev ahşap el (avuç +z yönüne bakar, bilek yerde): kalın avuç, dört parmak + başparmak, oyma ahşap derzleri
@@ -7489,7 +7489,7 @@ func _wood_hand(s: float) -> Node3D:
 ## Mokuton: Mokujin no Jutsu (kanon, Hashirama): ~110 m tahta dev (oni yüzü, diken yelesi, gövdesine sarılı ejder) topraktan
 ## yükselir, rakibin üstüne iki dev yumruk indirir, sonra toprağa geri gömülür. Gerçek model: Mokujin (actors/mokujin.gd).
 func p_mokuton_mokujin_no_jutsu(c: Node3D, t: Node3D) -> void:
-	MokutonFXA.mokuton_mokujin_no_jutsu(self, c, t)
+	LazyFx.g("MokutonFXA").mokuton_mokujin_no_jutsu(self, c, t)
 
 
 ## Sonsuz Tsukuyomi: göğe dev beyaz ay yükselir, üzerinde Rinne-Sharingan deseni açılır — beyaz ışık her şeyi örter, menzildeki herkes rüyaya düşer, kökler sarar
@@ -7627,41 +7627,41 @@ func p_musekiyojin(c: Node3D, t: Node3D) -> void:
 ## sıradan hedef ölür. Ancak çok büyük güç (canavar çakrası / bijū pelerini) sökmeye bir süre direnebilir. Boss ölmez:
 ## ağır hasar + sersemleme. Temas şart (yakın dövüş menzili). Oyuncu ve AI aynı fonksiyon.
 func p_ningendo(c: Node3D, t: Node3D) -> void:
-	DojutsuFXA.ningendo(self, c, t)
+	LazyFx.g("DojutsuFXA").ningendo(self, c, t)
 
 
 ## Büyük Top Rasenşuriken: başın üstünde doğa enerjisiyle şişen devasa Rasenşuriken — fırlatılır, dev rüzgâr küresi bütün alanı keser
 func p_odama_rasenshuriken(c: Node3D, t: Node3D) -> void:
-	FutonFXE.odama_rasenshuriken(self, c, t)
+	LazyFx.g("FutonFXE").odama_rasenshuriken(self, c, t)
 
 
 ## Pein Rikudō (kanon): kara alıcılar ölü bedenlere saplanır; çağıran onları kendi bedeni gibi yönetir — gözleri onunki
 ## gibi Rinnegan olur, onun tekniklerini (Tendō itme/çekme) kullanırlar. En çok altı beden. Ceset gerekir (son 2 dk'da
 ## yakında ölenler). Bedenler 60 sn sonra çöker. Oyuncu ve AI aynı fonksiyon.
 func p_pein_rikudo(c: Node3D, _t: Node3D) -> void:
-	DojutsuFXB.pein_rikudo(self, c, _t)
+	LazyFx.g("DojutsuFXB").pein_rikudo(self, c, _t)
 
 
 
 ## Şimşek Kapısı: iki elde mavi şimşek kazıkları göğe kaldırılır — gökten hedefin olduğu yere art arda devasa şimşek sütunları iner
 func p_raiton_sandageto(c: Node3D, t: Node3D) -> void:
-	RaitonFXC.sandageto(self, c, t)
+	LazyFx.g("RaitonFXC").sandageto(self, c, t)
 
 
 ## Ardışık Kuyruklu Canavar Topları: dev ağızdan peş peşe beş siyah-mor top — her biri ayrı patlama kubbesi
 func p_renzoku_bijudama(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXA.renzoku_bijudama(self, c, t)
+	LazyFx.g("NinjutsuFXA").renzoku_bijudama(self, c, t)
 
 
 ## Rikudō Jūbi Kyūin (kanon, Obito/Madara): Rinnegan kullanıcısı On Kuyruk'un YAKININDA mühürleri yaparak canavarı kendi
 ## bedenine çeker ve jinchūrikisi olur. On Kuyruk olmadan yapılamaz (hikâyede On Kuyruk bölümü gelince açılır).
 func p_rikudo_jubi_kyuin(c: Node3D, _t: Node3D) -> void:
-	DojutsuFXB.rikudo_jubi_kyuin(self, c, _t)
+	LazyFx.g("DojutsuFXB").rikudo_jubi_kyuin(self, c, _t)
 
 
 ## Altı Yol Yin Gücü: sol avuçta hilal mühür parlar — dokunduğu hedefin çakrası mühürlenir: büyük çakra kaybı, uzun sersemleme
 func p_rikudo_no_in_no_chikara(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXD.rikudo_no_in_no_chikara(self, c, t)
+	LazyFx.g("NinjutsuFXD").rikudo_no_in_no_chikara(self, c, t)
 
 
 ## Altı Yol Tekniği: arkada altı yolun simgeleri halka olarak döner — 15 sn tüm yolların gücü: hasar, dayanıklılık, hız, can yenilenmesi
@@ -7691,17 +7691,17 @@ func p_rikudo_no_jutsu(c: Node3D, _t: Node3D) -> void:
 
 ## Altı Yol Yang Gücü: sağ avuçta güneş mühür parlar, altın yaşam enerjisi bedeni kaplar — yaralar ve organlar onarılır
 func p_rikudo_no_yo_no_chikara(c: Node3D, _t: Node3D) -> void:
-	NinjutsuFXD.rikudo_no_yo_no_chikara(self, c, _t)
+	LazyFx.g("NinjutsuFXD").rikudo_no_yo_no_chikara(self, c, _t)
 
 
 ## Altı Yol Senjutsu: beden altın alev örtüsüne bürünür, göğüste ve sırtta magatama dizisi, omuzlarda kara arayış topları — 20 sn
 func p_rikudo_senjutsu(c: Node3D, _t: Node3D) -> void:
-	SenjutsuFXA.rikudo_senjutsu(self, c, _t)
+	LazyFx.g("SenjutsuFXA").rikudo_senjutsu(self, c, _t)
 
 
 ## Altı Yol Bilge Modu: gözler kurbağa göz bebeğine döner, sırtta dokuz arayış topu yörüngede — toplar gelen mermileri siler ve düzenli ateş eder (20 sn)
 func p_rikudo_sennin_modo(c: Node3D, t: Node3D) -> void:
-	SenjutsuFXA.rikudo_sennin_modo(self, c, t)
+	LazyFx.g("SenjutsuFXA").rikudo_sennin_modo(self, c, t)
 
 
 ## Rinbo: Hengoku (kanon, Madara): Rinnegan kullanıcının "gölgeleri" Limbo'ya, görünmez ve algılanamaz bir dünyaya
@@ -7709,12 +7709,12 @@ func p_rikudo_sennin_modo(c: Node3D, t: Node3D) -> void:
 ## Gölgeler süre dolunca bedene döner. YALNIZ Rinnegan'lı bakan onları görür (oyuncu kendi gölgelerini görür; düşman
 ## kullanırsa oyuncunun gözü Rinnegan değilse gölgeler görünmez — sadece darbeler).
 func p_rinbo_hengoku(c: Node3D, t: Node3D) -> void:
-	DojutsuFXB.rinbo_hengoku(self, c, t)
+	LazyFx.g("DojutsuFXB").rinbo_hengoku(self, c, t)
 
 
 ## Kum Şelalesi İmparatorluk Cenazesi: alanın üstüne dağ büyüklüğünde kum kütlesi çöker — içindekiler gömülüp ezilir
 func p_sabaku_taiso(c: Node3D, t: Node3D) -> void:
-	SabakuFXA.sabaku_taiso(self, c, t)
+	LazyFx.g("SabakuFXA").sabaku_taiso(self, c, t)
 
 
 ## Demir Kum Dünya Yöntemi: yukarıda demir kum küresi toplanır, her yöne dallanan sivri çubuklar halinde patlar — alanı delik deşik eder
@@ -7762,12 +7762,12 @@ func p_satetsu_kaiho(c: Node3D, t: Node3D) -> void:
 
 ## Bilge Modu: hareketsiz oturup doğa enerjisi toplanır, göz çevresinde turuncu pigment belirir — 20 sn güç, hız ve algı
 func p_sennin_modo(c: Node3D, _t: Node3D) -> void:
-	SenjutsuFXA.sennin_modo(self, c, _t)
+	LazyFx.g("SenjutsuFXA").sennin_modo(self, c, _t)
 
 
 ## Bilge Sanatı Beş Ateş Tanrısı Yelpazesi: ağızdan çıkan alev yelpaze gibi beş kola ayrılıp geniş alanı yakar
 func p_senpo_gokashin_ensen(c: Node3D, t: Node3D) -> void:
-	KatonFXC.senpo_gokashin_ensen(self, c, t)
+	LazyFx.g("KatonFXC").senpo_gokashin_ensen(self, c, t)
 
 
 # ================================================================== Yeni jutsular P (Sv.28): bilge sanatları, C0/C3/C4, ölüm meleği mührü, Deva yolu, göktaşı, Susanoo
@@ -7788,24 +7788,24 @@ func _torii(s: float) -> Node3D:
 
 ## Bilge Sanatı Beyaz Öfke: boynuzlu kurbağanın çığlığı doğa enerjisiyle yankılanır — önündeki herkes sesle sersemler, kulakları patlar
 func p_senpo_hakugeki_no_jutsu(c: Node3D, t: Node3D) -> void:
-	SenjutsuFXA.senpo_hakugeki_no_jutsu(self, c, t)
+	LazyFx.g("SenjutsuFXA").senpo_hakugeki_no_jutsu(self, c, t)
 
 
 ## Bilge Sanatı Mıknatıs Rasengan: altın elde mavi kara-noktalı Rasengan — patlayınca çevredeki düşmanları merkeze çekip birbirine yapıştırır
 func p_senpo_jiton_rasengan(c: Node3D, t: Node3D) -> void:
-	JitonFXA.senpo_jiton_rasengan(self, c, t)
+	LazyFx.g("JitonFXA").senpo_jiton_rasengan(self, c, t)
 
 
 ## Senpō Mokuton: Shin Sūsenju (kanon, Hashirama, Sennin Modu): Kurama'yı ve tam beden Susanoo'yu cüce bırakan ~450 m bin kollu
 ## tahta heykel çağıranın ardında yükselir; Chōjō Kebutsu — kuyruğundaki kollar kopup hedef alana yağmur gibi iner. Sonra gömülür.
 ## Gerçek model: ShinSusenju (actors/shin_susenju.gd, 800 kol MultiMesh).
 func p_senpo_mokuton_shin_susenju(c: Node3D, t: Node3D) -> void:
-	MokutonFXB.senpo_mokuton_shin_susenju(self, c, t)
+	LazyFx.g("MokutonFXB").senpo_mokuton_shin_susenju(self, c, t)
 
 
 ## Bilge Sanatı İnorganik Yeniden Doğuş: dokunulan zeminden taşlar canlı yılan-ejderlere dönüşüp hedefe saldırır
 func p_senpo_muki_tensei(c: Node3D, t: Node3D) -> void:
-	SenjutsuFXA.senpo_muki_tensei(self, c, t)
+	LazyFx.g("SenjutsuFXA").senpo_muki_tensei(self, c, t)
 
 
 ## Bilge Sanatı Büyük Tanrı Kapısı: gökten iç içe dev tori kapıları hedefin üstüne iner — yere çakılıp kımıldayamaz
@@ -7836,32 +7836,32 @@ func p_senpo_myojinmon(c: Node3D, t: Node3D) -> void:
 
 ## Bilge Sanatı Amfibi Tekniği: omuzdaki iki yaşlı kurbağa düet söyler — hedef kurbağaya döner (küçülür, yeşile bürünür, saldıramaz)
 func p_senpo_ryosei_no_jutsu(c: Node3D, t: Node3D) -> void:
-	FinalFX2.senpo_ryosei_no_jutsu(self, c, t)
+	LazyFx.g("FinalFX2").senpo_ryosei_no_jutsu(self, c, t)
 
 
 ## Bilge Sanatı Lav Rasenşurikeni: elde kızgın lav çekirdekli Rasenşuriken — çarpınca erimiş kaya kubbesi, lav gölü
 func p_senpo_yoton_rasenshuriken(c: Node3D, t: Node3D) -> void:
-	YotonFXA.senpo_yoton_rasenshuriken(self, c, t)
+	LazyFx.g("YotonFXA").senpo_yoton_rasenshuriken(self, c, t)
 
 
 ## Kavurma Aşırı Buhar Cinayeti: etrafta güneş gibi parlayan ısı küreleri döner, hedefe çarpıp vücut suyunu buharlaştırır
 func p_shakuton_kajosatsu(c: Node3D, t: Node3D) -> void:
-	ShakutonFXA.shakuton_kajosatsu(self, c, t)
+	LazyFx.g("ShakutonFXA").shakuton_kajosatsu(self, c, t)
 
 
 ## C4 Karura: dev kil kopyası çatlayıp mikroskobik bombalardan oluşan buluta dönüşür — bulutu soluyan hedefler içten dağılır
 func p_shi_fo(c: Node3D, t: Node3D) -> void:
-	BakutonFXA.shi_fo(self, c, t)
+	LazyFx.g("BakutonFXA").shi_fo(self, c, t)
 
 
 ## C0: beden kille kaplanıp şişer, göğüsteki ağız açılır — kendini devasa küresel patlamaya çevirir (son çare: canının çoğu gider)
 func p_shi_o(c: Node3D, _t: Node3D) -> void:
-	BakutonFXA.shi_o(self, c, _t)
+	LazyFx.g("BakutonFXA").shi_o(self, c, _t)
 
 
 ## C3: ağızdan dev kil heykel tükürülür, havadan hedefe süzülür — kasaba yıkan dev patlama
 func p_shi_suri(c: Node3D, t: Node3D) -> void:
-	BakutonFXA.shi_suri(self, c, t)
+	LazyFx.g("BakutonFXA").shi_suri(self, c, t)
 
 
 ## Shiki Fūjin (kanon, Hiruzen/Minato; Narutopedia "Dead Demon Consuming Seal"): mühürlerle çağıranın ruhu bedeninden kısmen ayrılır,
@@ -7886,7 +7886,7 @@ func _shiki_kill(v: Node3D, killer: Node3D) -> void:
 
 
 func p_shiki_fujin(c: Node3D, t: Node3D) -> void:
-	FuinjutsuFXA.shiki_fujin(self, c, t)
+	LazyFx.g("FuinjutsuFXA").shiki_fujin(self, c, t)
 
 
 ## Tanrı Ağaç Dünyası Doğuşu: yerden çakra emen dev beyaz kökler fışkırır, düşmanları kozaya sarar
@@ -7932,22 +7932,22 @@ func p_shin_jukai_kotan(c: Node3D, t: Node3D) -> void:
 
 ## Dört Sembol Mührü: parmak uçlarında mavi mühür yazısı, hedefin karnına sarmal mühür basılır — çakrası bölünür, uzun süre zayıflar
 func p_shisho_fuin(c: Node3D, t: Node3D) -> void:
-	FuinjutsuFXA.shisho_fuin(self, c, t)
+	LazyFx.g("FuinjutsuFXA").shisho_fuin(self, c, t)
 
 
 ## Çoklu Ahşap Klon: gövdeden tomurcuklanan onlarca ahşap klon dört yana koşar — her biri hedefe hücum eder
 func p_taju_mokuton_bunshin_no_jutsu(c: Node3D, t: Node3D) -> void:
-	MokutonFXB.taju_mokuton_bunshin_no_jutsu(self, c, t)
+	LazyFx.g("MokutonFXB").taju_mokuton_bunshin_no_jutsu(self, c, t)
 
 
 ## Tanrı Yolu: Shinra Tensei — görünmez itme küresi bütün çevreyi yerle bir eder, ardından Bansho Ten'in ile tek hedef geri çekilir
 func p_tendo(c: Node3D, _t: Node3D) -> void:
-	DojutsuFXA.tendo(self, c, _t)
+	LazyFx.g("DojutsuFXA").tendo(self, c, _t)
 
 
 ## Göksel Yıldız Kayması: gökyüzü yarılır, dev bir göktaşı ağır ağır alana düşer — devasa çarpma krateri
 func p_tengai_shinsei(c: Node3D, t: Node3D) -> void:
-	TengaiFX.cast(self, c, t)   # kendi efekt dosyası: combat/fx/tengai_fx.gd
+	LazyFx.g("TengaiFX").cast(self, c, t)   # kendi efekt dosyası: combat/fx/tengai_fx.gd
 
 
 ## Tengai Shinsei göktaşı: yuvarlak dev kaya, yüzeyi çatlak plakalı, birkaç krater çukuru (birim yarıçap ~1)
@@ -7972,18 +7972,18 @@ func _meteor() -> MeshInstance3D:
 
 ## Dost Öldüren Kül Kemikleri: avuçtan sivri beyaz kemik iğneleri fırlar — saplandığı hedef külleşerek parçalanır
 func p_tomogoroshi_no_haikotsu(c: Node3D, t: Node3D) -> void:
-	KekkeiFXA.tomogoroshi_no_haikotsu(self, c, t)
+	LazyFx.g("KekkeiFXA").tomogoroshi_no_haikotsu(self, c, t)
 
 
 ## Yağmur Kaplanı İstek Üzerine: bulutlardan çakralı yağmur yağar — damlalar hedefi bulup mermiye dönüşür
 func p_ukojizai_no_jutsu(c: Node3D, t: Node3D) -> void:
-	SuitonFXD.ukojizai_no_jutsu(self, c, t)
+	LazyFx.g("SuitonFXD").ukojizai_no_jutsu(self, c, t)
 
 
 ## Ura Shishō Fūin (kanon, Danzō): göğse önceden çizilen mühür; kullanıcı ÖLÜNCE kanından dört sembol çıkar, çevresinde kara bir küre
 ## oluşur ve içindeki herkesi cesedine çeker/mühürler. Yapınca yalnız mühür çizilir (saldırı değil). Oyuncu ve AI aynı (ura_shisho_trigger).
 func p_ura_shisho_fuin(c: Node3D, _t: Node3D) -> void:
-	FinalFX2.ura_shisho_fuin(self, c, _t)
+	LazyFx.g("FinalFX2").ura_shisho_fuin(self, c, _t)
 
 
 ## Ölüm anında: mühür etkinse kara küre çevredekileri cesede çeker (boss olmayanlar mühürlenir, güçlüler ağır yaralanır)
@@ -8060,7 +8060,7 @@ static func ura_shisho_trigger(c: Node3D) -> void:
 
 ## Seksen Tanrı Vakum Saldırısı: bin kollu gibi görünen hızla yüzlerce vakum yumruk dalgası ileri yağar
 func p_yasogami_kugeki(c: Node3D, t: Node3D) -> void:
-	KekkeiFXA.yasogami_kugeki(self, c, t)
+	LazyFx.g("KekkeiFXA").yasogami_kugeki(self, c, t)
 
 
 ## Yomotsu Hirasaka: önde ve hedefin yanında siyah boyut kapıları açılır — yumruk bir kapıdan girip öbüründen hedefe çıkar
@@ -8106,7 +8106,7 @@ func p_yomotsu_hirasaka(c: Node3D, t: Node3D) -> void:
 
 ## Lav Çakra Modu: beden turuncu-kırmızı lav çakrası örtüsüyle kaplanır, kuyruklar alev gibi dalgalanır — temas eden her şey erir (20 sn)
 func p_yoton_chakura_modo(c: Node3D, _t: Node3D) -> void:
-	YotonFXA.yoton_chakura_modo(self, c, _t)
+	LazyFx.g("YotonFXA").yoton_chakura_modo(self, c, _t)
 
 
 # ================================================================== Klan Q: Hyūga / Nara / Yamanaka / Akimichi — eski mekanik korunur, üstüne detaylı efekt katmanı
@@ -8227,15 +8227,15 @@ func p_hakke_hyakunijuhachi_sho(c: Node3D, t: Node3D) -> void:
 
 
 func p_juken(c: Node3D, t: Node3D) -> void:
-	FinalFX0.juken(self, c, t)
+	LazyFx.g("FinalFX0").juken(self, c, t)
 
 
 func p_jukenho_ichigekishin(c: Node3D, t: Node3D) -> void:
-	FinalFX0.jukenho_ichigekishin(self, c, t)
+	LazyFx.g("FinalFX0").jukenho_ichigekishin(self, c, t)
 
 
 func p_hakke_hasangeki(c: Node3D, t: Node3D) -> void:
-	ClanFX.hakke_hasangeki(self, c, t)
+	LazyFx.g("ClanFX").hakke_hasangeki(self, c, t)
 
 
 ## Nara gölge teknikleri (referans: anime kareleri): gölge duman/buhar çıkarmaz, parlamaz — görünüş ClanJutsu c_* içinde
@@ -8256,7 +8256,7 @@ func p_kageyose_no_jutsu(c: Node3D, t: Node3D) -> void:
 
 
 func p_kagemane_shuriken_no_jutsu(c: Node3D, t: Node3D) -> void:
-	FinalFX1.kagemane_shuriken_no_jutsu(self, c, t)
+	LazyFx.g("FinalFX1").kagemane_shuriken_no_jutsu(self, c, t)
 
 
 func p_kage_nui_no_jutsu(c: Node3D, t: Node3D) -> void:
@@ -8274,7 +8274,7 @@ func p_shinranshin_no_jutsu(c: Node3D, t: Node3D) -> void:
 
 ## Zihin Aktarımı: başın üstünden mor çakra nabzı halka halka yayılır
 func p_shindenshin_no_jutsu(c: Node3D, t: Node3D) -> void:
-	FinalFX3.shindenshin_no_jutsu(self, c, t)
+	LazyFx.g("FinalFX3").shindenshin_no_jutsu(self, c, t)
 
 
 func p_shinten_kugutsu_juin_no_jutsu(c: Node3D, t: Node3D) -> void:
@@ -8304,7 +8304,7 @@ func p_shinten_kugutsu_juin_no_jutsu(c: Node3D, t: Node3D) -> void:
 
 ## Zihin Klon Değişimi: mavi çakra seli kullanıcıdan hedefe akar (referanstaki gibi kristalimsi akım)
 func p_shinten_bunshin_no_jutsu(c: Node3D, t: Node3D) -> void:
-	FinalFX3.shinten_bunshin_no_jutsu(self, c, t)
+	LazyFx.g("FinalFX3").shinten_bunshin_no_jutsu(self, c, t)
 
 
 func p_shindenshin_no_jin(c: Node3D, t: Node3D) -> void:
@@ -8314,12 +8314,12 @@ func p_shindenshin_no_jin(c: Node3D, t: Node3D) -> void:
 
 ## Algılama Aktarımı: avuç yere değer, mor algı dalgaları zemin boyunca 80 m'ye yayılır
 func p_kanchi_denden(c: Node3D, t: Node3D) -> void:
-	ArcaneFX.kanchi_denden(self, c, t)
+	LazyFx.g("ArcaneFX").kanchi_denden(self, c, t)
 
 
 ## Çoklu Büyüme: bedeni mavi çakra kurdeleleri sarar, büyürken kurdeleler dağılır
 func p_baika(c: Node3D, t: Node3D) -> void:
-	AkijugoFXA.baika(self, c, t)
+	LazyFx.g("AkijugoFXA").baika(self, c, t)
 
 
 # ================================================================== Klan R: Akimichi / Aburame / Inuzuka — referansa göre mavi kelebek çakrası, saç dikenli tank, böcek sürüleri, mavi vahşi çakra
@@ -8424,17 +8424,17 @@ func _beast_flames(c: Node3D, dur: float) -> void:
 
 ## Kısmi Büyüme: kol göğe doğru devleşir, mavi çakra halkası sarar — gölgesi büyürken dev yumruk iner
 func p_bubun_baika_no_jutsu(c: Node3D, t: Node3D) -> void:
-	AkijugoFXA.bubun_baika_no_jutsu(self, c, t)
+	LazyFx.g("AkijugoFXA").bubun_baika_no_jutsu(self, c, t)
 
 
 ## Süper Büyüme: bedeni mavi çakra halkaları sarar, sonra dağ gibi şişer
 func p_cho_baika_no_jutsu(c: Node3D, t: Node3D) -> void:
-	AkijugoFXA.cho_baika_no_jutsu(self, c, t)
+	LazyFx.g("AkijugoFXA").cho_baika_no_jutsu(self, c, t)
 
 
 ## Kalori Kontrolü: bedenden altın-turuncu kalori buharı fışkırır, yüzde mühür çizgileri (15 sn)
 func p_karori_kontororu(c: Node3D, t: Node3D) -> void:
-	AkijugoFXA.karori_kontororu(self, c, t)
+	LazyFx.g("AkijugoFXA").karori_kontororu(self, c, t)
 
 
 ## Akimichi insan mermisi topu (referans: Human Bullet Tank / Spiked / Double kareleri): kullanıcının KIYAFET RENGİNDE
@@ -8474,22 +8474,22 @@ func _aki_ball(c: Node3D, r: float, spiked := false) -> MeshInstance3D:
 
 ## Dikenli İnsan Mermisi Tankı: koyu saç dikenleriyle kaplı dev dönen top (referans), yolda toz ve oluk bırakır
 func p_nikudan_hari_sensha(c: Node3D, t: Node3D) -> void:
-	AkijugoFXA.nikudan_hari_sensha(self, c, t)
+	LazyFx.g("AkijugoFXA").nikudan_hari_sensha(self, c, t)
 
 
 ## Kelebek Mermisi Bombası: mavi kelebek kanatları açılır, havaya fırlar — mavi çakra yumruğuyla krater
 func p_chodan_bakugeki(c: Node3D, t: Node3D) -> void:
-	AkijugoFXA.chodan_bakugeki(self, c, t)
+	LazyFx.g("AkijugoFXA").chodan_bakugeki(self, c, t)
 
 
 ## Kelebek Modu: damarlı mavi kelebek kanatları, mavi aura (25 sn), her saniye kalori yanar
 func p_cho_modo(c: Node3D, _t: Node3D) -> void:
-	AkijugoFXA.cho_modo(self, c, _t)
+	LazyFx.g("AkijugoFXA").cho_modo(self, c, _t)
 
 
 ## Süper Açık El Tokadı: elin önünde mavi çakra avuç izi parlar, tokatla basınç dalgası
 func p_choharite(c: Node3D, t: Node3D) -> void:
-	AkijugoFXA.choharite(self, c, t)
+	LazyFx.g("AkijugoFXA").choharite(self, c, t)
 
 
 ## Kikaichū no Jutsu: sürü yakadan ve iki koldan hedefe kıvrılarak akar
@@ -8506,7 +8506,7 @@ func p_mushi_swarm(c: Node3D, t: Node3D) -> void:
 
 ## Böcek Klonu: klon belirirken kara böcekler toplanıp beden şeklini alır
 func p_mushi_bunshin_no_jutsu(c: Node3D, t: Node3D) -> void:
-	KurabuFXA.mushi_bunshin_no_jutsu(self, c, t)
+	LazyFx.g("KurabuFXA").mushi_bunshin_no_jutsu(self, c, t)
 
 
 func p_mushi_jamingu_no_jutsu(c: Node3D, t: Node3D) -> void:
@@ -8531,17 +8531,17 @@ func p_hijutsu_mushidama(c: Node3D, t: Node3D) -> void:
 
 
 func p_kidaichu_mushikui(c: Node3D, t: Node3D) -> void:
-	KurabuFXA.kidaichu_mushikui(self, c, t)
+	LazyFx.g("KurabuFXA").kidaichu_mushikui(self, c, t)
 
 
 ## Mushi Kame: bedenden fışkıran böcekler çevresinde dönen kubbeye dönüşür
 func p_mushi_kabe(c: Node3D, t: Node3D) -> void:
-	KurabuFXA.mushi_kabe(self, c, t)
+	LazyFx.g("KurabuFXA").mushi_kabe(self, c, t)
 
 
 ## Gatsūga: mavi vahşi çakra alevi, iki gri-mor matkap kasırgası
 func p_gatsuga(c: Node3D, t: Node3D) -> void:
-	Clan4FXA.gatsuga(self, c, t)
+	LazyFx.g("Clan4FXA").gatsuga(self, c, t)
 
 
 func p_tsuga(c: Node3D, t: Node3D) -> void:
@@ -8551,12 +8551,12 @@ func p_tsuga(c: Node3D, t: Node3D) -> void:
 
 ## Canavar-İnsan Klonu: ninken mavi çakra dumanı içinde sahibine dönüşür
 func p_jujin_bunshin(c: Node3D, t: Node3D) -> void:
-	Clan4FXA.jujin_bunshin(self, c, t)
+	LazyFx.g("Clan4FXA").jujin_bunshin(self, c, t)
 
 
 ## Dört Ayak: dört ayak üstüne çöker, el ve ayaklardan mavi vahşi çakra alevleri fışkırır (20 sn)
 func p_shikyaku_no_jutsu(c: Node3D, t: Node3D) -> void:
-	Clan4FXA.shikyaku_no_jutsu(self, c, t)
+	LazyFx.g("Clan4FXA").shikyaku_no_jutsu(self, c, t)
 
 
 ## Garōga (kanon): Sōtōrō biçimindeki kurt dönerek iki dev matkaba dönüşür. Dönerken göremezler — hedef ancak önceden
@@ -8642,12 +8642,12 @@ func p_gatenga(c: Node3D, t: Node3D) -> void:
 ## Ooiga Gatenga (kanon): Santōrō biçimindeki üç başlı dev kurt kendini top gibi kıvırıp kendi kuyruğunu kovalar gibi
 ## korkunç hızla yuvarlanır — yolundaki birçok düşmanı parçalar.
 func p_ooiga_gatenga(c: Node3D, t: Node3D) -> void:
-	WeaponFX.ooiga_gatenga(self, c, t)
+	LazyFx.g("WeaponFX").ooiga_gatenga(self, c, t)
 
 
 ## Dinamik İşaretleme: ninken hedefin üstüne iz bırakır — altın koku izi spiral olarak yükselir
 func p_dainamikku_makingu(c: Node3D, t: Node3D) -> void:
-	Clan4FXA.dainamikku_makingu(self, c, t)
+	LazyFx.g("Clan4FXA").dainamikku_makingu(self, c, t)
 
 
 # ================================================================== Klan S: Kaguya / mühür ustaları / Hōzuki-su / Sarutobi / Hatake
@@ -8707,11 +8707,11 @@ func _script_ring(t: Node3D, r: float, dur: float, col := Color(0.08, 0.06, 0.05
 
 ## Kamelya Dansı: her saplamada beyaz kesik çizgisi ve kemik kıymıkları
 func p_tsubaki_no_mai(c: Node3D, t: Node3D) -> void:
-	KekkeiFXA.tsubaki_no_mai(self, c, t)
+	LazyFx.g("KekkeiFXA").tsubaki_no_mai(self, c, t)
 
 
 func p_tessenka_no_mai_hana(c: Node3D, t: Node3D) -> void:
-	KekkeiFXA.tessenka_no_mai_hana(self, c, t)
+	LazyFx.g("KekkeiFXA").tessenka_no_mai_hana(self, c, t)
 
 
 func p_tessenka_no_mai_tsuru(c: Node3D, t: Node3D) -> void:
@@ -8722,12 +8722,12 @@ func p_tessenka_no_mai_tsuru(c: Node3D, t: Node3D) -> void:
 
 ## Karaçam Dansı: tüm bedenden sivri kemikler — çevrede kemik tozu halkası
 func p_karamatsu_no_mai(c: Node3D, t: Node3D) -> void:
-	KekkeiFXA.karamatsu_no_mai(self, c, t)
+	LazyFx.g("KekkeiFXA").karamatsu_no_mai(self, c, t)
 
 
 ## Eğrelti Dansı: kemik ormanı fışkırırken zemin çatlar, kemik tozu bulutları yükselir
 func p_sawarabi_no_mai(c: Node3D, t: Node3D) -> void:
-	KekkeiFXA.sawarabi_no_mai(self, c, t)
+	LazyFx.g("KekkeiFXA").sawarabi_no_mai(self, c, t)
 
 
 ## Altın Zincir: zincirler yerden çıkarken altın çakra kıvılcımları ve toprak patlaması
@@ -8737,16 +8737,16 @@ func p_kinbaku_kingusari_no_jutsu(c: Node3D, t: Node3D) -> void:
 
 ## Parmak Oyma Mühürü: parmak ucunda mavi alev, hedefin karnında dönen yazı halkası
 func p_shikoku_fuin(c: Node3D, t: Node3D) -> void:
-	Clan3FXA.shikoku_fuin(self, c, t)
+	LazyFx.g("Clan3FXA").shikoku_fuin(self, c, t)
 
 
 func p_fuka_hoin(c: Node3D, t: Node3D) -> void:
-	Clan3FXA.fuka_hoin(self, c, t)
+	LazyFx.g("Clan3FXA").fuka_hoin(self, c, t)
 
 
 ## Sekiz Trigram Mühür Stili: parmak uçlarında mavi alev, hedefin karnında trigram mühür halkası
 func p_hakke_no_fuin_shiki(c: Node3D, t: Node3D) -> void:
-	Clan3FXA.hakke_no_fuin_shiki(self, c, t)
+	LazyFx.g("Clan3FXA").hakke_no_fuin_shiki(self, c, t)
 
 
 ## Kötülük Mühürleme: yere mühür dairesi, kara yazılar bedenden sökülüp yukarı akar
@@ -8788,32 +8788,32 @@ func p_fuja_hoin(c: Node3D, t: Node3D) -> void:
 
 ## Çift Su Tabancası: her atışta parmak ucunda basınç halkası, isabet yerinde su patlaması
 func p_mizudeppo_nicho(c: Node3D, t: Node3D) -> void:
-	SuitonFXF.mizudeppo_nicho(self, c, t)
+	LazyFx.g("SuitonFXF").mizudeppo_nicho(self, c, t)
 
 
 ## Büyük Su Kolu: kol su kasıyla şişer, savruluşta su seli
 func p_suiton_gosuiwan_no_jutsu(c: Node3D, t: Node3D) -> void:
-	SuitonFXF.suiton_gosuiwan_no_jutsu(self, c, t)
+	LazyFx.g("SuitonFXF").suiton_gosuiwan_no_jutsu(self, c, t)
 
 
 ## Su Kalkanı: dikenli su kubbesi yükselir (referanstaki gibi)
 func p_suiton_tate_eboshi(c: Node3D, t: Node3D) -> void:
-	SuitonFXF.suiton_tate_eboshi(self, c, t)
+	LazyFx.g("SuitonFXF").suiton_tate_eboshi(self, c, t)
 
 
 ## Kül Yığını Yakma: gri kül bulutu içinde kor kıvılcımlar, patlarken turuncu alev dalgası
 func p_sarutobi_haisekisho(c: Node3D, t: Node3D) -> void:
-	KatonFXB.sarutobi_haisekisho(self, c, t)
+	LazyFx.g("KatonFXB").sarutobi_haisekisho(self, c, t)
 
 
 ## Büyük Alev: ağızdan geniş alev seli, yerde yanan iz
 func p_katon_goen_no_jutsu(c: Node3D, t: Node3D) -> void:
-	KatonFXC.katon_goen_no_jutsu(self, c, t)
+	LazyFx.g("KatonFXC").katon_goen_no_jutsu(self, c, t)
 
 
 ## Küle Saklanma: yoğun kül bulutu içinde turuncu kor ağları (referans)
 func p_katon_haijingakure_no_jutsu(c: Node3D, t: Node3D) -> void:
-	KatonFXC.katon_haijingakure_no_jutsu(self, c, t)
+	LazyFx.g("KatonFXC").katon_haijingakure_no_jutsu(self, c, t)
 
 
 ## Uçan Kırlangıç: bıçaklarda mavi rüzgâr çakrası, her kesikte hilal
@@ -8843,12 +8843,12 @@ func p_sarutobi_hien(c: Node3D, t: Node3D) -> void:
 
 ## Beyaz Işık Chakra Bıçağı: bıçak beyaz ışıkla parlar, geçişte uzun beyaz iz ve parlama
 func p_hatake_hakko(c: Node3D, t: Node3D) -> void:
-	ClanFX.hatake_hakko(self, c, t)
+	LazyFx.g("ClanFX").hatake_hakko(self, c, t)
 
 
 ## Ninken: köpekler toz bulutu içinden yerden fırlar
 func p_hatake_ninken(c: Node3D, t: Node3D) -> void:
-	FinalFX0.hatake_ninken(self, c, t)
+	LazyFx.g("FinalFX0").hatake_ninken(self, c, t)
 
 
 # ================================================================== Klan T: Hatake bıçakları / Chinoike kan / Hoshigaki köpekbalıkları / Kurama yanılsamaları / Fūma
@@ -8900,7 +8900,7 @@ func _shark_jaw(at: Vector3, d: Vector3, s: float) -> void:
 
 
 func p_chakura_to_maichimonji(c: Node3D, t: Node3D) -> void:
-	Clan4FXA.chakura_to_maichimonji(self, c, t)
+	LazyFx.g("Clan4FXA").chakura_to_maichimonji(self, c, t)
 
 
 func p_hatake_tsubame(c: Node3D, t: Node3D) -> void:
@@ -8914,45 +8914,45 @@ func p_hatake_tsubame(c: Node3D, t: Node3D) -> void:
 
 ## Beş Köpekbalığı: ağız açılır, köpekbalıkları sırayla diş halkalarıyla fırlar
 func p_hoshigaki_same(c: Node3D, t: Node3D) -> void:
-	SuitonFXE.hoshigaki_same(self, c, t)
+	LazyFx.g("SuitonFXE").hoshigaki_same(self, c, t)
 
 
 ## Büyük Köpekbalığı Mermisi: ağızdan dev diş halkası ve su girdabı
 func p_suiton_daikodan_no_jutsu(c: Node3D, t: Node3D) -> void:
-	SuitonFXF.suiton_daikodan_no_jutsu(self, c, t)
+	LazyFx.g("SuitonFXF").suiton_daikodan_no_jutsu(self, c, t)
 
 
 ## Bin Köpekbalığı: sel önünde köpük duvarı, binlerce yüzgeç
 func p_suiton_senshokuko(c: Node3D, t: Node3D) -> void:
-	SuitonFXE.suiton_senshokuko(self, c, t)
+	LazyFx.g("SuitonFXE").suiton_senshokuko(self, c, t)
 
 
 func p_suiro_sameodori_no_jutsu(c: Node3D, t: Node3D) -> void:
-	SuitonFXF.suiro_sameodori_no_jutsu(self, c, t)
+	LazyFx.g("SuitonFXF").suiro_sameodori_no_jutsu(self, c, t)
 
 
 ## Sahte Çevre: yanılsama dalgası, çevrede bambu siluetleri ve turkuaz çizgiler
 func p_magen_kokoni_arazu_no_jutsu(c: Node3D, t: Node3D) -> void:
-	GenjutsuFXA.magen_kokoni_arazu_no_jutsu(self, c, t)
+	LazyFx.g("GenjutsuFXA").magen_kokoni_arazu_no_jutsu(self, c, t)
 
 
 ## Ağaçla Bağlayan Ölüm: hedefin etrafında pembe taç yaprakları ve kızıl yer dalgası
 func p_magen_jubaku_satsu(c: Node3D, t: Node3D) -> void:
-	Clan4FXA.magen_jubaku_satsu(self, c, t)
+	LazyFx.g("Clan4FXA").magen_jubaku_satsu(self, c, t)
 
 
 ## Çifte Sahte Çevre: iki turkuaz yanılsama kemeri
 func p_magen_niju_kokoni_arazu_no_jutsu(c: Node3D, t: Node3D) -> void:
-	GenjutsuFXA.magen_niju_kokoni_arazu_no_jutsu(self, c, t)
+	LazyFx.g("GenjutsuFXA").magen_niju_kokoni_arazu_no_jutsu(self, c, t)
 
 ## Üçlü Yel Değirmeni: tel izleri parlar
 func p_sofushasan_no_tachi(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXC.sofushasan_no_tachi(self, c, t)
+	LazyFx.g("NinjutsuFXC").sofushasan_no_tachi(self, c, t)
 
 
 ## Shuriken Gölge Klonu: shuriken bölünürken her kopyada duman pufu
 func p_shuriken_kage_bunshin_no_jutsu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXD.shuriken_kage_bunshin_no_jutsu(self, c, t)
+	LazyFx.g("NinjutsuFXD").shuriken_kage_bunshin_no_jutsu(self, c, t)
 
 
 # ================================================================== Klan U: Fūma çarkı / Kamizuru arıları / Kum / Kuklacılar / Mürekkep
@@ -8984,46 +8984,46 @@ func _bee_cloud(pos: Vector3, r: float, n := 40, dir := Vector3.UP, speed := 3.0
 
 ## Rüzgâr Çarkı: dönen dev shuriken çevresinde beyaz rüzgâr halkası, yerde toz
 func p_fuma_kaze_guruma(c: Node3D, t: Node3D) -> void:
-	FutonFXD.fuma_kaze_guruma(self, c, t)
+	LazyFx.g("FutonFXD").fuma_kaze_guruma(self, c, t)
 
 
 func p_kamizuru_bees(c: Node3D, t: Node3D) -> void:
-	KamishiroFXA.kamizuru_bees(self, c, t)
+	LazyFx.g("KamishiroFXA").kamizuru_bees(self, c, t)
 
 
 func p_kamizuru_wax(c: Node3D, t: Node3D) -> void:
-	KamishiroFXA.kamizuru_wax(self, c, t)
+	LazyFx.g("KamishiroFXA").kamizuru_wax(self, c, t)
 
 
 ## Arı Çağırma: kovan desenli çağırma dairesi, sarı sürü yükselir
 func p_kamizuru_hachi(c: Node3D, t: Node3D) -> void:
-	KamishiroFXA.kamizuru_hachi(self, c, t)
+	LazyFx.g("KamishiroFXA").kamizuru_hachi(self, c, t)
 
 
 func p_kamizuru_hari(c: Node3D, t: Node3D) -> void:
-	KamishiroFXA.kamizuru_hari(self, c, t)
+	LazyFx.g("KamishiroFXA").kamizuru_hari(self, c, t)
 
 
 func p_kamizuru_mitsu_bunshin(c: Node3D, t: Node3D) -> void:
-	KamishiroFXA.kamizuru_mitsu_bunshin(self, c, t)
+	LazyFx.g("KamishiroFXA").kamizuru_mitsu_bunshin(self, c, t)
 
 
 ## Kum Zırhı: tende çatlak kum tabakası, dökülen kum taneleri (20 sn)
 func p_suna_no_yoroi(c: Node3D, t: Node3D) -> void:
-	SabakuFXA.suna_no_yoroi(self, c, t)
+	LazyFx.g("SabakuFXA").suna_no_yoroi(self, c, t)
 
 
 ## Hava-Kum Kalkanı: kubbe çevresinde dönen kum fırtınası
 func p_kusa_boheki(c: Node3D, t: Node3D) -> void:
-	SabakuFXA.kusa_boheki(self, c, t)
+	LazyFx.g("SabakuFXA").kusa_boheki(self, c, t)
 
 
 func p_gokusa_maiso(c: Node3D, t: Node3D) -> void:
-	SabakuFXA.gokusa_maiso(self, c, t)
+	LazyFx.g("SabakuFXA").gokusa_maiso(self, c, t)
 
 
 func p_suna_bunshin(c: Node3D, t: Node3D) -> void:
-	SabakuFXA.suna_bunshin(self, c, t)
+	LazyFx.g("SabakuFXA").suna_bunshin(self, c, t)
 
 
 ## Sabaku Sōsō (Gaara): kum tabutundaki hedefin üstüne kum çöker ve sıkıştırır — dikenli kum patlamasıyla ezer.
@@ -9078,34 +9078,34 @@ func _sand_wrap(c: Node3D, tt: Node3D, rise: float) -> Dictionary:
 
 ## Kukla Tekniği: parmaklardan mavi chakra iplikleri kuklaya bağlanır
 func p_kugutsu_no_jutsu(c: Node3D, _t: Node3D) -> void:
-	KamishiroFXA.kugutsu_no_jutsu(self, c, _t)
+	LazyFx.g("KamishiroFXA").kugutsu_no_jutsu(self, c, _t)
 
 
 ## Beyaz Gizli Teknik On Kukla: on parmağın her birinden bir ipliğe dört kukla
 func p_shirohigi_jikki_chikamatsu_no_shu(c: Node3D, _t: Node3D) -> void:
-	KamishiroFXA.shirohigi_jikki_chikamatsu_no_shu(self, c, _t)
+	LazyFx.g("KamishiroFXA").shirohigi_jikki_chikamatsu_no_shu(self, c, _t)
 
 
 ## Kızıl Gizli Teknik Yüz Kukla: kızıl duman perdesinden altı kukla, hepsine iplik
 func p_akahigi_hyakki_no_soen(c: Node3D, _t: Node3D) -> void:
-	NinjutsuFXC.akahigi_hyakki_no_soen(self, c, _t)
+	LazyFx.g("NinjutsuFXC").akahigi_hyakki_no_soen(self, c, _t)
 
 
 func p_kurohigi_kiki_ippatsu(c: Node3D, t: Node3D) -> void:
-	KamishiroFXA.kurohigi_kiki_ippatsu(self, c, t)
+	LazyFx.g("KamishiroFXA").kurohigi_kiki_ippatsu(self, c, t)
 
 
 func p_kiko_junbu(c: Node3D, t: Node3D) -> void:
-	KamishiroFXA.kiko_junbu(self, c, t)
+	LazyFx.g("KamishiroFXA").kiko_junbu(self, c, t)
 
 
 ## Süper Taklit Resim: parşömene mürekkep fırçası darbeleri, kara mürekkep sıçraması ve canavarlar mürekkepten doğar
 func p_choju_giga(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXE.choju_giga(self, c, t)
+	LazyFx.g("NinjutsuFXE").choju_giga(self, c, t)
 
 
 func p_choshin_giga(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXE.choshin_giga(self, c, t)
+	LazyFx.g("NinjutsuFXE").choshin_giga(self, c, t)
 
 
 # ================================================================== Klan V: mürekkep / Kazahana kum-rüzgâr / Karatachi kılıçları / Raikage şimşek zırhı / Ranton lazer
@@ -9147,64 +9147,64 @@ func _ink_spiral(c: Node3D, dur: float) -> void:
 
 
 func p_sumi_bunshin_no_jutsu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXB.sumi_bunshin_no_jutsu(self, c, t)
+	LazyFx.g("NinjutsuFXB").sumi_bunshin_no_jutsu(self, c, t)
 
 
 func p_sumigasumi_no_jutsu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXC.sumigasumi_no_jutsu(self, c, t)
+	LazyFx.g("NinjutsuFXC").sumigasumi_no_jutsu(self, c, t)
 
 
 func p_fuinjutsu_okutopasu_horudo(c: Node3D, t: Node3D) -> void:
-	FuinjutsuFXB.fuinjutsu_okutopasu_horudo(self, c, t)
+	LazyFx.g("FuinjutsuFXB").fuinjutsu_okutopasu_horudo(self, c, t)
 
 
 ## Sonsuz Kum Bulutu: elden dev kumlu rüzgâr konisi
 func p_futon_mugen_sajin_daitoppa(c: Node3D, t: Node3D) -> void:
-	FutonFXD.futon_mugen_sajin_daitoppa(self, c, t)
+	LazyFx.g("FutonFXD").futon_mugen_sajin_daitoppa(self, c, t)
 
 
 ## Kum Kasırgası: kumlu dönen hortum (huni), içinde beyaz şimşek çatlakları
 func p_kazahana_sajin_senpu(c: Node3D, t: Node3D) -> void:
-	FutonFXB.kazahana_sajin_senpu(self, c, t)
+	LazyFx.g("FutonFXB").kazahana_sajin_senpu(self, c, t)
 
 
 func p_kazahana_kazekiri_mai(c: Node3D, t: Node3D) -> void:
-	FutonFXB.kazahana_kazekiri_mai(self, c, t)
+	LazyFx.g("FutonFXB").kazahana_kazekiri_mai(self, c, t)
 
 
 func p_kazahana_sabaku_arashi(c: Node3D, t: Node3D) -> void:
-	FutonFXC.kazahana_sabaku_arashi(self, c, t)
+	LazyFx.g("FutonFXC").kazahana_sabaku_arashi(self, c, t)
 
 
 ## Rüzgâr Tanrısı Okları: her okta sıkıştırılmış rüzgâr spirali ve basınç halkası
 func p_kazahana_fujin_ya(c: Node3D, t: Node3D) -> void:
-	FutonFXB.kazahana_fujin_ya(self, c, t)
+	LazyFx.g("FutonFXB").kazahana_fujin_ya(self, c, t)
 
 
 ## Sessiz Öldürme: yoğun beyaz sis çöker
 func p_sairento_kiringu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXD.sairento_kiringu(self, c, t)
+	LazyFx.g("NinjutsuFXD").sairento_kiringu(self, c, t)
 
 
 ## Kemik Parçalama: bedenden geçen mavi kılıç çakra çizgileri (referans)
 func p_chigiri_toho_honenuki(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXA.chigiri_toho_honenuki(self, c, t)
+	LazyFx.g("NinjutsuFXA").chigiri_toho_honenuki(self, c, t)
 
 ## Liger Bombası: şimşek zırhı, sıçrayış ve çakılışta mavi şimşek kubbesi
 func p_raiga_bomu(c: Node3D, t: Node3D) -> void:
-	RaitonFXD.raiga_bomu(self, c, t)
+	LazyFx.g("RaitonFXD").raiga_bomu(self, c, t)
 
 
 func p_girochin_doroppu(c: Node3D, t: Node3D) -> void:
-	RaitonFXE.girochin_doroppu(self, c, t)
+	LazyFx.g("RaitonFXE").girochin_doroppu(self, c, t)
 
 
 func p_raiton_rariatto(c: Node3D, t: Node3D) -> void:
-	RaitonFXE.raiton_rariatto(self, c, t)
+	LazyFx.g("RaitonFXE").raiton_rariatto(self, c, t)
 
 
 func p_erubo(c: Node3D, t: Node3D) -> void:
-	RaitonFXD.erubo(self, c, t)
+	LazyFx.g("RaitonFXD").erubo(self, c, t)
 
 
 ## Jigokuzuki (kanon, Üçüncü Raikage): şimşek chakrası tek elin parmak uçlarında yoğunlaşır, Chidori gibi delen saplama.
@@ -9212,12 +9212,12 @@ func p_erubo(c: Node3D, t: Node3D) -> void:
 ## çevreye şok dalgası) → Ippon Nukite (1 parmak, "en güçlü mızrak": chakra parmağın çok ötesine uzanır). Burada: Raiton
 ## Chakra Modu açıkken ve ustalık arttıkça daha az parmak kullanılır.
 func p_jigokuzuki(c: Node3D, t: Node3D) -> void:
-	RaitonFXD.jigokuzuki(self, c, t)
+	LazyFx.g("RaitonFXD").jigokuzuki(self, c, t)
 
 
 ## Lazer Sirki: ellerde parlak ak-mavi küre, ışınlar her yöne
 func p_ranton_reiza_sakasu(c: Node3D, t: Node3D) -> void:
-	RanjinFXA.ranton_reiza_sakasu(self, c, t)
+	LazyFx.g("RanjinFXA").ranton_reiza_sakasu(self, c, t)
 
 
 # ================================================================== Klan W: Ikazuchi fırtınası / Doton ağırlık-taş / Bakuha patlama
@@ -9239,52 +9239,52 @@ func _stone_skin(c: Node3D, dur: float, col := Color(0.55, 0.57, 0.6)) -> void:
 
 
 func p_ikazuchi_reiza_ame(c: Node3D, t: Node3D) -> void:
-	RanjinFXA.ikazuchi_reiza_ame(self, c, t)
+	LazyFx.g("RanjinFXA").ikazuchi_reiza_ame(self, c, t)
 
 
 func p_ikazuchi_koga(c: Node3D, t: Node3D) -> void:
-	RanjinFXA.ikazuchi_koga(self, c, t)
+	LazyFx.g("RanjinFXA").ikazuchi_koga(self, c, t)
 
 
 func p_ikazuchi_raiun(c: Node3D, t: Node3D) -> void:
-	RanjinFXA.ikazuchi_raiun(self, c, t)
+	LazyFx.g("RanjinFXA").ikazuchi_raiun(self, c, t)
 
 
 func p_ikazuchi_kosen(c: Node3D, t: Node3D) -> void:
-	RanjinFXA.ikazuchi_kosen(self, c, t)
+	LazyFx.g("RanjinFXA").ikazuchi_kosen(self, c, t)
 
 
 ## Golem: yerden kaya golemi yükselir — toz ve kaya yağmuru
 func p_doton_goremu_no_jutsu(c: Node3D, t: Node3D) -> void:
-	DotonFXD.goremu_no_jutsu(self, c, t)
+	LazyFx.g("DotonFXD").goremu_no_jutsu(self, c, t)
 
 
 ## Hafif Kaya: bedenden kum taneleri dökülür, ayak altında halka
 func p_doton_keijugan_no_jutsu(c: Node3D, t: Node3D) -> void:
-	DotonFXB.keijugan_no_jutsu(self, c, t)
+	LazyFx.g("DotonFXB").keijugan_no_jutsu(self, c, t)
 
 
 func p_doton_iwayado_kuzushi(c: Node3D, t: Node3D) -> void:
-	DotonFXB.iwayado_kuzushi(self, c, t)
+	LazyFx.g("DotonFXB").iwayado_kuzushi(self, c, t)
 
 
 ## Taş Parlaklığı: parmak ucunda kızıl kristal parıltısı (referans), yumruklar taşlaşır
 func p_doton_kakogan(c: Node3D, t: Node3D) -> void:
-	DotonFXC.kakogan(self, c, t)
+	LazyFx.g("DotonFXC").kakogan(self, c, t)
 
 
 ## Sertleşme: ten gri taş plakalarla kaplanır (12 sn)
 func p_doton_koka_jutsu(c: Node3D, t: Node3D) -> void:
-	DotonFXC.koka_jutsu(self, c, t)
+	LazyFx.g("DotonFXC").koka_jutsu(self, c, t)
 
 
 func p_doton_kajugan_no_jutsu(c: Node3D, t: Node3D) -> void:
-	DotonFXB.kajugan_no_jutsu(self, c, t)
+	LazyFx.g("DotonFXB").kajugan_no_jutsu(self, c, t)
 
 
 ## Süper Ağırlık: hedefin altında zemin örümcek ağı gibi çatlar ve çöker (referans)
 func p_doton_chokajugan_no_jutsu(c: Node3D, t: Node3D) -> void:
-	DotonFXD.chokajugan_no_jutsu(self, c, t)
+	LazyFx.g("DotonFXD").chokajugan_no_jutsu(self, c, t)
 
 
 ## Patlama imzası: beyaz-pembe patlama ve keskin ışık çizgileri
@@ -9296,16 +9296,16 @@ func _bakuha_burst(at: Vector3, s: float) -> void:
 
 
 func p_bakuha_jirai(c: Node3D, t: Node3D) -> void:
-	BakutonFXB.bakuha_jirai(self, c, t)
+	LazyFx.g("BakutonFXB").bakuha_jirai(self, c, t)
 
 
 ## Patlayan Avuç: avuç hedefe dayanır, beyaz patlama
 func p_bakuha_kibaku_te(c: Node3D, t: Node3D) -> void:
-	BakutonFXB.bakuha_kibaku_te(self, c, t)
+	LazyFx.g("BakutonFXB").bakuha_kibaku_te(self, c, t)
 
 
 func p_bakuha_rensa(c: Node3D, t: Node3D) -> void:
-	BakutonFXB.bakuha_rensa(self, c, t)
+	LazyFx.g("BakutonFXB").bakuha_rensa(self, c, t)
 
 
 # ================================================================== Klan X: Uchiha / Toz Salınımı (Jinton)
@@ -9343,27 +9343,27 @@ func _dust_core(c: Node3D, dur: float, shape := "cube") -> void:
 
 
 func p_uchiha_ryu_kenjutsu(c: Node3D, t: Node3D) -> void:
-	FinalFX3.uchiha_ryu_kenjutsu(self, c, t)
+	LazyFx.g("FinalFX3").uchiha_ryu_kenjutsu(self, c, t)
 
 
 func p_uchiha_ryu_shurikenjutsu_ikazuchi_sanren(c: Node3D, t: Node3D) -> void:
-	RaitonFXE.uchiha_ryu_shurikenjutsu_ikazuchi_sanren(self, c, t)
+	LazyFx.g("RaitonFXE").uchiha_ryu_shurikenjutsu_ikazuchi_sanren(self, c, t)
 
 
 func p_uchiha_kaenjin(c: Node3D, t: Node3D) -> void:
-	KatonFXC.uchiha_kaenjin(self, c, t)
+	LazyFx.g("KatonFXC").uchiha_kaenjin(self, c, t)
 
 
 func p_uchihagaeshi(c: Node3D, t: Node3D) -> void:
-	FutonFXD.uchihagaeshi(self, c, t)
+	LazyFx.g("FutonFXD").uchihagaeshi(self, c, t)
 
 
 func p_katon_hosenka_tsumabeni(c: Node3D, t: Node3D) -> void:
-	KatonFXC.katon_hosenka_tsumabeni(self, c, t)
+	LazyFx.g("KatonFXC").katon_hosenka_tsumabeni(self, c, t)
 
 
 func p_katon_goka_mekkyaku(c: Node3D, t: Node3D) -> void:
-	KatonFXC.katon_goka_mekkyaku(self, c, t)
+	LazyFx.g("KatonFXC").katon_goka_mekkyaku(self, c, t)
 
 
 func p_jinton_genkai_hakuri_no_jutsu(c: Node3D, t: Node3D) -> void:
@@ -9382,7 +9382,7 @@ func p_jinton_ensui(c: Node3D, t: Node3D) -> void:
 
 
 func p_jinton_ento(c: Node3D, t: Node3D) -> void:
-	RanjinFXA.jinton_ento(self, c, t)
+	LazyFx.g("RanjinFXA").jinton_ento(self, c, t)
 
 
 func p_genjutsu_sharingan(c: Node3D, t: Node3D) -> void:
@@ -9391,36 +9391,36 @@ func p_genjutsu_sharingan(c: Node3D, t: Node3D) -> void:
 
 
 func p_iatsu_sharingan(c: Node3D, t: Node3D) -> void:
-	DojutsuFXA.iatsu_sharingan(self, c, t)
+	LazyFx.g("DojutsuFXA").iatsu_sharingan(self, c, t)
 
 
 func p_magen_shinkarasu(c: Node3D, t: Node3D) -> void:
-	DojutsuFXA.magen_shinkarasu(self, c, t)
+	LazyFx.g("DojutsuFXA").magen_shinkarasu(self, c, t)
 
 
 func p_magen_kasegui_no_jutsu(c: Node3D, t: Node3D) -> void:
-	DojutsuFXA.magen_kasegui_no_jutsu(self, c, t)
+	LazyFx.g("DojutsuFXA").magen_kasegui_no_jutsu(self, c, t)
 
 
 # ================================================================== Çekirdek Y: zengin olanlar yalnız kendi animasyonunu alır; ince olanlara efekt katmanı
 ## Chidori: elden yere sürtünen şimşek, koşu yolunda yanık çatlak ve kıvılcım
 func p_raiton_chidori(c: Node3D, t: Node3D) -> void:
-	RaitonFXB.raiton_chidori(self, c, t)
+	LazyFx.g("RaitonFXB").raiton_chidori(self, c, t)
 
 
 ## Büyük Köpekbalığı Mermisi: köpekbalığı ağzında diş halkası
 func p_suiton_suikoudan(c: Node3D, t: Node3D) -> void:
-	SuitonFXE.suiton_suikoudan(self, c, t)
+	LazyFx.g("SuitonFXE").suiton_suikoudan(self, c, t)
 
 
 ## Vakum Küresi: her atışta ağız önünde basınç halkası
 func p_fuuton_shinkuu(c: Node3D, t: Node3D) -> void:
-	FutonFXD.fuuton_shinkuu(self, c, t)
+	LazyFx.g("FutonFXD").fuuton_shinkuu(self, c, t)
 
 
 ## Şimşek Akıntısı: bedenden yere yayılan şimşek kolları ve zemin çatlakları
 func p_raiton_nagashi(c: Node3D, t: Node3D) -> void:
-	RaitonFXD.raiton_nagashi(self, c, t)
+	LazyFx.g("RaitonFXD").raiton_nagashi(self, c, t)
 
 
 ## Şimşek Çakra Modu: Raikage şimşek zırhı (20 sn)
@@ -9486,7 +9486,7 @@ func _hand_glow(ba: Node3D, kind: String, col: Color) -> void:
 
 ## Anka Çiçeği: her ateş topunda gizli shuriken parıltısı (çıkışta toplanma)
 func p_katon_housenka(c: Node3D, t: Node3D) -> void:
-	KatonFXA.katon_housenka(self, c, t)
+	LazyFx.g("KatonFXA").katon_housenka(self, c, t)
 
 
 # ================================================================== Çekirdek Z: ince çekirdek jutsulara efekt katmanı (zenginler yalnız animasyon)
@@ -9514,7 +9514,7 @@ func _summon_formula(c: Node3D, r: float) -> void:
 
 
 func p_narakumi(c: Node3D, t: Node3D) -> void:
-	GenjutsuFXA.narakumi(self, c, t)
+	LazyFx.g("GenjutsuFXA").narakumi(self, c, t)
 
 
 func p_kokuangyo(c: Node3D, t: Node3D) -> void:
@@ -9560,11 +9560,11 @@ func p_kuchiyose(c: Node3D, t: Node3D) -> void:
 
 
 func p_zofuku_kuchiyose_no_jutsu(c: Node3D, t: Node3D) -> void:
-	KensumFXA.zofuku_kuchiyose_no_jutsu(self, c, t)
+	LazyFx.g("KensumFXA").zofuku_kuchiyose_no_jutsu(self, c, t)
 
 
 func p_reverse_summoning_technique(c: Node3D, t: Node3D) -> void:
-	KensumFXA.reverse_summoning_technique(self, c, t)
+	LazyFx.g("KensumFXA").reverse_summoning_technique(self, c, t)
 
 
 func p_ninken(c: Node3D, t: Node3D) -> void:
@@ -9579,7 +9579,7 @@ func p_shintenshin(c: Node3D, t: Node3D) -> void:
 
 ## Büyük Ejder Ateşi: ağızda toplanma, ejderler çıkarken alev halkası
 func p_katon_goryuka_no_jutsu(c: Node3D, t: Node3D) -> void:
-	KatonFXA.katon_goryuka_no_jutsu(self, c, t)
+	LazyFx.g("KatonFXA").katon_goryuka_no_jutsu(self, c, t)
 
 
 # ================================================================== Çekirdek AA: son çekirdek jutsular — Mangekyō imzaları, Raikiri, Hiraishin, kil
@@ -9596,12 +9596,12 @@ func _mangekyo(c: Node3D, dur: float) -> void:
 
 ## Raikiri: daha büyük, ak şimşek; yere sürtünen şimşek, koşu yolunda yanık çatlaklar
 func p_raikiri(c: Node3D, t: Node3D) -> void:
-	RaitonFXF.raikiri(self, c, t)
+	LazyFx.g("RaitonFXF").raikiri(self, c, t)
 
 
 ## Büyük Top Rasengan: varışta zemin kraterleşir, toz halkası
 func p_odama_rasengan(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXA.odama_rasengan(self, c, t)
+	LazyFx.g("NinjutsuFXA").odama_rasengan(self, c, t)
 
 
 func p_amaterasu(c: Node3D, t: Node3D) -> void:
@@ -9620,12 +9620,12 @@ func p_amaterasu_entenka(c: Node3D, t: Node3D) -> void:
 
 
 func p_tensha_fuin_amaterasu(c: Node3D, t: Node3D) -> void:
-	DojutsuFXB.tensha_fuin_amaterasu(self, c, t)
+	LazyFx.g("DojutsuFXB").tensha_fuin_amaterasu(self, c, t)
 
 
 ## Tsukuyomi: göz göze — dünya kızıl-siyaha döner
 func p_tsukuyomi(c: Node3D, t: Node3D) -> void:
-	DojutsuFXB.tsukuyomi(self, c, t)
+	LazyFx.g("DojutsuFXB").tsukuyomi(self, c, t)
 
 
 func p_kamui(c: Node3D, t: Node3D) -> void:
@@ -9635,7 +9635,7 @@ func p_kamui(c: Node3D, t: Node3D) -> void:
 
 ## Uçan Yıldırım Tanrısı: çıkış ve varışta sarı ışık çakması ve mühür halkası
 func p_hiraishin_no_jutsu(c: Node3D, t: Node3D) -> void:
-	SpacetimeFXA.hiraishin_no_jutsu(self, c, t)
+	LazyFx.g("SpacetimeFXA").hiraishin_no_jutsu(self, c, t)
 
 
 ## Sabaku Kyū (Gaara): kum hedefin altından yükselip bedenini boyna kadar sarar, kıpırdatmaz (baş dışarıda; ezmek Sabaku Sōsō'nün işi)
@@ -9655,7 +9655,7 @@ func p_sabaku_kyu(c: Node3D, t: Node3D) -> void:
 
 ## Patlayıcı Kil: avuçtaki ağız kili çiğner, beyaz kil parçacıkları
 func p_kibaku_nendo(c: Node3D, t: Node3D) -> void:
-	BakutonFXB.kibaku_nendo(self, c, t)
+	LazyFx.g("BakutonFXB").kibaku_nendo(self, c, t)
 
 
 # ================================================================== Yardımcı/gizlenme/algılama/dönüşüm: genel mekanik korunur + her birine özgü efekt
@@ -9685,12 +9685,12 @@ func _burrow(c: Node3D, col := EARTH) -> void:
 ## Shuradō (kanon): beden mekanik silahlarla güçlenir — sırttan dört ek kol, belde katlanmış testere bıçaklı kuşak,
 ## ayak tabanlarından çakra itişiyle ani atılış. 20 sn: ek kollar yakındaki düşmanlara ayrıca vurur, zırh ve hız.
 func p_shurado(c: Node3D, t: Node3D) -> void:
-	DojutsuFXA.shurado(self, c, t)
+	LazyFx.g("DojutsuFXA").shurado(self, c, t)
 
 
 ## Kekkai Tengai Hōjin (Konoha algılama bariyeri): kubbe 25 sn kalır, içine giren her rakip bildirilir ve gizlense de görülür.
 func p_kekkai_tengai_hojin(c: Node3D, _t: Node3D) -> void:
-	SensorFX.kekkai_dome(c, 30.0, 25.0)
+	LazyFx.g("SensorFX").kekkai_dome(c, 30.0, 25.0)
 ## Yer Değiştirme: patlayan beyaz duman, yerinde kalan kütük
 ## Kawarimi (kanon): "darbe değmeden hemen önce yerine kütük bırakır; rakip vurduğunu sanır, o anda karşı saldırı ya da
 ## kaçış; kütüğe patlayıcı etiket bağlanabilir" (Narutopedia). Jutsu yuvasındaki hâli: 2.5 sn hazırda bekler, o sürede
@@ -9715,7 +9715,7 @@ static func kawa_trap(c: Node3D, at: Vector3) -> void:
 	if not has_tag:
 		return
 	var tree = c.get_tree()
-	AcademyFX.tag_blast(at, 0.6)   # etiket 0.6 sn yanar, sonra kendi ateş topu (hazır patlama yok)
+	LazyFx.g("AcademyFX").tag_blast(at, 0.6)   # etiket 0.6 sn yanar, sonra kendi ateş topu (hazır patlama yok)
 	tree.create_timer(0.6).timeout.connect(func():
 		if not is_instance_valid(c):
 			return
@@ -9736,7 +9736,7 @@ func _cling_glow(c: Node3D, bones: Array, dur: float) -> void:
 ## aynı akış, önündeki dik kaya / yamaç / duvar: elle, daha yavaş; çıkabildiğin yükseklik dayanıklılık + taijutsu
 ## ustalığından, kaydığın yere kunai, dayanıklılık gelişir. Yalnız oyuncu (eğitim).
 func p_gake_nobori_no_gyo(c: Node3D, t: Node3D) -> void:
-	AcademyFX.feet_chakra(c, ["RightHand", "LeftHand"], 8.0)
+	LazyFx.g("AcademyFX").feet_chakra(c, ["RightHand", "LeftHand"], 8.0)
 	if not (c is Player):
 		return
 	var fd: Vector3 = c.face_dir()
@@ -9772,7 +9772,7 @@ func p_gake_nobori_no_gyo(c: Node3D, t: Node3D) -> void:
 ## yakındaki ağaca kendiliğinden koşarsın; çıkabildiğin yükseklik chakra kontrolü ustalığından, chakran %15'in altındaysa
 ## erken kayarsın; kaydığın yere kunai saplanır. Yeni rekor (o ağaçta) daha çok ustalık verir. Yalnız oyuncu (eğitim).
 func p_ki_nobori_no_shugyo(c: Node3D, t: Node3D) -> void:
-	AcademyFX.feet_chakra(c, ["RightFoot", "LeftFoot"], 8.0)   # kendi chakra zarı (hazır parıltı yok)
+	LazyFx.g("AcademyFX").feet_chakra(c, ["RightFoot", "LeftFoot"], 8.0)   # kendi chakra zarı (hazır parıltı yok)
 	if not (c is Player):
 		return
 	var veg = Game.world.vegetation if Game.world else null
@@ -9942,7 +9942,7 @@ func p_bunshin_no_jutsu(c: Node3D, t: Node3D) -> void:
 		get_tree().current_scene.add_child(cl)
 		cl.global_position = gp(c.global_position + side * sx * 1.8)
 		cl.facing = c.get("facing") if c.get("facing") != null else 0.0
-		AcademyFX.poof(cl.global_position + Vector3.UP, 1.0)
+		LazyFx.g("AcademyFX").poof(cl.global_position + Vector3.UP, 1.0)
 		clones.append(cl)
 	Sfx.play("poof", c.global_position)
 	for e in enemies_near(c, c.global_position, 30.0):
@@ -9960,65 +9960,65 @@ func p_bunshin_no_jutsu(c: Node3D, t: Node3D) -> void:
 
 ## Kum Kedi Gözcü: kumdan kedi silueti oluşur, havaya dağılıp etrafı kollar
 func p_sensa_kaibyo(c: Node3D, t: Node3D) -> void:
-	ArcaneFX.sensa_kaibyo(self, c, t)
+	LazyFx.g("ArcaneFX").sensa_kaibyo(self, c, t)
 
 
 ## Sabaku Fuyū (kanon, Gaara: Desert Suspension): ayağının altında kum toplanır, üstüne binip havada süzülür/uçarsın
 ## (Space yüksel, Ctrl alçal); tekrar yapınca inersin. Kum yolda dökülür.
 func p_sabaku_fuyu(c: Node3D, t: Node3D) -> void:
-	SabakuFXA.sabaku_fuyu(self, c, t)
+	LazyFx.g("SabakuFXA").sabaku_fuyu(self, c, t)
 
 
 func p_mujin_meisai(c: Node3D, t: Node3D) -> void:
-	SuitonFXB.mujin_meisai(self, c, t)
+	LazyFx.g("SuitonFXB").mujin_meisai(self, c, t)
 
 
 ## Toprak Yarma: önündeki zemin uzun bir yarıkla ikiye ayrılır
 func p_doton_doryukatsu(c: Node3D, t: Node3D) -> void:
-	DotonFXB.doryukatsu(self, c, t)
+	LazyFx.g("DotonFXB").doryukatsu(self, c, t)
 
 
 func p_doton_moguragakure_no_jutsu(c: Node3D, t: Node3D) -> void:
-	DotonFXA.moguragakure_no_jutsu(self, c, t)
+	LazyFx.g("DotonFXA").moguragakure_no_jutsu(self, c, t)
 
 
 func p_doton_dochu_senko(c: Node3D, t: Node3D) -> void:
-	StrikeFX.doton_dochu_senko(self, c, t)
+	LazyFx.g("StrikeFX").doton_dochu_senko(self, c, t)
 
 
 func p_doton_dochu_eigyo_no_jutsu(c: Node3D, t: Node3D) -> void:
-	DotonFXA.dochu_eigyo_no_jutsu(self, c, t)
+	LazyFx.g("DotonFXA").dochu_eigyo_no_jutsu(self, c, t)
 
 
 ## Mühürleme: yerde açılan parşömen, nesne duman içinde kâğıda çekilir
 func p_funyu_no_jutsu(c: Node3D, t: Node3D) -> void:
-	FuinjutsuFXA.funyu_no_jutsu(self, c, t)
+	LazyFx.g("FuinjutsuFXA").funyu_no_jutsu(self, c, t)
 
 
 func p_tanuki_neiri_no_jutsu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXB.tanuki_neiri_no_jutsu(self, c, t)
+	LazyFx.g("NinjutsuFXB").tanuki_neiri_no_jutsu(self, c, t)
 
 
 func p_genjutsu_tsushin(c: Node3D, t: Node3D) -> void:
-	GenjutsuFXA.genjutsu_tsushin(self, c, t)
+	LazyFx.g("GenjutsuFXA").genjutsu_tsushin(self, c, t)
 
 
 ## Harem: dört yanda pembe dumanlı kopyalar
 func p_haremu_no_jutsu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXB.haremu_no_jutsu(self, c, t)
+	LazyFx.g("NinjutsuFXB").haremu_no_jutsu(self, c, t)
 
 
 func p_gamagakure_no_jutsu(c: Node3D, t: Node3D) -> void:
-	SpacetimeFXA.gamagakure_no_jutsu(self, c, t)
+	LazyFx.g("SpacetimeFXA").gamagakure_no_jutsu(self, c, t)
 
 
 ## Tam Gizlenme: beden ışığı kırıp saydamlaşır (dalgalı hava)
 func p_meisaigakure_no_jutsu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXB.meisaigakure_no_jutsu(self, c, t)
+	LazyFx.g("NinjutsuFXB").meisaigakure_no_jutsu(self, c, t)
 
 
 func p_fushi_tensei(c: Node3D, t: Node3D) -> void:
-	KinjutsuFXA.fushi_tensei(self, c, t)
+	LazyFx.g("KinjutsuFXA").fushi_tensei(self, c, t)
 
 
 ## Susanoo kaburgaları: bedeni saran mavi çakra kaburga kafesi
@@ -10070,9 +10070,9 @@ func p_iso_susanoo(c: Node3D, _t: Node3D) -> void:
 
 ## Kagura Shingan (Karin): çok geniş menzilde chakra algısı; rakiplerin chakrası gücüne göre alev aurası (güçlüsü büyük, kızıl).
 func p_kagura_shingan(c: Node3D, _t: Node3D) -> void:
-	SensorFX.kagura(c, 80.0, 15.0)
+	LazyFx.g("SensorFX").kagura(c, 80.0, 15.0)
 func p_saiko_denshin(c: Node3D, t: Node3D) -> void:
-	ArcaneFX.saiko_denshin(self, c, t)
+	LazyFx.g("ArcaneFX").saiko_denshin(self, c, t)
 
 
 ## Bağlardan Kurtulma: kopan ip parçaları ve duman
@@ -10088,32 +10088,32 @@ func p_nawanuke_no_jutsu(c: Node3D, _t: Node3D) -> void:
 		st.erase("slow")   # tel / ağ yavaşlatması
 		freed = true
 	if freed:
-		AcademyFX.rope_snap(c.global_position + Vector3.UP)
+		LazyFx.g("AcademyFX").rope_snap(c.global_position + Vector3.UP)
 		Combat.popup_text(c.global_position + Vector3.UP * 2.2, "Nawanuke!", Color(0.9, 0.85, 0.6))
 	else:
 		Combat.popup_text(c.global_position + Vector3.UP * 2.2, "Çözülecek bağ yok", Color(0.7, 0.7, 0.7))
 
 
 func p_senninka(c: Node3D, t: Node3D) -> void:
-	SenjutsuFXA.senninka(self, c, t)
+	LazyFx.g("SenjutsuFXA").senninka(self, c, t)
 
 
 ## Kanchi (kanon algılama): çevredeki chakraları hisseder — menzildeki gizlenmiş rakipler de görülür (Combat.start_sensing),
 ## rakiplerin göğsünde duvar ardından atan chakra çekirdeği. Görsel SensorFX (hazır efekt yok).
 func p_kanchi_no_jutsu(c: Node3D, _t: Node3D) -> void:
-	SensorFX.kanchi(c, 40.0, 12.0, Color(0.6, 0.85, 1.0))
+	LazyFx.g("SensorFX").kanchi(c, 40.0, 12.0, Color(0.6, 0.85, 1.0))
 ## Su Küresi İzleme: avuçta yüzen su küresi
 func p_kanchi_suikyu(c: Node3D, t: Node3D) -> void:
-	ArcaneFX.kanchi_suikyu(self, c, t)
+	LazyFx.g("ArcaneFX").kanchi_suikyu(self, c, t)
 
 
 func p_oiroke_no_jutsu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXD.oiroke_no_jutsu(self, c, t)
+	LazyFx.g("NinjutsuFXD").oiroke_no_jutsu(self, c, t)
 
 
 ## Ruh Hali: saydam beyaz ruh bedenden yükselir
 func p_reika_no_jutsu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXD.reika_no_jutsu(self, c, t)
+	LazyFx.g("NinjutsuFXD").reika_no_jutsu(self, c, t)
 
 
 func p_sukunahikona(c: Node3D, t: Node3D) -> void:
@@ -10123,51 +10123,51 @@ func p_sukunahikona(c: Node3D, t: Node3D) -> void:
 
 
 func p_tailed_beast_telepathy(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXE.tailed_beast_telepathy(self, c, t)
+	LazyFx.g("NinjutsuFXE").tailed_beast_telepathy(self, c, t)
 
 
 ## Teleskop Kristal Küre: önde parlayan kristal küre, içinde dönen ışık
 func p_tomegane_no_jutsu(c: Node3D, t: Node3D) -> void:
-	ArcaneFX.tomegane_no_jutsu(self, c, t)
+	LazyFx.g("ArcaneFX").tomegane_no_jutsu(self, c, t)
 
 
 func p_toton_jutsu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXE.toton_jutsu(self, c, t)
+	LazyFx.g("NinjutsuFXE").toton_jutsu(self, c, t)
 
 
 ## Parşömen açma: önde açılan parşömenden silahlar dumanla çıkar
 func p_kaifu_no_jutsu(c: Node3D, t: Node3D) -> void:
-	FuinjutsuFXB.kaifu_no_jutsu(self, c, t)
+	LazyFx.g("FuinjutsuFXB").kaifu_no_jutsu(self, c, t)
 
 
 func p_mokuton_henge(c: Node3D, t: Node3D) -> void:
-	MokutonFXA.mokuton_henge(self, c, t)
+	LazyFx.g("MokutonFXA").mokuton_henge(self, c, t)
 
 
 func p_gentoshin_no_jutsu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXE.gentoshin_no_jutsu(self, c, t)
+	LazyFx.g("NinjutsuFXE").gentoshin_no_jutsu(self, c, t)
 
 
 ## Isı Pusu: beden çevresinde dalgalı hava
 func p_kagero(c: Node3D, t: Node3D) -> void:
-	MokutonFXA.kagero(self, c, t)
+	LazyFx.g("MokutonFXA").kagero(self, c, t)
 
 
 func p_soshinki(c: Node3D, t: Node3D) -> void:
-	MokutonFXB.soshinki(self, c, t)
+	LazyFx.g("MokutonFXB").soshinki(self, c, t)
 
 
 ## Mühür Çözme: dönen mühür yazısı halkası kırılır
 func p_fuinjutsu_kai(c: Node3D, t: Node3D) -> void:
-	FuinjutsuFXB.fuinjutsu_kai(self, c, t)
+	LazyFx.g("FuinjutsuFXB").fuinjutsu_kai(self, c, t)
 
 
 func p_doton_iwagakure_no_jutsu(c: Node3D, t: Node3D) -> void:
-	DotonFXA.iwagakure_no_jutsu(self, c, t)
+	LazyFx.g("DotonFXA").iwagakure_no_jutsu(self, c, t)
 
 
 func p_shimogakure_no_jutsu(c: Node3D, t: Node3D) -> void:
-	SuitonFXA.shimogakure_no_jutsu(self, c, t)
+	LazyFx.g("SuitonFXA").shimogakure_no_jutsu(self, c, t)
 
 
 # ================================================================== Yeni klan jutsuları CC (klan genişletme): Yuki / Hōzuki / Hoshigaki / Yotsuki / Sarutobi / Hatake
@@ -10210,7 +10210,7 @@ func _hand_weapon(c: Node3D, w: Node3D, dur: float, rot := Vector3(PI * 0.5, 0, 
 
 ## Buz Kırlangıç Fırtınası: onlarca buz kırlangıç ayna gibi parlayıp hedefe dalar
 func p_hyoton_tsubame_fubuki(c: Node3D, t: Node3D) -> void:
-	HyotonFXA.hyoton_tsubame_fubuki(self, c, t)
+	LazyFx.g("HyotonFXA").hyoton_tsubame_fubuki(self, c, t)
 
 
 ## Hyōton: Tsurara Rendan (kanon, Haku): senbonla iki kesik ve tekme, hedef savrulur; ardından havada oluşan iri buz iğneleri yağar
@@ -10272,12 +10272,12 @@ func _water_whip(c: Node3D, tt: Node3D, dur: float) -> void:
 ## Suiton: Suiben (kanon, Kiri av ninjaları): sudan kırbaç hedefe dolanıp bağlar; kullanan raiton bilirse kırbaçtan şimşek
 ## akıtıp bağlananı çarpar. (Eski "Mizu Muchi" — Hōzuki tekniği değil, Kiri öğretmeninden öğrenilir.) Hedef yoksa önünü savurur.
 func p_hozuki_mizu_muchi(c: Node3D, t: Node3D) -> void:
-	SuitonFXC.hozuki_mizu_muchi(self, c, t)
+	LazyFx.g("SuitonFXC").hozuki_mizu_muchi(self, c, t)
 
 
 ## Patlayan Su Çarpışma Dalgası: ağızdan boşalan su alanı denize çevirir
 func p_hoshigaki_bakusui_shoha(c: Node3D, t: Node3D) -> void:
-	SuitonFXF.hoshigaki_bakusui_shoha(self, c, t)
+	LazyFx.g("SuitonFXF").hoshigaki_bakusui_shoha(self, c, t)
 
 
 ## Samehada Yūgō (kanon, Kisame): Samehada ile birleşip köpekbalığı-insana dönüşür — referans: gri-mavi koyu çizgili ten,
@@ -10297,29 +10297,29 @@ func _bone_world_attach(c: Node3D, bone: String, mesh_node: Node3D, world_xf: Tr
 
 
 func p_hoshigaki_gyojin(c: Node3D, _t: Node3D) -> void:
-	SuitonFXF.hoshigaki_gyojin(self, c, _t)
+	LazyFx.g("SuitonFXF").hoshigaki_gyojin(self, c, _t)
 
 
 ## Şimşek Düz Yumruk: şimşek zırhıyla ışık hızında düz hat; yumruk hattı delip geçer
 func p_raiton_sutoreeto(c: Node3D, t: Node3D) -> void:
-	RaitonFXD.raiton_sutoreeto(self, c, t)
+	LazyFx.g("RaitonFXD").raiton_sutoreeto(self, c, t)
 
 
 ## Raiton: Daburu Rariatto (kanon, A ve B'nin ortak tekniği): iki kişi hedefe biri önden biri arkadan ışık hızına yakın
 ## Lariat ile dalar; makas etkisi hedefin başını uçurur. ORTAK GEREKİR: yakında (20 m) bir müttefik (takım arkadaşı,
 ## gölge klon ya da çağrı) olmalı — o hedefin öbür yanından gelir. Oyuncu ve AI aynı kural.
 func p_raiton_daburu_rariatto(c: Node3D, t: Node3D) -> void:
-	RaitonFXE.raiton_daburu_rariatto(self, c, t)
+	LazyFx.g("RaitonFXE").raiton_daburu_rariatto(self, c, t)
 
 
 ## Kara Panter: kara şimşekten panter belirir, dişleri açık hedefe sıçrar
 func p_kokuton_kuro_pansa(c: Node3D, t: Node3D) -> void:
-	RaitonFXC.kuro_pansa(self, c, t)
+	LazyFx.g("RaitonFXC").kuro_pansa(self, c, t)
 
 
 ## Kongōnyoi: maymun kral elmas asaya dönüşür — asa uzayıp ileri saplanır, sonra çevreye savrulur
 func p_sarutobi_enma_kongonyoi(c: Node3D, t: Node3D) -> void:
-	Clan4FXA.sarutobi_enma_kongonyoi(self, c, t)
+	LazyFx.g("Clan4FXA").sarutobi_enma_kongonyoi(self, c, t)
 
 
 ## Ateş Ejderi Alev Mermisi: ağızdan kıvrılan ejder alev seli
@@ -10338,17 +10338,17 @@ func p_sarutobi_karyu_endan(c: Node3D, t: Node3D) -> void:
 
 ## Çoklu Shuriken Klonu: tek shuriken havada yüzlerce kopyaya bölünüp yağmur gibi iner
 func p_sarutobi_shuriken_tajuu(c: Node3D, t: Node3D) -> void:
-	Clan4FXA.sarutobi_shuriken_tajuu(self, c, t)
+	LazyFx.g("Clan4FXA").sarutobi_shuriken_tajuu(self, c, t)
 
 
 ## Şimşek Canavarı İz Süren Diş: kılıç ucundan şimşek tazısı fırlar, hedefi izleyip ısırır
 func p_hatake_raiju_tsuiga(c: Node3D, t: Node3D) -> void:
-	RaitonFXD.hatake_raiju_tsuiga(self, c, t)
+	LazyFx.g("RaitonFXD").hatake_raiju_tsuiga(self, c, t)
 
 
 ## Mor Elektrik: elde mor şimşek toplanır, uzun mor ışın
 func p_hatake_shiden(c: Node3D, t: Node3D) -> void:
-	RaitonFXE.hatake_shiden(self, c, t)
+	LazyFx.g("RaitonFXE").hatake_shiden(self, c, t)
 
 
 ## Gümüş Diş: beyaz ışıklı bıçakla havadan dalış, tek devasa beyaz kesik
@@ -10428,7 +10428,7 @@ func _puppet_body() -> Node3D:
 
 
 func p_shirogane_doku_kiri(c: Node3D, t: Node3D) -> void:
-	KamishiroFXA.shirogane_doku_kiri(self, c, t)
+	LazyFx.g("KamishiroFXA").shirogane_doku_kiri(self, c, t)
 
 
 ## Mürekkep canlı (ref: Chōjū Giga — fırçayla çizilmiş kara hayvanlar, gövdede beyaz fırça çizgileri):
@@ -10504,7 +10504,7 @@ func _ink_splash(pos: Vector3, n := 20) -> void:
 
 
 func p_hoki_sumi_ryu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXF.hoki_sumi_ryu(self, c, t)
+	LazyFx.g("NinjutsuFXF").hoki_sumi_ryu(self, c, t)
 
 
 func p_hoki_sumi_tora(c: Node3D, t: Node3D) -> void:
@@ -10553,7 +10553,7 @@ const BOIL := Color(0.85, 0.9, 0.6)
 
 
 func p_kazahana_kamaitachi_rendan(c: Node3D, t: Node3D) -> void:
-	FutonFXB.kazahana_kamaitachi_rendan(self, c, t)
+	LazyFx.g("FutonFXB").kazahana_kamaitachi_rendan(self, c, t)
 
 
 func p_kazahana_kaze_no_yaiba(c: Node3D, t: Node3D) -> void:
@@ -10570,15 +10570,15 @@ func p_kazahana_kaze_no_yaiba(c: Node3D, t: Node3D) -> void:
 
 
 func p_kazahana_tatsumaki_kabe(c: Node3D, _t: Node3D) -> void:
-	FutonFXC.kazahana_tatsumaki_kabe(self, c, _t)
+	LazyFx.g("FutonFXC").kazahana_tatsumaki_kabe(self, c, _t)
 
 
 func p_ikazuchi_ranton_kyu(c: Node3D, t: Node3D) -> void:
-	RanjinFXA.ikazuchi_ranton_kyu(self, c, t)
+	LazyFx.g("RanjinFXA").ikazuchi_ranton_kyu(self, c, t)
 
 
 func p_ikazuchi_kaminari_ryu(c: Node3D, t: Node3D) -> void:
-	RanjinFXA.ikazuchi_kaminari_ryu(self, c, t)
+	LazyFx.g("RanjinFXA").ikazuchi_kaminari_ryu(self, c, t)
 
 
 func p_ikazuchi_arashi_kabe(c: Node3D, _t: Node3D) -> void:
@@ -10634,7 +10634,7 @@ func p_iwao_ganchuro(c: Node3D, t: Node3D) -> void:
 
 
 func p_iwao_golem_ken(c: Node3D, t: Node3D) -> void:
-	DotonFXC.iwao_golem_ken(self, c, t)
+	LazyFx.g("DotonFXC").iwao_golem_ken(self, c, t)
 
 
 func p_iwao_ganseki_ame(c: Node3D, t: Node3D) -> void:
@@ -10782,11 +10782,11 @@ func p_aburame_mushi_hashira(c: Node3D, t: Node3D) -> void:
 
 
 func p_hijutsu_mushiheki(c: Node3D, t: Node3D) -> void:
-	KurabuFXA.hijutsu_mushiheki(self, c, t)
+	LazyFx.g("KurabuFXA").hijutsu_mushiheki(self, c, t)
 
 
 func p_hijutsu_mushimayu(c: Node3D, t: Node3D) -> void:
-	KurabuFXA.hijutsu_mushimayu(self, c, t)
+	LazyFx.g("KurabuFXA").hijutsu_mushimayu(self, c, t)
 
 
 ## ================================================================ Inuzuka (kanon) — kurt biçimleri
@@ -10922,26 +10922,26 @@ func p_inuzuka_santoro(c: Node3D, _t: Node3D) -> void:
 
 
 func p_terumi_futton_komu(c: Node3D, t: Node3D) -> void:
-	FuttonFXA.terumi_futton_komu(self, c, t)
+	LazyFx.g("FuttonFXA").terumi_futton_komu(self, c, t)
 
 func p_terumi_yoton_yokai(c: Node3D, t: Node3D) -> void:
-	YotonFXA.terumi_yoton_yokai(self, c, t)
+	LazyFx.g("YotonFXA").terumi_yoton_yokai(self, c, t)
 
 
 func p_terumi_suiton_suiryu(c: Node3D, t: Node3D) -> void:
-	SuitonFXF.terumi_suiton_suiryu(self, c, t)
+	LazyFx.g("SuitonFXF").terumi_suiton_suiryu(self, c, t)
 
 
 func p_kako_yoton_kazan(c: Node3D, t: Node3D) -> void:
-	YotonFXA.kako_yoton_kazan(self, c, t)
+	LazyFx.g("YotonFXA").kako_yoton_kazan(self, c, t)
 
 
 func p_kako_yogan_ken(c: Node3D, t: Node3D) -> void:
-	YotonFXA.kako_yogan_ken(self, c, t)
+	LazyFx.g("YotonFXA").kako_yogan_ken(self, c, t)
 
 
 func p_kako_yoton_kansen(c: Node3D, t: Node3D) -> void:
-	YotonFXA.kako_yoton_kansen(self, c, t)
+	LazyFx.g("YotonFXA").kako_yoton_kansen(self, c, t)
 
 
 # ================================================================== Yeni Efsane Yolları teknikleri: Kil / Toprak Kini / Uçan Yıldırım / Şimşek Kılıcı / Jashin / Sekiz Kuyruk
@@ -11055,7 +11055,7 @@ func p_jiongu_ito_kirbac(c: Node3D, t: Node3D) -> void:
 
 ## Domu: ten kararıp taş gibi çatlak desene bürünür (8 sn)
 func p_doton_domu(c: Node3D, _t: Node3D) -> void:
-	DotonFXC.domu(self, c, _t)
+	LazyFx.g("DotonFXC").domu(self, c, _t)
 
 
 ## Maskeli canavar: sırttan çıkan kara iplik gövdeli, beyaz maskeli yaratık
@@ -11516,8 +11516,8 @@ func p_hachibi_ahtapot_kollari(c: Node3D, t: Node3D) -> void:
 func p_hachibi_yedi_kilic(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.3)
 	# Nanatō şart (need weapon:nanato): gerçek yedi kılıç gövdede, beden iki tur breakdance dönüşü; her tur üç seviyede çelik yay
-	NanatoFX.draw_real(c)
-	NanatoFX.play_step(c, 3, 0.85)
+	LazyFx.g("NanatoFX").draw_real(c)
+	LazyFx.g("NanatoFX").play_step(c, 3, 0.85)
 	every(1.2, 0.15, func(_i, k):
 		if live(c):
 			var at = c.global_position
@@ -11525,7 +11525,7 @@ func p_hachibi_yedi_kilic(c: Node3D, t: Node3D) -> void:
 			f.y = 0.0
 			f = f.normalized()
 			var a0 = k * TAU * 5.0
-			NanatoFX.arc(at + Vector3.UP * [0.45, 1.0, 1.55][_i % 3], f, f.cross(Vector3.UP).normalized(), 2.6, a0, a0 + 2.6, 0.16, 0.22)
+			LazyFx.g("NanatoFX").arc(at + Vector3.UP * [0.45, 1.0, 1.55][_i % 3], f, f.cross(Vector3.UP).normalized(), 2.6, a0, a0 + 2.6, 0.16, 0.22)
 			hit(c, c.global_position + Vector3.UP, 3.2, inf(c, "hachibi_yedi_kilic", 0.35, {"knock": 4.0, "kind": "light", "bleed": 1.5})), Callable())
 	Sfx.play("blade", c.global_position, 0.6)
 
@@ -11656,42 +11656,42 @@ func p_sharingan_kopya_kunai(c: Node3D, t: Node3D) -> void:
 
 ## Tenseigan Chakra Modu: altın örtü, çevrede dönen altın arayış topları (20 sn), mermileri siler
 func p_tenseigan_chakura_modo(c: Node3D, t: Node3D) -> void:
-	DojutsuFXD.tenseigan_chakura_modo(self, c, t)
+	LazyFx.g("DojutsuFXD").tenseigan_chakura_modo(self, c, t)
 
 
 ## Kinrin Tensei Baku: altın çekim halkası, sıkıştırma, dev itme patlaması
 func p_kinrin_tensei_baku(c: Node3D, t: Node3D) -> void:
-	DojutsuFXD.kinrin_tensei_baku(self, c, t)
+	LazyFx.g("DojutsuFXD").kinrin_tensei_baku(self, c, t)
 
 
 ## Çekim-İtme: düşmanlar çekilir, ardından savrulur
 func p_tenseigan_inryoku(c: Node3D, t: Node3D) -> void:
-	DojutsuFXD.tenseigan_inryoku(self, c, t)
+	LazyFx.g("DojutsuFXD").tenseigan_inryoku(self, c, t)
 
 
 ## Arayış Yağmuru: altın parlayan arayış topları sürü halinde hedeflere kıvrılır
 func p_tenseigan_gudodama_ame(c: Node3D, t: Node3D) -> void:
-	DojutsuFXD.tenseigan_gudodama_ame(self, c, t)
+	LazyFx.g("DojutsuFXD").tenseigan_gudodama_ame(self, c, t)
 
 
 ## Boyut Yarığı: mavi yarıktan geçip hedefin arkasında belirirsin, ardından darbe
 func p_jogan_jigen_kiri(c: Node3D, t: Node3D) -> void:
-	DojutsuFXD.jogan_jigen_kiri(self, c, t)
+	LazyFx.g("DojutsuFXD").jogan_jigen_kiri(self, c, t)
 
 
 ## İçgörü: klonlar/genjutsu çözülür, zayıf noktalar görünür (10 sn zırh delen vuruşlar)
 func p_jogan_kanpa(c: Node3D, _t: Node3D) -> void:
-	ArcaneFX.jogan_kanpa(self, c, _t)
+	LazyFx.g("ArcaneFX").jogan_kanpa(self, c, _t)
 
 
 ## Mühür Çözücü: çevredeki düşmanların bariyer ve güçlendirmeleri dağılır
 func p_jogan_fuin_kai(c: Node3D, _t: Node3D) -> void:
-	DojutsuFXD.jogan_fuin_kai(self, c, _t)
+	LazyFx.g("DojutsuFXD").jogan_fuin_kai(self, c, _t)
 
 
 ## Ruh Işını: gözden çıkan mavi ruh ışını duvarların içinden geçer
 func p_jogan_seisen(c: Node3D, t: Node3D) -> void:
-	DojutsuFXD.jogan_seisen(self, c, t)
+	LazyFx.g("DojutsuFXD").jogan_seisen(self, c, t)
 
 
 # ================================================================== Yeni klanlar 1: Iburi (duman) / Shimura (rüzgâr) / Tsuchigumo (örümcek) / Jūgo (doğa bedeni)
@@ -12115,12 +12115,12 @@ func _spider(s: float) -> Node3D:
 ## Tsuchigumo-Ryū: Tenchi Kaibyaku (kanon): mühür çözülür, kullanıcı yere çöker ve 4 sn yerden/havadan doğa enerjisi toplar
 ## (vurulursa toplama bozulur); toplanan enerji 60 sn Dohatsuten'i besler
 func p_tsuchigumo_tenchi_kaibyaku(c: Node3D, _t: Node3D) -> void:
-	Clan3FXA.tsuchigumo_tenchi_kaibyaku(self, c, _t)
+	LazyFx.g("Clan3FXA").tsuchigumo_tenchi_kaibyaku(self, c, _t)
 
 
 ## Kinjutsu: Dohatsuten (kanon, En no Gyōja): köyü silen yasak patlama — Tenchi Kaibyaku ile toplanmış enerji şart
 func p_tsuchigumo_kinjutsu(c: Node3D, t: Node3D) -> void:
-	DotonFXD.tsuchigumo_kinjutsu(self, c, t)
+	LazyFx.g("DotonFXD").tsuchigumo_kinjutsu(self, c, t)
 
 
 func p_jugo_dikenler(c: Node3D, _t: Node3D) -> void:
@@ -12150,15 +12150,15 @@ func _jugo_arm(c: Node3D, mesh: Node3D, dur: float) -> void:
 
 
 func p_jugo_jet_yumruk(c: Node3D, t: Node3D) -> void:
-	AkijugoFXA.jugo_jet_yumruk(self, c, t)
+	LazyFx.g("AkijugoFXA").jugo_jet_yumruk(self, c, t)
 
 
 func p_jugo_cekim(c: Node3D, _t: Node3D) -> void:
-	AkijugoFXA.jugo_cekim(self, c, _t)
+	LazyFx.g("AkijugoFXA").jugo_cekim(self, c, _t)
 
 
 func p_jugo_balta_kol(c: Node3D, t: Node3D) -> void:
-	AkijugoFXA.jugo_balta_kol(self, c, t)
+	LazyFx.g("AkijugoFXA").jugo_balta_kol(self, c, t)
 
 
 func p_jugo_kalkan(c: Node3D, _t: Node3D) -> void:
@@ -12171,11 +12171,11 @@ func p_jugo_kalkan(c: Node3D, _t: Node3D) -> void:
 
 
 func p_jugo_top_kol(c: Node3D, t: Node3D) -> void:
-	AkijugoFXA.jugo_top_kol(self, c, t)
+	LazyFx.g("AkijugoFXA").jugo_top_kol(self, c, t)
 
 
 func p_jugo_kanat(c: Node3D, t: Node3D) -> void:
-	AkijugoFXA.jugo_kanat(self, c, t)
+	LazyFx.g("AkijugoFXA").jugo_kanat(self, c, t)
 
 
 ## Senninka (kanon, Jūgo klanı kekkei genkai): bedenden salgılanan sıvı, emilen doğa enerjisiyle bedeni dönüştürür (ten
@@ -12183,7 +12183,7 @@ func p_jugo_kanat(c: Node3D, t: Node3D) -> void:
 ## 2. aşama: daha da iri, Taren Fujizuho açılır. Bedel (kanon): sürekli emilen doğa enerjisi ani, kontrolsüz öldürme nöbetleri
 ## getirir — nöbette kontrol gider, en yakındaki kim olursa (dost bile) ona saldırırsın. Taşlaşma riski yok. AI aynı kural.
 func p_jugo_ofke(c: Node3D, _t: Node3D) -> void:
-	AkijugoFXA.jugo_ofke(self, c, _t)
+	LazyFx.g("AkijugoFXA").jugo_ofke(self, c, _t)
 
 
 # ================================================================== Yeni klanlar 2: Funato (deniz) / Kaminarimon (elektromanyetik şimşek) / Ōtsutsuki (tanrısal soy)
@@ -12249,48 +12249,48 @@ func _crab_of(c: Node3D) -> Dictionary:
 
 ## Kuchiyose: Shiomaneki (kanon): parşömenden dev kıskaç çağrılır, kola geçer; 25 sn yakın dövüş güçlenir (metali keser)
 func p_funato_shiomaneki(c: Node3D, _t: Node3D) -> void:
-	FinalFX0.funato_shiomaneki(self, c, _t)
+	LazyFx.g("FinalFX0").funato_shiomaneki(self, c, _t)
 
 
 ## Isō Ryōdan (kanon): kıskaç açık rakibe atılır, başına kapanır — ağır tek kesik. Kıskaç takılı olmalı
 func p_funato_iso_ryodan(c: Node3D, t: Node3D) -> void:
-	FinalFX0.funato_iso_ryodan(self, c, t)
+	LazyFx.g("FinalFX0").funato_iso_ryodan(self, c, t)
 
 
 ## Suiton: Suisairin (kanon): sudan sayısız balık pulu kıskacın içinden yelpaze gibi fırlar. Kıskaç takılı olmalı
 func p_funato_suisairin(c: Node3D, t: Node3D) -> void:
-	SuitonFXF.funato_suisairin(self, c, t)
+	LazyFx.g("SuitonFXF").funato_suisairin(self, c, t)
 
 func p_kaminarimon_denko_ken(c: Node3D, t: Node3D) -> void:
-	RaitonFXA.denko_ken(self, c, t)
+	LazyFx.g("RaitonFXA").denko_ken(self, c, t)
 
 
 func p_kaminarimon_raijin_tate(c: Node3D, _t: Node3D) -> void:
-	RaitonFXA.raijin_tate(self, c, _t)
+	LazyFx.g("RaitonFXA").raijin_tate(self, c, _t)
 
 
 func p_kaminarimon_denki_ito(c: Node3D, t: Node3D) -> void:
-	RaitonFXB.kaminarimon_denki_ito(self, c, t)
+	LazyFx.g("RaitonFXB").kaminarimon_denki_ito(self, c, t)
 
 
 func p_kaminarimon_raikou(c: Node3D, t: Node3D) -> void:
-	RaitonFXB.kaminarimon_raikou(self, c, t)
+	LazyFx.g("RaitonFXB").kaminarimon_raikou(self, c, t)
 
 
 func p_kaminarimon_raikyu_ame(c: Node3D, t: Node3D) -> void:
-	RaitonFXB.kaminarimon_raikyu_ame(self, c, t)
+	LazyFx.g("RaitonFXB").kaminarimon_raikyu_ame(self, c, t)
 
 
 func p_kaminarimon_denji_hoko(c: Node3D, t: Node3D) -> void:
-	RaitonFXC.denji_hoko(self, c, t)
+	LazyFx.g("RaitonFXC").denji_hoko(self, c, t)
 
 
 func p_kaminarimon_kuro_ikazuchi(c: Node3D, t: Node3D) -> void:
-	RaitonFXC.kuro_ikazuchi(self, c, t)
+	LazyFx.g("RaitonFXC").kuro_ikazuchi(self, c, t)
 
 
 func p_kaminarimon_tenrai(c: Node3D, t: Node3D) -> void:
-	RaitonFXC.tenrai(self, c, t)
+	LazyFx.g("RaitonFXC").tenrai(self, c, t)
 
 
 func p_otsutsuki_haikotsu(c: Node3D, t: Node3D) -> void:
@@ -12631,7 +12631,7 @@ func p_yuhi_kokuangyo(c: Node3D, t: Node3D) -> void:
 ## çevresinden fasulye sarmaşıkları çıkıp bedenini sarar ve onu havaya kaldırır; yerden bir fasulye kabuğu yükselip açılır,
 ## içinden kullanıcı vurmaya hazır çıkar. Oyuncu ve AI aynı fonksiyon (direnç: Eyes.genjutsu_land).
 func p_yuhi_sarmasik(c: Node3D, t: Node3D) -> void:
-	Clan4FXA.yuhi_sarmasik(self, c, t)
+	LazyFx.g("Clan4FXA").yuhi_sarmasik(self, c, t)
 
 
 ## Ayna Yansıması: 5 sn beden aynaya döner; gelen darbeler azalır, vuranı illüzyon sersemletir
@@ -12790,7 +12790,7 @@ func p_yuhi_kyoka(c: Node3D, t: Node3D) -> void:
 ## Yüzleşme Mührü'nde parmaklarını birleştirir; halkanın içindeki herkes işaretli yere ışınlanır. İşaret köyün Kage'sinde
 ## (muhafızlar Hokage'yi işaretlemişti): takım Kage Kulesi'nin önüne iner. Yanında iki müttefik yoksa çalışmaz.
 func p_hiraijin_no_jutsu(c: Node3D, _t: Node3D) -> void:
-	FinalFX3.hiraijin_no_jutsu(self, c, _t)
+	LazyFx.g("FinalFX3").hiraijin_no_jutsu(self, c, _t)
 
 
 # ================================================================== Yeni klanlar 4: Momochi (sessiz öldürme) / Kurosuki (şimşek kılıçları) / Hagoromo (tüy ve illüzyon)
@@ -12827,7 +12827,7 @@ func _ks_cloud(at: Vector3, r: float, dur: float) -> void:
 ## Ikazuchi no Kiba (anime, Raiga Kurosuki): iki Kiba kılıcı birleşir, kılıçlardan buluta elektrik akar ve istenen yere
 ## (hedefin çevresine) yıldırımlar iner. Kiba ile öğrenilir (weapon:kiba); kılıç elde değilse (NPC) geçici ikiz kılıç çıkar
 func p_kurosuki_ikazuchi_kiba(c: Node3D, t: Node3D) -> void:
-	RaitonFXF.kurosuki_ikazuchi_kiba(self, c, t)
+	LazyFx.g("RaitonFXF").kurosuki_ikazuchi_kiba(self, c, t)
 
 
 # ================================================================== VİDEO FŪTON: eksik rüzgâr teknikleri (anime derlemesine göre)
@@ -12849,7 +12849,7 @@ func _wind_lift(c: Node3D, e: Node3D, h: float, dur: float) -> void:
 
 ## Jūha Reppūshō: iki avuçtan art arda mavi hilal rüzgâr dalgaları
 func p_juha_reppusho(c: Node3D, t: Node3D) -> void:
-	FutonFXB.juha_reppusho(self, c, t)
+	LazyFx.g("FutonFXB").juha_reppusho(self, c, t)
 
 
 ## Kakeami: ileri atılan görünmez rüzgâr ağı — yakalananlar sıkışıp kalır
@@ -12874,96 +12874,96 @@ func _wind_net(c: Node3D, at: Vector3, r: float, hold: float, id: String, from_s
 
 
 func p_futon_kakeami(c: Node3D, t: Node3D) -> void:
-	FutonFXB.futon_kakeami(self, c, t)
+	LazyFx.g("FutonFXB").futon_kakeami(self, c, t)
 
 
 func p_futon_okakeami(c: Node3D, t: Node3D) -> void:
-	FutonFXC.futon_okakeami(self, c, t)
+	LazyFx.g("FutonFXC").futon_okakeami(self, c, t)
 
 
 ## Renkūdan: derin nefes, dev sıkışık hava topu, çarpınca her yöne süpürür
 func p_futon_renkudan(c: Node3D, t: Node3D) -> void:
-	FutonFXA.futon_renkudan(self, c, t)
+	LazyFx.g("FutonFXA").futon_renkudan(self, c, t)
 
 
 ## Senpō: Fūton Sajin — doğa enerjili kum ve toz fırtınası ileri yuvarlanır
 func p_senpo_futon_sajin(c: Node3D, t: Node3D) -> void:
-	FutonFXE.senpo_futon_sajin(self, c, t)
+	LazyFx.g("FutonFXE").senpo_futon_sajin(self, c, t)
 
 
 ## Kyodai Sensu: dev yelpaze üç kez savrulur, her yıldızda rüzgâr büyür
 func p_kyodai_sensu(c: Node3D, t: Node3D) -> void:
-	FutonFXB.kyodai_sensu(self, c, t)
+	LazyFx.g("FutonFXB").kyodai_sensu(self, c, t)
 
 
 ## Fūsajin: etrafa yoğun kum tozu — düşmanlar kör ve yavaş, sen gizlenirsin
 func p_fusajin_no_jutsu(c: Node3D, t: Node3D) -> void:
-	FutonFXA.fusajin_no_jutsu(self, c, t)
+	LazyFx.g("FutonFXA").fusajin_no_jutsu(self, c, t)
 
 
 ## Nadeshiko Senkai Giri: rüzgârla dönen tekme, etrafında kesen çember
 func p_nadeshiko_senkai_giri(c: Node3D, t: Node3D) -> void:
-	FutonFXB.nadeshiko_senkai_giri(self, c, t)
+	LazyFx.g("FutonFXB").nadeshiko_senkai_giri(self, c, t)
 
 
 ## Senpō Rasenshuriken: doğa enerjisiyle atılan, uçarken büyüyen Rasenshuriken
 func p_senpo_futon_rasenshuriken(c: Node3D, t: Node3D) -> void:
-	FutonFXE.senpo_futon_rasenshuriken(self, c, t)
+	LazyFx.g("FutonFXE").senpo_futon_rasenshuriken(self, c, t)
 
 
 ## Gufū Bōha: etrafında dönen kasırga perdesi — mermileri savurur, yaklaşanı iter
 func p_gufu_boha(c: Node3D, t: Node3D) -> void:
-	FutonFXB.gufu_boha(self, c, t)
+	LazyFx.g("FutonFXB").gufu_boha(self, c, t)
 
 
 ## Shinkūken: kılıcın etrafında sıkışan vakum — uzun tek kesik
 func p_shinkuken(c: Node3D, t: Node3D) -> void:
-	FutonFXC.shinkuken(self, c, t)
+	LazyFx.g("FutonFXC").shinkuken(self, c, t)
 
 
 ## Taifū Ikka: önünde doğan dev tayfun ileri yürür, içine gireni göğe fırlatır
 func p_futon_taifu_ikka(c: Node3D, t: Node3D) -> void:
-	FutonFXC.futon_taifu_ikka(self, c, t)
+	LazyFx.g("FutonFXC").futon_taifu_ikka(self, c, t)
 
 
 ## Ryū no Ōshigoto: rüzgârdan ince ejder
 func p_futon_ryu_no_oshigoto(c: Node3D, t: Node3D) -> void:
-	FutonFXC.futon_ryu_no_oshigoto(self, c, t)
+	LazyFx.g("FutonFXC").futon_ryu_no_oshigoto(self, c, t)
 
 
 ## Rasen Kyūdan: avuçta dönen rüzgâr topu, yolda büyüyüp deler
 func p_futon_rasen_kyudan(c: Node3D, t: Node3D) -> void:
-	FutonFXC.futon_rasen_kyudan(self, c, t)
+	LazyFx.g("FutonFXC").futon_rasen_kyudan(self, c, t)
 
 
 ## Suiran Reppū: yeşilimsi rüzgâr burgaçları yükselir, yaprakları ve düşmanları keser
 func p_futon_suiran_reppu(c: Node3D, t: Node3D) -> void:
-	FutonFXC.futon_suiran_reppu(self, c, t)
+	LazyFx.g("FutonFXC").futon_suiran_reppu(self, c, t)
 
 
 ## Hataryū: sancak gibi dalgalanan uzun rüzgâr şeritleri ileri akar
 func p_futon_hata_ryu(c: Node3D, t: Node3D) -> void:
-	FutonFXC.futon_hata_ryu(self, c, t)
+	LazyFx.g("FutonFXC").futon_hata_ryu(self, c, t)
 
 
 ## Kiryū Ranbu: etrafında dans eden üç küçük hortum düşmanları kovalar
 func p_futon_kiryu_ranbu(c: Node3D, t: Node3D) -> void:
-	FutonFXD.futon_kiryu_ranbu(self, c, t)
+	LazyFx.g("FutonFXD").futon_kiryu_ranbu(self, c, t)
 
 
 ## Shakujō Senpū: asa döndürülür, önünde rüzgâr burgusu açılır, yakındakileri çeker
 func p_shakujo_senpu(c: Node3D, t: Node3D) -> void:
-	FutonFXC.shakujo_senpu(self, c, t)
+	LazyFx.g("FutonFXC").shakujo_senpu(self, c, t)
 
 
 ## Kujaku Senpū: tavus kuşu kuyruğu gibi açılan renkli rüzgâr yelpazesi
 func p_kujaku_senpu(c: Node3D, t: Node3D) -> void:
-	FutonFXC.kujaku_senpu(self, c, t)
+	LazyFx.g("FutonFXC").kujaku_senpu(self, c, t)
 
 
 ## Rasengan Shunki: Rasengan parlar, göz açıp kapayıncaya kadar hedefe varırsın
 func p_rasengan_shunki(c: Node3D, t: Node3D) -> void:
-	FutonFXD.rasengan_shunki(self, c, t)
+	LazyFx.g("FutonFXD").rasengan_shunki(self, c, t)
 
 
 ## Bijū Rasenshuriken'leri ortak atış: renkli kuyruklu dev Rasenshuriken
@@ -13003,32 +13003,32 @@ func p_chooodama_rasenshuriken(c: Node3D, t: Node3D) -> void:
 
 
 func p_rikudo_chooodama_rasenshuriken(c: Node3D, t: Node3D) -> void:
-	FutonFXE.rikudo_chooodama_rasenshuriken(self, c, t)
+	LazyFx.g("FutonFXE").rikudo_chooodama_rasenshuriken(self, c, t)
 
 
 ## Bijūdama Rasenshuriken: kara bijūdama etrafına rüzgâr bıçakları
 func p_bijudama_rasenshuriken(c: Node3D, t: Node3D) -> void:
-	FutonFXE.bijudama_rasenshuriken(self, c, t)
+	LazyFx.g("FutonFXE").bijudama_rasenshuriken(self, c, t)
 
 
 ## Sasandan: rüzgârla sertleşmiş kum bilyeleri yelpaze halinde yağar
 func p_futon_sasandan(c: Node3D, t: Node3D) -> void:
-	FutonFXC.futon_sasandan(self, c, t)
+	LazyFx.g("FutonFXC").futon_sasandan(self, c, t)
 
 
 ## Uzukaze: hedefin ayağının altında küçük girdap, döndürüp yere çarpar
 func p_futon_uzu(c: Node3D, t: Node3D) -> void:
-	FutonFXA.futon_uzu(self, c, t)
+	LazyFx.g("FutonFXA").futon_uzu(self, c, t)
 
 
 ## Sunaarashi: geniş alana kum fırtınası çöker — yavaşlar, kör olur, aşınır
 func p_suna_arashi_no_jutsu(c: Node3D, t: Node3D) -> void:
-	FutonFXC.suna_arashi_no_jutsu(self, c, t)
+	LazyFx.g("FutonFXC").suna_arashi_no_jutsu(self, c, t)
 
 
 ## Kazanami: yere vurulan avuçtan halka halka rüzgâr dalgaları
 func p_kazanami(c: Node3D, t: Node3D) -> void:
-	FutonFXA.kazanami(self, c, t)
+	LazyFx.g("FutonFXA").kazanami(self, c, t)
 
 
 # ================================================================== VİDEO RAİTON: eksik şimşek teknikleri (anime derlemesine göre)
@@ -13049,12 +13049,12 @@ func _sky_bolt(c: Node3D, at: Vector3, col: Color, id: String, mul: float, r := 
 
 ## Raiton Chakra Modu: beden şimşekle kaplanır — hız, sersemleten vuruş, değene çarpma
 func p_raiton_chakura_modo(c: Node3D, t: Node3D) -> void:
-	RaitonFXC.chakura_modo(self, c, t)
+	LazyFx.g("RaitonFXC").chakura_modo(self, c, t)
 
 
 ## Raigeki no Yoroi: şimşek zırhı — hasar azalır, yakın vuran çarpılıp savrulur
 func p_raigeki_no_yoroi(c: Node3D, t: Node3D) -> void:
-	RaitonFXB.raigeki_no_yoroi(self, c, t)
+	LazyFx.g("RaitonFXB").raigeki_no_yoroi(self, c, t)
 
 
 ## Raisō: Ikazuchi no Utage — gökten art arda yıldırımlar
@@ -13081,52 +13081,52 @@ func p_raiso_ikazuchi_no_utage(c: Node3D, t: Node3D) -> void:
 
 ## Vishnu: doğa enerjili dev altın şimşek sütunu + yayılan şimşek ağları
 func p_vishnu_senpo_raiton(c: Node3D, t: Node3D) -> void:
-	LightningFX.vishnu_senpo_raiton(self, c, t)
+	LazyFx.g("LightningFX").vishnu_senpo_raiton(self, c, t)
 
 
 ## Gian: ağızdan fışkıran kalın mızrak şimşek ışını, dallara ayrılır
 func p_raiton_gian(c: Node3D, t: Node3D) -> void:
-	RaitonFXC.gian(self, c, t)
+	LazyFx.g("RaitonFXC").gian(self, c, t)
 
 
 ## Denkō Sekka: şimşek gibi atılma, çatırdayan iz yakındakileri çarpar
 func p_denko_sekka(c: Node3D, t: Node3D) -> void:
-	RaitonFXB.denko_sekka(self, c, t)
+	LazyFx.g("RaitonFXB").denko_sekka(self, c, t)
 
 
 ## Raitōjutsu: Rakurai — sıçrayıp şimşekli kılıçla yıldırım gibi iniş
 func p_raitojutsu_rakurai(c: Node3D, t: Node3D) -> void:
-	RaitonFXC.rakurai(self, c, t)
+	LazyFx.g("RaitonFXC").rakurai(self, c, t)
 
 
 ## Raisenshō: şimşek yüklü avuç hamlesi, şimşek arkadakilere zincirlenir
 func p_raisensho(c: Node3D, t: Node3D) -> void:
-	RaitonFXB.raisensho(self, c, t)
+	LazyFx.g("RaitonFXB").raisensho(self, c, t)
 
 
 ## Raiso Gekishin: yer altında koşan şimşek fareleri düşmanların altında patlar
 func p_raiso_gekishin(c: Node3D, t: Node3D) -> void:
-	LightningFX.raiso_gekishin(self, c, t)
+	LazyFx.g("LightningFX").raiso_gekishin(self, c, t)
 
 
 ## Bakurai: yere gömülen şimşek yükü bir an sonra patlar, zemin yarılır
 func p_raiton_bakurai(c: Node3D, t: Node3D) -> void:
-	LightningFX.raiton_bakurai(self, c, t)
+	LazyFx.g("LightningFX").raiton_bakurai(self, c, t)
 
 
 ## Jūrokuchū Shibari: on altı şimşek sütunu ve aralarında şimşek ağı
 func p_raiton_jurokuchu_shibari(c: Node3D, t: Node3D) -> void:
-	RaitonFXC.jurokuchu_shibari(self, c, t)
+	LazyFx.g("RaitonFXC").jurokuchu_shibari(self, c, t)
 
 
 ## Rairyū no Tatsumaki: şimşek ejderi dönerek yükselip hortuma dönüşür
 func p_rairyu_no_tatsumaki(c: Node3D, t: Node3D) -> void:
-	LightningFX.rairyu_no_tatsumaki(self, c, t)
+	LazyFx.g("LightningFX").rairyu_no_tatsumaki(self, c, t)
 
 
 ## Bashura Raikyū: altın-beyaz şimşek topu, çarpınca şimşek kafesi gibi patlar
 func p_vajra_raikyu(c: Node3D, t: Node3D) -> void:
-	RaitonFXC.vajra_raikyu(self, c, t)
+	LazyFx.g("RaitonFXC").vajra_raikyu(self, c, t)
 
 
 ## Kuroi Chidori: kara alevle karışmış Chidori — hedefte kara alev tutuşur
@@ -13161,17 +13161,17 @@ func p_kuroi_chidori(c: Node3D, t: Node3D) -> void:
 
 ## Raisuiryūdan: içinden şimşek akan su ejderi
 func p_raisuiryudan(c: Node3D, t: Node3D) -> void:
-	RaitonFXC.raisuiryudan(self, c, t)
+	LazyFx.g("RaitonFXC").raisuiryudan(self, c, t)
 
 
 ## Rengō Raibakudan: beş şimşek kürecik hedefte birleşip dev yıldırım bombası olur
 func p_raiton_rengo_raibakudan(c: Node3D, t: Node3D) -> void:
-	LightningFX.raiton_rengo_raibakudan(self, c, t)
+	LazyFx.g("LightningFX").raiton_rengo_raibakudan(self, c, t)
 
 
 ## Çift Kuropansā: iki kara şimşek panteri iki yandan sıkıştırır
 func p_daburu_kuropansa(c: Node3D, t: Node3D) -> void:
-	RaitonFXC.daburu_kuropansa(self, c, t)
+	LazyFx.g("RaitonFXC").daburu_kuropansa(self, c, t)
 
 
 # ================================================================== JUTSU SİLAHLARI: animede özel silahla atılan teknikler (elde belirir, sonra kaybolur)
@@ -13275,31 +13275,31 @@ func _pop(p: Vector3, s := 1.0, _col := Color(0.85, 0.95, 1.0)) -> void:
 
 
 func p_suiton_suihachi(c: Node3D, t: Node3D) -> void:
-	SuitonFXC.suiton_suihachi(self, c, t)
+	LazyFx.g("SuitonFXC").suiton_suihachi(self, c, t)
 
 
 func p_suiton_suishoha(c: Node3D, t: Node3D) -> void:
-	SuitonFXD.suiton_suishoha(self, c, t)
+	LazyFx.g("SuitonFXD").suiton_suishoha(self, c, t)
 
 
 func p_suiton_daibakuryu(c: Node3D, t: Node3D) -> void:
-	SuitonFXD.suiton_daibakuryu(self, c, t)
+	LazyFx.g("SuitonFXD").suiton_daibakuryu(self, c, t)
 
 
 func p_mizuame_bakujo(c: Node3D, t: Node3D) -> void:
-	SuitonFXC.mizuame_bakujo(self, c, t)
+	LazyFx.g("SuitonFXC").mizuame_bakujo(self, c, t)
 
 
 func p_suiton_suikyu(c: Node3D, t: Node3D) -> void:
-	SuitonFXC.suiton_suikyu(self, c, t)
+	LazyFx.g("SuitonFXC").suiton_suikyu(self, c, t)
 
 
 func p_suiton_amearare(c: Node3D, t: Node3D) -> void:
-	SuitonFXC.suiton_amearare(self, c, t)
+	LazyFx.g("SuitonFXC").suiton_amearare(self, c, t)
 
 
 func p_santoka(c: Node3D, t: Node3D) -> void:
-	SuitonFXC.santoka(self, c, t)
+	LazyFx.g("SuitonFXC").santoka(self, c, t)
 
 
 func p_iryo_suiton_mizukamakiri(c: Node3D, t: Node3D) -> void:
@@ -13333,7 +13333,7 @@ func p_iryo_suiton_mizukamakiri(c: Node3D, t: Node3D) -> void:
 
 
 func p_iryo_suiton_mizukurage(c: Node3D, t: Node3D) -> void:
-	SuitonFXC.iryo_suiton_mizukurage(self, c, t)
+	LazyFx.g("SuitonFXC").iryo_suiton_mizukurage(self, c, t)
 
 
 func p_homatsu_hiromori(c: Node3D, t: Node3D) -> void:
@@ -13359,51 +13359,51 @@ func p_homatsu_hiromori(c: Node3D, t: Node3D) -> void:
 
 
 func p_homatsu_tadayoi(c: Node3D, t: Node3D) -> void:
-	SuitonFXB.homatsu_tadayoi(self, c, t)
+	LazyFx.g("SuitonFXB").homatsu_tadayoi(self, c, t)
 
 
 func p_obore_awa(c: Node3D, t: Node3D) -> void:
-	SuitonFXC.obore_awa(self, c, t)
+	LazyFx.g("SuitonFXC").obore_awa(self, c, t)
 
 
 func p_sumi_awa_bakuhatsu(c: Node3D, t: Node3D) -> void:
-	SuitonFXB.sumi_awa_bakuhatsu(self, c, t)
+	LazyFx.g("SuitonFXB").sumi_awa_bakuhatsu(self, c, t)
 
 
 func p_kibaku_awa(c: Node3D, t: Node3D) -> void:
-	SuitonFXC.kibaku_awa(self, c, t)
+	LazyFx.g("SuitonFXC").kibaku_awa(self, c, t)
 
 
 func p_sekken_awa(c: Node3D, t: Node3D) -> void:
-	SuitonFXB.sekken_awa(self, c, t)
+	LazyFx.g("SuitonFXB").sekken_awa(self, c, t)
 
 
 func p_mekura_awa(c: Node3D, t: Node3D) -> void:
-	SuitonFXB.mekura_awa(self, c, t)
+	LazyFx.g("SuitonFXB").mekura_awa(self, c, t)
 
 
 func p_suiton_kakuremino(c: Node3D, t: Node3D) -> void:
-	SuitonFXB.suiton_kakuremino(self, c, t)
+	LazyFx.g("SuitonFXB").suiton_kakuremino(self, c, t)
 
 
 func p_suiton_suichu(c: Node3D, t: Node3D) -> void:
-	SuitonFXD.suiton_suichu(self, c, t)
+	LazyFx.g("SuitonFXD").suiton_suichu(self, c, t)
 
 
 func p_nensuikai(c: Node3D, t: Node3D) -> void:
-	SuitonFXD.nensuikai(self, c, t)
+	LazyFx.g("SuitonFXD").nensuikai(self, c, t)
 
 
 func p_mizudeppo_no_jutsu(c: Node3D, t: Node3D) -> void:
-	SuitonFXA.mizudeppo_no_jutsu(self, c, t)
+	LazyFx.g("SuitonFXA").mizudeppo_no_jutsu(self, c, t)
 
 
 func p_suiton_daikaisuidan(c: Node3D, t: Node3D) -> void:
-	SuitonFXD.suiton_daikaisuidan(self, c, t)
+	LazyFx.g("SuitonFXD").suiton_daikaisuidan(self, c, t)
 
 
 func p_suiton_haran_bansho(c: Node3D, t: Node3D) -> void:
-	SuitonFXD.suiton_haran_bansho(self, c, t)
+	LazyFx.g("SuitonFXD").suiton_haran_bansho(self, c, t)
 
 
 func p_uramiame(c: Node3D, t: Node3D) -> void:
@@ -13446,19 +13446,19 @@ func p_sensatsu_suisho(c: Node3D, t: Node3D) -> void:
 
 
 func p_mizufusen_no_jutsu(c: Node3D, t: Node3D) -> void:
-	SuitonFXB.mizufusen_no_jutsu(self, c, t)
+	LazyFx.g("SuitonFXB").mizufusen_no_jutsu(self, c, t)
 
 
 func p_kugutsu_suiton_yoame(c: Node3D, t: Node3D) -> void:
-	SuitonFXD.kugutsu_suiton_yoame(self, c, t)
+	LazyFx.g("SuitonFXD").kugutsu_suiton_yoame(self, c, t)
 
 
 func p_suiton_suigun_suima(c: Node3D, t: Node3D) -> void:
-	SuitonFXD.suiton_suigun_suima(self, c, t)
+	LazyFx.g("SuitonFXD").suiton_suigun_suima(self, c, t)
 
 
 func p_ame_kakure(c: Node3D, t: Node3D) -> void:
-	SuitonFXB.ame_kakure(self, c, t)
+	LazyFx.g("SuitonFXB").ame_kakure(self, c, t)
 
 
 # ================================================================== VİDEO DOTON: eksik toprak teknikleri (anime derlemesine göre)
@@ -13536,11 +13536,11 @@ func p_doton_iwa_no_michi(c: Node3D, t: Node3D) -> void:
 
 
 func p_doton_chiwari(c: Node3D, t: Node3D) -> void:
-	DotonFXC.chiwari(self, c, t)
+	LazyFx.g("DotonFXC").chiwari(self, c, t)
 
 
 func p_doton_ganbankyu(c: Node3D, t: Node3D) -> void:
-	DotonFXD.ganbankyu(self, c, t)
+	LazyFx.g("DotonFXD").ganbankyu(self, c, t)
 
 
 func p_doton_dochu_kussaku(c: Node3D, t: Node3D) -> void:
@@ -13563,7 +13563,7 @@ func p_doton_dochu_kussaku(c: Node3D, t: Node3D) -> void:
 
 
 func p_doton_daichi_dokaku(c: Node3D, t: Node3D) -> void:
-	DotonFXD.daichi_dokaku(self, c, t)
+	LazyFx.g("DotonFXD").daichi_dokaku(self, c, t)
 
 
 func p_doton_uitenpen(c: Node3D, t: Node3D) -> void:
@@ -13598,35 +13598,35 @@ func p_doton_kakure_kumo(c: Node3D, t: Node3D) -> void:
 
 
 func p_doton_ganseki_atsu(c: Node3D, t: Node3D) -> void:
-	StrikeFX.doton_ganseki_atsu(self, c, t)
+	LazyFx.g("StrikeFX").doton_ganseki_atsu(self, c, t)
 
 
 func p_doton_doha(c: Node3D, t: Node3D) -> void:
-	DotonFXC.doha(self, c, t)
+	LazyFx.g("DotonFXC").doha(self, c, t)
 
 
 func p_doton_iwa_no_yoroi(c: Node3D, t: Node3D) -> void:
-	DotonFXC.iwa_no_yoroi(self, c, t)
+	LazyFx.g("DotonFXC").iwa_no_yoroi(self, c, t)
 
 
 func p_doton_gansetsukon(c: Node3D, t: Node3D) -> void:
-	DotonFXC.gansetsukon(self, c, t)
+	LazyFx.g("DotonFXC").gansetsukon(self, c, t)
 
 
 func p_doton_sunaodori(c: Node3D, t: Node3D) -> void:
-	StrikeFX.doton_sunaodori(self, c, t)
+	LazyFx.g("StrikeFX").doton_sunaodori(self, c, t)
 
 
 func p_doton_dochubaku(c: Node3D, t: Node3D) -> void:
-	DotonFXC.dochubaku(self, c, t)
+	LazyFx.g("DotonFXC").dochubaku(self, c, t)
 
 
 func p_doton_doriku_gaeshi(c: Node3D, t: Node3D) -> void:
-	DotonFXA.doriku_gaeshi(self, c, t)
+	LazyFx.g("DotonFXA").doriku_gaeshi(self, c, t)
 
 
 func p_doton_otoshibuta(c: Node3D, t: Node3D) -> void:
-	StrikeFX.doton_otoshibuta(self, c, t)
+	LazyFx.g("StrikeFX").doton_otoshibuta(self, c, t)
 
 
 func p_doton_taju_doryuheki(c: Node3D, t: Node3D) -> void:
@@ -13639,11 +13639,11 @@ func p_doton_taju_doryuheki(c: Node3D, t: Node3D) -> void:
 
 
 func p_doton_ganteppo(c: Node3D, t: Node3D) -> void:
-	DotonFXA.ganteppo(self, c, t)
+	LazyFx.g("DotonFXA").ganteppo(self, c, t)
 
 
 func p_doton_doro_hoshi(c: Node3D, t: Node3D) -> void:
-	DotonFXA.doro_hoshi(self, c, t)
+	LazyFx.g("DotonFXA").doro_hoshi(self, c, t)
 
 
 func p_doton_nentsuchi_otoshi(c: Node3D, t: Node3D) -> void:
@@ -13695,7 +13695,7 @@ func p_retsudo_tenshin(c: Node3D, t: Node3D) -> void:
 
 
 func p_doton_tekkenro(c: Node3D, t: Node3D) -> void:
-	DotonFXD.tekkenro(self, c, t)
+	LazyFx.g("DotonFXD").tekkenro(self, c, t)
 
 
 func p_mogura_tataki(c: Node3D, t: Node3D) -> void:
@@ -13722,11 +13722,11 @@ func p_mogura_tataki(c: Node3D, t: Node3D) -> void:
 
 
 func p_doton_chidokaku(c: Node3D, t: Node3D) -> void:
-	DotonFXC.chidokaku(self, c, t)
+	LazyFx.g("DotonFXC").chidokaku(self, c, t)
 
 
 func p_doton_doro_hane(c: Node3D, t: Node3D) -> void:
-	DotonFXA.doro_hane(self, c, t)
+	LazyFx.g("DotonFXA").doro_hane(self, c, t)
 
 
 func p_doton_banri_doryuheki(c: Node3D, t: Node3D) -> void:
@@ -13741,7 +13741,7 @@ func p_doton_banri_doryuheki(c: Node3D, t: Node3D) -> void:
 
 
 func p_doton_chokeijugan(c: Node3D, t: Node3D) -> void:
-	DotonFXD.chokeijugan(self, c, t)
+	LazyFx.g("DotonFXD").chokeijugan(self, c, t)
 
 
 # ================================================================== VİDEO KATON: eksik ateş teknikleri (anime derlemesine göre)
@@ -13793,11 +13793,11 @@ func _fire_stream(c: Node3D, from: Vector3, dir: Vector3, length: float, radius:
 
 
 func p_katon_beni_jigumo(c: Node3D, t: Node3D) -> void:
-	KatonFXA.katon_beni_jigumo(self, c, t)
+	LazyFx.g("KatonFXA").katon_beni_jigumo(self, c, t)
 
 
 func p_katon_suyaki(c: Node3D, t: Node3D) -> void:
-	KatonFXA.katon_suyaki(self, c, t)
+	LazyFx.g("KatonFXA").katon_suyaki(self, c, t)
 
 
 ## Alev kuşu (Karura): alev malzemeli kuş — sivri gagalı baş, kabarık göğüs, uzun alev tüylü kuyruk, tüylü büyük kanatlar
@@ -13852,59 +13852,59 @@ func _fire_bird(s: float) -> Node3D:
 	return ClayArt._fwd(root)
 
 func p_katon_karura(c: Node3D, t: Node3D) -> void:
-	KatonFXB.katon_karura(self, c, t)
+	LazyFx.g("KatonFXB").katon_karura(self, c, t)
 
 
 func p_katon_hikakure(c: Node3D, t: Node3D) -> void:
-	KatonFXB.katon_hikakure(self, c, t)
+	LazyFx.g("KatonFXB").katon_hikakure(self, c, t)
 
 
 func p_gamayu_endan(c: Node3D, t: Node3D) -> void:
-	KatonFXC.gamayu_endan(self, c, t)
+	LazyFx.g("KatonFXC").gamayu_endan(self, c, t)
 
 
 func p_katon_kaenbu(c: Node3D, t: Node3D) -> void:
-	ElementFX.katon_kaenbu(self, c, t)
+	LazyFx.g("ElementFX").katon_kaenbu(self, c, t)
 
 
 func p_katon_ryuka(c: Node3D, t: Node3D) -> void:
-	ElementFX.katon_ryuka(self, c, t)
+	LazyFx.g("ElementFX").katon_ryuka(self, c, t)
 
 
 func p_katon_homura_ryusei(c: Node3D, t: Node3D) -> void:
-	KatonFXB.katon_homura_ryusei(self, c, t)
+	LazyFx.g("KatonFXB").katon_homura_ryusei(self, c, t)
 
 
 func p_katon_enshodan(c: Node3D, t: Node3D) -> void:
-	KatonFXA.katon_enshodan(self, c, t)
+	LazyFx.g("KatonFXA").katon_enshodan(self, c, t)
 
 
 func p_katon_enryuheki(c: Node3D, t: Node3D) -> void:
-	KatonFXB.katon_enryuheki(self, c, t)
+	LazyFx.g("KatonFXB").katon_enryuheki(self, c, t)
 
 
 func p_katon_hobaku_en(c: Node3D, t: Node3D) -> void:
-	KatonFXB.katon_hobaku_en(self, c, t)
+	LazyFx.g("KatonFXB").katon_hobaku_en(self, c, t)
 
 
 func p_katon_enarare(c: Node3D, t: Node3D) -> void:
-	KatonFXB.katon_enarare(self, c, t)
+	LazyFx.g("KatonFXB").katon_enarare(self, c, t)
 
 
 func p_sanmai_no_shinka(c: Node3D, t: Node3D) -> void:
-	KatonFXB.sanmai_no_shinka(self, c, t)
+	LazyFx.g("KatonFXB").sanmai_no_shinka(self, c, t)
 
 
 func p_katon_hiuchi_yagura(c: Node3D, t: Node3D) -> void:
-	KatonFXB.katon_hiuchi_yagura(self, c, t)
+	LazyFx.g("KatonFXB").katon_hiuchi_yagura(self, c, t)
 
 
 func p_katon_enshin_bakuha(c: Node3D, t: Node3D) -> void:
-	KatonFXB.katon_enshin_bakuha(self, c, t)
+	LazyFx.g("KatonFXB").katon_enshin_bakuha(self, c, t)
 
 
 func p_futon_gamayu_endan(c: Node3D, t: Node3D) -> void:
-	ElementFX.futon_gamayu_endan(self, c, t)
+	LazyFx.g("ElementFX").futon_gamayu_endan(self, c, t)
 
 
 # ================================================================== VİDEO TAİJUTSU: eksik taijutsu teknikleri (anime derlemesine göre)
@@ -13966,7 +13966,7 @@ func p_yanagi_no_mai(c: Node3D, t: Node3D) -> void:
 
 
 func p_konoha_tsumuji_senpu(c: Node3D, t: Node3D) -> void:
-	StrikeFX.konoha_tsumuji_senpu(self, c, t)
+	LazyFx.g("StrikeFX").konoha_tsumuji_senpu(self, c, t)
 
 
 func debris_leaves(at: Vector3) -> void:
@@ -13975,7 +13975,7 @@ func debris_leaves(at: Vector3) -> void:
 
 
 func p_geki_konoha_kongoriki_senpu(c: Node3D, t: Node3D) -> void:
-	StrikeFX.geki_konoha_kongoriki_senpu(self, c, t)
+	LazyFx.g("StrikeFX").geki_konoha_kongoriki_senpu(self, c, t)
 
 
 func p_konoha_kaigansho(c: Node3D, t: Node3D) -> void:
@@ -14012,7 +14012,7 @@ func p_koyubi_kogeki(c: Node3D, t: Node3D) -> void:
 
 
 func p_biju_rairai_netsuto(c: Node3D, t: Node3D) -> void:
-	LightningFX.biju_rairai_netsuto(self, c, t)
+	LazyFx.g("LightningFX").biju_rairai_netsuto(self, c, t)
 
 
 func p_atama_hatto(c: Node3D, t: Node3D) -> void:
@@ -14029,31 +14029,31 @@ func p_atama_hatto(c: Node3D, t: Node3D) -> void:
 
 
 func p_kakuran_taijutsu(c: Node3D, t: Node3D) -> void:
-	StrikeFX.kakuran_taijutsu(self, c, t)
+	LazyFx.g("StrikeFX").kakuran_taijutsu(self, c, t)
 
 
 func p_daburu_dainamikku_entori(c: Node3D, t: Node3D) -> void:
-	TaijutsuFXB.daburu_dainamikku_entori(self, c, t)
+	LazyFx.g("TaijutsuFXB").daburu_dainamikku_entori(self, c, t)
 
 
 func p_konoha_daisenko(c: Node3D, t: Node3D) -> void:
-	StrikeFX.konoha_daisenko(self, c, t)
+	LazyFx.g("StrikeFX").konoha_daisenko(self, c, t)
 
 
 func p_konoha_ryujin(c: Node3D, t: Node3D) -> void:
-	StrikeFX.konoha_ryujin(self, c, t)
+	LazyFx.g("StrikeFX").konoha_ryujin(self, c, t)
 
 
 func p_doroppu_kikku(c: Node3D, t: Node3D) -> void:
-	RaitonFXD.doroppu_kikku(self, c, t)
+	LazyFx.g("RaitonFXD").doroppu_kikku(self, c, t)
 
 
 func p_raigyaku_suihei(c: Node3D, t: Node3D) -> void:
-	RaitonFXF.raigyaku_suihei(self, c, t)
+	LazyFx.g("RaitonFXF").raigyaku_suihei(self, c, t)
 
 
 func p_bakuton_bogyo(c: Node3D, t: Node3D) -> void:
-	BakutonFXB.bakuton_bogyo(self, c, t)
+	LazyFx.g("BakutonFXB").bakuton_bogyo(self, c, t)
 
 
 func p_biju_hachimaki(c: Node3D, t: Node3D) -> void:
@@ -14090,26 +14090,26 @@ func p_biju_hachimaki(c: Node3D, t: Node3D) -> void:
 
 
 func p_takigakure_no_senpu(c: Node3D, t: Node3D) -> void:
-	StrikeFX.takigakure_no_senpu(self, c, t)
+	LazyFx.g("StrikeFX").takigakure_no_senpu(self, c, t)
 
 
 func p_hayabusa_otoshi(c: Node3D, t: Node3D) -> void:
-	RaitonFXC.hayabusa_otoshi(self, c, t)
+	LazyFx.g("RaitonFXC").hayabusa_otoshi(self, c, t)
 
 
 func p_uzumaki_nisen_rendan(c: Node3D, t: Node3D) -> void:
-	TaijutsuFXB.uzumaki_nisen_rendan(self, c, t)
+	LazyFx.g("TaijutsuFXB").uzumaki_nisen_rendan(self, c, t)
 
 
 func p_tetsuzanko(c: Node3D, t: Node3D) -> void:
-	TaijutsuFXB.tetsuzanko(self, c, t)
+	LazyFx.g("TaijutsuFXB").tetsuzanko(self, c, t)
 
 
 ## Daburu Nikudan Sensha (kanon, Chōji + Chōza ortak tekniği): iki kişi rakibe iki yandan Nikudan Sensha ile dalar, aradakini
 ## ezip öğütür. ORTAK GEREKİR: yakında (20 m) bir müttefik (takım arkadaşı, gölge klon, çağrı). Her top kendi sahibinin kıyafet
 ## renginde. Oyuncu ve AI aynı kural.
 func p_daburu_nikudan_sensha(c: Node3D, t: Node3D) -> void:
-	WeaponFX.daburu_nikudan_sensha(self, c, t)
+	LazyFx.g("WeaponFX").daburu_nikudan_sensha(self, c, t)
 
 
 # ================================================================== VİDEO MOKUTON: eksik ahşap teknikleri (anime derlemesine göre)
@@ -14264,7 +14264,7 @@ func _wood_house_big(at: Vector3, yaw: float, dur: float) -> Node3D:
 
 
 func p_mokuton_kajukai_korin(c: Node3D, t: Node3D) -> void:
-	MokutonFXB.mokuton_kajukai_korin(self, c, t)
+	LazyFx.g("MokutonFXB").mokuton_kajukai_korin(self, c, t)
 
 
 ## Dev lotus çiçeği: iki kat sivri pembe taç yaprak (uçları açık), sarı tohum kesesi
@@ -14291,7 +14291,7 @@ func _lotus(s: float) -> MeshInstance3D:
 
 
 func p_chojo_kebutsu(c: Node3D, t: Node3D) -> void:
-	MokutonFXB.chojo_kebutsu(self, c, t)
+	LazyFx.g("MokutonFXB").chojo_kebutsu(self, c, t)
 
 
 func p_mokuton_kui(c: Node3D, t: Node3D) -> void:
@@ -14523,15 +14523,15 @@ func p_akuro_basa_batto(c: Node3D, t: Node3D) -> void:
 
 
 func p_nuibari_jigumo_nui(c: Node3D, t: Node3D) -> void:
-	WeaponFX.nuibari_jigumo_nui(self, c, t)
+	LazyFx.g("WeaponFX").nuibari_jigumo_nui(self, c, t)
 
 
 func p_hiramekarei_kaiho(c: Node3D, t: Node3D) -> void:
-	WeaponFX.hiramekarei_kaiho(self, c, t)
+	LazyFx.g("WeaponFX").hiramekarei_kaiho(self, c, t)
 
 
 func p_chakura_shogeki_zan(c: Node3D, t: Node3D) -> void:
-	StrikeFX.chakura_shogeki_zan(self, c, t)
+	LazyFx.g("StrikeFX").chakura_shogeki_zan(self, c, t)
 
 
 func p_hadan(c: Node3D, t: Node3D) -> void:
@@ -14555,19 +14555,19 @@ func p_hadan(c: Node3D, t: Node3D) -> void:
 ## Oborozukiyo (anime, Yūgao Uzuki): havada kılıcı dairesel savurur — kılıcın ardıl görüntüleri etrafında ışınsal dizilip
 ## dolunay gibi bir halka çizer (izlemesi zor); sonra rakibe hücum edip keser
 func p_oborozukiyo(c: Node3D, t: Node3D) -> void:
-	KensumFXA.oborozukiyo(self, c, t)
+	LazyFx.g("KensumFXA").oborozukiyo(self, c, t)
 
 
 func p_kabutowari_hakai(c: Node3D, t: Node3D) -> void:
-	KensumFXA.kabutowari_hakai(self, c, t)
+	LazyFx.g("KensumFXA").kabutowari_hakai(self, c, t)
 
 
 func p_shibuki_happa_rokujushi(c: Node3D, t: Node3D) -> void:
-	KensumFXA.shibuki_happa_rokujushi(self, c, t)
+	LazyFx.g("KensumFXA").shibuki_happa_rokujushi(self, c, t)
 
 
 func p_ura_kasumigiri(c: Node3D, t: Node3D) -> void:
-	KensumFXA.ura_kasumigiri(self, c, t)
+	LazyFx.g("KensumFXA").ura_kasumigiri(self, c, t)
 
 
 func p_kumo_ryu_damashigiri(c: Node3D, t: Node3D) -> void:
@@ -14604,27 +14604,27 @@ func p_konoha_ryu_yanagi(c: Node3D, t: Node3D) -> void:
 
 
 func p_kusanagi_sora_no_tachi(c: Node3D, t: Node3D) -> void:
-	KensumFXA.kusanagi_sora_no_tachi(self, c, t)
+	LazyFx.g("KensumFXA").kusanagi_sora_no_tachi(self, c, t)
 
 
 func p_shunrai_konbineshon(c: Node3D, t: Node3D) -> void:
-	LightningFX.shunrai_konbineshon(self, c, t)
+	LazyFx.g("LightningFX").shunrai_konbineshon(self, c, t)
 
 
 func p_suiton_suiren(c: Node3D, t: Node3D) -> void:
-	SuitonFXD.suiton_suiren(self, c, t)
+	LazyFx.g("SuitonFXD").suiton_suiren(self, c, t)
 
 
 func p_mifune_ichi_no_tachi_homura(c: Node3D, t: Node3D) -> void:
-	StrikeFX.mifune_ichi_no_tachi_homura(self, c, t)
+	LazyFx.g("StrikeFX").mifune_ichi_no_tachi_homura(self, c, t)
 
 
 func p_hiken_fusetsugiri(c: Node3D, t: Node3D) -> void:
-	KensumFXA.hiken_fusetsugiri(self, c, t)
+	LazyFx.g("KensumFXA").hiken_fusetsugiri(self, c, t)
 
 
 func p_chidori_koken(c: Node3D, t: Node3D) -> void:
-	RaitonFXF.chidori_koken(self, c, t)
+	LazyFx.g("RaitonFXF").chidori_koken(self, c, t)
 
 
 # ================================================================== VİDEO SENJUTSU: eksik sennin teknikleri (anime derlemesine göre)
@@ -14632,67 +14632,67 @@ func p_chidori_koken(c: Node3D, t: Node3D) -> void:
 
 ## Myōjinmon Fūtō: tek, ince bir torii hedefin boynuna/başına iner — kafayı yere çiviler
 func p_senpo_myojinmon_futo(c: Node3D, t: Node3D) -> void:
-	FlowFX.senpo_myojinmon_futo(self, c, t)
+	LazyFx.g("FlowFX").senpo_myojinmon_futo(self, c, t)
 
 
 ## Goemon: Jiraiya ateşi + Fukasaku rüzgârı + Shima yağı — kaynayan yağ seli, değdiği yer yanar
 func p_senpo_goemon(c: Node3D, t: Node3D) -> void:
-	ElementFX.senpo_goemon(self, c, t)
+	LazyFx.g("ElementFX").senpo_goemon(self, c, t)
 
 
 ## Kurbağaların Gizli Hazinesi: yaşlı kurbağanın verdiği mühür parşömeni açılır, yeşil ışık yarayı kapatır
 func p_gama_no_hiho(c: Node3D, _t: Node3D) -> void:
-	FinalFX2.gama_no_hiho(self, c, _t)
+	LazyFx.g("FinalFX2").gama_no_hiho(self, c, _t)
 
 
 ## Ranton Kōga: elden çıkan mor ışık hüzmeleri bükülerek hedefe yönelir (ışığın dişi)
 func p_senpo_ranton_koga(c: Node3D, t: Node3D) -> void:
-	LightningFX.senpo_ranton_koga(self, c, t)
+	LazyFx.g("LightningFX").senpo_ranton_koga(self, c, t)
 
 
 ## Inton Raiha: iki parmaktan karanlık mor şimşek fırtınası yayılır, kayaları da parçalar
 func p_senpo_inton_raiha(c: Node3D, t: Node3D) -> void:
-	RaitonFXF.senpo_inton_raiha(self, c, t)
+	LazyFx.g("RaitonFXF").senpo_inton_raiha(self, c, t)
 
 
 ## Senrai no Senshu: elde sennin şimşeği toplanır, delici tek el darbesiyle hedefi deler
 func p_senrai_no_senshu(c: Node3D, t: Node3D) -> void:
-	LightningFX.senrai_no_senshu(self, c, t)
+	LazyFx.g("LightningFX").senrai_no_senshu(self, c, t)
 
 
 ## Oyako Rasengan: yanında beliren gölge klonla (ebeveyn) birlikte tek dev Rasengan'ı tutup ileri itersin
 func p_oyako_rasengan(c: Node3D, t: Node3D) -> void:
-	FutonFXE.oyako_rasengan(self, c, t)
+	LazyFx.g("FutonFXE").oyako_rasengan(self, c, t)
 
 
 ## Kassokuken: Isshiki — kol pistonlu jet motoruna döner, ard arda iki itişli dev yumruk; arkasından buhar
 func p_kassokuken_isshiki(c: Node3D, t: Node3D) -> void:
-	TaijutsuFXB.kassokuken_isshiki(self, c, t)
+	LazyFx.g("TaijutsuFXB").kassokuken_isshiki(self, c, t)
 
 
 ## Saihō Kyūin: dokunduğun hedefin hücrelerini emersin — hedefin canı sana geçer, ten çatlak lekelerle kararır
 func p_saiho_kyuin(c: Node3D, t: Node3D) -> void:
-	FlowFX.saiho_kyuin(self, c, t)
+	LazyFx.g("FlowFX").saiho_kyuin(self, c, t)
 
 
 ## Saihō Haishutsu: kendi hücrelerini veren şifa — yakındaki müttefiki (yoksa kendini) iyileştirir, bedel olarak chakra harcar
 func p_saiho_haishutsu(c: Node3D, _t: Node3D) -> void:
-	NinjutsuFXF.saiho_haishutsu(self, c, _t)
+	LazyFx.g("NinjutsuFXF").saiho_haishutsu(self, c, _t)
 
 
 ## Tarenpū Jirenpō: kollar çok namlulu topa döner, delikler parlayıp ard arda chakra mermileri savurur
 func p_tarenpu_jirenpo(c: Node3D, t: Node3D) -> void:
-	FlowFX.tarenpu_jirenpo(self, c, t)
+	LazyFx.g("FlowFX").tarenpu_jirenpo(self, c, t)
 
 
 ## Magen: Gamarinshō — omuzdaki iki yaşlı kurbağa düet söyler; duyan düşmanlar kurbağa korosu illüzyonuna düşer (uzun sersemleme)
 func p_magen_gamarinsho(c: Node3D, _t: Node3D) -> void:
-	GenjutsuFXA.magen_gamarinsho(self, c, _t)
+	LazyFx.g("GenjutsuFXA").magen_gamarinsho(self, c, _t)
 
 
 ## Daijarai: yeşil sennin chakrasından yılan biçimli şimşekler kıvrılarak hedefe saldırır
 func p_senpo_daijarai(c: Node3D, t: Node3D) -> void:
-	LightningFX.senpo_daijarai(self, c, t)
+	LazyFx.g("LightningFX").senpo_daijarai(self, c, t)
 
 
 # ================================================================== VİDEO KEKKEI GENKAI: eksik Shōton / Yōton / Shakuton / Bakuton / Hyōton teknikleri
@@ -14762,22 +14762,22 @@ func p_shoton_suisho_meikyu(c: Node3D, t: Node3D) -> void:
 
 ## Kızıl Meyve: avuçta açan çiçek kristal meyveye döner, fırlatılınca patlayıp kristal kıymık yağdırır
 func p_shoton_kurenai_no_kajitsu(c: Node3D, t: Node3D) -> void:
-	ShotonFXA.shoton_kurenai_no_kajitsu(self, c, t)
+	LazyFx.g("ShotonFXA").shoton_kurenai_no_kajitsu(self, c, t)
 
 
 ## Şuriken Çılgın Dansı: kristal şurikenler sarmal kurdele gibi bedenin etrafında döner, sonra her yöne fırlar
 func p_shoton_shuriken_ranbu(c: Node3D, t: Node3D) -> void:
-	ElementFX.shoton_shuriken_ranbu(self, c, t)
+	LazyFx.g("ElementFX").shoton_shuriken_ranbu(self, c, t)
 
 
 ## Kristal Mızrak: elde uzun bir kristal mızrak büyür ve fırlatılır; çarptığı yerde kristal patlaması
 func p_shoton_suisho_yari(c: Node3D, t: Node3D) -> void:
-	ShotonFXA.shoton_suisho_yari(self, c, t)
+	LazyFx.g("ShotonFXA").shoton_suisho_yari(self, c, t)
 
 
 ## Kristal Hapis Dalgası: savrulan kristal tozu bulutu ileri yayılır; değdiği düşmanlar altıgen kristale hapsolur
 func p_shoton_suisho_hado(c: Node3D, t: Node3D) -> void:
-	ShotonFXA.shoton_suisho_hado(self, c, t)
+	LazyFx.g("ShotonFXA").shoton_suisho_hado(self, c, t)
 
 
 ## Kristal Duvar Sekizli Düzen: çevrende sekiz dev kristal sütun yükselir — mermileri keser, yaklaşanı yaralar
@@ -14798,17 +14798,17 @@ func p_shoton_suishoheki_hachi_no_jin(c: Node3D, _t: Node3D) -> void:
 
 ## Kristal İğneler: ince kristal iğne yağmuru; isabet edilen yerde kristal kümeleri büyür
 func p_shoton_suisho_hari(c: Node3D, t: Node3D) -> void:
-	ShotonFXA.shoton_suisho_hari(self, c, t)
+	LazyFx.g("ShotonFXA").shoton_suisho_hari(self, c, t)
 
 
 ## Kırık Kristal İnen Ejder: pembe kristalden ejder kıvrılarak hedefe dalar, çarptığı yeri kristalle kaplar
 func p_shoton_hasho_koryu(c: Node3D, t: Node3D) -> void:
-	ShotonFXA.shoton_hasho_koryu(self, c, t)
+	LazyFx.g("ShotonFXA").shoton_hasho_koryu(self, c, t)
 
 
 ## Kristal Çark: önünde dikey kristal çark belirir, yer/su yüzünde dönerek ileri yuvarlanır
 func p_shoton_suisho_sharin(c: Node3D, t: Node3D) -> void:
-	ElementFX.shoton_suisho_sharin(self, c, t)
+	LazyFx.g("ElementFX").shoton_suisho_sharin(self, c, t)
 
 
 ## Kristal Kale Duvarı: hedefin çevresinden dev kızıl kristal sırtları yükselir — içindekiler sıkışır
@@ -14851,7 +14851,7 @@ func p_shoton_omiwatari(c: Node3D, t: Node3D) -> void:
 
 ## Işığın Tek İpliği: kendini parlak kristal sekizyüzlüye kapatırsın; tepe noktasından odaklı ışık hüzmesi fırlar
 func p_shoton_isshi_komyo(c: Node3D, t: Node3D) -> void:
-	ElementFX.shoton_isshi_komyo(self, c, t)
+	LazyFx.g("ElementFX").shoton_isshi_komyo(self, c, t)
 
 
 # ------------------------------------------------------------------ Yōton: lastik (Iwa)
@@ -14860,45 +14860,45 @@ const RUBBER := Color(0.93, 0.8, 0.6)
 
 ## Lastik Duvar: ağızdan akan lav lastik gibi kabarıp önünde esnek bir duvar örer; çarpan geri seker
 func p_yoton_gomu_heki(c: Node3D, t: Node3D) -> void:
-	YotonFXA.yoton_gomu_heki(self, c, t)
+	LazyFx.g("YotonFXA").yoton_gomu_heki(self, c, t)
 
 
 ## Lastik Küre: hedefi lastik bir topun içine hapsedersin; küre zıplar, içindeki çıkamaz
 func p_yoton_gomudama(c: Node3D, t: Node3D) -> void:
-	YotonFXA.yoton_gomudama(self, c, t)
+	LazyFx.g("YotonFXA").yoton_gomudama(self, c, t)
 
 
 ## Lastik Yapışma: yapışkan lastik damlaları hedefe yapışır; sonra şişip patlar (yavaşlatır, sonra iter)
 func p_yoton_gomu_kosoku(c: Node3D, t: Node3D) -> void:
-	YotonFXA.yoton_gomu_kosoku(self, c, t)
+	LazyFx.g("YotonFXA").yoton_gomu_kosoku(self, c, t)
 
 
 # ------------------------------------------------------------------ Shakuton (Pakura)
 ## Büyük Buharlaştırıcı Patlama: kavurucu ateş küreleri tek dev küreye birleşir, patlayınca alandaki suyu buharlaştırır
 func p_shakuton_daijohappa(c: Node3D, t: Node3D) -> void:
-	ShakutonFXA.shakuton_daijohappa(self, c, t)
+	LazyFx.g("ShakutonFXA").shakuton_daijohappa(self, c, t)
 
 
 # ------------------------------------------------------------------ Bakuton (Patlayıcı Kil Yolu)
 ## Patlayıcı Mayın: kil ejder ağzından yere onlarca küçük kil mayın saçar; yaklaşan düşmanın altında patlar
 func p_kibaku_jirai(c: Node3D, t: Node3D) -> void:
-	BakutonFXB.kibaku_jirai(self, c, t)
+	LazyFx.g("BakutonFXB").kibaku_jirai(self, c, t)
 
 
 ## C2 Patlayan Uçan Ejder: kil ejder belirir, havalanıp hedefe dalar ve büyük patlamayla yok olur
 func p_shi_tsu_bakuretsu_hiryu(c: Node3D, t: Node3D) -> void:
-	BakutonFXB.shi_tsu_bakuretsu_hiryu(self, c, t)
+	LazyFx.g("BakutonFXB").shi_tsu_bakuretsu_hiryu(self, c, t)
 
 
 ## Kil Kawarimi: bedenin yerine kil kopya kalır, sen geriye kaçarsın; kopya yaklaşanın yüzüne patlar
 func p_nendo_kawarimi(c: Node3D, t: Node3D) -> void:
-	BakutonFXB.nendo_kawarimi(self, c, t)
+	LazyFx.g("BakutonFXB").nendo_kawarimi(self, c, t)
 
 
 # ------------------------------------------------------------------ Hyōton (Yuki)
 ## Makyō Hyōshō: hedefin çevresinde buz aynalardan kubbe kurulur; aynalardan aynaya geçen yansımaların senbon yağmuru
 func p_makyo_hyosho(c: Node3D, t: Node3D) -> void:
-	ElementFX.makyo_hyosho(self, c, t)
+	LazyFx.g("ElementFX").makyo_hyosho(self, c, t)
 
 
 ## Su Maskeli Kalp: sırttan su maskeli canavar çıkar, basınçlı su dişlerini art arda fırlatır
@@ -15031,22 +15031,22 @@ func _hiruko_mesh() -> Node3D:
 
 ## Hiruko: kambur zırh kuklasının içine girersin (15 sn, ağır zırh, yavaş); kuyruk zehirli darbeyle hedefe uzanır
 func p_kugutsu_hiruko(c: Node3D, t: Node3D) -> void:
-	WeaponFX.kugutsu_hiruko(self, c, t)
+	LazyFx.g("WeaponFX").kugutsu_hiruko(self, c, t)
 
 
 ## Hazırlanmış Kukla: Sekiz Dalga İğne — kuklanın ağzı/sırtı açılır, sekiz dalga zehirli iğne yağar
 func p_shikomi_shinshin_happa(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXF.shikomi_shinshin_happa(self, c, t)
+	LazyFx.g("NinjutsuFXF").shikomi_shinshin_happa(self, c, t)
 
 
 ## Kukla Tekniği: Protez Kol Senbonu — bilekten kopan kol döner ve yelpaze gibi senbon saçar
 func p_gishu_senbon(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXF.gishu_senbon(self, c, t)
+	LazyFx.g("NinjutsuFXF").gishu_senbon(self, c, t)
 
 
 ## Zehirli Duman: kuklanın ağzından mor zehir bulutu yayılır; içinde kalanlar zehirlenir
 func p_sasori_doku_kemuri(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXF.sasori_doku_kemuri(self, c, t)
+	LazyFx.g("NinjutsuFXF").sasori_doku_kemuri(self, c, t)
 
 
 ## Alev Püskürtücü: avuçlardaki boru ağızlarından iki alev hortumu
@@ -15064,17 +15064,17 @@ func p_kaen_hosha(c: Node3D, t: Node3D) -> void:
 
 ## Su Akıntısı Fışkırtıcıları: avuçlardaki deliklerden yüksek basınçlı su hüzmeleri (taşı keser)
 func p_suiryu_hosha(c: Node3D, t: Node3D) -> void:
-	FlowFX.suiryu_hosha(self, c, t)
+	LazyFx.g("FlowFX").suiryu_hosha(self, c, t)
 
 
 ## Üçüncü Kazekage Kuklası: parşömenden Üçüncü'nün kuklası çıkar, iplerle yanında savaşır (25 sn)
 func p_kugutsu_sandaime(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXF.kugutsu_sandaime(self, c, t)
+	LazyFx.g("NinjutsuFXF").kugutsu_sandaime(self, c, t)
 
 
 ## Bin Kol Yönetimi: kuklanın gövdesinden yüzlerce kol fışkırır, hedefi yakalayıp boğar
 func p_senju_sobu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXF.senju_sobu(self, c, t)
+	LazyFx.g("NinjutsuFXF").senju_sobu(self, c, t)
 
 
 ## Hitokugutsu: yendiğin güçlü rakiplerin bedenlerinden yaptığın insan kuklaları — en fazla iki tanesi yanında savaşır
@@ -15097,12 +15097,12 @@ func p_hitokugutsu(c: Node3D, t: Node3D) -> void:
 # ------------------------------------------------------------------ Suna kukla birliği (Kankurō tarzı)
 ## Kara Gizli Teknik: Semender — dev kalkan kukla önünde açılır; önden gelen darbeleri karşılar
 func p_kurohigi_sanshouo(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXF.kurohigi_sanshouo(self, c, t)
+	LazyFx.g("NinjutsuFXF").kurohigi_sanshouo(self, c, t)
 
 
 ## Kara Gizli Teknik: Üçlü Demir Bakire — üç Kuroari kafesi hedefi üç yandan yutar, içeriden bıçaklar saplanır
 func p_kurohigi_kiki_sanpatsu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXF.kurohigi_kiki_sanpatsu(self, c, t)
+	LazyFx.g("NinjutsuFXF").kurohigi_kiki_sanpatsu(self, c, t)
 
 
 ## Kızıl Gizli Teknik: Kukla Üçgeni — üç kukla hedefi üç yandan sarar ve bıçaklı kollarla aynı anda saldırır
@@ -15126,7 +15126,7 @@ func p_akahigi_kiki_sankaku(c: Node3D, t: Node3D) -> void:
 
 ## Zehirli Sis Cehennemi: Ardışık İğne Kombosu — kuklanın ağzından zehirli sis, ardından yüz iğnelik yağmur
 func p_dokugiri_jigoku_baribari(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXF.dokugiri_jigoku_baribari(self, c, t)
+	LazyFx.g("NinjutsuFXF").dokugiri_jigoku_baribari(self, c, t)
 
 
 # ================================================================== VİDEO OROCHIMARU / KONAN: Yılan Yolu ve Kâğıt Yolu eksikleri
@@ -15135,12 +15135,12 @@ const OROSNAKE := Color(0.45, 0.42, 0.55)
 
 ## Yılan Yeniden Bağlanma: kopan/yaralanan beden yılanlarla birbirine dikilir — canının büyük kısmı geri gelir
 func p_hebi_saisetsugo(c: Node3D, _t: Node3D) -> void:
-	NinjutsuFXF.hebi_saisetsugo(self, c, _t)
+	LazyFx.g("NinjutsuFXF").hebi_saisetsugo(self, c, _t)
 
 
 ## Yüzeye Gizlenme: bedenin yere/ağaca erir; görünmeden kayıp hedefin yanından çıkarsın
 func p_sennyu_no_jutsu(c: Node3D, t: Node3D) -> void:
-	ArcaneFX.sennyu_no_jutsu(self, c, t)
+	LazyFx.g("ArcaneFX").sennyu_no_jutsu(self, c, t)
 
 
 ## Gerçek Form: beden binlerce küçük yılandan oluşan dev beyaz yılana dönüşür (12 sn) — devasa kütle, ezici darbeler
@@ -15177,12 +15177,12 @@ func p_hakuja_shintai(c: Node3D, t: Node3D) -> void:
 
 ## Chakra Emme: dokunduğun hedefin chakrasını yılan dilleriyle kendine çekersin
 func p_chakura_kyuin_jutsu(c: Node3D, t: Node3D) -> void:
-	ArcaneFX.chakura_kyuin_jutsu(self, c, t)
+	LazyFx.g("ArcaneFX").chakura_kyuin_jutsu(self, c, t)
 
 
 ## Dört Kara Yılan Düzeni: hedefin çevresinde mor chakra duvarlı bir kutu bariyer yükselir; içindeki çıkamaz
 func p_shikokujaijin(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXG.shikokujaijin(self, c, t)
+	LazyFx.g("NinjutsuFXG").shikokujaijin(self, c, t)
 
 
 ## Kayan Yılan Bedeni: beden yılan gibi uzar; uzaktaki hedefe kıvrılarak atılıp çarpar ve geri toplanır
@@ -15217,13 +15217,13 @@ func p_jaguchi_shibari(c: Node3D, t: Node3D) -> void:
 
 ## Öldürme Niyeti: tek bakışta düşmanlar kendi ölümlerini görür — korkudan donup kalırlar
 func p_satsui_no_shisen(c: Node3D, _t: Node3D) -> void:
-	NinjutsuFXG.satsui_no_shisen(self, c, _t)
+	LazyFx.g("NinjutsuFXG").satsui_no_shisen(self, c, _t)
 
 
 ## Kâğıt Sağanağı (ref: Paper Drizzle): kollar yukarı — hedefin üstünde kâğıt bulutu toplanır, oradan yassı katlanmış
 ## kâğıt bıçaklar eğik yağmur gibi iner ve zemine saplanır, sonra küçülüp kaybolur
 func p_kami_shigure(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXG.kami_shigure(self, c, t)
+	LazyFx.g("NinjutsuFXG").kami_shigure(self, c, t)
 
 
 ## Kâğıt Çakram (ref: Paper Chakram): kollar havada — başın üstünde yapraklar dönerek iç içe bir halka (dişli dış kenar,
@@ -15242,11 +15242,11 @@ func _paper_ring() -> Node3D:
 
 
 func form_kami_chakuramu(c: Node3D, rt: float) -> void:
-	NinjutsuFXG.form_kami_chakuramu(self, c, rt)
+	LazyFx.g("NinjutsuFXG").form_kami_chakuramu(self, c, rt)
 
 
 func p_kami_chakuramu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXG.kami_chakuramu(self, c, t)
+	LazyFx.g("NinjutsuFXG").kami_chakuramu(self, c, t)
 
 
 # ================================================================== VİDEO GENJUTSU / TIBBİ eksikleri
@@ -15255,7 +15255,7 @@ func p_kami_chakuramu(c: Node3D, t: Node3D) -> void:
 ## Rinnegan Genjutsusu (kanon, Sasuke): tomoeli Rinnegan'ın tek bakışı görüş alanındaki herkesi — dokuz kuyruklu canavarı
 ## bile — aynı anda genjutsuya düşürüp kıpırdatmaz. Direnç/ayna kuralları Eyes.genjutsu_land ile (oyuncu/düşman ortak).
 func p_sharinnegan_genjutsu(c: Node3D, _t: Node3D) -> void:
-	NinjutsuFXG.sharinnegan_genjutsu(self, c, _t)
+	LazyFx.g("NinjutsuFXG").sharinnegan_genjutsu(self, c, _t)
 
 
 ## Sōma no Kō: sırtından ikinci bir beden (Sakon/Ukon hücreleri) fırlar — iki beden aynı anda vurur
@@ -15285,29 +15285,29 @@ func p_soma_no_ko(c: Node3D, t: Node3D) -> void:
 # ================================================================== VİDEO KUCHIYOSE / SUSANOO / PAIN eksikleri
 ## Kuchiyose: Ibuse Dokukami — dev semender Ibuse çağrılır, ağzından bataklığı örten zehirli sis yayar (semender sözleşmesi)
 func p_kuchiyose_ibuse_dokukami(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXG.kuchiyose_ibuse_dokukami(self, c, t)
+	LazyFx.g("NinjutsuFXG").kuchiyose_ibuse_dokukami(self, c, t)
 
 
 ## Orak Dansı: Düşen İniş Bıçağı — zincirli orak havada döner, yukarıdan hedefin üstüne iner (kusarigama kuşanılı)
 func p_kama_no_mai_rakko(c: Node3D, t: Node3D) -> void:
-	WeaponFX.kama_no_mai_rakko(self, c, t)
+	LazyFx.g("WeaponFX").kama_no_mai_rakko(self, c, t)
 
 
 ## Shura no Kō (kanon): beden açılıp içindeki top ortaya çıkar (Asura bedeninde kafa, Nagato'nun kendisinde kola takılı
 ## top) ve bütün bir alanı yıkan dev çakra ışını ateşlenir. Burada: önkola dev top takılır, şarj, beyaz-mavi ışın + patlama.
 func p_shura_no_ko(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXG.shura_no_ko(self, c, t)
+	LazyFx.g("NinjutsuFXG").shura_no_ko(self, c, t)
 
 
 ## Dantō no Hiya (kanon): el çıkarılır, bilekte füze kümesi belirir — el ne kadar açılırsa o kadar füze aynı anda
 ## çıkar; geniş alana yağdırılabilir ya da tek hedefe güdümlenir.
 func p_danto_no_hiya(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXG.danto_no_hiya(self, c, t)
+	LazyFx.g("NinjutsuFXG").danto_no_hiya(self, c, t)
 
 
 ## Konbi Henge: kurbağa ortağınla birleşip dev, keskin pençeli bir canavara dönüşürsün — tek ezici pençe darbesi (kurbağa sözleşmesi)
 func p_konbi_henge(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXG.konbi_henge(self, c, t)
+	LazyFx.g("NinjutsuFXG").konbi_henge(self, c, t)
 
 
 # ================================================================== VİDEO KLON / SHURIKENJUTSU eksikleri
@@ -15329,17 +15329,17 @@ func _quick_clone(c: Node3D, at: Vector3, dur: float, col := Color(1, 1, 1, 1)) 
 
 ## Duman Klonu: bedenden kopan duman yoğunlaşıp klona dönüşür; vurulunca dumana dağılıp çevreyi boğar
 func p_kemuri_bunshin(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXG.kemuri_bunshin(self, c, t)
+	LazyFx.g("NinjutsuFXG").kemuri_bunshin(self, c, t)
 
 
 ## Çoklu Duman Klonu: dört duman klonu birden
 func p_taju_kemuri_bunshin(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXG.taju_kemuri_bunshin(self, c, t)
+	LazyFx.g("NinjutsuFXG").taju_kemuri_bunshin(self, c, t)
 
 
 ## Av Köpeği Klonları: ninkenin tüyleri dökülür, her tüy bir köpek klonuna dönüşüp hedefe saldırır
 func p_ryoken_bunshin(c: Node3D, t: Node3D) -> void:
-	FinalFX0.ryoken_bunshin(self, c, t)
+	LazyFx.g("FinalFX0").ryoken_bunshin(self, c, t)
 
 
 ## Metal shuriken (4 sivri kanat, ortada delik halkası) — kaifūjutsu/enbu yağmurları için
@@ -15360,45 +15360,45 @@ func form_kaifujutsu_shuriken(c: Node3D, rt: float) -> void:
 
 
 func p_kaifujutsu_shuriken(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXG.kaifujutsu_shuriken(self, c, t)
+	LazyFx.g("NinjutsuFXG").kaifujutsu_shuriken(self, c, t)
 
 
 ## Hayalet Çoklu Shuriken: tek shuriken havada onlarca hayalet kopyaya bölünür, hedefin çevresine yağar
 func p_genei_taju_shuriken(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXG.genei_taju_shuriken(self, c, t)
+	LazyFx.g("NinjutsuFXG").genei_taju_shuriken(self, c, t)
 
 
 ## Enbu: Ni no Dan (ref: dönen beyaz hortumun içinden dışa savrulan silahlar). Sıçrayıp kendi ekseninde döner;
 ## bedeni saran çok katlı rüzgâr hortumu (akım çizgileri) yükselir, hortumda sarmal çizerek dönen kunai/shuriken
 ## halkası oluşur, sonra hepsi hortumdan dışa (hedefe) savrulur
 func p_enbu_ni_no_dan(c: Node3D, t: Node3D) -> void:
-	WeaponFX.enbu_ni_no_dan(self, c, t)
+	LazyFx.g("WeaponFX").enbu_ni_no_dan(self, c, t)
 
 
 ## Sōgu: Tensasai — havadaki dev zincirli silahlar ve gürzler gökten hedefin üstüne çöker
 func p_sogu_tensasai(c: Node3D, t: Node3D) -> void:
-	WeaponFX.sogu_tensasai(self, c, t)
+	LazyFx.g("WeaponFX").sogu_tensasai(self, c, t)
 
 
 ## Sō Shuriken: telli shurikenler hedefin çevresinde döner, teller çekilince hedefi sarıp bağlar
 func p_soshuriken_no_jutsu(c: Node3D, t: Node3D) -> void:
-	WeaponFX.soshuriken_no_jutsu(self, c, t)
+	LazyFx.g("WeaponFX").soshuriken_no_jutsu(self, c, t)
 
 
 # ================================================================== Shakuton: Pakura tarzı ara teknikler (kanonda adı geçmeyen, tarza uygun)
 ## Kavurucu Küre: avuçta tek kavurucu küre toplanır, fırlar; isabet ettiği yerden beyaz buhar fışkırır
 func p_shakuton_shakkyu(c: Node3D, t: Node3D) -> void:
-	ShakutonFXA.shakuton_shakkyu(self, c, t)
+	LazyFx.g("ShakutonFXA").shakuton_shakkyu(self, c, t)
 
 
 ## Kavurucu Kılıç: kılıcın ağzı kavurucu chakrayla sarılır; üç kesik, her isabet hedefi içten kurutur (yavaşlatır)
 func p_shakuton_shakken(c: Node3D, t: Node3D) -> void:
-	ShakutonFXA.shakuton_shakken(self, c, t)
+	LazyFx.g("ShakutonFXA").shakuton_shakken(self, c, t)
 
 
 ## Dönen Kavurucu Küreler: üç küre 8 sn bedeninin çevresinde döner; yaklaşanı kavurur, gelen küçük mermileri yakar
 func p_shakuton_kaiten_shakkyu(c: Node3D, _t: Node3D) -> void:
-	ShakutonFXA.shakuton_kaiten_shakkyu(self, c, _t)
+	LazyFx.g("ShakutonFXA").shakuton_kaiten_shakkyu(self, c, _t)
 
 
 ## Shakuton isabeti: alev/patlama yok — kızıl parlama ve hedeften fışkıran beyaz buhar (beden suyu buharlaşır)
@@ -15440,22 +15440,22 @@ func _tgt_fit(tt: Node3D, base := 1.8, mx := 6.0) -> float:
 
 ## Kum Bağlayan Hapishane (ref: her yönden kalkan kum dilleri hedefin etrafında kapanıp hava geçirmez küre olur; havadaki hedefi de yakalar)
 func p_sabaku_ro(c: Node3D, t: Node3D) -> void:
-	SabakuFXA.sabaku_ro(self, c, t)
+	LazyFx.g("SabakuFXA").sabaku_ro(self, c, t)
 
 
 ## Kum Dolusu (ref: kaya iriliğinde yuvarlak kum topakları gökten yağar, geniş alan)
 func p_suna_arare(c: Node3D, t: Node3D) -> void:
-	SabakuFXA.suna_arare(self, c, t)
+	LazyFx.g("SabakuFXA").suna_arare(self, c, t)
 
 
 ## Art Arda Kum Çiseleme (ref: Gaara'nın etrafında kıvrılan kum akıntısından uzun damla kum mermileri art arda fırlar)
 func p_rendan_suna_shigure(c: Node3D, t: Node3D) -> void:
-	SabakuFXA.rendan_suna_shigure(self, c, t)
+	LazyFx.g("SabakuFXA").rendan_suna_shigure(self, c, t)
 
 
 ## Çöl Katmanlı İmparatorluk Cenaze Mührü (ref: kat kat kum hedefi örter, basamaklı dev piramide sıkışır, mühür çizgileri)
 func p_sabaku_sotaiso_fuin(c: Node3D, t: Node3D) -> void:
-	SabakuFXA.sabaku_sotaiso_fuin(self, c, t)
+	LazyFx.g("SabakuFXA").sabaku_sotaiso_fuin(self, c, t)
 
 
 # ================================================================== Eksik kanon jutsuları — Ses Dörtlüsü (Narutopedia ref, 2026-11-08)
@@ -15474,27 +15474,27 @@ func p_shishienjin(c: Node3D, _t: Node3D) -> void:
 
 ## Dört Kara Sis Düzeni (ref: hedefin üstünde yoğun koyu mor sis oluşur, çöküp onu sarar, mor şimşekler; dış dünyadan mühürlenir)
 func p_shikokumujin(c: Node3D, t: Node3D) -> void:
-	FuinjutsuFXB.shikokumujin(self, c, t)
+	LazyFx.g("FuinjutsuFXB").shikokumujin(self, c, t)
 
 
 ## Örümcek Yağmuru (ref: hedefin üstünde dev ağ + yavru kesesi; yüzlerce yavru örümcek iplik saçarak yağar, bölgedekileri sarar)
 func p_amagumo(c: Node3D, t: Node3D) -> void:
-	HidenFXA.amagumo(self, c, t)
+	LazyFx.g("HidenFXA").amagumo(self, c, t)
 
 
 ## Örümcek Ağı Açılışı (ref: ip yumağı fırlar, hedefte dev, delikli beyaz ağa açılır ve hedefi asılı tutar)
 func p_kumosokai(c: Node3D, t: Node3D) -> void:
-	HidenFXA.kumosokai(self, c, t)
+	LazyFx.g("HidenFXA").kumosokai(self, c, t)
 
 
 ## Örümcek Yapışkan Tükürüğü (ref: ağızdan kalın, örgülü ağ halatı; hedefe yapışır, hedef savrulup yere çarpılır)
 func p_kumonendo(c: Node3D, t: Node3D) -> void:
-	HidenFXA.kumonendo(self, c, t)
+	LazyFx.g("HidenFXA").kumonendo(self, c, t)
 
 
 ## İblis Dünyasının İsyanı (ref: flütün finali; Doki'lerin ağızlarından çok ağızlı ruh solucanları çıkar, dans ederek hedeflerin içinden geçer, fiziksel enerjiyi ısırır)
 func p_makyo_no_ran(c: Node3D, t: Node3D) -> void:
-	GenjutsuFXA.makyo_no_ran(self, c, t)
+	LazyFx.g("GenjutsuFXA").makyo_no_ran(self, c, t)
 
 
 ## Ek uzuvlar (Sakon–Ukon): ön kol/baldır kemiğine bağlı iki uzuv kemik boyunca fışkırır, yumruğun/ayağın ötesine uzanır ve uzvu izler
@@ -15530,17 +15530,17 @@ func _extra_limbs(c: Node3D, bone: String, leg: bool, dur: float) -> void:
 
 ## Çok Bağlı Yumruklar (ref: Sakon'un yumruğuyla birlikte kolundan Ukon'un iki kolu fışkırır; üç yumruk birden)
 func p_tarenken(c: Node3D, t: Node3D) -> void:
-	FinalFX3.tarenken(self, c, t)
+	LazyFx.g("FinalFX3").tarenken(self, c, t)
 
 
 ## Çok Bağlı Tekmeler (ref: tekmeyle birlikte bacaktan Ukon'un iki bacağı fışkırır; aralıklı üç tekme hedefi savurur)
 func p_tarenkyaku(c: Node3D, t: Node3D) -> void:
-	FinalFX3.tarenkyaku(self, c, t)
+	LazyFx.g("FinalFX3").tarenkyaku(self, c, t)
 
 
 ## Asalak İblis Yıkım Tekniği (ref: lanet mührü 2'de beden hücrelere ayrılıp hedefe girer; omzunda yüz belirir, hücreleri içeriden yıkılır)
 func p_kisei_kikai_no_jutsu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXG.kisei_kikai_no_jutsu(self, c, t)
+	LazyFx.g("NinjutsuFXG").kisei_kikai_no_jutsu(self, c, t)
 
 
 # ================================================================== Eksik kanon jutsuları — Chiyo kuklaları (Narutopedia ref, 2026-11-08)
@@ -15563,22 +15563,22 @@ func _ally_for(c: Node3D, r := 16.0) -> Node3D:
 
 ## Kukla: Baba ve Anne (ref: iki kukla el ele, aralarından çıkan pembe-beyaz jilet teller kıvrılarak keser)
 func p_kugutsu_chichi_to_haha(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXG.kugutsu_chichi_to_haha(self, c, t)
+	LazyFx.g("NinjutsuFXG").kugutsu_chichi_to_haha(self, c, t)
 
 
 ## Kukla: Bahar Cezası Darbesi (ref: Chiyo ipleriyle Sakura'yı havaya fırlatır, Sakura chakralı yumrukla Hiruko'yu parçalar)
 func p_kugutsu_haruchugeki(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXG.kugutsu_haruchugeki(self, c, t)
+	LazyFx.g("NinjutsuFXG").kugutsu_haruchugeki(self, c, t)
 
 
 ## Kukla Gösterisi: İnsan Bedeniyle Ustalık (ref: baş, gövde, iki kol, iki bacağa bağlı mavi chakra ipleri; kuklacı bedeni yönetir)
 func p_soen_hitomi_goku(c: Node3D, _t: Node3D) -> void:
-	NinjutsuFXG.soen_hitomi_goku(self, c, _t)
+	LazyFx.g("NinjutsuFXG").soen_hitomi_goku(self, c, _t)
 
 
 ## Üç Mücevher Emip Ezme (ref: üç Chikamatsu kuklası üçgen dizilir, göğüs mekanizmalarını açar; kasırga hedefleri merkeze emer, ezer, arkadan fırlatır)
 func p_sanbo_kyukai(c: Node3D, t: Node3D) -> void:
-	ArcaneFX.sanbo_kyukai(self, c, t)
+	LazyFx.g("ArcaneFX").sanbo_kyukai(self, c, t)
 
 
 # ================================================================== Eksik kanon jutsuları — Naruto (Narutopedia ref, 2026-11-08)
@@ -15623,7 +15623,7 @@ func p_biju_rasengan(c: Node3D, t: Node3D) -> void:
 
 ## Rüzgâr: Ard Arda Rasenshuriken (ref: iki elde birer Rasenshuriken; biri yakında kılıç gibi keser, sonra fırlatılır)
 func p_futon_rasenrenshuriken(c: Node3D, t: Node3D) -> void:
-	FutonFXE.futon_rasenrenshuriken(self, c, t)
+	LazyFx.g("FutonFXE").futon_rasenrenshuriken(self, c, t)
 
 
 func _mult_of(c: Node3D) -> float:
@@ -15632,38 +15632,38 @@ func _mult_of(c: Node3D) -> float:
 
 ## Bilge Sanatı: Mürekkep Saçan Rasenshuriken (Gyūki'nin mürekkebi: kara Rasenshuriken, patlayınca yapışkan mürekkep)
 func p_senpo_sumisan_rasenshuriken(c: Node3D, t: Node3D) -> void:
-	FlowFX.senpo_sumisan_rasenshuriken(self, c, t)
+	LazyFx.g("FlowFX").senpo_sumisan_rasenshuriken(self, c, t)
 
 
 ## Tayfun Su Girdabı (ref: Rasengan su akıntısını yutar; yoğun buhar girdabı katı bariyer olur, görüşü kapatır)
 func p_gufu_suika_no_jutsu(c: Node3D, t: Node3D) -> void:
-	FlowFX.gufu_suika_no_jutsu(self, c, t)
+	LazyFx.g("FlowFX").gufu_suika_no_jutsu(self, c, t)
 
 
 ## Naruto Bölge Kombosu (ref: Kurama chakralı klon ordusu her yönden kuşatır, "U-ZU-MA-KI" ile yukarı savurur, birlikte bitirir)
 func p_naruto_ittai_rendan(c: Node3D, t: Node3D) -> void:
-	FinalFX3.naruto_ittai_rendan(self, c, t)
+	LazyFx.g("FinalFX3").naruto_ittai_rendan(self, c, t)
 
 
 ## Paraşüt (ref: yumrukla havaya savurur, 2-4 klon havada rakibi bastırır, Naruto üstüne dizle iner)
 func p_rakkasan(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXG.rakkasan(self, c, t)
+	LazyFx.g("NinjutsuFXG").rakkasan(self, c, t)
 
 
 # ================================================================== Eksik kanon jutsuları — Obito (Narutopedia ref, 2026-11-08)
 ## Arayış: Kurtaran Işık (ref: arayış topu fırlar, hedefte ışıyıp şişer ve patlar, top sahibine döner)
 func p_gudo_jiu_hikari(c: Node3D, t: Node3D) -> void:
-	KatonFXF.gudo_jiu_hikari(self, c, t)
+	LazyFx.g("KatonFXF").gudo_jiu_hikari(self, c, t)
 
 
 ## Sabah Ayı (ref: saldırırken rakibe arayış topu yerleştirir, top üzerinde büyüyüp büyük patlama yaratır)
 func p_zangetsu(c: Node3D, t: Node3D) -> void:
-	KatonFXF.zangetsu(self, c, t)
+	LazyFx.g("KatonFXF").zangetsu(self, c, t)
 
 
 ## Alev Elleri (ref: cinchūriki dönüşümünün alevleri dev ellere şekillenir, rakibi kavrar ve yere çarpar)
 func p_hono_no_te(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXG.hono_no_te(self, c, t)
+	LazyFx.g("NinjutsuFXG").hono_no_te(self, c, t)
 
 
 # ================================================================== Eksik kanon jutsuları — Hashirama / Hokage'ler / Tsunade / Han / Minato (2026-11-08)
@@ -15774,43 +15774,43 @@ func p_shisekiyojin(c: Node3D, _t: Node3D) -> void:
 
 ## Gök Mızrağı Tekmesi (ref: çok yükseğe sıçrar, topukla rakibin üstüne çakılır)
 func p_sotenkyaku(c: Node3D, t: Node3D) -> void:
-	FinalFX3.sotenkyaku(self, c, t)
+	LazyFx.g("FinalFX3").sotenkyaku(self, c, t)
 
 
 ## Fışkıran Güçlü Ayak (ref: chakra kaynama noktasında; buhar zırhından fışkıran buharla güçlenen tekme)
 func p_fungokyaku(c: Node3D, t: Node3D) -> void:
-	FuttonFXA.fungokyaku(self, c, t)
+	LazyFx.g("FuttonFXA").fungokyaku(self, c, t)
 
 
 ## Sarmal Şimşek Süper Halka Dansı Uluma Üçüncü Biçim (ref: daire hâlinde altı Hiraishin kunaisi; kunaiden kunaiye ışınlanıp vurur, şimşek parlaması)
 func p_rasen_senko_cho_rinbuko_sanshiki(c: Node3D, t: Node3D) -> void:
-	SpacetimeFXA.rasen_senko_cho_rinbuko_sanshiki(self, c, t)
+	LazyFx.g("SpacetimeFXA").rasen_senko_cho_rinbuko_sanshiki(self, c, t)
 
 
 # ================================================================== Eksik kanon jutsuları — 7. grup (2026-11-08)
 ## Sarılma (ref: dev yılan avının etrafına dolanıp ne kadar büyük olursa olsun sıkar)
 func p_makitsuki(c: Node3D, t: Node3D) -> void:
-	FinalFX3.makitsuki(self, c, t)
+	LazyFx.g("FinalFX3").makitsuki(self, c, t)
 
 
 ## Sevgi Kamçısı (ref: kurbağanın dili çok hızlı uzanıp çarpar ya da sarıp yere vurur)
 func p_ai_no_muchi(c: Node3D, t: Node3D) -> void:
-	FinalFX3.ai_no_muchi(self, c, t)
+	LazyFx.g("FinalFX3").ai_no_muchi(self, c, t)
 
 
 ## Gölge Okşaması (ref: Isobu dikenli kabuğuyla top olup yuvarlanır, ezer; kaçış olarak da kullanılır)
 func p_kagenade(c: Node3D, t: Node3D) -> void:
-	FinalFX3.kagenade(self, c, t)
+	LazyFx.g("FinalFX3").kagenade(self, c, t)
 
 
 ## Ino–Shika–Chō Düzeni (kanon: üç klanın ortak düzeni — gölge bağı, zihin karıştırma, dev yumruk). Yalnız bu üç klandan biri.
 func p_formation_ino_shika_cho(c: Node3D, t: Node3D) -> void:
-	FinalFX3.formation_ino_shika_cho(self, c, t)
+	LazyFx.g("FinalFX3").formation_ino_shika_cho(self, c, t)
 
 
 ## Et Gülle Yoyosu (ref: Nara gölgesiyle yönlendirilen dev Nikudan Sensha hedefe çarpar, yoyo gibi geri çekilip yine çarpar)
 func p_nikudan_yoyo(c: Node3D, t: Node3D) -> void:
-	AkijugoFXA.nikudan_yoyo(self, c, t)
+	LazyFx.g("AkijugoFXA").nikudan_yoyo(self, c, t)
 
 
 ## İkiz Diş Kesiği (ref: kunai bıçaklarıyla iki yandan dalıp delip geçerler)
@@ -15870,7 +15870,7 @@ func p_kusari_sogazan(c: Node3D, t: Node3D) -> void:
 
 ## Şeytani Yanılsama: Buharlı Çok Katlı Yapı (ref: Gengetsu'nun dev istiridyesi buhar salar; buhardaki serap kopyalar, istiridye ölünce biter)
 func p_magen_kijo_no_rokaku(c: Node3D, _t: Node3D) -> void:
-	FinalFX0.magen_kijo_no_rokaku(self, c, _t)
+	LazyFx.g("FinalFX0").magen_kijo_no_rokaku(self, c, _t)
 
 
 # ================================================================== Eksik kanon jutsuları — 8. grup (2026-11-09)
@@ -15890,18 +15890,18 @@ func p_shinken_shirahadori(c: Node3D, _t: Node3D) -> void:
 
 ## Kurbağa Yassılığı — Gölge Kontrolü (ref: Jiraiya yere yassılaşıp rakibin gölgesine karışır; nefes tutuldukça bedeni yönetir)
 func p_gamadaira_kageayatsuri(c: Node3D, t: Node3D) -> void:
-	FinalFX2.gamadaira_kageayatsuri(self, c, t)
+	LazyFx.g("FinalFX2").gamadaira_kageayatsuri(self, c, t)
 
 
 ## Asalak Klon (ref: Beyaz Zetsu klonları yerden/sudan yükselir; darbede dağılmaz; biri rakibe yapışıp chakra emer)
 func p_kisei_bunshin(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXG.kisei_bunshin(self, c, t)
+	LazyFx.g("NinjutsuFXG").kisei_bunshin(self, c, t)
 
 
 # ================================================================== Eksik kanon jutsuları — 9. grup (2026-11-09)
 ## Ters Harem (ref: gölge klonlar yakışıklı erkeklere dönüşür; kadın rakip bayılır, diğerleri oyalanır)
 func p_oiroke_gyaku_haremu_no_jutsu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXG.oiroke_gyaku_haremu_no_jutsu(self, c, t)
+	LazyFx.g("NinjutsuFXG").oiroke_gyaku_haremu_no_jutsu(self, c, t)
 
 
 # ================================================================== Filler — Aburame (Narutopedia ref, 2026-11-09)
@@ -15958,7 +15958,7 @@ func p_mushi_nawa_no_jutsu(c: Node3D, t: Node3D) -> void:
 
 ## Gizli Teknik: Böcek Toplama (ref: avuç yere değer, mavi chakra ağı yayılır, böcekler gelir)
 func p_hijutsu_mushiyose(c: Node3D, _t: Node3D) -> void:
-	ArcaneFX.hijutsu_mushiyose(self, c, _t)
+	LazyFx.g("ArcaneFX").hijutsu_mushiyose(self, c, _t)
 
 
 ## İğ Düzeni (ref: böcekler hedefin çevresinde iğ biçimli sarmal çizerek saldırır)
@@ -15996,12 +15996,12 @@ func p_bosui_no_jin(c: Node3D, t: Node3D) -> void:
 
 ## Zehir Kavanozu (ref: cesetler mühür yazılı kubbe bariyerde; rinkaichū çoğalır, patlayıp zehirli sürü yayar) — YASAK
 func p_kodoku_no_jutsu(c: Node3D, _t: Node3D) -> void:
-	KurabuFXA.kodoku_no_jutsu(self, c, _t)
+	LazyFx.g("KurabuFXA").kodoku_no_jutsu(self, c, _t)
 
 
 ## Zehir Bulutu (ref: avuçlar arasında zehirli duman küresi, üflenince önde büyüyen kara-mor bulut)
 func p_dokujin_no_jutsu(c: Node3D, t: Node3D) -> void:
-	KurabuFXA.dokujin_no_jutsu(self, c, t)
+	LazyFx.g("KurabuFXA").dokujin_no_jutsu(self, c, t)
 
 
 # ================================================================== Eksik kanon jutsuları — 11. grup (2026-11-11)
@@ -16106,27 +16106,27 @@ func p_shoten_no_jutsu(c: Node3D, t: Node3D) -> void:
 # ================================================================== Eksik jutsular — 12. grup, kendi görünüşleri (Narutopedia ref, 2026-11-11)
 ## Kaya Tüfeği (ref: ağızdan mermi boyu taş parçaları fırlar, uçarken dev kayalara BÜYÜR)
 func p_doton_iwadeppo_no_jutsu(c: Node3D, t: Node3D) -> void:
-	DotonFXA.iwadeppo_no_jutsu(self, c, t)
+	LazyFx.g("DotonFXA").iwadeppo_no_jutsu(self, c, t)
 
 
 ## Mermi Kaya (ref: Ōnoki — yerden kopan dev kaya havada asılı kalır, sonra rakibe fırlatılıp onu geri savurur)
 func p_doton_dangan_no_jutsu(c: Node3D, t: Node3D) -> void:
-	DotonFXB.dangan_no_jutsu(self, c, t)
+	LazyFx.g("DotonFXB").dangan_no_jutsu(self, c, t)
 
 
 ## Büyük Mermi (ref: ağızdan geniş, güçlü bir su akımı püskürür — tek top değil, kalın kesintisiz hüzme)
 func p_suiton_taihodan(c: Node3D, t: Node3D) -> void:
-	SuitonFXF.suiton_taihodan(self, c, t)
+	LazyFx.g("SuitonFXF").suiton_taihodan(self, c, t)
 
 
 ## Su Dolusu (ref: eller birleşik öne uzanır, avuçtan beyaz parlama; damla biçimli su mermileri yelpaze halinde yağar)
 func p_suiton_mizu_arare(c: Node3D, t: Node3D) -> void:
-	SuitonFXE.suiton_mizu_arare(self, c, t)
+	LazyFx.g("SuitonFXE").suiton_mizu_arare(self, c, t)
 
 
 ## Sel Mermisi (ref: beyaz-mavi, dönen bir su girdabı sütunu hedefe boşalır; taş toprak savurur)
 func p_suiton_gekiryudan(c: Node3D, t: Node3D) -> void:
-	SuitonFXD.suiton_gekiryudan(self, c, t)
+	LazyFx.g("SuitonFXD").suiton_gekiryudan(self, c, t)
 
 
 # ================================================================== Hyōton — film teknikleri (Narutopedia)
@@ -16173,35 +16173,35 @@ func _koku_body(head: Node3D, seed: String, n: int, r: float) -> VfxSerpent:
 
 ## Kara Ejder Tipisi (film, Dotō): kol ileri uzanır, kara kardan ejder dönerek uçar; çarptığını göğe fırlatır
 func p_hyoton_kokuryu_bofusetsu(c: Node3D, t: Node3D) -> void:
-	HyotonFXA.hyoton_kokuryu_bofusetsu(self, c, t)
+	LazyFx.g("HyotonFXA").hyoton_kokuryu_bofusetsu(self, c, t)
 
 
 ## Çift Ejder Tipisi (film, Dotō): iki kara ejder birbirine dolanarak uçar, hedefte dev bir kara kar kasırgasına dönüşür
 func p_hyoton_soryu_bofusetsu(c: Node3D, t: Node3D) -> void:
-	ElementFX.hyoton_soryu_bofusetsu(self, c, t)
+	LazyFx.g("ElementFX").hyoton_soryu_bofusetsu(self, c, t)
 
 
 ## Kurt Dişi Çığı (film, Nadare): çığ iner, kar bir kurt sürüsüne dönüşüp hedeflere saldırır. Zayıflık (kanon): Raiton değen kurt dağılır
 func p_hyoton_roga_nadare(c: Node3D, t: Node3D) -> void:
-	HyotonFXA.hyoton_roga_nadare(self, c, t)
+	LazyFx.g("HyotonFXA").hyoton_roga_nadare(self, c, t)
 
 
 ## Tek Boynuzlu Beyaz Balina (film, Nadare): buzdan dev balina yerden fırlar, hedefin üstüne çöker. Ağır ve yavaş (kanon):
 ## asıl işi alanı ezmek ve yolu kesmek — düştüğü yerde buz kütleleri kalır
 func p_hyoton_ikkaku_hakugei(c: Node3D, t: Node3D) -> void:
-	HyotonFXA.hyoton_ikkaku_hakugei(self, c, t)
+	LazyFx.g("HyotonFXA").hyoton_ikkaku_hakugei(self, c, t)
 
 
 ## Ejder Yırtan Azgın Kaplan (film, Nadare): buzdan dev kaplan hat boyunca koşar, önüne geleni dondurur.
 ## Kanon: değdiği her Suiton tekniğini donduracak kadar soğuk — yolundaki su teknikleri buz olup dağılır
 func p_hyoton_haryu_moko(c: Node3D, t: Node3D) -> void:
-	HyotonFXA.hyoton_haryu_moko(self, c, t)
+	LazyFx.g("HyotonFXA").hyoton_haryu_moko(self, c, t)
 
 
 ## Yer Zinciri Buzu (roman, Kahyō): hedefin üstünde buz zerreleri oluşur ve onu yavaş yavaş dondurur. Kanon: chakrasını
 ## yalnız ısınmaya harcarsa dayanır; teknik kullanmaya kalkarsa hızla yeniden donar (oyuncu ve yapay zekâ aynı kural)
 func p_hyoton_jisarenhyo(c: Node3D, t: Node3D) -> void:
-	HyotonFXA.hyoton_jisarenhyo(self, c, t)
+	LazyFx.g("HyotonFXA").hyoton_jisarenhyo(self, c, t)
 
 
 # ================================================================== Jiton — Narutopedia (Toroi, Rasa, Shinki, Sandaime Kazekage kuklası)
@@ -16289,22 +16289,22 @@ func _mag_shuriken(s := 1.0) -> Node3D:
 ## Arı Saklayan Çifte Bıçak (Toroi): mıknatıslı shurikenler. Biri değse — hatta sıyırsa — hedef mıknatıslanır;
 ## artık atılan her shuriken ona çekilir, kaçınmak imkânsızdır (kanon)
 func p_jiton_jakuho_no_sojin(c: Node3D, t: Node3D) -> void:
-	JitonFXA.jiton_jakuho_no_sojin(self, c, t)
+	LazyFx.g("JitonFXA").jiton_jakuho_no_sojin(self, c, t)
 
 
 ## Demir Kumu İşareti (Shinki): hedefe demir kumundan bir iz yapışır; bütün saldırıların mıknatısla ona çekilir
 func p_satetsu_no_makingu(c: Node3D, t: Node3D) -> void:
-	JitonFXA.satetsu_no_makingu(self, c, t)
+	LazyFx.g("JitonFXA").satetsu_no_makingu(self, c, t)
 
 
 ## Altın Tozu İmparatorluk Cenaze Töreni (Rasa): altın tozu hedefi bir tepenin içine gömer, sonra tepe kendi üstüne çöküp içindekini ezer
 func p_jiton_sakin_taisoso(c: Node3D, t: Node3D) -> void:
-	JitonFXA.jiton_sakin_taisoso(self, c, t)
+	LazyFx.g("JitonFXA").jiton_sakin_taisoso(self, c, t)
 
 
 ## Altın Tozu Dünya Düzeni Küresi (Rasa): altın tozu kütlesi hedefe gider, içinden her yöne uzun dikenler fışkırır
 func p_sakin_kaihodama(c: Node3D, t: Node3D) -> void:
-	JitonFXA.sakin_kaihodama(self, c, t)
+	LazyFx.g("JitonFXA").sakin_kaihodama(self, c, t)
 
 
 func _kaiho_burst(c: Node3D, p: Vector3) -> void:
@@ -16366,18 +16366,18 @@ func _hand_curl(hand: Node3D, k: float) -> void:
 
 ## Kara Demir Yumruk (Shinki): demir kumundan iki dev el. Biri yumruk olup uzaktaki hedefe iner, öteki önünde kalkan olur
 func p_kurogane_no_kobushi(c: Node3D, t: Node3D) -> void:
-	JitonFXA.kurogane_no_kobushi(self, c, t)
+	LazyFx.g("JitonFXA").kurogane_no_kobushi(self, c, t)
 
 
 ## Demir Kumu Sıradağı (Sandaime Kazekage kuklası): önünde demir kumundan duvar yükselir, duvardan boy boy dikenler fırlar
 func p_satetsu_renzan(c: Node3D, t: Node3D) -> void:
-	JitonFXA.satetsu_renzan(self, c, t)
+	LazyFx.g("JitonFXA").satetsu_renzan(self, c, t)
 
 
 ## Demir Kumu Cenazesi (Sandaime Kazekage kuklası): demir kumu hedefi kavrayıp havaya kaldırır, dört yandan küçük dikenler
 ## saplanır, sonunda patlayıp geri savurur
 func p_satetsu_soso(c: Node3D, t: Node3D) -> void:
-	JitonFXA.satetsu_soso(self, c, t)
+	LazyFx.g("JitonFXA").satetsu_soso(self, c, t)
 
 
 # ================================================================== Shikotsumyaku — Kimimaro'nun oyun danslarından (Narutopedia)
@@ -16412,7 +16412,7 @@ func _body_spikes(c: Node3D, dur: float) -> void:
 
 ## Yaemugura no Mai: iki kemik kılıçla dalış ve çift kesik, saplama sağanağı, sonra hedefin arkasına geçip bütün bedenden fışkıran kemiklerle deşme
 func p_yaemugura_no_mai(c: Node3D, t: Node3D) -> void:
-	KekkeiFXA.yaemugura_no_mai(self, c, t)
+	LazyFx.g("KekkeiFXA").yaemugura_no_mai(self, c, t)
 
 
 func _bone_dart(L := 0.7) -> Node3D:
@@ -16478,7 +16478,7 @@ func p_genji_no_mai(c: Node3D, t: Node3D) -> void:
 
 ## Kazaguruma: hedefin tepesinde belirir, kemiklerini uzatır ve dev bir matkap gibi dönerek üstüne iner
 func p_kazaguruma(c: Node3D, t: Node3D) -> void:
-	KekkeiFXA.kazaguruma(self, c, t)
+	LazyFx.g("KekkeiFXA").kazaguruma(self, c, t)
 
 
 ## Keyaki: hedefi havaya savurur, tepesinde belirir ve kolundan fışkıran onlarca kemikle aşağı doğru deşer
@@ -16538,22 +16538,22 @@ func _steam_jet(at: Vector3, dir: Vector3, n := 40, speed := 9.0, size := 1.4, s
 ## Ranton: Raiunkūha (ref: Hiruko — koyu, topak topak fırtına bulutu halkası, içinde mavi-beyaz şimşekler).
 ## 8 sn: halkaya giren çarpılıp geri itilir, fırlatılanlar bulutta söner, bulut en yakın düşmana şimşek atar
 func p_ranton_raiunkuha(c: Node3D, _t: Node3D) -> void:
-	RanjinFXA.ranton_raiunkuha(self, c, _t)
+	LazyFx.g("RanjinFXA").ranton_raiunkuha(self, c, _t)
 
 
 ## Ranton: Burakku Hantingu (ref: Darui, Storm — kara şimşekten panterler hedefi geçerken biçer, arkasında dev tek pantere birleşir, ısırır ve patlar)
 func p_ranton_burakku_hantingu(c: Node3D, t: Node3D) -> void:
-	FlowFX.ranton_burakku_hantingu(self, c, t)
+	LazyFx.g("FlowFX").ranton_burakku_hantingu(self, c, t)
 
 
 ## Futton: Kazan no Jutsu (ref: Mei, oyun — yerde birkaç noktadan aşındırıcı buhar sızar, sonra her nokta sırayla patlayıp sütun hâlinde püskürür)
 func p_futton_kazan(c: Node3D, t: Node3D) -> void:
-	FuttonFXA.futton_kazan(self, c, t)
+	LazyFx.g("FuttonFXA").futton_kazan(self, c, t)
 
 
 ## Funkōtō (ref: Han, Storm — hedefi havaya atar, peşinden sıçrar ve buhar zırhının itişiyle üstüne basıp yere çakar)
 func p_funkoto(c: Node3D, t: Node3D) -> void:
-	FuttonFXA.funkoto(self, c, t)
+	LazyFx.g("FuttonFXA").funkoto(self, c, t)
 
 
 ## Funsenwan (ref: Han, Storm — buharın itişiyle topaç gibi döner; dönerken tekme ve yumruklar iner, son vuruş hedefi yukarı kaldırır)
@@ -16598,7 +16598,7 @@ func p_funsenwan(c: Node3D, t: Node3D) -> void:
 
 ## Funkahō (ref: Han, Storm — havaya sıçrar, dönerek tekme ve yumruk indirir, sonra avucundan buhar topu gibi bir püskürtmeyle hedefi yere çakar)
 func p_funkaho(c: Node3D, t: Node3D) -> void:
-	FuttonFXA.funkaho(self, c, t)
+	LazyFx.g("FuttonFXA").funkaho(self, c, t)
 
 
 ## Pakura (ref: Naruto Mobile): ayaklarının altında iki kavurucu küre — yerden bir karış havada süzülür
@@ -16626,27 +16626,27 @@ func _scorch_hover(c: Node3D, dur: float) -> void:
 
 ## Shakuton: Shakkyū Rendan (ref: Pakura — iki kürenin üstünde süzülürken art arda kavurucu küre atar; atılanın yerine hemen yenisi doğar)
 func p_shakuton_shakkyu_rendan(c: Node3D, t: Node3D) -> void:
-	ShakutonFXA.shakuton_shakkyu_rendan(self, c, t)
+	LazyFx.g("ShakutonFXA").shakuton_shakkyu_rendan(self, c, t)
 
 
 ## Shakuton: Shakkyū no Mai (ref: Pakura — süzülürken iki küçük kürenin bağlandığı tek büyük küre atar). Büyük küre patlar, küçükler kopup yakındaki öteki düşmanlara gider
 func p_shakuton_shakkyu_no_mai(c: Node3D, t: Node3D) -> void:
-	ShakutonFXA.shakuton_shakkyu_no_mai(self, c, t)
+	LazyFx.g("ShakutonFXA").shakuton_shakkyu_no_mai(self, c, t)
 
 
 ## Shakuton: Nenshōkyaku (ref: Pakura — ayaklarını kavurucu chakrayla sarar, tekmeleri öldürücüdür). Uçan tekmeyle düşmanların içinden geçer, dönüp topukla bitirir
 func p_shakuton_nenshokyaku(c: Node3D, t: Node3D) -> void:
-	ShakutonFXA.shakuton_nenshokyaku(self, c, t)
+	LazyFx.g("ShakutonFXA").shakuton_nenshokyaku(self, c, t)
 
 
 ## Shakuton: Shakkyū Hōijin — beş küre hedefin çevresine dizilip döner (ısı kafesi: bağlar, kurutur), sonra hepsi birden içine dalar
 func p_shakuton_shakkyu_hoijin(c: Node3D, t: Node3D) -> void:
-	ShakutonFXA.shakuton_shakkyu_hoijin(self, c, t)
+	LazyFx.g("ShakutonFXA").shakuton_shakkyu_hoijin(self, c, t)
 
 
 ## Shakuton: Nichirin — küreler başının üstünde tek büyük kürede birleşir (küçük bir güneş); 5 sn çevredeki düşmanlara ısı ışını yollar, sonunda kilitli hedefin üstüne iner
 func p_shakuton_nichirin(c: Node3D, t: Node3D) -> void:
-	ShakutonFXA.shakuton_nichirin(self, c, t)
+	LazyFx.g("ShakutonFXA").shakuton_nichirin(self, c, t)
 
 
 # ================================================================== Kan soyu genişletme (2026-11-15): Bakuton (Gari), Jinton (Mū / Ōnoki)
@@ -16655,37 +16655,37 @@ const BAKU := Color(1.0, 0.75, 0.4)
 
 ## Bakuton: Sokubakukyaku (ref: Gari, Naruto Mobile — ayağının altında patlama yaratır; patlama onu fırlatır ve tekmesinin gücünü katlar)
 func p_bakuton_sokubakukyaku(c: Node3D, t: Node3D) -> void:
-	BakutonFXA.bakuton_sokubakukyaku(self, c, t)
+	LazyFx.g("BakutonFXA").bakuton_sokubakukyaku(self, c, t)
 
 
 ## Bakuton: Shunkan Shōkyaku (ref: Gari, Naruto Mobile — patlayıcı chakranın hepsini yumrukta toplar; vurduğunda patlama olmaz, beden bir anda kül olur)
 func p_bakuton_shunkan_shokyaku(c: Node3D, t: Node3D) -> void:
-	BakutonFXA.bakuton_shunkan_shokyaku(self, c, t)
+	LazyFx.g("BakutonFXA").bakuton_shunkan_shokyaku(self, c, t)
 
 
 ## Bakuton: Enmakuken (ref: Gari, anime — Mayın Yumruğu'nun yıkıcı olmayan hâli: patlama yerine duman bulutu; öldürmez, sersemletir)
 func p_bakuton_enmakuken(c: Node3D, t: Node3D) -> void:
-	BakutonFXA.bakuton_enmakuken(self, c, t)
+	LazyFx.g("BakutonFXA").bakuton_enmakuken(self, c, t)
 
 
 ## Bakuton: Jirai Renken — art arda yumruklar; her yumruk bedene patlamayan bir mayın bırakır, sonra hepsi sırayla patlar (Jiraiken: yumruk değer, patlama içeriden gelir)
 func p_bakuton_jirai_renken(c: Node3D, t: Node3D) -> void:
-	BakutonFXA.bakuton_jirai_renken(self, c, t)
+	LazyFx.g("BakutonFXA").bakuton_jirai_renken(self, c, t)
 
 
 ## Bakuton: Gansaiha — yere inen yumruk toprağı söker (Shōgeki), patlayıcı chakra yüklü kaya parçaları öne saçılır ve değdiği yerde patlar
 func p_bakuton_gansaiha(c: Node3D, t: Node3D) -> void:
-	BakutonFXA.bakuton_gansaiha(self, c, t)
+	LazyFx.g("BakutonFXA").bakuton_gansaiha(self, c, t)
 
 
 ## Bakuton: Hannō Sōkō — patlayıcı chakra deride bekler; 7 sn boyunca beden her darbe aldığında çevresine patlar
 func p_bakuton_hanno_soko(c: Node3D, _t: Node3D) -> void:
-	BakutonFXA.bakuton_hanno_soko(self, c, _t)
+	LazyFx.g("BakutonFXA").bakuton_hanno_soko(self, c, _t)
 
 
 ## Bakuton: Dai Jiraiken — sıçrayıp yumruğu yere indirir; patlama yönlüdür (Jiraiken: patlama hep öne gider, kullanana dönmez): önündeki geniş yay üç kol hâlinde patlar
 func p_bakuton_dai_jiraiken(c: Node3D, t: Node3D) -> void:
-	BakutonFXB.bakuton_dai_jiraiken(self, c, t)
+	LazyFx.g("BakutonFXB").bakuton_dai_jiraiken(self, c, t)
 
 
 ## Jinton ışını: a'dan b'ye uzanan toz silindiri (ince açılır, kısa kalır, incelip söner)
@@ -16752,7 +16752,7 @@ func p_jinton_bunretsu_genkai_hakuri(c: Node3D, t: Node3D) -> void:
 
 ## Jinton: Genkai Hakuri no Jutsu — Ryōiki (ref: Mū, oyun — taş sütunlar hedefe çarpar, yerden çıkan taş golemin yumruğu iner, sonunda toz silindiri hedefi siler)
 func p_jinton_genkai_hakuri_ryoiki(c: Node3D, t: Node3D) -> void:
-	RanjinFXA.jinton_genkai_hakuri_ryoiki(self, c, t)
+	LazyFx.g("RanjinFXA").jinton_genkai_hakuri_ryoiki(self, c, t)
 
 
 ## Jinton: Chōhōtai — uzun dikdörtgen prizma ışın (ref: Mū'nun Ōnoki'ye karşı uzattığı ışın); elden çıkar ve yatay süpürür, değdiği her şey toz olur
@@ -16799,17 +16799,17 @@ func p_jinton_chohotai(c: Node3D, t: Node3D) -> void:
 
 ## Jinton: Sōsai — Toz Salınımına ancak Toz Salınımıyla karşı konur: önünde dönen küp 2.5 sn gelen teknikleri toza çevirir, içine giren de dağılır
 func p_jinton_sosai(c: Node3D, _t: Node3D) -> void:
-	RanjinFXA.jinton_sosai(self, c, _t)
+	LazyFx.g("RanjinFXA").jinton_sosai(self, c, _t)
 
 
 ## Jinton: Kyū — ağır ağır ilerleyen toz küresi; içinden geçen her şey (düşman, fırlatılan, yapı) moleküllerine ayrılır
 func p_jinton_kyu(c: Node3D, t: Node3D) -> void:
-	RanjinFXA.jinton_kyu(self, c, t)
+	LazyFx.g("RanjinFXA").jinton_kyu(self, c, t)
 
 
 ## Jinton: Sen — hazırlığı kısa, kalem inceliğinde toz ışını; savunmayı delip hattaki herkesten geçer (Jinton'un tek hızlı tekniği: az siler, çabuk çıkar)
 func p_jinton_sen(c: Node3D, t: Node3D) -> void:
-	RanjinFXA.jinton_sen(self, c, t)
+	LazyFx.g("RanjinFXA").jinton_sen(self, c, t)
 
 
 # ================================================================== Klan genişletme (2026-11-15): Nara, Yamanaka, Uzumaki, Yotsuki
@@ -16901,7 +16901,7 @@ func p_kage_zashi_no_jutsu(c: Node3D, t: Node3D) -> void:
 ## Kage Onishibari no Jutsu (ref: Shikamaru, Storm — kalın, çok kollu gölge şeritleri hızla uzanır; küçük gölge eller bedeni baştan aşağı sarar;
 ## sonra parmaklarıyla pencere kurup chakrayı sıkar: gölge ezer)
 func p_kage_onishibari_no_jutsu(c: Node3D, t: Node3D) -> void:
-	FinalFX1.kage_onishibari_no_jutsu(self, c, t)
+	LazyFx.g("FinalFX1").kage_onishibari_no_jutsu(self, c, t)
 
 
 ## Shinran Enbu no Jutsu (ref: Inoichi — Shinranshin'in geniş çaplısı: bir alandaki herkesin bedenini ele geçirir, birbirine saldırtır)
@@ -16950,17 +16950,17 @@ func p_shinran_enbu_no_jutsu(c: Node3D, t: Node3D) -> void:
 
 ## Shindenshōsen Jutsu (ref: Ino, oyun — zihin bağıyla bağlı herkesi ve kendini sürekli iyileştirir; teknik sürerken kıpırdayamaz)
 func p_shindenshosen_jutsu(c: Node3D, _t: Node3D) -> void:
-	FinalFX3.shindenshosen_jutsu(self, c, _t)
+	LazyFx.g("FinalFX3").shindenshosen_jutsu(self, c, _t)
 
 
 ## Chakura Kami Torappu (ref: Ino, Chūnin sınavı — kestiği saç tellerine chakra yürütür; teller yerde uzanır, basan kıpırdayamaz ve Shintenshin için kolay hedeftir)
 func p_chakura_kami_torappu(c: Node3D, t: Node3D) -> void:
-	FinalFX3.chakura_kami_torappu(self, c, t)
+	LazyFx.g("FinalFX3").chakura_kami_torappu(self, c, t)
 
 
 ## Uzumaki Fūinjutsu (ref: Ashina Uzumaki — el yere iner, avuçtan çıkan mühür yazısı hedefin altında açılır; mühür çalışınca üstündeki her şey içine mühürlenir)
 func p_uzumaki_fuinjutsu(c: Node3D, t: Node3D) -> void:
-	Clan3FXA.uzumaki_fuinjutsu(self, c, t)
+	LazyFx.g("Clan3FXA").uzumaki_fuinjutsu(self, c, t)
 
 
 ## Kongō Fūsa: Rasen no Jin (ref: Kushina, oyun — zincirler hedefin çevresinde sarmal bir bariyer kurar; içerideki çıkamaz, sonra tepeden bir vuruş iner)
@@ -17026,12 +17026,12 @@ func p_kongo_fusa_rasen_no_jin(c: Node3D, t: Node3D) -> void:
 
 ## Chiyu Kōshō (ref: Karin — ısırılan Uzumaki, chakrasını yaraya verir: ölümcül yarayı bile kapatır ama kendi chakrasını hızla tüketir)
 func p_chiyu_kosho(c: Node3D, _t: Node3D) -> void:
-	Clan3FXA.chiyu_kosho(self, c, _t)
+	LazyFx.g("Clan3FXA").chiyu_kosho(self, c, _t)
 
 
 ## Jigokuzuki: Ippon Nukite (ref: Üçüncü Raikage — şimşek chakrasının hepsi tek parmağın ucunda; parmak azaldıkça güç artar: en güçlü mızrak, hiçbir kalkan durduramaz)
 func p_jigokuzuki_ippon_nukite(c: Node3D, t: Node3D) -> void:
-	RaitonFXF.jigokuzuki_ippon_nukite(self, c, t)
+	LazyFx.g("RaitonFXF").jigokuzuki_ippon_nukite(self, c, t)
 
 
 # ================================================================== Klan genişletme 2 (2026-11-15): Hatake, Hōzuki
@@ -17055,12 +17055,12 @@ func _twin_raikiri(c: Node3D, dur: float, size := 0.4) -> void:
 ## Raikiri: Sōraishin (ref: Kakashi, oyun — yerin altından çıkıp çeneye vurur, geri sıçrar, iki elinin arasında Raikiri kurup ikiye böler;
 ## iki ışık izi bırakarak dalar, ilk Raikiri hedefi havaya atar, havada zikzak vurur, tepeden ikinci Raikiri'yi indirir)
 func p_raikiri_soraishin(c: Node3D, t: Node3D) -> void:
-	RaitonFXF.raikiri_soraishin(self, c, t)
+	LazyFx.g("RaitonFXF").raikiri_soraishin(self, c, t)
 
 
 ## Kage Bunshin: Raikirisō (ref: Kakashi, oyun — bir gölge klonu yollar; klon iki elinde birer Raikiri ile hedefe saldırır)
 func p_kage_bunshin_raikiriso(c: Node3D, t: Node3D) -> void:
-	RaitonFXE.kage_bunshin_raikiriso(self, c, t)
+	LazyFx.g("RaitonFXE").kage_bunshin_raikiriso(self, c, t)
 
 
 ## Hakkō Chakura Tō elde: gerçek tanto + ağzında beyaz chakra parıltısı (p_hatake_hakko ile aynı kılıç)
@@ -17090,32 +17090,32 @@ func _hakko_blade(c: Node3D, dur: float) -> void:
 
 ## Hakkōjin (ref: genç Kakashi / Sakumo, oyun — babasının Beyaz Işık Chakra Kılıcı ile art arda kesikler, sonunda yukarıdan aşağı tek kesik)
 func p_hakkojin(c: Node3D, t: Node3D) -> void:
-	ClanFX.hakkojin(self, c, t)
+	LazyFx.g("ClanFX").hakkojin(self, c, t)
 
 
 ## Doton: Tsuchi Nami no Jutsu (ref: Kakashi — avucunu yere vurur; zemin dalga gibi kabarıp ilerler. Yardımcı teknik: dengeyi bozar, hasarı azdır)
 func p_doton_tsuchi_nami_no_jutsu(c: Node3D, t: Node3D) -> void:
-	DotonFXD.tsuchi_nami_no_jutsu(self, c, t)
+	LazyFx.g("DotonFXD").tsuchi_nami_no_jutsu(self, c, t)
 
 
 ## Suiton: Gōsuikyaku no Jutsu (ref: Suigetsu — Suika'yı yalnız bacaklara uygular: bacak kasları suyla şişer; tekme menzili ve gücü artar, düz hatta çok hızlanır)
 func p_suiton_gosuikyaku_no_jutsu(c: Node3D, t: Node3D) -> void:
-	SuitonFXE.suiton_gosuikyaku_no_jutsu(self, c, t)
+	LazyFx.g("SuitonFXE").suiton_gosuikyaku_no_jutsu(self, c, t)
 
 
 ## Mizu Tatsumaki (ref: Shibuki / Tobirama; oyunda Suigetsu — kullanıcının çevresinde dönen su girdabı: hem bariyer hem saldırı)
 func p_mizu_tatsumaki(c: Node3D, _t: Node3D) -> void:
-	SuitonFXE.mizu_tatsumaki(self, c, _t)
+	LazyFx.g("SuitonFXE").mizu_tatsumaki(self, c, _t)
 
 
 ## Dekisui Suihō no Jutsu (ref: Suigetsu — bedeninin bir kısmını suya çevirir; su hedefin başını sarar, nefes aldırmaz: bayıltır, sürerse öldürür)
 func p_dekisui_suiho_no_jutsu(c: Node3D, t: Node3D) -> void:
-	SuitonFXE.dekisui_suiho_no_jutsu(self, c, t)
+	LazyFx.g("SuitonFXE").dekisui_suiho_no_jutsu(self, c, t)
 
 
 ## Suiton: Suika Bakusō no Jutsu (ref: Mangetsu, oyun — koca bir su gölüne erir, hedefi içine alır; ayaklarının altından yükselip patlar. Bedeni su olduğundan zarar görmez)
 func p_suiton_suika_bakuso_no_jutsu(c: Node3D, t: Node3D) -> void:
-	SuitonFXF.suiton_suika_bakuso_no_jutsu(self, c, t)
+	LazyFx.g("SuitonFXF").suiton_suika_bakuso_no_jutsu(self, c, t)
 
 
 # ================================================================== Klan genişletme 3 (2026-11-15): Hoshigaki, Sarutobi
@@ -17136,12 +17136,12 @@ func _shark_shot(c: Node3D, id: String, from: Vector3, dir: Vector3, s: float, s
 ## Suiton: Ameshikō (ref: Kisame — avucunu suya vurur, su göğe fışkırır; dört su köpekbalığı olup tepeden dalar.
 ## Dağılan köpekbalıkları damla boyu köpekbalıklarına dönüşüp yağmaya devam eder)
 func p_suiton_ameshiko(c: Node3D, t: Node3D) -> void:
-	SuitonFXF.suiton_ameshiko(self, c, t)
+	LazyFx.g("SuitonFXF").suiton_ameshiko(self, c, t)
 
 
 ## Suiton: Suikōsandan no Jutsu (ref: Kisame, oyun — art arda hızlı su köpekbalıkları yerin içinden ilerler, hedefe varınca fırlayıp tepesine iner)
 func p_suiton_suikosandan_no_jutsu(c: Node3D, t: Node3D) -> void:
-	SuitonFXE.suiton_suikosandan_no_jutsu(self, c, t)
+	LazyFx.g("SuitonFXE").suiton_suikosandan_no_jutsu(self, c, t)
 
 
 ## Su dikeni: yerden fışkıran sivri su kazığı (kısa durur, çöker)
@@ -17166,13 +17166,13 @@ func _water_spike(at: Vector3, h: float, r: float, tilt := Vector3.ZERO, hold :=
 
 ## Suiton: Mizutoge no Jutsu (ref: Shizuma Hoshigaki / Chōjūrō — yerden fışkıran iri su dikenleri hedefi delip geçer; uzaktan da kurulabilir)
 func p_suiton_mizutoge_no_jutsu(c: Node3D, t: Node3D) -> void:
-	SuitonFXE.suiton_mizutoge_no_jutsu(self, c, t)
+	LazyFx.g("SuitonFXE").suiton_mizutoge_no_jutsu(self, c, t)
 
 
 ## Chigiri Kyūshū no Jutsu (ref: Shizuma Hoshigaki — kanını Samehada'ya sürer; kılıç savaş alanına koyu kızıl sis salar.
 ## Sis, rakiplerin açık yaralarından chakrayı ağır ağır emer)
 func p_chigiri_kyushu_no_jutsu(c: Node3D, _t: Node3D) -> void:
-	FlowFX.chigiri_kyushu_no_jutsu(self, c, _t)
+	LazyFx.g("FlowFX").chigiri_kyushu_no_jutsu(self, c, _t)
 
 
 ## Eterik maymun eli (Enra'nın eli): demir el kalıbı, altın saydam ışıktan
@@ -17195,7 +17195,7 @@ func _monkey_hand(s: float) -> Node3D:
 ## Kongō Fūin: En'yō Fūsatsu (ref: Konohamaru + Enra — çevreye mühür etiketleri konur; bariyer eterik bir maymun eli olup hedefi kafesler.
 ## Çok chakra ister, kullanıcıyı çabuk yorar: chakra bitince hedef kurtulur)
 func p_kongo_fuin_enyo_fusatsu(c: Node3D, t: Node3D) -> void:
-	Clan4FXA.kongo_fuin_enyo_fusatsu(self, c, t)
+	LazyFx.g("Clan4FXA").kongo_fuin_enyo_fusatsu(self, c, t)
 
 
 ## İki nokta arasında ince ışık kirişi (mühür kenarı)
@@ -17212,12 +17212,12 @@ func _seal_edge(b: MB, a: Vector3, c2: Vector3, w: float) -> void:
 ## Fūinjutsu: Sanpō Fūin (ref: Hiruzen / Konohamaru — iki gölge klonuyla hedefin çevresinde üçgen mühür kurar;
 ## dört yüzlü bir ışık hedefi hapseder ve göğe fırlatır, yerde büyük bir çukur kalır)
 func p_fuinjutsu_sanpo_fuin(c: Node3D, t: Node3D) -> void:
-	Clan4FXA.fuinjutsu_sanpo_fuin(self, c, t)
+	LazyFx.g("Clan4FXA").fuinjutsu_sanpo_fuin(self, c, t)
 
 
 ## Fūton: Rasen Shōheki (ref: Konohamaru — avucundaki Rasengan'ı rüzgâr chakrasıyla dağıtır; çıkan rüzgâr bariyeri gelen saldırıyı keser. Chidori'yi durduracak kadar güçlüdür)
 func p_futon_rasen_shoheki(c: Node3D, t: Node3D) -> void:
-	FutonFXD.futon_rasen_shoheki(self, c, t)
+	LazyFx.g("FutonFXD").futon_rasen_shoheki(self, c, t)
 
 
 ## Cel alev topağı (ortak): alev seli / duvarı için
@@ -17230,7 +17230,7 @@ func _flame_puff(p: Vector3, size: float, dir: Vector3, vmin: float, vmax: float
 ## Uzusenpūhi no Jutsu (ref: Asuma, oyun — önce Katon: Hiuchi Yagura ile düşmanın önüne alev duvarı kurar, sonra Fūton: Senpūken ile
 ## alevi düşmana üfler: çevreyi kavuran bir ateş fırtınası)
 func p_uzusenpuhi_no_jutsu(c: Node3D, t: Node3D) -> void:
-	ElementFX.uzusenpuhi_no_jutsu(self, c, t)
+	LazyFx.g("ElementFX").uzusenpuhi_no_jutsu(self, c, t)
 
 
 # ───────────────────────── Shimura (Danzō) ─────────────────────────
@@ -17238,7 +17238,7 @@ func p_uzusenpuhi_no_jutsu(c: Node3D, t: Node3D) -> void:
 ## Fūton: Shinkū Reppū: Hitoe (ref: Danzō, Storm Generations — geri sıçrarken vakum küresi atar; hedef sersemken
 ## ardından vakum dalgası yollar)
 func p_futon_shinku_reppu_hitoe(c: Node3D, t: Node3D) -> void:
-	FutonFXD.futon_shinku_reppu_hitoe(self, c, t)
+	LazyFx.g("FutonFXD").futon_shinku_reppu_hitoe(self, c, t)
 
 
 ## Koldan çıkan kök: elden hedefe uzanan kıvrık ahşap gövde (yere basmaz); uçtan büyür, sonra geri çekilir
@@ -17279,19 +17279,19 @@ func _branch_burst(at: Vector3, n: int, L: float, dur: float) -> void:
 ## Taiju Kaihō (ref: Danzō, Ultimate Ninja Impact — avucunu yere koyar; dev bir ağaç fışkırır, çevresindeki herkesi savurur.
 ## Saldırı + savunma: ağaç durduğu sürece atılanları da keser). Hashirama hücresi ister.
 func p_taiju_kaiho(c: Node3D, t: Node3D) -> void:
-	FinalFX2.taiju_kaiho(self, c, t)
+	LazyFx.g("FinalFX2").taiju_kaiho(self, c, t)
 
 
 ## Bakuretsu Jusō (ref: Danzō, Storm Generations "Exploding Tree Spear" — kolundan fışkıran kökler hedefe saplanır).
 ## Hashirama hücresi ister.
 func p_bakuretsu_juso(c: Node3D, t: Node3D) -> void:
-	FinalFX2.bakuretsu_juso(self, c, t)
+	LazyFx.g("FinalFX2").bakuretsu_juso(self, c, t)
 
 
 ## Ne Bakusō (ref: Danzō, Storm Generations "Root Explosive Entombment" — kolundan iri kökler çıkar, toprağa dalar ve
 ## hedefin altından yükselir). Hashirama hücresi ister.
 func p_ne_bakuso(c: Node3D, t: Node3D) -> void:
-	FinalFX2.ne_bakuso(self, c, t)
+	LazyFx.g("FinalFX2").ne_bakuso(self, c, t)
 
 
 # ───────────────────────── Jūgo ─────────────────────────
@@ -17389,22 +17389,22 @@ func _black_wave(at: Vector3, size: float, dur: float, delay := 0.0) -> void:
 ## Juin: Bakusatsu Kyō (ref: Jūgo, Ultimate Ninja Heroes 3 — rakibin üstüne tepeden iner, daha güçlü bir Kassokuken vurur:
 ## dev siyah şok dalgası)
 func p_juin_bakusatsu_kyo(c: Node3D, t: Node3D) -> void:
-	AkijugoFXA.juin_bakusatsu_kyo(self, c, t)
+	LazyFx.g("AkijugoFXA").juin_bakusatsu_kyo(self, c, t)
 
 
 ## Kaatsu (ref: Jūgo, Storm 2 — elini devleştirir ve rakibini tokatlar)
 func p_kaatsu(c: Node3D, t: Node3D) -> void:
-	FlowFX.kaatsu(self, c, t)
+	LazyFx.g("FlowFX").kaatsu(self, c, t)
 
 
 ## Funsai (ref: Jūgo, Storm 2 — sırtında çok sayıda jet uzantısı çıkarıp rakibe atılır; art arda yumruk ve savuruşlar)
 func p_funsai(c: Node3D, t: Node3D) -> void:
-	AkijugoFXA.funsai(self, c, t)
+	LazyFx.g("AkijugoFXA").funsai(self, c, t)
 
 
 ## Kassokuken: Reishiki (ref: Jūgo — rakibe yumruk atar, savrulanın peşinden atılıp daha güçlü ikinci yumruğu indirir)
 func p_kassokuken_reishiki(c: Node3D, t: Node3D) -> void:
-	AkijugoFXA.kassokuken_reishiki(self, c, t)
+	LazyFx.g("AkijugoFXA").kassokuken_reishiki(self, c, t)
 
 
 # ───────────────────────── Shirogane (kukla ustaları) ─────────────────────────
@@ -17437,18 +17437,18 @@ func _puppet_blade(L: float, w := 0.07) -> MeshInstance3D:
 ## Kurohigi Kiki Nihatsu (ref: Kankurō — Kuroari hedefin arkasına geçer, göğsünü açıp chakra iplikleriyle hedefi sarar ve
 ## karın boşluğuna çeker; içeride tırpan bıçaklar bir yandan öbür yana biçer). Karasu gerekmez.
 func p_kurohigi_kiki_nihatsu(c: Node3D, t: Node3D) -> void:
-	KamishiroFXA.kurohigi_kiki_nihatsu(self, c, t)
+	LazyFx.g("KamishiroFXA").kurohigi_kiki_nihatsu(self, c, t)
 
 
 ## Kugutsu: Samidare (ref: Kankurō — Karasu ve Kuroari rakibin üstüne bomba yağdırır)
 func p_kugutsu_samidare(c: Node3D, t: Node3D) -> void:
-	KamishiroFXA.kugutsu_samidare(self, c, t)
+	LazyFx.g("KamishiroFXA").kugutsu_samidare(self, c, t)
 
 
 ## Kugutsu: Kaijin Tensen (ref: Kankurō — Karasu kollarından ve ağzından zehirli bıçaklar çıkarır, kasırga gibi dönerek
 ## rakibe gider, art arda biçer; rakibi havaya savurduktan sonra yanında patlar. Karasu patlamadan zarar görmez)
 func p_kugutsu_kaijin_tensen(c: Node3D, t: Node3D) -> void:
-	WeaponFX.kugutsu_kaijin_tensen(self, c, t)
+	LazyFx.g("WeaponFX").kugutsu_kaijin_tensen(self, c, t)
 
 
 ## Karasu'nun başı (ref: klan savaş kuklası A tipi): ahşap baş, üç göz, diken diken koyu saç, menteşeli çene. +Z yüz.
@@ -17482,20 +17482,20 @@ func _karasu_head(s: float) -> Node3D:
 ## Kugutsu: Fundan (ref: Kankurō — rakip yaklaşırken Karasu'nun başını gövdesinden ayırır; baş ağzından bir sivri çıkarıp
 ## rakibe saplar)
 func p_kugutsu_fundan(c: Node3D, t: Node3D) -> void:
-	KamishiroFXA.kugutsu_fundan(self, c, t)
+	LazyFx.g("KamishiroFXA").kugutsu_fundan(self, c, t)
 
 
 # ───────────────────────── Kamizuru (arı klanı) ─────────────────────────
 
 ## Hachi Bakudan no Jutsu (ref: Jibachi — üstlerine patlayıcı etiket bağlı arılar hedefi bombalar)
 func p_hachi_bakudan_no_jutsu(c: Node3D, t: Node3D) -> void:
-	KamishiroFXA.hachi_bakudan_no_jutsu(self, c, t)
+	LazyFx.g("KamishiroFXA").hachi_bakudan_no_jutsu(self, c, t)
 
 
 ## Hachimitsu no Jutsu (ref: Kurobachi — arı sürüsü hedefi sokar; her ezilen arı yapışkan bal bırakır. Bal birikince hedef
 ## kıpırdayamaz: yakın dövüşçülere karşı özellikle etkili)
 func p_hachimitsu_no_jutsu(c: Node3D, t: Node3D) -> void:
-	KamishiroFXA.hachimitsu_no_jutsu(self, c, t)
+	LazyFx.g("KamishiroFXA").hachimitsu_no_jutsu(self, c, t)
 
 
 ## Kaya kovan (ref: Kamizuru klanı — kayadan bir arı kovanı kurulur; içindeki dev arı larvası chakra yer)
@@ -17518,12 +17518,12 @@ func _rock_hive(s: float) -> Node3D:
 
 ## Iwa Hachinosu (ref: "Rock Hive" — kaya kovan dev arı larvasını barındırır; larva chakra yer)
 func p_iwa_hachinosu(c: Node3D, t: Node3D) -> void:
-	ArcaneFX.iwa_hachinosu(self, c, t)
+	LazyFx.g("ArcaneFX").iwa_hachinosu(self, c, t)
 
 
 ## Ōbachi Rakka (klanın dev arı çağrısından türetildi): dev arı tepeden dalar, hedefi kavrayıp göğe kaldırır ve bırakır
 func p_obachi_rakka(c: Node3D, t: Node3D) -> void:
-	KamishiroFXA.obachi_rakka(self, c, t)
+	LazyFx.g("KamishiroFXA").obachi_rakka(self, c, t)
 
 
 ## Hachi no Yoroi (klanın sürü kullanımından türetildi): arı sürüsü bedenini sarar; sana vuranı sokar, darbeleri hafifletir
@@ -17599,12 +17599,12 @@ func _bud_petal(h: float, w: float) -> MeshInstance3D:
 
 ## Magen: Hanagasumi (ref: Kurenai — rakibi bir çiçek tomurcuğuna hapseder, tomurcuğu çiçekli bir patlamayla patlatır)
 func p_magen_hanagasumi(c: Node3D, t: Node3D) -> void:
-	Clan4FXA.magen_hanagasumi(self, c, t)
+	LazyFx.g("Clan4FXA").magen_hanagasumi(self, c, t)
 
 
 ## Magen: Jubaku Messatsu (ref: Kurenai — Jubaku Satsu ağacıyla bağlanan hedefe çok sayıda kunai saplanır)
 func p_magen_jubaku_messatsu(c: Node3D, t: Node3D) -> void:
-	Clan4FXA.magen_jubaku_messatsu(self, c, t)
+	LazyFx.g("Clan4FXA").magen_jubaku_messatsu(self, c, t)
 
 
 ## Yanılsama kulesi: taş gövde, mazgallı tepe, üstüne yapıştırılmış patlayıcı etiketler
@@ -17635,7 +17635,7 @@ func _illusion_tower(s: float) -> Node3D:
 ## Magen: Jutō (ref: Kurenai "Demonic Illusion: Tree Tower" — rakip bir kuleye hapsolduğu yanılsamaya düşer; Kurenai kulenin
 ## her yanına patlayıcı etiket yapıştırır, patlayınca kule çöker)
 func p_magen_juto(c: Node3D, t: Node3D) -> void:
-	Clan4FXA.magen_juto(self, c, t)
+	LazyFx.g("Clan4FXA").magen_juto(self, c, t)
 
 
 ## Kaki Buyō (ref: Kurenai — çevresinde dönen bir kiraz çiçeği klonu, yapraklardan bir bariyer kurar: rakibe art arda vurur
@@ -17687,7 +17687,7 @@ func p_kaki_buyo(c: Node3D, _t: Node3D) -> void:
 ## Genjutsu: Shinkirō (ref: Kurenai — başı öne eğik durur, ayağını yere vurur: çevresini pembe yapraklar ve pembe bir sis
 ## sarar. Rakip onu kaybeder; birden yumrukla geri savrulur, havada dönerken Kurenai önünde belirip vurur)
 func p_genjutsu_shinkiro(c: Node3D, t: Node3D) -> void:
-	Clan4FXA.genjutsu_shinkiro(self, c, t)
+	LazyFx.g("Clan4FXA").genjutsu_shinkiro(self, c, t)
 
 
 ## Sansai (ref: Kurenai — rakibe bir kiraz yaprağı sütunu yollar, havaya savurur)
@@ -17765,41 +17765,41 @@ func p_yukoju(c: Node3D, t: Node3D) -> void:
 ## Suiton: Dogō Tatsumaki (ref: Funamushi — yakındaki sudan dev bir hortum kurar; kullanıcı hortumun İÇİNDE durup onu yönetir,
 ## hortum alanı yararak ilerler. Su kaynağı yoksa yarı güç — CanonRules.WATER)
 func p_suiton_dogo_tatsumaki(c: Node3D, t: Node3D) -> void:
-	SuitonFXF.suiton_dogo_tatsumaki(self, c, t)
+	LazyFx.g("SuitonFXF").suiton_dogo_tatsumaki(self, c, t)
 
 
 ## Suiton: Teppunokyū (ref: Funamushi — güçlü bir su akıntısı girdaba dönüşür; ani yön değiştirerek birkaç hedefi birden
 ## yutar, rakipler yönünü kestiremez)
 func p_suiton_teppunokyu(c: Node3D, t: Node3D) -> void:
-	SuitonFXE.suiton_teppunokyu(self, c, t)
+	LazyFx.g("SuitonFXE").suiton_teppunokyu(self, c, t)
 
 
 ## Suiton: Teppunokyū: Kaiten (ref: Funamushi — girdabın üstüne biner, kılıcını tutup girdabın dönüşüyle birlikte dönerek
 ## daha ölümcül bir saldırı yapar)
 func p_suiton_teppunokyu_kaiten(c: Node3D, t: Node3D) -> void:
-	FlowFX.suiton_teppunokyu_kaiten(self, c, t)
+	LazyFx.g("FlowFX").suiton_teppunokyu_kaiten(self, c, t)
 
 
 ## Suiton: Suishō (ref: Funamushi — kolunu uzatıp avucunu hedefe çevirir, güçlü bir su akıntısıyla geri iter)
 func p_suiton_suisho(c: Node3D, t: Node3D) -> void:
-	SuitonFXE.suiton_suisho(self, c, t)
+	LazyFx.g("SuitonFXE").suiton_suisho(self, c, t)
 
 
 ## Ketsueki Henkan no Jutsu (ref: Araumi / Funamushi — hedefin bütün kanını çekip saf suya çevirir; kurban kuruyup büzülür.
 ## Su kaynağı olmayan yerde ninjutsu için kullanılır; susuz kalan kullanıcıyı canlandırır). Tek atma gücü güce göre kırpılır.
 func p_ketsueki_henkan_no_jutsu(c: Node3D, t: Node3D) -> void:
-	SuitonFXF.ketsueki_henkan_no_jutsu(self, c, t)
+	LazyFx.g("SuitonFXF").ketsueki_henkan_no_jutsu(self, c, t)
 
 
 ## Kokumu Gakure no Jutsu (ref: Seiren — bedeninden kara bir sis salıp kendini gizler)
 func p_kokumu_gakure_no_jutsu(c: Node3D, _t: Node3D) -> void:
-	FinalFX0.kokumu_gakure_no_jutsu(self, c, _t)
+	LazyFx.g("FinalFX0").kokumu_gakure_no_jutsu(self, c, _t)
 
 
 ## Hankyōtei no Jutsu (ref: Seiren "Echolocation" — yayının telini çeker, dönen yankıları dinleyerek hedeflerin yerini bulur.
 ## Gök gürültüsü gibi sesler algıyı bozar)
 func p_hankyotei_no_jutsu(c: Node3D, _t: Node3D) -> void:
-	FinalFX0.hankyotei_no_jutsu(self, c, _t)
+	LazyFx.g("FinalFX0").hankyotei_no_jutsu(self, c, _t)
 
 
 # ───────────────────────── Momochi (Zabuza; Kubikiribōchō) ─────────────────────────
@@ -17829,7 +17829,7 @@ func _kubi_trail(c: Node3D, a0: float, a1: float, h0: float, h1: float, r := 2.6
 
 ## Ryūbikyaku (ref: Zabuza — rakibi yatay biçer, ardından dönerek tekmeyle savurur)
 func p_ryubikyaku(c: Node3D, t: Node3D) -> void:
-	FinalFX1.ryubikyaku(self, c, t)
+	LazyFx.g("FinalFX1").ryubikyaku(self, c, t)
 
 
 ## Tenkoku (ref: Zabuza — tekme, Kubikiribōchō ile art arda kesikler, rakibi havaya savuran yukarı biçme)
@@ -17876,12 +17876,12 @@ func p_tenkoku(c: Node3D, t: Node3D) -> void:
 
 ## Jikoku (ref: Zabuza — tekme, Kubikiribōchō ile art arda kesikler, dirsek ve yumruk; güçlü bir aşağı biçmeyle rakibi geri savurur)
 func p_jikoku(c: Node3D, t: Node3D) -> void:
-	FinalFX1.jikoku(self, c, t)
+	LazyFx.g("FinalFX1").jikoku(self, c, t)
 
 
 ## Dankoku (ref: Zabuza / Jūzō — Kubikiribōchō'yla rakibin önüne sıçrar ve kılıcı üstüne indirir; altındaki zemin ezilir)
 func p_dankoku(c: Node3D, t: Node3D) -> void:
-	FinalFX1.dankoku(self, c, t)
+	LazyFx.g("FinalFX1").dankoku(self, c, t)
 
 
 # ───────────────────────── Namikaze (Minato) ─────────────────────────
@@ -17923,30 +17923,30 @@ func _rasen_impact(at: Vector3, s: float, dir := Vector3.ZERO) -> void:
 ## Hiraishin: Ren no Dan (ref: Minato — rakibe mühür formülünü koyar, tekmeyle havaya kaldırır; havadaki rakibin arkasına
 ## ışınlanıp Rasengan'la yere çakar, düşen rakibin yanına yeniden ışınlanıp yüklü Rasengan'la yere gömer: dev patlama)
 func p_hiraishin_ren_no_dan(c: Node3D, t: Node3D) -> void:
-	Clan5FXA.hiraishin_ren_no_dan(self, c, t)
+	LazyFx.g("Clan5FXA").hiraishin_ren_no_dan(self, c, t)
 
 
 ## Senkō Enbu: Ten no Dan (ref: Minato — rakibi tekmeyle havaya kaldırır, çevresine Hiraishin kunaileri fırlatır; kunailer
 ## arasında ışınlanarak vurur, en sonda tepesinde belirip kunaiyi saplar)
 func p_senko_enbu_ten_no_dan(c: Node3D, t: Node3D) -> void:
-	ClanFX.senko_enbu_ten_no_dan(self, c, t)
+	LazyFx.g("ClanFX").senko_enbu_ten_no_dan(self, c, t)
 
 
 ## Shunraijin (ref: Minato — gözle izlenemeyecek hızla rakibe atılır, yanından geçerken vurur; arkasında durup kunaiyle keser)
 func p_shunraijin(c: Node3D, t: Node3D) -> void:
-	ClanFX.shunraijin(self, c, t)
+	LazyFx.g("ClanFX").shunraijin(self, c, t)
 
 
 ## Raikō (ref: Minato — Hiraishin kunaisiyle art arda kesikler, dönen tekmeler; sıçrayıp diziyle çeneye vurur, dönen topuk
 ## tekmesiyle yere indirir)
 func p_raiko(c: Node3D, t: Node3D) -> void:
-	Clan5FXA.raiko(self, c, t)
+	LazyFx.g("Clan5FXA").raiko(self, c, t)
 
 
 ## Kiiroi Senkō (ref: Minato — Rasengan'la rakibi havaya savurur, arkasına bir Hiraishin kunaisi atar; arkasına ışınlanıp
 ## sırtına büyüyerek patlayan ikinci bir Rasengan vurur, rakibi yere çakar)
 func p_kiiroi_senko(c: Node3D, t: Node3D) -> void:
-	Clan5FXA.kiiroi_senko(self, c, t)
+	LazyFx.g("Clan5FXA").kiiroi_senko(self, c, t)
 
 
 ## Jikūkan: Rasenrengan (ref: Minato — zikzak çizerek rakibe doğru ışınlanır, iki elindeki birer büyük Rasengan'la vurur)
@@ -17992,13 +17992,13 @@ func p_jikukan_rasenrengan(c: Node3D, t: Node3D) -> void:
 
 ## Jikūkan Ninjutsu: Shinsoku (ref: Minato — rakibe Hiraishin kunaisi atar, kunai isabet eder; arkasına ışınlanıp yeniden saplar)
 func p_jikukan_ninjutsu_shinsoku(c: Node3D, t: Node3D) -> void:
-	Clan5FXA.jikukan_ninjutsu_shinsoku(self, c, t)
+	LazyFx.g("Clan5FXA").jikukan_ninjutsu_shinsoku(self, c, t)
 
 
 ## Chōkōkyaku (ref: Minato — rakibe atılıp dizine tekme atar; kayarak arkasına geçer ve aynı dize öyle bir tekme atar ki
 ## rakip havaya uçar)
 func p_chokokyaku(c: Node3D, t: Node3D) -> void:
-	ClanFX.chokokyaku(self, c, t)
+	LazyFx.g("ClanFX").chokokyaku(self, c, t)
 
 
 # ───────────────────────── Karatachi (Yagura / Kagura) ─────────────────────────
@@ -18054,12 +18054,12 @@ func _coral_rise(at: Vector3, h: float, dur: float, delay := 0.0, tilt := Vector
 ## Sango Renshō (ref: Yagura — sopasının ucunu yere vurur; yerden uzun bir mercan sırası yükselip rakibe ulaşır, ulaşınca
 ## altından iri mercan dikenleri saplanır)
 func p_sango_rensho(c: Node3D, t: Node3D) -> void:
-	FinalFX1.sango_rensho(self, c, t)
+	LazyFx.g("FinalFX1").sango_rensho(self, c, t)
 
 
 ## Sango Shōgeki (ref: Yagura — elini yere koyar; rakibin altından mercan çıkıp onu havaya fırlatır)
 func p_sango_shogeki(c: Node3D, t: Node3D) -> void:
-	FinalFX1.sango_shogeki(self, c, t)
+	LazyFx.g("FinalFX1").sango_shogeki(self, c, t)
 
 
 ## Yagura'nın sopasının yerine göre (elde ise) vuruş noktası
@@ -18069,59 +18069,59 @@ func _club_tip(c: Node3D) -> Vector3:
 
 ## Sentō (ref: Yagura — sopasıyla birkaç su darbesi indirir, sonunda kancasıyla rakibi takıp uzağa fırlatır). Elinde Yagura'nın sopası olmalı
 func p_sento(c: Node3D, t: Node3D) -> void:
-	SuitonFXE.sento(self, c, t)
+	LazyFx.g("SuitonFXE").sento(self, c, t)
 
 
 ## Suiton: Kaisui Hōdan (ref: Yagura — rakibin üstünde dev bir su kütlesi yaratır ve onu üstüne indirir)
 func p_suiton_kaisui_hodan(c: Node3D, t: Node3D) -> void:
-	SuitonFXF.suiton_kaisui_hodan(self, c, t)
+	LazyFx.g("SuitonFXF").suiton_kaisui_hodan(self, c, t)
 
 
 ## Suiton: Suichū Hōgeki (ref: Yagura — sopasıyla rakibi takıp havaya atar, dört su sütunuyla vurur). Elinde Yagura'nın sopası olmalı
 func p_suiton_suichu_hogeki(c: Node3D, t: Node3D) -> void:
-	SuitonFXF.suiton_suichu_hogeki(self, c, t)
+	LazyFx.g("SuitonFXF").suiton_suichu_hogeki(self, c, t)
 
 
 ## Suiton: Suijun (ref: Tobirama / Yagura — atılan su topu kalkana dönüşür: rakibi geri iter, saldırıları engeller)
 func p_suiton_suijun(c: Node3D, t: Node3D) -> void:
-	SuitonFXE.suiton_suijun(self, c, t)
+	LazyFx.g("SuitonFXE").suiton_suijun(self, c, t)
 
 
 ## Suiton: Meikyō Shisui (ref: Kagura — sudan, gelen saldırılara kalkan olan berrak bir ayna yaratır). Su kaynağı gerekmez
 func p_suiton_meikyo_shisui(c: Node3D, t: Node3D) -> void:
-	SuitonFXE.suiton_meikyo_shisui(self, c, t)
+	LazyFx.g("SuitonFXE").suiton_meikyo_shisui(self, c, t)
 
 
 ## Shūjin Juin (ref: Kagura "Prisoner Cursed Seal" — kişiye belli hareketleri yasaklayan bir lanet mührü uygular; dilediğinde
 ## kaldırır). Oyunda: mühürlenen kişi teknik kullanamaz ve yavaşlar; kaçmaya çalışırken mühür yakar
 func p_shujin_juin(c: Node3D, t: Node3D) -> void:
-	FinalFX1.shujin_juin(self, c, t)
+	LazyFx.g("FinalFX1").shujin_juin(self, c, t)
 
 
 # ───────────────────────── Mitarashi (Anko) ─────────────────────────
 
 ## Mōjajūrin (ref: Anko — yılanlar çağırır, rakibi onlarla defalarca çevresinde savurur, havaya bırakır ve yılanlarla vurup uzaklaştırır)
 func p_mojajurin(c: Node3D, t: Node3D) -> void:
-	ClanFX.mojajurin(self, c, t)
+	LazyFx.g("ClanFX").mojajurin(self, c, t)
 
 
 ## Konoha Kanransha (ref: Anko — rakibi tekmeyle havaya kaldırır, daha yükseğe ikinci tekme; omuzlarına atlayıp hızlı taklalarla
 ## onu başı aşağı yere çakar, yere inince üstünden iner)
 func p_konoha_kanransha(c: Node3D, t: Node3D) -> void:
-	ClanFX.konoha_kanransha(self, c, t)
+	LazyFx.g("ClanFX").konoha_kanransha(self, c, t)
 
 
 ## Jarangeki (ref: Anko — art arda kesiklerle rakibe yüklenir, arada çift dizle sıçrar, bir kesik daha ve kunaiyle biçer;
 ## sonunda iki bileğinden yılanlar salar)
 func p_jarangeki(c: Node3D, t: Node3D) -> void:
-	ClanFX.jarangeki(self, c, t)
+	LazyFx.g("ClanFX").jarangeki(self, c, t)
 
 
 # ───────────────────────── Kurosuki (Raiga) ─────────────────────────
 
 ## Iwa Nadare (ref: Raiga — bir yamaca elektrik dalgası yollayıp kaya çığı başlatır; yalnız bir dağın eteğinde işe yarar)
 func p_iwa_nadare(c: Node3D, t: Node3D) -> void:
-	RaitonFXD.iwa_nadare(self, c, t)
+	LazyFx.g("RaitonFXD").iwa_nadare(self, c, t)
 
 
 # ───────────────────────── Chinoike (Ketsuryūgan) ─────────────────────────
@@ -18219,20 +18219,20 @@ func p_ketsuryudan(c: Node3D, t: Node3D) -> void:
 ## Ketsuryū Shōten (ref: Chino — kandan Yamata no Orochi'ye benzer sekiz başlı bir ejder yaratır; başlar yenilenir, ısırınca buhar
 ## çıkarır; Susanoo'yu bile zapt edecek kadar güçlüdür)
 func p_ketsuryu_shoten(c: Node3D, t: Node3D) -> void:
-	Clan5FXA.ketsuryu_shoten(self, c, t)
+	LazyFx.g("Clan5FXA").ketsuryu_shoten(self, c, t)
 
 
 ## Ketsueki Henge no Jutsu (ref: Chino — Ketsuryūgan ile hedefin demirli kanını genişletir; beden çok daha iri bir biçime
 ## dönüşür. Bileği kesilip fazla kan atılınca eski hâline döner). Oyunda: yaralı rakibin kanı şişer — iriler, ağırlaşır,
 ## yavaşlar ve kendi şişen kanı onu yer; kendine kullanırsan iri ve dayanıklı bir kılığa girersin (can bedeli)
 func p_ketsueki_henge_no_jutsu(c: Node3D, t: Node3D) -> void:
-	Clan5FXA.ketsueki_henge_no_jutsu(self, c, t)
+	LazyFx.g("Clan5FXA").ketsueki_henge_no_jutsu(self, c, t)
 
 
 ## Bakujin no Jutsu (ref: Chino "Exploding Human" — dokunarak rakibe zehirli chakra aşılar; rakip kanamaya başlarsa chakra
 ## tetiklenir: beden kapkara bir maddeyle kaplanıp şişer ve patlar). Güçlü hedefte tek atma gücü kırpılır
 func p_bakujin_no_jutsu(c: Node3D, t: Node3D) -> void:
-	Clan5FXA.bakujin_no_jutsu(self, c, t)
+	LazyFx.g("Clan5FXA").bakujin_no_jutsu(self, c, t)
 
 
 # ───────────────────────── Iburi (duman beden) ─────────────────────────
@@ -18361,17 +18361,17 @@ func _kurama_land(c: Node3D, x: Node3D) -> float:
 ## Kurama Genjutsu: Raiga (ref: Yakumo — yıldırımın Hokage dairesine düştüğü resmi çizer; resim gerçek olur. Gerçeklik genjutsusu
 ## beyni inandırır: zarar gerçektir)
 func p_kurama_genjutsu_raiga(c: Node3D, t: Node3D) -> void:
-	KurabuFXA.kurama_genjutsu_raiga(self, c, t)
+	LazyFx.g("KurabuFXA").kurama_genjutsu_raiga(self, c, t)
 
 
 ## Kurama Genjutsu: Enga (ref: Yakumo — Kurenai'yi yanan bir evin içine hapseder; alevler gerçek gibi yakar)
 func p_kurama_genjutsu_enga(c: Node3D, t: Node3D) -> void:
-	KurabuFXA.kurama_genjutsu_enga(self, c, t)
+	LazyFx.g("KurabuFXA").kurama_genjutsu_enga(self, c, t)
 
 
 ## Kurama Genjutsu: Dangai (ref: Yakumo — kurbanı bir uçurumdan düşürür; düşüşü gerçek sanan beden darbeyi gerçekten alır)
 func p_kurama_genjutsu_dangai(c: Node3D, t: Node3D) -> void:
-	KurabuFXA.kurama_genjutsu_dangai(self, c, t)
+	LazyFx.g("KurabuFXA").kurama_genjutsu_dangai(self, c, t)
 
 
 ## Ido (ref: Kurama klanı kekkei genkai — gücü denetlenemeyince bilinçaltı ikinci bir kişilik yaratır; bu kişilik bedeni ele
@@ -18379,7 +18379,7 @@ func p_kurama_genjutsu_dangai(c: Node3D, t: Node3D) -> void:
 ## canavarı belirir, bakışını yakalayan herkesi gerçeklik genjutsusuyla ezer. Bedel: denetim kısa süre Ido'ya geçer
 ## (kendi canından yer, dostu ayırt etmez)
 func p_kurama_ido(c: Node3D, _t: Node3D) -> void:
-	KurabuFXA.kurama_ido(self, c, _t)
+	LazyFx.g("KurabuFXA").kurama_ido(self, c, _t)
 
 
 # ───────────────────────── Kōton (Çelik) ─────────────────────────
@@ -18409,23 +18409,23 @@ func _has_nature(c: Node3D, n: String) -> bool:
 ## Kōton: Kōdan (ref: Metoro Konjiki — çelikten bir top yaratıp uzağa fırlatır, ağır ezici darbe. Yōton'la birleşince çelik erir,
 ## sarmal bir biçim alır)
 func p_koton_kodan(c: Node3D, t: Node3D) -> void:
-	SteelFX.kodan(self, c, t)
+	LazyFx.g("SteelFX").kodan(self, c, t)
 
 
 ## Kōton: Kōjun no Jutsu (ref: Metoro Konjiki — yerden savunma duvarı biçiminde bir çelik kalkan kaldırır; yağmur gibi gelen
 ## kum mermilerini bile savuşturur)
 func p_koton_kojun_no_jutsu(c: Node3D, t: Node3D) -> void:
-	SteelFX.kojun_no_jutsu(self, c, t)
+	LazyFx.g("SteelFX").kojun_no_jutsu(self, c, t)
 
 
 ## Kōton: Kōtai (ref: Hiruko — bedenini çeliğe çevirir, neredeyse yok edilemez olur). Bedel: çelik ağırdır — yavaşlarsın
 func p_koton_kotai(c: Node3D, _t: Node3D) -> void:
-	SteelFX.kotai(self, c, _t)
+	LazyFx.g("SteelFX").kotai(self, c, _t)
 
 
 ## Kōton: Kōken (ref: Metoro Konjiki — çelikten silahlar yaratır). Kolunda çelik bir kılıç dövülür; savruluşları geniş ve ağırdır
 func p_koton_koken(c: Node3D, t: Node3D) -> void:
-	SteelFX.koken(self, c, t)
+	LazyFx.g("SteelFX").koken(self, c, t)
 
 
 # ───────────────────────── Taiton (Tayfun) ─────────────────────────
@@ -18458,19 +18458,19 @@ func _typhoon_wall(cen: Vector3, r: float, h: float, i: int, grow: float) -> voi
 
 ## Taiton: Kyōfū Reppa (ref: Nowaki — art arda patlayan güçlü rüzgârlar çağırır: önündekini biçer, görüşü kapatır)
 func p_taiton_kyofu_reppa(c: Node3D, t: Node3D) -> void:
-	TyphoonFX.kyofu_reppa(self, c, t)
+	LazyFx.g("TyphoonFX").kyofu_reppa(self, c, t)
 
 
 ## Taiton: Mōfū Daireppa (ref: Nowaki — Susanoo'yu bile gölgede bırakan dev bir kasırga; çevresindeki her şeyi biçer. Kanon zayıflığı:
 ## yapan fırtınanın gözünde savunmasızdır — gözüne ulaşan karşı saldırıyla kolayca vurur)
 func p_taiton_mofu_daireppa(c: Node3D, _t: Node3D) -> void:
-	TyphoonFX.mofu_daireppa(self, c, _t)
+	LazyFx.g("TyphoonFX").mofu_daireppa(self, c, _t)
 
 
 ## Taiton: Reppū Shuriken (ref: Nowaki — rüzgâr chakrasını shurikenlerine akıtır: keskinlik ve menzil artar, çarpınca güçlü
 ## patlamalara dönüşür)
 func p_taiton_reppu_shuriken(c: Node3D, t: Node3D) -> void:
-	TyphoonFX.reppu_shuriken(self, c, t)
+	LazyFx.g("TyphoonFX").reppu_shuriken(self, c, t)
 
 
 # ───────────────────────── Meiton (Karanlık) ─────────────────────────
@@ -18502,13 +18502,13 @@ func _mei_mark(c: Node3D, dur: float) -> void:
 ## Sol elini öne tutarsın: önden gelen ninjutsu atışları işarete emilir, chakra olarak sende birikir; yakındaki rakibin
 ## chakrası çekilir. Biriken chakra Meiton: Hōshutsu ile salınır
 func p_meiton_kyuin(c: Node3D, t: Node3D) -> void:
-	DarkFX.kyuin(self, c, t)
+	LazyFx.g("DarkFX").kyuin(self, c, t)
 
 
 ## Meiton: Hōshutsu (ref: Hiruko — emdiği chakrayı işaretinden geri salar). Biriken chakra kara-mor bir dalga olarak fırlar;
 ## ne kadar çok emdiysen o kadar güçlü (emilmiş chakra yoksa zayıf bir dalga)
 func p_meiton_hoshutsu(c: Node3D, t: Node3D) -> void:
-	DarkFX.hoshutsu(self, c, t)
+	LazyFx.g("DarkFX").hoshutsu(self, c, t)
 
 
 # ───────────────────────── Jinton — Hız (迅遁) ─────────────────────────
@@ -18516,13 +18516,13 @@ func p_meiton_hoshutsu(c: Node3D, t: Node3D) -> void:
 ## Jinton: Kōsoku (ref: Hiruko'nun Hız salımı — inanılmaz hızla hareket eder, yalnız bir bulanıklık olur; rakip yeterince hızlı
 ## değilse taijutsu etkisiz kalır). Oyunda: 7 sn çok hızlısın, rakiplerin vuruşları çoğu zaman bulanıklığa denk gelir
 func p_jinsoku_kosoku(c: Node3D, _t: Node3D) -> void:
-	SwiftFX.kosoku(self, c, _t)
+	LazyFx.g("SwiftFX").kosoku(self, c, _t)
 
 
 ## Jinton: Shunjin (ref: Hız salımının bulanıklığı) — rakibin çevresinde bulanık bir hızla dönüp her yönden vurursun; son
 ## vuruş onu savurur
 func p_jinsoku_shunjin(c: Node3D, t: Node3D) -> void:
-	SwiftFX.shunjin(self, c, t)
+	LazyFx.g("SwiftFX").shunjin(self, c, t)
 
 
 # ───────────────────────── Deiton (Çamur) ─────────────────────────
@@ -18560,12 +18560,12 @@ func _mud_wave(from: Vector3, d: Vector3, L: float, w: float, dur: float) -> voi
 
 ## Deiton: Deiryū Nadare — ağzından ağır bir çamur seli kusarsın; önündekileri sürükler, çamura bulanan yavaşlar
 func p_deiton_deiryu_nadare(c: Node3D, t: Node3D) -> void:
-	MudFX.deiryu_nadare(self, c, t)
+	LazyFx.g("MudFX").deiryu_nadare(self, c, t)
 
 
 ## Deiton: Kōdei Kasen — çamur mermileri; değdiği yerde hemen sertleşip kile döner: vurulan yere yapışır, kil kırılana dek kıpırdayamaz
 func p_deiton_kodei_kasen(c: Node3D, t: Node3D) -> void:
-	MudFX.kodei_kasen(self, c, t)
+	LazyFx.g("MudFX").kodei_kasen(self, c, t)
 
 
 ## Bedeni saran kil kabuğu: çamur bacaklardan yukarı kurur, açık bej-gri kile döner, süre bitince çatlayıp dökülür (gerçek kemiklere iliştirilir)
@@ -18594,7 +18594,7 @@ func _clay_shell(x: Node3D, dur: float) -> void:
 
 ## Deiton: Deishō Kōka — çevrendeki toprağı çamura çevirirsin; içindekiler bata çıka yavaşlar, sonra çamur bir anda sertleşip kile döner, ayakları kilitlenir
 func p_deiton_deisho_koka(c: Node3D, _t: Node3D) -> void:
-	MudFX.deisho_koka(self, c, _t)
+	LazyFx.g("MudFX").deisho_koka(self, c, _t)
 
 
 # ───────────────────────── Kōton (Çelik) — ek teknikler ─────────────────────────
@@ -18645,13 +18645,13 @@ func _steel_gleam(c: Node3D, dur: float) -> void:
 ## Kōton: Kōsōjin* — avucunu yere basarsın; önünden hedefe doğru cilalı çelik mızraklar sıra sıra fışkırır, en sondaki
 ## demet hedefi havaya kaldırır. Çelik taş gibi kırılmaz: yoldaki kalkanı deler
 func p_koton_kosojin(c: Node3D, t: Node3D) -> void:
-	SteelFX.kosojin(self, c, t)
+	LazyFx.g("SteelFX").kosojin(self, c, t)
 
 
 ## Kōton: Kōsa* — avucundan dövme çelik bir zincir fırlar; değdiği rakibe dolanıp onu sana çeker, sonra zincir sıkışır
 ## (bağlı kalır). Zincir halkaları tek tek dizilir: düz bir çubuk değil
 func p_koton_kosa(c: Node3D, t: Node3D) -> void:
-	SteelFX.kosa(self, c, t)
+	LazyFx.g("SteelFX").kosa(self, c, t)
 
 
 ## Hedefin gövdesine sarılı üç çelik zincir halkası (bel / göğüs), kısa süre kalır
@@ -18677,24 +18677,24 @@ func _chain_wrap(x: Node3D) -> void:
 ## Kōton: Kōken Hōjin* — arkanda yelpaze gibi beş çelik kılıç dövülür, havada asılı kalır; sonra birer birer hedefe uçup
 ## saplanır. Her kılıç kanatır
 func p_koton_koken_hojin(c: Node3D, t: Node3D) -> void:
-	SteelFX.koken_hojin(self, c, t)
+	LazyFx.g("SteelFX").koken_hojin(self, c, t)
 
 
 ## Kōton: Kōtetsu Tsuchi* — hedefin tepesinde dev bir çelik çekiç başı dövülür ve tüm ağırlığıyla iner: sersemletir, yer çöker
 func p_koton_kotetsu_tsuchi(c: Node3D, t: Node3D) -> void:
-	SteelFX.kotetsu_tsuchi(self, c, t)
+	LazyFx.g("SteelFX").kotetsu_tsuchi(self, c, t)
 
 
 ## Kōton: Kōtai Tossin* — bedenin bir an çeliğe döner ve omuz önde hedefe gülle gibi atılırsın: savunmayı kırar, yoldakileri
 ## savurur. Kōtai açıksa çelik zaten ağırdır: darbe çok daha sert
 func p_koton_kotai_tossin(c: Node3D, t: Node3D) -> void:
-	SteelFX.kotai_tossin(self, c, t)
+	LazyFx.g("SteelFX").kotai_tossin(self, c, t)
 
 
 ## Kōton: Kōrō* — hedefin çevresinden sekiz çelik çubuk fışkırıp tepede birleşir: kafes. İçindeki kımıldayamaz; süre sonunda
 ## çubuklar içe kapanıp ezer
 func p_koton_koro(c: Node3D, t: Node3D) -> void:
-	SteelFX.koro(self, c, t)
+	LazyFx.g("SteelFX").koro(self, c, t)
 
 
 # ───────────────────────── Taiton (Tayfun) — ek teknikler ─────────────────────────
@@ -18729,42 +18729,42 @@ func _taifu_funnel(cen: Vector3, r: float, h: float, i: int) -> void:
 
 ## Taiton: Senpū Tatsumaki* — önüne yürüyen bir hortum salarsın: yolundakileri içine çekip havaya kaldırır, döndürür, biçer
 func p_taiton_senpu_tatsumaki(c: Node3D, t: Node3D) -> void:
-	TyphoonFX.senpu_tatsumaki(self, c, t)
+	LazyFx.g("TyphoonFX").senpu_tatsumaki(self, c, t)
 
 
 ## Taiton: Tenkū Rasen Otoshi* — göğe sıçrar, kendi çevrende dönen bir tayfun sütunuyla hedefin üstüne çakılırsın; iniş
 ## yerinde rüzgâr dışa patlar ve herkesi savurur
 func p_taiton_tenku_rasen_otoshi(c: Node3D, t: Node3D) -> void:
-	TyphoonFX.tenku_rasen_otoshi(self, c, t)
+	LazyFx.g("TyphoonFX").tenku_rasen_otoshi(self, c, t)
 
 
 ## Taiton: Bōfū no Yoroi* — bedeninin çevresinde sıkı dönen bir tayfun örersin (6 sn): sana gelen atışlar rüzgâra kapılıp
 ## atana geri savrulur, dibine giren biçilir. Rüzgâr zırhı yakın darbeleri de yumuşatır
 func p_taiton_bofu_no_yoroi(c: Node3D, _t: Node3D) -> void:
-	TyphoonFX.bofu_no_yoroi(self, c, _t)
+	LazyFx.g("TyphoonFX").bofu_no_yoroi(self, c, _t)
 
 
 ## Taiton: Taifū no Me* — rakibin olduğu yerde yerde dönen bir tayfun gözü açarsın: çevresindekileri merkeze çeker, sonra göz
 ## yukarı patlayıp hepsini göğe fırlatır
 func p_taiton_taifu_no_me(c: Node3D, t: Node3D) -> void:
-	TyphoonFX.taifu_no_me(self, c, t)
+	LazyFx.g("TyphoonFX").taifu_no_me(self, c, t)
 
 
 ## Taiton: Shinkū Taiha* — iki avucunu birbirine vurup tayfun chakrasını yassı bir boşluk halkası olarak çevrene salarsın:
 ## halka dışa genişleyip her yöndeki rakibi biçer, kanatır
 func p_taiton_shinku_taiha(c: Node3D, _t: Node3D) -> void:
-	TyphoonFX.shinku_taiha(self, c, _t)
+	LazyFx.g("TyphoonFX").shinku_taiha(self, c, _t)
 
 
 ## Taiton: Reppū Kaitenkyaku* — üç dönen tekme; her tekmeden önüne doğru keskin bir rüzgâr yayı kopar, sonuncusu tayfunla savurur
 func p_taiton_reppu_kaitenkyaku(c: Node3D, t: Node3D) -> void:
-	TyphoonFX.reppu_kaitenkyaku(self, c, t)
+	LazyFx.g("TyphoonFX").reppu_kaitenkyaku(self, c, t)
 
 
 ## Taiton: Oikaze* — arkana bir tayfun rüzgârı alıp yerin üstünde süzülerek ileri fırlarsın: yolundaki herkesi biçip yana
 ## savurursun, durduğun yerde rüzgâr patlar
 func p_taiton_oikaze(c: Node3D, t: Node3D) -> void:
-	TyphoonFX.oikaze(self, c, t)
+	LazyFx.g("TyphoonFX").oikaze(self, c, t)
 
 
 # ───────────────────────── Meiton (Karanlık) — ek teknikler ─────────────────────────
@@ -18805,19 +18805,19 @@ func _mei_flow(from: Vector3, to: Vector3, n := 2) -> void:
 ## Meiton: Kyūin Shō* — rakibe atılıp avucundaki işareti göğsüne bastırırsın: onu yerinde tutar, chakrasını ve canını
 ## doğrudan emersin (sen iyileşirsin, emilen chakra birikir)
 func p_meiton_kyuin_sho(c: Node3D, t: Node3D) -> void:
-	DarkFX.kyuin_sho(self, c, t)
+	LazyFx.g("DarkFX").kyuin_sho(self, c, t)
 
 
 ## Meiton: Kokumu* — rakibin çevresine kara chakra sisi çökertirsin (6 sn): içindekilerin chakra noktaları kapanır (jutsu
 ## yapamaz), yavaşlar ve chakrası sana akar
 func p_meiton_kokumu(c: Node3D, t: Node3D) -> void:
-	DarkFX.kokumu(self, c, t)
+	LazyFx.g("DarkFX").kokumu(self, c, t)
 
 
 ## Meiton: Hansha Fūin* — işaretli sol avucunu öne tutarsın (2.5 sn): önden gelen her atış işarete emilir ve anında kara bir
 ## küre olarak atanına geri fırlatılır, gücünün bir buçuk katıyla
 func p_meiton_hansha_fuin(c: Node3D, _t: Node3D) -> void:
-	DarkFX.hansha_fuin(self, c, _t)
+	LazyFx.g("DarkFX").hansha_fuin(self, c, _t)
 
 
 ## Kara chakradan bir el: yerden bilekten yukarı uzanan kol + pençe gibi kıvrık beş parmak
@@ -18843,31 +18843,31 @@ func _mei_hand(at: Vector3, face: Vector3, h: float) -> Node3D:
 ## Meiton: Yami no Te* — rakibin çevresinde yerden altı kara chakra eli uzanır ve onu kavrar: kımıldayamaz, eller chakrasını
 ## emer; süre sonunda eller sıkıp ezer
 func p_meiton_yami_no_te(c: Node3D, t: Node3D) -> void:
-	DarkFX.yami_no_te(self, c, t)
+	LazyFx.g("DarkFX").yami_no_te(self, c, t)
 
 
 ## Meiton: Kokuyōdan* — çevrende altı kara küre belirip döner, sonra birer birer rakibe süzülür; değen her küre chakrasını
 ## emip sana getirir
 func p_meiton_kokuyodan(c: Node3D, t: Node3D) -> void:
-	DarkFX.kokuyodan(self, c, t)
+	LazyFx.g("DarkFX").kokuyodan(self, c, t)
 
 
 ## Meiton: Meikū Hō* — biriktirdiğin kara chakrayı bir noktada sıkıştırıp kara bir boşluk açarsın: çevresindeki rakipleri ve
 ## atışları içine çeker, sonra çöküp patlar. Ne kadar çok emdiysen o kadar büyük ve uzun (biriken chakrayı harcar)
 func p_meiton_meiku_ho(c: Node3D, t: Node3D) -> void:
-	DarkFX.meiku_ho(self, c, t)
+	LazyFx.g("DarkFX").meiku_ho(self, c, t)
 
 
 ## Meiton: Kyūin Kōsen* — işaretinden yakınındaki en çok üç rakibe kara emme bağı uzatırsın (2.2 sn): her biri yavaşlar,
 ## chakrası ve canı sana akar
 func p_meiton_kyuin_kosen(c: Node3D, t: Node3D) -> void:
-	DarkFX.kyuin_kosen(self, c, t)
+	LazyFx.g("DarkFX").kyuin_kosen(self, c, t)
 
 
 ## Meiton: Ankoku Kaihō* — biriktirdiğin bütün kara chakrayı bir anda bedeninden salarsın: çevrende kara bir patlama, yakındaki
 ## herkesi savurur. Gücü emdiğin chakrayla büyür (biriken chakrayı harcar; hiç yoksa zayıf bir itiş)
 func p_meiton_ankoku_kaiho(c: Node3D, _t: Node3D) -> void:
-	DarkFX.ankoku_kaiho(self, c, _t)
+	LazyFx.g("DarkFX").ankoku_kaiho(self, c, _t)
 
 
 # ───────────────────────── Jinton — Hız (迅遁) — ek teknikler ─────────────────────────
@@ -18897,48 +18897,48 @@ func _sonic_ring(at: Vector3, d: Vector3, r: float) -> void:
 ## Jinton: Shinsokuzan* — bir anda düz bir hat boyunca rakibin arkasına geçersin; yoldakiler bir an sonra fark eder: hepsi
 ## aynı anda kesilir (darbe çoktan inmiştir)
 func p_jinsoku_shinsokuzan(c: Node3D, t: Node3D) -> void:
-	SwiftFX.shinsokuzan(self, c, t)
+	LazyFx.g("SwiftFX").shinsokuzan(self, c, t)
 
 
 ## Jinton: Zanzō* — yerinde bulanık bir ardıl görüntü bırakıp rakibin arkasında belirirsin: rakipler görüntüye saldırır, sen
 ## arkadan sert bir dirsek indirirsin
 func p_jinsoku_zanzo(c: Node3D, t: Node3D) -> void:
-	SwiftFX.zanzo(self, c, t)
+	LazyFx.g("SwiftFX").zanzo(self, c, t)
 
 
 ## Jinton: Hyakuretsuken* — göz takip edemeyen bir hızla yumruk yağdırırsın: kolların bulanık bir yelpazeye döner, rakip
 ## yerinde çakılı kalır; son yumruk onu uçurur
 func p_jinsoku_hyakuretsuken(c: Node3D, t: Node3D) -> void:
-	SwiftFX.hyakuretsuken(self, c, t)
+	LazyFx.g("SwiftFX").hyakuretsuken(self, c, t)
 
 
 ## Jinton: Tensōkyaku* — alttan bir tekmeyle rakibi göğe fırlatırsın; o daha düşmeden üstünde belirip topuğunla yere çakarsın
 func p_jinsoku_tensokyaku(c: Node3D, t: Node3D) -> void:
-	SwiftFX.tensokyaku(self, c, t)
+	LazyFx.g("SwiftFX").tensokyaku(self, c, t)
 
 
 ## Jinton: Ikkōsen* — kunaiyi ses hızını aşan bir savuruşla fırlatırsın: çıkışta hava halka halka patlar, kunai yolundaki
 ## herkesi deler geçer
 func p_jinsoku_ikkosen(c: Node3D, t: Node3D) -> void:
-	SwiftFX.ikkosen(self, c, t)
+	LazyFx.g("SwiftFX").ikkosen(self, c, t)
 
 
 ## Jinton: Mikiri* — 6 sn bedenin bulanık bir tetikte durur: sana gelen ilk üç darbe, sen yana kayıp boşa çıkar (kaçınılmaz
 ## darbeler hariç)
 func p_jinsoku_mikiri(c: Node3D, _t: Node3D) -> void:
-	SwiftFX.mikiri(self, c, _t)
+	LazyFx.g("SwiftFX").mikiri(self, c, _t)
 
 
 ## Jinton: Renshunshin* — çevrendeki en çok beş rakibin arasında art arda ışınlanıp her birine birer darbe indirirsin; sonra
 ## başladığın yere dönersin
 func p_jinsoku_renshunshin(c: Node3D, t: Node3D) -> void:
-	SwiftFX.renshunshin(self, c, t)
+	LazyFx.g("SwiftFX").renshunshin(self, c, t)
 
 
 ## Jinton: Onsoku Hakushu* — avuçlarını ses hızını aşan bir hızla birbirine vurursun: önündeki hava patlayıp koni biçiminde
 ## dalga yayar; yakalananlar sağırlaşıp sersemler, geri savrulur
 func p_jinsoku_onsoku_hakushu(c: Node3D, t: Node3D) -> void:
-	SwiftFX.onsoku_hakushu(self, c, t)
+	LazyFx.g("SwiftFX").onsoku_hakushu(self, c, t)
 
 
 # ───────────────────────── Deiton (Çamur) — ek teknikler ─────────────────────────
@@ -18958,7 +18958,7 @@ func _clay_mat() -> StandardMaterial3D:
 ## Deiton: Doro Bunshin* — yerden kendi şeklinde bir çamur kopyası kalkar: rakipler ona saldırır; vurulunca çamur sıçrar, dibindekiler
 ## bulanır, yavaşlar ve çamur bacaklarında kile döner
 func p_deiton_doro_bunshin(c: Node3D, t: Node3D) -> void:
-	MudFX.doro_bunshin(self, c, t)
+	LazyFx.g("MudFX").doro_bunshin(self, c, t)
 
 
 ## Çamurdan bir el: yerden kabaran, damlayan, kalın parmaklı (Meiton'un kara elinden farklı: biçimsiz, ağır)
@@ -18981,37 +18981,37 @@ func _mud_hand(at: Vector3, face: Vector3, h: float) -> Node3D:
 ## Deiton: Doronuma Hikizuri* — rakibin altındaki toprak bataklığa döner, çamur elleri bacaklarına yapışıp onu aşağı çeker:
 ## kımıldayamaz, çamur sıkıştıkça ezilir
 func p_deiton_doronuma_hikizuri(c: Node3D, t: Node3D) -> void:
-	MudFX.doronuma_hikizuri(self, c, t)
+	LazyFx.g("MudFX").doronuma_hikizuri(self, c, t)
 
 
 ## Deiton: Deigandan* — ağır bir çamur güllesini havaya fırlatırsın; düştüğü yerde patlayıp çevresine çamur saçar (yavaşlatır),
 ## bir an sonra saçılan çamur kile döner: hâlâ içinde olanlar yere kilitlenir
 func p_deiton_deigandan(c: Node3D, t: Node3D) -> void:
-	MudFX.deigandan(self, c, t)
+	LazyFx.g("MudFX").deigandan(self, c, t)
 
 
 ## Deiton: Deiheki* — önünde kalın bir çamur duvarı kabarır: gelen atışlar içine gömülüp kaybolur; birkaç saniye sonra duvar
 ## kile döner ve önüne doğru sert kil parçaları halinde patlar
 func p_deiton_deiheki(c: Node3D, t: Node3D) -> void:
-	MudFX.deiheki(self, c, t)
+	LazyFx.g("MudFX").deiheki(self, c, t)
 
 
 ## Deiton: Doryū Suberi* — ayağının altından kabaran bir çamur dalgasının sırtında ileri kayarsın: yolundakiler çarpılıp savrulur,
 ## arkanda kalan çamur izinde basanlar yavaşlar
 func p_deiton_doryu_suberi(c: Node3D, t: Node3D) -> void:
-	MudFX.doryu_suberi(self, c, t)
+	LazyFx.g("MudFX").doryu_suberi(self, c, t)
 
 
 ## Deiton: Nendo Kyoken* — rakibin yanında yerden dev bir kil kol kalkar ve tüm ağırlığıyla yumruğunu ona indirir; sonra
 ## kuruyup dağılır
 func p_deiton_nendo_kyoken(c: Node3D, t: Node3D) -> void:
-	MudFX.nendo_kyoken(self, c, t)
+	LazyFx.g("MudFX").nendo_kyoken(self, c, t)
 
 
 ## Deiton: Doro Yoroi* — bedenini kalın bir çamur kaplar ve hızla kurur: kil zırh darbeleri yutar ama ağırdır. Süre bitince zırh
 ## çatlayıp dışa patlar, yakındakileri kil parçalarıyla vurur
 func p_deiton_doro_yoroi(c: Node3D, _t: Node3D) -> void:
-	MudFX.doro_yoroi(self, c, _t)
+	LazyFx.g("MudFX").doro_yoroi(self, c, _t)
 
 
 # ───────────────────────── Klanları 10'a tamamlama: Karatachi, Chinoike, Mitarashi ─────────────────────────
@@ -19019,79 +19019,79 @@ func p_deiton_doro_yoroi(c: Node3D, _t: Node3D) -> void:
 ## Araumi Shibuki (ref: Yagura, oyun "Rough Sea Splash") — sopasını yere çarpar; önünden kabaran hırçın bir dalga yükselip
 ## rakibin üstüne kırılır, köpüklü su sıçratır. Elinde Yagura'nın sopası olmalı
 func p_araumi_shibuki(c: Node3D, t: Node3D) -> void:
-	SuitonFXE.araumi_shibuki(self, c, t)
+	LazyFx.g("SuitonFXE").araumi_shibuki(self, c, t)
 
 
 ## Ketsuryūgan: Chi no Kusari* — rakibin kendi yarasından akan kanı Ketsuryūgan'la sertleştirip bedenine dolanan kan zincirlerine
 ## çevirirsin: kımıldayamaz, kanaması derinleşir. Yaralı değilse kendi bileğinden kan atarsın (can bedeli)
 func p_chi_no_kusari(c: Node3D, t: Node3D) -> void:
-	FlowFX.chi_no_kusari(self, c, t)
+	LazyFx.g("FlowFX").chi_no_kusari(self, c, t)
 
 
 ## Ketsuryūgan: Ketsumu no Jutsu* — avucundaki kanı ince bir kan sisine çevirip önüne püskürtürsün; sisin içinde Ketsuryūgan'ın
 ## genjutsusu işler: rakipler seni kaybeder, sisi soluyanların kanı sızar
 func p_ketsumu_no_jutsu(c: Node3D, t: Node3D) -> void:
-	Clan5FXA.ketsumu_no_jutsu(self, c, t)
+	LazyFx.g("Clan5FXA").ketsumu_no_jutsu(self, c, t)
 
 ## Genjutsu: Ketsuryūgan (kanon) — göz teması: zayıf rakibin beyni yıkanır (dostuna saldırır), güçlüsü rüyaya düşer
 func p_genjutsu_ketsuryugan(c: Node3D, t: Node3D) -> void:
-	KetsuryuFX.genjutsu_ketsuryugan(self, c, t)
+	LazyFx.g("KetsuryuFX").genjutsu_ketsuryugan(self, c, t)
 
 
 ## Ketsuryūgan: Tessui Heki* (Chino'nun demirli su duvarı) — su yoksa kendi kanından
 func p_tessui_heki(c: Node3D, t: Node3D) -> void:
-	KetsuryuFX.tessui_heki(self, c, t)
+	LazyFx.g("KetsuryuFX").tessui_heki(self, c, t)
 
 
 ## Ketsuryūgan: Tessui Dan* (Chino'nun demirli su damlaları)
 func p_tessui_dan(c: Node3D, t: Node3D) -> void:
-	KetsuryuFX.tessui_dan(self, c, t)
+	LazyFx.g("KetsuryuFX").tessui_dan(self, c, t)
 
 
 ## Ketsuryūgan: Kioku Yomi* (Sasuke Shinden: anı okuma) — dokunuş; 12 sn sıradaki 3 saldırı boşa çıkar
 func p_kioku_yomi(c: Node3D, t: Node3D) -> void:
-	KetsuryuFX.kioku_yomi(self, c, t)
+	LazyFx.g("KetsuryuFX").kioku_yomi(self, c, t)
 
 
 ## Fūma: Chakura no Ito (kanon, Kagerō) — kalpleri bağlayan ipler: hasar paylaşılır, biri ölürse öteki de
 func p_chakura_no_ito(c: Node3D, t: Node3D) -> void:
-	KetsuryuFX.chakura_no_ito(self, c, t)
+	LazyFx.g("KetsuryuFX").chakura_no_ito(self, c, t)
 
 ## Altı Yol hazineleri (Kumo, Kinkaku–Ginkaku): Kōkinjō bağlar ve söz ruhunu çeker; Benihisago kaydeder; Kohaku çağırıp mühürler
 func p_kokinjo_shibari(c: Node3D, t: Node3D) -> void:
-	KinginFX.kokinjo_shibari(self, c, t)
+	LazyFx.g("KinginFX").kokinjo_shibari(self, c, t)
 
 
 func p_benihisago_kiroku(c: Node3D, t: Node3D) -> void:
-	KinginFX.benihisago_kiroku(self, c, t)
+	LazyFx.g("KinginFX").benihisago_kiroku(self, c, t)
 
 
 func p_kohaku_yobikake(c: Node3D, t: Node3D) -> void:
-	KinginFX.kohaku_yobikake(self, c, t)
+	LazyFx.g("KinginFX").kohaku_yobikake(self, c, t)
 
 
 ## Mitarashi: Senei Dokuga* — gölgeden fırlayan iki yılan rakibin bacaklarını ısırır: zehir damarlara yürür (sürekli hasar,
 ## yavaşlama). Zehir sürerken ikinci ısırık daha derin işler
 func p_senei_dokuga(c: Node3D, t: Node3D) -> void:
-	Clan5FXA.senei_dokuga(self, c, t)
+	LazyFx.g("Clan5FXA").senei_dokuga(self, c, t)
 
 
 ## Mitarashi: Kushi Kunai* — Anko'nun dango şişi gibi: üç kunai tek hatta art arda fırlar; ilk kunai rakibi yerine çiviler,
 ## arkadakiler aynı noktaya saplanır
 func p_kushi_kunai(c: Node3D, t: Node3D) -> void:
-	Clan5FXA.kushi_kunai(self, c, t)
+	LazyFx.g("Clan5FXA").kushi_kunai(self, c, t)
 
 
 ## Mitarashi: Jakage Shibari* — rakibin gölgesinden dört yılan yükselip bacaklarına ve beline dolanır: kımıldayamaz, yılanlar
 ## sıkıştıkça zehir işler
 func p_jakage_shibari(c: Node3D, t: Node3D) -> void:
-	Clan5FXA.jakage_shibari(self, c, t)
+	LazyFx.g("Clan5FXA").jakage_shibari(self, c, t)
 
 
 ## Mitarashi: Hebi Nukegara* — darbe gelmeden derini yılan gibi değiştirirsin: yerinde içi boş bir deri kabuğu kalır (rakipler
 ## ona saldırır), sen yerden kayarak rakibin arkasından çıkıp yılan ısırığıyla vurursun
 func p_hebi_nukegara(c: Node3D, t: Node3D) -> void:
-	Clan5FXA.hebi_nukegara(self, c, t)
+	LazyFx.g("Clan5FXA").hebi_nukegara(self, c, t)
 
 
 # ───────────────────────── Klanları 10'a tamamlama: Kurosuki, Kurama ─────────────────────────
@@ -19104,36 +19104,36 @@ const KURO_BOLT := Color(0.7, 0.85, 1.0)
 ## Kurosuki: Sōrei no Kane* — avucunu yere vurursun; yerden bir cenaze çanı gibi art arda üç yıldırım halkası yayılır, değdiği
 ## herkes sarsılır, sersemler
 func p_sorei_no_kane(c: Node3D, _t: Node3D) -> void:
-	RaitonFXD.sorei_no_kane(self, c, _t)
+	LazyFx.g("RaitonFXD").sorei_no_kane(self, c, _t)
 
 
 ## Kurosuki: Raijin Kenbu* — iki elinde yıldırım kılıcıyla rakibe atılıp çapraz biçen üç kesik; son kesik yıldırımla patlar
 func p_raijin_kenbu(c: Node3D, t: Node3D) -> void:
-	RaitonFXD.raijin_kenbu(self, c, t)
+	LazyFx.g("RaitonFXD").raijin_kenbu(self, c, t)
 
 
 ## Kurosuki: Kiri Ikazuchi* — çevreye koyu bir Kirigakure sisi çökertirsin; sisin içindekiler seni göremez, sis boyunca yıldırımlar
 ## rastgele onların üstüne iner
 func p_kiri_ikazuchi(c: Node3D, t: Node3D) -> void:
-	RaitonFXE.kiri_ikazuchi(self, c, t)
+	LazyFx.g("RaitonFXE").kiri_ikazuchi(self, c, t)
 
 
 ## Kurosuki: Raidō Hashiri* — avucunu yere bastırırsın; yıldırım toprağın içinden hedefe koşar (yerde çatlayan ışıklı iz), ulaştığı
 ## yerde göğe doğru bir yıldırım sütunu fışkırır
 func p_raido_hashiri(c: Node3D, t: Node3D) -> void:
-	RaitonFXD.raido_hashiri(self, c, t)
+	LazyFx.g("RaitonFXD").raido_hashiri(self, c, t)
 
 
 ## Kurosuki: Shiden Kago* — rakibin dört yanına gökten dört yıldırım çakar, aralarında çatırdayan şimşek bağları gerilir: içindeki
 ## kımıldayamaz; kafes kapanırken çarpar
 func p_shiden_kago(c: Node3D, t: Node3D) -> void:
-	RaitonFXE.shiden_kago(self, c, t)
+	LazyFx.g("RaitonFXE").shiden_kago(self, c, t)
 
 
 ## Kurosuki: Raisō Tomurai* — cenaze yıldırımı: avucundan çıkan şimşek en yakın rakibe çarpıp ondan ötekine sıçrar, en çok beş
 ## kişiye zincirlenir; her sıçrayışta biraz zayıflar
 func p_raiso_tomurai(c: Node3D, t: Node3D) -> void:
-	RaitonFXD.raiso_tomurai(self, c, t)
+	LazyFx.g("RaitonFXD").raiso_tomurai(self, c, t)
 
 
 # ───────────────────────── Kurama (gerçeklik genjutsusu) ─────────────────────────
@@ -19143,13 +19143,13 @@ func p_raiso_tomurai(c: Node3D, t: Node3D) -> void:
 ## Kurama Genjutsu: Ingen Shibari (ref: anime "String Bean Binding Illusion" — hedefin çevresinden fasulye sarmaşıkları büyüyüp
 ## onu sıkıca sarar; gerçeklik genjutsusunda sarmaşık gerçektir)
 func p_kurama_ingen_shibari(c: Node3D, t: Node3D) -> void:
-	KurabuFXA.kurama_ingen_shibari(self, c, t)
+	LazyFx.g("KurabuFXA").kurama_ingen_shibari(self, c, t)
 
 
 ## Kurama Genjutsu: Akai Ame* — rakibin üstüne kan kırmızısı bir yağmur çizersin; damlalar gerçek gibi deriyi yakar (sürekli hasar),
 ## rakip yağmurdan kaçmak için yavaşlar
 func p_kurama_akai_ame(c: Node3D, t: Node3D) -> void:
-	FlowFX.kurama_akai_ame(self, c, t)
+	LazyFx.g("FlowFX").kurama_akai_ame(self, c, t)
 
 
 ## Kurama Genjutsu: Kagami Meikyū* — rakibin çevresine aynalardan bir labirent çizersin: her aynada senin bir yansıman belirir;
@@ -19200,19 +19200,19 @@ func p_kurama_kagami_meikyu(c: Node3D, t: Node3D) -> void:
 ## Kurama Genjutsu: Kokū Rakka* — rakibin altındaki yeri boşluğa açılmış gibi çizersin: düştüğüne inanır, çırpınır (kımıldayamaz);
 ## sonra "yere çarpar" — beyin darbeyi gerçek sayar
 func p_kurama_koku_rakka(c: Node3D, t: Node3D) -> void:
-	KurabuFXA.kurama_koku_rakka(self, c, t)
+	LazyFx.g("KurabuFXA").kurama_koku_rakka(self, c, t)
 
 
 ## Kurama Genjutsu: Hakuchūmu* — rakibin gözünde dünya bir an donmuş bir resme döner: o kendini kıpırdayamaz sanır, sen bu sırada
 ## art arda vurursun; her darbede resim çatlar, üçüncüde dağılır
 func p_kurama_hakuchumu(c: Node3D, t: Node3D) -> void:
-	KurabuFXA.kurama_hakuchumu(self, c, t)
+	LazyFx.g("KurabuFXA").kurama_hakuchumu(self, c, t)
 
 
 ## Kurama Genjutsu: Gakaku Hōkai* — rakibin çevresindeki dünyayı bir tuvale çevirirsin; tuval çatlayıp paramparça olur, keskin
 ## boya parçaları her yönden ona saplanır
 func p_kurama_gakaku_hokai(c: Node3D, t: Node3D) -> void:
-	KurabuFXA.kurama_gakaku_hokai(self, c, t)
+	LazyFx.g("KurabuFXA").kurama_gakaku_hokai(self, c, t)
 
 
 # ───────────────────────── Klanları 10'a tamamlama: Iburi, Tsuchigumo ─────────────────────────
@@ -19221,7 +19221,7 @@ func p_kurama_gakaku_hokai(c: Node3D, t: Node3D) -> void:
 
 ## Iburi: Kemuri Ude* — kolun dumana çözülüp rakibe kadar uzanır, ucunda yeniden katı bir yumruğa döner ve vurur; sonra geri akar
 func p_iburi_kemuri_ude(c: Node3D, t: Node3D) -> void:
-	FinalFX0.iburi_kemuri_ude(self, c, t)
+	LazyFx.g("FinalFX0").iburi_kemuri_ude(self, c, t)
 
 
 ## Iburi: Enmaku Ten'i* — bedenin bir duman bulutuna dağılır; bulut yerde süzülüp rakibin arkasında yeniden beden olur ve sırtına
@@ -19271,7 +19271,7 @@ func p_iburi_enmaku_teni(c: Node3D, t: Node3D) -> void:
 ## Iburi: Sanka Kemuri* — ağzından sıcak, oksitleyici bir duman üflersin: değdiği deri ve zırh paslanır gibi yanar (sürekli
 ## hasar), soluyan öksürüp yavaşlar
 func p_iburi_sanka_kemuri(c: Node3D, t: Node3D) -> void:
-	FinalFX0.iburi_sanka_kemuri(self, c, t)
+	LazyFx.g("FinalFX0").iburi_sanka_kemuri(self, c, t)
 
 
 ## Iburi: Kemuri Kubishime* — duman bir yılan gibi rakibin boğazına dolanıp sıkar: nefes alamaz, mühür yapamaz (chakra noktaları
@@ -19313,19 +19313,19 @@ func p_iburi_kemuri_kubishime(c: Node3D, t: Node3D) -> void:
 ## Iburi: Kemuri Senzan* — bedenin dumana dönüp rakiplerin İÇİNDEN üç kez geçer (darbeler sana değmez); her geçişte duman bedenden
 ## çıkarken elindeki bıçak gibi katılaşıp keser
 func p_iburi_kemuri_senzan(c: Node3D, t: Node3D) -> void:
-	FlowFX.iburi_kemuri_senzan(self, c, t)
+	LazyFx.g("FlowFX").iburi_kemuri_senzan(self, c, t)
 
 
 ## Iburi: Kemuri Rōgoku* — rakibin çevresinde yerden göğe dönen koyu bir duman sütunu kurarsın: içinde kalan dışarıyı göremez,
 ## kımıldayamaz ve sütun daraldıkça boğulur. Rüzgâr sütunu dağıtır
 func p_iburi_kemuri_rogoku(c: Node3D, t: Node3D) -> void:
-	FinalFX0.iburi_kemuri_rogoku(self, c, t)
+	LazyFx.g("FinalFX0").iburi_kemuri_rogoku(self, c, t)
 
 
 ## Iburi: Kemuri Bakusan* — bedenin bir anda kızgın bir duman patlamasına dağılır: çevrendekiler savrulup yanar, sen o an
 ## dokunulmazsın; duman toplanıp yeniden beden olursun
 func p_iburi_kemuri_bakusan(c: Node3D, _t: Node3D) -> void:
-	FinalFX1.iburi_kemuri_bakusan(self, c, _t)
+	LazyFx.g("FinalFX1").iburi_kemuri_bakusan(self, c, _t)
 
 
 # ───────────────────────── Tsuchigumo (Toprak Örümceği) ─────────────────────────
@@ -19396,13 +19396,13 @@ func p_tsuchigumo_kumo_shibari(c: Node3D, t: Node3D) -> void:
 ## Tsuchigumo: Kumo Ito Tsuri* — avucundan ipek bir tel fırlatıp rakibe yapıştırırsın ve sert bir çekişle onu dibine çekersin;
 ## gelen rakibe dizini geçirirsin
 func p_tsuchigumo_kumo_ito_tsuri(c: Node3D, t: Node3D) -> void:
-	Clan3FXA.tsuchigumo_kumo_ito_tsuri(self, c, t)
+	LazyFx.g("Clan3FXA").tsuchigumo_kumo_ito_tsuri(self, c, t)
 
 
 ## Tsuchigumo: Tsuchigumo Ana* — kapan örümceği gibi: rakibin altındaki toprak bir kapak gibi açılır, iki çene gibi kapanıp
 ## bacaklarını kıstırır; yerden kurtulana dek kımıldayamaz
 func p_tsuchigumo_ana(c: Node3D, t: Node3D) -> void:
-	Clan3FXA.tsuchigumo_ana(self, c, t)
+	LazyFx.g("Clan3FXA").tsuchigumo_ana(self, c, t)
 
 
 ## Tsuchigumo: Kumo no Su* — önüne yere geniş bir örümcek ağı serersin (8 sn): ağa basan yapışır, yavaşlar; ağın ortasında
@@ -19443,25 +19443,25 @@ func p_tsuchigumo_kumo_no_su(c: Node3D, t: Node3D) -> void:
 ## Tsuchigumo: Shizen Kōsoku* — doğa enerjisini toprağa akıtırsın: rakibin çevresinden kökler ve kayalar yükselip onu yerine
 ## kenetler. Tenchi Kaibyaku ile toplanmış enerji varsa çok daha uzun ve sert tutar
 func p_tsuchigumo_shizen_kosoku(c: Node3D, t: Node3D) -> void:
-	Clan3FXA.tsuchigumo_shizen_kosoku(self, c, t)
+	LazyFx.g("Clan3FXA").tsuchigumo_shizen_kosoku(self, c, t)
 
 
 ## Tsuchigumo: Dokugumo no Mure* — yere bastığın avucundan bir sürü zehirli toprak örümceği çıkar, rakibe koşup bacaklarından
 ## tırmanır ve ısırır: zehir işler
 func p_tsuchigumo_dokugumo(c: Node3D, t: Node3D) -> void:
-	Clan3FXA.tsuchigumo_dokugumo(self, c, t)
+	LazyFx.g("Clan3FXA").tsuchigumo_dokugumo(self, c, t)
 
 
 ## Tsuchigumo: Hassoku Ken* — örümceğin sekiz bacağı gibi: iki kol ve iki bacakla art arda sekiz hızlı darbe; son darbe toprak
 ## doğa enerjisiyle rakibi yere çakar
 func p_tsuchigumo_hassoku_ken(c: Node3D, t: Node3D) -> void:
-	Clan3FXA.tsuchigumo_hassoku_ken(self, c, t)
+	LazyFx.g("Clan3FXA").tsuchigumo_hassoku_ken(self, c, t)
 
 
 ## Tsuchigumo: Ito Tobi Otoshi* — yukarıya ipek bir tel atıp havaya çekilirsin, rakibin üstüne sarkarak iner ve iki topukla
 ## yere çakarsın
 func p_tsuchigumo_ito_tobi_otoshi(c: Node3D, t: Node3D) -> void:
-	Clan3FXA.tsuchigumo_ito_tobi_otoshi(self, c, t)
+	LazyFx.g("Clan3FXA").tsuchigumo_ito_tobi_otoshi(self, c, t)
 
 
 # ───────────────────────── Klanları 10'a tamamlama: Gekkō, Fūma ─────────────────────────
@@ -19485,23 +19485,23 @@ func _moon_arc(from: Vector3, d: Vector3, r: float, travel: float, dur: float, t
 
 ## Gekkō: Mikazukigiri* — kılıcı yukarıdan savurursun; bıçaktan ince bir hilal ışığı kopar ve önündeki hattı biçerek uçar
 func p_gekko_mikazukigiri(c: Node3D, t: Node3D) -> void:
-	Clan5FXA.gekko_mikazukigiri(self, c, t)
+	LazyFx.g("Clan5FXA").gekko_mikazukigiri(self, c, t)
 
 
 ## Gekkō: Mangetsu Senpū* — kılıçla tam bir dönüş: çevrende dolunay gibi kapanan ışık halkası, yakındaki herkes biçilir
 func p_gekko_mangetsu_senpu(c: Node3D, _t: Node3D) -> void:
-	ClanFX.gekko_mangetsu_senpu(self, c, _t)
+	LazyFx.g("ClanFX").gekko_mangetsu_senpu(self, c, _t)
 
 
 ## Gekkō: Getsuei Bunshin* — ay ışığında üç gölge kopyan belirir, rakibi üç yandan çevirip aynı anda keserler; sonra ışığa dağılırlar
 func p_gekko_getsuei_bunshin(c: Node3D, t: Node3D) -> void:
-	Clan5FXA.gekko_getsuei_bunshin(self, c, t)
+	LazyFx.g("Clan5FXA").gekko_getsuei_bunshin(self, c, t)
 
 
 ## Gekkō: Tsukimi Iai* — kılıç kınındaymış gibi eğilip bir an beklersin (ay ışığı bıçakta toplanır), sonra tek bir çekişle
 ## rakibin yanından geçerek kesersin
 func p_gekko_tsukimi_iai(c: Node3D, t: Node3D) -> void:
-	ClanFX.gekko_tsukimi_iai(self, c, t)
+	LazyFx.g("ClanFX").gekko_tsukimi_iai(self, c, t)
 
 
 ## Gekkō: Gekka Ranzan* — ay ışığı altında altı hızlı kesik; her biri farklı açıdan, son kesik rakibi savurur
@@ -19564,12 +19564,12 @@ func p_gekko_shingetsu(c: Node3D, t: Node3D) -> void:
 ## Gekkō: Tsuki no Wa* — avuçtaki ay ışığını dönen bir halka bıçağına sıkıştırıp fırlatırsın: hedefe gider, geri döner,
 ## yolundakileri iki kez keser
 func p_gekko_tsuki_no_wa(c: Node3D, t: Node3D) -> void:
-	Clan5FXA.gekko_tsuki_no_wa(self, c, t)
+	LazyFx.g("Clan5FXA").gekko_tsuki_no_wa(self, c, t)
 
 
 ## Gekkō: Kagetsuki Otoshi* — azalan ay: göğe sıçrayıp iner ve aşağı doğru dev bir hilal kesiği indirirsin; yer yarılır
 func p_gekko_kagetsuki_otoshi(c: Node3D, t: Node3D) -> void:
-	Clan5FXA.gekko_kagetsuki_otoshi(self, c, t)
+	LazyFx.g("Clan5FXA").gekko_kagetsuki_otoshi(self, c, t)
 
 
 # ───────────────────────── Fūma (dev shuriken) ─────────────────────────
@@ -19585,46 +19585,46 @@ func _fuma_node(size: float) -> Node3D:
 
 ## Fūma: Senpū Fūsha* — dev shurikeni yatay fırlatırsın: kavisle hedefe gider, geri dönüp eline oturur; yolundakileri iki kez biçer
 func p_fuma_senpu_fusha(c: Node3D, t: Node3D) -> void:
-	Clan3FXA.fuma_senpu_fusha(self, c, t)
+	LazyFx.g("Clan3FXA").fuma_senpu_fusha(self, c, t)
 
 
 ## Fūma: Shuriken Rōheki* — hedefin çevresinde sekiz Fūma shuriken belirip dönmeye başlar, halka giderek daralır: içindeki her
 ## turda biçilir, sonunda hepsi aynı anda kapanır
 func p_fuma_shuriken_roheki(c: Node3D, t: Node3D) -> void:
-	Clan3FXA.fuma_shuriken_roheki(self, c, t)
+	LazyFx.g("Clan3FXA").fuma_shuriken_roheki(self, c, t)
 
 
 ## Fūma: Kazaguruma Rendan* — art arda dört dev shuriken, yelpaze gibi açılarak fırlar; her biri ayrı bir kavisle hedefe kapanır
 func p_fuma_kazaguruma_rendan(c: Node3D, t: Node3D) -> void:
-	Clan3FXA.fuma_kazaguruma_rendan(self, c, t)
+	LazyFx.g("Clan3FXA").fuma_kazaguruma_rendan(self, c, t)
 
 
 ## Fūma: Kaiten Yaiba* — dev shurikeni iki elle tutup bedeninle birlikte döndürürsün: çevrende dönen bir kesik çarkı, ilerleyerek
 ## yolundakileri biçersin
 func p_fuma_kaiten_yaiba(c: Node3D, t: Node3D) -> void:
-	WeaponFX.fuma_kaiten_yaiba(self, c, t)
+	LazyFx.g("WeaponFX").fuma_kaiten_yaiba(self, c, t)
 
 
 ## Fūma: Tenrai Shuriken* — dev shurikeni dik göğe fırlatırsın; bir an sonra rakibin tepesinden dikey dönerek iner, yere saplanır
 func p_fuma_tenrai_shuriken(c: Node3D, t: Node3D) -> void:
-	Clan3FXA.fuma_tenrai_shuriken(self, c, t)
+	LazyFx.g("Clan3FXA").fuma_tenrai_shuriken(self, c, t)
 
 
 ## Fūma: Ito Fūsha* — shurikenin ortasına çelik tel bağlayıp fırlatırsın: rakibin çevresinde üç tur dönüp teli ona dolar, sen teli
 ## çekince sıkışır ve keser
 func p_fuma_ito_fusha(c: Node3D, t: Node3D) -> void:
-	Clan3FXA.fuma_ito_fusha(self, c, t)
+	LazyFx.g("Clan3FXA").fuma_ito_fusha(self, c, t)
 
 
 ## Fūma: Bakufū Shuriken* — kollarına patlayıcı kâğıt sarılmış dev shuriken: hedefe saplanınca bir an sonra patlar
 func p_fuma_bakufu_shuriken(c: Node3D, t: Node3D) -> void:
-	Clan3FXA.fuma_bakufu_shuriken(self, c, t)
+	LazyFx.g("Clan3FXA").fuma_bakufu_shuriken(self, c, t)
 
 
 ## Fūma: Kaeshi Fūsha* — yere üç shuriken saplarsın ve tellerini tutarsın; rakip yaklaşınca telleri çekip shurikenleri yerden ona
 ## fırlatırsın (tuzak). Tuzak 6 sn bekler
 func p_fuma_kaeshi_fusha(c: Node3D, t: Node3D) -> void:
-	Clan3FXA.fuma_kaeshi_fusha(self, c, t)
+	LazyFx.g("Clan3FXA").fuma_kaeshi_fusha(self, c, t)
 
 
 # ───────────────────────── Klanları 10'a tamamlama: Shiranui, Hagoromo ─────────────────────────
@@ -19698,7 +19698,7 @@ func p_shiranui_senbon_ame(c: Node3D, t: Node3D) -> void:
 ## Shiranui: Tenketsu Bari* — tek bir senbonu rakibin chakra noktasına isabetle saplarsın: chakra akışı tıkanır, bir süre jutsu
 ## yapamaz (Haku'nun iğne isabeti)
 func p_shiranui_tenketsu_bari(c: Node3D, t: Node3D) -> void:
-	FinalFX3.shiranui_tenketsu_bari(self, c, t)
+	LazyFx.g("FinalFX3").shiranui_tenketsu_bari(self, c, t)
 
 
 ## Shiranui: Kasumi Bari* — senbonları rakibin yanından geçecekmiş gibi geniş bir yayla atarsın; son anda kıvrılıp yandan saplanırlar
@@ -19807,7 +19807,7 @@ func p_shiranui_senbon_ogi(c: Node3D, t: Node3D) -> void:
 ## Shiranui: Kuchibari Kaeshi* — dudaktaki senbonla tetikte durursun (2 sn): sana gelen atışları birer senbon fiskesiyle havada
 ## düşürür, her birine atana bir iğneyle karşılık verirsin
 func p_shiranui_kuchibari_kaeshi(c: Node3D, _t: Node3D) -> void:
-	WeaponFX.shiranui_kuchibari_kaeshi(self, c, _t)
+	LazyFx.g("WeaponFX").shiranui_kuchibari_kaeshi(self, c, _t)
 
 
 # ───────────────────────── Hagoromo (Savaşan Devletler savaşçı soyu) ─────────────────────────
@@ -19880,29 +19880,29 @@ func p_hagoromo_hane_shuriken(c: Node3D, t: Node3D) -> void:
 ## Hagoromo: Hane Goromo* — tüylerden bir pelerin bedenine dolanır (4 sn): gelen atışlar tüylere takılıp düşer, her darbe birkaç
 ## tüyü koparır, yakın dövüş darbeleri yumuşar
 func p_hagoromo_hane_goromo(c: Node3D, _t: Node3D) -> void:
-	Clan4FXA.hagoromo_hane_goromo(self, c, _t)
+	LazyFx.g("Clan4FXA").hagoromo_hane_goromo(self, c, _t)
 
 
 ## Hagoromo: Tennyo no Mai* — göksel bir kız dansı gibi süzülerek dönersin; her dönüşte etrafa tüy bıçakları savrulur
 func p_hagoromo_tennyo_no_mai(c: Node3D, t: Node3D) -> void:
-	WeaponFX.hagoromo_tennyo_no_mai(self, c, t)
+	LazyFx.g("WeaponFX").hagoromo_tennyo_no_mai(self, c, t)
 
 
 ## Hagoromo: Tobi Hane Otoshi* — tüylü bir sıçrayışla havalanır, bir an süzülür ve iki ayakla rakibin üstüne dalarsın; inişte
 ## tüyler dışa saçılır
 func p_hagoromo_tobi_hane_otoshi(c: Node3D, t: Node3D) -> void:
-	Clan4FXA.hagoromo_tobi_hane_otoshi(self, c, t)
+	LazyFx.g("Clan4FXA").hagoromo_tobi_hane_otoshi(self, c, t)
 
 
 ## Hagoromo: Ha Shibari* — dört uzun tüy rakibin çevresine saplanır, aralarında ışıyan chakra telleri gerilir: içindeki kımıldayamaz
 func p_hagoromo_ha_shibari(c: Node3D, t: Node3D) -> void:
-	Clan4FXA.hagoromo_ha_shibari(self, c, t)
+	LazyFx.g("Clan4FXA").hagoromo_ha_shibari(self, c, t)
 
 
 ## Hagoromo: Senjō Hōkō* — eski savaş alanlarının narası: haykırışın çevredekileri bir an sindirir (sersemletir), sen 8 sn daha sert
 ## vurursun
 func p_hagoromo_senjo_hoko(c: Node3D, _t: Node3D) -> void:
-	Clan4FXA.hagoromo_senjo_hoko(self, c, _t)
+	LazyFx.g("Clan4FXA").hagoromo_senjo_hoko(self, c, _t)
 
 
 ## Hagoromo: Hane Tatsumaki* — rakibin çevresinde tüylerden bir girdap döner, onu yerden kaldırır ve her turda keser
@@ -19944,13 +19944,13 @@ func p_hagoromo_hane_tatsumaki(c: Node3D, t: Node3D) -> void:
 ## Hagoromo: Sōki Giri* — Kawarama'yı deviren ikili saldırı gibi: yanında bir gölge savaşçı belirir, ikiniz rakibi iki yandan
 ## çapraz biçersiniz (X kesiği)
 func p_hagoromo_soki_giri(c: Node3D, t: Node3D) -> void:
-	WeaponFX.hagoromo_soki_giri(self, c, t)
+	LazyFx.g("WeaponFX").hagoromo_soki_giri(self, c, t)
 
 
 ## Hagoromo: Ukyū Rakuha* — tüy pelerinle bir an havada asılı kalıp yükseklerden rakibi kollarsın, sonra göktaşı gibi inip
 ## çevreyi sarsarsın
 func p_hagoromo_ukyu_rakuha(c: Node3D, t: Node3D) -> void:
-	Clan4FXA.hagoromo_ukyu_rakuha(self, c, t)
+	LazyFx.g("Clan4FXA").hagoromo_ukyu_rakuha(self, c, t)
 
 
 ## Parti 1: görünüm ve işleyiş combat/fx/jutsu_p1_fx.gd içinde
@@ -20106,88 +20106,88 @@ func p_sumi_nagashi(c: Node3D, t: Node3D) -> void:
 
 
 func p_sakin_tsubute(c: Node3D, t: Node3D) -> void:
-	JitonFXS.sakin_tsubute(self, c, t)
+	LazyFx.g("JitonFXS").sakin_tsubute(self, c, t)
 
 
 func p_sakin_ryusa(c: Node3D, t: Node3D) -> void:
-	JitonFXS.sakin_ryusa(self, c, t)
+	LazyFx.g("JitonFXS").sakin_ryusa(self, c, t)
 
 
 func p_sakin_shibari(c: Node3D, t: Node3D) -> void:
-	JitonFXS.sakin_shibari(self, c, t)
+	LazyFx.g("JitonFXS").sakin_shibari(self, c, t)
 
 
 func p_kusakin_boheki(c: Node3D, t: Node3D) -> void:
-	JitonFXS.kusakin_boheki(self, c, t)
+	LazyFx.g("JitonFXS").kusakin_boheki(self, c, t)
 
 
 func p_sakin_no_yoroi(c: Node3D, t: Node3D) -> void:
-	JitonFXS.sakin_no_yoroi(self, c, t)
+	LazyFx.g("JitonFXS").sakin_no_yoroi(self, c, t)
 
 
 func p_sakin_bunshin(c: Node3D, t: Node3D) -> void:
-	JitonFXS.sakin_bunshin(self, c, t)
+	LazyFx.g("JitonFXS").sakin_bunshin(self, c, t)
 
 
 func p_sakin_senpu(c: Node3D, t: Node3D) -> void:
-	JitonFXS.sakin_senpu(self, c, t)
+	LazyFx.g("JitonFXS").sakin_senpu(self, c, t)
 
 
 func p_sakin_yari(c: Node3D, t: Node3D) -> void:
-	JitonFXS.sakin_yari(self, c, t)
+	LazyFx.g("JitonFXS").sakin_yari(self, c, t)
 
 
 func p_sakin_tsuchi(c: Node3D, t: Node3D) -> void:
-	JitonFXS.sakin_tsuchi(self, c, t)
+	LazyFx.g("JitonFXS").sakin_tsuchi(self, c, t)
 
 
 func p_sakin_omori(c: Node3D, t: Node3D) -> void:
-	JitonFXS.sakin_omori(self, c, t)
+	LazyFx.g("JitonFXS").sakin_omori(self, c, t)
 
 
 func p_sakin_ryujin(c: Node3D, t: Node3D) -> void:
-	JitonFXS.sakin_ryujin(self, c, t)
+	LazyFx.g("JitonFXS").sakin_ryujin(self, c, t)
 
 
 func p_sakin_hokai(c: Node3D, t: Node3D) -> void:
-	JitonFXS.sakin_hokai(self, c, t)
+	LazyFx.g("JitonFXS").sakin_hokai(self, c, t)
 
 
 func p_ogon_kyuden(c: Node3D, t: Node3D) -> void:
-	JitonFXS.ogon_kyuden(self, c, t)
+	LazyFx.g("JitonFXS").ogon_kyuden(self, c, t)
 
 
 func p_ogon_no_taiyo(c: Node3D, t: Node3D) -> void:
-	JitonFXS.ogon_no_taiyo(self, c, t)
+	LazyFx.g("JitonFXS").ogon_no_taiyo(self, c, t)
 
 
 func p_satetsu_heki(c: Node3D, t: Node3D) -> void:
-	JitonFXS.satetsu_heki(self, c, t)
+	LazyFx.g("JitonFXS").satetsu_heki(self, c, t)
 
 
 func p_satetsu_buki(c: Node3D, t: Node3D) -> void:
-	JitonFXS.satetsu_buki(self, c, t)
+	LazyFx.g("JitonFXS").satetsu_buki(self, c, t)
 
 
 func p_satetsu_nami(c: Node3D, t: Node3D) -> void:
-	JitonFXS.satetsu_nami(self, c, t)
+	LazyFx.g("JitonFXS").satetsu_nami(self, c, t)
 
 
 func p_satetsu_bunshin(c: Node3D, t: Node3D) -> void:
-	JitonFXS.satetsu_bunshin(self, c, t)
+	LazyFx.g("JitonFXS").satetsu_bunshin(self, c, t)
 
 
 func p_satetsu_karada(c: Node3D, t: Node3D) -> void:
-	JitonFXS.satetsu_karada(self, c, t)
+	LazyFx.g("JitonFXS").satetsu_karada(self, c, t)
 
 
 func p_jitetsu_fuin_to(c: Node3D, t: Node3D) -> void:
-	JitonFXS.jitetsu_fuin_to(self, c, t)
+	LazyFx.g("JitonFXS").jitetsu_fuin_to(self, c, t)
 
 
 func p_rendan_satetsu_shigure(c: Node3D, t: Node3D) -> void:
-	JitonFXS.rendan_satetsu_shigure(self, c, t)
+	LazyFx.g("JitonFXS").rendan_satetsu_shigure(self, c, t)
 
 
 func p_kurogane_jigoku(c: Node3D, t: Node3D) -> void:
-	JitonFXS.kurogane_jigoku(self, c, t)
+	LazyFx.g("JitonFXS").kurogane_jigoku(self, c, t)

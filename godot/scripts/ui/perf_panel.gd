@@ -173,11 +173,11 @@ func _count_people() -> void:
 
 
 func _col(f: float) -> Color:
-	return UI.GOOD if f >= 50.0 else (Color(1.0, 0.85, 0.35) if f >= 35.0 else UI.BAD)
+	return LazyFx.g("UI").GOOD if f >= 50.0 else (Color(1.0, 0.85, 0.35) if f >= 35.0 else LazyFx.g("UI").BAD)
 
 
-func _txt(p: Vector2, s: String, size := 15, col := UI.TEXT, bold := false) -> void:
-	draw_string(UI.font(bold), p, s, HORIZONTAL_ALIGNMENT_LEFT, -1, size, col)
+func _txt(p: Vector2, s: String, size := 15, col = LazyFx.g("UI").TEXT, bold := false) -> void:
+	draw_string(LazyFx.g("UI").font(bold), p, s, HORIZONTAL_ALIGNMENT_LEFT, -1, size, col)
 
 
 func _graph(r: Rect2, data: Array, top: float, title: String, over: Array = []) -> void:
@@ -211,11 +211,11 @@ func _draw() -> void:
 	var w = 470.0
 	var x0 = 18.0
 	var y0 = minf(176.0, get_viewport_rect().size.y - 648.0)
-	draw_rect(Rect2(x0, y0, w, 640), UI.PANEL)
-	draw_rect(Rect2(x0, y0, w, 640), Color(UI.ACCENT, 0.5), false, 1.5)
+	draw_rect(Rect2(x0, y0, w, 640), LazyFx.g("UI").PANEL)
+	draw_rect(Rect2(x0, y0, w, 640), Color(LazyFx.g("UI").ACCENT, 0.5), false, 1.5)
 	var x = x0 + 16.0
 	var y = y0 + 26.0
-	_txt(Vector2(x, y), "PERFORMANS", 14, UI.ACCENT, true)
+	_txt(Vector2(x, y), "PERFORMANS", 14, LazyFx.g("UI").ACCENT, true)
 	_txt(Vector2(x0 + w - 186, y), "F3 kapat · F4 deneme · F5 sınır", 11, Color(1, 1, 1, 0.5))
 	y += 50.0
 	_txt(Vector2(x, y), "%d" % int(round(cur)), 46, _col(cur), true)
@@ -236,7 +236,7 @@ func _draw() -> void:
 	y += 100.0
 	_graph(Rect2(x, y, w - 32, 92), min_fps, 120.0 if not vs else 75.0, "tüm oturum (dakikalık) · mavi: sahnedeki düğüm sayısı", min_nodes)
 	y += 116.0
-	_txt(Vector2(x, y), "SAHNE", 12, UI.ACCENT, true)
+	_txt(Vector2(x, y), "SAHNE", 12, LazyFx.g("UI").ACCENT, true)
 	y += 20.0
 	var nodes = int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT))
 	var mem = Performance.get_monitor(Performance.MEMORY_STATIC) / 1048576.0
@@ -257,16 +257,16 @@ func _draw() -> void:
 			_txt(Vector2(x + 310, y), rw[2] + "  (açılıştan beri)", 11, Color(0.45, 0.7, 1.0))
 		y += 18.0
 	y += 12.0
-	_txt(Vector2(x, y), "DENEME (F4): şunu kapatınca FPS kaç oluyor", 12, UI.ACCENT, true)
+	_txt(Vector2(x, y), "DENEME (F4): şunu kapatınca FPS kaç oluyor", 12, LazyFx.g("UI").ACCENT, true)
 	y += 20.0
 	var base = float(test_fps.get("normal", 0.0))
 	for i in TESTS.size():
 		var name = TESTS[i]
 		var on = i == test_i
-		_txt(Vector2(x, y), ("▶ " if on else "   ") + name, 13, UI.TEXT if on else Color(1, 1, 1, 0.6), on)
+		_txt(Vector2(x, y), ("▶ " if on else "   ") + name, 13, LazyFx.g("UI").TEXT if on else Color(1, 1, 1, 0.6), on)
 		if test_fps.has(name):
 			var f = float(test_fps[name])
 			_txt(Vector2(x + 220, y), "%d FPS" % int(round(f)), 13, _col(f))
 			if i > 0 and base > 0.0:
-				_txt(Vector2(x + 310, y), "%+d" % int(round(f - base)), 13, UI.GOOD if f - base >= 3.0 else Color(1, 1, 1, 0.5))
+				_txt(Vector2(x + 310, y), "%+d" % int(round(f - base)), 13, LazyFx.g("UI").GOOD if f - base >= 3.0 else Color(1, 1, 1, 0.5))
 		y += 18.0

@@ -218,7 +218,7 @@ static func build(m, sid: String, g: Dictionary) -> void:
 		m.skel.add_child(mi)
 		mi.skin = m.body_mesh.skin
 		mi.skeleton = mi.get_path_to(m.skel)
-		mi.material_override = Props.toon()
+		mi.material_override = LazyFx.g("Props").toon()
 	for e in it[1]:
 		m.dangle_strip(e[0], e[1], e[2], e[3], e[4], e[5], e[6])
 

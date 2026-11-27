@@ -57,7 +57,7 @@ func _village_at(p: Vector3) -> Dictionary:
 ## Köyün sokak noktaları: yol ağındaki "street" parçalarından örneklenir (yanlara hafif sapma)
 func _streets(v: Dictionary) -> Array:
 	if street_cache.has(v["id"]):
-		VillageSpots.top_up(street_cache[v["id"]], v)   # ara sokak / avlu / park noktaları (parklar sonradan kurulur)
+		LazyFx.g("VillageSpots").top_up(street_cache[v["id"]], v)   # ara sokak / avlu / park noktaları (parklar sonradan kurulur)
 		return street_cache[v["id"]]
 	var pts: Array = []
 	var c = Vector2(float(v["x"]), float(v["y"]))
@@ -84,7 +84,7 @@ func _streets(v: Dictionary) -> Array:
 		for i in 120:
 			var a2 = randf() * TAU
 			pts.append(Game.from_map(c + Vector2(cos(a2), sin(a2)) * sqrt(randf()) * r * 0.9))
-	VillageSpots.top_up(pts, v)
+	LazyFx.g("VillageSpots").top_up(pts, v)
 	street_cache[v["id"]] = pts
 	return pts
 
@@ -215,7 +215,7 @@ func _process(dt: float) -> void:
 		glow_t = 1.0
 		var tod: float = Game.world.env.time_of_day
 		var nk = 1.0 - smoothstep(0.22, 0.3, tod) + smoothstep(0.72, 0.8, tod)
-		CityDecor.set_night(clampf(nk, 0.0, 1.0))
+		LazyFx.g("CityDecor").set_night(clampf(nk, 0.0, 1.0))
 	if Game.player == null or Game.paused:
 		return
 	spawn_cd -= dt
@@ -531,7 +531,7 @@ func _pick_role() -> String:
 func _spawn(req: Array) -> void:
 	match req[0]:
 		"animal":
-			var c = CatNPC.new()
+			var c = LazyFx.g("CatNPC").new()
 			c.ambient = true
 			c.is_dog = randf() < 0.5
 			add_child(c)
@@ -615,17 +615,17 @@ func _villager(role: String, at: Vector3, pts: Array, extra := {}, skey := "", f
 			extra.merge(wd, true)
 	# ninja değilse: köyün kalıcı sivillerinden biri (yoksa yeni yüz kayda geçer)
 	var fk := {}
-	if wp.is_empty() and fid == "" and role in WorldFolk.ROLES and not extra.has("look_extra") and not extra.has("display_override") and not extra.get("interior", false):
+	if wp.is_empty() and fid == "" and role in LazyFx.g("WorldFolk").ROLES and not extra.has("look_extra") and not extra.has("display_override") and not extra.get("interior", false):
 		var fvid = WorldDay.village_of(at)
 		var fsite = (skey + ":" + role) if skey != "" and role in ["vendor", "keeper"] else ""
 		if fvid != "":
-			fk = WorldFolk.cast(fvid, role, fsite)
+			fk = LazyFx.g("WorldFolk").cast(fvid, role, fsite)
 			extra = extra.duplicate()
 			if fk.is_empty():
 				extra["folk_vid"] = fvid
 				extra["folk_site"] = fsite
 			else:
-				var fdr: Dictionary = WorldFolk.dress(fk)
+				var fdr: Dictionary = LazyFx.g("WorldFolk").dress(fk)
 				if allow_defer and hair_wait < 60 and not CharacterModel.prepare(fdr.get("look_extra", {})):
 					hair_wait += 1
 					deferred = true
@@ -713,7 +713,7 @@ func _enter(pd: Dictionary) -> Villager:
 	if not pd["wp"].is_empty():
 		WorldDay.on_stage(pd["wp"], vg, pd["wact"])
 	if not pd["fk"].is_empty():
-		WorldFolk.on_stage(pd["fk"], vg)
+		LazyFx.g("WorldFolk").on_stage(pd["fk"], vg)
 	return vg
 
 
@@ -1014,11 +1014,11 @@ func _spawn_site_actor(key: String, role: String, d: Dictionary) -> void:
 		if d.has(k):
 			extra[k] = d[k]
 	# bu yerde tanıştığın biri varsa o gelir (adı, görünüşü); yoksa sıradan biri
-	var skey = Friends.site_key(d["pos"])
-	var fid = Friends.at_site(skey)
+	var skey = LazyFx.g("Friends").site_key(d["pos"])
+	var fid = LazyFx.g("Friends").at_site(skey)
 	if fid != "":
-		var f: Dictionary = Friends.all()[fid]
-		extra["look_extra"] = Friends.look_of(f)
+		var f: Dictionary = LazyFx.g("Friends").all()[fid]
+		extra["look_extra"] = LazyFx.g("Friends").look_of(f)
 		extra["display_override"] = String(f["name"])
 	var at: Vector3 = d["pos"]
 	if not role in ["sitter", "vendor", "eat", "bench", "patient"] and not String(d.get("job", "")) in ["hoe", "harvest", "water", "plant", "fish"]:
@@ -1119,7 +1119,7 @@ class BallGame extends Node3D:
 		var b = MB.new()
 		b.add("sphere", Vector3.ZERO, Vector3(0.32, 0.32, 0.32), Color(0.9, 0.25, 0.2), Vector3.ZERO, 10)
 		b.add("box", Vector3.ZERO, Vector3(0.33, 0.05, 0.05), Color(1, 1, 1))
-		ball.mesh = b.build(Props.toon())
+		ball.mesh = b.build(LazyFx.g("Props").toon())
 		add_child(ball)
 		from = global_position
 		to = global_position
@@ -1177,7 +1177,7 @@ class PigeonFlock extends Node3D:
 			b.add("sphere", Vector3(0, 0.22, -0.12), Vector3(0.1, 0.1, 0.1), Color(0.45, 0.5, 0.58), Vector3.ZERO, 6)
 			b.add("cone", Vector3(0, 0.21, -0.19), Vector3(0.03, 0.06, 0.03), Color(0.85, 0.6, 0.3), Vector3(-90, 0, 0), 4)
 			b.add("box", Vector3(0, 0.13, 0.15), Vector3(0.1, 0.02, 0.12), Color(0.4, 0.42, 0.48))
-			_mesh = b.build(Props.toon())
+			_mesh = b.build(LazyFx.g("Props").toon())
 		for i in 12:
 			var m = MeshInstance3D.new()
 			m.mesh = _mesh

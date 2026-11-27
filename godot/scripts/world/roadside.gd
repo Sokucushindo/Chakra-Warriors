@@ -244,7 +244,7 @@ static func init() -> void:
 		if q != Vector2.INF and q.distance_to(m) > 12.0:
 			add_path(_wiggle_path(q, m, hash(p["id"])))
 		if p["t"] == "hamlet":
-			for s in PoiBuilder.hamlet_spots(p):
+			for s in LazyFx.g("PoiBuilder").hamlet_spots(p):
 				add_path(PackedVector2Array([m, m + Vector2(s.x, s.z) * 0.82]))
 
 
@@ -415,10 +415,10 @@ static func _slot(b: Builder, node: Node3D, s: Dictionary, rng: RandomNumberGene
 			b.box(Vector3(x, g + 0.75, n - 0.18), Vector3(0.08, 0.6, 0.02), Color(0.15, 0.12, 0.12), yaw, false)
 		"shrine":
 			f["t"] = "shrine"
-			BuildFeatures._build(b, f, rng)
+			LazyFx.g("BuildFeatures")._build(b, f, rng)
 			_flowers(b, x + 2.5, n + 1.5)
 		"torii":
-			BuildFeatures._torii(b, x, n, g, yaw, 0.7)
+			LazyFx.g("BuildFeatures")._torii(b, x, n, g, yaw, 0.7)
 			_stone_lantern(b, x + 3.0, n - 2.0)
 			_stone_lantern(b, x - 3.0, n - 2.0)
 		"jizo_row":
@@ -428,10 +428,10 @@ static func _slot(b: Builder, node: Node3D, s: Dictionary, rng: RandomNumberGene
 				f["y"] = n + o.y
 				f["g"] = _g(f["x"], f["y"])
 				f["t"] = "jizo"
-				BuildFeatures._build(b, f, rng)
+				LazyFx.g("BuildFeatures")._build(b, f, rng)
 		"teahouse":
 			f["t"] = "teahouse"
-			BuildFeatures._build(b, f, rng)
+			LazyFx.g("BuildFeatures")._build(b, f, rng)
 			_villager(node, b, "vendor", Vector3(x, g, n - 5.0))
 			_villager(node, b, "sitter", Vector3(x + 2.0, g, n - 6.5))
 		"campfire":
@@ -452,7 +452,7 @@ static func _slot(b: Builder, node: Node3D, s: Dictionary, rng: RandomNumberGene
 			for j in 4:
 				var o2 := Builder.rot(-1.2 + j * 0.8, 0, yaw)
 				b.box(Vector3(x + o2.x, g + 1.15, n + o2.y), Vector3(0.6, 0.3, 0.6), [Color(0.9, 0.5, 0.2), Color(0.5, 0.75, 0.3), Color(0.85, 0.2, 0.25), Color(0.95, 0.9, 0.6)][j], yaw, false)
-			PoiBuilder._cart(b, x + 4.0, n + 2.0, yaw + 20.0)
+			LazyFx.g("PoiBuilder")._cart(b, x + 4.0, n + 2.0, yaw + 20.0)
 			_villager(node, b, "vendor", Vector3(x, g, n + 1.5))
 		"ruin_tower":
 			var st := Color(0.55, 0.52, 0.48)
@@ -529,7 +529,7 @@ static func _slot(b: Builder, node: Node3D, s: Dictionary, rng: RandomNumberGene
 				var gy2 := _g(px2, pn2)
 				b.cone(Vector3(px2, gy2 + 1.3, pn2), 3.2, 2.6, Color(0.85, 0.72, 0.38), 9)
 				b.cyl(Vector3(px2, gy2 + 0.5, pn2), 3.0, 1.0, Color(0.8, 0.66, 0.34), false, 9)
-			PoiBuilder._cart(b, x + 5.0, n, yaw)
+			LazyFx.g("PoiBuilder")._cart(b, x + 5.0, n, yaw)
 		"well":
 			_well(b, x, n, g)
 			_flowers(b, x + 2.5, n + 2.0)
@@ -628,16 +628,16 @@ static func _garden(b: Builder, node: Node3D, rng: RandomNumberGenerator, x: flo
 	b.house(gx + hs.x, gn + hs.y, 6.0, 5.0, 1, yaw + 180.0, "wood" if st == "wood" else st, rng)
 	if paddy:
 		var f := {"t": "paddy", "x": gx, "y": gn, "g": _g(gx, gn), "yaw": yaw, "r": 22.0}
-		BuildFeatures._build(b, f, rng)
+		LazyFx.g("BuildFeatures")._build(b, f, rng)
 		var f2 := f.duplicate()
 		var o3 := Builder.rot(24.0, 0.0, yaw)
 		f2["x"] = gx + o3.x
 		f2["y"] = gn + o3.y
 		f2["g"] = _g(f2["x"], f2["y"])
-		BuildFeatures._build(b, f2, rng)
+		LazyFx.g("BuildFeatures")._build(b, f2, rng)
 	else:
 		load("res://scripts/world/farm_kit.gd").veg(b, gx, gn, yaw, 18.0, 14.5, rng)
-		PoiBuilder._fence(b, gx, gn, 22.0, 18.0, rng)
+		LazyFx.g("PoiBuilder")._fence(b, gx, gn, 22.0, 18.0, rng)
 	_villager(node, b, "walker", Vector3(gx, 0, gn))
 	_villager(node, b, "sitter", Vector3(x + 2.0, 0, n - 5.0))
 
@@ -645,7 +645,7 @@ static func _garden(b: Builder, node: Node3D, rng: RandomNumberGenerator, x: flo
 # ------------------------------------------------------------------ küçük yapı taşları
 static func _stone_lantern(b: Builder, x: float, n: float) -> void:
 	var g := _g(x, n)
-	BuildFeatures._build(b, {"t": "lantern", "x": x, "y": n, "g": g, "yaw": 0.0}, RandomNumberGenerator.new())
+	LazyFx.g("BuildFeatures")._build(b, {"t": "lantern", "x": x, "y": n, "g": g, "yaw": 0.0}, RandomNumberGenerator.new())
 
 
 static func _flowers(b: Builder, x: float, n: float) -> void:
@@ -672,7 +672,7 @@ static func _rock_formation(b: Builder, x: float, n: float, rng: RandomNumberGen
 	var g := _g(x, n)
 	var c := Color(0.58, 0.55, 0.5) if bio != 3 else Color(0.8, 0.6, 0.42)
 	if bio == 3 and rng.randf() < 0.5:
-		BuildFeatures._build(b, {"t": "arch", "x": x, "y": n, "g": g, "yaw": rng.randf() * 180.0, "r": 14.0, "h": 10.0}, rng)
+		LazyFx.g("BuildFeatures")._build(b, {"t": "arch", "x": x, "y": n, "g": g, "yaw": rng.randf() * 180.0, "r": 14.0, "h": 10.0}, rng)
 		return
 	# dengede duran kayalar + sivri taşlar
 	b.sphere(Vector3(x, g + 2.0, n), Vector3(6, 4.5, 5), c, 8, true)
@@ -747,7 +747,7 @@ static func _ruined_shrine(b: Builder, x: float, n: float, rng: RandomNumberGene
 		for sz in [-1.0, 1.0]:
 			if rng.randf() < 0.7:
 				b.cyl(Vector3(x + 3.2 * sx, g + 1.6, n + 2.2 * sz), 0.6, rng.randf_range(1.0, 3.2), Color(0.5, 0.3, 0.2), true, 6)
-	BuildFeatures._torii(b, x, n - 6.0, _g(x, n - 6.0), 0.0, 0.6)
+	LazyFx.g("BuildFeatures")._torii(b, x, n - 6.0, _g(x, n - 6.0), 0.0, 0.6)
 	b.box(Vector3(x + 2.0, g + 0.2, n + 3.5), Vector3(2.0, 0.4, 0.6), Color(0.55, 0.3, 0.22), 25.0, false)  # devrik kiriş
 
 

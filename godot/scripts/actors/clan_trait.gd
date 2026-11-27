@@ -31,7 +31,7 @@ func _physics_process(dt: float) -> void:
 		return
 	# Hōzuki suyu (oyuncuyla aynı): suda hızla, yağmurda orta, matarayla yavaş dolar — Suika Enemy.take_hit içinde
 	if clan == "hozuki":
-		f.set_meta("su", minf(ClanMech.SU_MAX, float(f.get_meta("su", ClanMech.SU_MAX)) + maxf(1.5, ClanMech.su_refill(f.global_position, false, false)) * get_process_delta_time()))
+		f.set_meta("su", minf(LazyFx.g("ClanMech").SU_MAX, float(f.get_meta("su", LazyFx.g("ClanMech").SU_MAX)) + maxf(1.5, LazyFx.g("ClanMech").su_refill(f.global_position, false, false)) * get_process_delta_time()))
 	last_hp = f.hp
 	if duel:
 		f.set_meta("duel_rival", true)   # dostça dövüş: bu rakip oyuncuyu öldüremez (Player.take_hit)

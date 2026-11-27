@@ -22,7 +22,7 @@ var hold_anim := ""           # beklerken oynatılacak animasyon (pusu sırasın
 
 func _ready() -> void:
 	if look.is_empty():
-		look = Outfits.roll("civ", Outfits.village_near())
+		look = LazyFx.g("Outfits").roll("civ", LazyFx.g("Outfits").village_near())
 		look.merge({"gender": ["m", "f"].pick_random(), "hair_style": ["kısa", "uzun", "kase"].pick_random(), "age": "adult"}, true)
 	Aging.dress_civil(look)
 	super._ready()
@@ -74,7 +74,7 @@ func _hop_to(q: Vector3) -> void:
 	global_position = q
 	velocity = Vector3.ZERO
 	FX.smoke_puff(q + Vector3.UP, 0.6, 8)
-	NpcNav.reset(self)
+	LazyFx.g("NpcNav").reset(self)
 
 
 func _physics_process(dt: float) -> void:
@@ -100,28 +100,28 @@ func _physics_process(dt: float) -> void:
 			v.y = 0
 			if v.length() < 2.0:
 				path_i += 1
-				NpcNav.reset(self)
+				LazyFx.g("NpcNav").reset(self)
 				return
 			# engelden (bina, sur, çit, ağaç) dolaş; yine de ilerleyemezse duvarın ardına geç (eskiden duvara takılıp kalıyordu)
-			step_move(NpcNav.steer(self, v.normalized(), dt) * speed, dt)
+			step_move(LazyFx.g("NpcNav").steer(self, v.normalized(), dt) * speed, dt)
 			model.play("walk", 0.2)
-			if NpcNav.stuck(self, path[path_i], dt):
+			if LazyFx.g("NpcNav").stuck(self, path[path_i], dt):
 				stuck_n += 1
 				if stuck_n >= 2:
 					if v.length() < 14.0:
 						# nokta ulaşılamaz bir yerde (yapının içi / dibi): yeterince yakın, sıradakine geç
 						stuck_n = 0
 						path_i += 1
-						NpcNav.reset(self)
+						LazyFx.g("NpcNav").reset(self)
 					else:
 						_hop_to(global_position + v.normalized() * minf(v.length(), 8.0))
 		"follow":
 			var v = pl.global_position - global_position
 			v.y = 0
 			if v.length() > 3.0:
-				step_move(NpcNav.steer(self, v.normalized(), dt) * minf(10.0, 2.5 + v.length() * 0.8), dt)
+				step_move(LazyFx.g("NpcNav").steer(self, v.normalized(), dt) * minf(10.0, 2.5 + v.length() * 0.8), dt)
 				model.play("run" if v.length() > 6.0 else "walk", 0.2)
-				if NpcNav.stuck(self, pl.global_position, dt):
+				if LazyFx.g("NpcNav").stuck(self, pl.global_position, dt):
 					stuck_n += 1
 					if stuck_n >= 2 or v.length() > 30.0:
 						_hop_to(pl.global_position - pl.face_dir() * 2.5 if pl.has_method("face_dir") else pl.global_position)
@@ -150,7 +150,7 @@ func _physics_process(dt: float) -> void:
 			var v = goal - global_position
 			v.y = 0
 			if v.length() > 1.4:
-				step_move(NpcNav.steer(self, v.normalized(), dt) * speed, dt)
+				step_move(LazyFx.g("NpcNav").steer(self, v.normalized(), dt) * speed, dt)
 				model.play("jog" if speed > 4.5 else "walk", 0.2)
 				facing = atan2(-v.x, -v.z)
 				model.rotation.y = facing

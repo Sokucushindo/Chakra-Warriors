@@ -43,7 +43,7 @@ static func pr() -> Dictionary:
 
 
 static func pending() -> bool:
-	return pr().has("wedding") and Friends.all().has(String(pr()["wedding"].get("id", "")))
+	return pr().has("wedding") and LazyFx.g("Friends").all().has(String(pr()["wedding"].get("id", "")))
 
 
 static func site() -> Vector3:
@@ -96,7 +96,7 @@ static func tick(_dt: float) -> void:
 	w.vid = Progress.home()
 	w.c = p
 	cur = w
-	Friends.inst().get_parent().add_child(w)
+	LazyFx.g("Friends").inst().get_parent().add_child(w)
 
 
 # ------------------------------------------------------------------ kurulum
@@ -342,7 +342,7 @@ func _person(nm: String, lk: Dictionary, at: Vector3, face_to: Vector3) -> Villa
 
 
 func _spawn_people() -> void:
-	var f: Dictionary = Friends.all()[sid]
+	var f: Dictionary = LazyFx.g("Friends").all()[sid]
 	var clan = String(f.get("clan", ""))
 	var vname = String(Game.village(vid).get("name", "Köy"))
 	# nikâhı kıyan
@@ -352,25 +352,25 @@ func _spawn_people() -> void:
 		el["hair"] = Color(0.82, 0.82, 0.84)
 		officiant = _person("%s Klan Büyüğü" % ClanWorld.person_name(clan, false).split(" ")[0], el, P(0, -6.6), P(0, 0))
 	else:
-		var kl = KageAttire.look(vid)
+		var kl = LazyFx.g("KageAttire").look(vid)
 		kl["village"] = vid
 		officiant = _person(Kage.kage_name(vid), kl, P(0, -6.6), P(0, 0))
-		KageAttire.hat(officiant.model, vid)
+		LazyFx.g("KageAttire").hat(officiant.model, vid)
 	# eş: gelin / damat kıyafeti
-	var lk = Friends.look_of(f)
+	var lk = LazyFx.g("Friends").look_of(f)
 	var fem = String(lk.get("gender", "m")) == "f"
 	lk["vest"] = null
 	lk["band"] = null
 	if fem:
 		# beyaz gelinlik (oyundaki gelinlik takımı, beyaza boyanmış) + uzun beyaz eldiven
-		Gear.preview_set_look(lk, "ss_gelinlik")
+		LazyFx.g("Gear").preview_set_look(lk, "ss_gelinlik")
 		var wh = Color(0.98, 0.97, 0.96)
 		for k in ["top", "top2", "pants", "outer", "acc", "sandal", "wraps"]:
 			lk[k] = wh
 		lk["outer2"] = Color(0.96, 0.86, 0.88)
 	else:
 		# montsuki-hakama: siyah kimono üst, gri hakama
-		Gear.preview_set_look(lk, "set_kenshi")
+		LazyFx.g("Gear").preview_set_look(lk, "set_kenshi")
 		lk["top"] = Color(0.08, 0.08, 0.1)
 		lk["top2"] = Color(0.92, 0.92, 0.9)
 		lk["pants"] = Color(0.42, 0.42, 0.45)
@@ -389,12 +389,12 @@ func _spawn_people() -> void:
 			ml["vest"] = null
 			ml["band"] = null
 			list.append([String(m["name"]), ml])
-	for oid in Friends.all():
-		var o: Dictionary = Friends.all()[oid]
-		if oid != sid and String(o.get("status", "")) == "" and int(o.get("bond", 0)) >= 0 and Friends.available(o) and list.size() < 9:
-			list.append([String(o["name"]), Friends.look_of(o)])
+	for oid in LazyFx.g("Friends").all():
+		var o: Dictionary = LazyFx.g("Friends").all()[oid]
+		if oid != sid and String(o.get("status", "")) == "" and int(o.get("bond", 0)) >= 0 and LazyFx.g("Friends").available(o) and list.size() < 9:
+			list.append([String(o["name"]), LazyFx.g("Friends").look_of(o)])
 	while list.size() < 16:
-		var gl = Outfits.uniform(["chunin", "chunin", "jonin", "genin"].pick_random(), vid)
+		var gl = LazyFx.g("Outfits").uniform(["chunin", "chunin", "jonin", "genin"].pick_random(), vid)
 		gl["gender"] = ["m", "f"].pick_random()
 		gl["age"] = "adult"
 		list.append(["%s ninjası" % vname, gl])
@@ -408,12 +408,12 @@ func _spawn_people() -> void:
 		guests.append(g)
 		_pose(g, "rest", {"anim": "sit", "bench": 0.4})
 	# tapınak görevlisi (miko), şemsiye tutan, davulcu
-	var ml2 = Outfits.roll("genin", vid)
+	var ml2 = LazyFx.g("Outfits").roll("genin", vid)
 	ml2["gender"] = "f"
 	ml2["age"] = "adult"
 	ml2["vest"] = null
 	ml2["band"] = null
-	Gear.preview_set_look(ml2, "set_kenshi")
+	LazyFx.g("Gear").preview_set_look(ml2, "set_kenshi")
 	ml2["top"] = Color(0.98, 0.98, 0.97)
 	ml2["top2"] = Color(0.98, 0.98, 0.97)
 	ml2["pants"] = Color(0.8, 0.12, 0.12)
@@ -572,7 +572,7 @@ func _freeze(n: Node3D) -> void:
 func _run() -> void:
 	busy = true
 	var pl = Game.player
-	var f: Dictionary = Friends.all()[sid]
+	var f: Dictionary = LazyFx.g("Friends").all()[sid]
 	var vname = String(Game.village(vid).get("name", "Köy"))
 	_lock(200.0)
 	Game.profile.erase("waypoint")
@@ -650,7 +650,7 @@ func _run() -> void:
 			if i % 4 == 1:
 				_say(guests[i], ["Omedetō!", "Mutluluklar!", "Bir yastıkta kocayın!", "Yaşasın!"][int(i / 4) % 4], 4.0)
 	await _embrace(pl, bride)
-	Friends.wed_done(sid)
+	LazyFx.g("Friends").wed_done(sid)
 	Hud.banner("DÜĞÜN", "%s ile evlendiniz ♥" % f["name"], Color(1, 0.6, 0.75))
 	await _wait(1.5)
 	_clear_pose(officiant)
@@ -707,12 +707,12 @@ func _dress_player(on: bool) -> void:
 			L[k] = null
 		L["band_style"] = "none"
 		if String(p.get("gender", "m")) == "f":
-			Gear.preview_set_look(L, "ss_gelinlik")
+			LazyFx.g("Gear").preview_set_look(L, "ss_gelinlik")
 			for k in ["top", "top2", "pants", "outer", "acc", "sandal", "wraps"]:
 				L[k] = Color(0.98, 0.97, 0.96)
 			L["outer2"] = Color(0.96, 0.86, 0.88)
 		else:
-			Gear.preview_set_look(L, "set_kenshi")
+			LazyFx.g("Gear").preview_set_look(L, "set_kenshi")
 			L["top"] = Color(0.08, 0.08, 0.1)
 			L["top2"] = Color(0.92, 0.92, 0.9)
 			L["pants"] = Color(0.42, 0.42, 0.45)
@@ -722,7 +722,7 @@ func _dress_player(on: bool) -> void:
 			return
 		p["look"] = _saved_look
 		_saved_look = null
-		Gear.apply_look(p)
+		LazyFx.g("Gear").apply_look(p)
 	if is_instance_valid(Game.player):
 		Game.player.rebuild_model()
 
@@ -765,7 +765,7 @@ func _embrace(pl: Node3D, o: Node3D) -> void:
 
 ## Rakip klan itirazı: konuklardan biri yola çıkar, nikâhı kıyan eliyle durdurur; öfkeyle çekip gider
 func _objection() -> void:
-	var f: Dictionary = Friends.all()[sid]
+	var f: Dictionary = LazyFx.g("Friends").all()[sid]
 	_freeze(objector)
 	focus = objector
 	_guest_turn(objector)
@@ -789,7 +789,7 @@ func _objection() -> void:
 	await _go_w(objector, P(6.0, 16.0), 2.2)
 	if is_instance_valid(objector):
 		objector.vanish()
-	Friends.log_event(f, "Düğününüzde klanından biri itiraz etti; nikâhı kıyan susturdu")
+	LazyFx.g("Friends").log_event(f, "Düğününüzde klanından biri itiraz etti; nikâhı kıyan susturdu")
 	_clear_pose(officiant)
 	_look_at(Game.player, officiant.global_position)
 	Game.player.model.rotation.y = Game.player.facing

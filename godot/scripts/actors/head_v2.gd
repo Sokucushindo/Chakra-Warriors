@@ -247,7 +247,7 @@ static func _gama(m, col: Color) -> void:
 	var mi := Kit._put(m, mb, Vector3(m.skull_c.x, yb, m.skull_c.z + rf + 0.014))
 	var l := Label3D.new()
 	l.text = "油"
-	l.font = KageAttire._font()
+	l.font = LazyFx.g("KageAttire")._font()
 	l.font_size = 64
 	l.pixel_size = 0.00062
 	l.modulate = Color(0.1, 0.1, 0.12)

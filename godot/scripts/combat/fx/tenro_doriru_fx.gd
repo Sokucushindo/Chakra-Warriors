@@ -10,7 +10,7 @@ const ID := "tenro_doriru"
 
 static func model_cuff(b: MB) -> void:
 	var c = Color(0.3, 0.3, 0.34)
-	Loft.tube(b, [Vector3(0, -0.075, -0.12), Vector3(0, -0.085, 0.06)], [0.05, 0.075], c, 10, 1)
+	LazyFx.g("Loft").tube(b, [Vector3(0, -0.075, -0.12), Vector3(0, -0.085, 0.06)], [0.05, 0.075], c, 10, 1)
 	for z in [-0.09, 0.03]:
 		b.add("torus", Vector3(0, 0, z), Vector3(0.14, 0.05, 0.14), Color(0.14, 0.14, 0.16), Vector3(90, 0, 0), 12)
 

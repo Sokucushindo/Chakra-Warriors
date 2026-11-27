@@ -130,8 +130,8 @@ func take_hit(info: Dictionary) -> void:
 	if dead:
 		return
 	var em = Combat.element_mult(info.get("element", ""), element)
-	var react = Elements.on_hit(self, info)
-	var dmg: float = info.get("dmg", 5.0) * em * react * Combat.jutsu_factor(info) * (1.0 - Gear.elem_resist(self, String(info.get("element", ""))))   # set direnci (AI)
+	var react = LazyFx.g("Elements").on_hit(self, info)
+	var dmg: float = info.get("dmg", 5.0) * em * react * Combat.jutsu_factor(info) * (1.0 - LazyFx.g("Gear").elem_resist(self, String(info.get("element", ""))))   # set direnci (AI)
 	if has_status("marked"):
 		dmg *= 1.25   # Dinamik İşaretleme / algılama: işaretli hedef fazla hasar alır
 	dmg *= maxf(1.0, buff_mod("armor"))   # yalnız bedel (zırh kırılması); savunma kalkanla (Combat.absorb)
@@ -144,7 +144,7 @@ func take_hit(info: Dictionary) -> void:
 		dmg *= 1.2   # Kabutowari: zırhı kırılan 5 sn fazla hasar alır
 	var atk = info.get("attacker")
 	if atk is Player:
-		var bs = Stats.skill(Game.profile, "backstab")
+		var bs = LazyFx.g("Stats").skill(Game.profile, "backstab")
 		if bs > 0.0:
 			var from_atk = (atk.global_position - global_position)
 			from_atk.y = 0
@@ -381,7 +381,7 @@ func tick_status(dt: float) -> void:
 	_env_t -= dt
 	if _env_t <= 0.0:
 		_env_t = 0.5
-		Elements.env_tick(self, 0.5)
+		LazyFx.g("Elements").env_tick(self, 0.5)
 	if randf() < dt * 3.0:
 		var hp_ = global_position + Vector3.UP * randf_range(0.4, height)
 		if has_status("wet"):

@@ -106,13 +106,13 @@ func _ready() -> void:
 	radius = clampf((length * 0.22 if long_body else h * 0.45), 0.25, 18.0)
 	height = h
 	if owner_f is Player:
-		max_hp = def.get("hp", 200.0) * (1.0 + float(Game.profile.get("level", 1)) * 0.03) * (1.0 + Stats.skill(Game.profile, "summon_power") + Mastery.get_v(Game.profile, "kuchiyose") * 0.01)
+		max_hp = def.get("hp", 200.0) * (1.0 + float(Game.profile.get("level", 1)) * 0.03) * (1.0 + LazyFx.g("Stats").skill(Game.profile, "summon_power") + LazyFx.g("Mastery").get_v(Game.profile, "kuchiyose") * 0.01)
 	else:
 		# düşman çağrısı: oyuncunun hasarıyla ölçeklenir (eskiden tanım canının tamamı + sahibin seviyesi: öldürülemiyordu)
 		var plv = float(Game.profile.get("level", 1))
 		max_hp = def.get("hp", 200.0) * 0.25 * (1.0 + plv * 0.03)
 	hp = max_hp
-	life = Contracts.TIER_LIFE[tier] * (1.0 + clampf(Contracts.mastery(contract) / 300.0, 0.0, 0.5))
+	life = LazyFx.g("Contracts").TIER_LIFE[tier] * (1.0 + clampf(LazyFx.g("Contracts").mastery(contract) / 300.0, 0.0, 0.5))
 	add_to_group("fighters")
 	add_to_group("summons")
 	collision_layer = 4
@@ -125,7 +125,7 @@ func _ready() -> void:
 		cs.shape = cap
 		cs.position.y = cap.height * 0.5
 		add_child(cs)
-	parts = SummonModels.build(def.get("model", ""), h, length)
+	parts = LazyFx.g("SummonModels").build(def.get("model", ""), h, length)
 	add_child(parts["root"])
 	parts["root"].scale = Vector3.ONE * 0.05
 	parts["root"].create_tween().tween_property(parts["root"], "scale", Vector3.ONE, 0.35).set_trans(Tween.TRANS_BACK)
@@ -256,7 +256,7 @@ func _physics_process(dt: float) -> void:
 		queue_free()
 		return
 	if owner_f is Player:
-		var up = Contracts.TIER_UPKEEP[tier] * dt * maxf(0.2, 1.0 + Stats.skill(Game.profile, "summon_cost"))
+		var up = LazyFx.g("Contracts").TIER_UPKEEP[tier] * dt * maxf(0.2, 1.0 + LazyFx.g("Stats").skill(Game.profile, "summon_cost"))
 		owner_f.chakra = maxf(0.0, owner_f.chakra - up)
 		var cs: Dictionary = Game.profile.get("contracts", {}).get(contract, {})
 		cs["mastery"] = float(cs.get("mastery", 0.0)) + dt
@@ -450,7 +450,7 @@ func _attack() -> void:
 	# denge: çağrılar tek başına kuyruklu canavar kesiyordu — seviye çarpanı ve taban düşürüldü, dev hedeflere yarı hasar
 	# çağrılan, oyuncunun jutsu gücüyle yarı oranda büyür (yüksek seviyede işe yaramaz kalmasın, tek başına da savaşı bitirmesin)
 	# sürü çağrıları (gelincik üçlüsü, köpek sürüsü): üye başına hasar sürü büyüklüğünün kareköküne bölünür
-	var dmg: float = def.get("dmg", 20.0) * 0.4 / sqrt(maxf(1.0, float(def.get("count", 1)))) * (1.0 + float(Game.profile.get("level", 1)) * 0.025) * (1.0 + Stats.skill(Game.profile, "summon_power") + Stats.skill(Game.profile, "squad") + Mastery.get_v(Game.profile, "kuchiyose") * 0.01)
+	var dmg: float = def.get("dmg", 20.0) * 0.4 / sqrt(maxf(1.0, float(def.get("count", 1)))) * (1.0 + float(Game.profile.get("level", 1)) * 0.025) * (1.0 + LazyFx.g("Stats").skill(Game.profile, "summon_power") + LazyFx.g("Stats").skill(Game.profile, "squad") + LazyFx.g("Mastery").get_v(Game.profile, "kuchiyose") * 0.01)
 	if tgt != null and is_instance_valid(tgt) and (tgt.has_method("hit_test") or tgt.get("arch") is Dictionary and (tgt.arch as Dictionary).has("style")):
 		dmg *= 0.5
 	var model: String = def.get("model", "")
@@ -510,7 +510,7 @@ func _special() -> void:
 	var role: String = def.get("role", "")
 	var nm = String(def.get("sig_name", SIG_NAME.get(model, "")))
 	if nm != "":
-		Combat.popup_text(global_position + Vector3.UP * (height + 1.2), nm + "!", Contracts.DEFS[contract]["color"].lightened(0.35))
+		Combat.popup_text(global_position + Vector3.UP * (height + 1.2), nm + "!", LazyFx.g("Contracts").DEFS[contract]["color"].lightened(0.35))
 	var dmg: float = def.get("dmg", 20.0) * 0.6
 	match model:
 		"rin_rhino", "rin_ox":   # Chikushōdō: boynuzlu hücum — öne yıkarak koşar
@@ -771,7 +771,7 @@ func _split_heal() -> void:
 		var s = Summon.new()
 		s.contract = contract
 		s.tier = 0
-		s.def = Contracts.DEFS[contract]["tiers"][0]
+		s.def = LazyFx.g("Contracts").DEFS[contract]["tiers"][0]
 		s.owner_f = owner_f
 		s.team = team
 		get_tree().current_scene.add_child(s)
@@ -890,11 +890,11 @@ func _become_staff() -> void:
 	if is_instance_valid(owner_f):
 		FX.smoke_puff(owner_f.global_position + Vector3.UP * 1.1, 0.8, 12)
 	var pr = Game.profile
-	Gear.ensure(pr)
+	LazyFx.g("Gear").ensure(pr)
 	var prev_r = pr["equip"].get("sag", -1)
-	var uid = Gear.grant(pr, "kongo_asa", "", null, null, {"_tmp": true})
+	var uid = LazyFx.g("Gear").grant(pr, "kongo_asa", "", null, null, {"_tmp": true})
 	pr["equip"]["sag"] = uid
-	Gear.apply_look(pr)
+	LazyFx.g("Gear").apply_look(pr)
 	if Game.player:
 		Game.player.rebuild_model()
 		await get_tree().process_frame
@@ -907,13 +907,13 @@ func _become_staff() -> void:
 		# süre bitti: asa yeniden maymuna döner, sahibinin silahı geri gelir
 		if is_instance_valid(owner_f):
 			FX.smoke_puff(owner_f.global_position + Vector3.UP * 1.1, 1.0, 14)
-		var g = Gear.find(pr, uid)
+		var g = LazyFx.g("Gear").find(pr, uid)
 		if not g.is_empty():
 			pr["gear"].erase(g)
 		pr["equip"].erase("sag")
-		if prev_r != null and int(prev_r) >= 0 and not Gear.find(pr, int(prev_r)).is_empty():
+		if prev_r != null and int(prev_r) >= 0 and not LazyFx.g("Gear").find(pr, int(prev_r)).is_empty():
 			pr["equip"]["sag"] = int(prev_r)
-		Gear.apply_look(pr)
+		LazyFx.g("Gear").apply_look(pr)
 		if Game.player:
 			Game.player.rebuild_model()
 		dismiss())

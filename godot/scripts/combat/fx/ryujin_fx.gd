@@ -46,7 +46,7 @@ static func _orb_mesh(col: Color) -> Mesh:
 	return Yk.mesh("ryujin_kure_%s" % col.to_html(), func():
 		var b = MB.new()
 		b.add("sphere", Vector3.ZERO, Vector3.ONE * 0.07, col, Vector3.ZERO, 10)
-		return b.build(Props.toon()))
+		return b.build(LazyFx.g("Props").toon()))
 
 
 ## Halkanın ortasında sıradaki doğanın küresi

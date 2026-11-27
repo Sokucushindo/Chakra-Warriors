@@ -84,7 +84,7 @@ static func act_of(p: Dictionary, ph := "") -> String:
 	if p.get("behind", false):
 		hungry = minf(1.6, hungry + 0.8)   # rakibi onu geçti
 	var grief = 1.0 if p.get("grief", false) else 0.0
-	var fam = 1.0 if (not WorldKin.spouse_of(p).is_empty() or not WorldKin.kids_of(p).is_empty()) else 0.0
+	var fam = 1.0 if (not LazyFx.g("WorldKin").spouse_of(p).is_empty() or not LazyFx.g("WorldKin").kids_of(p).is_empty()) else 0.0
 	var loyal = float(p.get("loyalty", 60)) / 100.0
 	var old = clampf((Aging.person_years(p) - 50.0) / 20.0, 0.0, 1.0)
 	var duty = 1.0 if rank >= 1 else 0.15
@@ -170,7 +170,7 @@ static func _bonds(p: Dictionary) -> Array:
 	var c = WorldPeople.get_p(String(p.get("close", "")))
 	if not c.is_empty():
 		o.append(c)
-	for r in WorldKin.relatives(p):
+	for r in LazyFx.g("WorldKin").relatives(p):
 		if not r[0] in o:
 			o.append(r[0])
 	for b in ties(p):
@@ -212,7 +212,7 @@ static func tie_of(p: Dictionary, q: Dictionary) -> String:
 	for b in ties(p):
 		if b[0] == q:
 			return String(b[1])
-	for r in WorldKin.relatives(p):
+	for r in LazyFx.g("WorldKin").relatives(p):
 		if r[0] == q:
 			return String(r[1])
 	return "yakını" if String(p.get("close", "")) == String(q.get("id", "?")) else ""
@@ -250,7 +250,7 @@ static func bond_pass() -> void:
 
 
 static func _find_rival(p: Dictionary, all: Array) -> bool:
-	var kin = WorldKin.relatives(p).map(func(r): return r[0])
+	var kin = LazyFx.g("WorldKin").relatives(p).map(func(r): return r[0])
 	var c = all.filter(func(q): return q != p and String(q["village"]) == String(p["village"]) and int(q["rank"]) == int(p["rank"]) and String(q.get("rival", "")) == "" and absi(int(q["level"]) - int(p["level"])) <= 8 and absf(Aging.person_years(q) - Aging.person_years(p)) <= 5.0 and not q in kin and String(p.get("sensei", "-")) != String(q["id"]) and String(q.get("sensei", "-")) != String(p["id"]))
 	if c.is_empty():
 		return false
@@ -269,10 +269,10 @@ static func on_promote(p: Dictionary) -> void:
 	if not rv.is_empty() and _free(rv) and int(rv["rank"]) < int(p["rank"]):
 		rv["behind"] = true   # geride kalan: antrenmana gömülür (act_of)
 		WorldPeople.log_event(rv, "Rakibi %s ondan önce %s oldu; antrenmanı ikiye katladı" % [String(p["name"]), rk])
-		WorldPeople.log_event(p, "Rakibi %s geçti" % WorldNews.sfx(String(rv["name"]), "i"))
+		WorldPeople.log_event(p, "Rakibi %s geçti" % LazyFx.g("WorldNews").sfx(String(rv["name"]), "i"))
 	if p.get("behind", false) and not rv.is_empty() and int(rv["rank"]) <= int(p["rank"]):
 		p.erase("behind")
-		WorldPeople.log_event(p, "Rakibi %s yakaladı" % WorldNews.sfx(String(rv["name"]), "i"))
+		WorldPeople.log_event(p, "Rakibi %s yakaladı" % LazyFx.g("WorldNews").sfx(String(rv["name"]), "i"))
 	var s = WorldPeople.get_p(String(p.get("sensei", "")))
 	if not s.is_empty() and _free(s):
 		WorldPeople.log_event(s, "Öğrencisi %s %s oldu" % [String(p["name"]), rk])
@@ -322,7 +322,7 @@ static func on_stage(p: Dictionary, n: Node, act: String) -> void:
 	var fid = friend_of(String(p["id"]))
 	if fid != "":
 		n.set_meta("friend_id", fid)
-		Friends.tag(n)
+		LazyFx.g("Friends").tag(n)
 	elif n.has_method("set_name_tag"):
 		n.set_name_tag(tag_text(p), Color(0.93, 0.93, 0.88))
 	# görülen iş hayatına yazılır (günde bir kez): antrenman gerçekten güçlendirir
@@ -415,7 +415,7 @@ static func lines(p: Dictionary, act: String, mate := {}) -> Array:
 	if not run.is_empty():
 		o.clear()
 		o.append("%s-rütbe görevdeyiz: %s." % [String(run["rank"]), String(run["what"])])
-	for l in WorldKin.lines_of(p):
+	for l in LazyFx.g("WorldKin").lines_of(p):
 		if not String(l).begins_with("Köy bugün sakin"):
 			o.append(l)
 	o.append(dream_line(p))
@@ -464,7 +464,7 @@ static func dream(p: Dictionary) -> String:
 		return "guc"
 	if p.get("behind", false):
 		return "rakip"
-	if not WorldKin.kids_of(p).is_empty() or (not WorldKin.spouse_of(p).is_empty() and tm.x < 0.0):
+	if not LazyFx.g("WorldKin").kids_of(p).is_empty() or (not LazyFx.g("WorldKin").spouse_of(p).is_empty() and tm.x < 0.0):
 		return "aile"
 	if rank >= 2 and loyal >= 60 and top_of_village(p) and tm.x > -0.3:
 		return "kage"
@@ -498,13 +498,13 @@ static func dream_line(p: Dictionary) -> String:
 		"intikam":
 			var who = String(p.get("vendetta", p.get("foe_of_player", "")))
 			if who != "":
-				return "%s hesabı kapanmadan rahat uyumam." % WorldNews.sfx(who, "in")
+				return "%s hesabı kapanmadan rahat uyumam." % LazyFx.g("WorldNews").sfx(who, "in")
 			return "Kaybettiğimin hesabını soracağım. Kimden olursa."
 		"guc":
 			return "Köyün kuralları güçsüzler için. Ben daha fazlasını istiyorum."
 		"rakip":
 			var rv = WorldPeople.get_p(String(p.get("rival", "")))
-			return "%s geçeceğim. Başka hiçbir şey umurumda değil." % (WorldNews.sfx(_first(String(rv["name"])), "i") if not rv.is_empty() else "Onu")
+			return "%s geçeceğim. Başka hiçbir şey umurumda değil." % (LazyFx.g("WorldNews").sfx(_first(String(rv["name"])), "i") if not rv.is_empty() else "Onu")
 		"aile":
 			return "Eve sağ dönmek... benim tek hedefim bu." if warm else "Ailem var. Gereksiz risk almam."
 		"kage":
@@ -541,7 +541,7 @@ static func regard(p: Dictionary) -> Dictionary:
 	var me = String(Game.profile.get("name", ""))
 	var mine = {"eşi": "eşimi", "oğlu": "oğlumu", "kızı": "kızımı", "babası": "babamı", "annesi": "annemi", "kardeşi": "kardeşimi"}
 	if String(p.get("vendetta", "")) != "":
-		return {"k": "nefret", "act": "turn", "line": "%s... %s kanı elinde. Benimle konuşma." % [me, WorldNews.sfx(String(p["vendetta"]), "in")]}
+		return {"k": "nefret", "act": "turn", "line": "%s... %s kanı elinde. Benimle konuşma." % [me, LazyFx.g("WorldNews").sfx(String(p["vendetta"]), "in")]}
 	var cl = WorldPeople.get_p(String(p.get("close", "")))
 	if not cl.is_empty() and cl.get("slain_by_player", false):
 		return {"k": "nefret", "act": "turn", "line": "%s senin elinden öldü. Yüzüne bakmam." % String(cl["name"])}
@@ -551,7 +551,7 @@ static func regard(p: Dictionary) -> Dictionary:
 		return {}   # kaçaksın: köy ninjasının tepkisi zaten ayrı (korku / saldırı)
 	if p.get("saved_by_player", false):
 		return {"k": "minnet", "act": "bow", "line": "%s! Kayıpken beni sen getirdin. Hayatımı sana borçluyum." % me}
-	for r in WorldKin.relatives(p):
+	for r in LazyFx.g("WorldKin").relatives(p):
 		var q: Dictionary = r[0]
 		if q.get("saved_by_player", false) and WorldPeople.alive(q):
 			return {"k": "minnet", "act": "bow", "line": "%s sağ getiren sensin. Ailemiz bunu unutmaz." % String(mine.get(String(r[1]), "yakınımı")).capitalize()}
@@ -590,7 +590,7 @@ static func regard_node(n: Node) -> Dictionary:
 static func friend_of(wid: String) -> String:
 	if wid == "":
 		return ""
-	var fs = Friends.all()
+	var fs = LazyFx.g("Friends").all()
 	for id in fs:
 		if String(fs[id].get("wid", "")) == wid:
 			return String(id)
@@ -605,9 +605,9 @@ static func meet(v: Node, silent := false) -> void:
 	var keep_site = v.has_meta("site_key")
 	if keep_site:
 		v.remove_meta("site_key")   # sabit yere bağlanmaz: günü neredeyse orada olur
-	Friends._meet(v, String(p["name"]), silent)
+	LazyFx.g("Friends")._meet(v, String(p["name"]), silent)
 	var fid = String(v.get_meta("friend_id", ""))
-	var fs = Friends.all()
+	var fs = LazyFx.g("Friends").all()
 	if fid == "" or not fs.has(fid):
 		return
 	var f: Dictionary = fs[fid]
@@ -620,11 +620,11 @@ static func meet(v: Node, silent := false) -> void:
 	f["born_t"] = Aging.clock() - Aging.person_years(p) * Aging.YEAR
 	f["title"] = ("%s klanı" % ClanWorld.clan_name(String(p["clan"]))) if String(p["clan"]) != "" else "%s ninjası" % WorldPeople.vname(String(p["village"]))
 	var fam = []
-	for r in WorldKin.relatives(p):
+	for r in LazyFx.g("WorldKin").relatives(p):
 		var q: Dictionary = r[0]
 		fam.append({"rel": String(r[1]).capitalize(), "name": String(q["name"]), "alive": WorldPeople.alive(q)})
 	f["family"] = fam
-	Friends.tag(v)
+	LazyFx.g("Friends").tag(v)
 
 
 ## Dünyadaki kişi öldü / kaçtı: tanıdığınsa haberi sana da gelir
@@ -637,7 +637,7 @@ static func on_death(p: Dictionary, why: String) -> void:
 	var fid = friend_of(String(p["id"]))
 	if fid == "":
 		return
-	var f: Dictionary = Friends.all()[fid]
+	var f: Dictionary = LazyFx.g("Friends").all()[fid]
 	if String(f.get("status", "")) != "":
 		return
 	f["status"] = "öldü"
@@ -711,7 +711,7 @@ static func exam_beaten(id: String) -> void:
 	if p.is_empty() or not _free(p):
 		return
 	p["exam_out"] = true
-	WorldPeople.log_event(p, "Chūnin Sınavı'nda %s yenildi" % WorldNews.sfx(String(Game.profile.get("name", "bir genin")), "e"))
+	WorldPeople.log_event(p, "Chūnin Sınavı'nda %s yenildi" % LazyFx.g("WorldNews").sfx(String(Game.profile.get("name", "bir genin")), "e"))
 
 
 ## Baskına / savunmaya çıkacak gerçek ninjalar (chūnin ve üstü; köyün en çok yarısı gider). En güçlüsü başta: komutan.
@@ -730,7 +730,7 @@ static func war_party(vid: String, n: int, street := true) -> Array:
 static func kage_candidate(vid: String) -> Dictionary:
 	if not WorldPeople.data().get("init", false):
 		return {}
-	var strong: Array = KageArts.STRONG.get(vid, [])
+	var strong: Array = LazyFx.g("KageArts").STRONG.get(vid, [])
 	var best := {}
 	var bs = -1.0
 	for p in WorldPeople.all().values():
@@ -765,7 +765,7 @@ static func kage_take(p: Dictionary, vid: String) -> void:
 	WorldPeople.log_event(p, "%s oldu" % Progress.kage_title(vid))
 	for q in WorldPeople.all().values():
 		if String(q["village"]) == vid and _free(q) and dream(q) == "kage" and q != p:
-			WorldPeople.log_event(q, "Şapka %s gitti; hayali bir kez daha ertelendi" % WorldNews.sfx(String(p["name"]), "e"))
+			WorldPeople.log_event(q, "Şapka %s gitti; hayali bir kez daha ertelendi" % LazyFx.g("WorldNews").sfx(String(p["name"]), "e"))
 	for b in ties(p):
 		if _free(b[0]):
 			WorldPeople.log_event(b[0], "%s %s %s oldu" % [String(b[1]).capitalize(), String(p["name"]), Progress.kage_title(vid)])
@@ -886,10 +886,10 @@ static func resolve(run: Dictionary) -> void:
 			var cap = int(WorldPeople.RANK_LV[int(q["rank"])][1]) + 25
 			q["level"] = mini(cap, int(q["level"]) + randi_range(1, 2 + ri))
 	for q in lost:
-		if not WorldNews.went_missing(q):
+		if not LazyFx.g("WorldNews").went_missing(q):
 			WorldPeople._die(q, "Bir görevden dönmedi (%s)" % String(run["what"]))
 			if String(run["vid"]) == Progress.home() and not back.is_empty():
-				WorldNews.headline("%s: %s takımı görevden döndü; %s aralarında yok." % [WorldPeople.vname(String(run["vid"])), WorldNews.sfx(String(team[0]["name"]), "in"), String(q["name"])], Color(1, 0.6, 0.55))
+				LazyFx.g("WorldNews").headline("%s: %s takımı görevden döndü; %s aralarında yok." % [WorldPeople.vname(String(run["vid"])), LazyFx.g("WorldNews").sfx(String(team[0]["name"]), "in"), String(q["name"])], Color(1, 0.6, 0.55))
 	for q in back:
 		if not q.has("mates"):
 			q["mates"] = {}

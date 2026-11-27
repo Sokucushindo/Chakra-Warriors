@@ -30,12 +30,12 @@ const SHEEN := Color(0.2, 0.2, 0.23)
 
 # ------------------------------------------------------------------ model
 static func _seg(b: MB, z0: float, z1: float, r0: float, r1: float) -> void:
-	Loft.tube(b, [Vector3(0, 0, z0), Vector3(0, 0, z1)], [r0, r1], BLACK, 8, 1)
+	LazyFx.g("Loft").tube(b, [Vector3(0, 0, z0), Vector3(0, 0, z1)], [r0, r1], BLACK, 8, 1)
 	b.add("box", Vector3(r0 * 0.7, 0, (z0 + z1) * 0.5), Vector3(0.004, 0.006, (z1 - z0) * 0.86), SHEEN)
 
 
 static func model_base(b: MB) -> void:
-	Loft.tube(b, [Vector3(0, 0, -0.13), Vector3(0, 0, 0.08)], [0.03, 0.036], Color(0.07, 0.07, 0.08), 8, 1)
+	LazyFx.g("Loft").tube(b, [Vector3(0, 0, -0.13), Vector3(0, 0, 0.08)], [0.03, 0.036], Color(0.07, 0.07, 0.08), 8, 1)
 	_seg(b, 0.08, 0.5, 0.05, 0.04)
 	b.add("cyl", Vector3(0, 0, 0.5), Vector3(0.09, 0.012, 0.09), SHEEN, Vector3(90, 0, 0), 8)
 
@@ -46,7 +46,7 @@ static func model_2(b: MB) -> void:
 
 
 static func model_3(b: MB) -> void:
-	Loft.tube(b, [Vector3(0, 0, 0.95), Vector3(0, 0, 1.46)], [0.021, 0.001], BLACK, 8, 1)
+	LazyFx.g("Loft").tube(b, [Vector3(0, 0, 0.95), Vector3(0, 0, 1.46)], [0.021, 0.001], BLACK, 8, 1)
 
 
 ## Tam açık hâl (küçük resim, jutsu mermisi)
@@ -94,7 +94,7 @@ static func _slide(n: Node3D, to: float, t: float) -> void:
 
 ## Jashin tarzının elindeki mızrak (KeyedCombos._jashin_spike buraya gelir)
 static func hand_spike(who: Node3D, dur: float) -> void:
-	var ba = PathJutsu.get_pinst().bone_attach(who, "RightHand")
+	var ba = LazyFx.g("PathJutsu").get_pinst().bone_attach(who, "RightHand")
 	if ba == null:
 		return
 	var n = MeshInstance3D.new()

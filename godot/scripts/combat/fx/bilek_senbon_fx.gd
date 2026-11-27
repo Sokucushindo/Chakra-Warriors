@@ -139,7 +139,7 @@ static func _mesh(key: String, fn: Callable) -> Mesh:
 	return Kit.cached_mesh("bilek_" + key, func():
 		var b = MB.new()
 		fn.call(b)
-		return b.build(Props.toon()))
+		return b.build(LazyFx.g("Props").toon()))
 
 
 static func _needle_mesh() -> Mesh:

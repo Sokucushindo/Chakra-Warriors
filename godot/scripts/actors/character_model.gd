@@ -339,7 +339,7 @@ const WARM_NOW := 99
 
 static func _warm_one(holder: Node3D, a: String, gd: String, vs: Array, i: int) -> void:
 	var lk = default_look()
-	lk.merge(Outfits.roll(a, vs[i % vs.size()]), true)
+	lk.merge(LazyFx.g("Outfits").roll(a, vs[i % vs.size()]), true)
 	lk["gender"] = gd
 	var cm = CharacterModel.new()
 	holder.add_child(cm)
@@ -2052,7 +2052,7 @@ func _cloth_mat(layer: int) -> ShaderMaterial:
 	if mz > 0.0:
 		fz = mz - 0.05
 	mat.set_shader_parameter("foot_toe_z", fz)
-	OutfitParts.mat_params(self, mat)
+	LazyFx.g("OutfitParts").mat_params(self, mat)
 	var bp = func(n: String) -> Vector3: return _grest(skel.find_bone(n)).origin
 	mat.set_shader_parameter("rig_a", Vector4(bp.call("LeftUpperArm").x, bp.call("LeftLowerArm").x, bp.call("LeftHand").x, bp.call("Neck").y))
 	mat.set_shader_parameter("rig_b", Vector4(bp.call("Hips").y, bp.call("LeftLowerLeg").y, bp.call("LeftFoot").y, bp.call("UpperChest").y))
@@ -2341,7 +2341,7 @@ func _sandals() -> void:
 			"zori", "terlik":
 				ring_defs = [[2, fp.z + 0.11, 0.004, 0.006, 0.07]]
 			"cizme", "yuksek_sandal", "bilek_bot", "diz_cizme", "sargili_bot", "zirhli_tozluk":
-				ring_defs = OutfitParts.foot_rings(look["foot_style"], fp)
+				ring_defs = LazyFx.g("OutfitParts").foot_rings(look["foot_style"], fp)
 		for rd in ring_defs:
 			var rk = "%s|%d|%.3f" % [key, rd[0], rd[1]]
 			if not _ring_cache.has(rk):
@@ -6109,7 +6109,7 @@ func _garments(g: Dictionary) -> void:
 	_layer_meshes = []
 	if _garment_cache.size() > 900:
 		_garment_cache.clear()   # kalıp çeşitleri sınırsız birikmesin (sahnedeki modeller kendi mesh'ini tutar)
-	OutfitParts.pants_layers(self, g)
+	LazyFx.g("OutfitParts").pants_layers(self, g)
 	var neck = _bp("Neck").y; var hips = _bp("Hips").y; var knee = _bp("LeftLowerLeg").y; var ank = _bp("LeftFoot").y
 	var chest = _bp("UpperChest").y; var ua = _bp("LeftUpperArm").x; var ha = _bp("LeftHand").x
 	# göz yüksekliği model uzayında (VRoid yüz parçasının iris merkezi); göz mesh'inin AABB'si yerel uzayda, kullanma
@@ -6768,7 +6768,7 @@ func _garments(g: Dictionary) -> void:
 		_boyun_atki_kit(g)
 	if look.get("kg") is Dictionary or look.get("pleat_skirt", false):   # hakama/etek kurulduktan sonra (bağlar onların kabuğuna derilir)
 		_keiko_kit(g)
-	OutfitParts.garments(self, g)
+	LazyFx.g("OutfitParts").garments(self, g)
 	_outer_pad = 0.0
 	_gdata = g   # sırt silahı kayışı silahlar kurulurken loft edilir
 
@@ -6852,7 +6852,7 @@ func _strap_mesh(sx: float, belt := false) -> Mesh:
 	# toka: kayışın/kemerin ön noktası (açı ~0)
 	var fp: Vector3 = pts[0]
 	b.add("torus", fp + Vector3(0, 0, 0.012), Vector3(0.075, 0.03, 0.075), Color(0.62, 0.6, 0.56), Vector3(90, 0, 0), 14)   # göğüste metal halka
-	return b.build(Props.toon())
+	return b.build(LazyFx.g("Props").toon())
 
 
 ## ---- Yüzeye oturan derili 3B parçalar (SurfaceKit) -------------------------------------------------
@@ -7038,7 +7038,7 @@ func _sk_end(g: Dictionary) -> MeshInstance3D:
 	skel.add_child(mi)
 	mi.skin = body_mesh.skin
 	mi.skeleton = mi.get_path_to(skel)
-	mi.material_override = Props.toon()
+	mi.material_override = LazyFx.g("Props").toon()
 	_sk = {}
 	return mi
 
@@ -7258,7 +7258,7 @@ func _vest_kit(src: ArrayMesh, g: Dictionary) -> void:
 			skel.add_child(cmi)
 			cmi.skin = body_mesh.skin
 			cmi.skeleton = cmi.get_path_to(skel)
-			cmi.material_override = Props.toon()
+			cmi.material_override = LazyFx.g("Props").toon()
 		return
 	if not _sk_begin(src):
 		return
@@ -7479,7 +7479,7 @@ func _thigh_holster() -> void:
 		var black = Color(0.1, 0.1, 0.12)
 		m.add_xf("box", Transform3D(bas.scaled(Vector3(0.07, 0.11, 0.03)), outer_pt + od * 0.016 + Vector3(0, -0.012, 0)), black)
 		m.add_xf("box", Transform3D(bas.scaled(Vector3(0.074, 0.028, 0.034)), outer_pt + od * 0.018 + Vector3(0, 0.048, 0)), black.lightened(0.08))   # kapak
-	_mesh_on("RightUpperLeg", m.build(Props.toon()), Transform3D.IDENTITY)
+	_mesh_on("RightUpperLeg", m.build(LazyFx.g("Props").toon()), Transform3D.IDENTITY)
 
 
 ## Gövde + kumaş kabuğu köşeleri (üste giyilenler kumaşın üstüne otursun)
@@ -7595,7 +7595,7 @@ func _leg_warmers(col: Color) -> void:
 			for p in bot:
 				b1.append(p + Vector3(p.x - an.x, 0, p.z - an.z).normalized() * 0.006 + Vector3.DOWN * 0.012)
 			_ring_tube(m, [b1, bot], col.darkened(0.1), 0, an)
-		_mesh_on(side + "LowerLeg", m.build(Props.toon()), Transform3D.IDENTITY)
+		_mesh_on(side + "LowerLeg", m.build(LazyFx.g("Props").toon()), Transform3D.IDENTITY)
 
 
 ## Turuncu boyunluk (ref lee.png): boynu saran kalın, dikey dilimli halka
@@ -7613,7 +7613,7 @@ func _neck_warmer(col: Color) -> void:
 		rings.append(_wear_ring(vs, y, sel, 28, 0.016 + sin(t * PI) * 0.012, nk))
 	var m = MB.new()
 	_ring_tube(m, rings, col, 4, nk)
-	_mesh_on("Neck", m.build(Props.toon()), Transform3D.IDENTITY)
+	_mesh_on("Neck", m.build(LazyFx.g("Props").toon()), Transform3D.IDENTITY)
 
 
 ## Set kıyafet ayrıntıları (kaynak: köy set görselleri) — 3B parçalar, kemiğe bağlı:
@@ -7715,7 +7715,7 @@ func _outfit_extras() -> void:
 		# referans: sağ uyluğun önünü ve dışını kaplayan, dize kadar inen koyu kanat (önden görünür)
 		var pts = PackedVector2Array([Vector2(-0.1, 0.0), Vector2(0.11, 0.0), Vector2(0.13, bot - top), Vector2(-0.09, bot - top + 0.03)])
 		m4.add_slab(pts, 0.012, flap, Transform3D(Basis(Vector3(-0.35, 0, 1).normalized(), Vector3(1, 0, 0.35).normalized(), Vector3.UP), Vector3(hip.x - 0.02, top, fz + 0.035)))
-		_mesh_on("RightUpperLeg", m4.build(Props.toon()), Transform3D.IDENTITY)
+		_mesh_on("RightUpperLeg", m4.build(LazyFx.g("Props").toon()), Transform3D.IDENTITY)
 
 
 ## Gövdenin sırt yüzeyi (model uzayı z, arkası negatif): omurga hizasında, y yüksekliğinde
@@ -7758,10 +7758,10 @@ static func _xsec(node: Node3D, zc: float, band := 0.03) -> AABB:
 
 ## Hayran modeli aksesuar: SFProps.ACCESSORIES[id] kemiğe, ref noktasına göre "off" ofsetle takılır
 func _sf_acc(id: String, ref: Vector3) -> bool:
-	if id == "" or not SFProps.has_accessory(id):
+	if id == "" or not LazyFx.g("SFProps").has_accessory(id):
 		return false
-	var d: Dictionary = SFProps.ACCESSORIES[id]
-	var n = SFProps.accessory_node(id)
+	var d: Dictionary = LazyFx.g("SFProps").ACCESSORIES[id]
+	var n = LazyFx.g("SFProps").accessory_node(id)
 	if n == null:
 		return false
 	var bone = String(d["bone"])
@@ -7947,26 +7947,26 @@ func _accessories() -> void:
 	var dark = Color(0.12, 0.12, 0.14)
 	var hg: Color = look.get("headgear", Color(0.5, 0.4, 0.3)) if look.get("headgear") != null else Color(0.5, 0.4, 0.3)
 	# hayran modelleri (varsa): şapka / maske / sırt eşyası; yoksa aşağıdaki prosedürel modeller
-	var sf_head = _sf_acc(SFProps.HEAD_MAP.get(look.get("head_style"), ""), hc)
-	var sf_face = _sf_acc(SFProps.FACE_MAP.get(look.get("face_style"), ""), hc)
-	var sf_back = null if BackV2.has(look.get("back_item")) else _sf_acc(SFProps.BACK_MAP.get(look.get("back_item"), ""), ch)
+	var sf_head = _sf_acc(LazyFx.g("SFProps").HEAD_MAP.get(look.get("head_style"), ""), hc)
+	var sf_face = _sf_acc(LazyFx.g("SFProps").FACE_MAP.get(look.get("face_style"), ""), hc)
+	var sf_back = null if BackV2.has(look.get("back_item")) else _sf_acc(LazyFx.g("SFProps").BACK_MAP.get(look.get("back_item"), ""), ch)
 	if sf_head and look.get("head_style") in ["kasa", "kage"]:
 		hair_mask_plane(Vector3.UP, Vector3(0, htop - 0.06, 0))
 	if not sf_head and look.get("head_style") == "kage":
-		KageAttire.hat(self, String(look.get("kage_vid") if look.get("kage_vid") != null else look.get("village", "konoha")))
+		LazyFx.g("KageAttire").hat(self, String(look.get("kage_vid") if look.get("kage_vid") != null else look.get("village", "konoha")))
 	match (null if sf_head or HeadV2.has(look.get("head_style")) else look.get("head_style")):
 		"kasa":
 			var m = MB.new()
 			m.add("cone", Vector3(0, 0.0, 0), Vector3(hw * 3.2, 0.17, hw * 3.2), hg, Vector3.ZERO, 18)
 			m.add("cyl", Vector3(0, -0.075, 0), Vector3(hw * 3.1, 0.014, hw * 3.1), hg.darkened(0.15), Vector3.ZERO, 18)
 			m.add("cyl", Vector3(0, -0.05, 0), Vector3(hw * 1.05, 0.04, hw * 1.12), hg.darkened(0.35), Vector3.ZERO, 14)
-			_mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, Vector3(hcen.x, htop + 0.02, hcen.z)))
+			_mesh_on("Head", m.build(LazyFx.g("Props").toon()), Transform3D(Basis.IDENTITY, Vector3(hcen.x, htop + 0.02, hcen.z)))
 			hair_mask_plane(Vector3.UP, Vector3(0, htop + 0.02 - 0.08, 0))   # şapka kenarının üstündeki saç şapkanın içinde kalır
 		"bandana":
 			if band_ring.is_empty():
 				var m = MB.new()
 				m.add("hemi", Vector3.ZERO, Vector3(hw * 1.16, hh * 0.8, hd * 1.12), hg, Vector3.ZERO, 16)
-				_mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, Vector3(hcen.x, hc.y - 0.005, hcen.z)))
+				_mesh_on("Head", m.build(LazyFx.g("Props").toon()), Transform3D(Basis.IDENTITY, Vector3(hcen.x, hc.y - 0.005, hcen.z)))
 			else:
 				_hitai_bandana(hg)
 		"akatsuki":   # Striker "Akatsuki Hat" + anime (refs/hats): hasır sivri koni, ışınsal çizgiler, koyu tepe; kenarın altından
@@ -8009,7 +8009,7 @@ func _accessories() -> void:
 			var fr = float((band_ring[1] as PackedFloat32Array)[int(floor((PI * 0.5 + PI) / TAU * (band_ring[1] as PackedFloat32Array).size())) % (band_ring[1] as PackedFloat32Array).size()])
 			var l = Label3D.new()
 			l.text = "一楽"
-			l.font = KageAttire._font()
+			l.font = LazyFx.g("KageAttire")._font()
 			l.font_size = 64
 			l.pixel_size = 0.0011
 			l.modulate = Color(0.8, 0.15, 0.12)
@@ -8029,7 +8029,7 @@ func _accessories() -> void:
 			var kp = Vector3(skull_c.x + 0.02, by - 0.075, skull_c.z + bk - 0.03)
 			var mk = MB.new()
 			mk.add("sphere", kp, Vector3(0.035, 0.03, 0.025), hg.darkened(0.08), Vector3.ZERO, 8)
-			_mesh_on("Head", mk.build(Props.toon()), Transform3D.IDENTITY)
+			_mesh_on("Head", mk.build(LazyFx.g("Props").toon()), Transform3D.IDENTITY)
 			for sx in [-1.0, 1.0]:
 				dangle_strip("Head", kp + Vector3(0.012 * sx, -0.005, -0.005), Vector3(0.55 * sx + 0.25, -1.0, -0.35), 0.12, 0.06, hg, 0.25, Vector3(1, 0, 0), 0.004, null, 0.6)
 		"iwabe":   # Iwabe kepi (Striker Iwabe's Cap): kafayı saran beyaz sargı kep, tepede bez düğümü, çapraz koyu bağ, yanda sarkan iki ip
@@ -8043,7 +8043,7 @@ func _accessories() -> void:
 					tp = q.y
 			var mk = MB.new()
 			mk.add("sphere", Vector3(skull_c.x + 0.01, tp + 0.04, skull_c.z - 0.01), Vector3(0.07, 0.04, 0.06), hg.lightened(0.05), Vector3(0, 0, 12), 10)
-			_mesh_on("Head", mk.build(Props.toon()), Transform3D.IDENTITY)
+			_mesh_on("Head", mk.build(LazyFx.g("Props").toon()), Transform3D.IDENTITY)
 			var dk = Color(0.1, 0.11, 0.16)
 			_skull_band(dk, by + 0.035, 0.022, 0.05, 0.018)
 			_skull_band(dk, by + 0.008, 0.02, 0.05, -0.014)
@@ -8062,7 +8062,7 @@ func _accessories() -> void:
 				mk.add("sphere", ep, Vector3(0.042, 0.03, 0.01), Color(0.95, 0.95, 0.95), Vector3(-20, 0, 0), 12)
 				mk.add("sphere", ep + Vector3(0, 0, 0.004), Vector3(0.018, 0.016, 0.008), Color(0.06, 0.06, 0.08), Vector3(-20, 0, 0), 10)
 			mk.add("sphere", Vector3(skull_c.x, by + 0.02, skull_c.z + fr + 0.034), Vector3(0.026, 0.022, 0.014), Color(0.05, 0.05, 0.07), Vector3.ZERO, 10)
-			_mesh_on("Head", mk.build(Props.toon()), Transform3D.IDENTITY)
+			_mesh_on("Head", mk.build(LazyFx.g("Props").toon()), Transform3D.IDENTITY)
 		"samuray_s":   # Sasuke alın koruyucusu (Striker Samurai Sasuke): kafatasına oturan siyah başlık, alında Uchiha arması,
 			# şakaktan çeneye inen mor kordon (çene altında düğüm, iki püskül), yanlarda kısa sarkan kanatlar
 			_band_ring_full()
@@ -8085,7 +8085,7 @@ func _accessories() -> void:
 					mk.add("cyl", (a + b) * 0.5, Vector3(0.006, a.distance_to(b) + 0.002, 0.006), lav, Vector3(rad_to_deg(atan2((b - a).z, -(b - a).y)), 0, -rad_to_deg(atan2((b - a).x, -(b - a).y))), 6)
 				dangle_strip("Head", Vector3(skull_c.x + sx * (hw * 0.56), by - 0.005, skull_c.z - 0.03), Vector3(sx * 0.6, -1.0, -0.4), 0.09, 0.05, hg, 0.3, Vector3(0, 0, 1), 0.004)
 			mk.add("sphere", chin, Vector3(0.016, 0.014, 0.014), lav, Vector3.ZERO, 8)
-			_mesh_on("Head", mk.build(Props.toon()), Transform3D.IDENTITY)
+			_mesh_on("Head", mk.build(LazyFx.g("Props").toon()), Transform3D.IDENTITY)
 			for sx in [-1.0, 1.0]:
 				dangle_strip("Head", chin + Vector3(sx * 0.008, -0.006, 0.004), Vector3(sx * 0.15, -1.0, 0.1), 0.1, 0.014, lav, 0.15, Vector3(1, 0, 0), 0.006, null, 0.0)
 		"samuray_k":   # Sakura alın koruyucusu (Striker Samurai Sakura): alnı örten koyu lacivert geniş bant (metal kenarlı), ensede beyaz bez bağ
@@ -8110,7 +8110,7 @@ func _accessories() -> void:
 				mk.add("sphere", ep + Vector3(0, 0.005, 0.034), Vector3(0.03, 0.03, 0.012), Color(0.06, 0.06, 0.08), Vector3.ZERO, 10)
 				mk.add("sphere", Vector3(skull_c.x + sx * (hw * 0.62 + 0.04), eye_center_model.y - 0.02, skull_c.z + 0.05), Vector3(0.012, 0.04, 0.06), Color(0.98, 0.62, 0.6), Vector3.ZERO, 12)
 			mk.add("sphere", Vector3(skull_c.x, eye_center_model.y - 0.13, skull_c.z - 0.02), Vector3(hw * 1.5, 0.08, hw * 1.25), hg, Vector3.ZERO, 14)
-			_mesh_on("Head", mk.build(Props.toon()), Transform3D.IDENTITY)
+			_mesh_on("Head", mk.build(LazyFx.g("Props").toon()), Transform3D.IDENTITY)
 		"han":   # Han şapkası (Striker Han Hat): geniş gri hasır koni, alın bandı, kulakları ve çeneyi örten mor bez sarkıtlar
 			_band_ring_full()
 			var R = hw * 1.75
@@ -8142,7 +8142,7 @@ func _accessories() -> void:
 				var t = (k - 3) / 3.0
 				mk.add("sphere", hcm + Vector3(t * rr * 0.5, -rr * 0.35 - 0.05 * (1.0 - t * t) * 0.6, fz * (0.86 + 0.06 * (1.0 - absf(t)))), Vector3(0.024, 0.024, 0.014), Color(0.05, 0.05, 0.06), Vector3.ZERO, 8)
 			mk.add("cyl", hcm + Vector3(0.03, rr * 1.05, -0.02), Vector3(rr * 0.85, rr * 0.75, rr * 0.85), Color(0.92, 0.78, 0.25), Vector3(0, 0, -14), 14)
-			_mesh_on("Head", mk.build(Props.toon()), Transform3D.IDENTITY)
+			_mesh_on("Head", mk.build(LazyFx.g("Props").toon()), Transform3D.IDENTITY)
 			hair_mask_plane(Vector3.UP, Vector3(0, -10.0, 0))   # saç tümüyle top içinde
 		"gelin":   # Gelin duvağı (Striker Wedding Veil): başa oturan yeşil örgü kep + başı ve sırtı örten, bele inen bej kapüşonlu duvak
 			_band_ring_full()
@@ -8191,11 +8191,11 @@ func _accessories() -> void:
 				for sx in [-1.0, 1.0]:
 					m.add("sphere", Vector3(0.075 * sx, 0.1, -0.005), Vector3(0.05, 0.05, 0.025), fg, Vector3.ZERO, 8)
 				m.add("sphere", Vector3(0, -0.04, 0.045), Vector3(0.05, 0.035, 0.03), Color(0.3, 0.25, 0.25), Vector3.ZERO, 8)
-		_mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, hc + Vector3(0, -0.03, 0.085)))
+		_mesh_on("Head", m.build(LazyFx.g("Props").toon()), Transform3D(Basis.IDENTITY, hc + Vector3(0, -0.03, 0.085)))
 	elif fs == "boenkyo":
 		var bm = MB.new()
 		load("res://scripts/combat/fx/boenkyo_fx.gd").head(bm)   # refs/goz_durbunu
-		_mesh_on("Head", bm.build(Props.toon()), Transform3D(Basis.IDENTITY, hc + Vector3(0.05, 0.02, 0.125)))
+		_mesh_on("Head", bm.build(LazyFx.g("Props").toon()), Transform3D(Basis.IDENTITY, hc + Vector3(0.05, 0.02, 0.125)))
 	elif fs in ["kitsune", "tengu", "oni"]:
 		# festival maskeleri (yüzü saran kabuk + desen); model önü +Z
 		var m = MB.new()
@@ -8229,14 +8229,14 @@ func _accessories() -> void:
 					m.add("cone", Vector3(0.035 * sx, -0.08, 0.05), Vector3(0.014, 0.035, 0.01), Color(0.97, 0.95, 0.9), Vector3(180, 0, 0), 4)   # diş
 				m.add("box", Vector3(0, -0.07, 0.045), Vector3(0.1, 0.02, 0.006), Color(0.1, 0.03, 0.03))
 				m.add("box", Vector3(0, 0.06, 0.05), Vector3(0.11, 0.015, 0.006), Color(0.1, 0.03, 0.03), Vector3(0, 0, 0))
-		_mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, hc + Vector3(0, -0.035, 0.1)))
+		_mesh_on("Head", m.build(LazyFx.g("Props").toon()), Transform3D(Basis.IDENTITY, hc + Vector3(0, -0.035, 0.1)))
 	elif fs == "gas" and face_mi == null:
 		var m = MB.new()
 		for sx in [-1.0, 1.0]:
 			m.add("cyl", Vector3(0.05 * sx, -0.02, 0.0), Vector3(0.045, 0.06, 0.045), Color(0.35, 0.38, 0.35), Vector3(80, 0, 25 * sx), 10)
 			m.add("cyl", Vector3(0.055 * sx, -0.025, 0.03), Vector3(0.05, 0.012, 0.05), dark, Vector3(80, 0, 25 * sx), 10)
 		m.add("box", Vector3(0, 0.005, 0.0), Vector3(0.05, 0.04, 0.03), fg)
-		_mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, hc + Vector3(0, -0.085, 0.11)))
+		_mesh_on("Head", m.build(LazyFx.g("Props").toon()), Transform3D(Basis.IDENTITY, hc + Vector3(0, -0.085, 0.11)))
 	elif fs == "goggles":
 		var m = MB.new()
 		m.add("cyl", Vector3(0, 0, 0), Vector3(hw * 1.14, 0.022, hd * 1.08), dark, Vector3.ZERO, 20)
@@ -8244,7 +8244,7 @@ func _accessories() -> void:
 			m.add("cyl", Vector3(0.036 * sx, 0, hd * 0.54 + 0.005), Vector3(0.05, 0.022, 0.05), steel, Vector3(90, 0, 0), 12)
 			m.add("cyl", Vector3(0.036 * sx, 0, hd * 0.54 + 0.017), Vector3(0.04, 0.004, 0.04), fg, Vector3(90, 0, 0), 12)
 		var gy = (eye_center_model.y + 0.055) if face_mi else hc.y + 0.05
-		_mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, Vector3(hcen.x, gy, hcen.z)))
+		_mesh_on("Head", m.build(LazyFx.g("Props").toon()), Transform3D(Basis.IDENTITY, Vector3(hcen.x, gy, hcen.z)))
 	# --- sırt / bel
 	var bc: Color = look.get("backc", Color(0.4, 0.33, 0.22)) if look.get("backc") != null else Color(0.4, 0.33, 0.22)
 	match (null if sf_back or BackV2.has(look.get("back_item")) else look.get("back_item")):
@@ -8277,43 +8277,43 @@ func _accessories() -> void:
 			if big:
 				m.add("box", Vector3(0, 0.0, 0.17), Vector3(0.05, 0.6, 0.01), Color(0.3, 0.22, 0.14), Vector3(0, 0, 38))   # kayış
 				m.add("box", Vector3(0, -0.12, -0.18), Vector3(0.12, 0.12, 0.006), Color(0.6, 0.12, 0.1), Vector3(0, 0, 45))   # mühür kâğıdı
-				_mesh_on("UpperChest", m.build(Props.toon()), Transform3D(Basis(Vector3.BACK, deg_to_rad(-8)), ch + Vector3(0, -0.12, -0.305)))
+				_mesh_on("UpperChest", m.build(LazyFx.g("Props").toon()), Transform3D(Basis(Vector3.BACK, deg_to_rad(-8)), ch + Vector3(0, -0.12, -0.305)))
 			else:
 				var hp = _grest(skel.find_bone("Hips")).origin
-				_mesh_on("Hips", m.build(Props.toon()), Transform3D(Basis.IDENTITY, hp + Vector3(0.18, -0.05, 0.02)))
+				_mesh_on("Hips", m.build(LazyFx.g("Props").toon()), Transform3D(Basis.IDENTITY, hp + Vector3(0.18, -0.05, 0.02)))
 		"parsomen":
 			var m = MB.new()
 			m.add("cyl", Vector3.ZERO, Vector3(0.13, 0.62, 0.13), bc, Vector3(0, 0, 90), 12)
 			for sx in [-1.0, 1.0]:
 				m.add("cyl", Vector3(0.32 * sx, 0, 0), Vector3(0.15, 0.03, 0.15), Color(0.55, 0.12, 0.12), Vector3(0, 0, 90), 12)
 			m.add("box", Vector3(0, 0.0, 0.05), Vector3(0.04, 0.5, 0.01), dark, Vector3(0, 0, 40))
-			_mesh_on("UpperChest", m.build(Props.toon()), Transform3D(Basis(Vector3.BACK, deg_to_rad(-12)), ch + Vector3(0, -0.12, -0.2)))
+			_mesh_on("UpperChest", m.build(LazyFx.g("Props").toon()), Transform3D(Basis(Vector3.BACK, deg_to_rad(-12)), ch + Vector3(0, -0.12, -0.2)))
 		"shuriken":
 			# dev fūma shuriken sırtta: 4 uçlu yıldız, sırt düzleminde, hafif çapraz
 			var m = MB.new()
 			_w_star(m, Vector3.ZERO, 0.36, 0.11, 4, bc, dark)
 			m.add("box", Vector3(0, 0, 0.03), Vector3(0.05, 0.5, 0.012), Color(0.3, 0.22, 0.15), Vector3(0, 0, -35))   # taşıma kayışı
-			_mesh_on("UpperChest", m.build(Props.toon()), Transform3D(Basis.IDENTITY, ch + Vector3(0, -0.08, -0.19)))
+			_mesh_on("UpperChest", m.build(LazyFx.g("Props").toon()), Transform3D(Basis.IDENTITY, ch + Vector3(0, -0.08, -0.19)))
 		"kin":
 			var m = MB.new()
 			m.add("box", Vector3(0, -0.15, 0), Vector3(0.05, 0.75, 0.03), bc)
 			m.add("cyl", Vector3(0, 0.3, 0), Vector3(0.035, 0.2, 0.035), dark, Vector3.ZERO, 8)
 			m.add("cyl", Vector3(0, 0.2, 0), Vector3(0.08, 0.012, 0.08), Color(0.55, 0.45, 0.25), Vector3.ZERO, 10)
 			m.add("box", Vector3(0, -0.02, 0.03), Vector3(0.6, 0.03, 0.008), Color(0.3, 0.22, 0.15), Vector3(0, 0, 50))
-			_mesh_on("UpperChest", m.build(Props.toon()), Transform3D(Basis(Vector3.BACK, deg_to_rad(35)), ch + Vector3(0, -0.12, -0.17)))
+			_mesh_on("UpperChest", m.build(LazyFx.g("Props").toon()), Transform3D(Basis(Vector3.BACK, deg_to_rad(35)), ch + Vector3(0, -0.12, -0.17)))
 		"canta":
 			var m = MB.new()
 			m.add("box", Vector3(0, 0, 0), Vector3(0.28, 0.32, 0.12), bc)
 			m.add("box", Vector3(0, -0.06, 0.065), Vector3(0.2, 0.12, 0.03), bc.darkened(0.2))
 			m.add("cyl", Vector3(0, 0.2, 0), Vector3(0.09, 0.34, 0.09), Color(0.55, 0.15, 0.15), Vector3(0, 0, 90), 10)
-			_mesh_on("UpperChest", m.build(Props.toon()), Transform3D(Basis.IDENTITY, ch + Vector3(0, -0.15, -0.2)))
+			_mesh_on("UpperChest", m.build(LazyFx.g("Props").toon()), Transform3D(Basis.IDENTITY, ch + Vector3(0, -0.15, -0.2)))
 		"kemer":
 			var m = MB.new()
 			for k in 4:
 				var a = deg_to_rad(-60 + k * 40)
 				m.add("box", Vector3(sin(a) * 0.17, 0, cos(a) * 0.13), Vector3(0.06, 0.07, 0.045), bc, Vector3(0, rad_to_deg(a), 0))
 			m.add("cyl", Vector3(0.16, -0.02, -0.05), Vector3(0.05, 0.16, 0.05), Color(0.85, 0.8, 0.65), Vector3(0, 0, 10), 8)
-			_mesh_on("Hips", m.build(Props.toon()), Transform3D(Basis.IDENTITY, hip + Vector3(0, 0.07, 0)))
+			_mesh_on("Hips", m.build(LazyFx.g("Props").toon()), Transform3D(Basis.IDENTITY, hip + Vector3(0, 0.07, 0)))
 	# --- yelek detayları (köy tarzı)
 	if look["vest"] != null:
 		var vc: Color = look["vest"]
@@ -8326,7 +8326,7 @@ func _accessories() -> void:
 					if vs == 6:
 						m.add("box", Vector3(0.22 * sx, 0.03, 0.0), Vector3(0.12, 0.05, 0.16), vc.darkened(0.25), Vector3(0, 0, -30 * sx))
 		if not m.is_empty():
-			_mesh_on("UpperChest", m.build(Props.toon()), Transform3D(Basis.IDENTITY, ch))
+			_mesh_on("UpperChest", m.build(LazyFx.g("Props").toon()), Transform3D(Basis.IDENTITY, ch))
 	# --- eldiven plakası
 	if look.get("gloves", false):
 		var ac: Color = look.get("acc", dark) if look.get("acc") != null else dark
@@ -8336,8 +8336,8 @@ func _accessories() -> void:
 			var m = MB.new()
 			# el sırtı (dinlenme T pozunda üst yüz bileğin 1.2 cm üstünde, el 0..7.8 cm dışarı, z -6.8..1.2 cm): plaka yüzeye oturur
 			m.add("box", Vector3(0.038 * sx, 0.0165, -0.022), Vector3(0.058, 0.009, 0.05), steel)
-			_mesh_on(side + "Hand", m.build(Props.toon()), Transform3D(Basis.IDENTITY, hp))
-	OutfitParts.accessories(self)
+			_mesh_on(side + "Hand", m.build(LazyFx.g("Props").toon()), Transform3D(Basis.IDENTITY, hp))
+	LazyFx.g("OutfitParts").accessories(self)
 
 
 ## Yaka, fermuar, bel bağı
@@ -8359,14 +8359,14 @@ func _cloth_details() -> void:
 		c.add("cyl", Vector3(0, cy, 0.0), Vector3(0.15, ch, 0.15), cc, Vector3.ZERO, 16)
 		if ts == "ceket":
 			c.add("box", Vector3(0, cy, 0.074), Vector3(0.012, ch * 0.92, 0.006), Color(0.85, 0.85, 0.85))
-		_mesh_on("Neck", c.build(Props.toon()), Transform3D(Basis.IDENTITY, np))
+		_mesh_on("Neck", c.build(LazyFx.g("Props").toon()), Transform3D(Basis.IDENTITY, np))
 	if ts == "ceket" and look["vest"] == null:
 		var cb = skel.find_bone("UpperChest")
 		if cb >= 0:
 			var cp = _grest(cb).origin
 			var z = MB.new()
 			z.add("box", Vector3(0, -0.12, 0.13), Vector3(0.012, 0.42, 0.01), Color(0.85, 0.85, 0.85), Vector3(-6, 0, 0))
-			_mesh_on("UpperChest", z.build(Props.toon()), Transform3D(Basis.IDENTITY, cp))
+			_mesh_on("UpperChest", z.build(LazyFx.g("Props").toon()), Transform3D(Basis.IDENTITY, cp))
 	# bel bağı (pantolon kemeri): kalça kemiğine yapışık 33x7 cm katı silindir belin/göbeğin çevresinde kalın halka gibi
 	# duruyor, eğilince kıyafetlerin içinden çıkıyordu -> gövde kabuğuna derili ince bant (kumaşla eğilir, dış giysinin altında kalır)
 	pass   # bel bağı kaldırıldı (gömlek/pantolon geçişi kumaşın kendisinde)
@@ -8404,7 +8404,7 @@ func set_mouth(open: float) -> void:
 		b.add("box", Vector3(0, 0.006, 0.001), Vector3(0.026, 0.004, 0.004), Color(0.95, 0.94, 0.9))   # üst diş çizgisi
 		var hc = eye_center_model if face_mi else _head_center()
 		# yüz yüzeyinin hemen önünde, gözlerin ~7 cm altında (çene üstü)
-		_mouth = _mesh_on("Head", b.build(Props.toon()), Transform3D(Basis.IDENTITY, Vector3(0, hc.y - 0.072, hc.z + 0.012)))
+		_mouth = _mesh_on("Head", b.build(LazyFx.g("Props").toon()), Transform3D(Basis.IDENTITY, Vector3(0, hc.y - 0.072, hc.z + 0.012)))
 		_mouth.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		_mouth.set_meta("base", _mouth.transform)
 	_mouth.visible = open > 0.08
@@ -9231,7 +9231,7 @@ func dangle_strip(bone: String, model_root: Vector3, dir: Vector3, length: float
 	var mesh = MeshArr.commit(st)
 	var pack = Dangle.build(mesh, [{"pts": pts, "stiff": stiff + 0.06, "stiff_tip": stiff * 0.4, "damp": 0.82, "grav": 0.7, "drag": 1.2, "air": 0.3, "follow": 0.5, "col_r": 0.012, "col_from": 1}],
 		func(_i, v, _si): return [[0, Dangle.project(pts, v)[0], 1.0]])
-	var d = Dangle.make(pack, Props.toon())
+	var d = Dangle.make(pack, LazyFx.g("Props").toon())
 	if d == null:
 		return null
 	if parent != null:
@@ -9578,7 +9578,7 @@ func _band_skinned(p0: Vector3, B: Basis, ring: PackedFloat32Array, bc: Color, h
 		var kp = p0 + ob * (r_at.call(back) + 0.012)
 		var rv = MB.new()
 		rv.add("sphere", kp, Vector3(0.026, 0.024, 0.016), bc.darkened(0.08), Vector3.ZERO, 7)
-		_mesh_on(tail_bone, rv.build(Props.toon()), Transform3D.IDENTITY)
+		_mesh_on(tail_bone, rv.build(LazyFx.g("Props").toon()), Transform3D.IDENTITY)
 		for sx in [-1.0, 1.0]:
 			dangle_strip(tail_bone, kp + Vector3(0.006 * sx, -0.004, 0) + ob * 0.004, Vector3(tails.x * sx, tails.y, tails.z), 0.14, 0.028, bc, 0.16, Vector3(1, 0, 0), 0.003)
 
@@ -9695,7 +9695,7 @@ func _band_wear(bc: Color, wear: String) -> void:
 				_box_basis(st, Vector3(skull_c.x + sx * (px + 0.012), by - 0.065, pz + 0.006), b, Vector3(0.04, 0.008, 0.003), steel.darkened(0.25))
 			st.generate_normals()
 			var cm = MeshArr.commit(st)
-			cm.surface_set_material(0, Props.toon())
+			cm.surface_set_material(0, LazyFx.g("Props").toon())
 			_mesh_on("Head", cm, Transform3D.IDENTITY)
 		"tobirama":   # ref tobirama_3/4/5: alnı şakaklara kadar saran geniş, uzun plaka
 			_band_ring_full()
@@ -9712,7 +9712,7 @@ func _band_wear(bc: Color, wear: String) -> void:
 			for sx in [-1.0, 1.0]:
 				var hp = Vector3(skull_c.x + sx * 0.04, by + 0.045, skull_c.z + fr + 0.004)
 				mk.add("cone", hp, Vector3(0.034, 0.05, 0.026), Color(0.78, 0.8, 0.85), Vector3(-8, 0, -sx * 18.0), 8)
-			_mesh_on("Head", mk.build(Props.toon()), Transform3D.IDENTITY)
+			_mesh_on("Head", mk.build(LazyFx.g("Props").toon()), Transform3D.IDENTITY)
 		"kisame":   # ref kisame_4: plaka alında yukarı bakar (öne-yukarı eğik), bant arkaya doğru iner
 			_band_ring_full()
 			var B = Basis(Vector3(1, 0, 0), deg_to_rad(-16.0))
@@ -9733,7 +9733,7 @@ func _band_wear(bc: Color, wear: String) -> void:
 			var mk = MB.new()
 			for sx in [-1.0, 1.0]:
 				mk.add("cone", Vector3(skull_c.x + sx * hw * 0.42, tp + 0.03, skull_c.z - 0.01), Vector3(0.06, 0.07, 0.03), Color(0.09, 0.09, 0.11), Vector3(0, 0, -sx * 14.0), 4)
-			_mesh_on("Head", mk.build(Props.toon()), Transform3D.IDENTITY)
+			_mesh_on("Head", mk.build(LazyFx.g("Props").toon()), Transform3D.IDENTITY)
 		"kakuzu":   # ref kakuzu_2/4: başı saran koyu başlık, gözlerin altından boynu örten maske, alında plaka
 			_band_ring_full()
 			var by = band_ring[0]
@@ -9743,7 +9743,7 @@ func _band_wear(bc: Color, wear: String) -> void:
 			var fr = _ring_r_at(PI * 0.5)
 			var mk = MB.new()
 			mk.add("sphere", Vector3(skull_c.x, eye_center_model.y - 0.085, skull_c.z + fr * 0.5), Vector3(hw * 0.78, 0.12, fr * 1.0), Color(0.08, 0.08, 0.09), Vector3.ZERO, 14)   # burun kökünden çeneye maske
-			_mesh_on("Head", mk.build(Props.toon()), Transform3D.IDENTITY)
+			_mesh_on("Head", mk.build(LazyFx.g("Props").toon()), Transform3D.IDENTITY)
 		"baki":   # ref baki_0/1: başın üstünü saran beyaz bez, alında plaka, bandın sol yanından yüzün yarısını örten peçe
 			_band_ring_full()
 			var by = band_ring[0]
@@ -9913,7 +9913,7 @@ func hood(cc: Color, deep := "") -> void:
 				st.set_color(cc.darkened(0.45))
 				st.add_vertex(c0 + (q[i] - c0) * 0.96)
 	st.generate_normals()
-	_mesh_on("Head", MeshArr.commit(st), Transform3D.IDENTITY).material_override = Props.toon()
+	_mesh_on("Head", MeshArr.commit(st), Transform3D.IDENTITY).material_override = LazyFx.g("Props").toon()
 
 
 var cap_grid: Array = []   # son head_cap ızgarası [satır (alt->tepe)][açı] (kaburga/süs için)
@@ -9997,7 +9997,7 @@ func kabuto(cc: Color, crest := "") -> void:
 				quad.call(pts, cc.darkened(0.05))
 				quad.call([pts[3], pts[2], pts[2] + d * 0.002 - side * 0.006, pts[3] + d * 0.002 - side * 0.006], gold)
 	st.generate_normals()
-	_mesh_on("Head", MeshArr.commit(st), Transform3D.IDENTITY).material_override = Props.toon()
+	_mesh_on("Head", MeshArr.commit(st), Transform3D.IDENTITY).material_override = LazyFx.g("Props").toon()
 	# arma: alnın önünde altın hilal ya da V boynuz
 	var fz = skull_c.z + r_at.call(PI * 0.5) + 0.012
 	var base = Vector3(skull_c.x, by + 0.02, fz)
@@ -10016,7 +10016,7 @@ func kabuto(cc: Color, crest := "") -> void:
 			var wv = 0.004 + 0.016 * (1.0 - absf((u0 + u1) * 0.5))
 			mb.add_xf("box", Transform3D(Basis.looking_at(p1 - p0, Vector3.BACK) * Basis.from_scale(Vector3(0.004, wv, p0.distance_to(p1) * 1.08)), (p0 + p1) * 0.5), gold)
 	mb.add("sphere", base, Vector3(0.024, 0.024, 0.012), gold, Vector3.ZERO, 8)
-	_mesh_on("Head", mb.build(Props.toon()), Transform3D.IDENTITY)
+	_mesh_on("Head", mb.build(LazyFx.g("Props").toon()), Transform3D.IDENTITY)
 
 
 ## ------------------------------------------------------------------ yüz kabuğu (maske, peçe, sargı, boya)
@@ -10114,7 +10114,7 @@ func face_patch(cc: Color, a_c: float, a_half: float, y0: float, y1: float, pad:
 					st.set_color(cc.darkened(0.4)); st.add_vertex(c0 + (q[i] - c0) * 0.985)
 	st.generate_normals()
 	var mi = _mesh_on("Head", MeshArr.commit(st), Transform3D.IDENTITY)
-	mi.material_override = Props.toon()
+	mi.material_override = LazyFx.g("Props").toon()
 	return mi
 
 
@@ -10133,7 +10133,7 @@ func face_line(cc: Color, path: Array, w: float, pad: float) -> void:
 		for k in [0, 1, 2, 0, 2, 3, 0, 2, 1, 0, 3, 2]:
 			st.set_color(cc); st.add_vertex(q[k])
 	st.generate_normals()
-	_mesh_on("Head", MeshArr.commit(st), Transform3D.IDENTITY).material_override = Props.toon()
+	_mesh_on("Head", MeshArr.commit(st), Transform3D.IDENTITY).material_override = LazyFx.g("Props").toon()
 
 
 ## Göz merkezi yönleri (a, y): sağ göz = karakterin sağı (-X)
@@ -10244,7 +10244,7 @@ func face_item(fs: String, fg: Color) -> bool:
 				var out = (cpn - Vector3(skull_c.x, cpn.y, skull_c.z)).normalized()
 				mb.add_xf("cyl", Transform3D(Basis.looking_at(out + Vector3(0, -0.6, 0), Vector3.UP) * Basis(Vector3.RIGHT, PI * 0.5) * Basis.from_scale(Vector3(0.05, 0.05, 0.05)), cpn), Color(0.45, 0.47, 0.42), 12)
 				mb.add_xf("cyl", Transform3D(Basis.looking_at(out + Vector3(0, -0.6, 0), Vector3.UP) * Basis(Vector3.RIGHT, PI * 0.5) * Basis.from_scale(Vector3(0.054, 0.01, 0.054)), cpn + (out + Vector3(0, -0.6, 0)).normalized() * 0.026), dark, 12)
-			_mesh_on("Head", mb.build(Props.toon()), Transform3D.IDENTITY)
+			_mesh_on("Head", mb.build(LazyFx.g("Props").toon()), Transform3D.IDENTITY)
 			face_patch(dark, F, PI, ey - 0.012, ey - 0.002, 0.01, func(a, _y): return absf(wrapf(a - F, -PI, PI)) < 1.0, Callable(), 40, 1, 0.0, false)
 			if fs == "gaz_maskesi":   # yağmur tipi: göz camları da var
 				for right in [true, false]:
@@ -10345,7 +10345,7 @@ func head_cap(cc: Color, edge_y: float, back_drop: float, puff := 0.04, pad := 0
 	cap_grid = ring
 	cap_cen = cen
 	var mi = _mesh_on("Head", MeshArr.commit(st), Transform3D.IDENTITY)
-	mi.material_override = Props.toon()
+	mi.material_override = LazyFx.g("Props").toon()
 	if mask:
 		# başlığın altında kalan saç kesilir: önde alt kenar, arkada ense hizası düzlemi
 		var fz = skull_c.z + r_at.call(PI * 0.5)
@@ -10391,7 +10391,7 @@ func _hitai(bone: String, cen: Vector3, rad: PackedFloat32Array, bc: Color, bh: 
 				st.add_vertex(q[i])
 	st.generate_normals()
 	var bmi = _mesh_on(bone, MeshArr.commit(st), Transform3D.IDENTITY)
-	bmi.material_override = Props.toon()
+	bmi.material_override = LazyFx.g("Props").toon()
 	if PROF: print("PROFB kumas %.0f" % [(Time.get_ticks_usec() - _hq2) / 1000.0]); _hq2 = Time.get_ticks_usec()
 	var rv = MB.new()
 	var front = PI * 0.5
@@ -10430,7 +10430,7 @@ func _hitai(bone: String, cen: Vector3, rad: PackedFloat32Array, bc: Color, bh: 
 						ps.add_vertex(q2[i])
 		ps.generate_normals()
 		var pmi = _mesh_on(bone, MeshArr.commit(ps), Transform3D.IDENTITY)
-		pmi.material_override = Props.toon()
+		pmi.material_override = LazyFx.g("Props").toon()
 		# perçinler: dört köşe
 		for sa in [-1.0, 1.0]:
 			for sy in [-1.0, 1.0]:
@@ -10441,12 +10441,12 @@ func _hitai(bone: String, cen: Vector3, rad: PackedFloat32Array, bc: Color, bh: 
 	var kp = p_of.call(back, r_at.call(back) + 0.014, 0.0)
 	if tail_len > 0.0:
 		rv.add("sphere", kp, Vector3(0.026, 0.024, 0.016), cloth.darkened(0.08), Vector3.ZERO, 7)
-	_mesh_on(bone, rv.build(Props.toon()), Transform3D.IDENTITY)
+	_mesh_on(bone, rv.build(LazyFx.g("Props").toon()), Transform3D.IDENTITY)
 	if PROF: print("PROFB plaka %.0f" % [(Time.get_ticks_usec() - _hq2) / 1000.0]); _hq2 = Time.get_ticks_usec()
 	if plate and _band_kanji != "":   # Jiraiya: köy arması yerine 油
 		var kl = Label3D.new()
 		kl.text = _band_kanji
-		kl.font = KageAttire._font()
+		kl.font = LazyFx.g("KageAttire")._font()
 		kl.font_size = 64
 		kl.pixel_size = ph * 0.011
 		kl.modulate = Color(0.12, 0.12, 0.14)
@@ -10526,7 +10526,7 @@ func _skull_band(col: Color, y: float, h: float, pad: float, tilt := 0.0) -> Mes
 			st.add_vertex(o[idx])
 	st.generate_normals()
 	var bm = MeshArr.commit(st)
-	bm.surface_set_material(0, Props.toon())   # köşe rengi (varsayılan malzeme beyaz çiziyordu)
+	bm.surface_set_material(0, LazyFx.g("Props").toon())   # köşe rengi (varsayılan malzeme beyaz çiziyordu)
 	return _mesh_on("Head", bm, Transform3D.IDENTITY)
 
 
@@ -10930,7 +10930,7 @@ func _attachments() -> void:
 		else:
 			if band_ring.is_empty():
 				band.add("cyl", Vector3.ZERO, Vector3(0.2, 0.034, 0.21), bc, Vector3.ZERO, 22)
-				_mesh_on("Head", band.build(Props.toon()), Transform3D(Basis.IDENTITY, hc + Vector3(0, 0.025, 0)))
+				_mesh_on("Head", band.build(LazyFx.g("Props").toon()), Transform3D(Basis.IDENTITY, hc + Vector3(0, 0.025, 0)))
 			else:
 				_hitai_head(bc)
 	if PROF: print("PROFA band %.0f wear=%s style=%s anime=%s sk=%s" % [(Time.get_ticks_usec() - _pa) / 1000.0, str(look.get("band_wear")), str(look.get("band_style")), not _anime_hair_vs.is_empty(), _sk_key]); _pa = Time.get_ticks_usec()
@@ -10967,9 +10967,9 @@ func _attachments() -> void:
 			_:
 				for sx in [-1.0, 1.0]:
 					pack.call(0.08 * sx, -0.1, 2)
-		_mesh_on("UpperChest", v.build(Props.toon()), Transform3D(Basis.IDENTITY, ch))
+		_mesh_on("UpperChest", v.build(LazyFx.g("Props").toon()), Transform3D(Basis.IDENTITY, ch))
 		if not vlo.verts.is_empty():
-			_mesh_on("Chest", vlo.build(Props.toon()), Transform3D(Basis.IDENTITY, ch))
+			_mesh_on("Chest", vlo.build(LazyFx.g("Props").toon()), Transform3D(Basis.IDENTITY, ch))
 	if PROF: print("PROFA vest %.0f" % [(Time.get_ticks_usec() - _pa) / 1000.0]); _pa = Time.get_ticks_usec()
 	_outfit_extras()
 	# --- eldeki silahlar (ekipman: sağ el / sol el) ve kınları
@@ -11035,7 +11035,7 @@ const LEFT_BOW := {"ei_yumi": ["ei_yumi_yay", "back"], "yumi": ["yumi_yay", "bac
 static func sheath_kind(id: String) -> String:
 	if SHEATH_ID.has(id):
 		return SHEATH_ID[id]
-	var st = String(Gear.ITEMS.get(id, {}).get("weapon", {}).get("style", "blade"))
+	var st = String(LazyFx.g("Gear").ITEMS.get(id, {}).get("weapon", {}).get("style", "blade"))
 	return SHEATH_OF.get(st, "pouch")
 
 
@@ -11043,7 +11043,7 @@ static func sheath_kind(id: String) -> String:
 func hold_temp(id: String, dur: float, side := "Right", scl := 1.0, roll := 0.0, flip := false, procedural := false) -> Node3D:
 	if skel == null or skel.find_bone(side + "Hand") < 0:
 		return null
-	var node: Node3D = null if procedural else SFProps.weapon_node(id)
+	var node: Node3D = null if procedural else LazyFx.g("SFProps").weapon_node(id)
 	if node == null:
 		var mi = MeshInstance3D.new()
 		mi.mesh = weapon_mesh(id)
@@ -11143,7 +11143,7 @@ func _weapons() -> void:
 		if skel.find_bone(side + "Hand") < 0:
 			continue
 		var skin = String(look.get("weapon_skin_" + ("r" if side == "Right" else "l"), ""))   # kendi modeli olan özel silah (Hakkō Chakura Tō)
-		var node: Node3D = null if skin != "" else SFProps.weapon_node(id)  # hayran modeli varsa (yoksa prosedürel)
+		var node: Node3D = null if skin != "" else LazyFx.g("SFProps").weapon_node(id)  # hayran modeli varsa (yoksa prosedürel)
 		if node == null:
 			var mi = MeshInstance3D.new()
 			mi.mesh = weapon_mesh(skin if skin != "" else id)
@@ -11302,7 +11302,7 @@ static func _z_span(n: Node3D) -> Vector2:
 	if n is MeshInstance3D:
 		ab = (n as MeshInstance3D).mesh.get_aabb()
 	else:
-		ab = SFProps._bounds(n)
+		ab = LazyFx.g("SFProps")._bounds(n)
 	return Vector2(ab.position.z, ab.end.z)
 
 
@@ -11343,7 +11343,7 @@ func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Nod
 			# sırta yasla: silahın gövdeye bakan yüzü (silah uzayında en küçük x; holder +x sırttan dışarı) sırt yüzeyi + kayış kalınlığında
 			var bz = _back_z(ch.y - 0.06)
 			if bz < 0.0:
-				var wab: AABB = (node as MeshInstance3D).mesh.get_aabb() if node is MeshInstance3D else SFProps._bounds(node)
+				var wab: AABB = (node as MeshInstance3D).mesh.get_aabb() if node is MeshInstance3D else LazyFx.g("SFProps")._bounds(node)
 				var pad = 0.028 + (0.025 if look.get("vest") != null else 0.0) + (0.04 if look.get("outer_style") != null else 0.0)
 				var near_x = wab.position.x
 				if id == "samehada":
@@ -11420,7 +11420,7 @@ func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Nod
 			cm.add("box", Vector3(x1 + 0.006, (y0 + y1) * 0.5, zc), Vector3(0.008, 0.03, 0.03), Color(0.72, 0.66, 0.5))   # toka
 		var cmi = MeshInstance3D.new()
 		cmi.name = "SirtKelepce"
-		cmi.mesh = cm.build(Props.toon())
+		cmi.mesh = cm.build(LazyFx.g("Props").toon())
 		holder.add_child(cmi)
 	if id == "kusanagi":
 		# Kusanagi kını (ref kusanagi.png): ağız boyunca düz, süssüz simsiyah kın (iki ince oluk), sap dışarıda
@@ -11430,7 +11430,7 @@ func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Nod
 		for sy in [-1.0, 1.0]:
 			km.add("box", Vector3(0.0155, sy * 0.012, 0.615), Vector3(0.002, 0.004, 0.93), kl.lightened(0.12))
 		var kmi = MeshInstance3D.new()
-		kmi.mesh = km.build(Props.toon())
+		kmi.mesh = km.build(LazyFx.g("Props").toon())
 		holder.add_child(kmi)
 	if SAYA.has(id):
 		var s: Array = SAYA[id]
@@ -11447,7 +11447,7 @@ func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Nod
 			# sageo bağı (kına sarılı ip)
 			m.add("cyl", Vector3(0, 0, s[0] + ln * 0.14), Vector3(s[2] * 1.18, 0.03, s[3] * 1.16), Color(0.55, 0.1, 0.12), Vector3(90, 0, 0), 10)
 		var smi = MeshInstance3D.new()
-		smi.mesh = m.build(Props.toon())
+		smi.mesh = m.build(LazyFx.g("Props").toon())
 		holder.add_child(smi)
 	if id == "kusarigama" and kind == "belt":
 		# kınlı hali (eski el orağı): zincir kalçada halka halka sarılı, orak sapı aşağı sarkar, ağırlık halkanın altında (sert zincir gövdeden fırlamasın)
@@ -11465,7 +11465,7 @@ func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Nod
 		m2.add("box", Vector3(-0.045, bk * 0.035, 0.31), Vector3(0.01, 0.035, 0.17), steel, Vector3(bk * -12.0, 0, 0))
 		var coil = MeshInstance3D.new()
 		coil.name = "KusariStow"
-		coil.mesh = m2.build(Props.toon())
+		coil.mesh = m2.build(LazyFx.g("Props").toon())
 		coil.visible = false
 		holder.add_child(coil)
 	return holder
@@ -11619,7 +11619,7 @@ func _wind_air(dt: float) -> void:
 		var xf = n.global_transform
 		var ph = randf() * TAU
 		var r0 = randf_range(0.07, 0.11)
-		WindFX.streak(func(k: float) -> Vector3:
+		LazyFx.g("WindFX").streak(func(k: float) -> Vector3:
 			var a = ph + k * TAU * 1.6
 			var r = r0 * (1.0 - k * 0.6) + k * k * 0.25
 			return xf * Vector3(cos(a) * r, sin(a) * r, lerpf(-0.05, 0.85, k)), randf_range(0.35, 0.5), 0.022, Color(0.85, 1.0, 0.93, 0.75), 0.0, 10)
@@ -11656,7 +11656,7 @@ var _kch_id := "kusarigama"
 
 func _make_kchain(id := "kusarigama") -> void:
 	_kch_id = id
-	var mat = Props.toon_color({"johyo": Color(0.72, 0.62, 0.42), "kamci": Color(0.28, 0.17, 0.1)}.get(id, Color(0.12, 0.11, 0.15)), 0.35)
+	var mat = LazyFx.g("Props").toon_color({"johyo": Color(0.72, 0.62, 0.42), "kamci": Color(0.28, 0.17, 0.1)}.get(id, Color(0.12, 0.11, 0.15)), 0.35)
 	var tm: Mesh
 	if id in ["johyo", "kamci"]:   # Jōhyō ipi / kamçı: halka değil örgülü ip (kısa silindir parçaları)
 		var cm = CylinderMesh.new()
@@ -11688,7 +11688,7 @@ func _make_kchain(id := "kusarigama") -> void:
 		var kb = MB.new()
 		kb.add("sphere", Vector3(0, -0.01, 0), Vector3(0.022, 0.022, 0.022), Color(0.25, 0.15, 0.09), Vector3.ZERO, 6)
 		kb.add("cone", Vector3(0, -0.07, 0), Vector3(0.012, 0.1, 0.012), Color(0.62, 0.52, 0.38), Vector3(180, 0, 0), 5)
-		km2.mesh = kb.build(Props.toon())
+		km2.mesh = kb.build(LazyFx.g("Props").toon())
 		_kch_w.add_child(km2)
 	elif id == "sansetsukon":
 		# zincirin ucunda orta parça + ona kısa zincirle bağlı üçüncü parça (hafif kırık açıyla)
@@ -11698,14 +11698,14 @@ func _make_kchain(id := "kusarigama") -> void:
 		for k in 3:
 			sb3.add("torus", Vector3(0.01 * k, -0.64 - k * 0.02, 0), Vector3(0.01, 0.01, 0.01), Color(0.6, 0.6, 0.64), Vector3(0, 0, 90 * (k % 2)), 6)
 		_nunchaku_stick(sb3, Vector3(0.03, -0.69, 0), Vector3(0.12, -0.99, 0).normalized(), 0.6)
-		sm3.mesh = sb3.build(Props.toon())
+		sm3.mesh = sb3.build(LazyFx.g("Props").toon())
 		_kch_w.add_child(sm3)
 	elif id == "nunchaku":
 		# zincirin ucunda ikinci sopa: zincirden aşağı uzanır (savrulunca gecikip çarpar)
 		var sm = MeshInstance3D.new()
 		var sb = MB.new()
 		_nunchaku_stick(sb, Vector3(0, -0.02, 0), Vector3(0, -1, 0))
-		sm.mesh = sb.build(Props.toon())
+		sm.mesh = sb.build(LazyFx.g("Props").toon())
 		_kch_w.add_child(sm)
 	elif id == "johyo":
 		# ipin ucunda kırmızı püsküllü konik dart (ref Johyo__Johyo2.png)
@@ -11725,7 +11725,7 @@ func _make_kchain(id := "kusarigama") -> void:
 		b.add("frustum", Vector3(0, -0.045, 0), Vector3(0.1, 0.085, 0.1), dpur, Vector3(0, 45, 0), 4)   # çan: aşağı genişleyen dört yüzlü
 		b.add("box", Vector3(0, 0.0, 0), Vector3(0.04, 0.016, 0.04), dpur.lightened(0.1))
 		b.add("torus", Vector3(0, 0.018, 0), Vector3(0.022, 0.022, 0.022), dpur, Vector3(90, 0, 0), 8)
-		_kch_w.mesh = b.build(Props.toon())
+		_kch_w.mesh = b.build(LazyFx.g("Props").toon())
 	_kch_w.top_level = true
 	add_child(_kch_w)
 	if skel != null and skel.find_bone("LeftHand") >= 0:
@@ -11845,7 +11845,7 @@ func _update_kchain(dt: float) -> void:
 
 
 func _make_rope() -> void:
-	var mat = Props.toon_color(Color(0.5, 0.44, 0.38), 0.2)
+	var mat = LazyFx.g("Props").toon_color(Color(0.5, 0.44, 0.38), 0.2)
 	var cm = CylinderMesh.new()
 	cm.top_radius = 0.012
 	cm.bottom_radius = 0.012
@@ -11920,7 +11920,7 @@ static func _kusa_ext() -> MeshInstance3D:
 	mi.name = "KusaExt"
 	var b = MB.new()
 	b.add_slab(PackedVector2Array([Vector2(-0.016, 0.0), Vector2(0.017, 0.0), Vector2(0.017, 0.92), Vector2(-0.016, 1.0)]), 0.01, Color(0.88, 0.89, 0.9))
-	mi.mesh = b.build(Props.toon())
+	mi.mesh = b.build(LazyFx.g("Props").toon())
 	mi.position = Vector3(0, 0, 1.0)
 	mi.scale = Vector3(1, 1, 0.01)
 	mi.visible = false
@@ -12739,7 +12739,7 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			for k in 3:
 				b.add("box", Vector3((k - 1) * 0.012, 0.0, -0.05), Vector3(0.01, 0.006, 0.06), Color(0.82, 0.12, 0.12), Vector3((k - 1) * 18, 0, 0))
 		"shichiseiken":
-			KinginFX.build_shichiseiken(b)   # ref refs/kingin/The_Shichiseiken.png
+			LazyFx.g("KinginFX").build_shichiseiken(b)   # ref refs/kingin/The_Shichiseiken.png
 		"kokuto":
 			# Raidō'nun kara kılıcı (ref refs/kokuto/kokuto.png): mat kararmış, yansımasız düz ağız; koyu sap, küçük kara tsuba
 			_w_tsuka(b, -0.2, 0.05, 0.017, Color(0.1, 0.1, 0.11))
@@ -13061,14 +13061,14 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			_w_star(b, Vector3(0, 0, 0.3), 0.34, 0.17, 4, Color(0.5, 0.52, 0.56), dark)
 		"kubikiribocho":
 			var kb = MB.new()
-			MistSwords.build(id, kb)
+			LazyFx.g("MistSwords").build(id, kb)
 			b.add_mesh(kb, Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * 1.02), Vector3.ZERO))   # ağız ~1.9 m + sap (kullanıcı: büyüt)
 		"kiba":
 			var kb2 = MB.new()
-			MistSwords.build(id, kb2)
+			LazyFx.g("MistSwords").build(id, kb2)
 			b.add_mesh(kb2, Transform3D(Basis.IDENTITY, Vector3(0, 0, 0.11)))   # el sapın ortasında (tsuba yumruğun önünde)
 		"samehada", "samehada_acik", "hiramekarei", "hiramekarei_yari", "shibuki", "nuibari", "kabutowari", "kabutowari_cekic":
-			MistSwords.build(id, b)   # Sis'in Yedi Kılıcı: referansla modellendi
+			LazyFx.g("MistSwords").build(id, b)   # Sis'in Yedi Kılıcı: referansla modellendi
 		"nanato":
 			# Killer B'nin kılıcı (ref refs/bee_swords: Acrobat.PNG, Killer_B.png): ince düz gümüş ağız, sivri uç, siper yok;
 			# kırmızı sap üstünde siyah baklava sargı, ucunda kare altın başlık, ağız dibinde altın bilezik
@@ -13382,9 +13382,9 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			b.add("torus", Vector3(0, 0, p0 - 0.05), Vector3(0.11, 0.11, 0.11), polec, Vector3.ZERO, 14)
 		_:
 			b.add("box", Vector3(0, 0, 0.1), Vector3(0.02, 0.03, 0.2), steel)
-	var m = b.build(Props.toon())
+	var m = b.build(LazyFx.g("Props").toon())
 	if id == "shibuki":
-		MistSwords.shibuki_tags(m)   # mühür kâğıtlı rulo: dokulu ayrı yüzey
+		LazyFx.g("MistSwords").shibuki_tags(m)   # mühür kâğıtlı rulo: dokulu ayrı yüzey
 	if id == "ruzgar_bicak":
 		_wind_blade(m)   # rüzgar chakrasından bıçak: yarı saydam
 	_weapon_cache[id] = m
@@ -13721,7 +13721,7 @@ func _shk_rings(weapon: Node3D) -> void:
 	if _shk_ring_mesh == null:
 		var mb = MB.new()
 		_shk_ring_add(mb, Transform3D.IDENTITY, Color(0.86, 0.66, 0.2))
-		_shk_ring_mesh = mb.build(Props.toon())
+		_shk_ring_mesh = mb.build(LazyFx.g("Props").toon())
 	for pv in SHK_PIVOT:
 		var r = MeshInstance3D.new()
 		r.mesh = _shk_ring_mesh
@@ -13864,7 +13864,7 @@ func _key_blade_sk(sk: Skeleton3D, blade: Vector3) -> void:
 			if not w.has("key_basis0"):
 				w["key_basis0"] = n.transform.basis
 		if not w.has("trail") and is_inside_tree() and not w["id"] in ["ei_yumi", "igne_tufegi", "jidanda", "katoringu", "nunoboko", "flail", "kusari_fubo", "cift_tirpan", "nester", "hono_ken", "fujaku", "chakra_oltasi", "kurosawa", "kokuto", "yumi", "arbalet", "fukiya", "sapan", "kunai_hasshaki"]:   # Kokutō: yansımasız kara ağız — parlak iz yok (KokutoFX koyu gölge çizer)
-			var tr = SwordTrail.new()
+			var tr = LazyFx.g("SwordTrail").new()
 			tr.node = n
 			var kp0: Array = weapon_kp(String(w["id"]), n)
 			tr.z0 = kp0[1]
@@ -13971,7 +13971,7 @@ func _stance_for_look() -> String:
 		if wid != null and wid != "":
 			if STANCE_ID.has(String(wid)):
 				return STANCE_ID[String(wid)]
-			var w: Dictionary = Gear.ITEMS.get(String(wid), {}).get("weapon", {})
+			var w: Dictionary = LazyFx.g("Gear").ITEMS.get(String(wid), {}).get("weapon", {})
 			if not w.is_empty():
 				return STANCE_OF.get(w.get("style", ""), "")
 	return ""

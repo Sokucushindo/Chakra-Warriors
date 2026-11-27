@@ -32,7 +32,7 @@ static func model(b: MB) -> void:
 	var shade = Color(0.5, 0.5, 0.56)
 	var dark = Color(0.09, 0.09, 0.11)
 	var pts = [Vector3(0, 0, -0.13), Vector3(0, 0, -0.06), Vector3(0, 0, 0.05), Vector3(0, 0, 0.16), Vector3(0, 0, 0.23)]
-	Loft.tube(b, pts, [0.07, 0.115, 0.135, 0.12, 0.085], shade, 16, 3)
+	LazyFx.g("Loft").tube(b, pts, [0.07, 0.115, 0.135, 0.12, 0.085], shade, 16, 3)
 	var petal := PackedVector2Array([Vector2(-0.05, -0.1), Vector2(0.05, -0.1), Vector2(0.065, 0.06), Vector2(0.0, 0.17), Vector2(-0.065, 0.06)])
 	for k in 7:   # üst üste binen zırh plakaları + perçin
 		var a = k * TAU / 7.0
@@ -65,7 +65,7 @@ static func _link() -> Mesh:
 		b.add("cyl", Vector3.ZERO, Vector3(0.05, 0.046, 0.05), Color(0.08, 0.08, 0.1), Vector3.ZERO, 10)
 		for s in [-1.0, 1.0]:
 			b.add("cone", Vector3(s * 0.098, 0, 0), Vector3(0.03, 0.11, 0.02), Color(0.78, 0.78, 0.82), Vector3(0, 0, -s * 90.0), 5)
-		return b.build(Props.toon()))
+		return b.build(LazyFx.g("Props").toon()))
 
 
 ## Kolluk takılınca: kabuktan sarkan kısa zincir (ikincil hareket); bırakılınca kalkar

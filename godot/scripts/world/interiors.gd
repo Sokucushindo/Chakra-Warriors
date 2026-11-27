@@ -41,7 +41,7 @@ func _ready() -> void:
 	fade.set_anchors_preset(Control.PRESET_FULL_RECT)
 	fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cl.add_child(fade)
-	title_lbl = UI.label("", 34, Color(1, 0.92, 0.75), HORIZONTAL_ALIGNMENT_CENTER)
+	title_lbl = LazyFx.g("UI").label("", 34, Color(1, 0.92, 0.75), HORIZONTAL_ALIGNMENT_CENTER)
 	title_lbl.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	title_lbl.position = Vector2(-400, 150)
 	title_lbl.size = Vector2(800, 50)
@@ -343,7 +343,7 @@ func _spawn_npc(req: Dictionary) -> void:
 			vg.set_meta("kage_vid", req["extra"][k])
 	room.add_child(vg)
 	if req["extra"].has("kage_vid"):
-		KageAttire.hat(vg.model, req["extra"]["kage_vid"])
+		LazyFx.g("KageAttire").hat(vg.model, req["extra"]["kage_vid"])
 	vg.global_position = req["pos"]
 	vg.home = req["pos"]
 	vg.facing = deg_to_rad(180.0 + float(req["face"]))
@@ -670,7 +670,7 @@ func _build(kind: String, seed: int) -> void:
 		"lair_lab": _lair(true)
 		_: _home(false)
 	var mi = MeshInstance3D.new()
-	mi.mesh = mb.build(Props.toon())
+	mi.mesh = mb.build(LazyFx.g("Props").toon())
 	room.add_child(mi)
 	if not glow_mb.verts.is_empty():
 		var gm = MeshInstance3D.new()
@@ -916,7 +916,7 @@ func _kage_office(vid: String) -> void:
 	if player_is_kage:
 		person("keeper", 2.4, D - 2.2, -30.0, "Kıdemli Danışman", ["Masan seni bekliyor, %s-sama." % title, "Konsey raporları masanın sağında.", "Bugün üç diplomatik mektup geldi."])
 	else:
-		person("keeper", 0, D - 2.15, 0.0, kn, KAGE_LINES.get(vid, KAGE_LINES["konoha"]), {"look_extra": KageAttire.look(vid), "kage_vid": vid})
+		person("keeper", 0, D - 2.15, 0.0, kn, KAGE_LINES.get(vid, KAGE_LINES["konoha"]), {"look_extra": LazyFx.g("KageAttire").look(vid), "kage_vid": vid})
 	var masks = ["anbu_kedi", "anbu_kurt", "anbu_kus", "anbu_ayi"]
 	for sx in [-1.0, 1.0]:
 		var mk = masks[(absi(hash(vid)) + int(sx + 1.0)) % masks.size()]
@@ -969,7 +969,7 @@ func _summit() -> void:
 func _kj(text: String, p: Vector3, size: float, col: Color) -> void:
 	var l = Label3D.new()
 	l.text = text
-	l.font = KageAttire._font()
+	l.font = LazyFx.g("KageAttire")._font()
 	l.font_size = 96
 	l.pixel_size = size / 96.0
 	l.modulate = col
@@ -1043,7 +1043,7 @@ func _pharmacy() -> void:
 ## Gizli birlik karargâhı: loş taş salon, ortada harita masası (görev dosyaları, işaretli harita), duvarda maske rafı ve köyün kanjisi,
 ## silah dolabı, dosya rafları; maskeli muhafızlar ve birlik komutanı (konuşunca birliğin görev panosu / seçmeler)
 func _secret_hq(vid: String) -> void:
-	var u = SecretUnits.of(vid)
+	var u = LazyFx.g("SecretUnits").of(vid)
 	var W = 12.0; var D = 11.0; var H = 3.8
 	shell(W, D, H, Color(u["wall"]).lightened(0.15), Color(0.22, 0.2, 0.2), false)
 	var acc: Color = u["acc"]
@@ -1074,9 +1074,9 @@ func _secret_hq(vid: String) -> void:
 	var masks: Array = u["mask"]
 	for sx in [-1.0, 1.0]:
 		person("guard", sx * 3.2, 2.0, 0.0, "%s Muhafızı" % u["name"], ["...", "Kimliğimizi sorma.", "Burada konuşulan burada kalır."],
-			{"look_extra": SecretUnits.look(vid, 0 if sx < 0 else 1)})
+			{"look_extra": LazyFx.g("SecretUnits").look(vid, 0 if sx < 0 else 1)})
 	person("keeper", 0, D * 0.5 + 2.0, 180.0, "%s Komutanı" % u["name"], ["%s'nın görevleri kayıtlara geçmez." % u["name"], "Maskeni takmadan konuşma.", "Gölgede kal, köyü koru."],
-		{"look_extra": SecretUnits.look(vid, 2)})
+		{"look_extra": LazyFx.g("SecretUnits").look(vid, 2)})
 	act(0, D * 0.5 + 0.8, 2.2, "anbu", "[F] %s Komutanıyla konuş (görevler / seçmeler)" % u["name"])
 
 
@@ -1128,22 +1128,22 @@ func _chunin_hall() -> void:
 		var sh = L(side * 13.0, 9.0, D - 0.2)
 		var el = L(side * 9.0, 6.0, D - 7.0)
 		var wr = L(side * 2.6, 7.0, D - 9.5)
-		Loft.tube(mb, [sh, el, wr], [3.2, 2.9, 2.1], sleeve, 16, 4)
+		LazyFx.g("Loft").tube(mb, [sh, el, wr], [3.2, 2.9, 2.1], sleeve, 16, 4)
 		for q in 9:   # pullu kol: halka halka koyu bantlar
 			var t = q / 8.0
 			var pp = sh.lerp(el, t * 2.0) if t < 0.5 else el.lerp(wr, (t - 0.5) * 2.0)
 			var nx = (el - sh).normalized() if t < 0.5 else (wr - el).normalized()
 			var rr = lerpf(3.25, 2.15, t)
-			Loft.tube(mb, [pp - nx * 0.18, pp + nx * 0.18], [rr, rr], sleeve.darkened(0.25), 14, 1)
+			LazyFx.g("Loft").tube(mb, [pp - nx * 0.18, pp + nx * 0.18], [rr, rr], sleeve.darkened(0.25), 14, 1)
 	# eller: avuçlar birbirine kenetli, işaret + orta parmaklar yukarıda (Koç mührü)
 	var hc = L(0, 9.6, D - 10.0)
 	mb.add("box", hc, Vector3(5.6, 5.0, 3.0), skin)   # kenetli avuçlar (referans: insanın birkaç katı)
 	mb.add("box", hc + Vector3(0, -2.2, 0), Vector3(5.0, 1.6, 3.3), skin.darkened(0.08))   # kenetli alt parmaklar
 	for k in 2:
 		var fx = -0.8 + k * 1.6
-		Loft.tube(mb, [hc + Vector3(fx, 2.2, 0), hc + Vector3(fx, 6.0, 0.1), hc + Vector3(fx, 8.2, 0.2)], [0.85, 0.8, 0.62], skin, 10, 2)   # iki parmak yukarı
+		LazyFx.g("Loft").tube(mb, [hc + Vector3(fx, 2.2, 0), hc + Vector3(fx, 6.0, 0.1), hc + Vector3(fx, 8.2, 0.2)], [0.85, 0.8, 0.62], skin, 10, 2)   # iki parmak yukarı
 	for sx in [-1.0, 1.0]:
-		Loft.tube(mb, [hc + Vector3(sx * 2.6, 0.4, -1.1), hc + Vector3(sx * 1.8, 2.0, -1.6)], [0.75, 0.62], skin, 10, 1)   # başparmaklar
+		LazyFx.g("Loft").tube(mb, [hc + Vector3(sx * 2.6, 0.4, -1.1), hc + Vector3(sx * 1.8, 2.0, -1.6)], [0.75, 0.62], skin, 10, 1)   # başparmaklar
 	lamp(0, H - 1.0, D * 0.3, Color(0.95, 0.97, 1.0), 2.2, 26.0)
 	lamp(0, H - 1.0, D * 0.75, Color(0.95, 0.97, 1.0), 2.2, 26.0)
 	lamp(0, 6.0, D - 10.0, Color(1.0, 0.92, 0.8), 1.4, 14.0)
@@ -1354,7 +1354,7 @@ func _hospital() -> void:
 	person("nurse", 0.5, 7.0, 90.0, "Tıbbi Ninja", ["Chakra dolaşımın düzgün.", "Dinlenmen lazım."], {"wander_r": 3.0})
 	act(-3.5, 1.9, 2.2, "hospital", "[F] Hastane: iyileş (ücretsiz)")
 	act(0.5, 6.0, 1.8, "trainer", "[F] Tıbbi ninja: tıbbi jutsu öğren", {"kinds": ["hospital"], "title": "Tıbbi Ninja Eğitmeni"})
-	KinDrama.ward(self)   # yaralı yakının bu hastanede yatıyorsa yatağında
+	LazyFx.g("KinDrama").ward(self)   # yaralı yakının bu hastanede yatıyorsa yatağında
 
 
 func _home(player_home: bool) -> void:
@@ -1394,12 +1394,12 @@ func _home(player_home: bool) -> void:
 		# akademiye başlamamış çocukların evde yaşar (mezun olunca dost kaydına geçip köyde gezerler)
 		var ki = 0
 		for kid in Game.profile.get("children", []):
-			if kid.get("grad", false) or KidLife.stage(kid) == "bebek" or KidLife.at_school(kid):
+			if kid.get("grad", false) or LazyFx.g("KidLife").stage(kid) == "bebek" or LazyFx.g("KidLife").at_school(kid):
 				continue   # bebek beşikte; akademi öğrencisi gündüz okulda
 			var fem = String(kid.get("gender", "m")) == "f"
 			person("kid", -1.4 + ki * 1.1, 3.2 + (ki % 2) * 0.8, 0.0, String(kid["name"]),
 				["%s! Bugün ne yaptın? Bana da shuriken atmayı öğret!" % ("Anne" if String(Game.profile.get("gender", "m")) == "f" else "Baba"),
-				"Büyüyünce senin gibi ninja olacağım!", "Akademiye ne zaman başlayacağım?" if not fem else "Saçımı senin gibi yapar mısın?"], {"wander_r": 1.2, "look_extra": KidLife.look(kid, "child")})
+				"Büyüyünce senin gibi ninja olacağım!", "Akademiye ne zaman başlayacağım?" if not fem else "Saçımı senin gibi yapar mısın?"], {"wander_r": 1.2, "look_extra": LazyFx.g("KidLife").look(kid, "child")})
 			ki += 1
 	else:
 		var fam = rng.randi_range(1, 3)

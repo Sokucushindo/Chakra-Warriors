@@ -130,7 +130,7 @@ static func _make(rng: RandomNumberGenerator, i: int) -> Dictionary:
 	var shop = arch == 3 or (arch != 2 and rng.randf() < 0.3)
 	var drng = RandomNumberGenerator.new()  # ayrı tohum: şablonların geri kalanı değişmesin
 	drng.seed = 9000 + i
-	DoorKit.jp_template(det, -d * 0.5, 0.5, shop, drng)
+	LazyFx.g("DoorKit").jp_template(det, -d * 0.5, 0.5, shop, drng)
 	var nc = [Color(0.15, 0.25, 0.55), Color(0.75, 0.15, 0.12), Color(0.2, 0.35, 0.25), Color(0.5, 0.2, 0.45), Color(0.85, 0.55, 0.15)][rng.randi() % 5]
 	if shop:
 		var span = w * 0.8 if arch == 3 else 2.2
@@ -313,7 +313,7 @@ static func _make_round(rng: RandomNumberGenerator, i: int, dome: bool) -> Dicti
 	# giriş: ön (-z) kapı + saçak
 	var drng = RandomNumberGenerator.new()
 	drng.seed = 9000 + i
-	DoorKit.jp_template(det, -r, 0.5, rng.randf() < 0.3, drng)
+	LazyFx.g("DoorKit").jp_template(det, -r, 0.5, rng.randf() < 0.3, drng)
 	det.add("box", Vector3(0, 0.5 + 3.05, -r - 0.8), Vector3(4.0, 0.12, 1.8), Color(0.3, 0.26, 0.24), Vector3(-14, 0, 0))
 	var roof_top: float
 	var rcm = MB.new()
@@ -502,7 +502,7 @@ class Placer:
 
 	func add(pos: Vector3, yaw: float, wall_col: Color, roof_col: Color, rng: RandomNumberGenerator, scale := 1.0, max_w := 1e9, max_d := 1e9) -> Dictionary:
 		if force_ti < 0 and pack_chance > 0.0 and rng.randf() < pack_chance:
-			var hs: Array = AssetLib.town_houses()
+			var hs: Array = LazyFx.g("AssetLib").town_houses()
 			if not hs.is_empty():
 				var e: Array = hs[rng.randi() % hs.size()]
 				var sz: Vector3 = e[1]
@@ -604,7 +604,7 @@ class Placer:
 					cells2[c2] = []
 				cells2[c2].append(x)
 			# yakın: tam model, orta: %12, uzak: %3 (hazır evler çok detaylı)
-			var lv = [[pm, 0.0, 110.0], [AssetLib.lod(pm, 0.12), 110.0, 450.0], [AssetLib.lod(pm, 0.03), 450.0, 1500.0]]
+			var lv = [[pm, 0.0, 110.0], [LazyFx.g("AssetLib").lod(pm, 0.12), 110.0, 450.0], [LazyFx.g("AssetLib").lod(pm, 0.03), 450.0, 1500.0]]
 			for c2 in cells2:
 				var arr: Array = cells2[c2]
 				for l in lv:
@@ -661,7 +661,7 @@ class Placer:
 					var mmi = MultiMeshInstance3D.new()
 					mmi.layers = 2
 					mmi.multimesh = mm
-					mmi.material_override = Props.roof_toon() if pair[1] == "roof" else Props.toon()
+					mmi.material_override = LazyFx.g("Props").roof_toon() if pair[1] == "roof" else LazyFx.g("Props").toon()
 					if det:   # pencere/balkon/tabela: ev başına ~5 bin üçgen (duvar+çatı ~200); uzakta seçilmez
 						mmi.visibility_range_end = DET_VIEW * vm
 						mmi.visibility_range_end_margin = 40.0
@@ -678,7 +678,7 @@ class Placer:
 				var mi = MeshInstance3D.new()
 				mi.layers = 2
 				mi.mesh = HouseKit._merge(arr, part)
-				mi.material_override = Props.roof_toon() if part == "roof" else Props.toon()
+				mi.material_override = LazyFx.g("Props").roof_toon() if part == "roof" else LazyFx.g("Props").toon()
 				mi.visibility_range_begin = SHELL_NEAR * vm
 				mi.visibility_range_begin_margin = 20.0
 				mi.visibility_range_end = view * vm

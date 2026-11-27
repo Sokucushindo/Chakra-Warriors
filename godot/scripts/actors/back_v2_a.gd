@@ -238,8 +238,8 @@ static func _loft(mb: MB, pts: Array, rad: Array, col, seg := 8, sub := 1, caps 
 	for i in n - 1:
 		for k in sub:
 			var t = float(k) / sub
-			P.append(Loft._cr(pts[maxi(0, i - 1)], pts[i], pts[i + 1], pts[mini(n - 1, i + 2)], t))
-			var q: Vector2 = Loft._cr(R0[maxi(0, i - 1)], R0[i], R0[i + 1], R0[mini(n - 1, i + 2)], t)
+			P.append(LazyFx.g("Loft")._cr(pts[maxi(0, i - 1)], pts[i], pts[i + 1], pts[mini(n - 1, i + 2)], t))
+			var q: Vector2 = LazyFx.g("Loft")._cr(R0[maxi(0, i - 1)], R0[i], R0[i + 1], R0[mini(n - 1, i + 2)], t)
 			RR.append(Vector2(maxf(q.x, 0.0005), maxf(q.y, 0.0005)))
 			CC.append((C0[i] as Color).lerp(C0[i + 1], t))
 	P.append(pts[n - 1])

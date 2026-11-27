@@ -299,7 +299,7 @@ func garden(c: Vector3, n: int) -> Dictionary:
 			bb.add("box", Vector3(0, bh * 0.5 + 0.06, 0), Vector3(bw, bh, 0.035), Color.WHITE)
 			bb.add("prism", Vector3(0, bh + 0.06 + 0.06, 0), Vector3(bw, 0.12, 0.035), Color.WHITE)
 			var done: bool = not sl[2]
-			var mm = Props.toon_color(paint_col.darkened(0.04 * (j % 2)) if done else raw.darkened(0.06 * j), 0.15)
+			var mm = LazyFx.g("Props").toon_color(paint_col.darkened(0.04 * (j % 2)) if done else raw.darkened(0.06 * j), 0.15)
 			var mi = _part(panel, bb, Vector3((j - 1) * W / 3.0, 0, 0), mm)
 			boards.append(mi)
 		if sl[2]:
@@ -1923,7 +1923,7 @@ func cart_begin(npc: Node3D) -> void:
 		cart_d["trail"] = [npc.global_position + bk * 8.0, npc.global_position + bk * 4.0, npc.global_position]
 		_cart_place(0.0, true)
 		return
-	var od: Dictionary = TownAnimals.ox()
+	var od: Dictionary = LazyFx.g("TownAnimals").ox()
 	var ox: Node3D = od["root"]
 	get_tree().current_scene.add_child(ox)
 	var cart = MeshInstance3D.new()
@@ -2031,7 +2031,7 @@ func cower(npc: Node3D, on: bool) -> void:
 func dog_begin(prints: Array) -> void:
 	var rng = RandomNumberGenerator.new()
 	rng.randomize()
-	var od: Dictionary = TownAnimals.dog(rng)
+	var od: Dictionary = LazyFx.g("TownAnimals").dog(rng)
 	var dog: Node3D = od["root"]
 	get_tree().current_scene.add_child(dog)
 	_own(dog)
@@ -5321,7 +5321,7 @@ func _decoy_tick(_dt: float) -> void:
 # ====================================================================== kaçak işleri (3): mal okutma + iz silme
 ## Barakanın önüne okutulacak malın örneğini çıkar (omuzlanır, takasçıya götürülür)
 func haul_begin(label: String) -> void:
-	var h = RogueHut.d()
+	var h = LazyFx.g("RogueHut").d()
 	if h.is_empty():
 		return
 	var pos = Missions._w(h["at"]) + Vector3(2.7, 0, 0.9)
@@ -5331,7 +5331,7 @@ func haul_begin(label: String) -> void:
 	ch.global_position = pos
 	ch.rotation.y = 0.5
 	var b = MB.new()
-	RogueHut.chest_mesh(b, Vector3.ZERO)
+	LazyFx.g("RogueHut").chest_mesh(b, Vector3.ZERO)
 	_part(ch, b)
 	_own(ch, true)
 	_jitem("loot", label, pos, ch, {"count": true}, 2.8)
@@ -5366,8 +5366,8 @@ func fence_deal(npc: Node3D) -> void:
 		_clear_pose(npc)
 		_release_player()
 		busy_run = false
-	var l = RogueHut.loot()
-	var total = int(l.get("chest", 0)) * RogueJobs.CHEST_RYO + int(l.get("sack", 0)) * RogueJobs.SACK_RYO
+	var l = LazyFx.g("RogueHut").loot()
+	var total = int(l.get("chest", 0)) * LazyFx.g("RogueJobs").CHEST_RYO + int(l.get("sack", 0)) * LazyFx.g("RogueJobs").SACK_RYO
 	Hud.msg("Takasçı %d sandık ve %d çuval için %d Ryō saydı. Adamları gece malı barakadan alacak." % [int(l.get("chest", 0)), int(l.get("sack", 0)), total], Color(1, 0.9, 0.5), 7.0)
 	l["chest"] = 0
 	l["sack"] = 0

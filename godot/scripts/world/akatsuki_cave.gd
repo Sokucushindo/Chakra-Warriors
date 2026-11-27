@@ -91,10 +91,10 @@ static func _exterior(at: Vector3) -> void:
 	b.crag(Vector3(0, g.call(0.0, 30.0) + 16.0, 30.0), 56.0, 46.0, EXT_ROCK.darkened(0.08), 3, true, 40.0)   # ağzın üstündeki alın
 	# ağız: düzensiz taş kemer + içini dolduran dev yuvarlak kaya
 	var g0: float = g.call(0.0, 4.0)
-	PathLairs.rock_arch(b, 0.0, g0, 5.0, 27.0, 14.5, EXT_ROCK.darkened(0.12))
+	LazyFx.g("PathLairs").rock_arch(b, 0.0, g0, 5.0, 27.0, 14.5, EXT_ROCK.darkened(0.12))
 	b.boulder(Vector3(0, g0 + 9.0, 9.0), Vector3(24.0, 22.0, 13.0), EXT_ROCK.lightened(0.05), 5, true, 0.0)
 	_tag(b, Vector3(0, g0 + 9.5, 2.2), 1.0)
-	PathLairs.shimenawa(b, Vector3(-11.5, g0 + 16.5, 3.0), Vector3(11.5, g0 + 16.5, 3.0), 2.4)
+	LazyFx.g("PathLairs").shimenawa(b, Vector3(-11.5, g0 + 16.5, 3.0), Vector3(11.5, g0 + 16.5, 3.0), 2.4)
 	# kızıl torii
 	var gt: float = g.call(0.0, -20.0)
 	for s in [-1.0, 1.0]:
@@ -169,7 +169,7 @@ static func _spawn_copy(tag_at: Vector3, k: int) -> Enemy:
 	a["respawn"] = false
 	a["name"] = "%s (Kekkai kopyası)" % String(pr.get("name", ""))
 	a["element"] = String((pr.get("elements", ["katon"]) as Array)[0])
-	Stats.npc_ninja(a, lv)
+	LazyFx.g("Stats").npc_ninja(a, lv)
 	a["xp"] = 0
 	a["ryo"] = 0
 	a["aggr"] = 1.0
@@ -246,7 +246,7 @@ static func _shade(parent: Node3D, at: Vector3, face: Vector3, idx: int, lead: b
 	n.global_position = at
 	n.rotation.y = atan2(face.x, face.z)
 	var mb = MB.new()
-	Loft.tube(mb, [Vector3(0, 0, 0), Vector3(0, 0.75, 0), Vector3(0, 1.38, 0), Vector3(0, 1.56, 0), Vector3(0, 1.66, 0)],
+	LazyFx.g("Loft").tube(mb, [Vector3(0, 0, 0), Vector3(0, 0.75, 0), Vector3(0, 1.38, 0), Vector3(0, 1.56, 0), Vector3(0, 1.66, 0)],
 		[Vector2(0.44, 0.34), Vector2(0.38, 0.3), Vector2(0.3, 0.24), Vector2(0.27, 0.23), Vector2(0.29, 0.25)], Color(1, 1, 1), 10, 3, true, false)
 	mb.add("sphere", Vector3(0, 1.7, 0), Vector3(0.3, 0.33, 0.31), Color(1, 1, 1), Vector3.ZERO, 8)
 	var r = RandomNumberGenerator.new()
@@ -255,9 +255,9 @@ static func _shade(parent: Node3D, at: Vector3, face: Vector3, idx: int, lead: b
 	for k in spikes:
 		var a = TAU * k / maxf(1.0, spikes) + r.randf() * 0.4
 		var d = Vector3(cos(a) * 0.8, 0.75 + r.randf() * 0.5, sin(a) * 0.8).normalized()
-		Loft.tube(mb, [Vector3(0, 1.74, 0) + d * 0.08, Vector3(0, 1.74, 0) + d * (0.3 + r.randf() * 0.14)], [0.085, 0.01], Color(1, 1, 1), 5, 1, false, true)
+		LazyFx.g("Loft").tube(mb, [Vector3(0, 1.74, 0) + d * 0.08, Vector3(0, 1.74, 0) + d * (0.3 + r.randf() * 0.14)], [0.085, 0.01], Color(1, 1, 1), 5, 1, false, true)
 	if spikes < 3:
-		Loft.tube(mb, [Vector3(0, 1.84, 0.02), Vector3(0, 1.5, -0.17), Vector3(0, 1.0 + r.randf() * 0.3, -0.2)], [Vector2(0.17, 0.1), Vector2(0.16, 0.06), Vector2(0.05, 0.03)], Color(1, 1, 1), 6, 2, true, true)
+		LazyFx.g("Loft").tube(mb, [Vector3(0, 1.84, 0.02), Vector3(0, 1.5, -0.17), Vector3(0, 1.0 + r.randf() * 0.3, -0.2)], [Vector2(0.17, 0.1), Vector2(0.16, 0.06), Vector2(0.05, 0.03)], Color(1, 1, 1), 6, 2, true, true)
 	var mi = MeshInstance3D.new()
 	mi.mesh = mb.build(null)
 	var m = _mat(Color(0.035, 0.03, 0.06), 0.9)
@@ -470,15 +470,15 @@ static func seal_fx(I: Interiors) -> void:
 			pts.append(c + side * spread + Vector3(sin(t * 13.0 + k * 1.3) * wob, cos(t * 11.0 + k * 2.1) * wob, 0))
 			rad.append(lerpf(0.55, 1.15, sin(t * PI)) * (1.0 if i < 29 else 0.6))
 			cols.append(Color(0.05, 0.22, 0.85).lerp(Color(0.35, 0.7, 1.0), 0.5 + 0.5 * sin(i * 1.9 + k)))   # açık-koyu chakra dalgaları
-		Loft.tube(mb, pts, rad, cols, 8, 2, true, true)
+		LazyFx.g("Loft").tube(mb, pts, rad, cols, 8, 2, true, true)
 		# ejder başı: uzun çene + iki boynuz (uç tutsağa bakar)
 		var hd: Vector3 = (pts[30] - pts[28]).normalized()
 		var hp: Vector3 = pts[30]
-		Loft.tube(mb, [hp - hd * 0.5, hp + hd * 1.6, hp + hd * 4.2], [Vector2(2.5, 2.0), Vector2(2.2, 1.5), Vector2(0.7, 0.5)], Color(0.1, 0.32, 0.95), 8, 2, true, true)
+		LazyFx.g("Loft").tube(mb, [hp - hd * 0.5, hp + hd * 1.6, hp + hd * 4.2], [Vector2(2.5, 2.0), Vector2(2.2, 1.5), Vector2(0.7, 0.5)], Color(0.1, 0.32, 0.95), 8, 2, true, true)
 		var upv = (Vector3.UP - hd * hd.y).normalized()
 		for s in [-1.0, 1.0]:
 			var sv = hd.cross(Vector3.UP).normalized() * s
-			Loft.tube(mb, [hp + upv * 1.3 + sv * 1.0, hp - hd * 3.2 + upv * 3.6 + sv * 1.7], [0.5, 0.05], Color(0.1, 0.32, 0.95), 5, 1, false, true)
+			LazyFx.g("Loft").tube(mb, [hp + upv * 1.3 + sv * 1.0, hp - hd * 3.2 + upv * 3.6 + sv * 1.7], [0.5, 0.05], Color(0.1, 0.32, 0.95), 5, 1, false, true)
 			lite.add("sphere", hp + hd * 2.0 + upv * 1.0 + sv * 1.15, Vector3(0.7, 0.42, 0.7), Color(0.92, 0.98, 1.0), Vector3.ZERO, 6)
 	lite.add("sphere", to, Vector3(7.0, 5.0, 7.0), Color(0.85, 0.95, 1.0), Vector3.ZERO, 12)
 	var mi = MeshInstance3D.new()

@@ -126,15 +126,15 @@ static func archetype(kind: String, i := 0) -> Dictionary:
 			var bid: String = ["shukaku", "matatabi", "isobu", "son_goku", "kokuo", "saiken", "chomei", "gyuki"][i % 8]
 			L.merge({"top": Color(0.22, 0.2, 0.24), "top2": Color(0.15, 0.14, 0.17), "pants": Color(0.18, 0.18, 0.2), "band": Color(0.2, 0.2, 0.25),
 				"band_style": "slashed", "hair_style": ["uzun", "dağınık", "diken"][i % 3]}, true)
-			base.merge({"hp": 900.0, "level": 40, "power": 3.0, "element": BeastModels.INFO[bid]["element"], "aggr": 0.8, "xp": 900, "ryo": 400,
-				"name": "Jinchūriki — %s" % String(BeastModels.INFO[bid]["name"]).split(" — ")[0], "guard": 0.4, "sub": 0.25, "beast": bid}, true)
+			base.merge({"hp": 900.0, "level": 40, "power": 3.0, "element": LazyFx.g("BeastModels").INFO[bid]["element"], "aggr": 0.8, "xp": 900, "ryo": 400,
+				"name": "Jinchūriki — %s" % String(LazyFx.g("BeastModels").INFO[bid]["name"]).split(" — ")[0], "guard": 0.4, "sub": 0.25, "beast": bid}, true)
 	# kıyafet seti: her arketip kendi havuzundan (haydut, kaçak, köy chūnin/jōnin, samuray...) rastgele giyinir
 	var oarch: String = {"bandit": "bandit", "rogue": "rogue", "oto": "chunin", "kumo": "chunin", "kiri": "chunin", "iwa": "chunin", "suna": "chunin",
 		"samurai": "samurai", "genin_rival": "genin", "jinchuriki": "rogue"}.get(kind, "")
 	if oarch == "chunin" and randf() < 0.3:
 		oarch = "jonin"
 	if oarch != "":
-		L.merge(Outfits.roll(oarch, String(L.get("village", "konoha"))), true)
+		L.merge(LazyFx.g("Outfits").roll(oarch, String(L.get("village", "konoha"))), true)
 	L["npc"] = true
 	L["npc_strict"] = true   # rastgele düşman: o yüz için hesaplanmamış saç tutamı yakın zamanda hesaplandıysa hazır bir saç seçilir (140+ ms donma olmasın)
 	base["look"] = L
@@ -199,7 +199,7 @@ static func toughen(a: Dictionary, n: int, rank := "C") -> void:
 	a["xp"] = int(float(a.get("xp", 20)) * (1.0 + 0.8 * k))
 	a["ryo"] = int(float(a.get("ryo", 10)) * (1.0 + 0.8 * k))
 	if n >= 3 and String(a.get("kind", "")) != "bandit":
-		BossStyles.dress(a, rank, randi(), "")
+		LazyFx.g("BossStyles").dress(a, rank, randi(), "")
 
 
 ## Tip başına en yüksek jutsu rütbesi (E0 D1 C2 B3 A4 S5); seviye de ayrıca sınırlar
@@ -279,8 +279,8 @@ func _break_cast() -> void:
 func jutsu_cost(id: String) -> float:
 	if Game.has_meta("sandbox"):   # deneme alanında oyuncuya bedava: düşmana da (AI eşitliği)
 		return 0.0
-	var fk = float(Gear.weapon_of(self).get("fuuton_cost", 1.0)) if "fuuton" in Data.jutsu.get(id, {}).get("elements", []) else 1.0
-	return float(Data.jutsu.get(id, {}).get("cost", 0)) * Stats.JUTSU_COST_K * fk
+	var fk = float(LazyFx.g("Gear").weapon_of(self).get("fuuton_cost", 1.0)) if "fuuton" in Data.jutsu.get(id, {}).get("elements", []) else 1.0
+	return float(Data.jutsu.get(id, {}).get("cost", 0)) * LazyFx.g("Stats").JUTSU_COST_K * fk
 
 
 func setup(a: Dictionary) -> void:
@@ -294,7 +294,7 @@ func setup(a: Dictionary) -> void:
 	max_hp = a["hp"]; hp = max_hp
 	power = a["power"]; element = a["element"]
 	level = a["level"]; xp = a["xp"]; ryo = a["ryo"]
-	max_chakra = 80.0 + Stats.npc_chakra_mastery(level) * 7.0   # oyuncuyla aynı formül: 80 + chakra ustalığı x7
+	max_chakra = 80.0 + LazyFx.g("Stats").npc_chakra_mastery(level) * 7.0   # oyuncuyla aynı formül: 80 + chakra ustalığı x7
 	chakra = max_chakra
 	# NPC "yetenek ağacı": oyuncunun seviyeyle aldığı yetenek puanlarının karşılığı (can + güç) düşman ninjalara da
 	if k in CLAN_KINDS or k in ["samurai", "jinchuriki", "bandit"]:
@@ -404,7 +404,7 @@ func _ready() -> void:
 	facing = randf() * TAU
 	wander_to = home
 	if arch.has("beast"):
-		FX.aura(self, BeastModels.INFO[arch["beast"]]["chakra"], 1.2, Vector3(0, 0.9, 0), 0.0)   # sönmeyen canavar chakrası
+		FX.aura(self, LazyFx.g("BeastModels").INFO[arch["beast"]]["chakra"], 1.2, Vector3(0, 0.9, 0), 0.0)   # sönmeyen canavar chakrası
 	if skill > 0.35:
 		Jutsu.jutsu_prep.connect(_on_someone_prep)
 	if arch.get("clan_auto", false) and not has_node("ClanTrait"):
@@ -556,7 +556,7 @@ func _physics_process(dt: float) -> void:
 				nameplate.visible = false
 		return
 	if not has_meta("shoten_copy"):   # Shōten kopyası: aktarılan pay yenilenmez, bitince teknik çözülür
-		chakra = minf(max_chakra, chakra + 1.5 * (1.0 + Stats.npc_chakra_mastery(level) * 0.02) * dt)   # oyuncuyla aynı yenilenme (ustalık x0.02)
+		chakra = minf(max_chakra, chakra + 1.5 * (1.0 + LazyFx.g("Stats").npc_chakra_mastery(level) * 0.02) * dt)   # oyuncuyla aynı yenilenme (ustalık x0.02)
 	_stam_rest += dt
 	stamina = minf(100.0, stamina + (3.0 if _stam_rest < 2.0 else 7.0) * dt)
 	var pl = Game.player
@@ -584,7 +584,7 @@ func _physics_process(dt: float) -> void:
 		"charge":
 			# chakra toplama (AI eşitliği: oyuncunun [C] ile yaptığı): mühürde durur, oyuncuyla aynı hız formülü; darbe yerse ya da rakip dibine girerse keser
 			step_move(Vector3.ZERO, dt, false)
-			chakra = minf(max_chakra, chakra + 32.0 * (1.0 + Stats.npc_chakra_mastery(level) * 0.03) * dt)
+			chakra = minf(max_chakra, chakra + 32.0 * (1.0 + LazyFx.g("Stats").npc_chakra_mastery(level) * 0.03) * dt)
 			var near = target != null and is_instance_valid(target) and target.global_position.distance_to(global_position) < 2.6
 			if state_t > 3.0 or chakra >= max_chakra * 0.7 or near or has_status("sealed"):
 				_charge_end()
@@ -619,13 +619,13 @@ func _physics_process(dt: float) -> void:
 	_update_drawn(dt)
 	OMORI.npc_tick(self)
 	if arch.has("style"):
-		BossStyles.tick(self, dt)
-	if EnemyArts.wants(self):
-		EnemyArts.tick(self, dt)
-	if KageArts.wants(self):
-		KageArts.tick(self, dt)
+		LazyFx.g("BossStyles").tick(self, dt)
+	if LazyFx.g("EnemyArts").wants(self):
+		LazyFx.g("EnemyArts").tick(self, dt)
+	if LazyFx.g("KageArts").wants(self):
+		LazyFx.g("KageArts").tick(self, dt)
 	if arch.has("mist_sword"):
-		Swordsmen.tick(self, dt)
+		LazyFx.g("Swordsmen").tick(self, dt)
 	_footsteps(dt)
 	if not key_step.is_empty() and state != "attack":
 		key_step = {}
@@ -728,7 +728,7 @@ func _physics_process(dt: float) -> void:
 func _think(dt: float) -> void:
 	# jinchūriki: dövüşte can azaldıkça pelerin aşamaları ve tam dönüşüm (oyuncuyla aynı kurallar — EnemyJin)
 	if arch.has("beast") and ((target != null and is_instance_valid(target)) or hp < max_hp * 0.999):
-		EnemyJin.tick(self)
+		LazyFx.g("EnemyJin").tick(self)
 		if not visible:
 			return
 	think_t -= dt
@@ -766,7 +766,7 @@ func _think(dt: float) -> void:
 			if f == pl and Buffs.has("henge"):
 				continue
 			if f == pl:
-				d /= maxf(0.35, 1.0 - Stats.skill(Game.profile, "stealth"))  # gizlilik: daha yakından fark edilir
+				d /= maxf(0.35, 1.0 - LazyFx.g("Stats").skill(Game.profile, "stealth"))  # gizlilik: daha yakından fark edilir
 			if d < best:
 				best = d
 				target = f
@@ -849,7 +849,7 @@ func _chase(dt: float) -> void:
 		return
 	# chakrası biten jutsucu: araya mesafe koyup chakra toplar (oyuncuyla aynı kural); dibindeyse önce geri sıçrar
 	if chg_cd <= 0.0 and _is_ninja() and not has_status("sealed"):
-		var costs = (arch.get("jutsu", []) as Array).filter(func(id): return Data.jutsu.has(id) and not Stats.is_taijutsu(Data.jutsu[id])).map(func(id): return jutsu_cost(id))
+		var costs = (arch.get("jutsu", []) as Array).filter(func(id): return Data.jutsu.has(id) and not LazyFx.g("Stats").is_taijutsu(Data.jutsu[id])).map(func(id): return jutsu_cost(id))
 		# kanon: chakrası azalan ninja dövüşün ortasında durup yoğurmaz, taijutsu / aletle sürdürür; toplamayı ancak rakip
 		# uzaktayken (14 m+) ya da yakalanmışken (yerde, sersem, kendi tekniğinde) yapar. Ölçüm (2026-11-16): eskiden rakip
 		# 4 m ötedeyken bile toplayıp dövüşün %16-23'ünü duruyordu.
@@ -868,7 +868,7 @@ func _chase(dt: float) -> void:
 		var nowj = Game.now()
 		var ready = jl.filter(func(id): return nowj >= float(jcd.get(id, 0.0)))
 		ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("need", "")) != "juin2" or buffs.has("juin2"))   # oyuncuyla aynı şart
-		ready = ready.filter(func(id): return PathJutsu.gate_ok(self, String(id)) and CanonRules.block(self, String(id)) == "")   # kapı, Hiraishin işareti, Kirin fırtınası   # Sekiz Kapı: oyuncuyla aynı kapı şartı
+		ready = ready.filter(func(id): return LazyFx.g("PathJutsu").gate_ok(self, String(id)) and LazyFx.g("CanonRules").block(self, String(id)) == "")   # kapı, Hiraishin işareti, Kirin fırtınası   # Sekiz Kapı: oyuncuyla aynı kapı şartı
 		ready = ready.filter(func(id):   # kuyruklu canavar teknikleri: yalnız jinchūriki düşman (oyuncuyla aynı kanon şartı)
 			var nd = String(Data.jutsu.get(id, {}).get("need", ""))
 			if nd == "jin:any" or nd == "beast":
@@ -892,16 +892,16 @@ func _chase(dt: float) -> void:
 		ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("need", "")) != "senju_dna" or String(arch.get("clan", "")) == "senju" or bool(get_meta("senju_cells", false)))   # Hashirama hücresi: oyuncuyla aynı şart
 		ready = ready.filter(func(id): return (String(Data.jutsu.get(id, {}).get("need", "")) != "senninka" or buffs.has("jugo_senninka") or buffs.has("jugo_senninka2")) and (String(Data.jutsu.get(id, {}).get("need", "")) != "senninka2" or buffs.has("jugo_senninka2")))   # Jūgo: oyuncuyla aynı şart
 		ready = ready.filter(func(id): return (String(Data.jutsu.get(id, {}).get("need", "")) != "sototoro" or buffs.has("sototoro") or buffs.has("santoro")) and (String(Data.jutsu.get(id, {}).get("need", "")) != "santoro" or buffs.has("santoro")))   # Inuzuka: kurt biçimi şartı   # Raikage nintaijutsusu: önce Raiton Chakra Modu
-		ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("need", "")) != "islak_zemin" or (target != null and is_instance_valid(target) and ClanMech.prepared_ground(target.global_position)))   # Jubaku Eisō: oyuncuyla aynı hazırlık şartı
+		ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("need", "")) != "islak_zemin" or (target != null and is_instance_valid(target) and LazyFx.g("ClanMech").prepared_ground(target.global_position)))   # Jubaku Eisō: oyuncuyla aynı hazırlık şartı
 		if Game.now() < float(get_meta("fuin_until", 0.0)):   # Fūin Fuda: oyuncuyla aynı Kuchiyose kilidi
 			ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("category", "")) != "summoning" and not String(id).begins_with("kuchiyose"))
 		if has_status("sealed"):   # tenketsu kapalı: chakra yoğrulamaz, yalnız taijutsu (oyuncuyla aynı kural)
 			ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("category", "")) == "taijutsu")
-		ready = ready.filter(func(id): return (stamina >= Stats.tai_stamina_cost(Data.jutsu.get(id, {}))) if Stats.is_taijutsu(Data.jutsu.get(id, {})) else chakra >= jutsu_cost(id))   # chakrası/staminası yetmeyen teknik atılmaz
+		ready = ready.filter(func(id): return (stamina >= LazyFx.g("Stats").tai_stamina_cost(Data.jutsu.get(id, {}))) if LazyFx.g("Stats").is_taijutsu(Data.jutsu.get(id, {})) else chakra >= jutsu_cost(id))   # chakrası/staminası yetmeyen teknik atılmaz
 		if not ready.is_empty() and nowj >= jgap and randf() < 0.85:
 			var pick = _pick_jutsu(ready)
-			if Stats.is_taijutsu(Data.jutsu.get(pick, {})):
-				stamina -= Stats.tai_stamina_cost(Data.jutsu.get(pick, {}))
+			if LazyFx.g("Stats").is_taijutsu(Data.jutsu.get(pick, {})):
+				stamina -= LazyFx.g("Stats").tai_stamina_cost(Data.jutsu.get(pick, {}))
 				_stam_rest = 0.0
 			else:
 				chakra -= jutsu_cost(pick)
@@ -941,7 +941,7 @@ func _chase(dt: float) -> void:
 				state_t = 0.0
 			return
 	var kid = _keyed_id()
-	var stop_d = 9.0 if kid in KEYED.RANGED else (FightingStyles.stop_dist(kid) if kid.begins_with("style_") else 1.6)   # uzun menzil silahı / tarz (Aburame böcek, Hōzuki su): uzakta durup atar
+	var stop_d = 9.0 if kid in KEYED.RANGED else (LazyFx.g("FightingStyles").stop_dist(kid) if kid.begins_with("style_") else 1.6)   # uzun menzil silahı / tarz (Aburame böcek, Hōzuki su): uzakta durup atar
 	if d > stop_d:
 		# yakın dövüş sırası yoksa etrafında dolaş
 		var sp: float = arch["speed"]
@@ -978,7 +978,7 @@ func _chase(dt: float) -> void:
 		# jutsusu hazır ninja yumruğa girmez: chakrası ve bekleme süresi dolmuş tekniği varsa (ve sıradaki jutsuya 1.2 sn'den az kaldıysa)
 		# kombo başlatmak yerine mühüre geçer. Şartı tutmayan teknik yüzünden takılmasın diye en çok 1.5 sn bekler.
 		var j_wait = jgap - nowr
-		if _is_ninja() and j_wait < 1.2 and _jhold < 1.5 and not has_status("sealed") and jl.any(func(id): return nowr >= float(jcd.get(id, 0.0)) and not Stats.is_taijutsu(Data.jutsu.get(id, {})) and chakra >= jutsu_cost(id)):
+		if _is_ninja() and j_wait < 1.2 and _jhold < 1.5 and not has_status("sealed") and jl.any(func(id): return nowr >= float(jcd.get(id, 0.0)) and not LazyFx.g("Stats").is_taijutsu(Data.jutsu.get(id, {})) and chakra >= jutsu_cost(id)):
 			_jhold += dt
 			ranged_cd = minf(ranged_cd, maxf(j_wait, 0.0))
 			return
@@ -1078,7 +1078,7 @@ func _max_tokens() -> int:
 
 func _beast_tech(d: float) -> void:
 	var bid: String = arch["beast"]
-	var key = BijuuArts.pick_key(bid, d, 1.0)
+	var key = LazyFx.g("BijuuArts").pick_key(bid, d, 1.0)
 	if key == "byoen_hoka":
 		return   # kanon: Byōen Hōka yalnız Matatabi'ye tam dönüşmüşken (insan hâlindeki kaftanlı jinchūriki atamaz)
 	if key == "" or target == null:
@@ -1086,10 +1086,10 @@ func _beast_tech(d: float) -> void:
 	state = "recover"
 	state_t = 0.0
 	model.play("throw", 0.05, 1.4, true)
-	var col: Color = BeastModels.INFO[bid]["chakra"]
-	BijuuArts.use(self, bid, key, {"s": 1.15, "dmg": 16.0 * power, "from": global_position + Vector3.UP * 1.4 + face_dir(), "aim": target.global_position + Vector3.UP,
+	var col: Color = LazyFx.g("BeastModels").INFO[bid]["chakra"]
+	LazyFx.g("BijuuArts").use(self, bid, key, {"s": 1.15, "dmg": 16.0 * power, "from": global_position + Vector3.UP * 1.4 + face_dir(), "aim": target.global_position + Vector3.UP,
 		"tgt": target, "col": col})
-	Combat.popup_text(global_position + Vector3.UP * (height + 1.2), String(BijuuArts.tech(bid, key).get("name", "")), col.lightened(0.3))
+	Combat.popup_text(global_position + Vector3.UP * (height + 1.2), String(LazyFx.g("BijuuArts").tech(bid, key).get("name", "")), col.lightened(0.3))
 
 
 ## Haritadan silinirken (uzaklaşınca, görev bitince) saldırı sırasını geri bırak — yoksa sayaç dolu kalıp
@@ -1110,7 +1110,7 @@ func _footsteps(_dt: float) -> void:
 		return
 	if model.footstep_cross(_step_ph):
 		Game.play_step(global_position, randf_range(0.88, 1.05), 0.2)
-		GroundMarks.step(self, false)   # kumda/karda iz (oyuncuyla aynı)
+		LazyFx.g("GroundMarks").step(self, false)   # kumda/karda iz (oyuncuyla aynı)
 	_step_ph = model.anim_progress() if model.current in CharacterModel.FOOT_PHASES else -1.0
 
 
@@ -1200,18 +1200,18 @@ func _keyed_id() -> String:
 func _keyed_id0() -> String:
 	var wid = look.get("weapon_r") if look is Dictionary else null
 	if (wid == null or String(wid) == "") and model != null and arch is Dictionary:
-		if int(arch.get("level", 99)) < FightingStyles.WAKE_POWER:
+		if int(arch.get("level", 99)) < LazyFx.g("FightingStyles").WAKE_POWER:
 			return ""   # oyuncuyla aynı kural: klan / kan soyu tarzı Güç 10'da uyanır (zayıf genin temel taijutsu dövüşür)
-		var ck = FightingStyles.npc_key(String(arch.get("clan", "")))   # silahsız klanlı düşman: klanın dövüş tarzı (oyuncuyla aynı kombo)
+		var ck = LazyFx.g("FightingStyles").npc_key(String(arch.get("clan", "")))   # silahsız klanlı düşman: klanın dövüş tarzı (oyuncuyla aynı kombo)
 		if ck == "":   # klansız kekkei genkai (Ranton/Yōton/Bakuton/Shakuton/Shōton/Jinton/Mokuton): oyuncu soyuyla aynı tarz
-			ck = FightingStyles.npc_kg_key(String(element), arch.get("jutsu", []) if arch.get("jutsu") is Array else [])
+			ck = LazyFx.g("FightingStyles").npc_kg_key(String(element), arch.get("jutsu", []) if arch.get("jutsu") is Array else [])
 		return ck
 	var skin = String(look.get("weapon_skin_r", "")) if look is Dictionary else ""
 	if skin != "" and KEYED.has(skin) and model != null and not model.weapons.is_empty() and model.drawn:
 		return skin   # kendi kombosu olan özel silah (Hakkō Chakura Tō): oyuncuyla aynı kombo
-	if wid == null or not KEYED.has(Gear.base_id(String(wid))) or model == null or model.weapons.is_empty() or not model.drawn:
+	if wid == null or not KEYED.has(LazyFx.g("Gear").base_id(String(wid))) or model == null or model.weapons.is_empty() or not model.drawn:
 		return ""
-	return Gear.base_id(String(wid))
+	return LazyFx.g("Gear").base_id(String(wid))
 
 
 ## Silahın kendi kombo adımını oynat (oyuncunun animasyonu): süre ve vuruş anı anahtarlardan; iki elli adımda sol el sapta
@@ -1294,7 +1294,7 @@ func _attack(dt: float) -> void:
 		set_meta("swung", true)
 		var pt = global_position + Vector3.UP * 1.1 + face_dir() * (radius + 0.9)
 		var heavy = combo_left == 1 and randf() < 0.5
-		var wpn = Gear.weapon_of(self)   # oyuncuyla aynı kural: silahın kendi vuruş hasarı
+		var wpn = LazyFx.g("Gear").weapon_of(self)   # oyuncuyla aynı kural: silahın kendi vuruş hasarı
 		var base_hit = float(wpn.get("hit", 4.5)) if wpn.get("style", "fist") != "fist" else 4.5
 		var hits = Combat.hit_sphere(self, pt, 0.9, {"dmg": base_hit * (1.0 if not heavy else 1.8) * power * buff_mod("melee"), "knock": 3.0 if not heavy else 10.0,
 			"launch": 0.0 if not heavy else 4.0, "kind": "heavy" if heavy else "light", "hitstop": 0.04, "melee": true})
@@ -1329,12 +1329,12 @@ func _attack_keyed() -> void:
 	var xh: Array = key_step.get("extra", [])
 	while int(key_step["extra_done"]) < xh.size() and state_t >= float(xh[int(key_step["extra_done"])]):
 		key_step["extra_done"] = int(key_step["extra_done"]) + 1
-		var w0 = Gear.weapon_of(self)
+		var w0 = LazyFx.g("Gear").weapon_of(self)
 		Combat.hit_sphere(self, global_position + Vector3.UP * 0.9, float(key_step["extra_r"]),
 			{"dmg": float(w0.get("hit", 4.5)) * power * buff_mod("melee") * 0.35, "knock": 1.0, "launch": 0.0, "kind": "light", "hitstop": 0.03, "melee": true})
 	if not get_meta("swung") and state_t >= float(key_step["hit"]):
 		set_meta("swung", true)
-		var wpn = Gear.weapon_of(self)
+		var wpn = LazyFx.g("Gear").weapon_of(self)
 		var reach = 1.3 + float(wpn.get("reach", 0.0))
 		var i = int(key_step["i"])
 		var wid = String(key_step["id"])
@@ -1498,7 +1498,7 @@ func _update_hp_bar(dt: float, pl: Node3D) -> void:
 
 ## Oyuncunun Gücüne göre tehlike rengi (seviye rakamı gösterilmez: ustalık sistemi)
 func threat_color() -> Color:
-	var mine = float(Mastery.power(Game.profile)) if not Game.profile.is_empty() else 1.0
+	var mine = float(LazyFx.g("Mastery").power(Game.profile)) if not Game.profile.is_empty() else 1.0
 	var diff = float(level) - mine
 	if diff >= 25.0:
 		return Color(0.85, 0.05, 0.25)
@@ -1526,7 +1526,7 @@ func take_hit(info: Dictionary) -> void:
 		behind.y = _floor_y(behind.x, behind.z)
 		global_position = PlayerCombat.safe_dest(self, global_position, behind)
 		Combat.popup_text(global_position + Vector3.UP * 2.2, "Kawarimi!", Color(0.9, 0.9, 0.6))
-		PathJutsu.kawa_trap(self, kat)
+		LazyFx.g("PathJutsu").kawa_trap(self, kat)
 		sub_inv = 0.5
 		target = katk
 		state = "chase"
@@ -1620,15 +1620,15 @@ func take_hit(info: Dictionary) -> void:
 		var hel = String(info.get("element", ""))
 		if hel in ["raiton", "ranton", "jinton"]:
 			info["dmg"] = float(info.get("dmg", 0.0)) * 1.5
-		elif hel == "" and float(get_meta("su", ClanMech.SU_MAX)) >= ClanMech.SUIKA_HIT_COST:
-			set_meta("su", float(get_meta("su", ClanMech.SU_MAX)) - ClanMech.SUIKA_HIT_COST)
+		elif hel == "" and float(get_meta("su", LazyFx.g("ClanMech").SU_MAX)) >= LazyFx.g("ClanMech").SUIKA_HIT_COST:
+			set_meta("su", float(get_meta("su", LazyFx.g("ClanMech").SU_MAX)) - LazyFx.g("ClanMech").SUIKA_HIT_COST)
 			VFX.splash(global_position + Vector3.UP * 1.0, 1.2)
 			Jutsu.water_body(self, 0.45, false)   # darbe yeri suya döner (anime)
 			Combat.popup_text(global_position + Vector3.UP * (height + 0.5), "Suika", Color(0.6, 0.85, 1.0))
 			return
 	if dead:
 		return
-	if not info.get("kamui", false) and EnemyArts.kamui_phase(self):
+	if not info.get("kamui", false) and LazyFx.g("EnemyArts").kamui_phase(self):
 		return   # Kamui geçirgenliği: darbe içinden geçti (katılaşma anında vurulabilir)
 	# Susanoo içindeki düşman: darbeler Susanoo'ya çarpar -> savrulmaz; hasarı Susanoo kalkanı emer (Combat.absorb, oyuncuyla
 	# aynı: EnemyArts._susanoo_after). Eski "%50 / Entenka %40 azaltma" kaldırıldı (kullanıcı 2026-11-16).
@@ -1689,7 +1689,7 @@ func take_hit(info: Dictionary) -> void:
 		model.overlay.guard_hit(0.5 + float(info.get("dmg", 5.0)) / maxf(1.0, max_hp) * 12.0)
 		velocity += Vector3(info.get("dir", Vector3.ZERO)) * 2.5
 		FX.hit_spark(global_position + Vector3.UP * 1.2 + face_dir() * 0.5, Color(0.7, 0.85, 1.0), 0.5)
-		var steel = info.get("attacker") is Player and Game.profile.get("weapon_drawn", false) and String(Gear.weapon(Game.profile).get("style", "fist")) in ["sword", "blade", "dual", "heavy", "sickle", "chain"]
+		var steel = info.get("attacker") is Player and Game.profile.get("weapon_drawn", false) and String(LazyFx.g("Gear").weapon(Game.profile).get("style", "fist")) in ["sword", "blade", "dual", "heavy", "sickle", "chain"]
 		Sfx.play("clash" if steel else "block", global_position, randf_range(0.95, 1.08))
 		info = info.duplicate()
 		info["dmg"] = info.get("dmg", 5.0) * Combat.block_pass(info, 0.15) * Combat.jutsu_factor(info)   # jutsu bloğu deler (büyüdükçe daha çok)
@@ -1788,9 +1788,9 @@ func take_hit(info: Dictionary) -> void:
 	if state == "charge":   # sersemlemese de darbe chakra toplamayı keser (oyuncuyla aynı)
 		state = "chase"
 	# yenilen kaçak pes eder: öldür / teslim et / bağışla (kaçak dostluğu)
-	if not dead and hp > 0.0 and hp < max_hp * (0.25 + Stats.skill(Game.profile, "persuade") * 0.3) and RogueBonds.spareable(self, info):   # Sosyal: İkna
+	if not dead and hp > 0.0 and hp < max_hp * (0.25 + LazyFx.g("Stats").skill(Game.profile, "persuade") * 0.3) and LazyFx.g("RogueBonds").spareable(self, info):   # Sosyal: İkna
 		set_physics_process(false)
-		RogueBonds.yield_to(self)
+		LazyFx.g("RogueBonds").yield_to(self)
 		return
 	var atk = info.get("attacker")
 	if atk != null and is_instance_valid(atk) and Combat.hostile(self, atk) and (target == null or (atk != target and randf() < 0.5)):
@@ -1839,7 +1839,7 @@ func catch() -> void:
 	var inv: Dictionary = pr["inventory"]
 	for k in ["salve", "pill", "kunai", "shuriken"]:
 		if l.has(k):
-			if Stats.unlimited(k):   # sınırsız eşya (kunai, shuriken, Asker Hapı): sayılmaz; yoksa bir kez sahip olunur
+			if LazyFx.g("Stats").unlimited(k):   # sınırsız eşya (kunai, shuriken, Asker Hapı): sayılmaz; yoksa bir kez sahip olunur
 				if int(inv.get(k, 0)) > 0:
 					continue
 				inv[k] = 1
@@ -1873,9 +1873,9 @@ func die(info: Dictionary) -> void:
 			"t": Time.get_ticks_msec() / 1000.0, "name": display_name, "size": size})
 		if fallen.size() > 30:
 			fallen.pop_front()
-	if not info.get("execute", false) and PathJutsu.izanagi_rewrite(self):
+	if not info.get("execute", false) and LazyFx.g("PathJutsu").izanagi_rewrite(self):
 		return   # açık İzanagi: ölüm yanılsamaydı
-	PathJutsu.ura_shisho_trigger(self)   # Ura Shishō Fūin: ölünce kara küre (oyuncuyla aynı)
+	LazyFx.g("PathJutsu").ura_shisho_trigger(self)   # Ura Shishō Fūin: ölünce kara küre (oyuncuyla aynı)
 	if kamui_gone:
 		WorldPeople.on_kamui_taken(self)
 	else:
@@ -1895,7 +1895,7 @@ func die(info: Dictionary) -> void:
 	if has_meta("stolen_ryo") and int(get_meta("stolen_ryo")) > 0:
 		Progress.add_ryo(int(get_meta("stolen_ryo")))
 		Hud.msg("Çalınan %d Ryō'nu geri aldın." % int(get_meta("stolen_ryo")), Color(0.7, 1.0, 0.7), 5.0)
-		var tf: Dictionary = Friends.all().get(String(get_meta("thief_id", "")), {})
+		var tf: Dictionary = LazyFx.g("Friends").all().get(String(get_meta("thief_id", "")), {})
 		if not tf.is_empty():
 			tf["stolen"] = 0
 		remove_meta("stolen_ryo")
@@ -1912,13 +1912,13 @@ func die(info: Dictionary) -> void:
 			for be in Missions._bingo()["list"]:
 				if int(be["id"]) == int(get_meta("bingo_id")):
 					fid = String(be.get("friend_id", ""))
-		if fid != "" and Friends.all().has(fid) and String(Friends.all()[fid].get("status", "")) != "öldü":
+		if fid != "" and LazyFx.g("Friends").all().has(fid) and String(LazyFx.g("Friends").all()[fid].get("status", "")) != "öldü":
 			# öldürdüğün tanıdık: kaydı "öldü" (ilişki listesinde Ezeli Düşman diye yaşamaya devam ediyordu)
-			Friends.all()[fid]["status"] = "öldü"
-			Friends.all()[fid]["party"] = false
-			Friends.log_event(Friends.all()[fid], "Onu sen öldürdün")
-		if fid != "" and Friends.closeness(fid) >= 60 and Game.player.combat and Game.player.combat.modes and Game.player.combat.modes.get("eyes"):
-			Game.player.combat.modes.eyes.on_close_kill(String(Friends.all().get(fid, {}).get("name", display_name)))
+			LazyFx.g("Friends").all()[fid]["status"] = "öldü"
+			LazyFx.g("Friends").all()[fid]["party"] = false
+			LazyFx.g("Friends").log_event(LazyFx.g("Friends").all()[fid], "Onu sen öldürdün")
+		if fid != "" and LazyFx.g("Friends").closeness(fid) >= 60 and Game.player.combat and Game.player.combat.modes and Game.player.combat.modes.get("eyes"):
+			Game.player.combat.modes.eyes.on_close_kill(String(LazyFx.g("Friends").all().get(fid, {}).get("name", display_name)))
 	if has_meta("teammate"):
 		# takım arkadaşının düşmesi bayılmadır (Squad onu geri çeker, sonra döner): Mangekyō'yu yalnız kalıcı ölüm (KinDrama.slain) açar
 		return   # takım arkadaşı düştü: öldürme sayılmaz (XP, görev sayacı yok), yeniden doğmaz
@@ -1953,7 +1953,7 @@ func die(info: Dictionary) -> void:
 
 ## Bu Mangekyō tekniği NPC'nin tarzında mı (Eyes.MS_STYLES: tarzın göz + jutsu listesi; birden çok tarzın ortağı, ör. Susanoo)
 func _ms_ok(jid: String) -> bool:
-	var st = EnemyArts.ms_style(self)
+	var st = LazyFx.g("EnemyArts").ms_style(self)
 	var d: Dictionary = Eyes.MS_STYLES.get(st, {})
 	return jid in d.get("eyes", []) or jid in d.get("jutsu", [])
 

@@ -89,10 +89,10 @@ static func cave_pos() -> Vector3:
 
 
 static func _news(text: String, big := false) -> void:
-	WorldNews.headline(text, Color(0.9, 0.3, 0.32))
+	LazyFx.g("WorldNews").headline(text, Color(0.9, 0.3, 0.32))
 	if big:
 		Hud.banner("AKATSUKI", text, Color(0.85, 0.15, 0.18))
-		Journal.add(text, "milestone")
+		LazyFx.g("Journal").add(text, "milestone")
 
 
 # ------------------------------------------------------------------ dünya turu
@@ -115,11 +115,11 @@ static func world_tick() -> void:
 
 
 static func _candidates(min_lv: int) -> Array:
-	return WorldPeople.all().values().filter(func(q): return WorldPeople.alive(q) and WorldPeople.is_rogue(q) and not q.get("missing", false) and not q.has("run") and String(q.get("kage", "")) == "" and int(q["level"]) >= min_lv and not is_member(q) and WorldAmbition.beast_of(q) == "")
+	return WorldPeople.all().values().filter(func(q): return WorldPeople.alive(q) and WorldPeople.is_rogue(q) and not q.get("missing", false) and not q.has("run") and String(q.get("kage", "")) == "" and int(q["level"]) >= min_lv and not is_member(q) and LazyFx.g("WorldAmbition").beast_of(q) == "")
 
 
 static func _found() -> void:
-	var cs = _candidates(FOUND_LV).filter(func(q): return WorldAmbition.is_amb(q))
+	var cs = _candidates(FOUND_LV).filter(func(q): return LazyFx.g("WorldAmbition").is_amb(q))
 	if cs.is_empty():
 		return
 	cs.sort_custom(func(a, b): return int(a["level"]) > int(b["level"]))
@@ -135,7 +135,7 @@ static func _found() -> void:
 	d["assign"] = {}
 	d["funds"] = 0
 	d["cave"] = _pick_cave()
-	WorldAmbition._crime(p, "Akatsuki'yi kurdu")
+	LazyFx.g("WorldAmbition")._crime(p, "Akatsuki'yi kurdu")
 	_news("%s, kızıl bulutlu siyah pelerinler giyen bir kaçaklar örgütü kurdu: Akatsuki. En tehlikeli kaçakları yanına çağırıyor." % String(p["name"]), true)
 
 
@@ -215,7 +215,7 @@ static func _recruit() -> void:
 	var cs = _candidates(MEMBER_LV)
 	if cs.is_empty():
 		# hazır kaçak yok: lider, köyüne bağı zayıf (yaslı, sadakatsiz) güçlü bir ninjayı ikna eder; o da köyünden kaçar
-		var vs = WorldPeople.all().values().filter(func(q): return WorldPeople.alive(q) and not WorldPeople.is_rogue(q) and not q.get("missing", false) and String(q.get("kage", "")) == "" and int(q["level"]) >= MEMBER_LV and WorldAmbition.beast_of(q) == "" and (int(q.get("loyalty", 50)) < 45 or q.get("grief", false)))
+		var vs = WorldPeople.all().values().filter(func(q): return WorldPeople.alive(q) and not WorldPeople.is_rogue(q) and not q.get("missing", false) and String(q.get("kage", "")) == "" and int(q["level"]) >= MEMBER_LV and LazyFx.g("WorldAmbition").beast_of(q) == "" and (int(q.get("loyalty", 50)) < 45 or q.get("grief", false)))
 		if vs.is_empty():
 			return
 		vs.sort_custom(func(a, b): return int(a["level"]) > int(b["level"]))
@@ -249,13 +249,13 @@ static func _bounty() -> void:
 		return
 	var hunter: Dictionary = ms.pick_random()
 	var lv = int(hunter["level"])
-	var prey = WorldPeople.all().values().filter(func(q): return WorldPeople.alive(q) and not is_member(q) and not q.get("missing", false) and String(q.get("kage", "")) == "" and int(q["rank"]) >= 2 and int(q["level"]) < lv - 20 and not WorldAmbition.is_amb(q))
+	var prey = WorldPeople.all().values().filter(func(q): return WorldPeople.alive(q) and not is_member(q) and not q.get("missing", false) and String(q.get("kage", "")) == "" and int(q["rank"]) >= 2 and int(q["level"]) < lv - 20 and not LazyFx.g("WorldAmbition").is_amb(q))
 	if prey.is_empty():
 		return
 	var q: Dictionary = prey.pick_random()
 	WorldPeople._die(q, "Başına konan ödül için Akatsuki'den %s tarafından öldürüldü" % String(hunter["name"]))
 	d["funds"] = int(d["funds"]) + 3000 + int(q["level"]) * 150
-	WorldAmbition._crime(hunter, "%s'yi başındaki ödül için öldürdü" % String(q["name"]))
+	LazyFx.g("WorldAmbition")._crime(hunter, "%s'yi başındaki ödül için öldürdü" % String(q["name"]))
 	_news("Akatsuki'den %s, %s'yi öldürüp cesedini ödül karşılığı teslim etti." % [String(hunter["name"]), String(q["name"])])
 
 
@@ -359,8 +359,8 @@ static func _seals() -> void:
 		if float(s[1]) <= 0.0:
 			TailedBeasts.beasts()[s[0]].erase("seal_end")
 			TailedBeasts.beasts()[s[0]].erase("seal_by")
-			WorldJubi.D()["by"] = String(l["id"])
-			WorldJubi._into_mazo(l, String(s[0]))
+			LazyFx.g("WorldJubi").D()["by"] = String(l["id"])
+			LazyFx.g("WorldJubi")._into_mazo(l, String(s[0]))
 
 
 # ------------------------------------------------------------------ görünüş
@@ -374,7 +374,7 @@ static func dress(a: Dictionary, p: Dictionary) -> void:
 	for k in ["hair", "hair_style", "gender", "skin", "eye", "age", "face_paint", "face_paint_col", "keep_hair", "own_hair", "face_id", "face_cut", "face_v", "years", "age_seed"]:
 		if lk.has(k):
 			keep[k] = lk[k]
-	Gear.preview_set_look(lk, "set_akatsuki")
+	LazyFx.g("Gear").preview_set_look(lk, "set_akatsuki")
 	lk.merge(keep, true)
 	lk["set_id"] = "set_akatsuki"
 	lk["outer_style"] = "org_pelerin"
@@ -616,8 +616,8 @@ static func _join() -> void:
 	d["me"] = {"ring": free}
 	d.erase("traitor")
 	Exams.flags()["akatsuki_member"] = true
-	Gear.grant(Game.profile, "set_akatsuki", "set")
-	Gear.apply_look(Game.profile)
+	LazyFx.g("Gear").grant(Game.profile, "set_akatsuki", "set")
+	LazyFx.g("Gear").apply_look(Game.profile)
 	Game.player.rebuild_model()
 	Orgs.add_infamy(300)
 	var pid = partner_of("player")

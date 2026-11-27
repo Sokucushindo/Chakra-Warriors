@@ -852,7 +852,7 @@ func c_kageyose_no_jutsu(c: Node3D, t: Node3D) -> void:
 
 ## Gölge Taklit Shuriken: shurikenin gölgesinde ikinci gölge saklı; değdiği hedefe gölge bağlanır
 func c_kagemane_shuriken_no_jutsu(c: Node3D, t: Node3D) -> void:
-	FinalFX1.kagemane_shuriken_no_jutsu(self, c, t)
+	LazyFx.g("FinalFX1").kagemane_shuriken_no_jutsu(self, c, t)
 
 
 ## Kage Nui (kanon, referans: Hidan karesi): gölge şeridi hedefe ulaşır, hedefin gölgesinden çok ince, dümdüz, kapkara
@@ -967,7 +967,7 @@ func c_shinranshin_no_jutsu(c: Node3D, t: Node3D) -> void:
 
 ## Zihin Aktarımı: 60 m içindeki tüm düşmanların yeri ışık sütunlarıyla belli olur, saklanamazlar
 func c_shindenshin_no_jutsu(c: Node3D, _t: Node3D) -> void:
-	FinalFX3.shindenshin_no_jutsu(PathJutsu.get_pinst(), c, _t, false)
+	LazyFx.g("FinalFX3").shindenshin_no_jutsu(PathJutsu.get_pinst(), c, _t, false)
 
 
 ## Lanetli Mühürlü Zihin Kuklası: hedef 15 sn senin kuklan olur, sonunda mühür onu sersemletir
@@ -1000,7 +1000,7 @@ func c_shinten_kugutsu_juin_no_jutsu(c: Node3D, t: Node3D) -> void:
 
 ## Zihin Klon Değişimi: hedefin zihnine kısa süre gir ve kendi jutsusunu kendi müttefiklerine attır
 func c_shinten_bunshin_no_jutsu(c: Node3D, t: Node3D) -> void:
-	FinalFX3.shinten_bunshin_no_jutsu(PathJutsu.get_pinst(), c, t, false)
+	LazyFx.g("FinalFX3").shinten_bunshin_no_jutsu(PathJutsu.get_pinst(), c, t, false)
 
 
 ## Zihin Aktarım Düzeni: çağrılan birimlerin ve klonların zihnine bağlan: 20 sn hepsi güçlenir
@@ -2014,18 +2014,18 @@ func _seal_glyph(t: Node3D, col: Color, dur: float, size := 0.9) -> void:
 
 ## Parmak Oyma Mühürü: hedefe dokunup karnına mühür kazırsın: 10 sn jutsu yapamaz ve yavaşlar
 func c_shikoku_fuin(c: Node3D, t: Node3D) -> void:
-	Clan3FXA.shikoku_fuin(PathJutsu.get_pinst(), c, t)
+	LazyFx.g("Clan3FXA").shikoku_fuin(PathJutsu.get_pinst(), c, t)
 
 
 ## Fūka Hōin (kanon): önceden yazılmış, ortası boş parşömen açılır — yakındaki ATEŞ (katon/yoton, Amaterasu dahil) ortadaki
 ## boşluğa emilip mühürlenir, yerine "火" belirir. Ateş olmayan saldırıya etkisiz (zayıf nokta). Emilen ateş geri salınır.
 func c_fuka_hoin(c: Node3D, t: Node3D) -> void:
-	Clan3FXA.fuka_hoin(PathJutsu.get_pinst(), c, t)
+	LazyFx.g("Clan3FXA").fuka_hoin(PathJutsu.get_pinst(), c, t)
 
 
 ## Sekiz Trigram Mühür Stili: avuçla hedefin karnına dev trigram mühürü: 15 sn jutsu yok, gücü yarıya iner
 func c_hakke_no_fuin_shiki(c: Node3D, t: Node3D) -> void:
-	Clan3FXA.hakke_no_fuin_shiki(PathJutsu.get_pinst(), c, t)
+	LazyFx.g("Clan3FXA").hakke_no_fuin_shiki(PathJutsu.get_pinst(), c, t)
 
 
 ## Fūja Hōin (kanon, Kakashi -> Sasuke): lanet mührünün çevresine kanla yazılmış mühür formülü çizilir, mührün gücü bastırılır.
@@ -2520,7 +2520,7 @@ func c_chinoike_chi_no_ame(c: Node3D, t: Node3D) -> void:
 # ================================================================== HOSHİGAKİ — köpekbalıkları
 ## Beş Köpekbalığı: her köpekbalığı ayrı bir düşmanı kovalar
 func c_hoshigaki_same(c: Node3D, t: Node3D) -> void:
-	SuitonFXE.hoshigaki_same(self, c, t)
+	LazyFx.g("SuitonFXE").hoshigaki_same(self, c, t)
 
 
 ## Büyük Köpekbalığı Mermisi: dev köpekbalığı yolundaki düşman jutsularını yutar ve her yuttuğunda büyür
@@ -2544,7 +2544,7 @@ func c_suiton_daikodan_no_jutsu(c: Node3D, t: Node3D) -> void:
 
 ## Bin Köpekbalığı: ağzından boşalan dev su seli (30 m genişliğinde) öne akar; içinde onlarca köpekbalığı yüzer, değdiğini ısırır
 func c_suiton_senshokuko(c: Node3D, t: Node3D) -> void:
-	SuitonFXE.suiton_senshokuko(self, c, t)
+	LazyFx.g("SuitonFXE").suiton_senshokuko(self, c, t)
 
 
 ## Su Hapsi Köpekbalığı Dansı: 50 m çapında dev su kubbesi yükselir; içinde normal boy köpekbalıkları dolaşır.
@@ -2796,7 +2796,7 @@ func c_sofushasan_no_tachi(c: Node3D, t: Node3D) -> void:
 
 ## Shuriken Gölge Klonu: tek shuriken havada yirmi dörde bölünür, hedefe yağar
 func c_shuriken_kage_bunshin_no_jutsu(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXD.shuriken_kage_bunshin_no_jutsu(PathJutsu.get_pinst(), c, t)
+	LazyFx.g("NinjutsuFXD").shuriken_kage_bunshin_no_jutsu(PathJutsu.get_pinst(), c, t)
 
 
 ## Rüzgar Çarkı: rüzgara sarılı dev shuriken etrafında 8 m yarıçapla üç sn döner, her şeyi biçer
@@ -2931,23 +2931,23 @@ func c_kamizuru_mitsu_bunshin(c: Node3D, _t: Node3D) -> void:
 ## Kum Zırhı: tenin ince kum tabakasıyla kaplanır: 20 sn gelen hasar yarıya iner
 ## Suna no Yoroi (Gaara): bedeni ince, çatlak bir kum katmanı kaplar (kabuk/küre değil; pozu izler); hasarı emer
 func c_suna_no_yoroi(c: Node3D, _t: Node3D) -> void:
-	SabakuFXA.suna_no_yoroi(self, c, _t)
+	LazyFx.g("SabakuFXA").suna_no_yoroi(self, c, _t)
 
 
 ## Kūsa Bōheki (Gaara): kum havaya kalkıp başının üstünde kalın, kenarları yırtık bir kalkan tabakası olarak yayılır
 ## (kubbe değil); 8 sn mermileri durdurur, yaklaşanı iter
 func c_kusa_boheki(c: Node3D, _t: Node3D) -> void:
-	SabakuFXA.kusa_boheki(self, c, _t)
+	LazyFx.g("SabakuFXA").kusa_boheki(self, c, _t)
 
 
 ## Kum Hapis Gömüsü: hedefin altında bataklık kum açılır; içine çekilir, sonra kum kapanıp ezer
 func c_gokusa_maiso(c: Node3D, t: Node3D) -> void:
-	SabakuFXA.gokusa_maiso(self, c, t)
+	LazyFx.g("SabakuFXA").gokusa_maiso(self, c, t)
 
 
 ## Kum Klonu: kumdan kopya; vurulunca dağılıp vuranın üstüne kapanır ve onu bağlar
 func c_suna_bunshin(c: Node3D, _t: Node3D) -> void:
-	SabakuFXA.suna_bunshin(self, c, _t)
+	LazyFx.g("SabakuFXA").suna_bunshin(self, c, _t)
 
 
 ## Kum Shurikeni (REFERANS: Gaara'nın kolları kumdan dev pençe-kollara dönüşür; kollar iki yana açılır, öne savrulunca
@@ -2957,7 +2957,7 @@ func c_suna_bunshin(c: Node3D, _t: Node3D) -> void:
 ## 2) kollar öne savrulur (sand_swing pozu), kolların dış kenarı boyunca 16 mekik bıçak yelpazeyle fırlar;
 ## 3) bıçaklar değdiği yerde kum patlar, vurulan yavaşlar; kum kollar ufalanıp dökülür.
 func c_suna_shuriken(c: Node3D, t: Node3D) -> void:
-	SabakuFXA.suna_shuriken(self, c, t)
+	LazyFx.g("SabakuFXA").suna_shuriken(self, c, t)
 
 
 ## Karakterin kol kemiklerine bağlı dev kum kolları. Mesh'ler model uzayında (dinlenme pozu) kurulur ve kemiğe bağlanır;
@@ -3232,7 +3232,7 @@ func c_sumigasumi_no_jutsu(c: Node3D, t: Node3D) -> void:
 
 ## Ahtapot Tutuşu: yerdeki parşömenden mürekkep dokunaçları fışkırır, dört düşmanı yakalayıp sıkar
 func c_fuinjutsu_okutopasu_horudo(c: Node3D, t: Node3D) -> void:
-	FuinjutsuFXB.fuinjutsu_okutopasu_horudo(self, c, t)
+	LazyFx.g("FuinjutsuFXB").fuinjutsu_okutopasu_horudo(self, c, t)
 
 
 # ================================================================== KAZAHANA — çöl rüzgarı
@@ -3333,12 +3333,12 @@ func c_kazahana_fujin_ya(c: Node3D, t: Node3D) -> void:
 # ================================================================== KARATACHİ — Sis kılıç ustalığı
 ## Sessiz Öldürme: sis çöker, kaybolursun; bir buçuk sn sonra en yakın düşmanın arkasında belirip üç kez kesersin
 func c_sairento_kiringu(c: Node3D, _t: Node3D) -> void:
-	NinjutsuFXD.sairento_kiringu(PathJutsu.get_pinst(), c, _t)
+	LazyFx.g("NinjutsuFXD").sairento_kiringu(PathJutsu.get_pinst(), c, _t)
 
 
 ## Kemik Parçalama: kılıç bedenin içinden geçer: zırhı yok sayan ağır kesik, kanama ve sersemleme
 func c_chigiri_toho_honenuki(c: Node3D, t: Node3D) -> void:
-	NinjutsuFXA.chigiri_core(PathJutsu.get_pinst(), c, t)
+	LazyFx.g("NinjutsuFXA").chigiri_core(PathJutsu.get_pinst(), c, t)
 
 # ================================================================== YOTSUKİ — yıldırım güreşi
 func _lightning_limb(c: Node3D, dur: float) -> void:
@@ -3840,7 +3840,7 @@ func c_bakuha_rensa(c: Node3D, t: Node3D) -> void:
 ## Uchiha Ryū Kenjutsu (kanon, Sasuke): kılıç kınında, iai duruşu — kılıca şimşek akar (cıvıltı), tek hamlede hedefin
 ## içinden geçen çekiş-kesişi; kesik bir an sonra açılır (gecikmeli iai), şimşek kası felç eder.
 func c_uchiha_ryu_kenjutsu(c: Node3D, t: Node3D) -> void:
-	FinalFX3.uchiha_ryu_kenjutsu(PathJutsu.get_pinst(), c, t, false)
+	LazyFx.g("FinalFX3").uchiha_ryu_kenjutsu(PathJutsu.get_pinst(), c, t, false)
 
 
 ## Kılıç kesik kavisi: yarım ay biçiminde parlayan şerit, hızla açılıp söner

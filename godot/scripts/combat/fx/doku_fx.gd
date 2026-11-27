@@ -77,7 +77,7 @@ static func tick(f: Node, dt: float) -> void:
 	var l = left(f)
 	var dps = DPS_HEAVY if l > WEAK_AT else DPS
 	if f is Player:
-		dps *= clampf(1.0 - Stats.skill(Game.profile, "poison_resist"), 0.2, 1.0)
+		dps *= clampf(1.0 - LazyFx.g("Stats").skill(Game.profile, "poison_resist"), 0.2, 1.0)
 	f.hp -= dps * dt
 	var now = Game.now()
 	if l > WEAK_AT and now >= float(f.get_meta("doku_nb", 0.0)):
@@ -102,7 +102,7 @@ static func _drop_mesh() -> Mesh:
 	return Kit.cached_mesh("doku_damla", func():
 		var b = MB.new()
 		b.add("sphere", Vector3.ZERO, Vector3(0.024, 0.04, 0.024), PURPLE, Vector3.ZERO, 6)
-		return b.build(Props.toon()))
+		return b.build(LazyFx.g("Props").toon()))
 
 
 static func _drop(p: Vector3) -> void:
@@ -146,7 +146,7 @@ static func _watch(t: Node3D) -> void:
 
 # ------------------------------------------------------------------ silaha sürme
 static func can_coat(who: Node3D) -> bool:
-	var w: Dictionary = Gear.weapon_of(who)
+	var w: Dictionary = LazyFx.g("Gear").weapon_of(who)
 	var m = who.get("model")
 	return str(w.get("style", "fist")) in CUT_STYLES and not w.get("ranged", false) and m != null and not (m.weapons as Array).is_empty()
 
@@ -255,7 +255,7 @@ static func player_use(p: Node3D) -> void:
 	if not can_coat(p):
 		Hud.msg("Zehir yalnız kesici yakın dövüş silahına sürülür.", Color(1, 0.75, 0.5))
 		return
-	c.tool_cd["doku"] = PlayerCombat.TOOL_CD / (1.0 + Mastery.get_v(Game.profile, "shurikenjutsu") / 50.0)
+	c.tool_cd["doku"] = PlayerCombat.TOOL_CD / (1.0 + LazyFx.g("Mastery").get_v(Game.profile, "shurikenjutsu") / 50.0)
 	c.action = "throw"
 	c.t = -0.2   # "throw" eylemi 0.35'te biter: sürme pozu 0.55 sn sürer
 	coat(p)

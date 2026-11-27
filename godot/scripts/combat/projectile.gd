@@ -117,7 +117,7 @@ func _finish(pos: Vector3, target: Node3D, normal := Vector3.ZERO) -> void:
 	dead = true
 	var el: String = info.get("element", "")
 	if target == null and el in ["katon", "yoton"] and pos.y - Game.terrain_height(pos.x, pos.z) < 2.0:
-		Elements.scorch(pos, clampf(radius * 1.8, 1.2, 5.0))
+		LazyFx.g("Elements").scorch(pos, clampf(radius * 1.8, 1.2, 5.0))
 	if target == null:
 		WorldDamage.impact(pos, maxf(radius * 1.6, 1.0), info, normal)
 	if on_hit.is_valid():
@@ -162,9 +162,9 @@ func _check_clash(pt: Vector3) -> bool:
 			continue
 		if pt.distance_to(o.global_position) > radius + o.radius:
 			continue
-		var r = Elements.clash({"el": el, "pow": power()}, {"el": o.element(), "pow": o.power()})
+		var r = LazyFx.g("Elements").clash({"el": el, "pow": power()}, {"el": o.element(), "pow": o.power()})
 		var contact = pt.lerp(o.global_position, 0.5)
-		Elements.clash_fx(contact, r["effect"], el, o.element(), maxf(radius, o.radius))
+		LazyFx.g("Elements").clash_fx(contact, r["effect"], el, o.element(), maxf(radius, o.radius))
 		o.apply_clash(r["b_alive"], r["b_scale"])
 		apply_clash(r["a_alive"], r["a_scale"])
 		if dead:
@@ -180,8 +180,8 @@ func _check_clash(pt: Vector3) -> bool:
 		if absf(lp.x) > hf.x + radius or absf(lp.y) > hf.y + radius or absf(lp.z) > hf.z + radius:
 			continue
 		var wel: String = w.get_meta("element", "doton")
-		var r = Elements.clash({"el": el, "pow": power()}, {"el": wel, "pow": float(w.get_meta("power", 40.0))})
-		Elements.clash_fx(pt, r["effect"], el, wel, maxf(radius, 1.5))
+		var r = LazyFx.g("Elements").clash({"el": el, "pow": power()}, {"el": wel, "pow": float(w.get_meta("power", 40.0))})
+		LazyFx.g("Elements").clash_fx(pt, r["effect"], el, wel, maxf(radius, 1.5))
 		if not r["b_alive"]:
 			break_wall(w)
 		else:
@@ -264,7 +264,7 @@ static func tool(who: Node3D, start: Vector3, dir: Vector3, kind: String, target
 	pr.gravity = 1.0 if kind == "senbon" else 3.0
 	pr.radius = 0.15
 	pr.stick = kind in ["kunai", "shuriken", "senbon"]
-	var mult = Stats.melee_mult(Game.profile) * (1.0 + Stats.skill(Game.profile, "throw_dmg") + (Stats.skill(Game.profile, "tag_dmg") if kind == "tag" else 0.0) + Mastery.get_v(Game.profile, "shurikenjutsu") * 0.02) if who is Player else 1.0
+	var mult = LazyFx.g("Stats").melee_mult(Game.profile) * (1.0 + LazyFx.g("Stats").skill(Game.profile, "throw_dmg") + (LazyFx.g("Stats").skill(Game.profile, "tag_dmg") if kind == "tag" else 0.0) + LazyFx.g("Mastery").get_v(Game.profile, "shurikenjutsu") * 0.02) if who is Player else 1.0
 	pr.info = {"dmg": (10.0 if kind == "kunai" else 6.0) * mult, "knock": 1.5, "kind": "light", "hitstop": 0.02, "melee": true, "tool": kind}
 	var mi = MeshInstance3D.new()
 	if not _tool_mesh.has(kind):   # alet geometrisi her atışta aynı: bir kez kurulur (savaşta atış başına ~10 ms idi)
@@ -283,7 +283,7 @@ static func tool(who: Node3D, start: Vector3, dir: Vector3, kind: String, target
 				b.add_mesh(sb, Transform3D(Basis(Vector3.RIGHT, PI * 0.5), Vector3.ZERO))
 			"senbon":   # ince uzun iğne
 				b.add("cyl", Vector3(0, 0, -0.05), Vector3(0.012, 0.32, 0.012), Color(0.75, 0.77, 0.82), Vector3(90, 0, 0), 4)
-		_tool_mesh[kind] = b.build(Props.toon())
+		_tool_mesh[kind] = b.build(LazyFx.g("Props").toon())
 	match kind:
 		"shuriken":
 			pr.spin = Vector3(0, 30, 0)
@@ -296,7 +296,7 @@ static func tool(who: Node3D, start: Vector3, dir: Vector3, kind: String, target
 					Combat.popup_text(tgt.global_position + Vector3.UP * 2.2, "Zehir!", Color(0.6, 0.9, 0.4))
 	mi.mesh = _tool_mesh[kind]
 	# hayran modeli varsa kunai görseli (namlu uçuş yönüne, -Z)
-	var tn = SFProps.weapon_node(kind, SFProps.THROWN) if kind in ["kunai", "tag"] else null
+	var tn = LazyFx.g("SFProps").weapon_node(kind, LazyFx.g("SFProps").THROWN) if kind in ["kunai", "tag"] else null
 	if tn:
 		tn.rotation.y = PI
 		pr.add_child(tn)

@@ -105,11 +105,11 @@ func attack(v: Node, alarm := false) -> void:
 	var at: Vector3 = v.global_position
 	var comps: Array = [] if alarm else _companions(v)   # birlikte gezenler (sohbet eşi, takım lideri / üyeleri) savaşa katılır
 	var fid = String(v.get_meta("friend_id", ""))
-	var civ = not Friends.is_ninja(v) and fid == ""
+	var civ = not LazyFx.g("Friends").is_ninja(v) and fid == ""
 	var plv = int(Game.profile.get("level", 1))
 	var e: Enemy
 	if v is ClanResident:
-		var rank = clampi(int(Friends.all().get(fid, {}).get("rank", 1)), 0, 3)
+		var rank = clampi(int(LazyFx.g("Friends").all().get(fid, {}).get("rank", 1)), 0, 3)
 		# rütbe eğrisi (baskın dalgalarıyla aynı): genin ~20, chūnin ~40, jōnin ~70, elit ~90 (eskiden 6+rütbe*9: jōnin bile Güç 33)
 		e = ClanWorld.spawn_enemy(String(v.clan), [20, 40, 70, 90][rank] + randi_range(0, 8), at, {"outfit": "chunin", "village": String(v.vid), "name": String(v.given),
 			"female": v.look.get("gender", "m") == "f", "eye": int(v.eye_kind), "look": v.look, "adopt": v})
@@ -123,8 +123,8 @@ func attack(v: Node, alarm := false) -> void:
 		var real: Dictionary = {}
 		if not wp.is_empty():
 			real = WorldPeople.arch_of(wp)
-		elif fid != "" and Friends.all().has(fid):
-			real = Friends.arch(Friends.all()[fid])
+		elif fid != "" and LazyFx.g("Friends").all().has(fid):
+			real = LazyFx.g("Friends").arch(LazyFx.g("Friends").all()[fid])
 		if not real.is_empty():
 			civ = false
 		var a = real if not real.is_empty() else Enemy.archetype("bandit" if civ else "genin_rival", 0)
@@ -137,7 +137,7 @@ func attack(v: Node, alarm := false) -> void:
 			if not civ:
 				# köy ninjası (devriye/nöbetçi/çatı/hoca): rütbesinin gücüyle (eskiden "genin rakibi" Güç 12-22 — aşırı ezik)
 				var lv_n = {"teacher": randi_range(60, 75), "spar": randi_range(30, 45)}.get(String(v.role), randi_range(35, 55) if randf() < 0.75 else randi_range(65, 85))
-				Stats.npc_ninja(a, lv_n, 1.1)
+				LazyFx.g("Stats").npc_ninja(a, lv_n, 1.1)
 				a["element"] = ["katon", "suiton", "fuuton", "doton", "raiton"].pick_random()
 				a["jutsu"] = Enemy.auto_jutsu("rogue", String(a["element"]), lv_n)
 				a["skill"] = clampf(0.25 + lv_n * 0.005, 0.3, 0.7)
@@ -175,11 +175,11 @@ func attack(v: Node, alarm := false) -> void:
 	if alarm:
 		return
 	if fid != "":
-		var f: Dictionary = Friends.all()[fid]
-		Friends.keep_peak(f)
+		var f: Dictionary = LazyFx.g("Friends").all()[fid]
+		LazyFx.g("Friends").keep_peak(f)
 		f["bond"] = -100
 		f["party"] = false
-		Friends.log_event(f, "Ona saldırdın")
+		LazyFx.g("Friends").log_event(f, "Ona saldırdın")
 	commit(ATTACK, "%s kişisine saldırdın" % who, at)
 
 
@@ -219,13 +219,13 @@ func _companions(v: Node) -> Array:
 func betray(node: Node, fid: String) -> void:
 	if not is_instance_valid(node):
 		return
-	var f: Dictionary = Friends.all().get(fid, {})
+	var f: Dictionary = LazyFx.g("Friends").all().get(fid, {})
 	if not f.is_empty():
 		f["party"] = false
-		Friends.keep_peak(f)
+		LazyFx.g("Friends").keep_peak(f)
 		f["bond"] = -100
 		f["status"] = "ihanet"
-		Friends.log_event(f, "Ona ihanet ettin")
+		LazyFx.g("Friends").log_event(f, "Ona ihanet ettin")
 	node.team = "enemy"
 	node.set_meta("teammate", false)
 	if node.has_meta("friend_id"):
@@ -247,7 +247,7 @@ static func on_eyes_taken(f: Node) -> void:
 		if vc["node"] == f:
 			commit(EYES, "Bir köy ninjasının gözlerini çaldın", f.global_position)
 			if String(vc["fid"]) != "":
-				Friends.log_event(Friends.all()[vc["fid"]], "Gözlerini çaldın")
+				LazyFx.g("Friends").log_event(LazyFx.g("Friends").all()[vc["fid"]], "Gözlerini çaldın")
 			return
 
 
@@ -261,7 +261,7 @@ func _send_guards() -> void:
 		var a = Enemy.archetype("genin_rival", i)
 		a["name"] = "Köy Muhafızı"
 		a["respawn"] = false
-		Stats.npc_ninja(a, lv, 1.1)   # köy muhafızı: ortak eğri
+		LazyFx.g("Stats").npc_ninja(a, lv, 1.1)   # köy muhafızı: ortak eğri
 		if gn < 3:
 			Enemy.toughen(a, ceili(3.0 / gn), "B")   # tek muhafız üç kişinin gücünün bir kısmını taşır
 		a["xp"] = 30 + lv * 6
@@ -271,7 +271,7 @@ func _send_guards() -> void:
 		if not auto.is_empty():
 			a["jutsu"] = auto
 		var L: Dictionary = a["look"]
-		Outfits.village_set(L, Progress.home())   # köyün kendi seti (yalnız renk değil)
+		LazyFx.g("Outfits").village_set(L, Progress.home())   # köyün kendi seti (yalnız renk değil)
 		L["band"] = hi["band"]
 		L["band_style"] = "head"
 		L["village"] = Progress.home()
@@ -305,13 +305,13 @@ func _process(dt: float) -> void:
 		if not vc["dead"] and n.is_dead():
 			vc["dead"] = true
 			var fid = String(vc["fid"])
-			if fid != "" and Friends.all().has(fid):
-				var f: Dictionary = Friends.all()[fid]
+			if fid != "" and LazyFx.g("Friends").all().has(fid):
+				var f: Dictionary = LazyFx.g("Friends").all()[fid]
 				f["status"] = "öldü"
-				Friends.log_event(f, "Onu sen öldürdün")
-				for oid in Friends.all():
-					if oid != fid and String(Friends.all()[oid].get("status", "")) == "":
-						Friends.add_bond(oid, -30, true)
+				LazyFx.g("Friends").log_event(f, "Onu sen öldürdün")
+				for oid in LazyFx.g("Friends").all():
+					if oid != fid and String(LazyFx.g("Friends").all()[oid].get("status", "")) == "":
+						LazyFx.g("Friends").add_bond(oid, -30, true)
 				Hud.msg("%s'in ölüm haberi köye yayıldı. Dostların senden uzaklaşıyor." % f["name"], Color(1, 0.5, 0.45), 5.0)
 			commit(KILL_CIV if vc["civ"] else KILL, "Bir köylüyü öldürdün" if vc["civ"] else "Bir köy ninjasını öldürdün", n.global_position)
 	guards = guards.filter(func(g): return is_instance_valid(g) and not g.is_dead())

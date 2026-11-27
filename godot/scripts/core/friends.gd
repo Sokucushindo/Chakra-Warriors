@@ -176,7 +176,7 @@ static func add_bond(id: String, n: int, quiet := false) -> void:
 		return
 	var before = level_name(int(f["bond"]))
 	if n > 0:
-		n = int(round(n * (1.0 + Stats.skill(pr(), "charm"))))   # Sosyal: Sohbet Ustası / Karizma
+		n = int(round(n * (1.0 + LazyFx.g("Stats").skill(pr(), "charm"))))   # Sosyal: Sohbet Ustası / Karizma
 	keep_peak(f)   # düşmeden önceki yakınlık da sayılır (eskiden yalnız düşmüş değer yazılıyordu)
 	f["bond"] = clampi(int(f["bond"]) + n, -100, 100)
 	f["peak"] = maxi(int(f.get("peak", 0)), int(f["bond"]))   # en yüksek yakınlık (ihanet/kaçış sonrası da hatırlanır: Mangekyō)
@@ -209,7 +209,7 @@ static func options_for(v: Node) -> Array:
 	if v.has_meta("kage_vid") and String(v.get_meta("kage_vid")) == Progress.home():
 		return _kage_teach_opts()
 	if v.has_meta("school_kid"):
-		return SchoolVisit.opts(v)   # akademi avlusundaki çocuğun
+		return LazyFx.g("SchoolVisit").opts(v)   # akademi avlusundaki çocuğun
 	if String(v.role) == "kid" and v.interior:
 		return HomeLife.kid_opts(v)   # kendi çocuğun: dersler, oyun
 	if v.has_meta("world_person"):
@@ -221,7 +221,7 @@ static func options_for(v: Node) -> Array:
 
 ## Kulağı Delik (Sosyal): köylü gerçek bir yer söyler ve haritada işaretlenir; yoksa sıradan dedikodu
 static func _gossip_tip(nm: String) -> void:
-	if not Stats.has_unlock(pr(), "gossip") or Game.player == null:
+	if not LazyFx.g("Stats").has_unlock(pr(), "gossip") or Game.player == null:
 		Hud.dialog(nm, String(RUMORS.pick_random()), [])
 		return
 	var pm = Game.to_map(Game.player.global_position)
@@ -248,7 +248,7 @@ static func small_talk(v: Node) -> Array:
 	var nm = String(v.get("display")) if v.get("display") else "Köylü"
 	var opts = []
 	opts.append({"label": "Köyde neler oluyor?", "cb": func():
-		Hud.dialog(nm, Talk.village_news(), [
+		Hud.dialog(nm, LazyFx.g("Talk").village_news(), [
 			{"label": "İlginç, sağ ol.", "cb": func(): pass},
 			{"label": "Başka ne duydun?", "cb": func(): _gossip_tip(nm)}])})
 	opts.append({"label": "Buralarda yemek/konaklama nerede?", "cb": func():
@@ -301,9 +301,9 @@ static func tag(v: Node) -> void:
 static func greeting(id: String) -> String:
 	var f: Dictionary = all()[id]
 	var b = int(f["bond"])
-	var kk = KinTalk.key(f)   # anne / baba / kardeş arkadaş gibi konuşmaz
+	var kk = LazyFx.g("KinTalk").key(f)   # anne / baba / kardeş arkadaş gibi konuşmaz
 	if kk != "" and b < 0 and not is_rogue(f):
-		return KinTalk.hello(kk, String(pr().get("name", "")), true)
+		return LazyFx.g("KinTalk").hello(kk, String(pr().get("name", "")), true)
 	if b <= -30:
 		return HOSTILE.pick_random()
 	if b < 0:
@@ -316,8 +316,8 @@ static func greeting(id: String) -> String:
 		f["news"] = ""
 		return news
 	if is_rogue(f):
-		return Talk.rogue_hello(f)
-	return Talk.hello(f)   # ilişkiye (aile, eş, sevgili, çocuk, öğrenci, hoca, takım, dost) ve gerçek duruma göre
+		return LazyFx.g("Talk").rogue_hello(f)
+	return LazyFx.g("Talk").hello(f)   # ilişkiye (aile, eş, sevgili, çocuk, öğrenci, hoca, takım, dost) ve gerçek duruma göre
 
 
 ## Kişilik: sohbet konusu ve hediyeye tepkiyi belirler (3 sohbetten sonra öğrenirsin)
@@ -395,7 +395,7 @@ static func _ensure_persona(f: Dictionary) -> void:
 		# herkes iyi değildir ama çoğu iyidir: ~%6'sı gizlice hain ruhlu (eskiden %20: "herkes hain oldu")
 		f["loyalty"] = randi_range(5, 30) if randf() < 0.06 else randi_range(40, 100)
 		f["loyalty_v2"] = true
-		f["ambition"] = FriendPlots.AMBITIONS.pick_random()
+		f["ambition"] = LazyFx.g("FriendPlots").AMBITIONS.pick_random()
 		f["love"] = 0
 	# eski kayıtlar (%20 hain oranıyla zar atılmış): bir kez yeniden zar — yeni oranla
 	if not f.get("loyalty_v2", false):
@@ -420,29 +420,29 @@ static func trait_known(f: Dictionary) -> bool:
 
 ## Oyuncunun rütbesi (0 Akademi, 1 Genin, 2 Chūnin, 3 Jōnin...) dostun rütbesinden düşükse takıma girmez
 static func rank_ok(f: Dictionary) -> bool:
-	return Gear.eff_rank(pr()) >= int(f.get("rank", 0))   # kaçakta Bingo sınıfı eşdeğer rütbe
+	return LazyFx.g("Gear").eff_rank(pr()) >= int(f.get("rank", 0))   # kaçakta Bingo sınıfı eşdeğer rütbe
 
 
 static func _friend_opts(id: String, v: Node) -> Array:
 	var f: Dictionary = all()[id]
 	if v != null and (v.get_meta("bedside", false) or v.get_meta("captive", false)):
-		return KinDrama.opts(id, v)   # hastanede yatan / bağlı tutulan yakın: gündelik seçenekler çıkmaz
+		return LazyFx.g("KinDrama").opts(id, v)   # hastanede yatan / bağlı tutulan yakın: gündelik seçenekler çıkmaz
 	_ensure_persona(f)
 	var b = int(f["bond"])
 	var opts = []
 	var now = Time.get_unix_time_from_system()
 	var can_talk = now - float(f.get("last_talk", 0.0)) >= TALK_CD
 	if f.get("rogue", false) and String(f.get("status", "")) == "kaçak":
-		opts.append_array(RogueBonds.options(id))   # kaçak dostun kendi işleri (kamp ateşi, sake, ortak iş, geçmişi, sonlar)
-	opts.append_array(Kin.opts(id, v))   # baban / annen / kardeşin
-	opts.append_array(KinDrama.opts(id, v))   # hastanede yatan yakın: başucu
-	opts.append_array(Legacy.opts(id, v))   # mezun çocuğun: yolunu ona bırak
+		opts.append_array(LazyFx.g("RogueBonds").options(id))   # kaçak dostun kendi işleri (kamp ateşi, sake, ortak iş, geçmişi, sonlar)
+	opts.append_array(LazyFx.g("Kin").opts(id, v))   # baban / annen / kardeşin
+	opts.append_array(LazyFx.g("KinDrama").opts(id, v))   # hastanede yatan yakın: başucu
+	opts.append_array(LazyFx.g("Legacy").opts(id, v))   # mezun çocuğun: yolunu ona bırak
 	if f.get("child", false) and String(f.get("status", "")) == "":
 		opts.append({"label": "Sana bir teknik öğreteyim... (Güç %d)" % int(f.get("pupil_lv", 6)), "cb": func(): PupilSquad._teach_menu(id)})
 	opts.append_array(PupilSquad.options(id))   # öğrencin: göreve götür / teknik öğret / gelişimi
-	opts.append_array(FriendPlots.option(id))
+	opts.append_array(LazyFx.g("FriendPlots").option(id))
 	if String(f.get("squad_key", "")) == "sensei" and String(f.get("status", "")) == "" and int(pr().get("rank", 0)) == 1:
-		opts.append({"label": "Görev var mı, hocam?", "cb": func(): GeninSquad.request_mission()})
+		opts.append({"label": "Görev var mı, hocam?", "cb": func(): LazyFx.g("GeninSquad").request_mission()})
 		opts.append({"label": "Bana bir teknik öğretir misin?", "cb": func():
 			var sqn = (Engine.get_main_loop() as SceneTree).current_scene.find_child("GeninSquad", true, false)
 			if sqn and sqn.has_method("_lesson_menu"):
@@ -452,7 +452,7 @@ static func _friend_opts(id: String, v: Node) -> Array:
 			opts.append({"label": "Özür dile, arayı düzelt", "cb": func():
 				f["last_talk"] = Time.get_unix_time_from_system()
 				var ok = randf() < (0.6 if b > -60 else 0.25)
-				Hud.dialog(String(f["name"]), Talk.react(f, "sorry_ok" if ok else "sorry_no"), [])
+				Hud.dialog(String(f["name"]), LazyFx.g("Talk").react(f, "sorry_ok" if ok else "sorry_no"), [])
 				add_bond(id, 8 if ok else 0)})
 	elif can_talk:
 		opts.append({"label": "Sohbet et...", "cb": func(): _topic_dialog(id)})
@@ -469,7 +469,7 @@ static func _friend_opts(id: String, v: Node) -> Array:
 			begin_activity(id, "meal")})
 	if b > -60:
 		opts.append({"label": "Laf sok / kışkırt", "cb": func():
-			Hud.dialog(String(f["name"]), Talk.react(f, "provoke"), [])
+			Hud.dialog(String(f["name"]), LazyFx.g("Talk").react(f, "provoke"), [])
 			add_bond(id, -14)})
 	opts.append_array(_romance_opts(id))
 	if f.get("pupil", false):
@@ -493,15 +493,15 @@ static func _friend_opts(id: String, v: Node) -> Array:
 static func _topic_dialog(id: String) -> void:
 	var f: Dictionary = all()[id]
 	var opts = []
-	var kk = KinTalk.key(f) if not is_rogue(f) else ""
+	var kk = LazyFx.g("KinTalk").key(f) if not is_rogue(f) else ""
 	for tp in TOPICS:
 		var key = String(tp[0])
-		opts.append({"label": String(KinTalk.LABEL[kk][key]) if kk != "" else (tp[1] if is_rogue(f) else Talk.label(f, key, tp[1])), "cb": func():
+		opts.append({"label": String(LazyFx.g("KinTalk").LABEL[kk][key]) if kk != "" else (tp[1] if is_rogue(f) else LazyFx.g("Talk").label(f, key, tp[1])), "cb": func():
 			f["last_talk"] = Time.get_unix_time_from_system()
 			f["talks"] = int(f.get("talks", 0)) + 1
 			var tr: Dictionary = TRAITS[f["trait"]]
 			var kind = "like" if key in tr["like"] else ("hate" if key in tr["hate"] else "neutral")
-			var txt = (KinTalk.REPLY[kk] if kk != "" else REPLIES)[kind].pick_random()
+			var txt = (LazyFx.g("KinTalk").REPLY[kk] if kk != "" else REPLIES)[kind].pick_random()
 			if int(f["talks"]) == 3:
 				txt += "\n\n(Onu artık daha iyi tanıyorsun: %s)" % tr["desc"]
 			add_bond(id, {"like": 3, "neutral": 1, "hate": -5}[kind], true)
@@ -509,7 +509,7 @@ static func _topic_dialog(id: String) -> void:
 				Hud.dialog(String(f["name"]), txt, [])
 				return
 			# dost konuyu açar, sen cevap verirsin: kişiliğine göre hoşuna gider ya da gitmez
-			var tk: Array = Talk.rogue_topic(f, key) if is_rogue(f) else (Talk.kin_topic(f, kk, key) if kk != "" else Talk.topic(f, key))
+			var tk: Array = LazyFx.g("Talk").rogue_topic(f, key) if is_rogue(f) else (LazyFx.g("Talk").kin_topic(f, kk, key) if kk != "" else LazyFx.g("Talk").topic(f, key))
 			var ropts = []
 			for r in tk[1]:
 				var style = String(r[0])
@@ -518,7 +518,7 @@ static func _topic_dialog(id: String) -> void:
 					var ts: Dictionary = STYLE_TASTE.get(String(f["trait"]), {})
 					var res = "like" if style in ts.get("like", []) else ("hate" if style in ts.get("hate", []) else "ok")
 					add_bond(id, {"like": 2, "ok": 1, "hate": -2}[res])
-					Hud.dialog(String(f["name"]), String((KinTalk.REACT[kk] if kk != "" else STYLE_REACT)[res].pick_random()), [])})
+					Hud.dialog(String(f["name"]), String((LazyFx.g("KinTalk").REACT[kk] if kk != "" else STYLE_REACT)[res].pick_random()), [])})
 			Hud.dialog(String(f["name"]), "%s\n\n%s" % [txt, tk[0]], ropts)})
 	Hud.dialog(String(f["name"]), "Ne hakkında konuşalım?" + (("\n(%s)" % TRAITS[f["trait"]]["desc"]) if trait_known(f) else ""), opts)
 
@@ -543,20 +543,20 @@ static func _gift_dialog(id: String) -> void:
 			f["gift_times"] = recent
 			var bnd = int(f["bond"])
 			if recent.size() > 3:
-				Hud.dialog(String(f["name"]), Talk.react(f, "gift_spam"), [])
+				Hud.dialog(String(f["name"]), LazyFx.g("Talk").react(f, "gift_spam"), [])
 				add_bond(id, -3)
 				return
 			var mult = [1.0, 1.0, 0.5, 0.25][recent.size() - 1]
 			if idx == int(f["gift_like"]):
 				f["gift_known"] = idx
-				Hud.dialog(String(f["name"]), Talk.react(f, "gift_like", String(g[0])), [])
+				Hud.dialog(String(f["name"]), LazyFx.g("Talk").react(f, "gift_like", String(g[0])), [])
 				add_bond(id, maxi(1, int((6 if bnd >= 0 else 4) * mult)))
 				f["love"] = mini(100, int(f.get("love", 0)) + int(4 * mult))
 			elif idx == int(f["gift_hate"]):
-				Hud.dialog(String(f["name"]), Talk.react(f, "gift_hate", String(g[0])), [])
+				Hud.dialog(String(f["name"]), LazyFx.g("Talk").react(f, "gift_hate", String(g[0])), [])
 				add_bond(id, -4)
 			else:
-				Hud.dialog(String(f["name"]), Talk.react(f, "gift_ok" if bnd >= 0 else "gift_cold", String(g[0])), [])
+				Hud.dialog(String(f["name"]), LazyFx.g("Talk").react(f, "gift_ok" if bnd >= 0 else "gift_cold", String(g[0])), [])
 				add_bond(id, maxi(0, int(2 * mult)))})
 	Hud.dialog(String(f["name"]), "(Hangi hediyeyi vereceksin? Her hediyeden sonra bir süre beklemelisin.)", opts)
 
@@ -580,11 +580,11 @@ static func _romance_opts(id: String) -> Array:
 			f["romance"] = "flört"
 			f["love"] = maxi(int(f.get("love", 0)), 30)
 			log_event(f, "Ona ilgi duyduğunu söyledin")
-			Hud.dialog(String(f["name"]), Talk.react(f, "flirt_start"), [])
+			Hud.dialog(String(f["name"]), LazyFx.g("Talk").react(f, "flirt_start"), [])
 			Hud.banner("FLÖRT", "%s ile aranızda bir şeyler başlıyor..." % f["name"], Color(1, 0.65, 0.8))})
 		opts.append({"label": "Sadece arkadaş kalalım", "cb": func():
 			f["intent"] = "friend"
-			Hud.dialog(String(f["name"]), Talk.react(f, "friend_only"), [])})
+			Hud.dialog(String(f["name"]), LazyFx.g("Talk").react(f, "friend_only"), [])})
 	if b < 35 and romance_of(id) == "":
 		return opts
 	var rm = romance_of(id)
@@ -599,9 +599,9 @@ static func _romance_opts(id: String) -> Array:
 				var g = {"gururlu": 9, "utangaç": 7, "sıcakkanlı": 6, "neşeli": 5, "ciddi": 3, "alaycı": 1}.get(String(f.get("trait", "")), 4)
 				if b < 50:
 					g = int(g / 2)
-				g = int(round(g * (1.0 + Stats.skill(pr(), "love"))))   # Sosyal: Çekici / Karizma
+				g = int(round(g * (1.0 + LazyFx.g("Stats").skill(pr(), "love"))))   # Sosyal: Çekici / Karizma
 				f["love"] = mini(100, love + g)
-				Hud.dialog(String(f["name"]), Talk.react(f, "compliment"), [])
+				Hud.dialog(String(f["name"]), LazyFx.g("Talk").react(f, "compliment"), [])
 				Hud.msg("Gönül %+d (%d/100)" % [g, f["love"]], Color(1, 0.6, 0.75))
 				_flirt_stage(id)})
 		var night = Game.world and (Game.world.env.time_of_day < 0.24 or Game.world.env.time_of_day > 0.78)
@@ -620,11 +620,11 @@ static func _romance_opts(id: String) -> Array:
 						f["romance"] = "sevgili"
 						f["since"] = Time.get_unix_time_from_system()
 						log_event(f, "Seninle sevgili oldu")
-						Hud.dialog(String(f["name"]), Talk.react(f, "date_yes"), [])
+						Hud.dialog(String(f["name"]), LazyFx.g("Talk").react(f, "date_yes"), [])
 						Hud.banner("SEVGİLİ", "%s ile artık birliktesiniz ♥" % f["name"], Color(1, 0.55, 0.7))
 					else:
 						f["love"] = maxi(0, love - 8)
-						Hud.dialog(String(f["name"]), Talk.react(f, "date_no"), [])})
+						Hud.dialog(String(f["name"]), LazyFx.g("Talk").react(f, "date_no"), [])})
 			else:
 				opts.append({"label": "Çıkma teklifi (henüz değil: %s)" % ", ".join(need), "cb": func():
 					Hud.msg("Önce aranızdaki bağı ve gönlü büyüt: iltifat, gece yürüyüşü, sevdiği hediye, birlikte görev.", Color(1, 0.75, 0.8))})
@@ -653,7 +653,7 @@ static func _romance_opts(id: String) -> Array:
 			f["romance"] = ""
 			f["love"] = int(love / 3)
 			log_event(f, "Ondan ayrıldın")
-			Hud.dialog(String(f["name"]), Talk.react(f, "breakup"), [])
+			Hud.dialog(String(f["name"]), LazyFx.g("Talk").react(f, "breakup"), [])
 			add_bond(id, -40)})
 	elif rm == "eş":
 		opts.append_array(HomeLife.spouse_opts(id))
@@ -661,7 +661,7 @@ static func _romance_opts(id: String) -> Array:
 		if due <= 0.0:
 			opts.append({"label": "Çocuk sahibi olalım", "cb": func():
 				pr()["baby_due"] = Time.get_unix_time_from_system() + randf_range(480.0, 900.0)
-				Hud.dialog(String(f["name"]), Talk.react(f, "baby"), [])})
+				Hud.dialog(String(f["name"]), LazyFx.g("Talk").react(f, "baby"), [])})
 		opts.append({"label": "Boşan", "cb": func():
 			f["romance"] = ""
 			pr()["spouse"] = ""
@@ -683,7 +683,7 @@ static func _flirt_stage(id: String) -> void:
 static func _marry(id: String) -> void:
 	var f: Dictionary = all()[id]
 	if randf() > clampf((int(f.get("love", 0)) - 70) / 25.0, 0.4, 0.97):
-		Hud.dialog(String(f["name"]), Talk.react(f, "propose_no"), [])
+		Hud.dialog(String(f["name"]), LazyFx.g("Talk").react(f, "propose_no"), [])
 		return
 	if Wedding.plan(id):
 		# gerçek tören: konuklar toplanır, nikâhı Kage / klan büyüğü kıyar (evlilik törenin sonunda kesinleşir)
@@ -753,7 +753,7 @@ static func birth() -> Dictionary:
 		"clans": [my_clan, sp_clan].filter(func(c): return c != "" and c != "none"), "born": Time.get_unix_time_from_system()}
 	if not pr().has("children"):
 		pr()["children"] = []
-	KidLife.ensure(kid)   # kalıtım: saç / ten / göz / klan / doğa iki ebeveynden
+	LazyFx.g("KidLife").ensure(kid)   # kalıtım: saç / ten / göz / klan / doğa iki ebeveynden
 	pr()["children"].append(kid)
 	log_event(sp, "%s adında bir %s oldu (seninle)" % [kid["name"], "kızınız" if fem else "oğlunuz"])
 	return kid
@@ -826,9 +826,9 @@ static func _meet(v: Node, name_over := "", silent := false) -> void:
 	_ensure_persona(fs[id])
 	if silent:
 		if v.has_method("say"):
-			v.say(Talk.react(fs[id], "meet"), 5.0)
+			v.say(LazyFx.g("Talk").react(fs[id], "meet"), 5.0)
 	else:
-		Hud.dialog(given, Talk.react(fs[id], "meet"), [])
+		Hud.dialog(given, LazyFx.g("Talk").react(fs[id], "meet"), [])
 	Hud.msg("Yeni tanıdık: %s (Tab > İlişkiler)" % given, Color(0.6, 1.0, 0.7))
 
 
@@ -937,7 +937,7 @@ static func arch(f: Dictionary) -> Dictionary:
 			a["auto_lv"] = lv
 	a["name"] = "%s (%s)" % [f["name"], rank_label(f)]
 	a["respawn"] = false
-	Stats.npc_ninja(a, lv)   # tanıdık ninja: ortak eğri
+	LazyFx.g("Stats").npc_ninja(a, lv)   # tanıdık ninja: ortak eğri
 	if f.has("taught"):   # hocasının öğrettiği teknikler önce
 		var js: Array = (a.get("jutsu", []) as Array).duplicate()
 		for jid in f["taught"]:
@@ -955,7 +955,7 @@ static func arch(f: Dictionary) -> Dictionary:
 	L["band_style"] = "head"
 	L["village"] = Progress.home()
 	if int(f.get("rank", 0)) >= 1:
-		Outfits.village_set(L, Progress.home(), int(f.get("rank", 0)) >= 2)
+		LazyFx.g("Outfits").village_set(L, Progress.home(), int(f.get("rank", 0)) >= 2)
 	return a
 
 
@@ -975,7 +975,7 @@ func _life_event() -> void:
 		var r = randf()
 		_ensure_persona(f)
 		var teacher = String(f.get("role", "")) == "teacher"
-		var close = KinDrama.is_family(id)   # yakınların: sessiz haberle kaçmaz / ölmez (aile dramı sahneleri yönetir)
+		var close = LazyFx.g("KinDrama").is_family(id)   # yakınların: sessiz haberle kaçmaz / ölmez (aile dramı sahneleri yönetir)
 		if teacher or close:
 			defect_p = 0.0   # takım hocası köyünü bırakıp kaçmaz
 		if Orgs.is_rogue() and not is_rogue(f):
@@ -995,10 +995,10 @@ func _life_event() -> void:
 				log_event(f, "%s oldu" % RANKS[rank + 1])
 				f["news"] = "Duydun mu? Artık %s oldum! Yeleği giyince insan bir tuhaf oluyor." % RANKS[rank + 1]
 				Hud.msg("Haber: %s %s oldu!" % [f["name"], RANKS[rank + 1]], Color(0.6, 1.0, 0.75), 5.0)
-		elif r < defect_p + 0.33 and randf() < 0.4 and not spouse and rank >= 1 and romance_of(id) == "" and not likes_you(f) and not String(f.get("kin", "")) in ["baba", "anne"] and Lineage.gen_of(f) == 0 and Aging.person_years(f) >= Lineage.WED_AGE:   # evlilik: arada bir (eskiden olayların %12si)
+		elif r < defect_p + 0.33 and randf() < 0.4 and not spouse and rank >= 1 and romance_of(id) == "" and not likes_you(f) and not String(f.get("kin", "")) in ["baba", "anne"] and LazyFx.g("Lineage").gen_of(f) == 0 and Aging.person_years(f) >= LazyFx.g("Lineage").WED_AGE:   # evlilik: arada bir (eskiden olayların %12si)
 			var fem = String(f["look"].get("gender", "m")) == "f"
 			# kimi zaman tanıdığın başka bir dostla evlenir (ikisi de bekâr, karşı cins, aynı köy, sana gönlü olmayan)
-			var mates = fs.keys().filter(func(k): return k != id and String(fs[k].get("status", "")) == "" and int(fs[k].get("rank", 0)) >= 1 and Lineage.gen_of(fs[k]) == 0 and Aging.person_years(fs[k]) >= Lineage.WED_AGE 				and String(fs[k]["look"].get("gender", "m")) != String(f["look"].get("gender", "m")) and String(fs[k].get("village", "")) == String(f.get("village", "")) 				and romance_of(k) == "" and not likes_you(fs[k]) and not (fs[k].get("family", []) as Array).any(func(m): return String(m["rel"]) in ["Karısı", "Kocası"]))
+			var mates = fs.keys().filter(func(k): return k != id and String(fs[k].get("status", "")) == "" and int(fs[k].get("rank", 0)) >= 1 and LazyFx.g("Lineage").gen_of(fs[k]) == 0 and Aging.person_years(fs[k]) >= LazyFx.g("Lineage").WED_AGE 				and String(fs[k]["look"].get("gender", "m")) != String(f["look"].get("gender", "m")) and String(fs[k].get("village", "")) == String(f.get("village", "")) 				and romance_of(k) == "" and not likes_you(fs[k]) and not (fs[k].get("family", []) as Array).any(func(m): return String(m["rel"]) in ["Karısı", "Kocası"]))
 			if not mates.is_empty() and randf() < 0.5:
 				_wed(id, String(mates.pick_random()))
 				return
@@ -1044,7 +1044,7 @@ func _life_event() -> void:
 			f["news"] = "Hastaneden çıktım. Bir dahaki sefere kimseye sırtımı dönmeyeceğim."
 			Hud.msg("Haber: %s görevde yaralandı, hastanede yatıyor." % f["name"], Color(1, 0.75, 0.5))
 		elif r < defect_p + 0.81 and not close:
-			KinDrama.slain_far(id, "Bir görevde öldü")
+			LazyFx.g("KinDrama").slain_far(id, "Bir görevde öldü")
 		else:
 			var alive = fam.filter(func(m): return m.get("alive", true) and String(m["rel"]) in ["Babası", "Annesi"])
 			if not alive.is_empty():
@@ -1105,7 +1105,7 @@ func _defect(id: String) -> void:
 
 ## Dost gözünün önünde öldü: kalıcı. Mangekyō: yanında ölen dost da gözü uyandırır (yakın birini kendi elinle öldürmenin yanında).
 func _die_in_battle(id: String, n: Node) -> void:
-	KinDrama.slain(id, n, [], Game.player.global_position, "Senin yanında savaşırken öldü")
+	LazyFx.g("KinDrama").slain(id, n, [], Game.player.global_position, "Senin yanında savaşırken öldü")
 
 
 
@@ -1226,7 +1226,7 @@ func _npc_look(id: String) -> Dictionary:
 	var f: Dictionary = all()[id]
 	var lk = look_of(f)
 	if int(f.get("rank", 0)) >= 1:
-		Outfits.village_set(lk, Progress.home(), int(f.get("rank", 0)) >= 2)
+		LazyFx.g("Outfits").village_set(lk, Progress.home(), int(f.get("rank", 0)) >= 2)
 	lk["keep_hair"] = true
 	return lk
 
@@ -1339,20 +1339,20 @@ static func where_text(id: String) -> String:
 		return "?"
 	var st = String(f.get("status", ""))
 	if st == "öldü":
-		return Lang.t("öldü")
+		return LazyFx.g("Lang").t("öldü")
 	if st == "kaçak":
-		return Lang.t("kaçak")
+		return LazyFx.g("Lang").t("kaçak")
 	if st == "hapiste":
-		return Lang.t("hapiste")
+		return LazyFx.g("Lang").t("hapiste")
 	if f.get("party", false):
-		return Lang.t("takımında, yanında")
+		return LazyFx.g("Lang").t("takımında, yanında")
 	if f.get("abducted", false):
-		return Lang.t("kaçırıldı")
-	if Orgs.is_rogue() and st == "" and KinDrama.is_family(id):
-		return Lang.t("köyde — gece gizlice evine uğrayabilirsin")
+		return LazyFx.g("Lang").t("kaçırıldı")
+	if Orgs.is_rogue() and st == "" and LazyFx.g("KinDrama").is_family(id):
+		return LazyFx.g("Lang").t("köyde — gece gizlice evine uğrayabilirsin")
 	if not available(f):
-		return Lang.t("hastanede") if f.has("injury") else Lang.t("köy dışında (görev)")
-	return Lang.t(String(JOB_NAMES.get(job_of(f), "Evde")).to_lower()) + Lang.t("  (tıkla: haritada göster)")
+		return LazyFx.g("Lang").t("hastanede") if f.has("injury") else LazyFx.g("Lang").t("köy dışında (görev)")
+	return LazyFx.g("Lang").t(String(JOB_NAMES.get(job_of(f), "Evde")).to_lower()) + LazyFx.g("Lang").t("  (tıkla: haritada göster)")
 
 
 const JOB_NAMES := {"nöbet": "Kapıda nöbette", "antrenman": "Antrenmanda", "evde": "Evde", "görev": "Görevde (köy dışında)"}
@@ -1379,7 +1379,7 @@ static func job_of(f: Dictionary) -> String:
 static func _household(f: Dictionary) -> bool:
 	var ids = [spouse_id()]
 	for rel in ["anne", "baba", "kardeş"]:
-		ids.append(Kin.id_of(rel))
+		ids.append(LazyFx.g("Kin").id_of(rel))
 	for id in ids:
 		if id != "" and all().has(id) and is_same(all()[id], f):
 			return true
@@ -1418,15 +1418,15 @@ func _lair_props(n: Node3D) -> void:
 	var b = MB.new()
 	var gy = func(x: float, z: float) -> float: return Game.ground_height(n.global_position.x + x, n.global_position.z + z) - n.global_position.y
 	# çadır ateşe bakar; ateş, tencere sehpası, sandık, kütük oturak, kurumaya asılmış bez
-	CampKit.tent(b, Transform3D(Basis(Vector3.UP, deg_to_rad(60.0)), Vector3(-3.6, gy.call(-3.6, -2.4), -2.4)), Color(0.5, 0.45, 0.35))
-	CampKit.campfire(b, Transform3D(Basis(), Vector3(1.6, gy.call(1.6, 0.6), 0.6)))
+	LazyFx.g("CampKit").tent(b, Transform3D(Basis(Vector3.UP, deg_to_rad(60.0)), Vector3(-3.6, gy.call(-3.6, -2.4), -2.4)), Color(0.5, 0.45, 0.35))
+	LazyFx.g("CampKit").campfire(b, Transform3D(Basis(), Vector3(1.6, gy.call(1.6, 0.6), 0.6)))
 	b.add("box", Vector3(-1.4, gy.call(-1.4, 2.4) + 0.3, 2.4), Vector3(0.7, 0.6, 0.5), Color(0.45, 0.32, 0.2), Vector3(0, 20, 0))
 	b.add("box", Vector3(-1.4, gy.call(-1.4, 2.4) + 0.62, 2.4), Vector3(0.74, 0.06, 0.54), Color(0.35, 0.25, 0.15), Vector3(0, 20, 0))
 	b.add("cyl", Vector3(3.6, gy.call(3.6, -0.2) + 0.22, -0.2), Vector3(0.44, 1.5, 0.44), Color(0.42, 0.3, 0.18), Vector3(90, 70, 0), 8)
 	var mi = MeshInstance3D.new()
-	mi.mesh = b.build(Props.toon())
+	mi.mesh = b.build(LazyFx.g("Props").toon())
 	root.add_child(mi)
-	CampKit.fire_fx(root, root.global_position + Vector3(1.6, gy.call(1.6, 0.6), 0.6))
+	LazyFx.g("CampKit").fire_fx(root, root.global_position + Vector3(1.6, gy.call(1.6, 0.6), 0.6))
 
 
 ## Tanıdığın klanı kayda yazılır: dünyadaki gerçek kişiden, yoksa soyadından (eskiden yol / takım tanışmalarında boş kalıyor,
@@ -1468,7 +1468,7 @@ func _world_tick(dt: float) -> void:
 		if not cf.has("clan_ck"):
 			fill_clan(cf)
 	_funeral_tick()
-	RogueBonds.tick()
+	LazyFx.g("RogueBonds").tick()
 	var now = Time.get_unix_time_from_system()
 	var pp = Game.player.global_position
 	# işler değişir
@@ -1541,8 +1541,8 @@ func _world_tick(dt: float) -> void:
 	if _enc_t <= 0.0 and fights.is_empty():
 		_enc_t = randf_range(600.0, 1000.0)
 		# olay sıklığı tanıdık sayısıyla orantılı: 5 kişilik çevrede herkes sırayla pusuya düşmez (20 tanıdıkta eski sıklık)
-		if Crime._village_at(pp) == "" and randf() < clampf(all().size() / 20.0, 0.1, 1.0):
-			var onm = all().keys().filter(func(k): return String(all()[k].get("status", "")) == "" and job_of(all()[k]) == "görev" and not all()[k].get("party", false) and not KinDrama.is_family(String(k)))
+		if LazyFx.g("Crime")._village_at(pp) == "" and randf() < clampf(all().size() / 20.0, 0.1, 1.0):
+			var onm = all().keys().filter(func(k): return String(all()[k].get("status", "")) == "" and job_of(all()[k]) == "görev" and not all()[k].get("party", false) and not LazyFx.g("KinDrama").is_family(String(k)))
 			if not onm.is_empty():
 				var id2 = String(onm.pick_random())
 				# pusu tanıdığın GERÇEKTEN bulunduğu yerde olur (köyünden çıkan yolun üstü); yanına ışınlanmaz.
@@ -1553,7 +1553,7 @@ func _world_tick(dt: float) -> void:
 					ambush(id2, ["bandit", "rogue"].pick_random(), randi_range(3, 5), "Yol pususu", true, sp2)
 				elif randf() < 0.3:
 					all()[id2]["away"] = now + 600.0
-					Friends.log_event(all()[id2], "Görev yolunda pusuya düştü, yaralı döndü")
+					LazyFx.g("Friends").log_event(all()[id2], "Görev yolunda pusuya düştü, yaralı döndü")
 					all()[id2]["news"] = "Görev yolunda pusuya düştük. Ucuz atlattım, birkaç gün dinleneceğim."
 	# arka planda ilerleyen planlar
 	if not quiet_now:
@@ -1571,19 +1571,19 @@ func _plot_tick() -> void:
 	if not cands.is_empty() and randf() < 0.35:
 		var id = String(cands.pick_random())
 		_ensure_persona(fs[id])
-		FriendPlots.start(id)
+		LazyFx.g("FriendPlots").start(id)
 		return
 	for id in fs:
 		var f: Dictionary = fs[id]
 		var p: Dictionary = f.get("plot", {})
 		if p.is_empty() or String(p.get("stage", "")) == "done" or String(f.get("status", "")) != "":
 			continue
-		var sc = FriendPlots.scenario(String(p["id"]))
+		var sc = LazyFx.g("FriendPlots").scenario(String(p["id"]))
 		if sc.is_empty() or sc["good"]:
 			# iyi planı sen dinlemezsen bir süre sonra kendi başına yapar
 			if Time.get_unix_time_from_system() - float(p.get("t", 0.0)) > 1800.0:
 				p["stage"] = "done"
-				Friends.log_event(f, "%s planını kendi başına yürüttü" % sc.get("title", ""))
+				LazyFx.g("Friends").log_event(f, "%s planını kendi başına yürüttü" % sc.get("title", ""))
 			continue
 		if Time.get_unix_time_from_system() - float(p.get("t", 0.0)) < 600.0:
 			continue
@@ -1596,7 +1596,7 @@ func _plot_tick() -> void:
 			_kage_order(id, sc, true)
 		elif r < 0.72:
 			p["stage"] = "done"
-			FriendPlots._outcome(id, sc, false)
+			LazyFx.g("FriendPlots")._outcome(id, sc, false)
 		return
 
 
@@ -1629,11 +1629,11 @@ func _kage_order(id: String, sc: Dictionary, urgent: bool) -> void:
 func _anbu_handles(id: String, sc: Dictionary, urgent: bool) -> void:
 	var f: Dictionary = all()[id]
 	if urgent and randf() < 0.5:
-		FriendPlots._outcome(id, sc, false)   # yetişemediler: plan başarılı oldu (ya da patladı)
+		LazyFx.g("FriendPlots")._outcome(id, sc, false)   # yetişemediler: plan başarılı oldu (ya da patladı)
 	else:
 		f["status"] = "hapiste"
 		f["party"] = false
-		Friends.log_event(f, "ANBU tarafından tutuklandı")
+		LazyFx.g("Friends").log_event(f, "ANBU tarafından tutuklandı")
 		Hud.msg("ANBU %s'i tutukladı." % f["name"], Color(0.8, 0.85, 1.0), 5.0)
 
 
@@ -1645,7 +1645,7 @@ func order_done(m: Dictionary, ok: bool) -> void:
 	var f: Dictionary = all()[id]
 	f["status"] = "öldü" if randf() < 0.6 else "hapiste"
 	f["party"] = false
-	Friends.log_event(f, "Kage'nin emriyle onu durdurdun (%s)" % ("öldü" if f["status"] == "öldü" else "tutuklandı"))
+	LazyFx.g("Friends").log_event(f, "Kage'nin emriyle onu durdurdun (%s)" % ("öldü" if f["status"] == "öldü" else "tutuklandı"))
 	Missions._rep(String(f.get("village", Progress.home())), 25)
 
 
@@ -1739,14 +1739,14 @@ func _fights_tick(dt: float) -> void:
 				Game.profile.erase("waypoint")
 			if alive.is_empty() and not ally_dead:
 				add_bond(id, 10)
-				Friends.log_event(f, "%s: birlikte kazandınız" % fg["title"])
+				LazyFx.g("Friends").log_event(f, "%s: birlikte kazandınız" % fg["title"])
 				Hud.msg("%s: \"Sen olmasan bitmiştim. Borçluyum.\"" % f["name"], Color(0.6, 1.0, 0.75), 5.0)
 			elif ally_dead or (far and randf() < 0.35):
 				if randf() < 0.15:
-					KinDrama.slain(id, al, fg["foes"], fg["at"], "%s sırasında öldü" % fg["title"])
+					LazyFx.g("KinDrama").slain(id, al, fg["foes"], fg["at"], "%s sırasında öldü" % fg["title"])
 				else:
 					f["away"] = Time.get_unix_time_from_system() + 600.0
-					Friends.log_event(f, "%s: ağır yaralandı" % fg["title"])
+					LazyFx.g("Friends").log_event(f, "%s: ağır yaralandı" % fg["title"])
 			if is_instance_valid(al):
 				FX.smoke_puff(al.global_position + Vector3.UP, 0.6, 8)
 				al.queue_free()
@@ -1758,7 +1758,7 @@ func betray_attack(id: String) -> void:
 	f["party"] = false
 	f["bond"] = -100
 	f["status"] = "kaçak"
-	Friends.log_event(f, "Sana pusu kurdu")
+	LazyFx.g("Friends").log_event(f, "Sana pusu kurdu")
 	var e = _spawn(id)
 	e.team = "enemy"
 	e.set_meta("teammate", false)
@@ -1780,7 +1780,7 @@ func theft_dialog(id: String) -> void:
 			f["party"] = false
 			Progress.add_ryo(amt)
 			f["stolen"] = 0
-			Friends.log_event(f, "Hırsızlıktan tutuklandı")
+			LazyFx.g("Friends").log_event(f, "Hırsızlıktan tutuklandı")
 			Hud.banner("TUTUKLANDI", "%s yakalandı; çaldığı %d Ryō sana geri verildi." % [f["name"], amt], Color(0.7, 0.85, 1.0))})
 	opts.append({"label": "Peşine düş (kavgayla geri al)", "cb": func(): _chase_thief(id)})
 	opts.append({"label": "Bırak gitsin", "cb": func(): pass})
@@ -1815,7 +1815,7 @@ func _betrayal_event(id: String) -> void:
 	# sevdiği kişiye kazık atmaz: karanlık işine ORTAK olmayı teklif eder (kötülükte anlaşabilirsiniz)
 	if int(f.get("bond", 0)) >= 30:
 		if not f.has("plot"):
-			FriendPlots.start(id)
+			LazyFx.g("FriendPlots").start(id)
 		return
 	var r = randf()
 	if f.get("party", false) and r < 0.35:
@@ -1829,20 +1829,20 @@ func _betrayal_event(id: String) -> void:
 		keep_peak(f)
 		f["bond"] = mini(int(f["bond"]), -40)
 		f["party"] = false
-		Friends.log_event(f, "Kesenden %d Ryō çaldı" % amt)
+		LazyFx.g("Friends").log_event(f, "Kesenden %d Ryō çaldı" % amt)
 		if amt > 0:   # eskiden sessizdi: para kendi kendine azalıyor sanılıyordu
 			Hud.msg("Kesen hafifledi... %s %d Ryō'nu çalıp ortadan kayboldu!" % [f["name"], amt], Color(1, 0.45, 0.4), 8.0)
-			Journal.add("%s kesemden %d Ryō çaldı." % [f["name"], amt], "milestone")
+			LazyFx.g("Journal").add("%s kesemden %d Ryō çaldı." % [f["name"], amt], "milestone")
 		Hud.banner("HIRSIZLIK", "%s kesenden %d Ryō çalıp ortadan kayboldu!" % [f["name"], amt], Color(1, 0.5, 0.4))
 		f["stolen"] = int(f.get("stolen", 0)) + amt
 		theft_dialog(id)
 	else:
 		Missions._rep(Progress.home(), -15)
-		if Crime.heat() > 0:
-			Game.profile["flags"]["crime_heat"] = mini(100, Crime.heat() + 20)
+		if LazyFx.g("Crime").heat() > 0:
+			Game.profile["flags"]["crime_heat"] = mini(100, LazyFx.g("Crime").heat() + 20)
 		keep_peak(f)
 		f["bond"] = mini(int(f["bond"]), -30)
-		Friends.log_event(f, "Seni Kage'ye şikâyet etti")
+		LazyFx.g("Friends").log_event(f, "Seni Kage'ye şikâyet etti")
 		Hud.banner("İHBAR", "%s seni Kage'ye şikâyet etmiş (−15 itibar)." % f["name"], Color(1, 0.55, 0.45))
 
 
@@ -1861,7 +1861,7 @@ static func on_mission_done(rank: String) -> void:
 				Hud.banner("ÖĞRENCİN %s OLDU" % rank_label(f0).to_upper(), "%s seninle çıktığı görevlerde büyüdü." % f0["name"], Color(0.7, 0.9, 1.0))
 		var r = randf()
 		if r < float(risk[0]):
-			KinDrama.slain_far(String(id), "%s-rank görevde hayatını kaybetti" % rank)
+			LazyFx.g("KinDrama").slain_far(String(id), "%s-rank görevde hayatını kaybetti" % rank)
 			continue
 		elif r < float(risk[0]) + float(risk[1]):
 			injure(id, "görevde yaralandı")
@@ -2082,9 +2082,9 @@ func _act_arrive() -> void:
 			if act["kind"] == "sake":   # kaçakla handa: başını eğik tutar, kapıyı kollar
 				seq = [[0.6, "Kampai. ...Kapıya göz kulak ol, olur mu?"], [3.6, "Hanın sahibi beni tanımıyor. Tanısaydı çoktan ihbar ederdi."],
 					[7.4, "Köydeyken böyle bir akşam sıradandı. Şimdi lüks."], [10.6, "Hesabı sen öde, ben burada yokum. Hah."]]
-			var mk = KinTalk.key(f) if not is_rogue(f) else ""
+			var mk = LazyFx.g("KinTalk").key(f) if not is_rogue(f) else ""
 			if mk != "" and not date and act["kind"] != "sake":   # aile sofrası: kendi sözleri
-				var ml: Array = KinTalk.MEAL[mk]
+				var ml: Array = LazyFx.g("KinTalk").MEAL[mk]
 				seq = [[0.6, ml[0]], [3.4, topic if String(f.get("news", "")) != "" else ml[1]], [7.4, ml[2]], [10.6, ml[3]]]
 			for s in seq:
 				var tt = float(s[0])
@@ -2177,7 +2177,7 @@ func _spar_end(won: bool) -> void:
 	add_bond(id, 3 if TRAITS.get(String(f.get("trait", "")), {}).get("like", []).has("antrenman") else 2)
 	log_event(f, "Antrenman alanında idman yaptınız (%s)" % ("sen kazandın" if won else "o kazandı"))
 	PupilSquad.on_spar(id, won)
-	Kin.on_spar(id, won)
+	LazyFx.g("Kin").on_spar(id, won)
 	act["stage"] = "done"
 	await get_tree().create_timer(4.0).timeout
 	_act_end("")
@@ -2255,7 +2255,7 @@ func _funeral_tick() -> void:
 					Hud.msg("Kulağına bir haber çalındı: %s hayatını kaybetmiş. Kaçak olduğun için cenazesine çağrılmadın." % String(f["name"]), Color(0.8, 0.8, 0.85), 7.0)
 			elif int(f.get("bond", 0)) >= 0:
 				# ulak seni törene çağırır (isteğe bağlı)
-				var gp = Graveyard.pos_of(String(f.get("village", Progress.home())))
+				var gp = LazyFx.g("Graveyard").pos_of(String(f.get("village", Progress.home())))
 				var nm = String(f["name"])
 				Hud.dialog("Ulak", "%s hayatını kaybetti... Herkes %s mezarlığında toplanıyor; sen geldiğinde tören başlayacak. %s da konuşma yapacak. Ailesi seni de orada görmek istiyor." % [nm, vn, Kage.kage_name(String(f.get("village", Progress.home())))], [
 					{"label": "Katılacağım", "cb": func():
@@ -2265,7 +2265,7 @@ func _funeral_tick() -> void:
 					{"label": "Katılamam", "cb": func(): Hud.msg("Tören sensiz yapılacak.", Color(0.8, 0.8, 0.85))}])
 		elif funeral.is_empty() and now >= float(f["died_t"]) + 3.0:
 			# mezarlığa varınca tören hemen başlar (eskiden ölümden 4 dk sonrasını bekliyordu: erken gelen boş mezarlıkta dikiliyordu)
-			var gp2 = Graveyard.pos_of(String(f.get("village", Progress.home())))
+			var gp2 = LazyFx.g("Graveyard").pos_of(String(f.get("village", Progress.home())))
 			if gp2 != Vector3.INF and pp.distance_to(gp2) < 40.0 and not Hud.dialog_open() and not Orgs.is_rogue():   # kaçak törene katılamaz
 				_start_funeral(id)
 			elif now > float(f["died_t"]) + 2400.0:
@@ -2279,7 +2279,7 @@ func _graves_tick() -> void:
 		var vid = String(v["id"])
 		var near = Game.to_map(pp).distance_to(Vector2(float(v["x"]), float(v["y"]))) < float(v["r"]) + 600.0
 		if near and not graves.has(vid):
-			var g = Graveyard.new()
+			var g = LazyFx.g("Graveyard").new()
 			get_tree().current_scene.add_child(g)
 			g.build(vid)
 			graves[vid] = g
@@ -2308,7 +2308,7 @@ func _bury(id: String, attended: bool) -> void:
 func _start_funeral(id: String) -> void:
 	var f: Dictionary = all()[id]
 	var vid = String(f.get("village", Progress.home()))
-	var gp = Graveyard.pos_of(vid)
+	var gp = LazyFx.g("Graveyard").pos_of(vid)
 	var people = []
 	var monk = Villager.new()
 	monk.role = "guard"
@@ -2320,7 +2320,7 @@ func _start_funeral(id: String) -> void:
 	var kg = Villager.new()
 	kg.role = "guard"
 	kg.display_override = Kage.kage_name(vid)
-	kg.look_extra = KageAttire.look(vid)
+	kg.look_extra = LazyFx.g("KageAttire").look(vid)
 	kg.look_extra["village"] = vid
 	people.append([kg, Vector3(2.2, 0, -3.6), "Kage"])
 	var mourners = []
@@ -2346,7 +2346,7 @@ func _start_funeral(id: String) -> void:
 	guests.shuffle()
 	guests = guests.slice(0, 4)
 	while guests.size() < 7:
-		var lk = Outfits.roll(["chunin", "chunin", "jonin"].pick_random(), vid)
+		var lk = LazyFx.g("Outfits").roll(["chunin", "chunin", "jonin"].pick_random(), vid)
 		lk["gender"] = ["m", "m", "f"].pick_random()
 		lk["age"] = "adult"
 		guests.append(["%s ninjası" % String(Game.village(vid).get("name", "Köy")), lk])
@@ -2360,7 +2360,7 @@ func _start_funeral(id: String) -> void:
 		var n = pz[0]
 		get_tree().current_scene.add_child(n)
 		if pz[2] == "Kage":
-			KageAttire.hat(n.model, vid)
+			LazyFx.g("KageAttire").hat(n.model, vid)
 		var q = gp + pz[1]
 		q.y = Game.ground_height(q.x, q.z)
 		n.global_position = q
@@ -2512,10 +2512,10 @@ func graduation() -> void:
 			kid["grad"] = true
 			var fem = String(kid.get("gender", "m")) == "f"
 			var cl: Array = kid.get("clans", [])
-			var lk = KidLife.look(kid, "teen")   # büyümüş hâli: aynı saç / ten / göz, klanının genin kıyafeti
+			var lk = LazyFx.g("KidLife").look(kid, "teen")   # büyümüş hâli: aynı saç / ten / göz, klanının genin kıyafeti
 			cl = kid.get("clans", [])
 			var id = _make_friend(String(kid["name"]), String(cl[0]) if not cl.is_empty() else "", lk, 80, "Senin %s" % ("kızın" if fem else "oğlun"))
-			KidLife.graduate_into(kid, all()[id])   # doğası, verdiğin derslerle kazandığı Güç, klan gözü
+			LazyFx.g("KidLife").graduate_into(kid, all()[id])   # doğası, verdiğin derslerle kazandığı Güç, klan gözü
 			all()[id]["loyalty"] = 95
 			all()[id]["family"] = [{"rel": "Ebeveyni", "name": "%s (sen)" % pr().get("name", ""), "alive": true}]
 			if kid.get("sib", false):   # miras sonrası: evdeki küçük kardeşin mezun oldu
@@ -2525,7 +2525,7 @@ func graduation() -> void:
 				all()[id]["family"] = [{"rel": "Kardeşi", "name": "%s (sen)" % pr().get("name", ""), "alive": true}]
 			log_event(all()[id], "Akademiden mezun oldu! Alın koruyucusunu sana gösterdi")
 			names.append("%s (senin %s)" % [kid["name"], "kızın" if fem else "oğlun"])
-	names.append_array(Lineage.graduate_all(now, CHILD_GROW))   # torunların: gerçek tanıdık kaydı olur
+	names.append_array(LazyFx.g("Lineage").graduate_all(now, CHILD_GROW))   # torunların: gerçek tanıdık kaydı olur
 	for id in all():
 		var f: Dictionary = all()[id]
 		for m in f.get("family", []):
@@ -2727,16 +2727,16 @@ func _process(dt: float) -> void:
 		_grad_tick(dt)
 		_act_tick(dt)
 	if _active() and not pr().is_empty():
-		Kin.ensure()
-		Kin.tick(dt)
-		KinDrama.tick(dt)
+		LazyFx.g("Kin").ensure()
+		LazyFx.g("Kin").tick(dt)
+		LazyFx.g("KinDrama").tick(dt)
 		if not Missions.quiet():
-			RogueKin.tick(dt)
+			LazyFx.g("RogueKin").tick(dt)
 	if _active() and not all().is_empty():
 		_baby_tick()
 		HomeLife.tick(dt)
 		Wedding.tick(dt)
-		SchoolVisit.tick()
+		LazyFx.g("SchoolVisit").tick()
 		_world_tick(dt)
 		if not Missions.quiet():
 			life_t -= dt
@@ -2744,7 +2744,7 @@ func _process(dt: float) -> void:
 		if life_t <= 0.0:
 			life_t = randf_range(240.0, 480.0)
 			_life_event()
-			Lineage.step()   # çocukların / torunların: yetişkin olunca evlenir, çocukları olur
+			LazyFx.g("Lineage").step()   # çocukların / torunların: yetişkin olunca evlenir, çocukları olur
 	t -= dt
 	if t > 0.0:
 		return
@@ -2810,7 +2810,7 @@ func _circle_tick(dt: float) -> void:
 	if Orgs.is_rogue() or randf() > 1.0 - n_known / 40.0 or Hud.dialog_open():
 		return
 	var pp = Game.player.global_position
-	if Crime._village_at(pp) != Progress.home():
+	if LazyFx.g("Crime")._village_at(pp) != Progress.home():
 		return
 	var me = pr()
 	var best: Node = null
@@ -2847,7 +2847,7 @@ func _unhandled_input(ev: InputEvent) -> void:
 			var fid = String(m["id"])
 			var opts = _friend_opts(fid, null)
 			opts.append({"label": "İhanet et (saldır!)", "cb": func():
-				var c = Crime.inst()
+				var c = LazyFx.g("Crime").inst()
 				if c:
 					members.erase(m)
 					c.betray(n, fid)})

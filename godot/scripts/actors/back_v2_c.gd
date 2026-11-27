@@ -217,7 +217,7 @@ static func _prof(mb, a: Vector3, b: Vector3, prof: Array, col, seg := 10, sub :
 	for q in prof:
 		pts.append(a.lerp(b, q.x))
 		rad.append(Vector2(q.y, q.z) if q is Vector3 else q.y)
-	Loft.tube(mb, pts, rad, col, seg, sub, cap_a, cap_b, fn, up)
+	LazyFx.g("Loft").tube(mb, pts, rad, col, seg, sub, cap_a, cap_b, fn, up)
 
 
 static func _smooth(pts: Array, closed: bool, sub: int) -> Array:
@@ -230,7 +230,7 @@ static func _smooth(pts: Array, closed: bool, sub: int) -> Array:
 		var p2 = pts[(i + 1) % n]
 		var p3 = pts[(i + 2) % n] if closed or i + 2 < n else pts[n - 1]
 		for s in sub:
-			out.append(Loft._cr(p0, p1, p2, p3, float(s) / sub))
+			out.append(LazyFx.g("Loft")._cr(p0, p1, p2, p3, float(s) / sub))
 	if closed:
 		out.append(out[0])
 	else:

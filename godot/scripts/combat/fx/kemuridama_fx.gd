@@ -136,7 +136,7 @@ static func _ball_mesh() -> Mesh:
 			lift += 0.0006
 		for tip in [[Vector3(0.1, 0.17, 0.02), 35.0], [Vector3(0.15, -0.09, 0.05), -60.0]]:   # yırtık kâğıt uçları
 			b.add("prism", tip[0], Vector3(0.05, 0.1, 0.006), paper, Vector3(0, 0, -float(tip[1])))
-		return b.build(Props.toon()))
+		return b.build(LazyFx.g("Props").toon()))
 
 
 static func _ribbon_mesh() -> Mesh:

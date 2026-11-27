@@ -87,14 +87,14 @@ static func player_years() -> float:
 
 ## Ailenin doğum anını senin kaymanla aynı miktarda kaydırır
 static func _kin_shift(shift: float) -> void:
-	for f in Friends.all().values():
+	for f in LazyFx.g("Friends").all().values():
 		if f is Dictionary and String(f.get("kin", "")) in ["baba", "anne", "kardeş"] and f.has("born_t"):
 			f["born_t"] = float(f["born_t"]) - shift
 
 
 ## Eski kayıt onarımı: ağabey/abla senden büyük, küçük kardeş küçük, anne-baba en az 20 yaş büyük
 static func _kin_repair(me: float) -> void:
-	for f in Friends.all().values():
+	for f in LazyFx.g("Friends").all().values():
 		if not (f is Dictionary) or not f.has("born_t"):
 			continue
 		var k = String(f.get("kin", ""))
@@ -187,7 +187,7 @@ static func tick(dt: float) -> void:
 		return
 	var y = player_years()
 	if y >= lifespan() - 3.0:
-		Legacy.old_age(y, lifespan())
+		LazyFx.g("Legacy").old_age(y, lifespan())
 	var sh = player_shape()
 	var m = pl.model
 	if stage(y) != String(_shown["stage"]):

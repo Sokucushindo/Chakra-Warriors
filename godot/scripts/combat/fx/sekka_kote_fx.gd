@@ -25,7 +25,7 @@ void fragment() {
 static func model(b: MB) -> void:
 	var p = Color(0.3, 0.24, 0.42)
 	var d = Color(0.18, 0.14, 0.26)
-	Loft.tube(b, [Vector3(0, 0, -0.13), Vector3(0, 0, 0.02), Vector3(0, 0, 0.15), Vector3(0, 0, 0.27)], [0.058, 0.062, 0.072, 0.05], p, 12, 2)
+	LazyFx.g("Loft").tube(b, [Vector3(0, 0, -0.13), Vector3(0, 0, 0.02), Vector3(0, 0, 0.15), Vector3(0, 0, 0.27)], [0.058, 0.062, 0.072, 0.05], p, 12, 2)
 	b.add("cyl", Vector3(0, 0, -0.12), Vector3(0.13, 0.03, 0.13), d, Vector3(90, 0, 0), 12)
 	var c = Vector3(0.07, 0, 0.17)
 	b.add("cyl", c, Vector3(0.1, 0.012, 0.1), d, Vector3(0, 0, 90), 14)
@@ -41,7 +41,7 @@ static func attach(node: Node3D) -> void:
 	var m = MeshInstance3D.new()
 	var b = MB.new()
 	b.add("cyl", Vector3.ZERO, Vector3(0.086, 0.01, 0.086), Color(0.3, 0.24, 0.42), Vector3(0, 0, 90), 14)
-	m.mesh = b.build(Props.toon())
+	m.mesh = b.build(LazyFx.g("Props").toon())
 	m.position = Vector3(0.083, 0, 0.17)
 	node.add_child(m)
 	node.set_meta("sk_lid", m)
@@ -116,7 +116,7 @@ static func _rock() -> Mesh:
 	return Yk.mesh("sekka_kaya", func():
 		var b = MB.new()
 		b.add("boulder", Vector3.ZERO, Vector3.ONE, Color(0.4, 0.38, 0.4), Vector3.ZERO, 2)
-		return b.build(Props.toon()))
+		return b.build(LazyFx.g("Props").toon()))
 
 
 static func _fly(who: Node3D, from: Vector3, to: Vector3, s: float, delay: float, t: float, info: Dictionary, r: float) -> void:

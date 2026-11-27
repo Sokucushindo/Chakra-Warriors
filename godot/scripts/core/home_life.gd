@@ -67,17 +67,17 @@ static func night() -> bool:
 
 ## Eşin şu an evde mi (gece ya da "evde" işi; görevde / takımda / kaçak değilse)
 static func spouse_home() -> bool:
-	var id = Friends.spouse_id()
-	if id == "" or not Friends.all().has(id):
+	var id = LazyFx.g("Friends").spouse_id()
+	if id == "" or not LazyFx.g("Friends").all().has(id):
 		return false
 	if Orgs.is_rogue():
-		return RogueKin.at_home(id)   # köyde kalan eşin: yalnız gece, gizlice
-	var f: Dictionary = Friends.all()[id]
-	if not Friends.available(f) or f.get("party", false) or String(f.get("status", "")) != "":
+		return LazyFx.g("RogueKin").at_home(id)   # köyde kalan eşin: yalnız gece, gizlice
+	var f: Dictionary = LazyFx.g("Friends").all()[id]
+	if not LazyFx.g("Friends").available(f) or f.get("party", false) or String(f.get("status", "")) != "":
 		return false
 	if float(pr().get("birth_wait", 0.0)) > 0.0:
 		return true   # doğum: evde
-	var job = Friends.job_of(f)
+	var job = LazyFx.g("Friends").job_of(f)
 	if job == "görev":
 		return false
 	return night() or job == "evde"
@@ -85,28 +85,28 @@ static func spouse_home() -> bool:
 
 ## Evin sahibi: eşin; bekârsan annen
 static func host_id() -> String:
-	var s = Friends.spouse_id()
-	if s != "" and Friends.all().has(s) and String(Friends.all()[s].get("status", "")) == "":
+	var s = LazyFx.g("Friends").spouse_id()
+	if s != "" and LazyFx.g("Friends").all().has(s) and String(LazyFx.g("Friends").all()[s].get("status", "")) == "":
 		return s
-	return Kin.id_of("anne") if Kin.alive("anne") else ""
+	return LazyFx.g("Kin").id_of("anne") if LazyFx.g("Kin").alive("anne") else ""
 
 
 static func _kin_home(id: String) -> bool:
-	if id == "" or not Friends.all().has(id):
+	if id == "" or not LazyFx.g("Friends").all().has(id):
 		return false
 	if Orgs.is_rogue():
-		return RogueKin.at_home(id)
-	var f: Dictionary = Friends.all()[id]
-	if not Friends.available(f) or f.get("party", false) or String(f.get("status", "")) != "":
+		return LazyFx.g("RogueKin").at_home(id)
+	var f: Dictionary = LazyFx.g("Friends").all()[id]
+	if not LazyFx.g("Friends").available(f) or f.get("party", false) or String(f.get("status", "")) != "":
 		return false
-	return night() or Friends.job_of(f) == "evde"
+	return night() or LazyFx.g("Friends").job_of(f) == "evde"
 
 
 static func host_home() -> bool:
 	var id = host_id()
 	if id == "":
 		return false
-	return spouse_home() if id == Friends.spouse_id() else _kin_home(id)
+	return spouse_home() if id == LazyFx.g("Friends").spouse_id() else _kin_home(id)
 
 
 ## Evin kapısı (kendi köyünde); köy kurulu değilse Vector3.INF
@@ -139,11 +139,11 @@ static func _evening_call() -> void:
 		var door = door_pos()
 		var v = Game.village(Progress.home())
 		if door != Vector3.INF and not v.is_empty() and Game.to_map(Game.player.global_position).distance_to(Vector2(v["x"], v["y"])) < float(v["r"]) * 1.1:
-			var sid = Friends.spouse_id()
+			var sid = LazyFx.g("Friends").spouse_id()
 			var who = "Ailen"
-			if sid != "" and Friends.all().has(sid) and spouse_home():
-				who = "Eşin %s" % String(Friends.all()[sid]["name"])
-			elif Kin.alive("anne") and not (Kin.alive("baba") or Kin.alive("kardeş")):
+			if sid != "" and LazyFx.g("Friends").all().has(sid) and spouse_home():
+				who = "Eşin %s" % String(LazyFx.g("Friends").all()[sid]["name"])
+			elif LazyFx.g("Kin").alive("anne") and not (LazyFx.g("Kin").alive("baba") or LazyFx.g("Kin").alive("kardeş")):
 				who = "Annen"
 			Hud.msg("Akşam oldu. %s seni evde bekliyor; sofra kuruldu." % who, Color(1.0, 0.86, 0.6), 8.0)
 			if Missions.active().is_empty() and not (wp is Array):
@@ -155,8 +155,8 @@ static func _evening_call() -> void:
 
 static func tick(dt: float) -> void:
 	_evening_call()
-	var id = Friends.spouse_id()
-	if id == "" or not Friends.all().has(id) or Game.player == null:
+	var id = LazyFx.g("Friends").spouse_id()
+	if id == "" or not LazyFx.g("Friends").all().has(id) or Game.player == null:
 		return
 	if is_instance_valid(seeker) and not seek_done and seeker.global_position.distance_to(Game.player.global_position) < 3.4:
 		seek_done = true
@@ -165,21 +165,21 @@ static func tick(dt: float) -> void:
 		seeker.say(["Eve uğramayı unuttun mu? Sofra kaç gündür sensiz kuruluyor.", "Seni köyde arayıp duruyorum. Akşam eve gel artık.", "Kapıyı her açtığımda sen sanıyorum... Bu akşam evde ol."].pick_random(), 5.0)
 	if is_instance_valid(cur):
 		return
-	var f: Dictionary = Friends.all()[id]
-	if not Friends.available(f) or f.get("party", false) or Orgs.is_rogue():
+	var f: Dictionary = LazyFx.g("Friends").all()[id]
+	if not LazyFx.g("Friends").available(f) or f.get("party", false) or Orgs.is_rogue():
 		return   # birlikteyken ya da o köyde değilken ihmal sayılmaz
 	var a = float(pr().get("home_away", 0.0)) + dt
 	pr()["home_away"] = a
 	var stage = 0 if a < AWAY_WARN else 1 + int((a - AWAY_WARN) / AWAY_STEP)
 	if stage > int(pr().get("home_stage", 0)):
 		pr()["home_stage"] = stage
-		Friends.add_bond(id, -3, true)
+		LazyFx.g("Friends").add_bond(id, -3, true)
 		f["love"] = maxi(0, int(f.get("love", 0)) - 2)
 		_seek(id)
 
 
 static func _seek(id: String) -> void:
-	var me = Friends.inst()
+	var me = LazyFx.g("Friends").inst()
 	if me == null or (Interiors.inst and Interiors.inst.inside != ""):
 		return
 	var v = Game.village(Progress.home())
@@ -192,26 +192,26 @@ static func _seek(id: String) -> void:
 	me.visit_t = 0.0
 	seeker = me.visitor
 	seek_done = false
-	Hud.msg("%s seni arıyor, sana doğru geliyor." % Friends.all()[id]["name"], Color(1, 0.75, 0.8))
+	Hud.msg("%s seni arıyor, sana doğru geliyor." % LazyFx.g("Friends").all()[id]["name"], Color(1, 0.75, 0.8))
 
 
 static func _quality(bond: int, love: int) -> void:
 	pr()["home_away"] = 0.0
 	pr()["home_stage"] = 0
-	var id = Friends.spouse_id()
-	if id != "" and Friends.all().has(id):
-		Friends.add_bond(id, bond, true)
-		var f: Dictionary = Friends.all()[id]
+	var id = LazyFx.g("Friends").spouse_id()
+	if id != "" and LazyFx.g("Friends").all().has(id):
+		LazyFx.g("Friends").add_bond(id, bond, true)
+		var f: Dictionary = LazyFx.g("Friends").all()[id]
 		f["love"] = mini(100, int(f.get("love", 0)) + love)
 
 
 ## Masadaki not (eşin evde değilken)
 static func note_text() -> String:
-	var id = Friends.spouse_id()
-	if id == "" or not Friends.all().has(id) or spouse_home():
+	var id = LazyFx.g("Friends").spouse_id()
+	if id == "" or not LazyFx.g("Friends").all().has(id) or spouse_home():
 		return ""
-	var f: Dictionary = Friends.all()[id]
-	match Friends.job_of(f):
+	var f: Dictionary = LazyFx.g("Friends").all()[id]
+	match LazyFx.g("Friends").job_of(f):
 		"görev": return "\n\n%s'in notu: \"Göreve çıktım. Yemeğin ocakta, ısıtıp ye. Dönünce anlatırım.\"" % f["name"]
 		"nöbet": return "\n\n%s'in notu: \"Kapı nöbetindeyim. Akşam evdeyim, beni bekle.\"" % f["name"]
 		"antrenman": return "\n\n%s'in notu: \"Antrenman alanındayım. İstersen gel, birlikte çalışalım.\"" % f["name"]
@@ -258,7 +258,7 @@ static func furnish(inter: Node, w: float, d: float, h: float) -> void:
 	hl.D = d
 	hl.H = h
 	cur = hl
-	var married = Friends.spouse_id() != "" and Friends.all().has(Friends.spouse_id()) and String(Friends.all()[Friends.spouse_id()].get("status", "")) == ""   # (seninle kaçan eş artık bu evde yaşamaz)
+	var married = LazyFx.g("Friends").spouse_id() != "" and LazyFx.g("Friends").all().has(LazyFx.g("Friends").spouse_id()) and String(LazyFx.g("Friends").all()[LazyFx.g("Friends").spouse_id()].get("status", "")) == ""   # (seninle kaçan eş artık bu evde yaşamaz)
 	var hosted = married or host_id() != ""
 	if hosted:
 		hl.sid = host_id()
@@ -279,7 +279,7 @@ static func furnish(inter: Node, w: float, d: float, h: float) -> void:
 	# çocuk futonları
 	var ki = 0
 	for kid in pr().get("children", []):
-		if kid.get("grad", false) or ki >= 3 or KidLife.stage(kid) == "bebek":
+		if kid.get("grad", false) or ki >= 3 or LazyFx.g("KidLife").stage(kid) == "bebek":
 			continue
 		var kx = w * 0.5 - 3.35 - ki * 0.85
 		inter.bx(kx, 0.08, 2.6, 0.7, 0.16, 1.4, Color(0.95, 0.95, 0.98))
@@ -290,9 +290,9 @@ static func furnish(inter: Node, w: float, d: float, h: float) -> void:
 	hl.cradle_pos = inter.L(w * 0.5 - 1.75, 0.02, minf(d - 1.6, 5.4))
 	hl.target_pos = inter.L(-0.35, 1.2, d) + Vector3(0, 0, 0.125)
 	if married and float(pr().get("birth_wait", 0.0)) > 0.0 and spouse_home():
-		hl.newborn = Friends.birth()   # doğum şimdi oldu: sahnesi oynanır
+		hl.newborn = LazyFx.g("Friends").birth()   # doğum şimdi oldu: sahnesi oynanır
 	for kid in ([hl.newborn] if not hl.newborn.is_empty() else pr().get("children", [])):
-		if KidLife.stage(kid) == "bebek":
+		if LazyFx.g("KidLife").stage(kid) == "bebek":
 			hl.baby_kid = kid
 			inter.act(w * 0.5 - 2.45, minf(d - 1.6, 5.4), 1.3, "cradle", "[F] Bebeği kucağına al")
 			break
@@ -346,7 +346,7 @@ func _ready() -> void:
 			lamp_e.append(c.light_energy)
 	_nursery()
 	if sid != "" and host_home():
-		var me = Friends.inst()
+		var me = LazyFx.g("Friends").inst()
 		sp = me._spawn_npc(sid, Game.player.global_position, false)
 		sp.reparent(I.room)
 		sp.set_physics_process(false)
@@ -382,9 +382,9 @@ func _sit_style(n: Node3D) -> String:
 	if n == Game.player:
 		return "seiza" if String(pr().get("gender", "m")) == "f" else "agura"
 	if n == sp:
-		return "seiza" if String(Friends.all().get(sid, {}).get("look", {}).get("gender", "m")) == "f" else "agura"
+		return "seiza" if String(LazyFx.g("Friends").all().get(sid, {}).get("look", {}).get("gender", "m")) == "f" else "agura"
 	if n in folk:
-		return "seiza" if String(Friends.all().get(String(n.get_meta("friend_id", "")), {}).get("look", {}).get("gender", "m")) == "f" else "agura"
+		return "seiza" if String(LazyFx.g("Friends").all().get(String(n.get_meta("friend_id", "")), {}).get("look", {}).get("gender", "m")) == "f" else "agura"
 	return "seiza"
 
 
@@ -427,7 +427,7 @@ func _route(n: Node3D, pts: Array, spd := 1.5) -> void:
 
 
 func _spouse_name() -> String:
-	return String(Friends.all().get(sid, {}).get("name", "Eşin"))
+	return String(LazyFx.g("Friends").all().get(sid, {}).get("name", "Eşin"))
 
 
 func _table() -> Vector2:
@@ -565,11 +565,11 @@ func _arrive() -> void:
 	_clear_pose(sp)
 	_look_at(sp, pl.global_position)
 	_pose(sp, "wave", {"anim": "idle"})
-	var spf: Dictionary = Friends.all().get(Friends.spouse_id(), {})
-	var rmk = Talk._fill(Talk.remark(spf, "es")) if not spf.is_empty() else ""   # sende değişeni önce eşin fark eder (yara, rütbe, kilo, ağaran saç)
+	var spf: Dictionary = LazyFx.g("Friends").all().get(LazyFx.g("Friends").spouse_id(), {})
+	var rmk = LazyFx.g("Talk")._fill(LazyFx.g("Talk").remark(spf, "es")) if not spf.is_empty() else ""   # sende değişeni önce eşin fark eder (yara, rütbe, kilo, ağaran saç)
 	_say(sp, rmk if rmk != "" else ["Hoş geldin! Yorgun görünüyorsun.", "Okaeri! Tam zamanında geldin.", "Hoş geldin! Bugün nasıl geçti?"].pick_random(), 4.5 if rmk != "" else 3.5)
 	await _wait(1.6)
-	var f: Dictionary = Friends.all().get(sid, {})
+	var f: Dictionary = LazyFx.g("Friends").all().get(sid, {})
 	if int(f.get("love", 0)) >= 70 and Time.get_unix_time_from_system() - float(pr().get("home_hug_t", 0.0)) >= 240.0:
 		await _hug_seq(false)
 	else:
@@ -589,7 +589,7 @@ func _kid_greet(k: Node3D, i: int) -> void:
 	var pl = Game.player
 	k.set_physics_process(false)
 	greet_n += 1
-	var parent = KidLife.parent_word(kid_of(k))
+	var parent = LazyFx.g("KidLife").parent_word(kid_of(k))
 	_say(k, ["%s geldi!" % parent, "%s! %s!" % [parent, parent], "Hoş geldin %s!" % parent.to_lower()][i % 3], 3.0)
 	var side = Vector3(0.9 - i * 0.9, 0, -0.9)
 	var t0 := 0.0
@@ -709,7 +709,7 @@ func _apologize() -> void:
 	upset = false
 	pr()["home_stage"] = 0
 	pr()["home_away"] = 0.0
-	Friends.add_bond(sid, 2, true)
+	LazyFx.g("Friends").add_bond(sid, 2, true)
 	busy = false
 	_set_routine("cook")
 	_resume()
@@ -780,7 +780,7 @@ func _meal() -> void:
 	for i in eaters.size():
 		if is_instance_valid(eaters[i]):
 			_pose(eaters[i], "eat", {"anim": "idle", "sit": _sit_style(eaters[i]), "off": i * 0.55})
-	var f: Dictionary = Friends.all().get(sid, {})
+	var f: Dictionary = LazyFx.g("Friends").all().get(sid, {})
 	var news = String(f.get("news", ""))
 	var talk = [news if news != "" else "Bugün pazarda öyle bir kalabalık vardı ki...", "Sen anlat, görevde neler oldu?",
 		"Çocuklar bugün bütün gün seni sordu." if not kids.is_empty() else ("Hep birlikte sofra... eskisi gibi." if kin_host else "Böyle baş başa yemek... iyi geliyor."), "Biraz daha pirinç koyayım mı?"]
@@ -801,11 +801,11 @@ func _meal() -> void:
 	await _wait(1.3)
 	pl.hp = pl.max_hp
 	pl.chakra = pl.max_chakra
-	ClanMech.on_eat()
+	LazyFx.g("ClanMech").on_eat()
 	Buffs.add("ev_yemegi", 360.0, {"melee": 1.12, "armor": 0.9})
 	_quality(4, 3)
 	f["last_meal"] = Time.get_unix_time_from_system()
-	Friends.log_event(f, "Evde birlikte yemek yediniz")
+	LazyFx.g("Friends").log_event(f, "Evde birlikte yemek yediniz")
 	Hud.msg("Ev yemeği: can ve chakra doldu; 6 dakika güç +%12.", Color(1.0, 0.85, 0.5))
 	for e in eaters:
 		if is_instance_valid(e):
@@ -1015,11 +1015,11 @@ func _door_watch() -> void:
 func _nursery() -> void:
 	var any_kid = false
 	for kid in pr().get("children", []):
-		if KidLife.stage(kid) in ["çocuk", "akademi"]:
+		if LazyFx.g("KidLife").stage(kid) in ["çocuk", "akademi"]:
 			any_kid = true
 	if not baby_kid.is_empty():
-		KidLife.ensure(baby_kid)
-		var lk = Friends._look_raw(baby_kid)
+		LazyFx.g("KidLife").ensure(baby_kid)
+		var lk = LazyFx.g("Friends")._look_raw(baby_kid)
 		var wood = Color(0.6, 0.42, 0.25)
 		var c = MB.new()
 		c.add("box", Vector3(0, 0.3, 0), Vector3(0.52, 0.04, 0.86), wood)
@@ -1135,17 +1135,17 @@ static func kid_opts(v: Node) -> Array:
 		return []
 	var me = cur
 	var o = []
-	var cd = KidLife.cd_left(kid, "lesson")
+	var cd = LazyFx.g("KidLife").cd_left(kid, "lesson")
 	if cd <= 0.0:
 		o.append({"label": "Shuriken atmayı öğret", "cb": func(): me._kid_shuriken(v, kid)})
 		o.append({"label": "Taijutsu çalıştır (avuçlarına vursun)", "cb": func(): me._kid_taijutsu(v, kid)})
 		o.append({"label": "Yaprak çalışması (chakra kontrolü)", "cb": func(): me._kid_leaf(v, kid)})
-	if KidLife.cd_left(kid, "play") <= 0.0:
+	if LazyFx.g("KidLife").cd_left(kid, "play") <= 0.0:
 		o.append({"label": "Havaya kaldır, döndür", "cb": func(): me._kid_lift(v, kid)})
 	o.append({"label": "Neler öğrendin?", "cb": func():
 		var parts = []
-		for k in KidLife.LESSONS:
-			parts.append("%s: %d" % [KidLife.LESSONS[k], int(KidLife.skill(kid, k))])
+		for k in LazyFx.g("KidLife").LESSONS:
+			parts.append("%s: %d" % [LazyFx.g("KidLife").LESSONS[k], int(LazyFx.g("KidLife").skill(kid, k))])
 		Hud.dialog(String(v.display_override), "%s\n\n%s%s" % [["Bak bak! Hepsini ezberledim!", "Bugün de çalıştım!", "Akademide en iyisi ben olacağım!"].pick_random(), "  •  ".join(parts),
 			("\n(Yoruldu: yeni ders için %d dk dinlenmeli.)" % int(ceil(cd / 60.0))) if cd > 0.0 else ""], [])})
 	return o
@@ -1224,12 +1224,12 @@ func _pat_end(k: Node3D, kid: Dictionary, key: String, good: bool, line: String)
 	_pose(pl, "pat", {"anim": "idle", "with": k})
 	_say(k, line, 2.6)
 	await _wait(2.3)
-	var amt = KidLife.train(kid, key, good)
+	var amt = LazyFx.g("KidLife").train(kid, key, good)
 	if is_instance_valid(k):
-		Combat.popup_text(_bone(k, "Head") + Vector3.UP * 0.4, "%s +%s" % [KidLife.LESSONS[key], str(snappedf(amt, 0.1))], Color(0.6, 1.0, 0.7))
+		Combat.popup_text(_bone(k, "Head") + Vector3.UP * 0.4, "%s +%s" % [LazyFx.g("KidLife").LESSONS[key], str(snappedf(amt, 0.1))], Color(0.6, 1.0, 0.7))
 	Sfx.play("levelup", pl.global_position, 0.35)
-	if sid != "" and Friends.all().has(sid):
-		Friends.add_bond(sid, 1, true)
+	if sid != "" and LazyFx.g("Friends").all().has(sid):
+		LazyFx.g("Friends").add_bond(sid, 1, true)
 	await _wait(0.6)
 	_kid_end(k)
 
@@ -1273,10 +1273,10 @@ func _baby_hold() -> void:
 	await _wait(0.8)
 	if not baby_kid.has("tr"):
 		baby_kid["tr"] = {}
-	baby_kid["tr"]["bond"] = KidLife.skill(baby_kid, "bond") + 1.0
+	baby_kid["tr"]["bond"] = LazyFx.g("KidLife").skill(baby_kid, "bond") + 1.0
 	if is_instance_valid(sp) and routine != "rest":
 		_clear_pose(sp)
-		Friends.add_bond(sid, 1, true)
+		LazyFx.g("Friends").add_bond(sid, 1, true)
 	_kid_end(null)
 
 
@@ -1344,7 +1344,7 @@ func _kid_shuriken(k: Node3D, kid: Dictionary) -> void:
 	await _throw(pl, target_pos, "hit")
 	_say(k, "Tam ortadan!", 1.8)
 	await _wait(1.3)
-	var skill = KidLife.skill(kid, "shuriken")
+	var skill = LazyFx.g("KidLife").skill(kid, "shuriken")
 	var hits = 0
 	var ok1 = randf() < clampf(0.1 + skill * 0.15, 0.1, 0.85)
 	await _throw(k, target_pos, "hit" if ok1 else ("short" if skill < 2.0 else "wide"))
@@ -1475,7 +1475,7 @@ func _kid_leaf(k: Node3D, kid: Dictionary) -> void:
 	_pose(k, "seal", {"anim": "idle", "sit": kstyle})
 	Sfx.play("chakra", pl.global_position, 0.25)
 	await _wait(2.4)
-	var skill = KidLife.skill(kid, "chakra")
+	var skill = LazyFx.g("KidLife").skill(kid, "chakra")
 	var good = randf() < clampf(0.15 + skill * 0.18, 0.15, 0.9)
 	if not good and is_instance_valid(k):
 		lk["mode"] = "fall"
@@ -1556,10 +1556,10 @@ func _kid_lift(k: Node3D, kid: Dictionary) -> void:
 		_clear_pose(k)
 		k.model.play("idle", 0.2)
 	_clear_pose(pl)
-	KidLife.mark(kid, "play")
+	LazyFx.g("KidLife").mark(kid, "play")
 	if not kid.has("tr"):
 		kid["tr"] = {}
-	kid["tr"]["bond"] = KidLife.skill(kid, "bond") + 1.0
+	kid["tr"]["bond"] = LazyFx.g("KidLife").skill(kid, "bond") + 1.0
 	if is_instance_valid(k):
 		_say(k, ["Bir daha! Bir daha!", "Başım döndü, hihi."].pick_random(), 2.0)
 		Combat.popup_text(_bone(k, "Head") + Vector3.UP * 0.4, "♥", Color(1, 0.5, 0.65))
@@ -1686,9 +1686,9 @@ func _birth_scene() -> void:
 			mw.queue_free()
 	baby_kid["met"] = true
 	newborn = {}
-	Journal.add("%s dünyaya geldi." % String(baby_kid["name"]), "milestone")
-	if Friends.all().has(sid):
-		Friends.add_bond(sid, 5, true)
+	LazyFx.g("Journal").add("%s dünyaya geldi." % String(baby_kid["name"]), "milestone")
+	if LazyFx.g("Friends").all().has(sid):
+		LazyFx.g("Friends").add_bond(sid, 5, true)
 	_release_player()
 	busy = false
 
@@ -1699,10 +1699,10 @@ func _folk_spawn() -> void:
 	var seats = [[0.0, tb.y + 0.75, PI], [0.0, tb.y - 0.75, 0.0]]
 	var i := 0
 	for rel in ["baba", "kardeş"]:
-		var id = Kin.id_of(rel)
+		var id = LazyFx.g("Kin").id_of(rel)
 		if not _kin_home(id):
 			continue
-		var n = Friends.inst()._spawn_npc(id, Game.player.global_position, false)
+		var n = LazyFx.g("Friends").inst()._spawn_npc(id, Game.player.global_position, false)
 		if n == null:
 			continue
 		n.reparent(I.room)
@@ -1732,8 +1732,8 @@ func _diners() -> Array:
 # ------------------------------------------------------------------ kaçak: gizli gece ziyareti
 func _rogue_arrive() -> void:
 	var pl = Game.player
-	var f: Dictionary = Friends.all().get(sid, {})
-	RogueKin.on_visit()
+	var f: Dictionary = LazyFx.g("Friends").all().get(sid, {})
+	LazyFx.g("RogueKin").on_visit()
 	_clear_pose(sp)
 	_look_at(sp, pl.global_position)
 	sp.model.play("hit", 0.1, 0.8, true)   # irkilir
@@ -1747,7 +1747,7 @@ func _rogue_arrive() -> void:
 	await _hug_seq(false)
 	if not is_instance_valid(sp):
 		return
-	var s = RogueKin.st()
+	var s = LazyFx.g("RogueKin").st()
 	if int(s.get("asked", 0)) > int(s.get("told", 0)):
 		s["told"] = int(s["asked"])
 		_look_at(sp, pl.global_position)
@@ -1756,12 +1756,12 @@ func _rogue_arrive() -> void:
 			_pose(sp, "bow", {"anim": "idle", "len": 4.5})
 			_say(sp, "ANBU geldi... Saatlerce sordular. Dayanamadım; gittiğin yönü söyledim. Affet beni.", 5.0)
 			await _wait(4.6)
-			Friends.add_bond(sid, -4, true)
+			LazyFx.g("Friends").add_bond(sid, -4, true)
 		else:
 			sp.model.play("talk", 0.2)
 			_say(sp, "ANBU geldi. Maskeli üç kişi... seni sordular. Tek kelime etmedim.", 4.6)
 			await _wait(4.2)
-			Friends.add_bond(sid, 3, true)
+			LazyFx.g("Friends").add_bond(sid, 3, true)
 		_clear_pose(sp)
 		sp.model.play("idle", 0.3)
 	pr()["home_away"] = 0.0
@@ -1788,14 +1788,14 @@ func _rogue_gift() -> void:
 	pouch.global_position = I.L(-0.42, 0.44, tb.y - 0.1)
 	Sfx.play("coin", pouch.global_position, 0.7)
 	Progress.add_ryo(-500)
-	RogueKin.on_gift()
+	LazyFx.g("RogueKin").on_gift()
 	await _wait(1.0)
 	pl.model.play("idle", 0.3)
 	_look_at(sp, pl.global_position)
 	_look_at(pl, sp.global_position)
 	_say(sp, ["Buna gerek yoktu... ama sağ ol. Kış zor geçiyor.", "Nereden buldun bunu? ...Sormayayım.", "Kendine de bak. Biz idare ediyoruz."].pick_random(), 3.6)
 	await _wait(3.0)
-	Friends.add_bond(sid, 3, true)
+	LazyFx.g("Friends").add_bond(sid, 3, true)
 	_release_player()
 	busy = false
 
@@ -1807,7 +1807,7 @@ func _rogue_take() -> void:
 	busy = true
 	Hud.close_dialog()
 	var pl = Game.player
-	var f: Dictionary = Friends.all()[sid]
+	var f: Dictionary = LazyFx.g("Friends").all()[sid]
 	_lock(60.0)
 	_clear_pose(sp)
 	_look_at(sp, pl.global_position)
@@ -1856,9 +1856,9 @@ func _rogue_take() -> void:
 	f["status"] = "kaçak"
 	f["rogue"] = true
 	f["party"] = false
-	Friends.log_event(f, "Senin için köyünü bıraktı")
+	LazyFx.g("Friends").log_event(f, "Senin için köyünü bıraktı")
 	f["news"] = "Sığınak soğuk ama sen buradasın. Yeter."
-	Journal.add("%s benimle geldi. Artık o da kaçak." % String(f["name"]), "milestone")
+	LazyFx.g("Journal").add("%s benimle geldi. Artık o da kaçak." % String(f["name"]), "milestone")
 	I.npcs.erase(sp)
 	sp.queue_free()
 	await _wait(0.8)

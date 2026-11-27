@@ -77,7 +77,7 @@ static func _rope() -> Mesh:
 	return Yk.mesh("kajiki_halat", func():
 		var b = MB.new()
 		b.add("cyl", Vector3.ZERO, Vector3(0.016, 0.08, 0.016), Color(0.72, 0.65, 0.48), Vector3(90, 0, 0), 5)
-		return b.build(Props.toon()))
+		return b.build(LazyFx.g("Props").toon()))
 
 
 ## Sap dibindeki halkadan sarkan halat

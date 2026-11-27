@@ -74,8 +74,8 @@ func stadium_pos(vid := "") -> Vector3:
 			if it.get("kind", "") == "chunin_exam":
 				return it["pos"] + Vector3(0, 0, -84)
 	var v = Game.village(vid)
-	if BuildVillageStory.STYLE.has(vid):
-		var s: Vector2 = BuildVillageStory._sites(v)["stadium"]   # köyün kalıcı stadyumu
+	if LazyFx.g("BuildVillageStory").STYLE.has(vid):
+		var s: Vector2 = LazyFx.g("BuildVillageStory")._sites(v)["stadium"]   # köyün kalıcı stadyumu
 		return Game.from_map(s)
 	return Game.from_map(Vector2(float(v["x"]) + float(v["r"]) * 0.35, float(v["y"]) - float(v["r"]) * 0.2))
 
@@ -84,8 +84,8 @@ func forest_center() -> Vector3:
 	if host == "konoha" and not Game.village("forest_death").is_empty():
 		var fd = Game.village("forest_death")
 		return Game.from_map(Vector2(fd["x"], fd["y"]))
-	if BuildVillageStory.STYLE.has(host):
-		return Game.from_map(BuildVillageStory.exam_ground(Game.village(host)))   # köyün kalıcı sınav kulesi
+	if LazyFx.g("BuildVillageStory").STYLE.has(host):
+		return Game.from_map(LazyFx.g("BuildVillageStory").exam_ground(Game.village(host)))   # köyün kalıcı sınav kulesi
 	var s = Missions._spot(host, 600, 900)
 	return Game.from_map(Vector2(s[0], s[1]))
 
@@ -101,7 +101,7 @@ func apply() -> void:
 	var md: Dictionary = pr.get("missions_done", {})
 	var nd = int(md.get("D", 0))
 	var nc = int(md.get("C", 0))
-	if int(pr["level"]) < 30 or Progress.story() < Journal.FREE or nd < 8 or nc < 4:
+	if int(pr["level"]) < 30 or Progress.story() < LazyFx.g("Journal").FREE or nd < 8 or nc < 4:
 		# rütbe yalnız Güç kasarak gelmez: görev tecrübesi şart (kullanıcı: "hiç görev yapmadan rütbe alıyorum")
 		Hud.dialog("Sınav Gözetmeni", "Chūnin Sınavı için: Güç 30 (%d), 8 D-rank görev (%d) ve 4 C-rank görev (%d) gerekli. Hocan seni ancak sahada kendini kanıtlayınca önerir." % [int(pr["level"]), nd, nc], [])
 		return
@@ -113,7 +113,7 @@ func apply() -> void:
 
 
 func _register() -> void:
-	Journal.add("Chūnin Sınavı'na kaydoldun.", "exam")
+	LazyFx.g("Journal").add("Chūnin Sınavı'na kaydoldun.", "exam")
 	_flags()["chunin_attempts"] = int(_flags().get("chunin_attempts", 0)) + 1
 	st = {"written": 0, "forest_days": 0.0, "prelim_wins": 0, "final_wins": 0, "jutsu": {}, "kawarimi": 0, "hp_lost": 0.0, "invasion": false, "mates_alive": 2}
 	var sp = stadium_pos()
@@ -145,7 +145,7 @@ func _written() -> void:
 	var pool = QUIZ.duplicate()
 	pool.shuffle()
 	Hud.dialog("Baş Gözetmen", "1. AŞAMA — YAZILI SINAV. Dokuz soru, bir saat... yani 3 dakika. Her kopya girişimi yakalanırsa iki puan silinir; üç kez yakalanan takımıyla birlikte çıkar. Onuncu soruyu sona sakladım. Başlayın!", [{"label": "Kâğıdı çevir", "cb": func():
-		ExamUI.written({"title": "Chūnin Seçme Sınavı — Yazılı", "subtitle": "Kopya çekmek serbest... yakalanmamak şartıyla. (Gözetmenler her şeyi görür.)", "questions": pool.slice(0, 9), "time": 180.0,
+		LazyFx.g("ExamUI").written({"title": "Chūnin Seçme Sınavı — Yazılı", "subtitle": "Kopya çekmek serbest... yakalanmamak şartıyla. (Gözetmenler her şeyi görür.)", "questions": pool.slice(0, 9), "time": 180.0,
 			"cheat": _cheat_level(), "q10": true}, _written_done)}])
 
 
@@ -153,7 +153,7 @@ func _written_done(r: Dictionary) -> void:
 	st["written"] = maxi(0, int(r["correct"]) - int(r["caught"]) * 2)
 	if r.get("q10", "") != "kabul":
 		stage = 0
-		Journal.add("Chūnin Sınavı'nın yazılı aşamasında çekilmeyi seçtin.", "exam")
+		LazyFx.g("Journal").add("Chūnin Sınavı'nın yazılı aşamasında çekilmeyi seçtin.", "exam")
 		Game.profile["active_mission"] = {}
 		Hud.objective_changed()
 		Hud.dialog("Baş Gözetmen", "Çekilmeyi seçtin. Bu da bir karardır... ama bir chūnin, takımı için bilinmezliğe adım atabilmeli. Bir sonraki dönem tekrar dene.", [])
@@ -265,8 +265,8 @@ static func _pick_w(rng: RandomNumberGenerator, w: Dictionary) -> String:
 ## Sıradan silahlar: dükkânda satılan, efsanevi / klan / karaktere bağlı / kaldırılmış olmayan
 static func _plain_weapons() -> Array:
 	var out = []
-	for k in Gear.ITEMS:
-		var it: Dictionary = Gear.ITEMS[k]
+	for k in LazyFx.g("Gear").ITEMS:
+		var it: Dictionary = LazyFx.g("Gear").ITEMS[k]
 		if it.has("weapon") and not it.has("removed") and not it.has("legend") and not it.has("clan") and int(it.get("price", 0)) > 0 and int(it.get("price", 0)) <= 1500:
 			out.append(String(k))
 	return out
@@ -349,7 +349,7 @@ func _exam_id(rng: RandomNumberGenerator) -> Dictionary:
 
 
 func _cand_of(src: String, ti: int, pi: int, person: Dictionary) -> Dictionary:
-	var look: Dictionary = Friends.look_of(person)
+	var look: Dictionary = LazyFx.g("Friends").look_of(person)
 	var rng = RandomNumberGenerator.new()
 	rng.seed = hash("%s:%d:%d:%s" % [src, ti, pi, person["name"]])
 	if not person.has("exam") or not (person["exam"] as Dictionary).has("focus"):
@@ -360,7 +360,7 @@ func _cand_of(src: String, ti: int, pi: int, person: Dictionary) -> Dictionary:
 	var focus = String(ex["focus"])
 	var what = String(_FOCUS[focus][1])
 	if "%s" in what:
-		var w = String(Gear.item(String(ex["weapon"])).get("name", "silah")) if focus == "kenjutsu" else _EL_TR.get(String(ex["el"]), "Chakra")
+		var w = String(LazyFx.g("Gear").item(String(ex["weapon"])).get("name", "silah")) if focus == "kenjutsu" else _EL_TR.get(String(ex["el"]), "Chakra")
 		what = what % w
 	if String(ex.get("el2", "")) != "":
 		what += " + " + String(_EL_TR.get(String(ex["el2"]), ""))
@@ -410,7 +410,7 @@ func _new_team() -> Dictionary:
 		var look = {"gender": "f" if female else "m", "hair_style": _HAIRS[rng.randi() % _HAIRS.size()],
 			"hair": Color(rng.randf_range(0.03, 0.95), rng.randf_range(0.03, 0.8), rng.randf_range(0.03, 0.75)),
 			"top": Color(rng.randf_range(0.1, 0.85), rng.randf_range(0.1, 0.8), rng.randf_range(0.1, 0.8))}
-		var person = {"name": gen_name(female, rng), "rank": 0, "look": Friends._ser(look), "fid": "", "vid": vid}
+		var person = {"name": gen_name(female, rng), "rank": 0, "look": LazyFx.g("Friends")._ser(look), "fid": "", "vid": vid}
 		person["exam"] = _exam_id(rng)
 		people.append(person)
 	return {"vid": vid, "people": people}
@@ -698,7 +698,7 @@ func _prelims() -> void:
 	st["arena"] = arena
 	Hud.dialog("Ön Eleme Gözetmeni", "Kuleye çok fazla takım ulaştı. Finaller için ön elemeler yapacağız: bire bir, kaybeden elenir. Takım arkadaşların da kendi maçlarında. İlk rakibin: %s — %s." % [pool[0]["name"], pool[0]["style"]],
 		[{"label": "Eşleşmeleri gör", "cb": func():
-			ExamUI.bracket("Ön Elemeler", [[p()["name"], pool[0]["name"], ""], [team_name(0), pool[5]["name"], team_name(0)], [team_name(1), pool[6]["name"], pool[6]["name"]], [p()["name"] + " / ?", pool[1]["name"], ""]],
+			LazyFx.g("ExamUI").bracket("Ön Elemeler", [[p()["name"], pool[0]["name"], ""], [team_name(0), pool[5]["name"], team_name(0)], [team_name(1), pool[6]["name"], pool[6]["name"]], [p()["name"] + " / ?", pool[1]["name"], ""]],
 				"Kazanan finale çıkar. Bir ay sonra ev sahibi stadyumda final turnuvası!", _next_prelim)}])
 
 
@@ -748,12 +748,12 @@ func _finals() -> void:
 	stage = 5
 	var sp = stadium_pos()
 	st["arena"] = sp
-	if host != "konoha" and not BuildVillageStory.STYLE.has(host):
+	if host != "konoha" and not LazyFx.g("BuildVillageStory").STYLE.has(host):
 		Exams.make_arena(sp, 34.0, true)
-	Exams.spawn_audience(sp, 34.0, 40, host == "konoha" or BuildVillageStory.STYLE.has(host))
+	Exams.spawn_audience(sp, 34.0, 40, host == "konoha" or LazyFx.g("BuildVillageStory").STYLE.has(host))
 	var fin: Array = st["finalists"]
 	st["final_i"] = 0
-	ExamUI.bracket("Chūnin Final Turnuvası — %s" % Game.village(host).get("name", host),
+	LazyFx.g("ExamUI").bracket("Chūnin Final Turnuvası — %s" % Game.village(host).get("name", host),
 		[[p()["name"], fin[0]["name"], ""], [team_name(0) if team_name(0) != "" else "Finalist", fin[1]["name"], ""], ["Yarı final", fin[2]["name"], ""]],
 		"Jüri: Kage'ler ve daimyōlar. Kazanmak terfiyi garanti etmez; kaybetmek de engellemez. Taktik, liderlik ve kararlılık değerlendirilir.", _next_final)
 
@@ -791,7 +791,7 @@ func _duel_tick() -> void:
 		if stage == 3:
 			st["prelim_wins"] = int(st["prelim_wins"]) + 1
 			st["prelim_i"] = int(st["prelim_i"]) + 1
-			Hud.banner("KAZANDIN", "Gözetmen: Kazanan %s!" % p()["name"], UI.GOOD)
+			Hud.banner("KAZANDIN", "Gözetmen: Kazanan %s!" % p()["name"], LazyFx.g("UI").GOOD)
 			get_tree().create_timer(2.5).timeout.connect(_next_prelim)
 		else:
 			st["final_wins"] = int(st["final_wins"]) + 1
@@ -803,7 +803,7 @@ func _duel_tick() -> void:
 		e.queue_free()
 		st["duel"] = null
 		Hud.boss_bar(null)
-		Hud.banner("MAÇ BİTTİ", "Gözetmen maçı durdurdu.", UI.BAD)
+		Hud.banner("MAÇ BİTTİ", "Gözetmen maçı durdurdu.", LazyFx.g("UI").BAD)
 		if stage == 3:
 			_fail("Ön elemelerde elendin. Bir sonraki dönemde tekrar dene!")
 		else:
@@ -854,18 +854,18 @@ func _judge() -> void:
 	Missions.has_marker = false
 	Game.profile["active_mission"] = {}
 	if passed:
-		ExamUI.scorecard("Chūnin Sınavı — Jüri Kararı", rows, "Turnuvadaki stratejin ve liderliğin takdir topladı. Bugünden itibaren bir CHŪNİN'sin!", true, func():
+		LazyFx.g("ExamUI").scorecard("Chūnin Sınavı — Jüri Kararı", rows, "Turnuvadaki stratejin ve liderliğin takdir topladı. Bugünden itibaren bir CHŪNİN'sin!", true, func():
 			# terfi töreni: Kage adını okur, yeleğini verir; adaylar alkışlar
 			var g_cb = func(): Progress.promote(2)
 			var d_cb = func():
 				Progress.add_xp(900)
 				Progress.add_ryo(1500)
-				Journal.add("Chūnin oldun! Jüri liderliğini takdir etti.", "milestone")
+				LazyFx.g("Journal").add("Chūnin oldun! Jüri liderliğini takdir etti.", "milestone")
 				Exams.exam_finished.emit("chunin", true)
 			Ceremony.start("chunin", {"grant": g_cb, "done": d_cb}))
 	else:
-		Journal.add("Chūnin Sınavı'nda jüri seni bu dönem terfi ettirmedi.", "exam")
-		ExamUI.scorecard("Chūnin Sınavı — Jüri Kararı", rows, "Jüri seni bu dönem terfi ettirmedi. Güçlenip bir sonraki dönem tekrar katıl (ev sahibi sırayla değişir).", false, func():
+		LazyFx.g("Journal").add("Chūnin Sınavı'nda jüri seni bu dönem terfi ettirmedi.", "exam")
+		LazyFx.g("ExamUI").scorecard("Chūnin Sınavı — Jüri Kararı", rows, "Jüri seni bu dönem terfi ettirmedi. Güçlenip bir sonraki dönem tekrar katıl (ev sahibi sırayla değişir).", false, func():
 			Exams.exam_finished.emit("chunin", false), "Tamam")
 	Hud.objective_changed()
 
@@ -886,7 +886,7 @@ func _fail(text: String) -> void:
 	Missions.has_marker = false
 	Game.profile["active_mission"] = {}
 	Hud.objective_changed()   # sağdaki görev listesi temizlensin (süre dolunca/ölünce listede kalıyordu)
-	Journal.add("Chūnin Sınavı'ndan elendin.", "exam")
+	LazyFx.g("Journal").add("Chūnin Sınavı'ndan elendin.", "exam")
 	Hud.dialog("Sınav Gözetmeni", text, [])
 
 
@@ -920,7 +920,7 @@ func _stale_check(dt: float) -> void:
 	Missions.has_marker = false
 	Game.profile["active_mission"] = {}
 	Hud.objective_changed()
-	Journal.add("Chūnin Sınavı yarıda kaldı.", "exam")
+	LazyFx.g("Journal").add("Chūnin Sınavı yarıda kaldı.", "exam")
 	Hud.dialog("Sınav Gözetmeni", "Sınav sen yokken sona erdi; yarıda kalan aday elenmiş sayılır. Bir sonraki dönem yeniden kaydolabilirsin.", [])
 
 

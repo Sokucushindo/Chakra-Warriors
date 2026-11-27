@@ -46,13 +46,13 @@ func kage_name(vid: String) -> String:
 	if is_kage() and vid == Progress.home():
 		return "%s %s" % [Progress.kage_title(vid), String(p().get("name", ""))]
 	var r = reign(vid)
-	if not r.is_empty() and RogueBonds.generic_name(String(r.get("name", ""))):
+	if not r.is_empty() and LazyFx.g("RogueBonds").generic_name(String(r.get("name", ""))):
 		# eski kayıt: unvanla Kage olmuş ("Av-Ninjası") -> gerçek ad (dost kaydı da)
 		var nn = "%s %s" % [String(Missions.BB_FAMILY.pick_random()), ClanWorld.GIVEN_M.pick_random()]
 		r["name"] = nn
 		var fid = String(r.get("friend", ""))
-		if fid != "" and Friends.all().has(fid):
-			Friends.all()[fid]["name"] = nn
+		if fid != "" and LazyFx.g("Friends").all().has(fid):
+			LazyFx.g("Friends").all()[fid]["name"] = nn
 	if not r.is_empty():
 		return "%s %s" % [Progress.kage_title(vid), String(r["name"])]
 	return KAGE_NAMES.get(vid, Progress.kage_title(vid))
@@ -106,7 +106,7 @@ func _ninja_of(vid: String, i: int, lv: int, team: String, look_ov := {}) -> Ene
 	var kind = vid if vid in ["kumo", "kiri", "iwa", "suna"] else "rogue"
 	var a = Enemy.archetype(kind, i)
 	a["respawn"] = false
-	Stats.npc_ninja(a, lv)
+	LazyFx.g("Stats").npc_ninja(a, lv)
 	a["xp"] = 40 + lv * 8 if team == "enemy" else 0
 	a["ryo"] = 20 + lv * 3 if team == "enemy" else 0
 	if String(a["element"]) == "":
@@ -120,7 +120,7 @@ func _ninja_of(vid: String, i: int, lv: int, team: String, look_ov := {}) -> Ene
 	if vid == Progress.home():
 		var hi = Progress.home_info()
 		L["band"] = hi["band"]
-	Outfits.village_set(L, vid)
+	LazyFx.g("Outfits").village_set(L, vid)
 	a["name"] = "%s %s" % [String(Game.village(vid).get("name", vid)).trim_suffix("gakure"), "Akıncısı" if team == "enemy" else "Muhafızı"]
 	if not look_ov.is_empty():
 		a["look"] = look_ov.duplicate(true)   # savaşa katılan köy ninjası: kendi görünüşüyle
@@ -238,7 +238,7 @@ func _raid_rally() -> void:
 	for vg in get_tree().get_nodes_in_group("talkers"):
 		if (raid["rallied"] as Array).size() >= 12:
 			break
-		if not vg is Villager or not vg.visible or vg.get("interior") or not Friends.is_ninja(vg):
+		if not vg is Villager or not vg.visible or vg.get("interior") or not LazyFx.g("Friends").is_ninja(vg):
 			continue
 		var gp: Vector3 = vg.global_position
 		if gp.distance_to(at) > 180.0 and (Game.player == null or gp.distance_to(Game.player.global_position) > 90.0):
@@ -306,7 +306,7 @@ func _assist_tick(dt: float) -> void:
 		for vg in get_tree().get_nodes_in_group("talkers"):
 			if (assist["rallied"] as Array).size() >= 6:
 				break
-			if not vg is Villager or not vg.visible or vg.get("interior") or not Friends.is_ninja(vg) or vg.global_position.distance_to(pp) > 50.0:
+			if not vg is Villager or not vg.visible or vg.get("interior") or not LazyFx.g("Friends").is_ninja(vg) or vg.global_position.distance_to(pp) > 50.0:
 				continue
 			var lk = vg.get("look")
 			var rw = WorldPeople.get_p(String(vg.get_meta("world_person", "")))
@@ -357,7 +357,7 @@ func lose_raid() -> void:
 		p()["track"] = ""
 	Missions._rep(Progress.home(), -15)
 	Hud.banner("BASKIN KAYBEDİLDİ", "%s baskıncıları köyü yağmalayıp çekildi." % Game.village(from).get("name", from), Color(0.9, 0.35, 0.3))
-	Journal.add("Baskında yenildim; %s köyü yağmalayıp çekildi." % Game.village(from).get("name", from), "milestone")
+	LazyFx.g("Journal").add("Baskında yenildim; %s köyü yağmalayıp çekildi." % Game.village(from).get("name", from), "milestone")
 	raid = {}
 
 
@@ -431,21 +431,21 @@ func _reign_tick(dt: float) -> void:
 ## Belirli bir dost Kage olur (darbe / seçim kampanyası)
 func force_successor(vid: String, fid: String, reason: String) -> void:
 	if is_kage() and vid == Progress.home():
-		Hud.msg("%s seni devirmeye kalktı ama başaramadı!" % Friends.all()[fid]["name"], Color(1, 0.5, 0.4))
+		Hud.msg("%s seni devirmeye kalktı ama başaramadı!" % LazyFx.g("Friends").all()[fid]["name"], Color(1, 0.5, 0.4))
 		return
 	if not p().has("reigns"):
 		p()["reigns"] = {}
-	var f: Dictionary = Friends.all()[fid]
+	var f: Dictionary = LazyFx.g("Friends").all()[fid]
 	var title = Progress.kage_title(vid)
 	var gen = int(reign(vid).get("gen", 4)) + 1
 	var persona = {}
-	var lk = Friends.look_of(f)
+	var lk = LazyFx.g("Friends").look_of(f)
 	for k in ["gender", "hair", "hair_style", "skin"]:
 		if lk.has(k):
 			persona[k] = [lk[k].r, lk[k].g, lk[k].b] if lk[k] is Color else lk[k]
 	f["kage"] = vid
 	f["party"] = false
-	Friends.log_event(f, "%s oldu!" % title)
+	LazyFx.g("Friends").log_event(f, "%s oldu!" % title)
 	p()["reigns"][vid] = {"name": String(f["name"]), "gen": gen, "persona": persona, "friend": fid}
 	Hud.banner("YENİ %s: %s" % [title.to_upper(), String(f["name"]).to_upper()], reason, Color(1, 0.8, 0.45))
 	if vid != Progress.home():
@@ -469,7 +469,7 @@ func kage_killed(vid: String, by_player: bool) -> void:
 	var old = kage_name(vid)
 	var vn = String(Game.village(vid).get("name", vid))
 	Hud.banner("%s ÖLDÜ" % old.to_upper(), "%s'in lideri %s." % [vn, "senin elinden düştü" if by_player else "savaşta düştü"], Color(0.9, 0.2, 0.2))
-	Journal.add("%s'i öldürdüm." % old if by_player else "%s öldü." % old, "milestone")
+	LazyFx.g("Journal").add("%s'i öldürdüm." % old if by_player else "%s öldü." % old, "milestone")
 	TailedBeasts._news("HABER", "%s öldü! %s yasta." % [old, vn])
 	if by_player:
 		Orgs.add_infamy(800)
@@ -491,20 +491,20 @@ func succeed(vid: String, why := "") -> void:
 	WorldDay.kage_leave(vid, why)   # eski Kage gerçek kişiyse: şapkayı bırakır ya da ölür
 	var wkage: Dictionary = {}
 	# o köyün Elit Jōnin dostları önce düşünülür
-	var fs: Dictionary = Friends.all()
-	var strong: Array = KageArts.STRONG.get(vid, [])
-	var elite = fs.keys().filter(func(k): return String(fs[k].get("village", "")) == vid and int(fs[k].get("rank", 0)) >= 3 and Friends.available(fs[k]) and String(fs[k].get("clan", "")) in strong)   # Kage hep güçlü klandan
+	var fs: Dictionary = LazyFx.g("Friends").all()
+	var strong: Array = LazyFx.g("KageArts").STRONG.get(vid, [])
+	var elite = fs.keys().filter(func(k): return String(fs[k].get("village", "")) == vid and int(fs[k].get("rank", 0)) >= 3 and LazyFx.g("Friends").available(fs[k]) and String(fs[k].get("clan", "")) in strong)   # Kage hep güçlü klandan
 	if not elite.is_empty() and randf() < 0.6:
 		fid = String(elite.pick_random())
 		var f: Dictionary = fs[fid]
 		who = String(f["name"])
-		var lk = Friends.look_of(f)
+		var lk = LazyFx.g("Friends").look_of(f)
 		for k in ["gender", "hair", "hair_style", "skin"]:
 			if lk.has(k):
 				persona[k] = [lk[k].r, lk[k].g, lk[k].b] if lk[k] is Color else lk[k]
 		f["kage"] = vid
 		f["party"] = false
-		Friends.log_event(f, "%s oldu!" % title)
+		LazyFx.g("Friends").log_event(f, "%s oldu!" % title)
 		f["news"] = "İnanabiliyor musun? Artık %s benim. Kapım sana her zaman açık." % title
 	elif not WorldDay.kage_candidate(vid).is_empty():
 		# köyün gerçek ninjalarından: en güçlü, hedefi bu olan, güçlü klandan gelen
@@ -516,7 +516,7 @@ func succeed(vid: String, why := "") -> void:
 				persona[k] = [wl[k].r, wl[k].g, wl[k].b] if wl[k] is Color else wl[k]
 		WorldDay.kage_take(wkage, vid)
 	else:
-		var clans: Array = (KageArts.STRONG.get(vid, []) as Array).filter(func(c): return Data.clans.has(c))   # Kage hep köyün güçlü klanlarından
+		var clans: Array = (LazyFx.g("KageArts").STRONG.get(vid, []) as Array).filter(func(c): return Data.clans.has(c))   # Kage hep köyün güçlü klanlarından
 		var fem = randf() < 0.3
 		var kclan = String(clans.pick_random()) if not clans.is_empty() else ""
 		who = ClanWorld.person_name(kclan, fem) if kclan != "" else "%s %s" % [String(Missions.BB_FAMILY.pick_random()), (ClanWorld.GIVEN_F if fem else ClanWorld.GIVEN_M).pick_random()]
@@ -542,7 +542,7 @@ func succeed(vid: String, why := "") -> void:
 	# yeni liderin sana bakışı köyler arası ilişkiyi kaydırır
 	if vid != Progress.home() and not Game.profile.is_empty():
 		if fid != "":
-			var b = int(Friends.all()[fid]["bond"])
+			var b = int(LazyFx.g("Friends").all()[fid]["bond"])
 			change_relation(vid, 20 if b >= 30 else (-25 if b <= -30 else 0))
 		else:
 			change_relation(vid, randi_range(-15, 15))
@@ -570,7 +570,7 @@ func st() -> Dictionary:
 func relation(vid: String) -> int:
 	if Game.profile.is_empty():
 		return 0
-	return WorldRelations.rel(Progress.home(), vid)
+	return LazyFx.g("WorldRelations").rel(Progress.home(), vid)
 
 
 ## Gerilimli köy: sınır muhafızları düşmanca davranır (diğer sistemler sorabilir)
@@ -581,7 +581,7 @@ func hostile_to(vid: String) -> bool:
 func change_relation(vid: String, n: int) -> void:
 	if vid == Progress.home() or Game.profile.is_empty():
 		return
-	WorldRelations.change(Progress.home(), vid, n)
+	LazyFx.g("WorldRelations").change(Progress.home(), vid, n)
 	relations_changed.emit()
 
 
@@ -688,10 +688,10 @@ func inaugurate() -> void:
 func _inaug_grant() -> void:
 	Progress.promote(6)
 	var pr = p()
-	Gear.ensure(pr)
-	Gear.grant(pr, "set_kage", "set")
-	Gear.grant(pr, "kage_sapkasi", "kafa", Progress.home_info()["band"].lerp(Color.WHITE, 0.6))
-	Gear.apply_look(pr)
+	LazyFx.g("Gear").ensure(pr)
+	LazyFx.g("Gear").grant(pr, "set_kage", "set")
+	LazyFx.g("Gear").grant(pr, "kage_sapkasi", "kafa", Progress.home_info()["band"].lerp(Color.WHITE, 0.6))
+	LazyFx.g("Gear").apply_look(pr)
 	if Game.player:
 		Game.player.rebuild_model()
 
@@ -705,7 +705,7 @@ func _inaug_done() -> void:
 	_gen_requests()
 	became_kage.emit()
 	Hud.banner("%s %s" % [String(Game.village(Progress.home()).get("name", "")).to_upper(), kt.to_upper()], "Yemin töreni: köy halkı tezahürat yapıyor!", Color(1, 0.75, 0.3))
-	Hud.dialog("Köy Halkı", "%s! %s! Yeni %s'imiz %s!" % [kt, kt, kt, pr["name"]], [{"label": "Kage masasına geç", "cb": func(): KageDesk.open()}])
+	Hud.dialog("Köy Halkı", "%s! %s! Yeni %s'imiz %s!" % [kt, kt, kt, pr["name"]], [{"label": "Kage masasına geç", "cb": func(): LazyFx.g("KageDesk").open()}])
 	decorate()
 
 
@@ -742,7 +742,7 @@ func _gen_requests() -> void:
 
 func success_chance(squad: Dictionary, req: Dictionary) -> float:
 	var c = 0.5 + (float(squad["power"]) - float(req["diff"])) / (float(req["diff"]) * 1.4)
-	c += (float(squad["morale"]) - 50.0) * 0.003 + int(st()["upg"].get("istihbarat", 0)) * 0.06 + Stats.skill(p(), "squad") * 0.5
+	c += (float(squad["morale"]) - 50.0) * 0.003 + int(st()["upg"].get("istihbarat", 0)) * 0.06 + LazyFx.g("Stats").skill(p(), "squad") * 0.5
 	return clampf(c, 0.05, 0.97)
 
 
@@ -776,7 +776,7 @@ func _finish_job(sq: Dictionary) -> void:
 		Missions._rep(Progress.home(), {"D": 1, "C": 2, "B": 4, "A": 7, "S": 12}[req["rank"]])
 		sq["status"] = "hazır"
 		add_log("✔ %s başarıyla döndü: %s (+%d Ryō)" % [sq["name"], req["title"], int(req["pay"])])
-		Hud.msg("Kage masası: %s görevi başardı (+%d Ryō)" % [sq["name"], int(req["pay"])], UI.GOOD)
+		Hud.msg("Kage masası: %s görevi başardı (+%d Ryō)" % [sq["name"], int(req["pay"])], LazyFx.g("UI").GOOD)
 	else:
 		sq["morale"] = maxi(10, int(sq["morale"]) - 20)
 		var heal_days = maxf(0.5, 2.0 - int(k["upg"].get("hastane", 0)) * 0.5)
@@ -789,7 +789,7 @@ func _finish_job(sq: Dictionary) -> void:
 		sq["power"] = _sum_pow(sq)
 		Missions._rep(Progress.home(), -3)
 		add_log("✘ %s başarısız: %s%s" % [sq["name"], req["title"], lost])
-		Hud.msg("Kage masası: %s görevde başarısız oldu%s" % [sq["name"], lost], UI.BAD)
+		Hud.msg("Kage masası: %s görevde başarısız oldu%s" % [sq["name"], lost], LazyFx.g("UI").BAD)
 	sq["job"] = {}
 
 
@@ -847,46 +847,46 @@ func diplomacy(vid: String, action: String) -> String:
 			if relation(vid) < 30:
 				return "%s ile ilişkiler ticaret anlaşması için yeterli değil (30 gerekli)." % vn
 			k["trade"][vid] = true
-			if WorldRelations.pact(Progress.home(), vid) == "":
-				WorldRelations.set_pact(Progress.home(), vid, "ticaret")
+			if LazyFx.g("WorldRelations").pact(Progress.home(), vid) == "":
+				LazyFx.g("WorldRelations").set_pact(Progress.home(), vid, "ticaret")
 			add_log("%s ile ticaret anlaşması imzalandı (+3.500 Ryō/gün)." % vn)
 			return "Ticaret anlaşması imzalandı."
 		"ittifak":
-			if vid in WorldRelations.MINOR:
+			if vid in LazyFx.g("WorldRelations").MINOR:
 				if relation(vid) < 60:
 					return "%s himayene girmek için 60 ilişki ister." % vn
-				WorldRelations.set_pact(Progress.home(), vid, "ittifak")
-				WorldRelations.D()["sway"][vid] = Progress.home()
+				LazyFx.g("WorldRelations").set_pact(Progress.home(), vid, "ittifak")
+				LazyFx.g("WorldRelations").D()["sway"][vid] = Progress.home()
 				add_log("%s köyümüzün himayesine girdi." % vn)
 				return "%s artık himayende." % vn
 			if relation(vid) < 70 or String(k.get("summit", "none")) != "done":
 				return "İttifak için 70 ilişki ve Beş Kage Zirvesi gerekir."
 			k["alliance"][vid] = true
-			WorldRelations.set_pact(Progress.home(), vid, "ittifak")
+			LazyFx.g("WorldRelations").set_pact(Progress.home(), vid, "ittifak")
 			add_log("%s ile resmi ittifak kuruldu." % vn)
 			return "İttifak kuruldu!"
 		"baris":
-			if not WorldRelations.at_war(Progress.home(), vid):
+			if not LazyFx.g("WorldRelations").at_war(Progress.home(), vid):
 				return "%s ile savaşta değilsin." % vn
 			if int(k["funds"]) < 20000:
 				return "Barış teklifi için 20.000 Ryō tazminat gerekir."
 			k["funds"] = int(k["funds"]) - 20000
 			# karşı Kage'nin mizacı: temkinli / sıcak olan kabule yatkın; savaşta kayıpları ağır olan da
-			var lt = WorldRelations.leader(vid)
-			var w: Dictionary = WorldRelations.D()["war"].get(WorldRelations.key(Progress.home(), vid), {})
-			var hurt = float(int((w.get("dead", {}) as Dictionary).get(vid, 0))) / WorldRelations.WAR_DEAD
+			var lt = LazyFx.g("WorldRelations").leader(vid)
+			var w: Dictionary = LazyFx.g("WorldRelations").D()["war"].get(LazyFx.g("WorldRelations").key(Progress.home(), vid), {})
+			var hurt = float(int((w.get("dead", {}) as Dictionary).get(vid, 0))) / LazyFx.g("WorldRelations").WAR_DEAD
 			if randf() < 0.35 - lt.x * 0.2 + lt.y * 0.2 + hurt * 0.4:
-				WorldRelations._end_war(WorldRelations.key(Progress.home(), vid), "%s barış teklifini kabul etti." % kage_name(vid), Progress.home())
+				LazyFx.g("WorldRelations")._end_war(LazyFx.g("WorldRelations").key(Progress.home(), vid), "%s barış teklifini kabul etti." % kage_name(vid), Progress.home())
 				add_log("%s ile ateşkes imzalandı (−20.000 Ryō tazminat)." % vn)
 				return "Ateşkes imzalandı!"
 			add_log("%s barış teklifini reddetti (−20.000 Ryō)." % vn)
 			return "%s teklifi reddetti. Savaş sürüyor." % kage_name(vid)
 		"savas":
-			if WorldRelations.at_war(Progress.home(), vid):
+			if LazyFx.g("WorldRelations").at_war(Progress.home(), vid):
 				return "%s ile zaten savaştasın." % vn
 			if relation(vid) > -40:
 				return "Savaş ilanı için ilişki −40'ın altında olmalı (konsey onaylamaz)."
-			WorldRelations.declare_war(Progress.home(), vid)
+			LazyFx.g("WorldRelations").declare_war(Progress.home(), vid)
 			add_log("Savaş ilan edildi: %s." % vn)
 			return "Savaş ilan edildi!"
 		"tatbikat":
@@ -1145,7 +1145,7 @@ func decorate() -> void:
 		mb.add("cyl", tower + Vector3(0, 40, 0), Vector3(0.4, 14, 0.4), Color(0.3, 0.3, 0.32), Vector3.ZERO, 6)
 		mb.add("box", tower + Vector3(1.5, 45, 0), Vector3(3, 2, 0.1), band)
 	var mi = MeshInstance3D.new()
-	mi.mesh = mb.build(Props.toon())
+	mi.mesh = mb.build(LazyFx.g("Props").toon())
 	_decor.add_child(mi)
 
 

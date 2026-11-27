@@ -64,7 +64,7 @@ static func build(b: MB) -> void:
 	var navy = Color(0.16, 0.18, 0.25)
 	var hole = Color(0.02, 0.02, 0.03)
 	var cloth = Color(0.8, 0.74, 0.66)
-	Loft.tube(b, [Vector3(0, 0, -0.14), Vector3(0, 0, -0.03), Vector3(0, 0, 0.07)], [0.06, 0.1, 0.122], cloth, 14, 2)
+	LazyFx.g("Loft").tube(b, [Vector3(0, 0, -0.14), Vector3(0, 0, -0.03), Vector3(0, 0, 0.07)], [0.06, 0.1, 0.122], cloth, 14, 2)
 	for k in 3:
 		b.add("torus", Vector3(0, 0, -0.08 + k * 0.05), Vector3(0.2 + k * 0.024, 0.2 + k * 0.024, 0.05), cloth.darkened(0.14), Vector3(90, 0, 0), 14)
 	for k in BARRELS:
@@ -79,7 +79,7 @@ static func _hose_link() -> Mesh:
 	return Yk.mesh("enmaku_hortum", func():
 		var b = MB.new()
 		b.add("cyl", Vector3.ZERO, Vector3(0.05, 0.05, 0.05), Color(0.1, 0.1, 0.13), Vector3(90, 0, 0), 8)
-		return b.build(Props.toon()))
+		return b.build(LazyFx.g("Props").toon()))
 
 
 ## Takılınca: atardan sırta giden hortum (kanon: düzenek sırta bağlı), sallanır
@@ -160,7 +160,7 @@ static func _grenade(who: Node3D, k: int, to: Vector3, dmg: float, r: float, lif
 	b.mesh = Yk.mesh("enmaku_bomba", func():
 		var mb = MB.new()
 		mb.add("sphere", Vector3.ZERO, Vector3.ONE * 0.09, Color(0.14, 0.14, 0.18), Vector3.ZERO, 8)
-		return mb.build(Props.toon()))
+		return mb.build(LazyFx.g("Props").toon()))
 	var root = Node3D.new()
 	root.add_child(b)
 	var cb = func(pos: Vector3, _t: Node3D) -> void:

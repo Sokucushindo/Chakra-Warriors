@@ -41,7 +41,7 @@ static func _spring(b: MB) -> void:
 		var a = lerpf(-2.2, 2.2, k / 12.0)
 		pts.append(Vector3(0, sin(a) * 0.17, -cos(a) * 0.13 + 0.03))
 		rad.append(0.018)
-	Loft.tube(b, pts, rad, black, 8, 2)
+	LazyFx.g("Loft").tube(b, pts, rad, black, 8, 2)
 	for s in [-1.0, 1.0]:
 		b.add("cyl", Vector3(0, s * 0.145, 0.1), Vector3(0.05, 0.03, 0.05), Color(0.76, 0.72, 0.62), Vector3(90, 0, 0), 8)   # ip bağları
 	b.add("cyl", Vector3(0, 0, -0.03), Vector3(0.13, 0.05, 0.13), black, Vector3(90, 0, 0), 12)   # kol kayışı
@@ -67,7 +67,7 @@ static func _cord() -> Mesh:
 	return Yk.mesh("hasami_ip", func():
 		var b = MB.new()
 		b.add("cyl", Vector3.ZERO, Vector3(0.008, 0.06, 0.008), Color(0.9, 0.88, 0.8), Vector3(90, 0, 0), 4)
-		return b.build(Props.toon()))
+		return b.build(LazyFx.g("Props").toon()))
 
 
 ## Kol silahı kurulumu: yay + iki menteşeli ağız + ele giden beyaz ipler (CharacterModel._weapons)
@@ -133,7 +133,7 @@ static func _shards(p: Vector3, n: int, up: float) -> void:
 	var m = Yk.mesh("hasami_tas", func():
 		var b = MB.new()
 		b.add("box", Vector3.ZERO, Vector3(0.2, 0.12, 0.16), Color(0.36, 0.33, 0.3), Vector3(20, 30, 10))
-		return b.build(Props.toon()))
+		return b.build(LazyFx.g("Props").toon()))
 	for i in n:
 		var mi = MeshInstance3D.new()
 		mi.mesh = m

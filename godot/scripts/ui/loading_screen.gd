@@ -110,16 +110,16 @@ func _init() -> void:
 	add_child(bg)
 	resized.connect(func(): sm.set_shader_parameter("res", size))
 	# logo: sol üst
-	var logo = UI.vbox(0)
+	var logo = LazyFx.g("UI").vbox(0)
 	logo.position = Vector2(96, 80)
 	add_child(logo)
-	logo.add_child(UI.label("忍 の 道", 20, UI.ACCENT, HORIZONTAL_ALIGNMENT_LEFT, true))
-	var t = UI.label("CHAKRA WARRIORS", 58, UI.CREAM, HORIZONTAL_ALIGNMENT_LEFT, true)
-	t.add_theme_font_override("font", UI.title_font())
+	logo.add_child(LazyFx.g("UI").label("忍 の 道", 20, LazyFx.g("UI").ACCENT, HORIZONTAL_ALIGNMENT_LEFT, true))
+	var t = LazyFx.g("UI").label("CHAKRA WARRIORS", 58, LazyFx.g("UI").CREAM, HORIZONTAL_ALIGNMENT_LEFT, true)
+	t.add_theme_font_override("font", LazyFx.g("UI").title_font())
 	logo.add_child(t)
-	logo.add_child(UI.brush_line(220))
+	logo.add_child(LazyFx.g("UI").brush_line(220))
 	# ipucu: sol alt
-	_tip_box = UI.vbox(6)
+	_tip_box = LazyFx.g("UI").vbox(6)
 	_tip_box.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
 	_tip_box.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_tip_box.offset_left = 96; _tip_box.offset_bottom = -92; _tip_box.offset_top = -92
@@ -134,16 +134,16 @@ func _init() -> void:
 	br.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(br)
 	_spin = TextureRect.new()
-	_spin.texture = UI._t("enso")
+	_spin.texture = LazyFx.g("UI")._t("enso")
 	_spin.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_spin.stretch_mode = TextureRect.STRETCH_SCALE
 	_spin.size = Vector2(64, 64)
 	_spin.position = Vector2(406, 0)
 	_spin.pivot_offset = Vector2(32, 32)
-	_spin.modulate = UI.ACCENT
+	_spin.modulate = LazyFx.g("UI").ACCENT
 	_spin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	br.add_child(_spin)
-	var l = UI.label("Dünya yükleniyor...", 20, UI.TEXT, HORIZONTAL_ALIGNMENT_RIGHT, true)
+	var l = LazyFx.g("UI").label("Dünya yükleniyor...", 20, LazyFx.g("UI").TEXT, HORIZONTAL_ALIGNMENT_RIGHT, true)
 	l.name = "L"
 	l.position = Vector2(0, 14)
 	l.size = Vector2(394, 32)
@@ -182,15 +182,15 @@ func _process(dt: float) -> void:
 func _draw_stroke() -> void:
 	var w := _stroke.size.x
 	var h := _stroke.size.y
-	_stroke.draw_style_box(UI.brush(Color(1, 0.95, 0.88, 0.07), "a", 0), Rect2(0, 0, w, h))   # oluk: tam boy soluk darbe
+	_stroke.draw_style_box(LazyFx.g("UI").brush(Color(1, 0.95, 0.88, 0.07), "a", 0), Rect2(0, 0, w, h))   # oluk: tam boy soluk darbe
 	var v := clampf(_bar.value, 0.0, 1.0)
 	if v > 0.001:
 		var fw := 140.0 + (w - 140.0) * v   # 9 dilimli doku en az baş + kuyruk kadar
 		var a := clampf(v / 0.05, 0.0, 1.0)
-		_stroke.draw_style_box(UI.brush(Color(UI.ACCENT, a), "a", 0), Rect2(0, 4, fw, h - 8))
-	var pf = UI.font(true)
+		_stroke.draw_style_box(LazyFx.g("UI").brush(Color(LazyFx.g("UI").ACCENT, a), "a", 0), Rect2(0, 4, fw, h - 8))
+	var pf = LazyFx.g("UI").font(true)
 	var pt := "%d%%" % roundi(v * 100.0)
-	_stroke.draw_string(pf, Vector2(w - pf.get_string_size(pt, HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x - 60, h + 8), pt, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color(UI.TEXT, 0.6))
+	_stroke.draw_string(pf, Vector2(w - pf.get_string_size(pt, HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x - 60, h + 8), pt, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color(LazyFx.g("UI").TEXT, 0.6))
 
 
 func _show_tip(fade: bool) -> void:
@@ -198,15 +198,15 @@ func _show_tip(fade: bool) -> void:
 	var fill = func() -> void:
 		for c in _tip_box.get_children():
 			c.queue_free()
-		var head = UI.hbox(10)
-		head.add_child(UI.seal("知", 26.0))
-		head.add_child(UI.label("İPUCU", 14, UI.ACCENT, HORIZONTAL_ALIGNMENT_LEFT, true))
+		var head = LazyFx.g("UI").hbox(10)
+		head.add_child(LazyFx.g("UI").seal("知", 26.0))
+		head.add_child(LazyFx.g("UI").label("İPUCU", 14, LazyFx.g("UI").ACCENT, HORIZONTAL_ALIGNMENT_LEFT, true))
 		_tip_box.add_child(head)
-		var ti = UI.label(String(tl[0]), 32, UI.CREAM, HORIZONTAL_ALIGNMENT_LEFT, true)
-		ti.add_theme_font_override("font", UI.title_font())
+		var ti = LazyFx.g("UI").label(String(tl[0]), 32, LazyFx.g("UI").CREAM, HORIZONTAL_ALIGNMENT_LEFT, true)
+		ti.add_theme_font_override("font", LazyFx.g("UI").title_font())
 		_tip_box.add_child(ti)
-		_tip_box.add_child(UI.brush_line(130))
-		var body = UI.label(String(tl[1]), 19, Color(UI.TEXT, 0.9))
+		_tip_box.add_child(LazyFx.g("UI").brush_line(130))
+		var body = LazyFx.g("UI").label(String(tl[1]), 19, Color(LazyFx.g("UI").TEXT, 0.9))
 		body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		body.custom_minimum_size = Vector2(760, 0)
 		_tip_box.add_child(body)

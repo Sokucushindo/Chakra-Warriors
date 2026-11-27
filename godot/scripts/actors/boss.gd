@@ -59,7 +59,7 @@ func _make_beast() -> void:
 	for i in 6:
 		b.add("cone", Vector3(randf_range(-0.3, 0.3), 1.7, -0.6 + i * 0.25), Vector3(0.2, 0.5, 0.2), Color(0.55, 0.8, 1.0), Vector3(randf_range(-20, 20), 0, randf_range(-20, 20)), 5)
 	beast_mesh = MeshInstance3D.new()
-	beast_mesh.mesh = b.build(Props.toon())
+	beast_mesh.mesh = b.build(LazyFx.g("Props").toon())
 	beast_mesh.scale = Vector3.ONE * size
 	add_child(beast_mesh)
 	var arcs = Arcs.new()

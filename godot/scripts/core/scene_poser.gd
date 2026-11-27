@@ -9,7 +9,7 @@ const GRIP := [0.9, 0.95, 1.1, 1.2, 0.6]
 const HALF := [0.45, 0.45, 0.5, 0.5, 0.3]
 
 var st := {}          # düğüm -> {"k": poz, "t": süre, ...}
-var mat: Material = Props.toon()
+var mat: Material = LazyFx.g("Props").toon()
 var tray: Node3D
 var pot_pos := Vector3.ZERO
 var board_pos := Vector3.ZERO

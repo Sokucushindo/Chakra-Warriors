@@ -45,7 +45,7 @@ const GLYPH_EN := {"weapon_shop": "W", "shop_weapons": "W", "pharmacy": "M", "sh
 
 
 static func glyph(key: String) -> String:
-	if Lang.is_en() and GLYPH_EN.has(key):
+	if LazyFx.g("Lang").is_en() and GLYPH_EN.has(key):
 		return GLYPH_EN[key]
 	return LANDMARKS[key][1]
 

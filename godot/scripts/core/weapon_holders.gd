@@ -75,7 +75,7 @@ static func _p() -> Dictionary:
 
 
 static func weapon_name(id: String) -> String:
-	return String(Gear.item(id).get("name", id)).split(" (")[0]
+	return String(LazyFx.g("Gear").item(id).get("name", id)).split(" (")[0]
 
 
 static func player_has(id: String) -> bool:
@@ -124,9 +124,9 @@ static func claim(id: String) -> void:
 		return
 	s[id] = {"state": "player"}
 	if not player_has(id):
-		Gear.grant(_p(), id)
+		LazyFx.g("Gear").grant(_p(), id)
 	for x in INFO[id].get("set", []):   # hazine takımı: sahibin taşıdığı diğer hazineler de düşer
 		if not player_has(String(x)):
-			Gear.grant(_p(), String(x))
+			LazyFx.g("Gear").grant(_p(), String(x))
 	Hud.banner("SİLAH DÜŞTÜ", "%s artık senin! [Tab > Ekipman]" % weapon_name(id), Color(1.0, 0.8, 0.35))
 	Sfx.play("levelup", null, 0.8)

@@ -26,7 +26,7 @@ void fragment() {
 static func model(b: MB) -> void:
 	var plate = Color(0.78, 0.79, 0.81)
 	var dark = Color(0.3, 0.3, 0.32)
-	Loft.tube(b, [Vector3(0, 0, -0.13), Vector3(0, 0, 0.0), Vector3(0, 0, 0.12)], [0.062, 0.066, 0.052], plate, 14, 2)
+	LazyFx.g("Loft").tube(b, [Vector3(0, 0, -0.13), Vector3(0, 0, 0.0), Vector3(0, 0, 0.12)], [0.062, 0.066, 0.052], plate, 14, 2)
 	for z in [-0.12, 0.11]:
 		b.add("cyl", Vector3(0, 0, z), Vector3(0.138 if z < 0.0 else 0.112, 0.016, 0.138 if z < 0.0 else 0.112), dark, Vector3(90, 0, 0), 14)
 	var o := PackedVector2Array([Vector2(0.0, -0.15), Vector2(0.03, -0.1), Vector2(0.06, 0.03), Vector2(0.05, 0.15), Vector2(0.0, 0.25)])

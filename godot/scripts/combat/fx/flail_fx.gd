@@ -54,14 +54,14 @@ static func _head() -> Mesh:
 				continue   # zincirin girdiği yer boş
 			var xn = d.cross(Vector3.UP if absf(d.y) < 0.9 else Vector3.RIGHT).normalized()
 			b.add_xf("cone", Transform3D(Basis(xn * 0.052, d * 0.095, xn.cross(d) * 0.052), d * 0.138), Color(0.34, 0.34, 0.38), 5)
-		return b.build(Props.toon()))
+		return b.build(LazyFx.g("Props").toon()))
 
 
 static func _link() -> Mesh:
 	return Kit.cached_mesh("flail_halka", func():
 		var b = MB.new()
 		b.add("torus", Vector3.ZERO, Vector3(0.07, 0.11, 0.036), Color(0.16, 0.16, 0.19), Vector3.ZERO, 8)
-		return b.build(Props.toon()))
+		return b.build(LazyFx.g("Props").toon()))
 
 
 ## CharacterModel._weapons: silah kurulurken
@@ -147,7 +147,7 @@ static func _chips(p: Vector3, n: int) -> void:
 	var m = Kit.cached_mesh("flail_tas", func():
 		var b = MB.new()
 		b.add("boulder", Vector3.ZERO, Vector3.ONE * 0.09, Color(0.42, 0.38, 0.33), Vector3.ZERO, 2)
-		return b.build(Props.toon()))
+		return b.build(LazyFx.g("Props").toon()))
 	for k in n:
 		var mi = MeshInstance3D.new()
 		mi.mesh = m

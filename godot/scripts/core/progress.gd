@@ -46,11 +46,11 @@ func transplant_options(price: int, done_msg: String) -> Array:
 	var pr = Game.profile
 	var opts = []
 	for g in pr.get("gear", []):
-		if Gear.item(g["id"]).get("slot", "") == "goz" and not Gear.is_equipped(pr, g):
+		if LazyFx.g("Gear").item(g["id"]).get("slot", "") == "goz" and not LazyFx.g("Gear").is_equipped(pr, g):
 			for sl in [["sag_goz", "sağ"], ["sol_goz", "sol"]]:
 				var uid = int(g["uid"])
 				var slot = sl[0]
-				opts.append({"label": "Göz nakli: %s → %s göz (%d Ryō)" % [Gear.item(g["id"])["name"], sl[1], price], "cb": func():
+				opts.append({"label": "Göz nakli: %s → %s göz (%d Ryō)" % [LazyFx.g("Gear").item(g["id"])["name"], sl[1], price], "cb": func():
 					if int(pr["ryo"]) < price:
 						Hud.msg("Yeterli Ryō yok.", Color(1, 0.5, 0.4))
 						return
@@ -66,8 +66,8 @@ func refresh_story() -> void:
 	var vn = String(Game.village(home()).get("name", "Konoha")) if Game.world_info.has("villages") else "Konoha"
 	STORY.clear()
 	for t in STORY_T:
-		STORY.append(Lang.t(String(t)).replace("{kage}", info["kage"]).replace("{vn}", vn).replace("{s1}", info["s1"]).replace("{s2}", GeninSquad.sensei_name() if not p().is_empty() else info["s2"])
-			.replace("{lookout}", info["lookout"]).replace("{dir}", Lang.t(String(info["dir"]))))
+		STORY.append(LazyFx.g("Lang").t(String(t)).replace("{kage}", info["kage"]).replace("{vn}", vn).replace("{s1}", info["s1"]).replace("{s2}", LazyFx.g("GeninSquad").sensei_name() if not p().is_empty() else info["s2"])
+			.replace("{lookout}", info["lookout"]).replace("{dir}", LazyFx.g("Lang").t(String(info["dir"]))))
 
 
 ## Yeni oyunda doğma noktası: akademinin önü (Konoha'da eski nokta)
@@ -99,14 +99,14 @@ func story() -> int:
 
 func set_story(i: int) -> void:
 	# hikâye adımı tamamlama ödülü (erken adımlar seviye atlatır)
-	i = mini(i, Journal.FREE)
+	i = mini(i, LazyFx.g("Journal").FREE)
 	var prev = int(p().get("story", 0))
 	if i > prev:
 		add_xp(80 + 60 * i)
 	p()["story"] = i
-	if i == Journal.FREE and prev < Journal.FREE:
+	if i == LazyFx.g("Journal").FREE and prev < LazyFx.g("Journal").FREE:
 		# mezuniyet: bundan sonrası oyuncunun kendi hikâyesi
-		Journal.add("Akademiden mezun oldun ve alın koruyucunu taktın. Bundan sonrasını sen yazacaksın.", "milestone")
+		LazyFx.g("Journal").add("Akademiden mezun oldun ve alın koruyucunu taktın. Bundan sonrasını sen yazacaksın.", "milestone")
 		Hud.banner("YOLUN AÇIK", "Sabit bir hikâye yok — Tab > Görevler > Yolun", Color(1, 0.85, 0.45))
 	Hud.objective_changed()
 	Sfx.play("levelup", null, 1.3, 0.5)
@@ -125,12 +125,12 @@ func genin_missions() -> int:
 ## Hikâye hedef metni + ilerleme sayacı (HUD ve Görevler sekmesi kullanır)
 func objective_text() -> String:
 	var s = story()
-	if s >= Journal.FREE:
-		return Journal.objective_text()
+	if s >= LazyFx.g("Journal").FREE:
+		return LazyFx.g("Journal").objective_text()
 	var t: String = STORY[mini(s, STORY.size() - 1)] if not STORY.is_empty() else ""
 	var pr = p()
 	if s == 3 and pr.get("flags", {}).get("academy_passed", false):
-		t = "Mezun oldun! Takım sınavı: Antrenman Alanı'na git ve jōnin hocan %s ile konuş (oku takip et)." % GeninSquad.sensei_name()
+		t = "Mezun oldun! Takım sınavı: Antrenman Alanı'na git ve jōnin hocan %s ile konuş (oku takip et)." % LazyFx.g("GeninSquad").sensei_name()
 	elif s == 3:
 		t = "Mezuniyet Sınavı: Akademi'de hocan %s ile konuş (Güç %d/5)." % [home_info()["s1"], int(pr.get("level", 1))]
 	return t
@@ -171,7 +171,7 @@ func on_power_changed() -> void:
 
 func _old_add_xp(amount: int) -> void:
 	var pr = p()
-	amount = int(amount * Exams.xp_mult() * (1.0 + Stats.skill(pr, "xp")))
+	amount = int(amount * Exams.xp_mult() * (1.0 + LazyFx.g("Stats").skill(pr, "xp")))
 	pr["xp"] = int(pr["xp"]) + amount
 	Hud.float_text("+%d XP" % amount, Color(0.7, 0.9, 1.0))
 	if int(pr["level"]) >= Data.MAX_LEVEL:
@@ -225,7 +225,7 @@ func clan_unlocks(announce := true) -> void:
 		elif lp == "sage:any":
 			ok = "sage" in pr.get("skills", [])
 		# göz teknikleri gözle gelir: rütbe şartı aranmaz (Rinnegan takılıyken teknikleri hiç açılmıyordu)
-		if ok and lv >= int(j.get("level", 1)) and (lp.begins_with("eye:") or Gear.eff_rank(pr) >= int(j.get("rank", 0))) and element_block(jid) == "":
+		if ok and lv >= int(j.get("level", 1)) and (lp.begins_with("eye:") or LazyFx.g("Gear").eff_rank(pr) >= int(j.get("rank", 0))) and element_block(jid) == "":
 			learn(jid, announce)
 	# aile öğretisi: gizli tekniği olmayan klanlar, ünlü üyesinin kanon tekniklerini evde öğrenir (Güç şartı; rütbe aranmaz)
 	var fam: Array = Data.clans.get(String(pr.get("clan", "")), {}).get("family_arts", [])
@@ -236,7 +236,7 @@ func clan_unlocks(announce := true) -> void:
 			learn(jid, false)
 			if announce:
 				Hud.msg("Ailen sana %s tekniğini öğretti." % String(Data.jutsu[jid].get("name", jid)), Color(0.85, 0.9, 0.7), 5.0)
-				Journal.add("Ailemden %s tekniğini öğrendim." % String(Data.jutsu[jid].get("name", jid)), "milestone")
+				LazyFx.g("Journal").add("Ailemden %s tekniğini öğrendim." % String(Data.jutsu[jid].get("name", jid)), "milestone")
 
 
 # ------------------------------------------------------------------ doğalar (element + kekkei genkai) ve öğrenme şartları
@@ -272,13 +272,13 @@ func element_block(jid: String) -> String:
 		els = [String(j["element"])]
 	for el in els:
 		if not has_nature(el):
-			return "%s için %s doğası gerekli." % [String(j.get("name", jid)).split(" (")[0], Elements.NAMES.get(el, el)]
+			return "%s için %s doğası gerekli." % [String(j.get("name", jid)).split(" (")[0], LazyFx.g("Elements").NAMES.get(el, el)]
 	return ""
 
 
 ## Kekkei genkai görevi bitti (Missions hook)
 func kg_quest_done(m: Dictionary, ok: bool) -> void:
-	KgPaths.quest_done(m, ok)
+	LazyFx.g("KgPaths").quest_done(m, ok)
 
 
 ## Kekkei genkai uyanışı (klan soyu, nadir olay ya da görev ödülü)
@@ -290,7 +290,7 @@ func awaken_nature(n: String, announce := true) -> void:
 		pr["natures"] = []
 	pr["natures"].append(n)
 	if announce:
-		Hud.banner("KEKKEI GENKAI UYANDI", Elements.NAMES.get(n, n.capitalize()), Color(0.9, 0.75, 0.3))
+		Hud.banner("KEKKEI GENKAI UYANDI", LazyFx.g("Elements").NAMES.get(n, n.capitalize()), Color(0.9, 0.75, 0.3))
 		Sfx.play("levelup", null, 0.6)
 	clan_unlocks(announce)
 
@@ -304,7 +304,7 @@ func _check_kg_awaken(announce: bool) -> void:
 			continue   # Gaara soyu: kum Shukaku'dan / kendi chakrasından, Mıknatıs Salınımı değil
 		src.append([n, int(cl.get("kg_level", 1))])
 	# klansız kan soyu (Darui'nin Ranton'u, Pakura'nın Shakuton'u gibi klan adı olmayan kekkei genkai)
-	var soy: Dictionary = KgPaths.SOY.get(String(pr.get("soy", "")), {})
+	var soy: Dictionary = LazyFx.g("KgPaths").SOY.get(String(pr.get("soy", "")), {})
 	if not soy.is_empty():
 		src.append([String(soy["nature"]), int(soy["level"])])
 	for sn in src:
@@ -320,7 +320,7 @@ func _check_kg_awaken(announce: bool) -> void:
 				pr["natures"] = []
 			pr["natures"].append(n)
 			if announce:
-				Hud.banner("KEKKEI GENKAI UYANDI", Elements.NAMES.get(n, n.capitalize()), Color(0.9, 0.75, 0.3))
+				Hud.banner("KEKKEI GENKAI UYANDI", LazyFx.g("Elements").NAMES.get(n, n.capitalize()), Color(0.9, 0.75, 0.3))
 
 
 func has_eye(kind: String) -> bool:
@@ -328,8 +328,8 @@ func has_eye(kind: String) -> bool:
 		return false
 	var want: Array = EYE_KINDS.get(kind, [])
 	for slot in ["sag_goz", "sol_goz"]:
-		var g = Gear.equipped(p(), slot)
-		if not g.is_empty() and int(Gear.item(g["id"]).get("eye", {}).get("kind", 0)) in want:
+		var g = LazyFx.g("Gear").equipped(p(), slot)
+		if not g.is_empty() and int(LazyFx.g("Gear").item(g["id"]).get("eye", {}).get("kind", 0)) in want:
 			return true
 	return false
 
@@ -363,11 +363,11 @@ func can_learn(jid: String) -> String:
 		return "Klan tekniği (%s)" % String(Data.clans.get(jc, {}).get("name", jc.capitalize()))
 	if int(pr["level"]) < int(j.get("level", 1)):
 		return "Güç %d gerekli" % int(j.get("level", 1))
-	if Gear.eff_rank(pr) < int(j.get("rank", 0)):
+	if LazyFx.g("Gear").eff_rank(pr) < int(j.get("rank", 0)):
 		return "%s rütbesi gerekli" % Data.RANKS[int(j.get("rank", 0))]
 	for el in j.get("elements", []):
 		if not has_nature(el):
-			return "%s doğası gerekli" % Elements.NAMES.get(el, el)
+			return "%s doğası gerekli" % LazyFx.g("Elements").NAMES.get(el, el)
 	var lp = String(j.get("learn", ""))
 	if lp.begins_with("kg:") and not has_nature(lp.substr(3)):
 		return "Kekkei genkai gerekli: %s" % Menus._el_name(lp.substr(3))
@@ -378,11 +378,11 @@ func can_learn(jid: String) -> String:
 	if lp == "sage:any" and not "sage" in pr.get("skills", []):
 		return "Sennin modu gerekli"
 	if lp.begins_with("weapon:"):
-		return "%s ele geçirilince öğrenilir" % String(Gear.item(lp.substr(7)).get("name", lp.substr(7)))
+		return "%s ele geçirilince öğrenilir" % String(LazyFx.g("Gear").item(lp.substr(7)).get("name", lp.substr(7)))
 	if lp.begins_with("beast:"):
-		return "%s jinchūriki'si olmalısın" % String(BeastModels.INFO.get(lp.substr(6), {}).get("name", lp.substr(6))).split(" —")[0]
+		return "%s jinchūriki'si olmalısın" % String(LazyFx.g("BeastModels").INFO.get(lp.substr(6), {}).get("name", lp.substr(6))).split(" —")[0]
 	if lp.begins_with("contract:"):
-		return "%s gerekli" % String(Contracts.DEFS.get(lp.substr(9), {}).get("name", "Çağırma sözleşmesi"))
+		return "%s gerekli" % String(LazyFx.g("Contracts").DEFS.get(lp.substr(9), {}).get("name", "Çağırma sözleşmesi"))
 	if lp == "kinjutsu":
 		return "Yasak teknik: Yeraltı Simsarı'ndan parşömenin izini al, saklandığı yerden çıkar"
 	if lp == "shrine:uzumaki":
@@ -459,7 +459,7 @@ func _ensure_scroll_items() -> void:
 		var j: Dictionary = Data.jutsu[jid]
 		var lp = String(j.get("learn", ""))
 		if (lp == "scroll" or lp.begins_with("trainer:") and lp.substr(8) in SCROLL_TRAINERS) and scroll_sellable(jid):
-			Data.items["scroll_" + jid] = {"name": Lang.t("Parşömen: %s" % String(j["name"])), "kind": "scroll", "jutsu": jid, "_auto": true,
+			Data.items["scroll_" + jid] = {"name": LazyFx.g("Lang").t("Parşömen: %s" % String(j["name"])), "kind": "scroll", "jutsu": jid, "_auto": true,
 				"price": [200, 200, 400, 800, 1600, 3000][clampi(int(j.get("tier", 2)), 0, 5)], "desc": String(j.get("desc", ""))}
 
 
@@ -477,7 +477,7 @@ func scroll_shop_items(max_n := 10, extra_lv := 0) -> Array:
 		if not scroll_sellable(jid) or jid in pr["learned"] or int(j.get("level", 1)) > int(pr["level"]) + 4 + extra_lv:
 			continue
 		# eğitmen tekniği: eğitmenin uyguladığı rütbe ve kanon şartı parşömende de geçerli
-		if String(j.get("learn", "")).begins_with("trainer:") and (Gear.eff_rank(pr) < int(j.get("rank", 0)) or LegendPaths.canon_req(jid) != ""):
+		if String(j.get("learn", "")).begins_with("trainer:") and (LazyFx.g("Gear").eff_rank(pr) < int(j.get("rank", 0)) or LegendPaths.canon_req(jid) != ""):
 			continue
 		var natured = true
 		for el in j.get("elements", []):
@@ -491,7 +491,7 @@ func scroll_shop_items(max_n := 10, extra_lv := 0) -> Array:
 
 func add_ryo(amount: int) -> void:
 	if amount > 0:
-		amount = int(amount * (1.0 + Stats.skill(p(), "ryo")))
+		amount = int(amount * (1.0 + LazyFx.g("Stats").skill(p(), "ryo")))
 	p()["ryo"] = int(p()["ryo"]) + amount
 	if amount > 0:
 		Hud.float_text("+%d Ryō" % amount, Color(1, 0.85, 0.4))
@@ -547,23 +547,23 @@ func clan_starter_kit(pr: Dictionary) -> void:
 	# Hatake yadigârı (eski kayıtlara bir kez): Hakkō Chakura Tō
 	if not pr["flags"].get("hatake_kit", false):
 		pr["flags"]["hatake_kit"] = true
-		if String(pr.get("clan", "")) == "hatake" and not "hakko_chakura_to" in Gear.owned_ids(pr):
-			Gear.grant(pr, "hakko_chakura_to", "sag" if Gear.equipped(pr, "sag").is_empty() else "")
-			Gear.apply_look(pr)
+		if String(pr.get("clan", "")) == "hatake" and not "hakko_chakura_to" in LazyFx.g("Gear").owned_ids(pr):
+			LazyFx.g("Gear").grant(pr, "hakko_chakura_to", "sag" if LazyFx.g("Gear").equipped(pr, "sag").is_empty() else "")
+			LazyFx.g("Gear").apply_look(pr)
 			Hud.msg("Aile yadigârı: Hakkō Chakura Tō (babandan kalan tantō)  [Tab > Ekipman]", Color(0.85, 0.9, 1.0), 6.0)
 	if not pr["flags"].get("senju_kolye", false):   # Senju yadigârı (kanon: Hashirama'dan torunlarına); parayla satılmaz
 		pr["flags"]["senju_kolye"] = true
-		if str(pr.get("clan", "")) == "senju" and not "shodai_kubikazari" in Gear.owned_ids(pr):
-			Gear.grant(pr, "shodai_kubikazari")
+		if str(pr.get("clan", "")) == "senju" and not "shodai_kubikazari" in LazyFx.g("Gear").owned_ids(pr):
+			LazyFx.g("Gear").grant(pr, "shodai_kubikazari")
 			Hud.msg("Aile yadigârı: İlk Hokage'nin kolyesi  [Tab > Ekipman]", Color(0.7, 0.95, 0.9), 6.0)
 	if pr.get("flags", {}).get("clan_kit", false):
 		return
 	if not pr.has("flags"):
 		pr["flags"] = {}
 	pr["flags"]["clan_kit"] = true
-	if String(pr.get("clan", "")) == "shiranui" and not "senbon" in Gear.owned_ids(pr):
-		Gear.grant(pr, "senbon", "sag" if Gear.equipped(pr, "sag").is_empty() else "")
-		Gear.apply_look(pr)
+	if String(pr.get("clan", "")) == "shiranui" and not "senbon" in LazyFx.g("Gear").owned_ids(pr):
+		LazyFx.g("Gear").grant(pr, "senbon", "sag" if LazyFx.g("Gear").equipped(pr, "sag").is_empty() else "")
+		LazyFx.g("Gear").apply_look(pr)
 
 
 func ensure_rank_outfit() -> void:
@@ -585,11 +585,11 @@ func ensure_rank_outfit() -> void:
 ## Rütbe kıyafeti: köye özel set yoksa genel set; set yuvasına kuşanır ve karakter hemen yeniden giydirilir
 func _rank_set(id: String, fallback: String) -> void:
 	var pr = p()
-	if Gear.item(id).is_empty():
+	if LazyFx.g("Gear").item(id).is_empty():
 		id = fallback
-	Gear.grant(pr, id, "set")
+	LazyFx.g("Gear").grant(pr, id, "set")
 	pr["flags"]["rank_outfit_%d" % int(pr["rank"])] = true
-	Hud.msg("Yeni kıyafet: %s  [Tab > Ekipman]" % Gear.item(id).get("name", id), Color(0.6, 0.9, 1.0))
+	Hud.msg("Yeni kıyafet: %s  [Tab > Ekipman]" % LazyFx.g("Gear").item(id).get("name", id), Color(0.6, 0.9, 1.0))
 	if Game.player and is_instance_valid(Game.player):
 		Game.player.rebuild_model()
 
@@ -598,14 +598,14 @@ func promote(rank: int) -> void:
 	var pr = p()
 	pr["rank"] = rank
 	var look: Dictionary = pr["look"]
-	Gear.ensure(pr)
+	LazyFx.g("Gear").ensure(pr)
 	var hi = home_info()
 	match rank:
 		1:
-			Gear.grant(pr, "alin_koruyucu", "kafa", hi["band"])
+			LazyFx.g("Gear").grant(pr, "alin_koruyucu", "kafa", hi["band"])
 			Hud.msg("Yeni ekipman: Alın Koruyucu  [Tab > Ekipman]", Color(0.6, 0.9, 1.0))
 		2:
-			GeninSquad.disband()
+			LazyFx.g("GeninSquad").disband()
 			# kıyafetler set yuvasında (eski "zirh" yuvası kalktı: yelek verilip görünmüyordu) — köyün Chūnin seti giydirilir
 			_rank_set("set_%s_chunin" % home(), "set_chunin")
 		3:
@@ -617,7 +617,7 @@ func promote(rank: int) -> void:
 			Hud.msg("Kage adaylığın resmen ilan edildi.", Color(1, 0.85, 0.5))
 		6:
 			pass  # Kage.inaugurate cübbe ve şapkayı verir
-	Gear.apply_look(pr)
+	LazyFx.g("Gear").apply_look(pr)
 	Hud.banner(Data.RANKS[rank].to_upper(), "Rütbe atladın!", Color(1, 0.6, 0.25))
 	Sfx.play("levelup", null, 0.7)
 	if Game.player:
@@ -633,8 +633,8 @@ func on_enemy_killed(e: Node) -> void:
 	p()["stats"]["kills"] = int(p()["stats"].get("kills", 0)) + 1
 	Missions.on_kill(e)
 	Orgs.on_enemy_killed(e)
-	Friends.on_kill()
-	Journal.on_enemy_killed(e)
+	LazyFx.g("Friends").on_kill()
+	LazyFx.g("Journal").on_enemy_killed(e)
 
 
 ## Öldürme XP'si: düşmanın seviyesiyle büyür ama oyuncunun seviyesine göre sınırlıdır.
@@ -666,7 +666,7 @@ func _check_rinnegan_path(dt: float) -> void:
 	if f.get("rinne_offer", false) or int(pr.get("level", 1)) < 70 or not Missions.active().is_empty():
 		return
 	for slot in ["sag_goz", "sol_goz"]:
-		if String(Gear.equipped(pr, slot).get("id", "")) != "goz_ems":
+		if String(LazyFx.g("Gear").equipped(pr, slot).get("id", "")) != "goz_ems":
 			return
 	f["rinne_offer"] = true
 	var tomb = Missions._spot("ame", 1800, 3200)
@@ -690,11 +690,11 @@ func rinnegan_done(m: Dictionary, ok: bool) -> void:
 		return
 	var pr = p()
 	for slot in ["sag_goz", "sol_goz"]:
-		var g = Gear.equipped(pr, slot)
+		var g = LazyFx.g("Gear").equipped(pr, slot)
 		if not g.is_empty():
 			pr["gear"].erase(g)
-		Gear.grant(pr, "goz_rinnegan", slot, null, null, {"lvl": 3, "origin": "uyanis"})
-	Gear.apply_look(pr)
+		LazyFx.g("Gear").grant(pr, "goz_rinnegan", slot, null, null, {"lvl": 3, "origin": "uyanis"})
+	LazyFx.g("Gear").apply_look(pr)
 	if Game.player:
 		Game.player.rebuild_model()
 		FX.aura(Game.player, Color(0.7, 0.6, 1.0), 2.0, Vector3(0, 0.9, 0), 3.0)
@@ -713,8 +713,8 @@ func on_dummy_hit(_d: Node, _dmg: float) -> void:
 	if _d.has_meta("drill"):
 		LegendPaths.node().on_drill_hit(_d)   # yol antrenmanı vuruşu
 	# antrenman kuklası: vuruş ustalığı 2 kat (normal isabet 0.02 + kukla 0.02; ~25 vuruşta 1 puan) (yumrukla taijutsu, silahla kenjutsu)
-	var armed = String(Gear.weapon(pr).get("style", "fist")) != "fist" and bool(pr.get("weapon_drawn", false))
-	Mastery.gain(pr, "kenjutsu" if armed else "taijutsu", 0.02)   # kukla: normal isabetin (0.02) üstüne -> toplam 2 kat
+	var armed = String(LazyFx.g("Gear").weapon(pr).get("style", "fist")) != "fist" and bool(pr.get("weapon_drawn", false))
+	LazyFx.g("Mastery").gain(pr, "kenjutsu" if armed else "taijutsu", 0.02)   # kukla: normal isabetin (0.02) üstüne -> toplam 2 kat
 	if story() == 1:
 		pr["flags"]["dummy_hits"] = int(pr["flags"].get("dummy_hits", 0)) + 1
 		Hud.objective_progress("Kukla darbeleri: %d/25" % pr["flags"]["dummy_hits"])
@@ -749,8 +749,8 @@ func on_player_died() -> void:
 	if Game.has_meta("arena"):   # arena deneme sürümü: ölüm yok, raunt biter
 		Game.get_meta("arena").player_down()
 		return
-	PathJutsu.ura_shisho_trigger(Game.player)   # Danzō'nun ölüm mührü: çevredekileri de götürür
-	Journal.on_player_defeated()   # seni yenen kişi rakibin olur; bir gün geri döner
+	LazyFx.g("PathJutsu").ura_shisho_trigger(Game.player)   # Danzō'nun ölüm mührü: çevredekileri de götürür
+	LazyFx.g("Journal").on_player_defeated()   # seni yenen kişi rakibin olur; bir gün geri döner
 	# sınavda ölen elenir: sınav o an biter (Chūnin her aşaması, takım sınavı)
 	if not int(ChuninExam.stage) in [0, 9]:   # 9 = ev sahibi köye yolculuk (henüz sınav yok)
 		ChuninExam._fail("Sınavda ağır yaralandın; gözetmenler seni alandan çıkardı. Sınav senin için bitti — bir sonraki dönem yeniden katılabilirsin.")
@@ -761,7 +761,7 @@ func on_player_died() -> void:
 	if not Missions.active().is_empty():
 		Missions.fail("Ağır yaralandın ve bayıldın. Görev senin için bitti.")
 	Kage.lose_raid()
-	WorldAssault.player_defeated()
+	LazyFx.g("WorldAssault").player_defeated()
 	Orgs.on_player_defeated()
 	var rogue = Orgs.is_rogue()
 	var pr = p()
@@ -819,8 +819,8 @@ func _calm_after_death(pos: Vector3) -> void:
 func _process(_dt: float) -> void:
 	if Game.player == null or Game.profile.is_empty():
 		return
-	Journal.tick(_dt)
-	ClanMech.tick(_dt)
+	LazyFx.g("Journal").tick(_dt)
+	LazyFx.g("ClanMech").tick(_dt)
 	_weights_tick()
 	_check_rinnegan_path(_dt)
 	# ziyaret edilen köyler (hızlı seyahat); büyük beş köy baştan açık (eski kayıtlar dahil)
@@ -832,22 +832,22 @@ func _process(_dt: float) -> void:
 		if not v["id"] in p()["visited"] and m.distance_to(Vector2(v["x"], v["y"])) < float(v["r"]):
 			p()["visited"].append(v["id"])
 			Hud.banner(v["name"], "Keşfedildi — haritadan hızlı seyahat açıldı", Color(0.8, 0.95, 1.0))
-			Journal.add("%s'ye ilk kez ayak bastın." % v["name"], "travel")
+			LazyFx.g("Journal").add("%s'ye ilk kez ayak bastın." % v["name"], "travel")
 			add_xp(60)
 
 
 ## Evdeki notta oyuncunun kendi seçtiği hedefler (kanon karakterin hayali değil)
 func _note_line() -> String:
-	var gs = Journal.goals()
+	var gs = LazyFx.g("Journal").goals()
 	if gs.is_empty():
 		return "Yolumu kendim çizeceğim."
-	return "Hedeflerim: " + ", ".join(gs.map(func(g): return String(Journal.GOALS[g]["name"])))
+	return "Hedeflerim: " + ", ".join(gs.map(func(g): return String(LazyFx.g("Journal").GOALS[g]["name"])))
 
 
 func _check_story_levels() -> void:
 	var lv = int(p()["level"])
 	var rk = int(p()["rank"])
-	if story() >= Journal.FREE and rk == 1 and lv == 30:
+	if story() >= LazyFx.g("Journal").FREE and rk == 1 and lv == 30:
 		Hud.msg("Chūnin Sınavı'na başvurabilirsin (Stadyum ya da %s Kulesi) — istersen." % home_info()["kage"], Color(1, 0.8, 0.4))
 	if rk == 2 and lv >= 90 and int(p()["missions_done"].get("A", 0)) >= 4 and int(p()["missions_done"].get("B", 0)) >= 6:
 		Hud.msg("Jōnin terfi değerlendirmesine başvurabilirsin (%s Kulesi)." % home_info()["kage"], Color(1, 0.8, 0.4))
@@ -873,7 +873,7 @@ func interact(it: Dictionary) -> void:
 		"mission_board":
 			_mission_board(it)
 		"graveyard":
-			Graveyard.talk(it)
+			LazyFx.g("Graveyard").talk(it)
 		"ramen":
 			_ramen(it)
 		"enter":
@@ -889,14 +889,14 @@ func interact(it: Dictionary) -> void:
 				return
 			_sleep(0, "Futonuna uzanıp gözlerini kapattın... Sabah oldu. (Oyun kaydedildi)")
 		"inn_sleep", "inn":
-			Hud.dialog(it.get("title", "Han Sahibi"), Talk.keeper("inn"), [
+			Hud.dialog(it.get("title", "Han Sahibi"), LazyFx.g("Talk").keeper("inn"), [
 				{"label": "Akşam yemeği ye (30 Ryō) — can + chakra", "cb": func(): _eat(30, "Pirinç, miso çorbası ve ızgara balık... Karnın doydu!", "Han Sahibi")},
 				{"label": "Oda tut ve uyu (40 Ryō) — sabaha kadar, kaydet", "cb": func(): _sleep(40, "Han odasında rahat bir gece geçirdin. Sabah oldu! (Oyun kaydedildi)")},
 			])
 		"uzumaki_shrine":
 			_uzumaki_shrine()
 		"naka_tatami", "naka_up", "naka_tablet":
-			UchihaLife.interact(kind)
+			LazyFx.g("UchihaLife").interact(kind)
 		"shrine":
 			if Eyes.clear_hatred():
 				Hud.banner("HUZUR", "Dua ederken içindeki nefret çözüldü. Kaybını taşıyabilirsin artık.", Color(0.8, 0.85, 1.0))
@@ -910,15 +910,15 @@ func interact(it: Dictionary) -> void:
 			var ttxt = "Hangi tekniği öğrenmek istersin? Ryō karşılığında öğretirim." if not topts.is_empty() else "Şu an sana öğretebileceğim yeni bir teknik yok. Biraz daha güçlen, sonra gel."
 			Hud.dialog(it.get("title", "Eğitmen"), ttxt, topts)
 		"tailor":
-			Hud.gear_shop("Terzi", Gear.shop_stock("c", String(it.get("village", home()))))
+			Hud.gear_shop("Terzi", LazyFx.g("Gear").shop_stock("c", String(it.get("village", home()))))
 		"kg_site":
-			KgPaths.interact_site(it)
+			LazyFx.g("KgPaths").interact_site(it)
 		"path_mentor":
 			LegendPaths.interact(it)
 		"home_note":
 			var lv = int(pr["level"])
 			Hud.dialog("Notlar", "Kendi el yazınla: \"%s\"\nGüç %d • %s • %d Ryō\nGörevler: D%d C%d B%d A%d S%d" % [_note_line(), lv, Data.RANKS[int(pr["rank"])], int(pr["ryo"]),
-				pr["missions_done"]["D"], pr["missions_done"]["C"], pr["missions_done"]["B"], pr["missions_done"]["A"], pr["missions_done"]["S"]] + HomeLife.note_text() + KidLife.note_text(), [])
+				pr["missions_done"]["D"], pr["missions_done"]["C"], pr["missions_done"]["B"], pr["missions_done"]["A"], pr["missions_done"]["S"]] + HomeLife.note_text() + LazyFx.g("KidLife").note_text(), [])
 		"bbq":
 			_eat(80, "Yakiniku! Can ve chakra doldu, 60sn boyunca +%20 güç.", "Garson")
 			Buffs.add("bbq", 60.0, {"melee": 1.2})
@@ -943,10 +943,10 @@ Tıbbi ninja kavanozuna bakıp başını salladı: \"Başkasının gözünü bur
 		"rogue_broker":
 			Orgs.broker_dialog()
 		"rogue_hut":
-			RogueHut.use()
+			LazyFx.g("RogueHut").use()
 		"rogue_board":
 			if Missions.active().is_empty():
-				Hud.show_mission_board(RogueJobs.BOARD)
+				Hud.show_mission_board(LazyFx.g("RogueJobs").BOARD)
 			else:
 				Hud.msg("Önce elindeki işi bitir.", Color(1, 0.85, 0.6))
 		"rogue_tailor", "rogue_weapons", "rogue_scrolls", "rogue_summoner", "rogue_surgeon":
@@ -960,12 +960,12 @@ Tıbbi ninja kavanozuna bakıp başını salladı: \"Başkasının gözünü bur
 			else:
 				if _in_home(it) and int(pr["rank"]) >= 1 and int(pr["rank"]) < 6:
 					gopts.append({"label": "Köyü terk et (kaçak ninja ol)", "cb": Orgs.defect_prompt})
-				Hud.dialog("Kapı Nöbetçisi", Talk.keeper("gate"), gopts)
+				Hud.dialog("Kapı Nöbetçisi", LazyFx.g("Talk").keeper("gate"), gopts)
 		"shop_weapons":
-			Hud.dialog("Silah Dükkânı", Talk.keeper("weapon"), [
+			Hud.dialog("Silah Dükkânı", LazyFx.g("Talk").keeper("weapon"), [
 				{"label": "Ninja aletleri", "cb": func(): Hud.shop("Silah Dükkânı", ["kunai", "shuriken", "mushu_dokugiri", "kosho_mimikazari", "hiko_tsubasa", "yuki_ita", "toge_dama", "kemuri_fuda", "chusha_bari", "senbon", "tag", "makibishi", "smoke", "kemuri_senkodan", "okarina", "agiz_kozu", "aobiko", "inochi_kare", "hikaridama", "togarashi_dama", "doku", "gedokuyaku", "kibaku_dama", "hyodama", "raizutsu", "suzu", "boenkyo", "bakusaidama", "kibaku_fuda", "kosen", "sode_kunai", "nuno_maki", "fuin_fuda", "kekkai_fuda"])},
-				{"label": "Silahlar — stok yarım saatte bir değişir", "cb": func(): Hud.gear_shop("Silahçı", Gear.shop_stock("w", String(it.get("village", home()))))},
-				{"label": "Kıyafet setleri", "cb": func(): Hud.gear_shop("Terzi", Gear.shop_stock("c", String(it.get("village", home()))))},
+				{"label": "Silahlar — stok yarım saatte bir değişir", "cb": func(): Hud.gear_shop("Silahçı", LazyFx.g("Gear").shop_stock("w", String(it.get("village", home()))))},
+				{"label": "Kıyafet setleri", "cb": func(): Hud.gear_shop("Terzi", LazyFx.g("Gear").shop_stock("c", String(it.get("village", home()))))},
 			])
 		"shop_weapons_old":
 			Hud.shop("Silah Dükkânı", ["kunai", "shuriken", "tag", "smoke", "scroll_katon_housenka", "scroll_suiton_suijinheki", "scroll_fuuton_daitoppa", "scroll_doton_doryuheki"])
@@ -992,9 +992,9 @@ Tıbbi ninja kavanozuna bakıp başını salladı: \"Başkasının gözünü bur
 		"sage":
 			_sage_falls()
 		"contract_realm":
-			Contracts.realm_interact(it)
+			LazyFx.g("Contracts").realm_interact(it)
 		"contract_keeper":
-			Contracts.keeper_interact(it)
+			LazyFx.g("Contracts").keeper_interact(it)
 		"valley":
 			Hud.dialog("Sonun Vadisi", "İki dev heykelin arasında nehir köpürüyor. Burada bir zamanlar büyük bir savaş olmuş... (Güç 35'te gizli bir uyanış seni bekliyor)", [])
 		"anbu":
@@ -1018,8 +1018,8 @@ func _hospital_pos() -> Vector3:
 		var q = Game.from_map(Vector2(float(v["x"]) + 545.0, float(v["y"]) + 230.0 - 33.0))
 		q.y = Game.ground_height(q.x, q.z) + 0.5
 		return q
-	if BuildVillageStory.STYLE.has(home()):
-		var hp: Vector2 = BuildVillageStory._sites(v)["hospital"]
+	if LazyFx.g("BuildVillageStory").STYLE.has(home()):
+		var hp: Vector2 = LazyFx.g("BuildVillageStory")._sites(v)["hospital"]
 		var q = Game.from_map(hp) + Vector3(0, 0, 11.0)   # kapı yerel -z'de (dünya +z), 11 m önü
 		q.y = Game.ground_height(q.x, q.z) + 0.5
 		return q
@@ -1094,13 +1094,13 @@ func _ramen(it: Dictionary) -> void:
 		return
 	add_ryo(-50)
 	_sit_at(it.get("seats", []), float(it.get("seat_face", 0.0)))
-	var ea = EatAnim.start(Game.player, BuildKonoha.RAMEN_STOOL_H)
+	var ea = LazyFx.g("EatAnim").start(Game.player, LazyFx.g("BuildKonoha").RAMEN_STOOL_H)
 	await ea.done
 	Game.player.hp = Game.player.max_hp
 	Game.player.chakra = Game.player.max_chakra
 	Aging.feed(0.05)
-	ClanMech.on_eat()
-	Hud.dialog("Ramen Ustası", Talk.keeper("ramen"), [])
+	LazyFx.g("ClanMech").on_eat()
+	Hud.dialog("Ramen Ustası", LazyFx.g("Talk").keeper("ramen"), [])
 
 
 func _eat(price: int, text: String, who: String) -> void:
@@ -1111,7 +1111,7 @@ func _eat(price: int, text: String, who: String) -> void:
 	Game.player.hp = Game.player.max_hp
 	Game.player.chakra = Game.player.max_chakra
 	Game.player.model.play("eat", 0.1, 1.0, true)
-	ClanMech.on_eat()
+	LazyFx.g("ClanMech").on_eat()
 	Hud.dialog(who, text, [])
 
 
@@ -1157,7 +1157,7 @@ func _academy() -> void:
 					if not "genjutsu" in pr["skills"]:
 						pr["skills"].append("genjutsu")
 					_buy_learn("narakumi", 250)})
-			opts.append_array(Friends._teacher_opts())   # Chūnin+: akademide öğretmenlik (başla / ders ver / bırak)
+			opts.append_array(LazyFx.g("Friends")._teacher_opts())   # Chūnin+: akademide öğretmenlik (başla / ders ver / bırak)
 			var line = "Seninle gurur duyuyorum %s. Yolun açık olsun — hangi yolu seçersen seç, temeli unutma." % pr["name"]
 			if int(pr.get("rank", 0)) < 2:
 				line += " Chūnin olduğunda gel; burada ders verebilirsin."
@@ -1173,7 +1173,7 @@ func respec_option() -> Dictionary:
 			Hud.msg("Yeterli Ryō yok.", Color(1, 0.5, 0.4))
 			return
 		add_ryo(-cost)
-		var back = Stats.respec(pr)
+		var back = LazyFx.g("Stats").respec(pr)
 		if Game.player:
 			Game.player.apply_profile_stats()
 		Hud.msg("Yetenekler sıfırlandı: %d puan geri döndü." % back, Color(0.7, 1, 0.7))}
@@ -1183,8 +1183,8 @@ var _wt_last := Vector3.INF
 var _wt_dist := 0.0
 ## Bacak ağırlıkları: hız %25 düşer; yerde koşulan her 25 m dayanıklılık (+ az hız) ustalığı verir
 func _weights_tick() -> void:
-	var gs: Dictionary = Gear.equipped(p(), "set")
-	if gs.is_empty() or not Gear.item(String(gs["id"])).get("agirlik", false):   # ağırlıklı tozluklu set (Gōken Shōzoku)
+	var gs: Dictionary = LazyFx.g("Gear").equipped(p(), "set")
+	if gs.is_empty() or not LazyFx.g("Gear").item(String(gs["id"])).get("agirlik", false):   # ağırlıklı tozluklu set (Gōken Shōzoku)
 		_wt_last = Vector3.INF
 		return
 	var pl = Game.player
@@ -1201,31 +1201,31 @@ func _weights_tick() -> void:
 	_wt_last = pos
 	if _wt_dist >= 25.0:
 		_wt_dist -= 25.0
-		Mastery.gain(p(), "dayaniklilik", 0.18)
-		Mastery.gain(p(), "hiz", 0.015)
+		LazyFx.g("Mastery").gain(p(), "dayaniklilik", 0.18)
+		LazyFx.g("Mastery").gain(p(), "hiz", 0.015)
 
 
 func _training_ground() -> void:
 	var pr = p()
 	var s = story()
 	if s == 3 and pr["flags"].get("academy_passed", false):
-		Hud.dialog(GeninSquad.sensei_name(), "Demek mezun oldun. Ben takımımı kendi sınavımla seçerim. Hazır mısın?", [{"label": "Takım sınavına başla", "cb": Exams.bell_start}, {"label": "Biraz sonra", "cb": func(): pass}])
+		Hud.dialog(LazyFx.g("GeninSquad").sensei_name(), "Demek mezun oldun. Ben takımımı kendi sınavımla seçerim. Hazır mısın?", [{"label": "Takım sınavına başla", "cb": Exams.bell_start}, {"label": "Biraz sonra", "cb": func(): pass}])
 		return
 	# chakra kâğıdı testi: mezun olmuş ama doğasını bilmeyen herkes isteğe bağlı yapabilir
-	if s >= Journal.FREE and not pr.get("element_known", false):
+	if s >= LazyFx.g("Journal").FREE and not pr.get("element_known", false):
 		var el: String = pr["elements"][0]
 		var names = {"katon": "kâğıt yanıp kül oldu: ATEŞ (Katon)", "suiton": "kâğıt ıslandı: SU (Suiton)", "fuuton": "kâğıt ikiye bölündü: RÜZGAR (Fuuton)",
 			"doton": "kâğıt ufalandı: TOPRAK (Doton)", "raiton": "kâğıt buruştu: YILDIRIM (Raiton)"}
 		pr["element_known"] = true
-		Hud.dialog(GeninSquad.sensei_name(), "Chakra kâğıdına chakranı akıt... %s! İlk element tekniğini öğretiyorum." % names[el], [])
+		Hud.dialog(LazyFx.g("GeninSquad").sensei_name(), "Chakra kâğıdına chakranı akıt... %s! İlk element tekniğini öğretiyorum." % names[el], [])
 		var starter = {"katon": "katon_goukakyuu", "suiton": "suiton_suikoudan", "fuuton": "fuuton_shinkuu", "doton": "doton_doryuusou", "raiton": "raiton_nagashi"}[el]
 		learn(starter)
-		Journal.add("Chakra kâğıdı doğanı gösterdi: %s." % el.capitalize(), "milestone")
+		LazyFx.g("Journal").add("Chakra kâğıdı doğanı gösterdi: %s." % el.capitalize(), "milestone")
 		return
 	var opts = [respec_option()]
-	if Gear.eff_rank(pr) >= 2 and int(pr["level"]) >= 25 and "raiton" in pr["elements"] and not "raiton_chidori" in pr["learned"]:
+	if LazyFx.g("Gear").eff_rank(pr) >= 2 and int(pr["level"]) >= 25 and "raiton" in pr["elements"] and not "raiton_chidori" in pr["learned"]:
 		opts.append({"label": "Chidori eğitimi (800 Ryō)", "cb": func(): _buy_learn("raiton_chidori", 800)})
-	if Gear.eff_rank(pr) >= 2 and int(pr["level"]) >= 30 and "katon" in pr["elements"] and not "katon_karyuu" in pr["learned"]:
+	if LazyFx.g("Gear").eff_rank(pr) >= 2 and int(pr["level"]) >= 30 and "katon" in pr["elements"] and not "katon_karyuu" in pr["learned"]:
 		opts.append({"label": "Karyuu Endan eğitimi (1200 Ryō)", "cb": func(): _buy_learn("katon_karyuu", 1200)})
 	opts.append_array(village_trainer_options(home()))
 	Hud.dialog("Antrenman Alanı 3", "Kuklalarla kombolarını çalışabilirsin. Chakra şarjı [C], blok [Sağ tık], Kawarimi [Q].", opts)
@@ -1234,11 +1234,11 @@ func _training_ground() -> void:
 func _sage_falls() -> void:
 	var pr = p()
 	var opts = []
-	if Gear.eff_rank(pr) >= 2 and int(pr["level"]) >= 25 and not "rasengan" in pr["learned"]:
+	if LazyFx.g("Gear").eff_rank(pr) >= 2 and int(pr["level"]) >= 25 and not "rasengan" in pr["learned"]:
 		opts.append({"label": "Rasengan eğitimi (3 aşama)", "cb": func(): RasenganTraining.start()})
-	if Gear.eff_rank(pr) >= 2 and int(pr["level"]) >= 22 and not "kuchiyose" in pr["learned"]:
-		opts.append({"label": "Kurbağa sözleşmesini imzala", "cb": func(): Contracts.sign("kurbağa")})
-	if Gear.eff_rank(pr) >= 2 and int(pr["level"]) >= 40 and not "sage" in pr["skills"]:
+	if LazyFx.g("Gear").eff_rank(pr) >= 2 and int(pr["level"]) >= 22 and not "kuchiyose" in pr["learned"]:
+		opts.append({"label": "Kurbağa sözleşmesini imzala", "cb": func(): LazyFx.g("Contracts").sign("kurbağa")})
+	if LazyFx.g("Gear").eff_rank(pr) >= 2 and int(pr["level"]) >= 40 and not "sage" in pr["skills"]:
 		opts.append({"label": "Sennin eğitimi (doğa enerjisi meditasyonu)", "cb": func():
 			if Game.player and Game.player.combat and Game.player.combat.modes:
 				Game.player.combat.modes.start_sage_training("kurbağa")})
@@ -1255,7 +1255,7 @@ func _mission_board(it: Dictionary) -> void:
 		var rk = int(pr["rank"])
 		if rk >= 6:
 			Hud.dialog(home_info()["kage"] + " Kulesi", "Masan seni bekliyor, %s." % home_info()["kage"], [
-				{"label": "Kage masasına otur", "cb": func(): KageDesk.open()},
+				{"label": "Kage masasına otur", "cb": func(): LazyFx.g("KageDesk").open()},
 				{"label": "Görev panosuna bak", "cb": func(): Missions.open_board(it)}])
 			return
 		var opts = []
@@ -1265,10 +1265,10 @@ func _mission_board(it: Dictionary) -> void:
 			opts.append({"label": "Tokubetsu Jōnin uzmanlığı seç", "cb": func(): Exams.specialty_offer()})
 		if rk in [3, 4] and int(pr["level"]) >= 180:
 			opts.append({"label": "%s adaylığı" % home_info()["kage"], "cb": func(): Kage.offer_candidacy()})
-		if s >= Journal.FREE and int(pr["level"]) >= 30 and rk == 1:
+		if s >= LazyFx.g("Journal").FREE and int(pr["level"]) >= 30 and rk == 1:
 			opts.append({"label": "Chūnin Sınavına başvur", "cb": func(): ChuninExam.apply()})
 		if it.get("kage_office", false):
-			opts.append_array(Friends._kage_teach_opts())   # isteğe bağlı öğretmenlik / genin takımı
+			opts.append_array(LazyFx.g("Friends")._kage_teach_opts())   # isteğe bağlı öğretmenlik / genin takımı
 		if not opts.is_empty():
 			opts.push_front({"label": "Görevleri göster" if it.has("giver") else "Görev panosu", "cb": func(): Missions.open_board(it)})
 			if it.has("giver"):
@@ -1330,7 +1330,7 @@ func _uzumaki_shrine() -> void:
 		{"label": "Shinigami maskesini tak", "cb": func():
 			if Game.player:
 				var pl = Game.player
-				var sg = Shinigami.spawn(pl.get_tree().current_scene, pl.global_position - pl.face_dir() * 1.4, atan2(-pl.face_dir().x, -pl.face_dir().z))
+				var sg = LazyFx.g("Shinigami").spawn(pl.get_tree().current_scene, pl.global_position - pl.face_dir() * 1.4, atan2(-pl.face_dir().x, -pl.face_dir().z))
 				sg.fade(0.6, 0.8)
 				pl.get_tree().create_timer(3.0).timeout.connect(func():
 					if is_instance_valid(sg):
@@ -1338,5 +1338,5 @@ func _uzumaki_shrine() -> void:
 						pl.get_tree().create_timer(0.7).timeout.connect(func(): if is_instance_valid(sg): sg.queue_free()))
 			learn("shiki_fujin")
 			Hud.banner("SHİKİ FŪJİN", "Ölüm Tanrısı arkanda belirdi. Bedeli biliyorsun: kullandığın gün ruhun da yutulacak.", Color(0.7, 0.6, 0.85))
-			Journal.add("Uzumaki tapınağında Shinigami maskesini taktım: Shiki Fūjin.", "milestone")},
+			LazyFx.g("Journal").add("Uzumaki tapınağında Shinigami maskesini taktım: Shiki Fūjin.", "milestone")},
 		{"label": "Dokunma", "cb": func(): pass}])

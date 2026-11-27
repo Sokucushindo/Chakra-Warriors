@@ -72,7 +72,7 @@ static func _node(who: Node3D) -> Node3D:
 	if m == null or not (m is CharacterModel):
 		return null
 	for w in m.weapons:
-		if Gear.base_id(String(w["id"])) == ID and is_instance_valid(w["node"]):
+		if LazyFx.g("Gear").base_id(String(w["id"])) == ID and is_instance_valid(w["node"]):
 			return w["node"]
 	return null
 

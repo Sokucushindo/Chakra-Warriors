@@ -203,21 +203,21 @@ static func give_eye(ei: int, side: int, style: int) -> void:
 	var st_keys = ms_style_keys()
 	var st = String(st_keys[posmod(style, st_keys.size())])
 	for slot in SIDES[clampi(side, 0, SIDES.size() - 1)][1]:
-		var cur = Gear.equipped(pr, slot)
+		var cur = LazyFx.g("Gear").equipped(pr, slot)
 		if not cur.is_empty():
 			cur["own"] = true
 		var extra = {"lvl": int(e[1]), "origin": "dogustan", "xp": 0.0}
 		if String(e[0]) in ["goz_mangekyo", "goz_ems"]:
 			extra["ms_style"] = st
-		Gear.grant(pr, String(e[0]), slot, null, null, extra)
+		LazyFx.g("Gear").grant(pr, String(e[0]), slot, null, null, extra)
 	if String(e[0]) == "goz_ems":
 		pr["ms_blind"] = 0.0
-	Gear.apply_look(pr)
+	LazyFx.g("Gear").apply_look(pr)
 	if Game.player:
 		Game.player.rebuild_model()
 		Game.player.apply_profile_stats()
 	Progress.clan_unlocks(false)   # gözün teknikleri (göz şartlı jutsular)
-	SpecialSlots.refresh(pr)
+	LazyFx.g("SpecialSlots").refresh(pr)
 	if ey:
 		ey.refresh_visual()
 	Hud.msg("%s takıldı: %s." % [String(e[2]), String(SIDES[side][0])], Color(1, 0.6, 0.6))
@@ -228,8 +228,8 @@ static func eye_summary() -> String:
 	var pr = Game.profile
 	var parts = []
 	for s in [["sag_goz", "Sağ"], ["sol_goz", "Sol"]]:
-		var g = Gear.equipped(pr, s[0])
-		var nm = "yok" if g.is_empty() else String(Gear.item(g["id"]).get("name", g["id"]))
+		var g = LazyFx.g("Gear").equipped(pr, s[0])
+		var nm = "yok" if g.is_empty() else String(LazyFx.g("Gear").item(g["id"]).get("name", g["id"]))
 		if not g.is_empty() and String(g["id"]) == "goz_sharingan":
 			nm = "%s, %d tomoe" % [nm, int(g.get("lvl", 1))]
 		if not g.is_empty() and Eyes.MS_STYLES.has(String(g.get("ms_style", ""))):
@@ -244,8 +244,8 @@ static func unlock_groups() -> Array:
 	if not _groups.is_empty():
 		return _groups
 	var out: Array = [["all", "Tüm jutsular"]]
-	for e in KgPaths.BASE:
-		out.append(["el:" + e, "Doğa: %s" % Elements.NAMES.get(e, e)])
+	for e in LazyFx.g("KgPaths").BASE:
+		out.append(["el:" + e, "Doğa: %s" % LazyFx.g("Elements").NAMES.get(e, e)])
 	var kgs := []
 	var clans := []
 	for jid in Data.jutsu:
@@ -330,11 +330,11 @@ static func unlock(gid: String) -> int:
 		if ok and _learn(pr, jid):
 			n += 1
 	if gid == "all":
-		for e in KgPaths.BASE:
+		for e in LazyFx.g("KgPaths").BASE:
 			if not Progress.has_nature(e):
 				pr["elements"].append(e)
 	Progress.clan_unlocks(false)
-	SpecialSlots.refresh(pr)
+	LazyFx.g("SpecialSlots").refresh(pr)
 	Game.save_game()
 	return n
 
@@ -359,10 +359,10 @@ static func learn_paths() -> int:
 		if pid == "kapi" and not "gates" in pr["skills"]:
 			pr["skills"].append("gates")   # Sekiz Kapı modu
 	# yolların verdiği araçlar (LegendPaths._teach ile aynı)
-	if (pr["learned"] as Array).any(func(k): return String(k).begins_with("bashosen_")) and not "bashosen" in Gear.owned_ids(pr):
-		Gear.grant(pr, "bashosen")
-	if "hachibi_yedi_kilic" in pr["learned"] and not "nanato" in Gear.owned_ids(pr):
-		Gear.grant(pr, "nanato")
+	if (pr["learned"] as Array).any(func(k): return String(k).begins_with("bashosen_")) and not "bashosen" in LazyFx.g("Gear").owned_ids(pr):
+		LazyFx.g("Gear").grant(pr, "bashosen")
+	if "hachibi_yedi_kilic" in pr["learned"] and not "nanato" in LazyFx.g("Gear").owned_ids(pr):
+		LazyFx.g("Gear").grant(pr, "nanato")
 	Game.save_game()
 	return n
 
@@ -371,7 +371,7 @@ static func learn_paths() -> int:
 static func _after_power() -> void:
 	var pr = Game.profile
 	var old = int(pr.get("level", 1))
-	Mastery.refresh_level(pr)
+	LazyFx.g("Mastery").refresh_level(pr)
 	Progress.on_power_changed()
 	if int(pr["level"]) == old and Game.player:
 		Game.player.apply_profile_stats()
@@ -390,7 +390,7 @@ static func set_power(target: int) -> void:
 	var avg = 100.0 * pow(maxf(1.0, float(target)) / 100.0, 1.0 / 0.7)
 	for k in ["ninjutsu", "taijutsu", "chakra", "dayaniklilik"]:
 		pr["mastery"][k] = avg
-	pr["mastery"]["kenjutsu"] = minf(Mastery.get_v(pr, "kenjutsu"), avg)
+	pr["mastery"]["kenjutsu"] = minf(LazyFx.g("Mastery").get_v(pr, "kenjutsu"), avg)
 	_after_power()
 	Hud.msg("Güç %d" % int(pr["level"]), Color(0.6, 0.95, 1.0))
 	Game.save_game()
@@ -401,7 +401,7 @@ static func set_all_mastery(v: float) -> void:
 	mark()
 	if not pr.has("mastery"):
 		pr["mastery"] = {}
-	for k in Mastery.KEYS:
+	for k in LazyFx.g("Mastery").KEYS:
 		pr["mastery"][k] = v
 	_after_power()
 	Hud.msg("Bütün ustalıklar %d. Güç %d" % [int(v), int(pr["level"])], Color(0.6, 0.95, 1.0))
@@ -428,7 +428,7 @@ static func set_rank(r: int) -> void:
 
 # ================================================================== kuyruklu canavar
 static func beast_name(id: String) -> String:
-	return String(BeastModels.INFO.get(id, {}).get("name", id)).split(" — ")[0]
+	return String(LazyFx.g("BeastModels").INFO.get(id, {}).get("name", id)).split(" — ")[0]
 
 
 static func become_jinchuriki(id: String) -> void:
@@ -455,20 +455,20 @@ static func items(cat: String) -> Array:
 			out.append([String(id), String(Data.items[id].get("name", id))])
 	else:
 		var ids: Array = []
-		for id in Gear.ITEMS:
-			var s = String(Gear.ITEMS[id].get("slot", ""))
+		for id in LazyFx.g("Gear").ITEMS:
+			var s = String(LazyFx.g("Gear").ITEMS[id].get("slot", ""))
 			if (cat == "w" and s in ["sag", "el"]) or (cat == "set" and s == "set") or (cat == "head" and s in ["kafa", "yuz"]) or (cat == "back" and s == "sirt"):
 				ids.append(id)
 		if cat == "set":
-			ids.append_array(Gear.SETS.keys())
-			ids.append_array(Gear.STRIKER.SETS.keys())
+			ids.append_array(LazyFx.g("Gear").SETS.keys())
+			ids.append_array(LazyFx.g("Gear").STRIKER.SETS.keys())
 		for id in ids:
 			id = String(id)
-			if Gear.MERGED_SETS.has(id) or Gear.REMOVED_SETS.has(id) or Gear.is_legacy_piece(id) or Gear.item(id).is_empty():
+			if LazyFx.g("Gear").MERGED_SETS.has(id) or LazyFx.g("Gear").REMOVED_SETS.has(id) or LazyFx.g("Gear").is_legacy_piece(id) or LazyFx.g("Gear").item(id).is_empty():
 				continue
 			if out.any(func(r): return r[0] == id):
 				continue
-			out.append([id, String(Gear.item(id).get("name", id))])
+			out.append([id, String(LazyFx.g("Gear").item(id).get("name", id))])
 	out.sort_custom(func(a, b): return a[1] < b[1])
 	_items[cat] = out
 	return out
@@ -484,13 +484,13 @@ static func give_item(cat: String, id: String, equip: bool) -> void:
 		pr["inventory"][id] = int(pr["inventory"].get(id, 0)) + 10
 		Hud.msg("+10 %s" % String(Data.items.get(id, {}).get("name", id)), Color(0.9, 0.85, 0.6))
 		return
-	Gear.ensure(pr)
-	Gear.grant(pr, id, String(EQUIP_SLOT.get(cat, "")) if equip else "")
+	LazyFx.g("Gear").ensure(pr)
+	LazyFx.g("Gear").grant(pr, id, String(EQUIP_SLOT.get(cat, "")) if equip else "")
 	if equip:
-		Gear.apply_look(pr)
+		LazyFx.g("Gear").apply_look(pr)
 		if Game.player:
 			Game.player.rebuild_model()
-	Hud.msg(("%s verildi ve kuşanıldı." if equip else "%s verildi.") % String(Gear.item(id).get("name", id)), Color(0.9, 0.85, 0.6))
+	Hud.msg(("%s verildi ve kuşanıldı." if equip else "%s verildi.") % String(LazyFx.g("Gear").item(id).get("name", id)), Color(0.9, 0.85, 0.6))
 	Game.save_game()
 
 
@@ -498,13 +498,13 @@ static func give_all(cat: String) -> int:
 	var pr = Game.profile
 	mark()
 	var n := 0
-	var owned = Gear.owned_ids(pr)
+	var owned = LazyFx.g("Gear").owned_ids(pr)
 	for r in items(cat):
 		if cat == "tool":
 			pr["inventory"][r[0]] = int(pr["inventory"].get(r[0], 0)) + 10
 			n += 1
 		elif not r[0] in owned:
-			if Gear.grant(pr, r[0]) >= 0:
+			if LazyFx.g("Gear").grant(pr, r[0]) >= 0:
 				n += 1
 	Game.save_game()
 	return n
@@ -569,7 +569,7 @@ static func _dots(i: int, n: int) -> Vector2i:
 static func _tail(h: HBoxContainer, text: String) -> void:
 	if text == "":
 		return
-	var l = UI.label(text, 14, UI.MUTED)
+	var l = LazyFx.g("UI").label(text, 14, LazyFx.g("UI").MUTED)
 	l.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 	l.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	h.add_child(l)
@@ -585,14 +585,14 @@ static func _desc_under(h: HBoxContainer, text: String) -> void:
 	var l: Label = h.get_child(0) as Label
 	if l == null:
 		return
-	var vb = UI.vbox(1)
+	var vb = LazyFx.g("UI").vbox(1)
 	vb.custom_minimum_size = Vector2(l.custom_minimum_size.x, 0)
 	vb.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	vb.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	h.remove_child(l)
 	l.custom_minimum_size = Vector2(l.custom_minimum_size.x, 0)
 	vb.add_child(l)
-	var d = UI.label(text, 13, UI.MUTED)
+	var d = LazyFx.g("UI").label(text, 13, LazyFx.g("UI").MUTED)
 	d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	d.custom_minimum_size = Vector2(l.custom_minimum_size.x, 0)
 	vb.add_child(d)
@@ -600,8 +600,8 @@ static func _desc_under(h: HBoxContainer, text: String) -> void:
 	h.move_child(vb, 0)
 
 
-static func _note(sec: VBoxContainer, text: String, col := UI.MUTED) -> void:
-	var l = UI.label(text, 14, col)
+static func _note(sec: VBoxContainer, text: String, col = LazyFx.g("UI").MUTED) -> void:
+	var l = LazyFx.g("UI").label(text, 14, col)
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	l.custom_minimum_size = Vector2(120, 0)
 	var m = MarginContainer.new()
@@ -615,7 +615,7 @@ static func _btn_row(sec: VBoxContainer, lw: float, title: String, desc: String,
 	var h = Menus._set_row(sec, title, lw)
 	for b in buttons:   # [yazı, simge, iş]
 		var cb: Callable = b[2]
-		var bt = UI.button(String(b[0]), func():
+		var bt = LazyFx.g("UI").button(String(b[0]), func():
 			Sfx.play("click")
 			cb.call(), 220 if buttons.size() > 1 else 300, String(b[1]))
 		bt.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -627,7 +627,7 @@ static func build_tab(body: Control, lw: float, pick: Callable, redraw: Callable
 	var pr = Game.profile
 	if pr.is_empty() or Game.player == null or not is_instance_valid(Game.player):
 		var s0 = Menus._set_section(body, "skull", "Hile Kuralları")
-		_note(s0, "Hileler yalnız oyun içinde, bir kayıt yüklüyken kullanılabilir.", UI.TEXT)
+		_note(s0, "Hileler yalnız oyun içinde, bir kayıt yüklüyken kullanılabilir.", LazyFx.g("UI").TEXT)
 		return
 	var again = func(cb: Callable) -> Callable:   # işi yap, sonra ekranı yenile (yeni durum görünsün)
 		return func():
@@ -713,7 +713,7 @@ static func build_tab(body: Control, lw: float, pick: Callable, redraw: Callable
 	_note(b, "Taşıdığın canavar: %s" % (", ".join(PackedStringArray(held.map(func(x): return beast_name(x)))) if not held.is_empty() else "yok"))
 	var free = TailedBeasts.free_beasts()
 	if free.is_empty():
-		_note(b, "Şu an serbest kuyruklu canavar yok (hepsi bir taşıyıcıda ya da sende).", UI.TEXT)
+		_note(b, "Şu an serbest kuyruklu canavar yok (hepsi bir taşıyıcıda ya da sende).", LazyFx.g("UI").TEXT)
 	else:
 		var bi := _i("beast", free.size())
 		_desc_under(pick.call(b, "Canavar", beast_name(free[bi]), func(d): _step("beast", d, free.size()), true, _dots(bi, free.size())),

@@ -117,7 +117,7 @@ func report_captured(beast_id: int) -> void:
 
 func akatsuki_look(m: Dictionary) -> Dictionary:
 	# dik yakalı, bileğe inen siyah pelerin: beyaz kenarlı kızıl bulutlar
-	var lk = Outfits.roll("akatsuki", m["v"])
+	var lk = LazyFx.g("Outfits").roll("akatsuki", m["v"])
 	lk.merge({"gender": "f" if m.get("f", false) else "m", "hair_style": m["hair"], "hair": Color(0.1, 0.08, 0.1) if randf() < 0.5 else Color(0.55, 0.15, 0.15),
 		"band": Color(0.2, 0.2, 0.25), "band_style": "slashed", "village": m["v"], "face_mark": "yok", "age": "adult", "weapon_r": m["weapon"] if m["weapon"] != "" else null}, true)
 	return lk
@@ -155,7 +155,7 @@ func spawn_member(m: Dictionary, at: Vector3) -> Enemy:
 	a["respawn"] = false
 	a["look"] = akatsuki_look(m)
 	a["faction"] = "akatsuki"
-	BossStyles.dress(a, "S", hash(m["name"]), aka_style(m))
+	LazyFx.g("BossStyles").dress(a, "S", hash(m["name"]), aka_style(m))
 	a["name"] = "%s «%s»" % [m["name"], m["alias"]]   # tarz başlığı ada eklenmesin (lider "Kuklacı" diye anılıyordu)
 	e.setup(a)
 	e.set_meta("akatsuki", m["name"])
@@ -258,11 +258,11 @@ func _defect_apply() -> void:
 	var f = flags()
 	f["rogue"] = true
 	f["rogue_from"] = Progress.home()
-	GeninSquad.on_defect()
-	Friends.on_player_defect()
+	LazyFx.g("GeninSquad").on_defect()
+	LazyFx.g("Friends").on_player_defect()
 	state()["bounty"] = 5000 + int(p()["level"]) * 400
 	Missions._rep(Progress.home(), -200)
-	Gear.apply_look(p())
+	LazyFx.g("Gear").apply_look(p())
 	if Game.player:
 		Game.player.rebuild_model()
 	f["infamy"] = 0
@@ -304,12 +304,12 @@ func _pardon_apply() -> void:
 	f.erase("hideout")
 	state()["bounty"] = 0
 	Game.profile["rep"][String(f.get("rogue_from", Progress.home()))] = 0
-	Gear.apply_look(p())
+	LazyFx.g("Gear").apply_look(p())
 	if Game.player:
 		Game.player.rebuild_model()
 	player_pardoned.emit()
-	GeninSquad.on_pardon()
-	Friends.on_player_pardon()
+	LazyFx.g("GeninSquad").on_pardon()
+	LazyFx.g("Friends").on_player_pardon()
 	Hud.banner("AFFEDİLDİN", "Köyüne yeniden hoş geldin. İtibarın sıfırdan başlıyor.", Color(0.6, 1, 0.7))
 
 
@@ -416,7 +416,7 @@ func _ensure_hideout() -> void:
 	var fire_at = mouth + fz * 8.0
 	fire_at.y = Game.ground_height(fire_at.x, fire_at.z)
 	var fb = MB.new()
-	CampKit.campfire(fb, Transform3D.IDENTITY)
+	LazyFx.g("CampKit").campfire(fb, Transform3D.IDENTITY)
 	for k in 4:   # ateş çevresinde kütük oturaklar
 		var a = TAU * k / 4.0 + 0.4
 		fb.add("cyl", Vector3(cos(a) * 2.6, 0.25, sin(a) * 2.6), Vector3(0.45, 1.4, 0.45), Color(0.42, 0.3, 0.18), Vector3(90, rad_to_deg(-a), 0), 8)
@@ -424,35 +424,35 @@ func _ensure_hideout() -> void:
 	for k in 2:   # ateşin arkasında iki kaçak çadırı
 		var tp = fz * 6.0 + fx * (-5.5 + k * 3.8)
 		tp.y = Game.ground_height(fire_at.x + tp.x, fire_at.z + tp.z) - fire_at.y
-		CampKit.tent(fb, Transform3D(tr0.basis * Basis(Vector3.UP, PI + (k - 0.5) * 0.5), tp), Color(0.5, 0.45, 0.36).darkened(k * 0.1))
+		LazyFx.g("CampKit").tent(fb, Transform3D(tr0.basis * Basis(Vector3.UP, PI + (k - 0.5) * 0.5), tp), Color(0.5, 0.45, 0.36).darkened(k * 0.1))
 	var fmi = MeshInstance3D.new()
-	fmi.mesh = fb.build(Props.toon())
+	fmi.mesh = fb.build(LazyFx.g("Props").toon())
 	_hideout_node.add_child(fmi)
 	fmi.global_position = fire_at
-	CampKit.fire_fx(_hideout_node, fire_at)
+	LazyFx.g("CampKit").fire_fx(_hideout_node, fire_at)
 	# antrenman kuklaları (kaçak da çalışır)
 	for k in 3:
 		var dp = mouth + fz * (6.0 + k * 1.2) + fx * (7.0 + k * 2.2)
 		dp.y = Game.ground_height(dp.x, dp.z)
-		var d = TrainingDummy.new()
+		var d = LazyFx.g("TrainingDummy").new()
 		_hideout_node.add_child(d)
 		d.global_position = dp
 		if k == 0:
 			Spawner.maruta_near(_hideout_node, dp + fx * 3.0)
 	# eski kayıt: sığınakta tanıştığın (yeri kaydedilmemiş) kaçaklar ateş başına yerleşir
-	for fid0 in Friends.all():
-		var f0: Dictionary = Friends.all()[fid0]
-		if Friends.is_rogue(f0) and String(f0.get("status", "")) == "" and not f0.has("site") and String(f0.get("title", "")).begins_with("Kaçak ninja"):
+	for fid0 in LazyFx.g("Friends").all():
+		var f0: Dictionary = LazyFx.g("Friends").all()[fid0]
+		if LazyFx.g("Friends").is_rogue(f0) and String(f0.get("status", "")) == "" and not f0.has("site") and String(f0.get("title", "")).begins_with("Kaçak ninja"):
 			for k in 4:
-				if Friends.at_site("hideout_%d" % k) == "":
+				if LazyFx.g("Friends").at_site("hideout_%d" % k) == "":
 					f0["site"] = "hideout_%d" % k
 					break
 	# ateş başında YALNIZ yolda tanıştığın kaçaklar (eskiden 4 yabancı hep oradaydı: kalabalık, yanlış vuruşta hepsi saldırıyordu)
 	for i in 4:
-		var fid = Friends.at_site("hideout_%d" % i)
+		var fid = LazyFx.g("Friends").at_site("hideout_%d" % i)
 		if fid == "":
 			continue
-		var fr: Dictionary = Friends.all()[fid]
+		var fr: Dictionary = LazyFx.g("Friends").all()[fid]
 		var vg = Villager.new()
 		vg.role = "spar"
 		vg.set_meta("rogue_npc", true)
@@ -460,7 +460,7 @@ func _ensure_hideout() -> void:
 		vg.set_meta("friend_id", fid)
 		vg.display_override = String(fr["name"])
 		vg.wander_r = 2.0
-		vg.look_extra = Friends.look_of(fr)
+		vg.look_extra = LazyFx.g("Friends").look_of(fr)
 		vg.lines_override = ["Burada kimse geçmişini sormaz.", "Köyüm beni sattı, ben de onları.", "Bir iş varsa haber ver, ortak olalım.", "Av-ninjalarından sakın; dün iki kişiyi aldılar."]
 		_hideout_node.add_child(vg)
 		var a2 = TAU * i / 4.0 + 0.4
@@ -484,11 +484,11 @@ func rogue_shop(kind: String) -> void:
 	var tag = "kacak|%s" % String(flags().get("rogue_from", "konoha"))
 	match kind:
 		"rogue_tailor":
-			Hud.gear_shop("Kara Terzi", Gear.shop_stock("c", tag))
+			Hud.gear_shop("Kara Terzi", LazyFx.g("Gear").shop_stock("c", tag))
 		"rogue_weapons":
 			Hud.dialog("Kara Silahçı", "Ucuz değil, ama kimse nereden aldığını sormaz.", [
 				{"label": "Ninja aletleri", "cb": func(): Hud.shop("Kara Silahçı", ["kunai", "shuriken", "mushu_dokugiri", "kosho_mimikazari", "hiko_tsubasa", "yuki_ita", "toge_dama", "kemuri_fuda", "chusha_bari", "senbon", "tag", "makibishi", "smoke", "kemuri_senkodan", "okarina", "agiz_kozu", "aobiko", "inochi_kare", "genjutsu_kosui", "genjutsu_yaku", "hikaridama", "togarashi_dama", "doku", "gedokuyaku", "kibaku_dama", "hyodama", "raizutsu", "suzu", "boenkyo", "bakusaidama", "kibaku_fuda", "kosen", "sode_kunai", "nuno_maki", "fuin_fuda", "kekkai_fuda", "salve"])},
-				{"label": "Silahlar", "cb": func(): Hud.gear_shop("Kara Silahçı", Gear.shop_stock("w", tag))}])
+				{"label": "Silahlar", "cb": func(): Hud.gear_shop("Kara Silahçı", LazyFx.g("Gear").shop_stock("w", tag))}])
 		"rogue_scrolls":
 			var r = rogue_rank()
 			var sc = Progress.scroll_shop_items(10 + r * 3, 2 + r * 3)
@@ -497,7 +497,7 @@ func rogue_shop(kind: String) -> void:
 			else:
 				Hud.shop("Kara Parşömenci", sc)
 		"rogue_summoner":
-			Contracts.keeper_interact({"village": "*rogue"})
+			LazyFx.g("Contracts").keeper_interact({"village": "*rogue"})
 		"rogue_surgeon":
 			# kaçakların hastanesi: soru sormadan iyileştirir, çalıntı gözleri takar (pahalı)
 			if Game.player:
@@ -513,7 +513,7 @@ func broker_dialog() -> void:
 	if Missions.active().is_empty():
 		opts.append({"label": "İş panosuna bak", "tip": "Yeraltının işleri duvardaki panoda asılı: soygun, kaçak mal, tutsak kurtarma, suikast...", "cb": func():
 			Hud.close_dialog()
-			Hud.show_mission_board(RogueJobs.BOARD)})
+			Hud.show_mission_board(LazyFx.g("RogueJobs").BOARD)})
 	else:
 		opts.append({"label": "(Önce elindeki işi bitir)", "cb": func(): pass})
 	# parşömenler mağaradaki Kara Parşömenci tezgâhında (simsarda ikinci bir parşömen seçeneği yok)
@@ -628,7 +628,7 @@ func kinjutsu_found(m: Dictionary, ok: bool) -> void:
 	Progress.learn(jid)
 	add_infamy(60)
 	Hud.banner("YASAK TEKNİK", "Mühürlü parşömeni açtın: %s" % String(Data.jutsu[jid].get("name", jid)), Color(0.75, 0.2, 0.3))
-	Journal.add("Yasak parşömenden %s tekniğini öğrendim." % String(Data.jutsu[jid].get("name", jid)), "milestone")
+	LazyFx.g("Journal").add("Yasak parşömenden %s tekniğini öğrendim." % String(Data.jutsu[jid].get("name", jid)), "milestone")
 
 
 func akatsuki_job_done(m: Dictionary, ok: bool) -> void:
@@ -734,7 +734,7 @@ func _spotted_by(_vid: String) -> int:
 		return 0
 	var tod = Game.world.get_time_of_day() if Game.world else 0.5
 	var night = tod < 0.22 or tod > 0.8
-	var reach = 16.0 * (0.55 if night else 1.0) * maxf(0.35, 1.0 - Stats.skill(Game.profile, "stealth"))
+	var reach = 16.0 * (0.55 if night else 1.0) * maxf(0.35, 1.0 - LazyFx.g("Stats").skill(Game.profile, "stealth"))
 	var space = pl.get_world_3d().direct_space_state
 	var seen = 0
 	for n in get_tree().get_nodes_in_group("talkers"):
@@ -748,7 +748,7 @@ func _spotted_by(_vid: String) -> int:
 			continue   # arkası dönük (yanına sokulursan yine fark eder)
 		var q = PhysicsRayQueryParameters3D.create(n.global_position + Vector3.UP * 1.5, pl.global_position + Vector3.UP * 1.2, 1)
 		if space.intersect_ray(q).is_empty():
-			if (n is Villager or n is ClanResident) and Friends.is_ninja(n) and not _spared(n):
+			if (n is Villager or n is ClanResident) and LazyFx.g("Friends").is_ninja(n) and not _spared(n):
 				return 2
 			seen = 1
 	return seen
@@ -759,7 +759,7 @@ func _village_arch(vid: String, i: int, outfit := "chunin") -> Dictionary:
 	var a = Enemy.archetype(vid if vid in ["kumo", "kiri", "iwa", "suna"] else "kumo", i)
 	# görünüş sıfırdan köyün kendi kıyafetiyle (2026-11-27, kullanıcı: "Konoha ANBU'su savaşta Kumo kıyafeti giyiyor", "kıyafet iki
 	# katman üst üste"): eskiden Kumo kalıbının görünüşüne üstten birleştiriliyordu, Kumo parçaları altta kalıyordu
-	a["look"] = Outfits.uniform(outfit, vid)
+	a["look"] = LazyFx.g("Outfits").uniform(outfit, vid)
 	a["look"]["village"] = vid
 	if vid == "konoha":
 		a["element"] = ["katon", "suiton", "fuuton", "doton", "raiton"].pick_random()   # 5 doğa eşit
@@ -777,13 +777,13 @@ static func _spared(v: Node) -> bool:
 	var id = String(v.get_meta("friend_id", ""))
 	if id == "":
 		return false
-	var f = Friends.all().get(id)
+	var f = LazyFx.g("Friends").all().get(id)
 	return f is Dictionary and int(f.get("bond", 0)) >= 30
 
 
 ## Kaçak köy ninjasıyla konuşmaya kalkarsa: konuşma yok — "Kaçak!" diye saldırır ve köy alarma geçer (dostların hariç)
 func rogue_confront(v: Node) -> bool:
-	if not is_rogue() or Game.player == null or _spared(v) or not Friends.is_ninja(v):
+	if not is_rogue() or Game.player == null or _spared(v) or not LazyFx.g("Friends").is_ninja(v):
 		return false
 	var m = Game.to_map(Game.player.global_position)
 	var inside = ""
@@ -798,7 +798,7 @@ func rogue_confront(v: Node) -> bool:
 	if _raid.is_empty():
 		_raid = {"vid": inside, "wave": 0, "t": 2.0, "out_t": 0.0, "nodes": [], "kage": false}
 		Hud.banner("KAÇAK KÖYDE!", "%s alarmda: muhafızlar sana saldıracak. Kaldıkça daha güçlüleri gelir — en sonunda Kage." % Game.village(inside).get("name", inside), Color(0.95, 0.25, 0.2))
-	Crime.inst().attack(v, true)
+	LazyFx.g("Crime").inst().attack(v, true)
 	return true
 
 
@@ -815,13 +815,13 @@ func _alarm_ninjas(dt: float) -> void:
 	for v in get_tree().get_nodes_in_group("talkers"):   # yakındaki bütün köy ninjaları (eskiden saniyede 3 kişi, 32 m: kalanlar izliyordu)
 		if n >= 12:
 			break
-		if not is_instance_valid(v) or not (v is Villager or v is ClanResident) or _spared(v) or not Friends.is_ninja(v):
+		if not is_instance_valid(v) or not (v is Villager or v is ClanResident) or _spared(v) or not LazyFx.g("Friends").is_ninja(v):
 			continue
 		if v.global_position.distance_to(pp) > 60.0:
 			continue
 		n += 1
 		Combat.popup_text(v.global_position + Vector3.UP * 2.3, "Kaçak! Durdurun onu!", Color(1, 0.4, 0.35))
-		Crime.inst().attack(v, true)
+		LazyFx.g("Crime").inst().attack(v, true)
 
 
 func _raid_wave(vid: String, wd: Dictionary) -> void:
@@ -833,7 +833,7 @@ func _raid_wave(vid: String, wd: Dictionary) -> void:
 		a["respawn"] = false
 		a["name"] = "%s %s" % [vname, "ANBU" if wd["kind"] == "anbu" else ("Jōnin" if int(wd["lv"]) > 0 else "Muhafızı")]
 		# köy ninjaları yoldaki aynı rütbeyle aynı eğride (muhafız chūnin ~16-22, jōnin ~28-36, ANBU ~34-42); kaçak ünü biraz yükseltir
-		Stats.npc_ninja(a, randi_range(35, 45) + int(wd["lv"]) * 5 + rogue_rank() * 3, float(wd["hp"]))   # muhafız ~35-55, jōnin ~65-85, ANBU ~80-100
+		LazyFx.g("Stats").npc_ninja(a, randi_range(35, 45) + int(wd["lv"]) * 5 + rogue_rank() * 3, float(wd["hp"]))   # muhafız ~35-55, jōnin ~65-85, ANBU ~80-100
 		var e = Enemy.new()
 		e.setup(a)
 		e.set_meta("village_guard", vid)
@@ -865,10 +865,10 @@ func kage_fighter(vid: String) -> Enemy:
 	var kname = Kage.kage_name(vid)
 	a["name"] = "%s — köyünü koruyor" % kname
 	var lv = randi_range(185, 215)   # Kage = köyün en güçlüsü: Güç ~200 (eskiden 130-170, Güç 75 oyuncu kıpırdamadan eritiyordu)
-	Stats.npc_ninja(a, lv, 2.6)
+	LazyFx.g("Stats").npc_ninja(a, lv, 2.6)
 	# kopuk kural: rol çarpanı (2.6 = Kage dayanıklılığı) cana olduğu kadar vuruşa da biniyordu -> Güç 200 Kage, Güç ~500 gibi
 	# vuruyordu (Güç 75 oyuncuyu tek atıyordu). Rol yalnız cana: vuruş, aynı Güç'teki ninjanın eğrisi (Stats.npc_ninja rol 1)
-	a["power"] = Stats.npc_power(lv)   # rol (2.6) yalnız cana; vuruş aynı Güç'teki oyuncununki
+	a["power"] = LazyFx.g("Stats").npc_power(lv)   # rol (2.6) yalnız cana; vuruş aynı Güç'teki oyuncununki
 	a["guard"] = 0.5
 	a["sub"] = 0.35
 	a["skill"] = 0.8
@@ -876,12 +876,12 @@ func kage_fighter(vid: String) -> Enemy:
 	for k in per:
 		a["look"][k] = per[k]
 	# savaşta da Kage kıyafeti: beyaz Kage cübbesi, köy renginde iç giysi, köy renkli Kage şapkası (eskiden jōnin yeleğiyle çıkıyordu)
-	a["look"].merge(KageAttire.look(vid), true)
+	a["look"].merge(LazyFx.g("KageAttire").look(vid), true)
 	a["look"]["head_style"] = "kage"
 	a["look"]["kage_vid"] = vid
 	a["look"]["village"] = vid
 	var kc = Kage.kage_clan(vid)
-	var strong: Array = KageArts.STRONG.get(vid, [])
+	var strong: Array = LazyFx.g("KageArts").STRONG.get(vid, [])
 	if not kc in strong and not strong.is_empty():
 		# eski kayıt: zayıf klandan / klansız Kage -> köyün güçlü klanından yeni lider (kullanıcı: Kage hep güçlü klandan)
 		kc = String(strong.pick_random())
@@ -895,20 +895,20 @@ func kage_fighter(vid: String) -> Enemy:
 		a["clan"] = kc
 		js.append_array(ClanWorld.clan_jutsu(kc, lv, 4))   # klanın en üst teknikleri (Yuki Kage -> Hyōton'un son seviyesi)
 	# köyün doğasının A/S teknikleri (eskiden kaçak otomatik listesi: B-rank tavanı, "güçlü jutsuları yok")
-	a["element"] = String(KageArts.VILLAGE_ELEMENTS.get(vid, ["katon"])[0])
-	for j in KageArts.village_jutsu(vid, 5):
+	a["element"] = String(LazyFx.g("KageArts").VILLAGE_ELEMENTS.get(vid, ["katon"])[0])
+	for j in LazyFx.g("KageArts").village_jutsu(vid, 5):
 		if not j in js:
 			js.append(j)
 	a["jutsu"] = js.slice(0, 8)
 	a["no_clan"] = true
-	BossStyles.dress(a, "S", hash(vid) % 100000, "")
+	LazyFx.g("BossStyles").dress(a, "S", hash(vid) % 100000, "")
 	var e = Enemy.new()
 	e.setup(a)
 	e.set_meta("village_guard", vid)
 	e.set_meta("faction", vid)
 	e.set_meta("kage_of", vid)   # ölünce Kage.kage_killed: haber + halef
 	get_tree().current_scene.add_child(e)
-	KageArts.prepare(e, kc)   # klan modunun gözü / ek teknikleri (Uchiha Mangekyō, Senju Mokuton...)
+	LazyFx.g("KageArts").prepare(e, kc)   # klan modunun gözü / ek teknikleri (Uchiha Mangekyō, Senju Mokuton...)
 	return e
 	Hud.boss_bar(e)
 
@@ -985,12 +985,12 @@ func hunters_at(pp: Vector3, ring: float) -> Array:
 		var fem_h = randf() < 0.3
 		a["name"] = "%s — Av-Ninjası" % (ClanWorld.GIVEN_F if fem_h else ClanWorld.GIVEN_M).pick_random()
 		a["respawn"] = false
-		Stats.npc_ninja(a, randi_range(70, 85) + rogue_rank() * 4, 1.35)   # av-ninjası: ANBU dengi   # av-ninjası: ANBU eğrisi (eskiden +6/rütbe ile S'de kesilemiyordu)
+		LazyFx.g("Stats").npc_ninja(a, randi_range(70, 85) + rogue_rank() * 4, 1.35)   # av-ninjası: ANBU dengi   # av-ninjası: ANBU eğrisi (eskiden +6/rütbe ile S'de kesilemiyordu)
 		# köyün gizli birliğinin üniforması (Konoha Anbu, Kiri Oinin...; karargâhtakilerle aynı: SecretUnits.look). Eskiden genel
 		# kalıbın (Konoha için "rogue", diğerleri köy chūnin'i) üstüne yalnız maske takılıyordu (2026-11-27, kullanıcı: "ANBU'lar bulut
 		# köyü kıyafeti giyiyor")
 		var fem_l = a["look"].get("gender", "m")
-		a["look"] = SecretUnits.look(vid, i)
+		a["look"] = LazyFx.g("SecretUnits").look(vid, i)
 		a["look"]["gender"] = "f" if fem_h else fem_l
 		a["look"]["village"] = vid
 		a["look"]["band_style"] = "head"
@@ -1054,7 +1054,7 @@ func exam_invasion(center: Vector3, done: Callable) -> void:
 		var s = Summon.new()
 		s.contract = "yılan"
 		s.tier = 2 if i == 0 else 1
-		s.def = Contracts.DEFS["yılan"]["tiers"][s.tier]
+		s.def = LazyFx.g("Contracts").DEFS["yılan"]["tiers"][s.tier]
 		s.team = "enemy"
 		s.owner_f = null
 		get_tree().current_scene.add_child(s)
@@ -1099,7 +1099,7 @@ func _events_tick() -> void:
 	if not Missions.active().is_empty() or Game.ui_open:
 		return
 	# Sınır savaşı: chūnin olduktan bir süre sonra
-	if rank >= 2 and Progress.story() >= Journal.FREE and not ev.has("border_war") and randf() < 0.02:
+	if rank >= 2 and Progress.story() >= LazyFx.g("Journal").FREE and not ev.has("border_war") and randf() < 0.02:
 		ev["border_war"] = "active"
 		_border_war()
 		return
@@ -1165,9 +1165,9 @@ func war_done(_m: Dictionary, ok: bool) -> void:
 	if ok:
 		Hud.banner("SAVAŞ BİTTİ", "Beş köy birlikte kazandı. Adın efsanelere yazıldı.", Color(1, 0.85, 0.4))
 		Progress.add_xp(5000)
-		var gid = Gear.random_legendary()
+		var gid = LazyFx.g("Gear").random_legendary()
 		if gid != "":
-			Gear.grant(p(), gid)
+			LazyFx.g("Gear").grant(p(), gid)
 		for v in ["konoha", "suna", "kiri", "kumo", "iwa"]:
 			Missions._rep(v, 50)
 
@@ -1180,8 +1180,8 @@ func _process(dt: float) -> void:
 	_hunter_tick(dt)
 	_village_ban(dt)
 	_ensure_hideout()
-	RogueHut.tick()
-	RogueJobs.tick(dt)
+	LazyFx.g("RogueHut").tick()
+	LazyFx.g("RogueJobs").tick(dt)
 	_ro_tick(dt)
 	_ro_job_tick(dt)
 	_t += dt
@@ -1241,7 +1241,7 @@ func random_orgs() -> Array:
 	st["rorgs"] = all_o
 	st.erase("rorg_gone_t")
 	Hud.banner("YENİ BİR ÖRGÜT", "Yeraltındaki boşluğu biri doldurdu: %s. Amaçları: %s" % [o["name"], o["goal"]], Color.html(o["accent"]))
-	Journal.add("Yeraltında yeni bir örgüt doğdu: %s (%s)." % [o["name"], o["goal"]], "milestone")
+	LazyFx.g("Journal").add("Yeraltında yeni bir örgüt doğdu: %s (%s)." % [o["name"], o["goal"]], "milestone")
 	return [o]
 
 
@@ -1279,7 +1279,7 @@ func _make_org(oi: int) -> Dictionary:
 
 
 func _ro_look(o: Dictionary, m: Dictionary) -> Dictionary:
-	var lk = Outfits.roll("org", m["v"])
+	var lk = LazyFx.g("Outfits").roll("org", m["v"])
 	lk.merge({"outer": Color.html(o["cloak"]), "outer_accent": Color.html(o["accent"]), "outer_pattern": int(o["pattern"]), "gender": "f" if m["f"] else "m",
 		"hair_style": m["hair"], "band": Color(0.2, 0.2, 0.25), "band_style": "slashed", "village": m["v"], "age": "adult"}, true)
 	var dr: Dictionary = o.get("dress", {})
@@ -1307,7 +1307,7 @@ func spawn_ro_member(o: Dictionary, m: Dictionary, at: Vector3) -> Enemy:
 	a["respawn"] = false
 	a["look"] = _ro_look(o, m)
 	a["faction"] = "rogue"
-	BossStyles.dress(a, "S" if m["leader"] else "A", hash(m["name"]), String(m["style"]))
+	LazyFx.g("BossStyles").dress(a, "S" if m["leader"] else "A", hash(m["name"]), String(m["style"]))
 	a["name"] = "%s «%s» — %s" % [m["name"], m["alias"], o["name"]]
 	e.setup(a)
 	e.set_meta("rorg", [o["name"], m["name"]])

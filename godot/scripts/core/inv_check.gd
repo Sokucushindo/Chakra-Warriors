@@ -87,7 +87,7 @@ static func run(tree: SceneTree, center: Vector3, R := 35.0) -> void:
 			gz += 1.5
 		gx += 1.5
 	sb.queue_free()
-	var lines = ["Konum: %s  köy: %s  zaman: %s" % [str(center.snapped(Vector3(0.1, 0.1, 0.1))), Outfits.village_near(center), Time.get_datetime_string_from_system()]]
+	var lines = ["Konum: %s  köy: %s  zaman: %s" % [str(center.snapped(Vector3(0.1, 0.1, 0.1))), LazyFx.g("Outfits").village_near(center), Time.get_datetime_string_from_system()]]
 	lines.append("Görünmez çarpışma: %d nokta" % bad.size())
 	for k in bad:
 		lines.append("  " + String(bad[k]))

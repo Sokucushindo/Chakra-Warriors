@@ -134,7 +134,7 @@ func _finish_seals() -> void:
 
 func _can_discover(j: Dictionary) -> bool:
 	var pr = Game.profile
-	if int(pr["level"]) < int(j.get("level", 1)) or Gear.eff_rank(pr) < int(j.get("rank", 0)):   # kaçakta Bingo sınıfı eşdeğer (S = Kage)
+	if int(pr["level"]) < int(j.get("level", 1)) or LazyFx.g("Gear").eff_rank(pr) < int(j.get("rank", 0)):   # kaçakta Bingo sınıfı eşdeğer (S = Kage)
 		return false
 	if j.get("clan", "") != "" and j["clan"] != pr.get("clan", ""):
 		return false
@@ -244,7 +244,7 @@ func next_gate() -> void:
 		return
 	var names = ["", "1. Kapı: Açılış Kapısı!", "2. Kapı: Dinlenme Kapısı!", "3. Kapı: Yaşam Kapısı!", "4. Kapı: Acı Kapısı!",
 		"5. Kapı: Sınır Kapısı!", "6. Kapı: Görüş Kapısı!", "7. Kapı: Şaşkınlık Kapısı!"]
-	var gm = Stats.skill(Game.profile, "gates")  # ustalık: daha güçlü kapılar, daha az beden yükü
+	var gm = LazyFx.g("Stats").skill(Game.profile, "gates")  # ustalık: daha güçlü kapılar, daha az beden yükü
 	if gates == 1:
 		exclusive("gates")
 	Buffs.add("gates", 9999.0, {"speed": 1.0 + gates * 0.08 * (1.0 + gm), "melee": 1.0 + gates * 0.18 * (1.0 + gm)})
@@ -271,7 +271,7 @@ var _red_steam: Node3D = null
 ## 8. kapı: kırmızı buhar (Sekizō/Yagai açılır), devasa güç; DEATH_GATE_TIME sonra beden kül olur (ölüm)
 func _open_death_gate() -> void:
 	gates = 8
-	var gm = Stats.skill(Game.profile, "gates")
+	var gm = LazyFx.g("Stats").skill(Game.profile, "gates")
 	Buffs.add("gates", 9999.0, {"speed": 2.0 * (1.0 + gm * 0.5), "melee": 3.2 * (1.0 + gm * 0.5), "armor": 0.55})
 	_gate_look(8)
 	_gate_burst(7)
@@ -316,9 +316,9 @@ func _death_gate_end() -> void:
 	if not is_instance_valid(p) or p.hp <= 0.0 or Cheats.on("nomodecost") or Cheats.on("god"):
 		return
 	Hud.banner("ÖLÜM KAPISI", "Bedenin dayanamadı; kül olup dağıldın...", Color(0.7, 0.2, 0.2))
-	Journal.add("Ölüm Kapısı'nı açtım. Bedenim kül oldu.", "milestone")
+	LazyFx.g("Journal").add("Ölüm Kapısı'nı açtım. Bedenim kül oldu.", "milestone")
 	p.hp = 0.0
-	if not ClanMech.try_extra_life():
+	if not LazyFx.g("ClanMech").try_extra_life():
 		Progress.on_player_died()
 
 
@@ -338,7 +338,7 @@ const SAGE_FX := {
 
 
 func sage_contracts() -> Array:
-	Contracts.ensure()
+	LazyFx.g("Contracts").ensure()
 	var out = []
 	for id in Game.profile.get("contracts", {}):
 		if Game.profile["contracts"][id].get("sage", false):
@@ -358,7 +358,7 @@ func toggle_sage() -> void:
 		return
 	if c.action != "" or gather_t >= 0.0:
 		return
-	var a = Contracts.active()
+	var a = LazyFx.g("Contracts").active()
 	sage_kind = a if a in list else list[0]
 	# doğa enerjisini topla: kıpırdamadan bekle (hareket edersen bozulur)
 	gather_t = 0.0
@@ -430,11 +430,11 @@ func _enter_sage() -> void:
 	gather_t = -1.0
 	c.action = ""
 	var fx: Dictionary = SAGE_FX.get(sage_kind, SAGE_FX["kurbağa"])
-	var m = Contracts.mastery(sage_kind)
+	var m = LazyFx.g("Contracts").mastery(sage_kind)
 	sage = true
 	sage_t = 999999.0   # süresiz: tuşa tekrar basılana kadar açık (kullanıcı isteği)
 	var mods: Dictionary = fx["mods"].duplicate()
-	var sp = Stats.skill(Game.profile, "sage_power") + Mastery.get_v(Game.profile, "senjutsu") * 0.004   # senjutsu ustalığı: 100'de +%40
+	var sp = LazyFx.g("Stats").skill(Game.profile, "sage_power") + LazyFx.g("Mastery").get_v(Game.profile, "senjutsu") * 0.004   # senjutsu ustalığı: 100'de +%40
 	for k in ["melee", "jutsu"]:
 		if mods.has(k):
 			mods[k] = float(mods[k]) * (1.0 + sp)
@@ -444,7 +444,7 @@ func _enter_sage() -> void:
 		p.model.set_sage(fx["visual"])
 	else:
 		p.model.set_eye_color(fx["col"])
-	Hud.banner(Contracts.DEFS.get(sage_kind, {}).get("sage_name", "SENNIN MODU").to_upper(), "%s (süresiz — kapatmak için tekrar bas)" % fx["desc"], fx["col"])
+	Hud.banner(LazyFx.g("Contracts").DEFS.get(sage_kind, {}).get("sage_name", "SENNIN MODU").to_upper(), "%s (süresiz — kapatmak için tekrar bas)" % fx["desc"], fx["col"])
 	Sfx.play("levelup", p.global_position, 0.7)
 	FX.ring(p.global_position + Vector3.UP * 0.2, fx["col"], 6.0, 0.6)
 
@@ -472,7 +472,7 @@ func start_sage_training(contract := "kurbağa") -> void:
 	training_t = 0.0
 	train_contract = contract
 	train_energy = 0.0
-	Hud.banner("SENNİN EĞİTİMİ", "[C] basılı tut, kıpırdama. Enerji %85-100 arasındayken C'yi bırak! Aşarsan taşa dönersin.", Contracts.DEFS.get(contract, {}).get("color", Color(1, 0.75, 0.3)))
+	Hud.banner("SENNİN EĞİTİMİ", "[C] basılı tut, kıpırdama. Enerji %85-100 arasındayken C'yi bırak! Aşarsan taşa dönersin.", LazyFx.g("Contracts").DEFS.get(contract, {}).get("color", Color(1, 0.75, 0.3)))
 
 
 func _train(dt: float) -> void:
@@ -513,7 +513,7 @@ func _train(dt: float) -> void:
 					Game.profile["skills"].append("sage")
 				if Data.jutsu.has("sennin_modo") and not "sennin_modo" in Game.profile["learned"]:
 					Progress.learn("sennin_modo", false)
-				Hud.banner(Contracts.DEFS[train_contract]["sage_name"].to_upper() + " AÇILDI", "[Z] ile doğa enerjisini kullan. Bilgeden sennin sanatlarını öğren.", Color(1, 0.75, 0.3))
+				Hud.banner(LazyFx.g("Contracts").DEFS[train_contract]["sage_name"].to_upper() + " AÇILDI", "[Z] ile doğa enerjisini kullan. Bilgeden sennin sanatlarını öğren.", Color(1, 0.75, 0.3))
 				Sfx.play("levelup")
 				Game.save_game()
 		else:
@@ -548,7 +548,7 @@ func _sage_tick(dt: float) -> void:
 			Hud.msg("Kıpırdadın, doğa enerjisi dağıldı!", Color(1, 0.6, 0.4))
 			return
 		gather_t += dt
-		var need = maxf(0.6, 1.6 - Contracts.mastery(sage_kind) / 400.0)
+		var need = maxf(0.6, 1.6 - LazyFx.g("Contracts").mastery(sage_kind) / 400.0)
 		if gather_t >= need:
 			_enter_sage()
 		return
@@ -653,18 +653,18 @@ func on_player_hit(info: Dictionary) -> bool:
 	if Jutsu.preta_absorbs(p, info):   # Gakidō: Fūjutsu Kyūin bariyeri ninjutsuyu emer
 		return true
 	# Shikotsumyaku (kanon yetenek): çelikten sert kemikler — fiziksel darbe azalır (düşman Kaguya da aynı)
-	if ClanMech.clan() == "kaguya" and String(info.get("element", "")) == "":
+	if LazyFx.g("ClanMech").clan() == "kaguya" and String(info.get("element", "")) == "":
 		info["dmg"] = float(info.get("dmg", 0.0)) * 0.8
 	# Hōzuki (kanon): beden darbe anında kendiliğinden sıvılaşır — fiziksel darbe içinden geçer (su harcar); raiton suyu iletir
-	if ClanMech.clan() == "hozuki" and not Buffs.has("suika"):
+	if LazyFx.g("ClanMech").clan() == "hozuki" and not Buffs.has("suika"):
 		var hel = String(info.get("element", ""))
 		if hel in ["raiton", "ranton", "jinton"]:
 			info["dmg"] = float(info.get("dmg", 0.0)) * 1.5
 			Combat.popup_text(p.global_position + Vector3.UP * 2.2, "Su beden elektriği iletti!", Color(1, 1, 0.4))
 			return false
 		var pr = Game.profile
-		if hel == "" and float(pr.get("su", ClanMech.SU_MAX)) >= ClanMech.SUIKA_HIT_COST and not info.get("sealed", false):
-			pr["su"] = float(pr.get("su", ClanMech.SU_MAX)) - ClanMech.SUIKA_HIT_COST
+		if hel == "" and float(pr.get("su", LazyFx.g("ClanMech").SU_MAX)) >= LazyFx.g("ClanMech").SUIKA_HIT_COST and not info.get("sealed", false):
+			pr["su"] = float(pr.get("su", LazyFx.g("ClanMech").SU_MAX)) - LazyFx.g("ClanMech").SUIKA_HIT_COST
 			VFX.splash(p.global_position + Vector3.UP * 1.1, 1.2)
 			Jutsu.water_body(p, 0.45, false)   # darbe yeri suya döner (anime)
 			Combat.popup_text(p.global_position + Vector3.UP * 2.2, "Suika", Color(0.5, 0.8, 1))
@@ -737,7 +737,7 @@ func _gate_look(g: int) -> void:
 			arc.count = 3
 			arc.segs = 4
 			arc.width = 0.012
-			var holder = PathJutsu.get_pinst().bone_attach(p, bone)
+			var holder = LazyFx.g("PathJutsu").get_pinst().bone_attach(p, bone)
 			if holder:
 				holder.add_child(arc)
 				_gate_fx.append(holder)
@@ -747,15 +747,15 @@ func _gate_look(g: int) -> void:
 func _gate_burst(g: int) -> void:
 	var at = p.global_position
 	var gp_ = Game.jutsu_floor_at(at)
-	WindFX.blast(at + Vector3.UP * 1.5, 1.5 + g * 0.5, 6 + g * 2, WindFX.LINE, false)
+	LazyFx.g("WindFX").blast(at + Vector3.UP * 1.5, 1.5 + g * 0.5, 6 + g * 2, LazyFx.g("WindFX").LINE, false)
 	if g >= 5:
-		WindFX.swirl(gp_, 1.6, 10.0 + g, 0.6, 10, Color(0.85, 0.95, 1.0, 0.9), false)   # yukarı patlayan hava/su sütunu
+		LazyFx.g("WindFX").swirl(gp_, 1.6, 10.0 + g, 0.6, 10, Color(0.85, 0.95, 1.0, 0.9), false)   # yukarı patlayan hava/su sütunu
 	if g >= 6:
-		WindFX.swirl(gp_, 5.0, 2.0, 1.2, 12, Color(0.75, 0.62, 0.45, 0.9), false)   # yerde dönen kaya krateri
+		LazyFx.g("WindFX").swirl(gp_, 5.0, 2.0, 1.2, 12, Color(0.75, 0.62, 0.45, 0.9), false)   # yerde dönen kaya krateri
 		VFX.debris(gp_, Color(0.55, 0.45, 0.35), 12 + g * 3, 8.0)
 		VFX.cracks(gp_, 2.0 + g * 0.7)
 	if g >= 7:
-		WindFX.blast(at + Vector3.UP * 1.5, 7.0, 24, Color(0.8, 1.0, 0.85, 0.9), false)
+		LazyFx.g("WindFX").blast(at + Vector3.UP * 1.5, 7.0, 24, Color(0.8, 1.0, 0.85, 0.9), false)
 		if Game.world:
 			Game.world.env.screen_flash(0.15)
 
@@ -788,7 +788,7 @@ func _process(dt: float) -> void:
 				marker_t = 0.5
 				_update_byakugan()
 	if gates > 0 and gates < 8 and not free_modes:   # Ölüm Kapısı can emmez: bedel süre sonunda (beden kül olur)
-		p.hp -= [0.0, 1.5, 3.0, 5.5, 9.0, 13.0, 18.0, 25.0][gates] * dt * maxf(0.3, 1.0 - Stats.skill(Game.profile, "gates") * 0.8)
+		p.hp -= [0.0, 1.5, 3.0, 5.5, 9.0, 13.0, 18.0, 25.0][gates] * dt * maxf(0.3, 1.0 - LazyFx.g("Stats").skill(Game.profile, "gates") * 0.8)
 		if p.hp <= p.max_hp * 0.1:
 			gates = 0
 			Buffs.remove("gates")

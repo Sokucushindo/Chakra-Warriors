@@ -10,8 +10,9 @@ extends RefCounted
 ##  - uzu_kamen (Kyūbi gecesi Maskeli Adam): başın önünü saran kül-kahve kabuk, delikten çıkan beş geniş kat (üst üste binen yaprak)
 ##  - rinne_kamen (savaş): beyaz kabuk, alın ortasında Rinnegan halkaları, iki göz deliği halkanın üstünde, deliklerde virgül kuyruğu
 ##  - rinne_kamen_ware: aynı maske, sol gözden yayılan çatlaklar ve kopmuş yanak parçası (sol göz ve yanak açıkta)
+##  - rinne_kamen_zen (Zentō): aynı savaş maskesi, kafayı komple saran kapalı kask; Rinnegan halkaları tepeden, yandan arkaya dolanır (ref kullanıcı IMG_0207)
 
-const STYLES := ["spiral_maske", "shima_kamen", "uzu_kamen", "rinne_kamen", "rinne_kamen_ware"]
+const STYLES := ["spiral_maske", "shima_kamen", "uzu_kamen", "rinne_kamen", "rinne_kamen_ware", "rinne_kamen_zen"]
 const CACHE_MAX := 40
 static var _cache := {}
 
@@ -566,7 +567,7 @@ class Mk:
 				var bk := (C - mid).normalized() * 0.012 * sc
 				_quad(mb, pa + TA, pb + TB, pb + TB + bk, pa + TA + bk, out, base.darkened(0.35), base.darkened(0.5))
 				_quad(mb, pa + TA, pb + TB, pb + TB + bk, pa + TA + bk, -out, inner, inner)
-		return mb.build(Props.toon())
+		return mb.build(LazyFx.g("Props").toon())
 
 
 static func build(m, s, _fg: Color) -> bool:
@@ -576,7 +577,7 @@ static func build(m, s, _fg: Color) -> bool:
 		return _tobi(m)
 	if s == "shima_kamen":
 		return _tobi(m, "shima")
-	if s == "uzu_kamen":
+	if s == "uzu_kamen" or s == "rinne_kamen_zen":
 		return _cap(m, s)
 	if s in ["rinne_kamen", "rinne_kamen_ware"]:
 		# 2026-11-27: kafayı saran kabuk oyunda "yumurta" gibi duruyordu; Rinne bir YÜZ maskesi (ref: önü kapatan kapsül plaka) —
@@ -909,7 +910,7 @@ static func _tobi_build(pts: PackedVector3Array, eye: Vector3, kind := "tobi", e
 		_rinne_ink(mb, rc, ring_r, holes, hole_r, hole_ar, cracks, in_hole, in_chunk, a, b, yc, ze, D, INK, y1)
 		mb.generate_normals()
 		var meshr := mb.commit()
-		meshr.surface_set_material(0, Props.toon())
+		meshr.surface_set_material(0, LazyFx.g("Props").toon())
 		_pe = 2.0
 		_taper = 0.0
 		return [meshr, ze + 0.004]
@@ -917,7 +918,7 @@ static func _tobi_build(pts: PackedVector3Array, eye: Vector3, kind := "tobi", e
 		_shima_rings(mb, hx, hole_r, a, b, yc, ze, D, INK)
 		mb.generate_normals()
 		var meshs := mb.commit()
-		meshs.surface_set_material(0, Props.toon())
+		meshs.surface_set_material(0, LazyFx.g("Props").toon())
 		return [meshs, ze + 0.004]
 	# --- 2) sarmal kabartma şerit (deliğin çevresinden dışa, ~9 tur, içte sık)
 	var turns := 9.0
@@ -949,7 +950,7 @@ static func _tobi_build(pts: PackedVector3Array, eye: Vector3, kind := "tobi", e
 		have_prev = true
 	mb.generate_normals()
 	var mesh := mb.commit()
-	mesh.surface_set_material(0, Props.toon())
+	mesh.surface_set_material(0, LazyFx.g("Props").toon())
 	return [mesh, ze + 0.004]
 
 
@@ -1133,7 +1134,7 @@ static func _pstrip(mb: SurfaceTool, cpts: Array, w0: float, w1: float, a: float
 ## Rinne deseni (ref crops1 #3, crops2 #1): ortak merkezli üç halka (iç halkanın ortası dolu nokta, dış halka gözlerden geçer;
 ## plaka dışına taşan kısmı görünmez), tepede dolu nokta, ağız hizasında geniş yay, gözlerin dış-altından kıvrılan virgül kuyrukları
 static func _rinne_ink(mb: SurfaceTool, rc: Vector2, r3: float, holes: Array, hole_r: float, hole_ar: float, cracks: Array,
-		in_hole: Callable, in_chunk: Callable, a: float, b: float, yc: float, ze: float, D: float, ink: Color, ytop: float, zf := Callable()) -> void:
+		in_hole: Callable, in_chunk: Callable, a: float, b: float, yc: float, ze: float, D: float, ink: Color, ytop: float, zf := Callable(), mouth := true) -> void:
 	var skip := func(p: Vector2) -> bool:
 		return in_hole.call(p, 1.18) or in_chunk.call(p)
 	var circ := func(c: Vector2, r: float, t0: float, t1: float, n: int) -> Array:
@@ -1154,7 +1155,8 @@ static func _rinne_ink(mb: SurfaceTool, rc: Vector2, r3: float, holes: Array, ho
 	_pstrip(mb, circ.call(rc, r3 * 0.27, 0.0, TAU, 72), w, w, a, b, yc, ze, D, ink, skip, zf)
 	_pstrip(mb, circ.call(rc, r3 * 0.55, 0.0, TAU, 120), w, w, a, b, yc, ze, D, ink, skip, zf)
 	_pstrip(mb, circ.call(rc, r3, 0.0, TAU, 200), w, w, a, b, yc, ze, D, ink, skip, zf)
-	_pstrip(mb, circ.call(rc, r3 * 1.75, deg_to_rad(232.0), deg_to_rad(308.0), 120), w, w, a, b, yc, ze, D, ink, skip, zf)
+	if mouth:   # ağız hizasındaki yay (Zentō'da yerine kafayı saran tam halkalar var)
+		_pstrip(mb, circ.call(rc, r3 * 1.75, deg_to_rad(232.0), deg_to_rad(308.0), 120), w, w, a, b, yc, ze, D, ink, skip, zf)
 	# dolu noktalar: iç içe halkalarla doldur
 	for dot in [[rc, r3 * 0.075], [Vector2(rc.x, minf(rc.y + r3 * 1.18, ytop - r3 * 0.15)), r3 * 0.1]]:
 		var c: Vector2 = dot[0]
@@ -1205,7 +1207,7 @@ static func _cap(m, s: String) -> bool:
 			_cache.clear()
 		_cache[key] = e
 	m._mesh_on("Head", e[0], Transform3D(Basis.IDENTITY, org))
-	if s == "uzu_kamen":
+	if s == "uzu_kamen" or s == "rinne_kamen_zen":
 		var clumps = CharacterModel._hair_cache.values()
 		for mi in m.skel.find_children("*", "MeshInstance3D", true, false):
 			if mi.name in ["VHair", "HairDangle"] or (mi.mesh != null and mi.mesh in clumps):
@@ -1345,6 +1347,7 @@ const CAP_KB := 72
 
 static func _cap_build(pts: PackedVector3Array, er: Vector3, el: Vector3, s: String, head_rad := PackedFloat32Array(), head_c := Vector3.ZERO) -> Array:
 	var uzu := s == "uzu_kamen"
+	var full := s == "rinne_kamen_zen"   # kapalı kask (Uzu gibi) + Rinne deseni
 	var BASE := UZU_BASE if uzu else RINNE_BASE
 	var INK := UZU_INK if uzu else RINNE_INK
 	# --- kafayı izleyen kabuk (2026-11-26 "yumurta gibi kocaman" düzeltmesi): her yönde yarıçap = o yöndeki en dış kafa / yüz
@@ -1504,7 +1507,7 @@ static func _cap_build(pts: PackedVector3Array, er: Vector3, el: Vector3, s: Str
 	var R := Vector3.ONE * float(rfun.call(0.0, 0.0))   # (ön yarıçap; eski kodla uyum)
 	var amax := func(be: float) -> float:
 		var sb := sin(be)
-		if uzu:
+		if uzu or full:
 			return PI   # kask: her yön kapalı (ref p_6); boyun deliği aşağıda ayrıca açılır
 		return deg_to_rad(92.0 + 26.0 * maxf(0.0, sb) - 8.0 * maxf(0.0, -sb))   # ön + tepe, ense açık
 	# göz deliklerinin ön yüzeydeki yeri (xy izdüşümü)
@@ -1577,7 +1580,7 @@ static func _cap_build(pts: PackedVector3Array, er: Vector3, el: Vector3, s: Str
 				continue
 			if cen.z > C.z and (in_hole.call(Vector2(p00.x, p00.y)) or in_hole.call(Vector2(p01.x, p01.y)) or in_hole.call(Vector2(p10.x, p10.y)) or in_hole.call(Vector2(p11.x, p11.y))):
 				continue   # deliğe değen kare atılır; dış kenarın basamağını yuvarlak kara çerçeve örter
-			if uzu and (cen - C).normalized().dot(Vector3(0, -0.95, -0.3).normalized()) > cos(deg_to_rad(32.0)):
+			if (uzu or full) and (cen - C).normalized().dot(Vector3(0, -0.95, -0.3).normalized()) > cos(deg_to_rad(32.0)):
 				continue   # boyun deliği
 			var out := (cen - C).normalized()
 			var col: Color = V[ai][bi][1]
@@ -1691,8 +1694,44 @@ static func _cap_build(pts: PackedVector3Array, er: Vector3, el: Vector3, s: Str
 			return false
 		var zf := func(p: Vector2) -> float:
 			return front_z.call(p)
-		_rinne_ink(mb, rc, ring_r, holes, hole_r, hole_ar, cracks, in_hole_k, in_poly, 1.0, 1.0, 0.0, 0.0, 0.0, INK, ytop, zf)
+		_rinne_ink(mb, rc, ring_r, holes, hole_r, hole_ar, cracks, in_hole_k, in_poly, 1.0, 1.0, 0.0, 0.0, 0.0, INK, ytop, zf, not full)
+		if full:
+			# Zentō (ref IMG_0207): ön halkaların devamı kafayı saran eş merkezli şeritler — halka merkezinin yönü eksen,
+			# açısal aralık iki dış halkanın aralığı; boyun deliğine ve göz deliklerine değen parça atılır
+			var A3 := (Vector3(rc.x, rc.y, float(zf.call(rc))) - C).normalized()
+			var b1 := A3.cross(Vector3.UP).normalized()
+			var b2 := b1.cross(A3).normalized()
+			var ang_of := func(r: float) -> float:
+				var q2 := rc + Vector2(r, 0.0)
+				return acos(clampf((Vector3(q2.x, q2.y, float(zf.call(q2))) - C).normalized().dot(A3), -1.0, 1.0))
+			var dl3: float = ang_of.call(ring_r)
+			var stp: float = (dl3 - float(ang_of.call(ring_r * 0.55))) * 1.1
+			var neck := Vector3(0, -0.95, -0.3).normalized()
+			var on_sh := func(v: Vector3) -> Vector3:
+				return C + v * (float(rfun.call(acos(clampf(v.z, -1.0, 1.0)), atan2(v.y, v.x))) + 0.0009)
+			var dl := dl3 + stp
+			while dl < PI - 0.2:
+				var prev_a := Vector3.ZERO
+				var prev_b := Vector3.ZERO
+				var have := false
+				for k in 241:
+					var gm := TAU * k / 240.0
+					var rad_dir := b1 * cos(gm) + b2 * sin(gm)
+					var v := (A3 * cos(dl) + rad_dir * sin(dl)).normalized()
+					var q: Vector3 = on_sh.call(v)
+					if v.dot(neck) > cos(deg_to_rad(36.0)) or (q.z > C.z and bool(in_hole_k.call(Vector2(q.x, q.y), 1.5))):
+						have = false
+						continue
+					var hw := 0.0019 / maxf((q - C).length(), 0.05)
+					var pa: Vector3 = on_sh.call((A3 * cos(dl - hw) + rad_dir * sin(dl - hw)).normalized())
+					var pb: Vector3 = on_sh.call((A3 * cos(dl + hw) + rad_dir * sin(dl + hw)).normalized())
+					if have:
+						_tq(mb, prev_a, pa, pb, prev_b, INK, (q - C).normalized())
+					prev_a = pa
+					prev_b = pb
+					have = true
+				dl += stp
 	mb.generate_normals()
 	var mesh := mb.commit()
-	mesh.surface_set_material(0, Props.toon())
+	mesh.surface_set_material(0, LazyFx.g("Props").toon())
 	return [mesh, C]
