@@ -335,7 +335,21 @@ func _ai(dt: float) -> void:
 		v.y = 0
 		if v.length() > (keep * 0.6 if cmd in ["koru", "takip"] else keep):
 			wish = v.normalized() * spd
-	if wish.length() > 0.1:
+	# aynı çağıranın hayvanları üst üste binmez: gövdeleri kadar aralık tutarlar (eskiden hepsi sahibinin dibinde iç içe duruyordu)
+	var sep := Vector3.ZERO
+	for o in get_tree().get_nodes_in_group("summons"):
+		if o == self or not is_instance_valid(o) or o.dead or o.owner_f != owner_f:
+			continue
+		var dv: Vector3 = global_position - o.global_position
+		dv.y = 0.0
+		var need: float = (body_span() + float(o.body_span())) * 0.6 + 2.0
+		if dv.length() < need:
+			if dv.length() < 0.05:
+				dv = Vector3(cos(float(get_instance_id() % 628) * 0.01), 0, sin(float(get_instance_id() % 628) * 0.01))
+			sep += dv.normalized() * (need - dv.length())
+	if sep != Vector3.ZERO:
+		wish += sep.limit_length(1.0) * spd * (0.6 if tgt else 1.6)
+	if wish.length() > 0.1 and (sep == Vector3.ZERO or tgt == null):
 		facing = lerp_angle(facing, atan2(-wish.x, -wish.z), minf(1.0, dt * 6.0))
 	velocity.x = wish.x
 	velocity.z = wish.z
@@ -345,6 +359,8 @@ func _ai(dt: float) -> void:
 		velocity.y = clampf((want - global_position.y) * 2.0, -10.0, 10.0)
 	move_and_slide()
 	_ground()
+	if not fly and height >= 5.0 and not String(def.get("model", "")).begins_with("snake") and not String(def.get("model", "")).begins_with("slug"):
+		LazyFx.g("GiantSteps").track(self, height, facing, height * 0.2, "web" if String(def.get("model", "")).begins_with("toad") else "paw", owner_f)
 
 
 func _ground() -> void:
@@ -978,9 +994,10 @@ func _dismount() -> void:
 ## Binekte kamera: hayvanın boyuna göre uzak ve yüksek, tekerle boyuna göre yakınlaştırma; inince eski haline döner
 func _ride_cam(pl: Player, on: bool) -> void:
 	if on:
-		pl.set_meta("ride_cam", [pl.cam_dist, pl.cam_lift, pl.cam_range, pl.cam_giant])
+		pl.set_meta("ride_cam", [pl.cam_dist, pl.cam_lift, pl.cam_range, pl.cam_giant, pl.collision_mask])
+		pl.collision_mask = 0   # binekteyken bineğin gövdesine sürtünmez (duvar koşusu / tutunma / zıplama pozu tetikleniyordu)
 		var hh = maxf(2.0, height)
-		pl.cam_range = Vector2(maxf(2.2, hh * 0.8), maxf(14.0, hh * 3.0))
+		pl.cam_range = Vector2(3.5, maxf(14.0, hh * 3.0))   # en yakında: kafadaki karakterinin arkasından
 		pl.cam_dist = clampf(hh * 1.7 + 4.0, 6.0, pl.cam_range.y)
 		pl.cam_lift = hh * 0.35
 		pl.cam_giant = hh > 6.0
@@ -990,11 +1007,169 @@ func _ride_cam(pl: Player, on: bool) -> void:
 		pl.cam_lift = sv[1]
 		pl.cam_range = sv[2]
 		pl.cam_giant = sv[3]
+		if sv.size() > 4:
+			pl.collision_mask = sv[4]
 		pl.remove_meta("ride_cam")
 
 
 ## Binildiğinde oyuncu yön verir; uçanlar Space ile yükselir, Ctrl ile alçalır
 var _seat := Vector3.INF
+
+
+var _seat_head := Vector3.INF
+var _seat_space: Node3D = null   # koltuğun ölçüldüğü düğüm (büzülüp uzayan gövde: binici yüzeyle birlikte oynar)
+var _seat_snake = null
+
+
+## Gövdenin yatay kapladığı uzunluk (m): boğumlu uzun gövdeler (çıyan, yılan) boylarından çok daha uzundur
+var _span := -1.0
+func body_span() -> float:
+	if _span < 0.0:
+		_span = height
+		var root = parts.get("root")
+		if root != null and is_instance_valid(root):
+			var inv: Transform3D = (root as Node3D).global_transform.affine_inverse()
+			var lo := Vector3.INF
+			var hi := -Vector3.INF
+			for mi in (root as Node3D).find_children("*", "MeshInstance3D", true, false):
+				if mi.mesh == null:
+					continue
+				var ab: AABB = (inv * mi.global_transform) * mi.mesh.get_aabb()
+				lo = Vector3(minf(lo.x, ab.position.x), 0, minf(lo.z, ab.position.z))
+				hi = Vector3(maxf(hi.x, ab.end.x), 0, maxf(hi.z, ab.end.z))
+			if lo.x < 1e8:
+				_span = clampf(maxf(hi.x - lo.x, hi.z - lo.z), height * 0.6, height * 6.0)
+	return _span
+
+
+## Kafanın tepesi (kafa düğümünün uzayında): kafa meshlerinin yatay ortası, o noktadaki en üst yüzey. Boynuz / kulak ucu
+## değil: ortadaki dar sütunun (genişliğin %30'u) tepesi alınır. Kafası olmayan modelde INF (gövde tepesine oturur).
+func _head_seat_local() -> Vector3:
+	return head_top_of(parts.get("head"))
+
+
+static func head_top_of(hd) -> Vector3:
+	if hd == null or not is_instance_valid(hd):
+		return Vector3.INF
+	var tris := _local_tris(hd)
+	if tris["v"].size() < 9:
+		return Vector3.INF
+	var bg: AABB = tris["big"]
+	return _stand_point(tris, bg.position.z + bg.size.z * 0.15, bg.end.z - bg.size.z * 0.15)   # (bijū: kafa düğümündeki ölçü ağları)
+
+
+## Düğümün (ve çocuklarının) ağ üçgenleri, düğümün kendi uzayında. Dönen: {"v": köşeler (3'er 3'er), "big": en büyük ağın kutusu,
+## "all": hepsinin kutusu}
+static func _local_tris(nd: Node3D, space: Node3D = null, shown_only := false, min_frac := 0.0) -> Dictionary:
+	var inv: Transform3D = (space if space != null else nd).global_transform.affine_inverse()
+	var parts_v: Array = []   # [kutu hacmi, köşe başlangıcı, köşe sonu]
+	var out := PackedVector3Array()
+	var cands: Array = nd.find_children("*", "MeshInstance3D", true, false)
+	if nd is MeshInstance3D:
+		cands.append(nd)
+	var big := AABB()
+	var big_v := -1.0
+	var all := AABB()
+	var first := true
+	for mi in cands:
+		if mi.mesh == null or not mi.visible or (shown_only and not mi.is_visible_in_tree()):
+			continue
+		var xf: Transform3D = inv * mi.global_transform
+		var n0 := out.size()
+		for si in mi.mesh.get_surface_count():
+			if mi.mesh.surface_get_primitive_type(si) != Mesh.PRIMITIVE_TRIANGLES:
+				continue
+			var arr = MeshArr.get_arrays(mi.mesh, si)
+			var vv = arr[Mesh.ARRAY_VERTEX]
+			if vv == null:
+				continue
+			var ix = arr[Mesh.ARRAY_INDEX]
+			if ix != null and (ix as PackedInt32Array).size() >= 3:
+				for k in ix:
+					out.append(xf * vv[k])
+			else:
+				for k in range(0, vv.size() - vv.size() % 3):
+					out.append(xf * vv[k])
+		if out.size() - n0 < 3:
+			continue
+		var ab := AABB(out[n0], Vector3.ZERO)
+		for k in range(n0, out.size()):
+			ab = ab.expand(out[k])
+		all = ab if first else all.merge(ab)
+		first = false
+		parts_v.append([ab.get_volume(), n0, out.size()])
+		if ab.get_volume() > big_v:
+			big_v = ab.get_volume()
+			big = ab
+	if min_frac > 0.0 and parts_v.size() > 1:
+		# en büyük ağın hacminin min_frac'ından küçük parçalar atılır: üstüne basılacak yüzey gövdedir, pipo / çivi / boynuz değil
+		var keep := PackedVector3Array()
+		for pv in parts_v:
+			if float(pv[0]) >= big_v * min_frac:
+				keep.append_array(out.slice(int(pv[1]), int(pv[2])))
+		out = keep
+	return {"v": out, "big": big, "all": all}
+
+
+## (x, z) düşey çizgisinin üçgenlere değdiği en üst nokta; değmiyorsa -INF
+static func _top_at(v: PackedVector3Array, x: float, z: float) -> float:
+	var top := -INF
+	for i in range(0, v.size() - 2, 3):
+		var a := v[i]
+		var b := v[i + 1]
+		var c := v[i + 2]
+		if (a.x < x and b.x < x and c.x < x) or (a.x > x and b.x > x and c.x > x) or (a.z < z and b.z < z and c.z < z) or (a.z > z and b.z > z and c.z > z):
+			continue
+		var d := (b.z - c.z) * (a.x - c.x) + (c.x - b.x) * (a.z - c.z)
+		if absf(d) < 1e-9:
+			continue
+		var w0 := ((b.z - c.z) * (x - c.x) + (c.x - b.x) * (z - c.z)) / d
+		var w1 := ((c.z - a.z) * (x - c.x) + (a.x - c.x) * (z - c.z)) / d
+		var w2 := 1.0 - w0 - w1
+		if w0 < -0.001 or w1 < -0.001 or w2 < -0.001:
+			continue
+		top = maxf(top, a.y * w0 + b.y * w1 + c.y * w2)
+	return top
+
+
+## Ayakta durulacak nokta: simetri ekseninde (x = 0; ağ belirgin kaymışsa en büyük ağın ortası), z0..z1 aralığında
+## EN YÜKSEK GENİŞ yüzey. "Geniş" = çevresindeki dört noktada da (sağ, sol, ön, arka) yakın yükseklikte yüzey var:
+## hortum, kuyruk, boynuz, anten, pipo gibi ince çıkıntılar elenir, kafatası / sırt gibi basılabilir yüzey seçilir.
+## ceil = bu yüksekliğin üstündeki yüzeyler sayılmaz (kafanın üstüne sarkan kabuk dikeni, kuyruk).
+static func _stand_point(tris: Dictionary, z0: float, z1: float, ceil := INF, strict := false) -> Vector3:
+	var v: PackedVector3Array = tris["v"]
+	var big: AABB = tris["big"]
+	var all: AABB = tris["all"]
+	var cx := 0.0
+	if absf(all.get_center().x) > all.size.x * 0.2:   # gövde bütünüyle yana kaymışsa (simetrik değilse) onun ortası
+		cx = all.get_center().x
+	var w := maxf(minf(big.size.x, absf(z1 - z0)) * 0.07, 0.12)
+	var best := Vector3.INF
+	var best_s := -INF
+	for k in 25:
+		var z := lerpf(z0, z1, k / 24.0)
+		var y := _top_at(v, cx, z)
+		if y < -1e20 or y > ceil:
+			continue
+		var lo := y
+		for o in [Vector2(w, 0), Vector2(-w, 0), Vector2(0, w), Vector2(0, -w)]:
+			var y2 := _top_at(v, cx + o.x, z + o.y)
+			lo = minf(lo, y2 if y2 <= ceil else y)
+		if lo < -1e20 or y - lo > w * 1.2:   # çevresi boş ya da dik: ince çıkıntı
+			continue
+		# ortaya yakın olan hafifçe yeğlenir (aynı yükseklikte iki yer varsa kafanın ortası)
+		var sc := lo - absf(z - (z0 + z1) * 0.5) * 0.05
+		if sc > best_s:
+			best_s = sc
+			best = Vector3(cx, y, z)
+	if best != Vector3.INF or strict:
+		return best
+	for k in 25:   # geniş yüzey yok: orta eksendeki herhangi bir yüzey
+		var z := lerpf(z0, z1, k / 24.0)
+		var y := _top_at(v, cx, z)
+		if y > -1e20 and y <= ceil and (best == Vector3.INF or y > best.y):
+			best = Vector3(cx, y, z)
+	return best if best != Vector3.INF else Vector3(cx, all.end.y, (z0 + z1) * 0.5)
 
 
 ## Binme noktası (kök uzayında): görsel mesh köşelerinden en üst %12'lik bandın ortası, yüzeyin hemen üstü
@@ -1070,13 +1245,69 @@ func _ride(dt: float) -> void:
 			hop_t = 0.0
 	move_and_slide()
 	_ground()
+	if not def.get("fly", false) and height >= 5.0 and not String(def.get("model", "")).begins_with("snake") and not String(def.get("model", "")).begins_with("slug"):
+		LazyFx.g("GiantSteps").track(self, height, facing, height * 0.2, "web" if String(def.get("model", "")).begins_with("toad") else "paw", owner_f)
 	# oyuncu sırtta / başta: modelin gerçek tepe yüzeyine oturur (eskiden sabit yükseklik gövdenin içine düşüyor, karakter kayboluyordu)
+	# binici kafanın tam tepesinde, ayakları kafaya basar (kanon: çağıran çağrısının başında durur). Nokta kafa düğümünün kendi
+	# uzayında: kafa sallanır / eğilirken ayaklar yüzeyden ayrılmaz (eskiden gövde uzayında sabit noktaydı: sırtta ya da havada kalıyordu)
 	if _seat == Vector3.INF:
 		_seat = _seat_local()
-	var root: Node3D = parts["root"]
-	pl.global_position = root.global_transform * _seat
+		_seat_head = Vector3.INF
+		_seat_space = null
+		_seat_snake = null
+		var hd = parts.get("head")
+		var rootn: Node3D = parts["root"]
+		var sas: Array = rootn.find_children("SnakeAnim*", "", true, false)
+		if not sas.is_empty() and is_instance_valid(sas[0].holder):
+			# yılan: baş gölgelendiricide sallanır; durma noktası dinlenme ağında ağzın hemen gerisinde ölçülür, her kare aynı formülle taşınır
+			_seat_snake = sas[0]
+			var tr := _local_tris(_seat_snake.holder, null, true, 0.03)
+			_seat_head = _seat_snake.head_top_rest(tr["v"], tr["all"])
+		elif hd != null and is_instance_valid(hd) and hd != rootn:
+			# ayrı kafa düğümü: bütün gövdenin üçgenleri kafa uzayına alınır (kafanın kendi ağı yalnız anten / göz olabilir),
+			# kafa ağının ileri-geri aralığında, kafa kutusunun üstünü aşmayan en yüksek geniş yüzey
+			# ayrı kafa düğümü: önce kafanın kendi ağında geniş bir yüzey aranır (kafayla birlikte döner). Kafa ağı yalnız
+			# anten / göz / yüz çizgisiyse (sümüklüböcek) kafanın bulunduğu yerde gövdenin yüzeyine basılır.
+			var trh := _local_tris(hd, null, true)
+			var got := Vector3.INF
+			if trh["v"].size() >= 9:
+				var hb: AABB = trh["big"]
+				got = _stand_point(trh, hb.position.z + hb.size.z * 0.15, hb.end.z - hb.size.z * 0.15, INF, true)
+			if got != Vector3.INF:
+				_seat_head = got
+			else:
+				# gövde tek parça ve nefesle büzülüp uzuyorsa ölçü o parçanın kendi uzayında alınır (yoksa binici havada kalır)
+				var segs: Array = parts.get("segments", [])
+				var sp: Node3D = rootn
+				if segs.size() == 1 and is_instance_valid(segs[0]):
+					sp = segs[0]
+					_seat_space = sp
+				var tra := _local_tris(rootn, sp, true, 0.03)
+				var hp: Vector3 = sp.global_transform.affine_inverse() * (hd as Node3D).global_position
+				var span: float = (tra["all"] as AABB).size.z * 0.06
+				if tra["v"].size() >= 9:
+					_seat = _stand_point(tra, hp.z - span, hp.z + span)
+		else:
+			# kafası ayrı olmayan gövde: ön yarıdaki (ön = -Z) en yüksek geniş yüzey = kafatası
+			var tr2 := _local_tris(rootn, null, true, 0.03)
+			if tr2["v"].size() >= 9:
+				var ab: AABB = tr2["all"]
+				if parts.get("head_at") is Array:   # başı gövdeyle tek ağ ama sırttan alçakta: baş bölgesinin tepesi
+					var ha: Array = parts["head_at"]
+					var hc0: Vector3 = ha[0]
+					_seat = _stand_point(tr2, hc0.z - float(ha[1]) * 0.5, hc0.z + float(ha[1]) * 0.5, hc0.y + float(ha[1]) * 1.2)
+				else:
+					_seat = _stand_point(tr2, ab.position.z + ab.size.z * 0.02, ab.position.z + ab.size.z * 0.5)
+	if _seat_snake != null and is_instance_valid(_seat_snake) and _seat_head != Vector3.INF:
+		pl.global_position = _seat_snake.holder.global_transform * _seat_snake.deform(_seat_head)
+	elif _seat_head != Vector3.INF and parts.get("head") != null and is_instance_valid(parts["head"]):
+		pl.global_position = (parts["head"] as Node3D).global_transform * _seat_head
+	else:
+		var root: Node3D = _seat_space if (_seat_space != null and is_instance_valid(_seat_space)) else parts["root"]
+		pl.global_position = root.global_transform * _seat
 	pl.velocity = Vector3.ZERO
 	pl.facing = facing
+	pl.ride_cam_lift(maxf(2.0, height) * 0.35)
 
 
 # ------------------------------------------------------------------ prosedürel animasyon

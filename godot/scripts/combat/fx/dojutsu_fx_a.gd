@@ -184,23 +184,23 @@ static func chikushodo(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 	var fd: Vector3 = c.face_dir()
 	var specs = [
 		{"contract": "köpek", "base": Contracts.DEFS["köpek"]["tiers"][2], "name": "Çok Başlı Dev Köpek (Rinnegan)", "h": 5.5, "hp": 900.0, "split": true,
-			"sig": "Bölünen Sürü", "off": fd * 4.0 + fd.cross(Vector3.UP) * 3.0},
+			"sig": "Bölünen Sürü", "off": fd * 11.0 + fd.cross(Vector3.UP) * 9.0},
 		{"contract": "şahin", "base": Contracts.DEFS["şahin"]["tiers"][2], "name": "Matkap Gagalı Dev Kuş (Rinnegan)", "h": 7.0, "hp": 1100.0, "split": false,
-			"sig": "Matkap Gaga Dalışı", "off": fd * 3.0 - fd.cross(Vector3.UP) * 4.0 + Vector3.UP * 3.0},
+			"sig": "Matkap Gaga Dalışı", "off": fd * 7.0 - fd.cross(Vector3.UP) * 14.0 + Vector3.UP * 3.0},
 	]
 	var heavy = [["rin_rhino", "Dev Gergedan (Rinnegan)", "Boynuz Hücumu", 5.0], ["rin_ox", "Dev Öküz (Rinnegan)", "Boynuz Hücumu", 5.5], ["rin_panda", "Dev Panda (Rinnegan)", "Pençe Ezmesi", 5.0],
 		["rin_centipede", "Dev Çıyan (Rinnegan)", "Yer Altından Saldırı", 3.0], ["rin_crab", "Dev Kabuklu (Rinnegan)", "Suiton: Haran Banshō", 4.0]].pick_random()
 	specs.append({"contract": "köpek", "base": Contracts.DEFS["köpek"]["tiers"][2], "name": heavy[1], "h": heavy[3], "hp": 1300.0, "split": false,
-		"sig": heavy[2], "off": -fd * 3.0 + fd.cross(Vector3.UP) * 5.0, "model": heavy[0]})
+		"sig": heavy[2], "off": -fd * 9.0 + fd.cross(Vector3.UP) * 16.0, "model": heavy[0]})   # dev hayvanlar ayrı ayrı yerlere çıkar (eskiden 3-5 m arayla iç içe doğuyorlardı)
 	# Dev Bukalemun (kanon): içine aldığı bedenleri görünmez kılar — can azsa çağırıcıyı saklar
 	if float(c.get("hp")) < float(c.get("max_hp")) * 0.5:
 		specs.append({"contract": "köpek", "base": Contracts.DEFS["köpek"]["tiers"][2], "name": "Dev Bukalemun (Rinnegan)", "h": 3.0, "hp": 600.0, "split": false,
-			"sig": "", "off": -fd * 2.0, "model": "rin_chameleon", "hide": true})
+			"sig": "", "off": -fd * 6.0 - fd.cross(Vector3.UP) * 5.0, "model": "rin_chameleon", "hide": true})
 	if c.has_meta("rin_dogs"):
 		c.set_meta("rin_dogs", 1)
 	for i in specs.size():
 		var sp: Dictionary = specs[i]
-		pj.after(0.15 + i * 0.45, func():
+		pj.after(0.15 + i * 0.9, func():   # sırayla çıkarlar (aynı anda değil)
 			if not pj.live(c):
 				return
 			var pos = pj.gp(c.global_position + sp["off"])
@@ -897,8 +897,9 @@ static func mazo_no_kusari(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 			statue = g
 	var targets: Array = []
 	if statue:
-		targets = pj.enemies_near(c, c.global_position, 85.0)
-		targets.sort_custom(func(x, y): return x.global_position.distance_to(c.global_position) < y.global_position.distance_to(c.global_position))
+		var ctr: Vector3 = statue.global_position if c.has_meta("gedo_ride") else c.global_position   # kafasındaysan heykelin çevresi
+		targets = pj.enemies_near(c, ctr, 120.0 if c.has_meta("gedo_ride") else 85.0)
+		targets.sort_custom(func(x, y): return x.global_position.distance_to(ctr) < y.global_position.distance_to(ctr))
 		targets = targets.slice(0, 9)
 		statue.open_mouth(1.0)
 		var mp = statue.mouth_pos()

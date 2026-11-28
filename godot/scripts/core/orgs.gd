@@ -677,6 +677,7 @@ func _village_ban(dt: float) -> void:
 		if inside == "":
 			_sneak_t = 0.0
 			_sneak_note = false
+			_field_hunt(dt)
 			return
 		# gizlice girdin: biri seni görmedikçe alarm yok (görüş mesafesi, görüş hattı, gece, gizlilik, Henge)
 		if not _sneak_note:
@@ -696,8 +697,7 @@ func _village_ban(dt: float) -> void:
 		Sfx.play("roar", null, 0.7, 0.5)
 	var vid: String = _raid["vid"]
 	_raid["nodes"] = (_raid["nodes"] as Array).filter(func(n): return is_instance_valid(n) and not n.dead)
-	if inside == vid:
-		_alarm_ninjas(dt)
+	_alarm_ninjas(dt)   # alarm sürerken surun dışına çıksan da yakındaki köy ninjaları katılır (eskiden sur dışındakiler izliyordu)
 	if inside != vid:
 		_raid["out_t"] = float(_raid["out_t"]) + dt
 		if float(_raid["out_t"]) > 25.0:
@@ -788,8 +788,10 @@ static func _spared(v: Node) -> bool:
 
 ## Kaçak köy ninjasıyla konuşmaya kalkarsa: konuşma yok — "Kaçak!" diye saldırır ve köy alarma geçer (dostların hariç)
 func rogue_confront(v: Node) -> bool:
-	if not is_rogue() or Game.player == null or _spared(v) or not LazyFx.g("Friends").is_ninja(v):
+	if not _hunter(v):
 		return false
+	# köyün içinde mi dışında mı fark etmez: köy ninjası kaçağı nerede görürse saldırır (eskiden yalnız sur içinde; surun
+	# dışındaki tarlada / klan mahallesinde chūninler tanışma konuşması açıyor, muhafızlar dövüşürken izliyordu)
 	var m = Game.to_map(Game.player.global_position)
 	var inside = ""
 	for vid in ROGUE_BANNED:
@@ -797,14 +799,56 @@ func rogue_confront(v: Node) -> bool:
 		if not vv.is_empty() and m.distance_to(Vector2(vv["x"], vv["y"])) < float(vv["r"]) * 1.08:
 			inside = vid
 			break
-	if inside == "" or (_pardon_active() and inside == String(flags().get("rogue_from", ""))):
-		return false
 	Combat.popup_text(v.global_position + Vector3.UP * 2.3, "Sen... kaçak ninja! Alarm!", Color(1, 0.35, 0.3))
-	if _raid.is_empty():
+	if inside != "" and _raid.is_empty() and not (_pardon_active() and inside == String(flags().get("rogue_from", ""))):
 		_raid = {"vid": inside, "wave": 0, "t": 2.0, "out_t": 0.0, "nodes": [], "kage": false}
 		Hud.banner("KAÇAK KÖYDE!", "%s alarmda: muhafızlar sana saldıracak. Kaldıkça daha güçlüleri gelir — en sonunda Kage." % Game.village(inside).get("name", inside), Color(0.95, 0.25, 0.2))
 	LazyFx.g("Crime").inst().attack(v, true)
 	return true
+
+
+## Bu kişi kaçağa saldıran bir köy ninjası mı (dostların ve Kefaret'te kendi köyün hariç)
+func _hunter(v: Node) -> bool:
+	if not is_rogue() or Game.player == null or not is_instance_valid(v) or not (v is Villager or v is ClanResident):
+		return false
+	if _spared(v) or not LazyFx.g("Friends").is_ninja(v):
+		return false
+	var vid := String(v.get("vid")) if v.get("vid") != null else ""
+	if vid == "":
+		vid = String(LazyFx.g("Outfits").village_near(v.global_position))
+	return not (_pardon_active() and vid == String(flags().get("rogue_from", "")))
+
+
+## Köy dışında (tarla kuşağı, klan mahallesi, yol): köy ninjası kaçağı GÖRÜNCE saldırır (görüş mesafesi, görüş hattı, gece,
+## gizlilik, Henge: köy içindeki gizlice girme kuralıyla aynı). Konuşmaya gitmeni beklemez.
+var _field_t := 0.0
+func _field_hunt(dt: float) -> void:
+	_field_t -= dt
+	var pl = Game.player
+	if _field_t > 0.0 or pl == null or Buffs.has("henge"):
+		return
+	_field_t = 0.7
+	var tod = Game.world.get_time_of_day() if Game.world else 0.5
+	var night = tod < 0.22 or tod > 0.8
+	var st_k: float = LazyFx.g("Stats").skill(Game.profile, "stealth")
+	var reach = 24.0 * (0.65 if night else 1.0) * maxf(0.55, 1.0 - st_k * 0.5)
+	var space = pl.get_world_3d().direct_space_state
+	var first := true
+	for n in get_tree().get_nodes_in_group("talkers"):
+		if not (n is Node3D) or not is_instance_valid(n) or n.get("dead"):
+			continue
+		var d: Vector3 = pl.global_position - n.global_position
+		if d.length() > reach or not _hunter(n):
+			continue
+		var fd: Vector3 = n.face_dir() if n.has_method("face_dir") else Vector3.ZERO
+		if first and fd != Vector3.ZERO and d.length() > 3.0 and Vector2(fd.x, fd.z).normalized().dot(Vector2(d.x, d.z).normalized()) < 0.1:
+			continue   # arkası dönük (biri fark edince yanındakiler de döner)
+		var q = PhysicsRayQueryParameters3D.create(n.global_position + Vector3.UP * 1.5, pl.global_position + Vector3.UP * 1.2, 1)
+		if not space.intersect_ray(q).is_empty():
+			continue
+		first = false
+		Combat.popup_text(n.global_position + Vector3.UP * 2.3, "Kaçak ninja! Yakalayın!", Color(1, 0.4, 0.35))
+		LazyFx.g("Crime").inst().attack(n, true)
 
 
 ## Alarm: köyün sokaktaki ninjaları (devriye, nöbetçi, çatıdaki, antrenmandaki, hoca) kaçağı görünce saldırıya katılır
@@ -820,7 +864,7 @@ func _alarm_ninjas(dt: float) -> void:
 	for v in get_tree().get_nodes_in_group("talkers"):   # yakındaki bütün köy ninjaları (eskiden saniyede 3 kişi, 32 m: kalanlar izliyordu)
 		if n >= 12:
 			break
-		if not is_instance_valid(v) or not (v is Villager or v is ClanResident) or _spared(v) or not LazyFx.g("Friends").is_ninja(v):
+		if not _hunter(v):
 			continue
 		if v.global_position.distance_to(pp) > 60.0:
 			continue

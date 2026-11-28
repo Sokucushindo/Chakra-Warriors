@@ -45,6 +45,17 @@ var last_air_vy = 0.0
 var cam_lift = 0.0   # dev dönüşümlerde kamera hedefini yükselt (kuyruklu canavar, Susanoo)
 var cam_range := Vector2(2.2, 14.0)   # fare tekeri yakınlaştırma sınırı (dev dönüşümde büyür)
 var model_lift := 0.0   # model görsel olarak bu kadar yukarıda (Susanoo içinde süzülme)
+## Binişte kamera: uzakken hedef far_lift kadar yukarıda (bütün dev görünür), tekerlekle yakınlaştıkça near_lift'e iner —
+## en yakında kamera kafadaki karakterinin hemen arkasında durur
+var ride_stand_ms := -9999   # binek her kare yazar: bu sürede karakter kafada ayakta durur (düşme / süzülme pozu oynamaz)
+var cam_shift := Vector3.ZERO   # binişte yakın kamera hedefinin yatay kayması (karakter gövde merkezinde değil kafada durur)
+func ride_cam_lift(far_lift: float, near_lift := 0.0, near_shift := Vector3.ZERO) -> void:
+	ride_stand_ms = Time.get_ticks_msec()
+	var k := clampf((cam_dist - 7.0) / maxf(1.0, cam_range.y * 0.3 - 7.0), 0.0, 1.0)
+	cam_lift = lerpf(near_lift, far_lift, k)
+	cam_shift = near_shift * (1.0 - k)
+
+
 var cam_giant := false   # dev form: kamera küçük engellere (ağaç, ev) çarpıp canavarın içine sıçramasın
 var leap_charge = -1.0     # Ctrl basılı: 0..1 şarj (Striker süper zıplaması), -1 = şarj yok
 var flip_kind := ""        # "" = öne takla; "tuck" / "lay" / "twist" = kaçış atlayışı (yöne göre geri ya da yana)
@@ -727,7 +738,7 @@ func _ground_air_move(dt: float) -> void:
 	else:
 		grounded = is_on_floor()
 	if grounded:
-		if not was_grounded and land_t < -0.3:
+		if not was_grounded and land_t < -0.3 and Time.get_ticks_msec() - ride_stand_ms > 250:   # binekteyken iniş çömelmesi yok
 			# yüksekten düşüşte ağır iniş: kısa toparlanma, hız kesilir
 			var hard = last_air_vy < -20.0
 			land_t = 0.38 if hard else 0.22
@@ -1300,6 +1311,14 @@ func _animate(sp: float, sprint: bool) -> void:
 		return
 	if model.current == "sit" and input_locked > 0.0:
 		return   # tezgâhta/salıncakta otururken ayağa kalkmasın
+	if Time.get_ticks_msec() - ride_stand_ms < 250:   # bineğin kafasında: dimdik ayakta
+		land_t = 0.0
+		model.play("idle", 0.2)
+		ov.set_pose("ninja_run", 0.0)
+		ov.set_pose("leap", 0.0)
+		ov.glide_land = 0.0
+		ov.tuck = 0.0
+		return
 	if swimming:
 		model.play("swim" if sp > 0.5 else "swim_idle", 0.2)
 		ov.set_pose("ninja_run", 0.0)
@@ -1339,7 +1358,9 @@ var _cam_sq: PhysicsShapeQueryParameters3D = null
 
 
 func _update_camera(dt: float) -> void:
-	var target = get_global_transform_interpolated().origin + Vector3.UP * (1.6 * (model.age_scale if model else 1.0) + cam_lift)
+	if cam_shift != Vector3.ZERO and Time.get_ticks_msec() - ride_stand_ms > 250:
+		cam_shift = Vector3.ZERO
+	var target = get_global_transform_interpolated().origin + Vector3.UP * (1.6 * (model.age_scale if model else 1.0) + cam_lift) + cam_shift
 	cam_pivot.global_position = cam_pivot.global_position.lerp(target, minf(1.0, dt * 16.0))
 	# dev formda kamera yukarıdan bakar (kuyruklar/gövde ekranı kapatmasın)
 	cam_pivot.rotation = Vector3(deg_to_rad(pitch - (2.0 if cam_giant else 0.0)), deg_to_rad(yaw), 0)

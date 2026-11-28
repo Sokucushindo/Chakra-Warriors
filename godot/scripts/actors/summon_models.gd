@@ -1790,6 +1790,7 @@ static func _baku(out: Dictionary, h: float) -> void:
 	out["tail"] = tail
 	_mesh(out["root"], b, Vector3(0, h * 0.3, 0))
 	out["mouth"] = tp[4] + Vector3(0, h * 0.3, 0)
+	out["head_at"] = [hc + Vector3(0, h * 0.3, 0), h * 0.3]   # öne eğik baş sırt kamburundan alçakta: binici başın tepesine basar
 
 
 ## Anime yılanı (refs/summons/manda.png, aoda.png; Orochimaru'nun dev yılanları): kalın kaslı gövde, S kıvrımlı kalkık boyun, yassı geniş kama baş

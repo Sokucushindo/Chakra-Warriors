@@ -67,6 +67,9 @@ func ride_end(respawn := true) -> void:
 	if ride_id == "" or _ride_ending:
 		return
 	_ride_ending = true
+	_ride_seat = Vector3.INF
+	if is_instance_valid(p) and p.model:
+		p.model.position = Vector3.ZERO
 	var id := ride_id
 	var life := ride_life
 	set_level(0)
@@ -83,6 +86,25 @@ func ride_end(respawn := true) -> void:
 		Hud.msg("%s yanında savaşmaya devam ediyor (%d sn)." % [String(LazyFx.g("BeastModels").INFO[id]["name"]).split(" — ")[0], int(life)], chakra_col())
 	else:
 		Hud.msg("Sharingan bağı çözüldü: canavar geri döndü.", Color(0.85, 0.85, 0.9))
+
+
+## Bindiğin canavarın kafasında ayakta durursun (kanon: çağıran, çağrısının başında durur): karakterin görünür, ayakları
+## kafanın tepesine basar, kafa döndükçe onunla gider. Tekerlekle yakınlaşınca kamera karakterinin arkasına iner.
+var _ride_seat := Vector3.INF
+func _ride_stand() -> void:
+	if not is_instance_valid(rig) or rig.head == null or p.model == null:
+		return
+	if _ride_seat == Vector3.INF:
+		_ride_seat = Summon.head_top_of(rig.head)
+		if _ride_seat == Vector3.INF:
+			_ride_seat = Vector3.ZERO
+		p.cam_range.x = 3.5
+	var top: Vector3 = rig.head.global_transform * _ride_seat
+	p.model.visible = true
+	p.model.global_position = top
+	p.model.play("idle", 0.2)
+	var h := float(rig.get_meta("cam_h", 30.0))
+	p.ride_cam_lift(h * 0.8, top.y - p.global_position.y, Vector3(top.x - p.global_position.x, 0, top.z - p.global_position.z))
 
 
 func max_level() -> int:
@@ -602,6 +624,7 @@ func _process(dt: float) -> void:
 		if ride_life <= 0.0:
 			ride_end(false)
 			return
+		_ride_stand()
 	# chakra / beden
 	var free_modes = Cheats.on("nomodecost")   # hile: mod bedelleri yok
 	if level == 6 and not free_modes:

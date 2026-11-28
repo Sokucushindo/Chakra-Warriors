@@ -970,6 +970,8 @@ func _process(dt: float) -> void:
 				open_n += 1
 		if open_n > 0 and p.chakra > 0.0:
 			p.chakra = maxf(0.0, p.chakra - 0.5 * open_n * dt)
+	if _raw_kind("sag") == 6 or _raw_kind("sol") == 6:
+		LazyFx.g("SixPaths").ensure()   # Pein Rikudō: ceset alma + sahadaki bedenlerin yönetimi
 	# göz çalma: yakında gözleri alınmamış düşmüş dōjutsu sahibi
 	steal_target = null
 	for f in get_tree().get_nodes_in_group("dojutsu_bearers"):
