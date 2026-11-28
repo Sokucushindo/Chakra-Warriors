@@ -48,19 +48,11 @@ func _ready() -> void:
 		_mobile_defaults()
 
 
-## İlk açılış (ayar dosyası yok): telefona uygun grafik — düşük kalite, %60 çözünürlük, 30 FPS sınırı (ısınma / pil), büyük arayüz
+## İlk açılış (ayar dosyası yok): telefona uygun grafik — Patates kademesi (çimen, gölge, çizgi yok, yarı çözünürlük, kısa görüş),
+## 30 FPS sınırı (ısınma / pil), büyük arayüz. Güçlü telefonda Ayarlar > Grafik kalitesi'nden yükseltilir.
 func _mobile_defaults() -> void:
 	var s = Game.settings
-	Game._quality_details(0)
-	s["quality"] = 0
-	s["view"] = 0.6
-	s["shadows"] = false
-	s["outline"] = true
-	s["aa"] = 0
-	s["ssao"] = false
-	s["res_scale"] = 0.6
-	s["grass"] = 0
-	s["crowd"] = 0
+	Game.set_quality4(0)
 	s["max_fps"] = 30
 	s["ui_scale"] = 1.15
 	Game.save_settings()
@@ -77,7 +69,7 @@ func _vibe(ms: int) -> void:
 
 
 func _active() -> bool:
-	return on and Game.player != null and is_instance_valid(Game.player) and not Game.paused and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
+	return on and Game.player != null and is_instance_valid(Game.player) and not Game.paused and Game.mouse_cap   # telefonda Input.mouse_mode hep "görünür": oyunun kendi isteğine bakılır
 
 
 func _seal_active() -> bool:

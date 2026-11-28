@@ -44,7 +44,7 @@ func _ready() -> void:
 	await main._start_new_game()
 	await get_tree().create_timer(4.0).timeout
 	Hud.close_dialog()
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	Game.mouse(true)
 	await get_tree().create_timer(1.5).timeout
 	var pl = main.player
 	tc = get_tree().root.get_node("TouchControls")
@@ -96,7 +96,7 @@ func _ready() -> void:
 	tc._notification(NOTIFICATION_WM_GO_BACK_REQUEST)
 	await get_tree().create_timer(0.5).timeout
 	print("TCH geri sonra ui_open=", Game.ui_open, " paused=", Game.paused)
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	Game.mouse(true)
 	await get_tree().create_timer(0.3).timeout
 	# 6) duraklat düğmesi
 	await _tap("pause")
@@ -106,7 +106,7 @@ func _ready() -> void:
 	await get_tree().create_timer(0.5).timeout
 	print("TCH geri sonra paused=", Game.paused)
 	# 7) ayarlar: Kontrol sekmesi
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	Game.mouse(false)
 	Menus.settings(func(): pass)
 	await get_tree().create_timer(0.3).timeout
 	Menus._set_tab = "controls"
