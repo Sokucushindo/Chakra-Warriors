@@ -666,6 +666,8 @@ const RAID_WAVES := [
 ## katılır, muhafız / jōnin / ANBU dalgaları, en sonunda Kage), siviller kaçar ve konuşmaz. Son saldırıdan 75 sn sonra söner.
 var _blood := {}   # {"vid", "until"}
 func blood_on(vid := "") -> bool:
+	if not _blood.is_empty() and LazyFx.g("VillageFall").siege(String(_blood["vid"])) and Game.player != null 			and LazyFx.g("VillageFall").vid_at(Game.player.global_position, 1.05) == String(_blood["vid"]):
+		_blood["until"] = Game.now() + 75.0   # kuşatma altındaki köyde alarm sen içerideyken sönmez
 	return not _blood.is_empty() and Game.now() < float(_blood["until"]) and (vid == "" or vid == String(_blood["vid"]))
 
 
@@ -739,7 +741,16 @@ func _village_ban(dt: float) -> void:
 	if float(_raid["t"]) > 0.0 or (_raid["nodes"] as Array).size() > 0:   # yeni dalga ancak öncekinin hepsi yenilince
 		return
 	var w = int(_raid["wave"])
-	if w < RAID_WAVES.size():
+	if LazyFx.g("VillageFall").siege(vid):
+		# kuşatma: Kage yok; kalan klan ninjaları beşer beşer gelir, sonuncusu da düşünce köy yok olur
+		if (_raid["nodes"] as Array).is_empty():
+			if WorldPeople.clans_left(vid) > 0:
+				_raid_clans(vid, 5)
+				_raid["t"] = 8.0
+			else:
+				LazyFx.g("VillageFall").check(vid)
+				_raid["t"] = 5.0
+	elif w < RAID_WAVES.size():
 		_raid_wave(vid, RAID_WAVES[w])
 		_raid["wave"] = w + 1
 		_raid["t"] = 12.0
@@ -936,13 +947,14 @@ func _raid_wave(vid: String, wd: Dictionary) -> void:
 ## dünyada yaşayan gerçek klan üyeleri — en güçlüleri, her klandan en çok iki kişi, kendi klan teknikleri ve gözleriyle.
 ## Düşen gerçekten ölür (klanı o kadar küçülür). Köyde klan üyesi kalmadıysa bu dalga boş geçer.
 func _raid_clans(vid: String, n: int) -> void:
-	var pool: Array = WorldPeople.all().values().filter(func(p): return String(p["village"]) == vid and String(p["clan"]) != "" and WorldPeople.alive(p) 		and not WorldPeople.is_rogue(p) and not p.get("missing", false) and int(p["rank"]) >= 1 and not WorldPeople._active.has(String(p["id"])) 		and not _spared_person(p))
+	var sg: bool = LazyFx.g("VillageFall").siege(vid)
+	var pool: Array = WorldPeople.all().values().filter(func(p): return String(p["village"]) == vid and String(p["clan"]) != "" and WorldPeople.alive(p) 		and not WorldPeople.is_rogue(p) and not _on_stage(String(p["id"])) and (sg or not _spared_person(p)))
 	pool.sort_custom(func(a, b): return int(a["level"]) > int(b["level"]))
 	var per := {}
 	var picked: Array = []
 	for p in pool:
 		var c = String(p["clan"])
-		if int(per.get(c, 0)) >= 2:
+		if int(per.get(c, 0)) >= 2 and not sg:
 			continue
 		per[c] = int(per.get(c, 0)) + 1
 		picked.append(p)
@@ -951,7 +963,10 @@ func _raid_clans(vid: String, n: int) -> void:
 	if picked.is_empty():
 		return
 	var names: Array = per.keys().map(func(c): return String(Data.clans.get(c, {}).get("name", c)))
-	Hud.banner("KLANLAR AYAKLANDI", "%s köyü savunmaya geldi!" % ", ".join(names), Color(0.9, 0.35, 0.3))
+	if sg:
+		Hud.banner("SON SAVUNMA", "%s — köyde %d klan ninjası kaldı." % [", ".join(names), WorldPeople.clans_left(vid)], Color(0.9, 0.35, 0.3))
+	else:
+		Hud.banner("KLANLAR AYAKLANDI", "%s köyü savunmaya geldi!" % ", ".join(names), Color(0.9, 0.35, 0.3))
 	var pp = Game.player.global_position
 	var i := 0
 	for p in picked:
@@ -969,6 +984,12 @@ func _raid_clans(vid: String, n: int) -> void:
 		(_raid["nodes"] as Array).append(e)
 		_spawned.append(e)
 		i += 1
+
+
+func _on_stage(id: String) -> bool:
+	var w = WorldPeople._active.get(id)
+	var n = w.get_ref() if w is WeakRef else w
+	return n != null and is_instance_valid(n) and not n.is_queued_for_deletion() and not n.get("dead")
 
 
 ## Dostun / ailen olan dünya kişisi sana karşı savaşa sürülmez

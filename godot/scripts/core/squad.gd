@@ -63,7 +63,7 @@ static func ensure_formed() -> Dictionary:
 	var mates = []
 	# köyün gerçek klanları (dünya verisi Data.clans "villages"): her arkadaş bir ihtimalle klanlı doğar — Uchiha, Hyūga, Nara...
 	var home = Progress.home()
-	var vclans: Array = Data.clans.keys().filter(func(c): return c != "none" and home in (Data.clans[c] as Dictionary).get("villages", []))
+	var vclans: Array = Data.clans.keys().filter(func(c): return c != "none" and home in (Data.clans[c] as Dictionary).get("villages", []) and not WorldPeople.clan_extinct(String(c), home))
 	for i in 2:
 		var nm: Array = names[i]
 		var m = {"name": nm[0], "gender": nm[1], "hair_style": nm[2], "hair": _a(hairs[i]), "top": _a(tops[i]), "element": others[i % others.size()], "medic": i == 1, "clan": ""}

@@ -45,7 +45,7 @@ static func form(announce: bool) -> void:
 	var vid = Progress.home()
 	var clans = []
 	for cc in Data.clans:
-		if cc != "none" and not cc in Progress.UNPLAYABLE_CLANS and vid in Data.clans[cc].get("villages", []):
+		if cc != "none" and not cc in Progress.UNPLAYABLE_CLANS and vid in Data.clans[cc].get("villages", []) and not WorldPeople.clan_extinct(String(cc), vid):
 			clans.append(cc)
 	var fs = LazyFx.g("Friends").all()
 	var names = []

@@ -33,6 +33,25 @@ static func rec(vid: String) -> Dictionary:
 	return d[vid]
 
 
+## KUŞATMA (2026-11-28: "yeni Kage seçip duruyorlar, sonsuz döngü, köy yok olmuyor"): Kage senin elinden öldüğü andan
+## köy düşene (ya da sen 20 dk boyunca o köyde kimseyi öldürmeyip kuşatmayı bırakana) kadar köy kuşatma altındadır:
+##  - yeni Kage SEÇİLMEZ (köy lidersiz; kuşatma kalkarsa o zaman seçilir),
+##  - köyde yeni klan üyesi yetişmez, yok olan klan geri gelmez,
+##  - alarm dalgaları artık yalnız kalan klan ninjalarıdır (beşer beşer, kaç kişi kaldığı her dalgada yazılır; dostun da olsa gelir),
+##  - sonuncusu düşünce köy yok olur.
+const SIEGE_HOLD := 1200.0
+static func siege(vid: String) -> bool:
+	if vid == "" or Game.profile.is_empty() or not D().has(vid):
+		return false
+	var r: Dictionary = D()[vid]
+	return bool(r.get("kage", false)) and not bool(r.get("down", false))
+
+
+static func siege_touch(vid: String) -> void:
+	if siege(vid):
+		rec(vid)["siege_t"] = Game.now()
+
+
 ## Köy şu an yıkık mı (yeniden kurulmaya başlanmamış)
 static func down(vid: String) -> bool:
 	if Game.profile.is_empty() or not Game.profile.has("fall"):
@@ -100,6 +119,7 @@ static func on_kage_killed(vid: String, by_player: bool) -> void:
 	var r = rec(vid)
 	r["kage"] = true
 	r["kills"] = 0
+	r["siege_t"] = Game.now()
 	var vn = String(Game.village(vid).get("name", vid))
 	var left = WorldPeople.clans_left(vid)
 	if left > 0:
@@ -134,6 +154,7 @@ static func on_kill(vid: String) -> void:
 	if not bool(r.get("kage", false)):
 		return
 	r["kills"] = int(r.get("kills", 0)) + 1
+	r["siege_t"] = Game.now()
 	check(vid)
 
 
@@ -242,7 +263,15 @@ static func tick(dt: float) -> void:
 	if _t > 0.0:
 		return
 	_t = 1.0
-	if Game.player == null or not any_down():
+	if Game.player == null or Game.profile.is_empty():
+		return
+	# kuşatma bırakıldı: 20 dk boyunca o köyde kimse senin elinden ölmedi ve köyde değilsin -> köy toparlanır, yeni Kage seçer
+	for vid0 in D():
+		if siege(vid0) and Game.now() - float(D()[vid0].get("siege_t", Game.now())) > SIEGE_HOLD and vid_at(Game.player.global_position, 1.2) != vid0:
+			D()[vid0]["kage"] = false
+			D()[vid0]["kills"] = 0
+			Kage.succeed(vid0, "savaşta öldürüldü")
+	if not any_down():
 		return
 	var pp: Vector3 = Game.player.global_position
 	for vid in D():

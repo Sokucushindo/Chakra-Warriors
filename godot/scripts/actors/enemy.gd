@@ -345,8 +345,8 @@ func _maybe_clan(a: Dictionary) -> void:
 		for cc in Data.clans:
 			if cc == "none" or cc in Progress.UNPLAYABLE_CLANS:
 				continue
-			if k in ["rogue", "oto"] or vid in Data.clans[cc].get("villages", []):
-				cands.append(cc)
+			if k in ["rogue", "oto"] or (vid in Data.clans[cc].get("villages", []) and not WorldPeople.clan_extinct(String(cc), vid)):
+				cands.append(cc)   # köyde yok olmuş klandan muhafız / jōnin çıkmaz
 		if cands.is_empty():
 			return
 		c = String(cands.pick_random())

@@ -229,8 +229,11 @@ func _unhandled_input(e: InputEvent) -> void:
 	elif e.is_action_pressed("leap"):
 		if input_locked > 0.0:
 			return
-		# tek basış = en kısa sıçrayış (kullanıcı 2026-11-28: basılı tutup şarj etme kalktı, uzun atlama yok)
-		_leap(0.0)
+		# 2026-11-28 akşam: kullanıcı "Ctrl'yi tamamen eski haline getir" — basılı tutup şarj etme geri geldi
+		if (grounded or swimming) and wall_n == Vector3.ZERO:
+			leap_charge = 0.0   # basarken ses yok: ses bırakınca (sıçrayışta) çıkar
+		else:
+			_leap(0.55)
 	elif e.is_action_released("leap") and leap_charge >= 0.0:
 		var p = leap_charge
 		leap_charge = -1.0
@@ -428,15 +431,10 @@ func _ninja_dash() -> bool:
 	ndash_t = 0.3
 	ndash_ghost = 0.0
 	facing = atan2(-d.x, -d.z)
-	# gövde hareketi geri / yan kaçıştakiyle aynı sistem (eskiden havada koşu klibi + süzülme pozuyla "kayıyordu"):
-	# sırayla öne toplu takla ve gidiş yönüne burgu; atılış bitince süzülmeye açılır
-	flip_axis = Vector3.UP.cross(d).normalized()
-	flip_sgn = 1.0 if ndash_n % 4 < 2 else -1.0
-	flip_kind = ["tuck", "twist"][ndash_n % 2]
-	ndash_n += 1
-	flip_t = 0.001
-	model.play("air", 0.05)
-	model.overlay.set_pose("leap", 0.0 if flip_kind == "tuck" else 1.0)
+	flip_kind = ""
+	flip_t = -1.0
+	model.play("run", 0.04, 1.7)
+	model.overlay.set_pose("leap", 1.0)
 	FX.dust(global_position, 0.7)
 	FX.speed_lines(global_position + Vector3.UP, d)
 	Sfx.play("whoosh", global_position, 1.25, 0.8)

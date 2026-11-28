@@ -128,7 +128,7 @@ static func clan_floor() -> void:
 		for c in BIG_CLANS:
 			if float(BIG_CLANS[c]) < 3.0 or not Data.clans.has(c) or not vid in Data.clans[c].get("villages", []):
 				continue
-			if clan_extinct(String(c), vid):
+			if clan_extinct(String(c), vid) or LazyFx.g("VillageFall").siege(vid):
 				continue
 			var n = clan_alive(String(c), vid)
 			var slain = all().values().filter(func(p): return String(p["clan"]) == c and String(p["village"]) == vid and p.get("slain_by_player", false)).size()
@@ -145,7 +145,7 @@ static func new_person(vid: String, rank: int, force_clan := "") -> Dictionary:
 	var id = "w%d" % int(d["seq"])
 	var female = randf() < 0.4
 	var clan = force_clan
-	if clan == "" and randf() < 0.42:
+	if clan == "" and randf() < 0.42 and not LazyFx.g("VillageFall").siege(vid):   # kuşatma altındaki köyde yeni klan üyesi yetişmez
 		var cands = []
 		for c in Data.clans:
 			if c != "none" and not c in Progress.UNPLAYABLE_CLANS and vid in Data.clans[c].get("villages", []) and not clan_extinct(String(c), vid):
