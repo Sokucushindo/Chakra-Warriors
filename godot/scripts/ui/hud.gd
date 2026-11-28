@@ -1251,8 +1251,51 @@ func _ui_watchdog(dt: float) -> void:
 		Game.mouse(true)
 
 
+## Çıkarılmış göz körlüğü: sağ göz yoksa ekranın sağ yarısı, sol göz yoksa sol yarısı kararır (ortada yumuşak geçiş);
+## ikisi de yoksa hiçbir şey görünmez. Arayüzün altında, oyun görüntüsünün üstünde durur.
+var _blind_layer: CanvasLayer = null
+var _blind_rect: ColorRect = null
+var _blind_t := 0.0
+var _blind_k := Vector2.ZERO
+func _eye_blind(dt: float) -> void:
+	_blind_t -= dt
+	var want := Vector2.ZERO
+	if not Game.profile.is_empty() and Game.player != null:
+		var gn: Array = LazyFx.g("Gear").eyes_gone(Game.profile)
+		want = Vector2(1.0 if gn[0] else 0.0, 1.0 if gn[1] else 0.0)
+	if want == Vector2.ZERO and _blind_k == Vector2.ZERO:
+		if _blind_layer:
+			_blind_layer.visible = false
+		return
+	if _blind_layer == null:
+		_blind_layer = CanvasLayer.new()
+		_blind_layer.layer = 4   # arayüz (10) altında
+		add_child(_blind_layer)
+		_blind_rect = ColorRect.new()
+		_blind_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+		_blind_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var sm = ShaderMaterial.new()
+		var sh = Shader.new()
+		sh.code = "shader_type canvas_item;
+uniform vec2 k = vec2(0.0);
+void fragment() {
+	float r = smoothstep(0.42, 0.62, UV.x) * k.x;
+	float l = (1.0 - smoothstep(0.38, 0.58, UV.x)) * k.y;
+	float a = clamp(max(r, l) + k.x * k.y, 0.0, 1.0);
+	COLOR = vec4(0.0, 0.0, 0.0, a * 0.985);
+}
+"
+		sm.shader = sh
+		_blind_rect.material = sm
+		_blind_layer.add_child(_blind_rect)
+	_blind_layer.visible = true
+	_blind_k = _blind_k.move_toward(want, dt * 1.5)
+	(_blind_rect.material as ShaderMaterial).set_shader_parameter("k", _blind_k)
+
+
 func _process(dt: float) -> void:
 	_ui_watchdog(dt)
+	_eye_blind(dt)
 	if not game_hud.visible:
 		return
 	var pl = Game.player

@@ -88,6 +88,38 @@ static func populate() -> void:
 ## Köyün büyük klanları (kanon: Uchiha ve Hyūga Konoha'nın en kalabalık klanlarıdır; mahalleleri köyde durur) dünyadaki
 ## ninjalar arasında da hep temsil edilir: yaşayan üyesi CLAN_MIN'in altına düşerse klan mahallesinden yeni ninjalar yetişir.
 ## (Ölçüm 2026-11-14: 142 kişilik dünyada hiç Uchiha doğmuyordu -> Sharingan / Mangekyō / Rinnegan zinciri hiç başlamıyordu.)
+## Klan nüfusu (2026-11-28: "hepsi ölürse klan yok olsun, Uchiha gibi"): bir köyde klanın yaşayan son üyesi de ölünce klan
+## o köyde YOK OLUR — yeni üye doğmaz, mahallesi boşalır. Senin öldürdüğün üyelerin yerine yenisi yetişmez (aşağıdaki taban
+## o kadar düşer); köyün bütün klanları tükenmiş ve Kage'si de senin elinden ölmüşse köy yok olur.
+static func clan_extinct(c: String, vid: String) -> bool:
+	return (data().get("extinct", {}) as Dictionary).has(c + "@" + vid)
+
+
+static func clan_alive(c: String, vid: String) -> int:
+	return all().values().filter(func(p): return String(p["clan"]) == c and String(p["village"]) == vid and alive(p) and not is_rogue(p)).size()
+
+
+## Köyde klan üyesi olarak yaşayan toplam ninja
+static func clans_left(vid: String) -> int:
+	return all().values().filter(func(p): return String(p["clan"]) != "" and String(p["village"]) == vid and alive(p) and not is_rogue(p)).size()
+
+
+static func _clan_check(p: Dictionary) -> void:
+	var c = String(p.get("clan", ""))
+	var vid = String(p.get("village", ""))
+	if c == "" or vid == "" or clan_extinct(c, vid):
+		return
+	if clan_alive(c, vid) == 0:
+		var d = data()
+		if not d.has("extinct"):
+			d["extinct"] = {}
+		d["extinct"][c + "@" + vid] = true
+		var cn = ClanWorld.clan_name(c)
+		Hud.banner("%s KLANI YOK OLDU" % cn.to_upper(), "%s köyünde bu klandan yaşayan kimse kalmadı." % vname(vid), Color(0.85, 0.3, 0.3))
+		LazyFx.g("Journal").add("%s klanı %s köyünde yok oldu." % [cn, vname(vid)], "milestone")
+	LazyFx.g("VillageFall").check(vid)
+
+
 const CLAN_MIN := 3
 static func clan_floor() -> void:
 	for vid in MAJOR:
@@ -96,8 +128,11 @@ static func clan_floor() -> void:
 		for c in BIG_CLANS:
 			if float(BIG_CLANS[c]) < 3.0 or not Data.clans.has(c) or not vid in Data.clans[c].get("villages", []):
 				continue
-			var n = all().values().filter(func(p): return String(p["clan"]) == c and String(p["village"]) == vid and alive(p) and not is_rogue(p)).size()
-			for i in maxi(0, CLAN_MIN - n):
+			if clan_extinct(String(c), vid):
+				continue
+			var n = clan_alive(String(c), vid)
+			var slain = all().values().filter(func(p): return String(p["clan"]) == c and String(p["village"]) == vid and p.get("slain_by_player", false)).size()
+			for i in maxi(0, CLAN_MIN - slain - n):
 				var r = randf()
 				var np = new_person(vid, 0 if r < 0.3 else (1 if r < 0.7 else 2), String(c))
 				log_event(np, "%s klanının mahallesinde yetişti" % ClanWorld.clan_name(String(c)))
@@ -113,7 +148,7 @@ static func new_person(vid: String, rank: int, force_clan := "") -> Dictionary:
 	if clan == "" and randf() < 0.42:
 		var cands = []
 		for c in Data.clans:
-			if c != "none" and not c in Progress.UNPLAYABLE_CLANS and vid in Data.clans[c].get("villages", []):
+			if c != "none" and not c in Progress.UNPLAYABLE_CLANS and vid in Data.clans[c].get("villages", []) and not clan_extinct(String(c), vid):
 				cands.append(c)
 		if not cands.is_empty():
 			# kanonda kalabalık klanlar (Uchiha, Hyūga, Nara, Akimichi...) daha sık; küçük klanlar nadir
@@ -377,6 +412,7 @@ static func _die(p: Dictionary, why: String) -> void:
 	LazyFx.g("WorldKin").on_death(p)   # aile yası, intikam
 	WorldDay.on_death(p, why)
 	LazyFx.g("WorldNews").on_death(p, why)
+	_clan_check(p)
 	var cid = String(p.get("close", ""))
 	if cid == "" or not all().has(cid):
 		return

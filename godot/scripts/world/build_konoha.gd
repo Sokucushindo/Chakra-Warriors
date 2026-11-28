@@ -1105,7 +1105,7 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 		var srng = RandomNumberGenerator.new()
 		srng.seed = 900 + i   # ayrı tohum: köyün ana dizisi (ev yerleşimi) kaymasın
 		_market_stall(b, decor, sx, cn, side, aw, i % 4, srng)
-		_site(b, "stall", sx, cn, {"back": _gp(b, sx, cn + side * 1.7), "front": _gp(b, sx, cn - side * 1.9), "face": _face(0, side)})
+		_site(b, "stall", sx, cn, {"back": _gp(b, sx, cn + side * 1.7), "front": _gp(b, sx, cn - side * 1.9), "face": _face(0, side), "kind": i % 4})
 		if i % 3 == 0:
 			CityDecor.banner(decor, _gp(b, sx - 3.4, cn - side * 1.4), 0.0, aw, Color(0.98, 0.95, 0.88))
 	_site(b, "crowd", 0, 0)

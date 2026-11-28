@@ -1328,6 +1328,7 @@ func izanagi_cost(tech := "İzanagi") -> void:
 		return
 	var g2 = LazyFx.g("Gear").equipped(pr, slot)
 	pr["equip"].erase(slot)
+	LazyFx.g("Gear").eye_gone_mark(pr, slot)   # ışığını yitiren göz kapalı kalır
 	pr["gear"] = (pr.get("gear", []) as Array).filter(func(x): return int(x["uid"]) != int(g2["uid"]))
 	pr["flags"]["izanagi_used"] = int(pr["flags"].get("izanagi_used", 0)) + 1
 	LazyFx.g("Gear").apply_look(pr)

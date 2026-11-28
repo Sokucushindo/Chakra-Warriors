@@ -524,6 +524,11 @@ func broker_dialog() -> void:
 	# Akatsuki: «Aranan Gölge» ve üstü kaçaklara davet
 	if WorldAkatsuki.can_invite():
 		opts.append({"label": "Kızıl bulutlardan bir mesaj var...", "tip": "Akatsuki seni görmek istiyor: mağaralarının önünde sınanacaksın.", "cb": WorldAkatsuki.invite_dialog})
+	elif WorldAkatsuki.exists() and not WorldAkatsuki.player_in() and String((WorldAkatsuki.D()["me"] as Dictionary).get("test", "")) != "":
+		# çağrıyı zaten kabul etti: harita işareti başka bir işle silindiyse simsar yolu yeniden tarif eder (davet kaybolmuş sanılıyordu)
+		opts.append({"label": "Kızıl bulutların yerini yeniden tarif et", "tip": "Akatsuki çağrın hâlâ geçerli: mağara haritada yeniden işaretlenir.", "cb": func():
+			WorldAkatsuki._mark()
+			Hud.msg("Akatsuki mağarası haritada işaretlendi.", Color(0.9, 0.4, 0.4))})
 	opts.append({"label": "Ateşin başında dinlen (can/chakra, kayıt)", "cb": func():
 		if Game.player:
 			Game.player.hp = Game.player.max_hp
@@ -651,12 +656,32 @@ func rogue_job_done(m: Dictionary, ok: bool) -> void:
 const RAID_WAVES := [
 	{"title": "Köy Muhafızları", "kind": "chunin", "n": 3, "lv": 0, "hp": 1.1},
 	{"title": "Jōnin Takımı", "kind": "chunin", "n": 3, "lv": 6, "hp": 1.2},
+	{"title": "Klanlar Ayaklandı", "kind": "clan", "n": 5, "lv": 0, "hp": 1.0},
 	{"title": "ANBU Birliği", "kind": "anbu", "n": 4, "lv": 9, "hp": 1.35},
 ]
 
 
+## Kan alarmı (kullanıcı 2026-11-28: "köye saldırıyorum, jōnin yanımdan geçip gidiyor, çocuklar selam veriyor"): kaçak
+## olmasan da bir köyde birine saldırınca / öldürünce o köy alarma geçer — kaçak alarmıyla aynı düzen (yakındaki köy ninjaları
+## katılır, muhafız / jōnin / ANBU dalgaları, en sonunda Kage), siviller kaçar ve konuşmaz. Son saldırıdan 75 sn sonra söner.
+var _blood := {}   # {"vid", "until"}
+func blood_on(vid := "") -> bool:
+	return not _blood.is_empty() and Game.now() < float(_blood["until"]) and (vid == "" or vid == String(_blood["vid"]))
+
+
+func blood_alarm(vid: String) -> void:
+	if vid == "" or Game.player == null or LazyFx.g("VillageFall").down(vid):
+		return
+	_blood = {"vid": vid, "until": Game.now() + 75.0}
+	if _raid.is_empty():
+		_raid = {"vid": vid, "wave": 0, "t": 4.0, "out_t": 0.0, "nodes": [], "kage": false}
+		Hud.banner("KÖY ALARMDA!", "%s'de kan döküldü: köyün ninjaları sana saldıracak, halk kaçıyor." % Game.village(vid).get("name", vid), Color(0.95, 0.25, 0.2))
+		Sfx.play("roar", null, 0.7, 0.5)
+
+
 func _village_ban(dt: float) -> void:
-	if not is_rogue() or Game.player == null:
+	if (not is_rogue() and not blood_on()) or Game.player == null:
+		_blood = {}
 		_end_raid()
 		return
 	var pl = Game.player
@@ -673,6 +698,9 @@ func _village_ban(dt: float) -> void:
 		var st: Array = Missions.active().get("steps", [])
 		if int(Missions.active().get("step", 0)) >= st.size() - 1:
 			inside = ""   # Kefaret: kanıtla dönüşte köy saldırmaz
+	if _raid.is_empty() and not is_rogue():
+		_blood = {}   # kan alarmı söndü (köyden uzaklaştın)
+		return
 	if _raid.is_empty():
 		if inside == "":
 			_sneak_t = 0.0
@@ -684,6 +712,8 @@ func _village_ban(dt: float) -> void:
 			_sneak_note = true
 			Hud.msg("%s'e gizlice girdin. Biri seni görürse alarm çalar." % Game.village(inside).get("name", inside), Color(0.85, 0.8, 0.6))
 		var sp = _spotted_by(inside)
+		if pl.in_fight():
+			sp = 2   # köyün içinde dövüşüyorsun: gizlilik kalmadı, alarm hemen çalar
 		if sp == 2:
 			_sneak_t = 1.2   # köy ninjası gördü: anında alarm (sivil önce bakakalır, sonra haber verir)
 		elif sp == 1:
@@ -738,7 +768,7 @@ func _spotted_by(_vid: String) -> int:
 	var reach = 16.0 * (0.55 if night else 1.0) * maxf(0.35, 1.0 - st_k)
 	# köy ninjası eğitimli göz: gizlilik ustalığı onu en çok yarıya indirir, 24 m'den tanır (2026-11-27, kullanıcı: "konuşmaya
 	# gitmeden kaçağa dalmıyorlar": yüksek gizlilikte görüş 5 m'ye düşüyor, devriye yanından geçip gidiyordu)
-	var reach_n = 24.0 * (0.65 if night else 1.0) * maxf(0.55, 1.0 - st_k * 0.5)
+	var reach_n = 26.0 * (0.7 if night else 1.0) * maxf(0.75, 1.0 - st_k * 0.5)   # 2026-11-28: jōnin kaçağın yanından geçip gidiyordu; taban 0.55 -> 0.75
 	var space = pl.get_world_3d().direct_space_state
 	var seen = 0
 	for n in get_tree().get_nodes_in_group("talkers"):
@@ -749,7 +779,7 @@ func _spotted_by(_vid: String) -> int:
 		if d.length() > (reach_n if nin else reach):
 			continue
 		var fd: Vector3 = n.face_dir() if n.has_method("face_dir") else Vector3.ZERO
-		if fd != Vector3.ZERO and d.length() > 3.0 and Vector2(fd.x, fd.z).normalized().dot(Vector2(d.x, d.z).normalized()) < 0.1:
+		if fd != Vector3.ZERO and d.length() > (9.0 if nin else 3.0) and Vector2(fd.x, fd.z).normalized().dot(Vector2(d.x, d.z).normalized()) < 0.1:
 			continue   # arkası dönük (yanına sokulursan yine fark eder)
 		var q = PhysicsRayQueryParameters3D.create(n.global_position + Vector3.UP * 1.5, pl.global_position + Vector3.UP * 1.2, 1)
 		if space.intersect_ray(q).is_empty():
@@ -799,8 +829,8 @@ func rogue_confront(v: Node) -> bool:
 		if not vv.is_empty() and m.distance_to(Vector2(vv["x"], vv["y"])) < float(vv["r"]) * 1.08:
 			inside = vid
 			break
-	Combat.popup_text(v.global_position + Vector3.UP * 2.3, "Sen... kaçak ninja! Alarm!", Color(1, 0.35, 0.3))
-	if inside != "" and _raid.is_empty() and not (_pardon_active() and inside == String(flags().get("rogue_from", ""))):
+	Combat.popup_text(v.global_position + Vector3.UP * 2.3, "Sen... kaçak ninja! Alarm!" if is_rogue() else "Katil! Durdurun onu!", Color(1, 0.35, 0.3))
+	if is_rogue() and inside != "" and _raid.is_empty() and not (_pardon_active() and inside == String(flags().get("rogue_from", ""))):
 		_raid = {"vid": inside, "wave": 0, "t": 2.0, "out_t": 0.0, "nodes": [], "kage": false}
 		Hud.banner("KAÇAK KÖYDE!", "%s alarmda: muhafızlar sana saldıracak. Kaldıkça daha güçlüleri gelir — en sonunda Kage." % Game.village(inside).get("name", inside), Color(0.95, 0.25, 0.2))
 	LazyFx.g("Crime").inst().attack(v, true)
@@ -809,13 +839,17 @@ func rogue_confront(v: Node) -> bool:
 
 ## Bu kişi kaçağa saldıran bir köy ninjası mı (dostların ve Kefaret'te kendi köyün hariç)
 func _hunter(v: Node) -> bool:
-	if not is_rogue() or Game.player == null or not is_instance_valid(v) or not (v is Villager or v is ClanResident):
+	if not (is_rogue() or blood_on()) or Game.player == null or not is_instance_valid(v) or not (v is Villager or v is ClanResident):
 		return false
 	if _spared(v) or not LazyFx.g("Friends").is_ninja(v):
 		return false
 	var vid := String(v.get("vid")) if v.get("vid") != null else ""
 	if vid == "":
 		vid = String(LazyFx.g("Outfits").village_near(v.global_position))
+	if blood_on(vid):
+		return true    # köyünde kan döküldü: af / kefaret istisnası yok, o köyün her ninjası saldırır
+	if not is_rogue():
+		return false   # kan alarmı yalnız o köyün ninjalarını ilgilendirir
 	return not (_pardon_active() and vid == String(flags().get("rogue_from", "")))
 
 
@@ -869,13 +903,16 @@ func _alarm_ninjas(dt: float) -> void:
 		if v.global_position.distance_to(pp) > 60.0:
 			continue
 		n += 1
-		Combat.popup_text(v.global_position + Vector3.UP * 2.3, "Kaçak! Durdurun onu!", Color(1, 0.4, 0.35))
+		Combat.popup_text(v.global_position + Vector3.UP * 2.3, "Kaçak! Durdurun onu!" if is_rogue() else "Katil! Durdurun onu!", Color(1, 0.4, 0.35))
 		LazyFx.g("Crime").inst().attack(v, true)
 
 
 func _raid_wave(vid: String, wd: Dictionary) -> void:
 	var pp = Game.player.global_position
 	var vname = String(Game.village(vid).get("name", vid))
+	if String(wd["kind"]) == "clan":
+		_raid_clans(vid, int(wd["n"]))
+		return
 	Hud.banner(String(wd["title"]).to_upper(), "%s seni kuşatıyor!" % vname, Color(0.9, 0.35, 0.3))
 	for i in int(wd["n"]):
 		var a = _village_arch(vid, i, "anbu" if wd["kind"] == "anbu" else ("chunin" if int(wd["lv"]) == 0 else "jonin"))   # ANBU kendi kıyafetiyle (koyu takım, metal plaka, maske)
@@ -893,6 +930,53 @@ func _raid_wave(vid: String, wd: Dictionary) -> void:
 		e.home = q
 		(_raid["nodes"] as Array).append(e)
 		_spawned.append(e)
+
+
+## Köyün klanları savunmaya gelir (2026-11-28: "o kadar klan var, savunsunlar; kolay olmasın"): hazır kalıp değil, köyün
+## dünyada yaşayan gerçek klan üyeleri — en güçlüleri, her klandan en çok iki kişi, kendi klan teknikleri ve gözleriyle.
+## Düşen gerçekten ölür (klanı o kadar küçülür). Köyde klan üyesi kalmadıysa bu dalga boş geçer.
+func _raid_clans(vid: String, n: int) -> void:
+	var pool: Array = WorldPeople.all().values().filter(func(p): return String(p["village"]) == vid and String(p["clan"]) != "" and WorldPeople.alive(p) 		and not WorldPeople.is_rogue(p) and not p.get("missing", false) and int(p["rank"]) >= 1 and not WorldPeople._active.has(String(p["id"])) 		and not _spared_person(p))
+	pool.sort_custom(func(a, b): return int(a["level"]) > int(b["level"]))
+	var per := {}
+	var picked: Array = []
+	for p in pool:
+		var c = String(p["clan"])
+		if int(per.get(c, 0)) >= 2:
+			continue
+		per[c] = int(per.get(c, 0)) + 1
+		picked.append(p)
+		if picked.size() >= n:
+			break
+	if picked.is_empty():
+		return
+	var names: Array = per.keys().map(func(c): return String(Data.clans.get(c, {}).get("name", c)))
+	Hud.banner("KLANLAR AYAKLANDI", "%s köyü savunmaya geldi!" % ", ".join(names), Color(0.9, 0.35, 0.3))
+	var pp = Game.player.global_position
+	var i := 0
+	for p in picked:
+		var a = WorldPeople.arch_of(p, "jonin" if int(p["rank"]) >= 2 else "chunin")
+		var e = Enemy.new()
+		e.setup(a)
+		e.set_meta("village_guard", vid)
+		e.set_meta("faction", vid)
+		get_tree().current_scene.add_child(e)
+		WorldPeople.after_spawn(e, p)
+		WorldPeople._active[String(p["id"])] = weakref(e)
+		var q = Missions.open_ground(pp + Vector3(cos(i * 1.3 + 0.6), 0, sin(i * 1.3 + 0.6)) * 24.0, 15.0)
+		e.global_position = q
+		e.home = q
+		(_raid["nodes"] as Array).append(e)
+		_spawned.append(e)
+		i += 1
+
+
+## Dostun / ailen olan dünya kişisi sana karşı savaşa sürülmez
+func _spared_person(p: Dictionary) -> bool:
+	for f in LazyFx.g("Friends").all().values():
+		if f is Dictionary and String(f.get("wid", "")) == String(p["id"]) and float(f.get("bond", 0.0)) >= 30.0:
+			return true
+	return false
 
 
 func _raid_kage(vid: String) -> void:
@@ -960,6 +1044,17 @@ func kage_fighter(vid: String) -> Enemy:
 	LazyFx.g("KageArts").prepare(e, kc)   # klan modunun gözü / ek teknikleri (Uchiha Mangekyō, Senju Mokuton...)
 	return e
 	Hud.boss_bar(e)
+
+
+func clear_session() -> void:
+	_blood = {}
+	_end_raid()
+	for s2 in _spawned:
+		if s2 is Node and is_instance_valid(s2):
+			s2.queue_free()
+	_spawned.clear()
+	_sneak_t = 0.0
+	_alarm_t = 0.0
 
 
 func _end_raid() -> void:

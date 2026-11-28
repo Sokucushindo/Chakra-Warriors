@@ -42,8 +42,27 @@ var on_counter := false
 var counter_pt := Vector3.ZERO
 
 
+## Kemiğin SON konumu (poz katmanı uygulandıktan sonra): doğrudan kemik okuması katmandan önceki animasyon pozunu veriyor,
+## çubuklar elin eski yerinde kalıp kaseye uzanan elden kopuyor, ağız / omuz da eğilmeden önceki yerde sanılıyordu.
+func _real(nm: String) -> Vector3:
+	if _hand_ok and model.overlay.probe.has(nm):
+		return model.overlay.probe[nm]
+	return _bone(nm)
+
+
+func _hand_now(side: String) -> Vector3:
+	return _real(side + "Hand")
+
+
+var _hand_ok := false
+var hold := false   # deneme: hareketi dondur (görüntü almak için)
+
+
 func _ready() -> void:
 	_make_props()
+	if model:
+		model.overlay.probe.clear()
+		model.overlay.probe_bones = ["LeftHand", "RightHand", "Head", "LeftUpperArm", "RightUpperArm"]
 	# kanon: kase tezgâhın üstünde durur, eğilip çubuklarla yenir; tezgâh yoksa kase avuçta
 	var fd: Vector3 = f.face_dir()
 	# tezgâhın ön kenarını bul (yakından uzağa), kase kenarın biraz içine
@@ -58,7 +77,7 @@ func _ready() -> void:
 		var hy = float(hit["position"].y) - f.global_position.y
 		if hy > 0.5 and hy < 1.5:
 			on_counter = true
-			counter_pt = hit["position"] - fd * 0.06 + Vector3.UP * 0.115   # çarpışma kutusu üstü + kırmızı tezgâh levhası + kasenin yarısı
+			counter_pt = hit["position"] - fd * 0.13 + Vector3.UP * 0.115   # çarpışma kutusu üstü + kırmızı tezgâh levhası + kasenin yarısı
 			break
 	model.overlay.set_pose("cast", 1.0)
 	f.input_locked = total + 0.3
@@ -107,20 +126,27 @@ func _bone(nm: String) -> Vector3:
 
 
 func _mouth() -> Vector3:
-	return _bone("Head") + Vector3.UP * 0.02 + f.face_dir() * 0.12 * model.age_scale
+	return _real("Head") + Vector3.UP * 0.02 + f.face_dir() * 0.12 * model.age_scale
 
 
 func _process(dt: float) -> void:
 	if not is_instance_valid(f) or model == null:
 		_end()
 		return
-	t += dt
+	if not hold:
+		t += dt
 	if model.current != "sit":
 		model.play("sit", 0.2)
 	# kalça tabure minderine otursun (havada kalmasın / içine gömülmesin): kalça kemiği = minder + kalça kalınlığı
 	if seat_h >= 0.0:
 		var hr = _bone("Hips").y - model.global_position.y
 		model.position.y = clampf(seat_h + 0.07 * model.age_scale - hr, -0.25, 0.35)
+		# oturma klibi kalçayı merkezin ~25 cm gerisine koyuyor: karakter taburenin arkasında havada oturuyor, kolları kaseye
+		# yetişmeyip dümdüz uzanıyordu (sol el tezgâhta avuç aşağı). Kalça taburenin tam üstüne gelsin.
+		var fd0: Vector3 = f.face_dir()
+		var back = (_bone("Hips") - model.global_position).dot(fd0)
+		var want = f.global_position - fd0 * back * 0.8   # tamamı değil: tezgâh levhası çarpışmadan öne taşıyor, göğüs içine girmesin
+		model.global_position = Vector3(want.x, model.global_position.y, want.z)
 	var pose: Dictionary
 	var lift := 0.0   # 0 = çubuklar kasede, 1 = ağızda
 	var drink := 0.0
@@ -154,8 +180,16 @@ func _process(dt: float) -> void:
 			Combat.popup_text(f.global_position + Vector3.UP * 2.1, "Gochisōsama!", Color(1.0, 0.85, 0.5))
 			_end()
 			return
+	# parmaklar gerçek kavrama ile (iki elde aynı yöne kıvrılır): pozdaki eklemeli kıvrım sağ elde parmakları geriye açıyordu
+	var grip_r = 0.0 if t < T_START else lerpf(0.82, 0.35, drink)
+	var grip_l = 0.0 if t < T_START else 0.35
+	pose["fL"] = []
+	pose["fR"] = []
+	model.overlay.fist["Left"] = grip_l
+	model.overlay.fist["Right"] = grip_r
 	model.overlay.cast_pose = pose
 	_place(lift, drink)
+	_hand_ok = true
 	_msg_t -= dt
 	if _msg_t <= 0.0:
 		_msg_t = 1.0
@@ -165,8 +199,8 @@ func _process(dt: float) -> void:
 ## kase sol avuçta (içerken iki elin arasında, ağza eğik); çubuklar sağ elden kaseye ya da ağza
 func _place(lift: float, drink: float) -> void:
 	var fd: Vector3 = f.face_dir()
-	var lh = _bone("LeftHand")
-	var rh = _bone("RightHand")
+	var lh = _hand_now("Left")
+	var rh = _hand_now("Right")
 	var right = fd.cross(Vector3.UP).normalized()
 	var bp = lh + Vector3.UP * 0.03 + right * 0.05 * model.age_scale + fd * 0.02
 	if on_counter:
@@ -203,8 +237,8 @@ func _place(lift: float, drink: float) -> void:
 ## iki kemik IK: omuzdan hedefe; dirsek aşağı-dışa. Kemik yönlerini model uzayında döndürür
 func _ik(side: String, target: Vector3, lean_deg := 0.0) -> Array:
 	var sk: Skeleton3D = model.skel
-	var S = _bone(side + "UpperArm")
-	if lean_deg != 0.0:
+	var S = _real(side + "UpperArm")
+	if lean_deg != 0.0 and not (_hand_ok and model.overlay.probe.has(side + "UpperArm")):
 		# okunan kemik konumu eğilmeden önceki (animasyon) poz: bel eğilince omuz öne-aşağı kayar
 		var hp = _bone("Hips")
 		var ax = Vector3.UP.cross(f.face_dir()).normalized()
@@ -239,7 +273,7 @@ func _p_counter(lift: float, drink: float) -> Dictionary:
 	var left = -fd.cross(Vector3.UP).normalized()
 	var bp = _bowl_pos(drink)
 	var arms = []
-	var lean = lerpf(20.0 - lift * 8.0, -4.0, drink)
+	var lean = lerpf(16.0 - lift * 7.0, -4.0, drink)
 	if drink > 0.0:
 		arms.append_array(_ik("Left", bp + left * 0.1 * model.age_scale, lean))
 		arms.append_array(_ik("Right", bp - left * 0.1 * model.age_scale, lean))
@@ -299,9 +333,13 @@ func _blend(a: Dictionary, b: Dictionary, k: float) -> Dictionary:
 
 func _end() -> void:
 	if model and is_instance_valid(model):
-		model.position.y = 0.0
+		model.position = Vector3.ZERO
 		model.overlay.set_pose("cast", 0.0)
 		model.overlay.cast_pose = {}
+		model.overlay.fist.erase("Left")
+		model.overlay.fist.erase("Right")
+		model.overlay.probe_bones = []
+		model.overlay.probe.clear()
 	for n in [bowl, sticks] + noodles:
 		if n and is_instance_valid(n):
 			n.queue_free()

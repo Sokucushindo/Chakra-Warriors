@@ -3,6 +3,7 @@
 shader_type spatial;
 render_mode cull_disabled, diffuse_toon, specular_disabled;
 
+global uniform float g_shade;   // güneş gölgesinin koyuluğu: gündüz < 1 (gölge tabanı kısılır), akşam / gece 1
 uniform vec4 stone : source_color = vec4(0.66, 0.6, 0.52, 1.0);
 uniform float x_min = -1e9;
 uniform float x_max = 1e9;
@@ -44,7 +45,7 @@ void light() {
 	float ndl = dot(NORMAL, LIGHT);
 	float t = smoothstep(-0.05, 0.08, ndl) * 0.65 + smoothstep(0.4, 0.5, ndl) * 0.35;
 	if (LIGHT_IS_DIRECTIONAL) {
-		vec3 shade = mix(vec3(0.3, 0.32, 0.42), vec3(1.05), t * ATTENUATION);
+		vec3 shade = mix(vec3(0.3, 0.32, 0.42) * g_shade, vec3(1.05), t * ATTENUATION);
 		DIFFUSE_LIGHT += LIGHT_COLOR * shade / PI;
 	} else {
 		DIFFUSE_LIGHT += LIGHT_COLOR * t * ATTENUATION / PI;

@@ -233,10 +233,24 @@ func finish(delay := 25.0) -> void:
 	if cur.has("label") and is_instance_valid(cur["label"]):
 		cur["label"].queue_free()
 	var nodes: Array = cur["nodes"]
+	# işi biten yol insanları yerinde dikilmez: en yakın yola çıkar, oyuncudan uzaklaşan yönde yol boyunca yürür
+	var walkers := 0
+	if String(cur.get("kind", "")) in ["merchant", "wounded", "duel", "hunter", "rivals", "toll", "lost_child"] and Game.player != null:
+		for n in nodes:
+			if is_instance_valid(n) and n is EncounterNPC and not n.dead and n.team == "neutral" and String(n.mode) == "idle":
+				var rp: Array = Game.road_walk(n.global_position, Game.player.global_position)
+				if rp.size() >= 2:
+					n.path = rp
+					n.path_i = 0
+					n.speed = 2.2
+					n.mode = "leave"
+					walkers += 1
+	if walkers > 0:
+		delay = maxf(delay, 80.0)
 	get_tree().create_timer(delay).timeout.connect(func():
 		for n in nodes:
 			if is_instance_valid(n) and not (n is Enemy and n.dead):
-				if n is Node3D:
+				if n is Node3D and (Game.player == null or n.global_position.distance_to(Game.player.global_position) < 70.0):
 					FX.smoke_puff(n.global_position + Vector3.UP, 0.8, 10)
 				n.queue_free())
 	cur = {}

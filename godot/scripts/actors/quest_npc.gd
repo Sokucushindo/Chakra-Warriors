@@ -66,6 +66,43 @@ func die(info: Dictionary) -> void:
 
 
 ## Takıldı: duman bulutuyla engelin ötesine sıçrar (ninja gibi), sonra yoluna devam eder
+## Büyük engel (dev ağaç gövdesi, kaya, yapı) önünde yerinde sayan yürüyüşçü: 2.5 sn ilerleyemezse yana doğru geçici bir
+## ara hedefe yönelir (her takılışta öbür yan, daha geniş); ara hedefe varınca / süre dolunca asıl hedefe döner.
+var _det := Vector3.INF
+var _det_t := 0.0
+var _det_side := 1.0
+var _det_n := 0
+func _walk_to(target: Vector3, dt: float) -> Vector3:
+	var v: Vector3 = target - global_position
+	v.y = 0
+	if _det_t > 0.0:
+		_det_t -= dt
+		var dv: Vector3 = _det - global_position
+		dv.y = 0
+		if dv.length() < 1.5 or _det_t <= 0.0:
+			_det_t = 0.0
+			LazyFx.g("NpcNav").reset(self)
+		else:
+			if LazyFx.g("NpcNav").stuck(self, _det, dt):
+				_det_t = 0.0   # yan yol da kapalı: bir sonraki takılışta öbür yan denenir
+			return dv
+	elif v.length() > 4.0 and LazyFx.g("NpcNav").stuck(self, target, dt):
+		_det_n += 1
+		_det_side = -_det_side
+		var fwd = v.normalized()
+		var sd = fwd.cross(Vector3.UP) * _det_side
+		var w = minf(8.0 + 6.0 * _det_n, 32.0)
+		_det = global_position + sd * w - fwd * (2.0 if _det_n > 1 else 0.0) + fwd * w * 0.35
+		_det_t = 2.0 + w / maxf(speed, 1.0)
+		LazyFx.g("NpcNav").reset(self)
+		var dv2: Vector3 = _det - global_position
+		dv2.y = 0
+		return dv2
+	elif v.length() <= 4.0:
+		_det_n = 0
+	return v
+
+
 func _hop_to(q: Vector3) -> void:
 	stuck_n = 0
 	q = Missions.open_ground(q, 6.0)
@@ -145,11 +182,30 @@ func _physics_process(dt: float) -> void:
 		"cower":
 			step_move(Vector3.ZERO, dt, false)
 			model.play("crouch", 0.25)
+		"leave":
+			# işi biten yol insanı (kurtarılan tüccar, iyileşen ninja): yola çıkıp yol boyunca yürüyerek uzaklaşır
+			if path_i >= path.size():
+				step_move(Vector3.ZERO, dt)
+				model.play("idle", 0.25)
+			else:
+				var v: Vector3 = path[path_i] - global_position
+				v.y = 0
+				if v.length() < 2.5:
+					path_i += 1
+					_det_n = 0
+					LazyFx.g("NpcNav").reset(self)
+				else:
+					v = _walk_to(path[path_i], dt)
+					step_move(LazyFx.g("NpcNav").steer(self, v.normalized(), dt) * speed, dt)
+					model.play("jog" if speed > 4.5 else "walk", 0.2)
+					facing = atan2(-v.x, -v.z)
+					model.rotation.y = facing
 		"march":
 			# yürüyen takım (AmbientTeams): goal'e yürür; yöneticisi goal'i her an günceller
 			var v = goal - global_position
 			v.y = 0
 			if v.length() > 1.4:
+				v = _walk_to(goal, dt)
 				step_move(LazyFx.g("NpcNav").steer(self, v.normalized(), dt) * speed, dt)
 				model.play("jog" if speed > 4.5 else "walk", 0.2)
 				facing = atan2(-v.x, -v.z)

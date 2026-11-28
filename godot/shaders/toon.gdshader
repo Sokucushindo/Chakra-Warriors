@@ -3,6 +3,7 @@ shader_type spatial;
 render_mode cull_back, diffuse_toon, specular_toon;
 #include "res://shaders/hair_mask.gdshaderinc"
 
+global uniform float g_shade;   // güneş gölgesinin koyuluğu: gündüz < 1 (gölge tabanı kısılır), akşam / gece 1
 uniform vec4 tint : source_color = vec4(1.0);
 uniform bool use_vertex_color = true;
 // elle yapılmış kıyafet: kurulduğu karakterin ten rengi / tarifin ana renkleri, giyenin teni / seçtiği boyaya çevrilir
@@ -1237,7 +1238,7 @@ void light() {
 	float lit = t * ATTENUATION;
 	if (LIGHT_IS_DIRECTIONAL) {
 		// anime gölgesi: tamamen kararmaz, hafif soğuk tonlu (yalnız güneş/ay)
-		vec3 shade = mix(vec3(0.29, 0.31, 0.43), vec3(1.0), lit);   // koyu, belirgin anime gölgesi
+		vec3 shade = mix(vec3(0.29, 0.31, 0.43) * g_shade, vec3(1.0), lit);   // koyu, belirgin anime gölgesi
 		DIFFUSE_LIGHT += LIGHT_COLOR * shade / PI;
 	} else {
 		// fener/efekt ışıkları: sadece gerçekten aydınlattığı yerde, yumuşak

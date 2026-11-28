@@ -152,7 +152,7 @@ static func _graduate(k: Dictionary) -> void:
 	var p = WorldPeople.new_person(vid2, 0)
 	Aging.set_years(p, 12.0)
 	p["female"] = bool(k["female"])
-	p["clan"] = String(k["clan"])
+	p["clan"] = "" if WorldPeople.clan_extinct(String(k["clan"]), vid2) else String(k["clan"])   # yok olmuş klan geri gelmez
 	p["name"] = String(k["name"])
 	p["els"] = [String(k["el"])]
 	p["nat"] = []

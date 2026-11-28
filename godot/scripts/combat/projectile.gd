@@ -19,6 +19,7 @@ var stick = false
 var hit_list: Array = []
 var dead = false
 var blockable = true
+var _far_done := false
 
 
 func _ready() -> void:
@@ -31,6 +32,10 @@ func _physics_process(dt: float) -> void:
 	if typeof(shooter) == TYPE_OBJECT and not is_instance_valid(shooter):   # atan düşman silindi (karşılaşma/aranan kaybolunca): mermi de söner
 		queue_free()
 		return
+	if not _far_done:   # uzak tekniklerin menzil çarpanı: uçan mermi daha uzun yol alır (duran / süzülen / uzun ömürlü olanlar aynı)
+		_far_done = true
+		if vel.length() >= 8.0 and life <= 6.0:
+			life *= 1.8
 	life -= dt
 	if life <= 0.0:
 		_finish(global_position, null)

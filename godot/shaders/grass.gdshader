@@ -3,6 +3,7 @@ shader_type spatial;
 render_mode cull_disabled, world_vertex_coords, diffuse_toon, specular_disabled;
 
 #include "res://shaders/world_height.gdshaderinc"
+global uniform float g_shade;   // güneş gölgesinin koyuluğu: gündüz < 1 (gölge tabanı kısılır), akşam / gece 1
 uniform sampler2D albedo_map : source_color, filter_linear, repeat_disable;
 uniform sampler2D road_tex : filter_linear, repeat_disable;
 uniform vec4 road_rect;
@@ -123,7 +124,7 @@ void light() {
 	if (LIGHT_IS_DIRECTIONAL) {
 		// gölge zeminle aynı tonda (terrain.gdshader): gölgede mavimsi koyu, güneşte tam ışık
 		float t = mix(0.62, 1.08, smoothstep(-0.25, 0.55, ndl));   // yüz yönüne göre: dönük açık, sırtı koyu (sarma: hiç kapkara olmaz)
-		vec3 shade = mix(vec3(0.26, 0.4, 0.42) * mix(0.8, 1.15, smoothstep(-0.25, 0.55, ndl)), vec3(1.0), t * ATTENUATION);   // gölgede de yüz yönü seçilsin
+		vec3 shade = mix(vec3(0.26, 0.4, 0.42) * g_shade * mix(0.8, 1.15, smoothstep(-0.25, 0.55, ndl)), vec3(1.0), t * ATTENUATION);   // gölgede de yüz yönü seçilsin
 		DIFFUSE_LIGHT += LIGHT_COLOR * shade / PI;
 	} else {
 		DIFFUSE_LIGHT += LIGHT_COLOR * mix(0.4, 1.0, smoothstep(-0.25, 0.55, ndl)) * ATTENUATION / PI;

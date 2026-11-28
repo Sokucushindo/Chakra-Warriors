@@ -30,6 +30,8 @@ var toe_pitch = 0.0     # VRoid: içe aktarıcı ayak parmağı kemiğini yükse
 ## {"arms": [[kemik, model-uzayı yön], ...] (ebeveynden çocuğa sırayla), "fL"/"fR": [işaret, orta, yüzük, serçe, başparmak] kıvrım (rad),
 ##  "spine": derece, "neck": derece, "hips_yaw": derece}
 var cast_pose := {}
+var probe_bones: Array = []   # son pozu istenen kemikler
+var probe := {}               # kemik adı -> dünya konumu (bir önceki karenin son pozu)
 var key_anim := {}       # anahtar karelerle el yapımı animasyon (SamehadaAnim adımı): {len, keys:[{t, crouch, hips_yaw, spine, neck, blade, b:{kemik:yön}}]}
 var key_t := -1.0
 var key_spd := 1.0
@@ -114,9 +116,260 @@ func _ready() -> void:
 		"charge": {"_Charge": 1},
 		"plant": {"_Plant": 1},
 		"cast": {"_Cast": 1},
+		"fstance": {},
 		# silah duruşları (bekleme/koşu): ters tutuş kunai, iki elle kılıç, omuzda ağır silah, çift bıçak alçak, yelpaze yanda
 		"w_blade": {}, "w_raijin": {}, "w_gunbai": {}, "w_sword": {}, "w_shoulder": {}, "w_kubi": {}, "w_nanato": {}, "w_kokuto": {}, "w_shakujo": {}, "w_samehada": {}, "w_dual": {}, "w_fan": {}, "w_tirpan": {}, "w_shibuki": {}, "w_kabuto": {}, "w_ruzgar": {}, "w_kusa": {}, "w_kgama": {}, "w_yumi": {}, "w_arbalet": {},
 	}
+
+
+## Dövüş tarzı duruşları (silahsız, savaş hâlinde beklerken): her tarzın kendi hazır duruşu. +X karakterin solu, +Z önü.
+## drop: kalça alçalması (m), legs: StyleLegs tablosu, lean: bel öne (°), twist: göğüs dönüşü (° ; eksi = sol omuz önde),
+## neck: [öne, yana] (°), arms: [[kemik, yön]...], open: {"Left"/"Right": açık elin parmak yönü}, fist: {"Left"/"Right": 0..1}
+static var FSTANCE := {
+	# temel taijutsu (akademi): sol ayak önde, yumruklar çene hizasında
+	"temel": {"drop": 0.07, "legs": "FIGHT", "lean": 5.0, "twist": -18.0, "neck": [4.0, 14.0],
+		"arms": [["LeftUpperArm", Vector3(0.3, -0.55, 0.78)], ["LeftLowerArm", Vector3(-0.25, 0.75, 0.6)], ["RightUpperArm", Vector3(-0.35, -0.72, 0.58)], ["RightLowerArm", Vector3(0.22, 0.8, 0.55)]],
+		"fist": {"Left": 1.0, "Right": 1.0}},
+	# Jūken (Hyūga): alçak geniş duruş, sol avuç önde açık, sağ kol arkada yukarıda açık avuç
+	"juken": {"drop": 0.17, "legs": "LOW", "lean": 4.0, "twist": -34.0, "neck": [2.0, 30.0],
+		"arms": [["LeftUpperArm", Vector3(0.22, -0.5, 0.84)], ["LeftLowerArm", Vector3(0.02, 0.05, 1.0)], ["RightUpperArm", Vector3(-0.72, 0.05, -0.7)], ["RightLowerArm", Vector3(-0.25, 0.9, -0.35)]],
+		"open": {"Left": Vector3(0.0, 0.5, 0.86), "Right": Vector3(-0.15, 0.95, -0.25)}},
+	# Baika Kenpō (Akimichi): geniş sumo duruşu, dirsekler dışarıda, yumruklar kalçada
+	"akimichi": {"drop": 0.15, "legs": "LOW", "lean": 6.0, "twist": 0.0, "neck": [0.0, 0.0],
+		"arms": [["LeftUpperArm", Vector3(0.8, -0.58, 0.15)], ["LeftLowerArm", Vector3(-0.45, -0.45, 0.77)], ["RightUpperArm", Vector3(-0.8, -0.58, 0.15)], ["RightLowerArm", Vector3(0.45, -0.45, 0.77)]],
+		"fist": {"Left": 1.0, "Right": 1.0}},
+	# Shikyaku (Inuzuka): dört ayak — derin çömelik, eller önde yere yakın pençe, baş kalkık
+	"inuzuka": {"drop": 0.3, "legs": "LOW", "lean": 48.0, "twist": 0.0, "neck": [-38.0, 0.0],
+		"arms": [["LeftUpperArm", Vector3(0.28, -0.72, 0.63)], ["LeftLowerArm", Vector3(0.1, -0.88, 0.46)], ["RightUpperArm", Vector3(-0.28, -0.72, 0.63)], ["RightLowerArm", Vector3(-0.1, -0.88, 0.46)]],
+		"fist": {"Left": 0.45, "Right": 0.45}},
+	# Kaguya dansı: dik, sol kol önde uzanmış avuç aşağı, sağ el kalça yanında
+	"kaguya": {"en": 0.6, "drop": 0.05, "legs": "FIGHT", "lean": 0.0, "twist": -26.0, "neck": [0.0, 22.0],
+		"arms": [["LeftUpperArm", Vector3(0.18, -0.32, 0.93)], ["LeftLowerArm", Vector3(0.0, -0.12, 0.99)], ["RightUpperArm", Vector3(-0.38, -0.86, -0.33)], ["RightLowerArm", Vector3(-0.12, -0.62, 0.78)]],
+		"open": {"Left": Vector3(0.0, -0.2, 0.98), "Right": Vector3(-0.1, -0.55, 0.83)}},
+	# Uchiha: yan duruş, sol kol önde aşağıda gevşek, sağ el çene önünde (mühre hazır)
+	"uchiha": {"drop": 0.07, "legs": "FIGHT", "lean": 3.0, "twist": -30.0, "neck": [3.0, 26.0],
+		"arms": [["LeftUpperArm", Vector3(0.3, -0.84, 0.45)], ["LeftLowerArm", Vector3(0.0, -0.5, 0.87)], ["RightUpperArm", Vector3(-0.3, -0.78, 0.55)], ["RightLowerArm", Vector3(0.28, 0.78, 0.56)]],
+		"fist": {"Left": 0.7, "Right": 0.5}},
+	# Hōzuki: gevşek, sağ kol ileri uzanmış parmak nişan almış (Mizudeppō), sol el belde
+	"hozuki": {"drop": 0.03, "legs": "FIGHT", "lean": -2.0, "twist": 22.0, "neck": [0.0, -18.0],
+		"arms": [["RightUpperArm", Vector3(-0.14, -0.2, 0.97)], ["RightLowerArm", Vector3(0.0, -0.02, 1.0)], ["LeftUpperArm", Vector3(0.62, -0.74, -0.25)], ["LeftLowerArm", Vector3(-0.52, -0.6, 0.6)]],
+		"open": {"Right": Vector3(0.0, 0.0, 1.0)}, "fist": {"Left": 0.8}},
+	# Aburame: dimdik, kollar yanlarda hafif açık, avuçlar dışa (böcekler yenlerden çıkar), baş hafif eğik
+	"aburame": {"en": 0.25, "drop": 0.0, "legs": "", "lean": 0.0, "twist": 0.0, "neck": [9.0, 0.0],
+		"arms": [["LeftUpperArm", Vector3(0.5, -0.85, 0.12)], ["LeftLowerArm", Vector3(0.36, -0.86, 0.36)], ["RightUpperArm", Vector3(-0.5, -0.85, 0.12)], ["RightLowerArm", Vector3(-0.36, -0.86, 0.36)]],
+		"open": {"Left": Vector3(0.3, -0.85, 0.42), "Right": Vector3(-0.3, -0.85, 0.42)}},
+	# Jūgo: kambur, ağır kollar önde sarkık, yumruklar sıkılı
+	"jugo": {"drop": 0.12, "legs": "LOW", "lean": 24.0, "twist": 8.0, "neck": [-16.0, -6.0],
+		"arms": [["LeftUpperArm", Vector3(0.34, -0.84, 0.42)], ["LeftLowerArm", Vector3(0.08, -0.9, 0.42)], ["RightUpperArm", Vector3(-0.3, -0.7, 0.65)], ["RightLowerArm", Vector3(-0.05, -0.85, 0.52)]],
+		"fist": {"Left": 1.0, "Right": 1.0}},
+	# Yuki (Haku): yan duruş, sağ el yüz hizasında iki parmak (mühür), sol el önde aşağıda iğne tutar
+	"yuki": {"drop": 0.08, "legs": "FIGHT", "lean": 2.0, "twist": -38.0, "neck": [2.0, 32.0],
+		"arms": [["RightUpperArm", Vector3(-0.22, -0.62, 0.75)], ["RightLowerArm", Vector3(0.3, 0.9, 0.3)], ["LeftUpperArm", Vector3(0.36, -0.7, 0.62)], ["LeftLowerArm", Vector3(-0.2, -0.3, 0.93)]],
+		"fist": {"Left": 0.75, "Right": 0.4}},
+	# Sabaku (Gaara): kıpırdamaz — dimdik, kollar göğüste kavuşuk
+	"sabaku": {"en": 0.15, "drop": 0.0, "legs": "", "lean": -2.0, "twist": 0.0, "neck": [3.0, 0.0],
+		"arms": [["LeftUpperArm", Vector3(0.36, -0.82, 0.45)], ["LeftLowerArm", Vector3(-0.92, 0.12, 0.37)], ["RightUpperArm", Vector3(-0.36, -0.86, 0.36)], ["RightLowerArm", Vector3(0.93, 0.02, 0.36)]],
+		"fist": {"Left": 0.5, "Right": 0.5}},
+	# Uzumaki: geniş duruş, sol yumruk önde yukarıda, sağ yumruk bel hizasında gergin
+	"uzumaki": {"drop": 0.1, "legs": "FIGHT", "lean": 6.0, "twist": -22.0, "neck": [2.0, 18.0],
+		"arms": [["LeftUpperArm", Vector3(0.3, -0.5, 0.81)], ["LeftLowerArm", Vector3(-0.15, 0.6, 0.79)], ["RightUpperArm", Vector3(-0.5, -0.8, -0.1)], ["RightLowerArm", Vector3(0.05, -0.1, 0.99)]],
+		"fist": {"Left": 1.0, "Right": 1.0}},
+	# Yotsuki (Raikage): güreşçi — alçak geniş, dirsekler dışarıda, eller önde açık kavramaya hazır
+	"yotsuki": {"drop": 0.16, "legs": "LOW", "lean": 12.0, "twist": 0.0, "neck": [-8.0, 0.0],
+		"arms": [["LeftUpperArm", Vector3(0.76, -0.52, 0.38)], ["LeftLowerArm", Vector3(-0.2, 0.1, 0.97)], ["RightUpperArm", Vector3(-0.76, -0.52, 0.38)], ["RightLowerArm", Vector3(0.2, 0.1, 0.97)]],
+		"open": {"Left": Vector3(-0.2, 0.35, 0.91), "Right": Vector3(0.2, 0.35, 0.91)}},
+	# Orochimaru: alçak, öne sarkık gövde, sağ el yılan gibi ileri uzanmış
+	"yilan": {"en": 1, "drop": 0.14, "legs": "LOW", "lean": 22, "twist": 10, "neck": [-18, -8],
+		"arms": [["LeftUpperArm", Vector3(0.35, -0.8, 0.48)], ["LeftLowerArm", Vector3(0.15, -0.7, 0.7)], ["RightUpperArm", Vector3(-0.45, -0.6, 0.66)], ["RightLowerArm", Vector3(-0.1, -0.2, 0.97)]],
+		"open": {"Right": Vector3(0, -0.1, 1)}, "fist": {"Left": 0.4}},
+	# Jiraiya kabuki duruşu: geniş alçak, sol avuç ileri, sağ el arkada yukarıda
+	"gama": {"en": 1, "drop": 0.16, "legs": "LOW", "lean": 4, "twist": -20, "neck": [0, 18],
+		"arms": [["LeftUpperArm", Vector3(0.2, -0.2, 0.96)], ["LeftLowerArm", Vector3(0, 0.35, 0.94)], ["RightUpperArm", Vector3(-0.75, 0.45, -0.45)], ["RightLowerArm", Vector3(-0.3, 0.85, 0.4)]],
+		"open": {"Left": Vector3(0, 0.9, 0.4), "Right": Vector3(0.2, 0.8, 0.55)}},
+	# Chidori hazırlığı: alçak, sağ el aşağıda, sol el sağ bileği kavrar
+	"chidori": {"en": 1, "drop": 0.16, "legs": "LOW", "lean": 16, "twist": 18, "neck": [-10, -14],
+		"arms": [["LeftUpperArm", Vector3(0.15, -0.8, 0.58)], ["LeftLowerArm", Vector3(-0.55, -0.6, 0.58)], ["RightUpperArm", Vector3(-0.3, -0.85, 0.42)], ["RightLowerArm", Vector3(0.1, -0.75, 0.65)]], "fist": {"Left": 0.8, "Right": 0.5}},
+	# Minato: dik hazır, sağ elde ters tutuş kunai göğüs önünde, sol el açık aşağıda
+	"hiraishin": {"en": 1, "drop": 0.06, "legs": "FIGHT", "lean": 3, "twist": -15, "neck": [0, 12],
+		"arms": [["LeftUpperArm", Vector3(0.45, -0.82, 0.35)], ["LeftLowerArm", Vector3(0.25, -0.6, 0.76)], ["RightUpperArm", Vector3(-0.3, -0.6, 0.74)], ["RightLowerArm", Vector3(0.45, 0.5, 0.74)]],
+		"open": {"Left": Vector3(0.2, -0.4, 0.9)}, "fist": {"Right": 1}},
+	# Chakra neşteri: iki el bıçak gibi açık, sağ el yukarıda
+	"tip": {"en": 0.8, "drop": 0.05, "legs": "FIGHT", "lean": 2, "twist": -12, "neck": [0, 10],
+		"arms": [["LeftUpperArm", Vector3(0.3, -0.75, 0.59)], ["LeftLowerArm", Vector3(-0.1, 0.1, 0.99)], ["RightUpperArm", Vector3(-0.3, -0.55, 0.78)], ["RightLowerArm", Vector3(0.2, 0.6, 0.77)]],
+		"open": {"Left": Vector3(0, 0.2, 0.98), "Right": Vector3(0.1, 0.75, 0.65)}},
+	# Kakuzu: iri, kollar yanlarda açık, yumruklar sıkılı
+	"kakuzu": {"en": 0.6, "drop": 0.04, "legs": "FIGHT", "lean": 6, "twist": 0, "neck": [-4, 0],
+		"arms": [["LeftUpperArm", Vector3(0.5, -0.8, 0.33)], ["LeftLowerArm", Vector3(0.1, -0.75, 0.65)], ["RightUpperArm", Vector3(-0.55, -0.75, 0.36)], ["RightLowerArm", Vector3(-0.2, -0.55, 0.81)]], "fist": {"Left": 1, "Right": 1}},
+	# Hidan: kollar iki yana açık, baş geride
+	"jashin": {"en": 0.9, "drop": 0.03, "legs": "FIGHT", "lean": -8, "twist": 0, "neck": [-14, 0],
+		"arms": [["LeftUpperArm", Vector3(0.85, -0.45, 0.25)], ["LeftLowerArm", Vector3(0.6, -0.3, 0.74)], ["RightUpperArm", Vector3(-0.85, -0.45, 0.25)], ["RightLowerArm", Vector3(-0.6, -0.3, 0.74)]],
+		"open": {"Left": Vector3(0.6, -0.1, 0.8), "Right": Vector3(-0.6, -0.1, 0.8)}},
+	# Killer B: ritimli, sağ kol yukarıda, sol kol önde bükük
+	"hachibi": {"en": 1.5, "drop": 0.08, "legs": "FIGHT", "lean": 0, "twist": 20, "neck": [0, -12],
+		"arms": [["LeftUpperArm", Vector3(0.5, -0.6, 0.62)], ["LeftLowerArm", Vector3(-0.4, 0.3, 0.86)], ["RightUpperArm", Vector3(-0.6, 0.5, 0.62)], ["RightLowerArm", Vector3(-0.2, 0.9, 0.4)]], "fist": {"Left": 0.6, "Right": 0.6}},
+	# Tenten: iki el göğüs önünde parşömeni tutar
+	"silah": {"en": 0.9, "drop": 0.07, "legs": "FIGHT", "lean": 3, "twist": -10, "neck": [0, 8],
+		"arms": [["LeftUpperArm", Vector3(0.45, -0.7, 0.55)], ["LeftLowerArm", Vector3(-0.35, 0.2, 0.92)], ["RightUpperArm", Vector3(-0.45, -0.7, 0.55)], ["RightLowerArm", Vector3(0.35, 0.2, 0.92)]], "fist": {"Left": 0.7, "Right": 0.7}},
+	# Shukaku: kambur, sağ pençe kol önde aşağıda
+	"jin_shukaku": {"en": 0.9, "drop": 0.14, "legs": "LOW", "lean": 20, "twist": 8, "neck": [-14, -6],
+		"arms": [["LeftUpperArm", Vector3(0.4, -0.88, 0.25)], ["LeftLowerArm", Vector3(0.2, -0.8, 0.56)], ["RightUpperArm", Vector3(-0.4, -0.6, 0.7)], ["RightLowerArm", Vector3(-0.1, -0.55, 0.83)]], "fist": {"Left": 0.45, "Right": 0.45}},
+	# Matatabi: kedi gibi alçak, iki pençe farklı hizada önde
+	"jin_matatabi": {"en": 1.3, "drop": 0.2, "legs": "LOW", "lean": 28, "twist": 0, "neck": [-22, 0],
+		"arms": [["LeftUpperArm", Vector3(0.3, -0.45, 0.84)], ["LeftLowerArm", Vector3(0, 0.1, 0.99)], ["RightUpperArm", Vector3(-0.35, -0.7, 0.62)], ["RightLowerArm", Vector3(-0.05, -0.3, 0.95)]], "fist": {"Left": 0.45, "Right": 0.45}},
+	# Isobu: kabuk gardı, kollar önde sıkı çapraz
+	"jin_isobu": {"en": 0.5, "drop": 0.12, "legs": "LOW", "lean": 12, "twist": 0, "neck": [0, 0],
+		"arms": [["LeftUpperArm", Vector3(0.3, -0.75, 0.59)], ["LeftLowerArm", Vector3(-0.8, 0.3, 0.52)], ["RightUpperArm", Vector3(-0.3, -0.75, 0.59)], ["RightLowerArm", Vector3(0.8, 0.2, 0.56)]], "fist": {"Left": 1, "Right": 1}},
+	# Son Gokū: maymun dövüşü, yumruklar baş hizasında, geniş duruş
+	"jin_son_goku": {"en": 1.4, "drop": 0.15, "legs": "LOW", "lean": 8, "twist": -10, "neck": [0, 8],
+		"arms": [["LeftUpperArm", Vector3(0.75, -0.1, 0.65)], ["LeftLowerArm", Vector3(-0.2, 0.9, 0.38)], ["RightUpperArm", Vector3(-0.7, -0.45, 0.55)], ["RightLowerArm", Vector3(0.3, 0.6, 0.74)]], "fist": {"Left": 1, "Right": 1}},
+	# Kokuō: tekmeci, ağırlık arka bacakta, kollar alçak gard
+	"jin_kokuo": {"en": 1.2, "drop": 0.08, "legs": "SHIFT", "lean": -4, "twist": -25, "neck": [0, 20],
+		"arms": [["LeftUpperArm", Vector3(0.35, -0.75, 0.56)], ["LeftLowerArm", Vector3(-0.2, 0.3, 0.93)], ["RightUpperArm", Vector3(-0.4, -0.88, -0.2)], ["RightLowerArm", Vector3(-0.1, -0.5, 0.86)]], "fist": {"Left": 1, "Right": 1}},
+	# Utakata: rahat, sağ el ağız hizasında (köpük çubuğu), sol kol sarkık
+	"jin_saiken": {"en": 0.4, "drop": 0.02, "legs": "", "lean": 0, "twist": 0, "neck": [0, 0],
+		"arms": [["LeftUpperArm", Vector3(0.3, -0.94, 0.1)], ["LeftLowerArm", Vector3(0.15, -0.95, 0.25)], ["RightUpperArm", Vector3(-0.25, -0.7, 0.67)], ["RightLowerArm", Vector3(0.3, 0.9, 0.3)]], "fist": {"Right": 0.6}},
+	# Chōmei: ayak ucunda, kollar kanat gibi arkada açık
+	"jin_chomei": {"en": 1.4, "drop": 0.05, "legs": "FIGHT", "lean": 10, "twist": 0, "neck": [-8, 0],
+		"arms": [["LeftUpperArm", Vector3(0.8, -0.35, -0.45)], ["LeftLowerArm", Vector3(0.7, -0.5, -0.5)], ["RightUpperArm", Vector3(-0.8, -0.35, -0.45)], ["RightLowerArm", Vector3(-0.7, -0.5, -0.5)]],
+		"open": {"Left": Vector3(0.7, -0.5, -0.5), "Right": Vector3(-0.7, -0.5, -0.5)}},
+	# Gyūki: geniş güreşçi, kollar önde yukarıda kavramaya hazır
+	"jin_gyuki": {"en": 1, "drop": 0.14, "legs": "LOW", "lean": 10, "twist": 0, "neck": [-6, 0],
+		"arms": [["LeftUpperArm", Vector3(0.6, -0.2, 0.77)], ["LeftLowerArm", Vector3(-0.3, 0.5, 0.81)], ["RightUpperArm", Vector3(-0.6, -0.2, 0.77)], ["RightLowerArm", Vector3(0.3, 0.5, 0.81)]], "fist": {"Left": 0.5, "Right": 0.5}},
+	# Kurama: dört ayağa yakın tilki çömelişi, sol pençe önde
+	"jin_kurama": {"en": 1.2, "drop": 0.26, "legs": "LOW", "lean": 40, "twist": 0, "neck": [-32, 0],
+		"arms": [["LeftUpperArm", Vector3(0.3, -0.6, 0.74)], ["LeftLowerArm", Vector3(0.1, -0.75, 0.65)], ["RightUpperArm", Vector3(-0.4, -0.82, 0.4)], ["RightLowerArm", Vector3(-0.15, -0.93, 0.33)]], "fist": {"Left": 0.45, "Right": 0.45}},
+	# Pain: dimdik, sağ avuç ileri uzanmış (Shinra Tensei)
+	"rinnegan": {"en": 0.2, "drop": 0, "legs": "", "lean": 0, "twist": 0, "neck": [2, 0],
+		"arms": [["LeftUpperArm", Vector3(0.3, -0.94, 0.1)], ["LeftLowerArm", Vector3(0.12, -0.97, 0.2)], ["RightUpperArm", Vector3(-0.15, -0.1, 0.98)], ["RightLowerArm", Vector3(0, 0.05, 1)]],
+		"open": {"Right": Vector3(0, 0.85, 0.5)}},
+	# Konan: dik ve zarif, kollar yanlarda açık, avuçlar öne
+	"kagit": {"en": 0.3, "drop": 0, "legs": "", "lean": 0, "twist": 0, "neck": [0, 0],
+		"arms": [["LeftUpperArm", Vector3(0.6, -0.75, 0.25)], ["LeftLowerArm", Vector3(0.5, -0.6, 0.6)], ["RightUpperArm", Vector3(-0.6, -0.75, 0.25)], ["RightLowerArm", Vector3(-0.5, -0.6, 0.6)]],
+		"open": {"Left": Vector3(0.4, -0.3, 0.85), "Right": Vector3(-0.4, -0.3, 0.85)}},
+	# Sai: sol elde açık tomar önde, sağ elde fırça omuz hizasında
+	"sumi": {"en": 0.7, "drop": 0.05, "legs": "FIGHT", "lean": 2, "twist": -15, "neck": [4, 12],
+		"arms": [["LeftUpperArm", Vector3(0.3, -0.65, 0.7)], ["LeftLowerArm", Vector3(-0.1, -0.05, 0.99)], ["RightUpperArm", Vector3(-0.4, -0.7, 0.59)], ["RightLowerArm", Vector3(0.1, 0.75, 0.65)]], "fist": {"Left": 0.7, "Right": 0.8}},
+	# Kuklacı: iki el önde yukarıda, parmaklar ipler için açık
+	"akasuna": {"en": 0.9, "drop": 0.08, "legs": "FIGHT", "lean": 4, "twist": 0, "neck": [0, 0],
+		"arms": [["LeftUpperArm", Vector3(0.4, -0.45, 0.8)], ["LeftLowerArm", Vector3(-0.1, 0.7, 0.7)], ["RightUpperArm", Vector3(-0.45, -0.6, 0.66)], ["RightLowerArm", Vector3(0.15, 0.4, 0.9)]],
+		"open": {"Left": Vector3(0, 0.6, 0.8), "Right": Vector3(0, 0.3, 0.95)}},
+	# Deidara: rahat, sağ avuç ileri açık, sol el belde kil çantasında
+	"kil": {"en": 0.7, "drop": 0.03, "legs": "FIGHT", "lean": 0, "twist": 15, "neck": [0, -10],
+		"arms": [["LeftUpperArm", Vector3(0.5, -0.8, -0.3)], ["LeftLowerArm", Vector3(-0.3, -0.75, 0.58)], ["RightUpperArm", Vector3(-0.3, -0.55, 0.78)], ["RightLowerArm", Vector3(-0.05, 0, 1)]],
+		"open": {"Right": Vector3(0, 0.3, 0.95)}, "fist": {"Left": 0.6}},
+	# Rock Lee: sağ kol ileri uzanmış açık el, sol kol belin arkasında
+	"kapi": {"en": 1.2, "drop": 0.1, "legs": "FIGHT", "lean": 0, "twist": 25, "neck": [0, -18],
+		"arms": [["LeftUpperArm", Vector3(0.3, -0.8, -0.52)], ["LeftLowerArm", Vector3(-0.75, -0.3, -0.58)], ["RightUpperArm", Vector3(-0.2, -0.3, 0.93)], ["RightLowerArm", Vector3(0, 0.35, 0.94)]],
+		"open": {"Right": Vector3(0, 0.8, 0.6)}, "fist": {"Left": 1}},
+	# Shikamaru: çömelik, eller göğüs önünde gölge mührü
+	"nara": {"en": 0.5, "drop": 0.2, "legs": "LOW", "lean": 10, "twist": 0, "neck": [4, 0],
+		"arms": [["LeftUpperArm", Vector3(0.45, -0.75, 0.48)], ["LeftLowerArm", Vector3(-0.85, 0.35, 0.4)], ["RightUpperArm", Vector3(-0.45, -0.75, 0.48)], ["RightLowerArm", Vector3(0.85, 0.35, 0.4)]], "fist": {"Left": 0.3, "Right": 0.3}},
+	# Kakashi: yan duruş, sol el açık önde, sağ yumruk çenede
+	"hatake": {"en": 0.9, "drop": 0.08, "legs": "FIGHT", "lean": 3, "twist": -28, "neck": [0, 24],
+		"arms": [["LeftUpperArm", Vector3(0.3, -0.6, 0.74)], ["LeftLowerArm", Vector3(-0.1, 0.2, 0.97)], ["RightUpperArm", Vector3(-0.3, -0.85, 0.42)], ["RightLowerArm", Vector3(0.3, 0.6, 0.74)]],
+		"open": {"Left": Vector3(0, 0.5, 0.86)}, "fist": {"Right": 1}},
+	# Asuma: boksör gardı, iki yumruk yüksek ve sıkı
+	"sarutobi": {"en": 1.3, "drop": 0.1, "legs": "FIGHT", "lean": 8, "twist": -15, "neck": [4, 12],
+		"arms": [["LeftUpperArm", Vector3(0.3, -0.65, 0.7)], ["LeftLowerArm", Vector3(-0.3, 0.85, 0.43)], ["RightUpperArm", Vector3(-0.35, -0.75, 0.56)], ["RightLowerArm", Vector3(0.3, 0.9, 0.3)]], "fist": {"Left": 1, "Right": 1}},
+	# Senju: sol avuç ileri, sağ yumruk kalçada gerili
+	"senju": {"en": 0.9, "drop": 0.1, "legs": "FIGHT", "lean": 2, "twist": 25, "neck": [0, -18],
+		"arms": [["LeftUpperArm", Vector3(0.2, -0.4, 0.9)], ["LeftLowerArm", Vector3(0, 0.3, 0.95)], ["RightUpperArm", Vector3(-0.45, -0.75, -0.48)], ["RightLowerArm", Vector3(0.05, -0.05, 1)]],
+		"open": {"Left": Vector3(0, 0.9, 0.44)}, "fist": {"Right": 1}},
+	# Raiga: sağ el göğe kalkık (yıldırım çağırır), sol yumruk aşağıda
+	"kurosuki": {"en": 0.9, "drop": 0.06, "legs": "FIGHT", "lean": 0, "twist": 0, "neck": [-6, 0],
+		"arms": [["LeftUpperArm", Vector3(0.45, -0.8, 0.4)], ["LeftLowerArm", Vector3(0.1, -0.4, 0.9)], ["RightUpperArm", Vector3(-0.35, 0.85, 0.4)], ["RightLowerArm", Vector3(-0.1, 0.99, 0.1)]],
+		"open": {"Right": Vector3(0, 1, 0)}, "fist": {"Left": 0.8}},
+	# Iburi: gevşek, kollar sarkık, duman gibi salınır
+	"iburi": {"en": 1.4, "drop": 0, "legs": "", "lean": 10, "twist": 0, "neck": [6, 0],
+		"arms": [["LeftUpperArm", Vector3(0.3, -0.92, 0.25)], ["LeftLowerArm", Vector3(0.2, -0.9, 0.38)], ["RightUpperArm", Vector3(-0.3, -0.92, 0.25)], ["RightLowerArm", Vector3(-0.2, -0.9, 0.38)]]},
+	# Kamizuru: sol kol ileri uzanmış (yenden arılar), sağ el belde
+	"kamizuru": {"en": 0.6, "drop": 0.03, "legs": "FIGHT", "lean": 0, "twist": -20, "neck": [0, 16],
+		"arms": [["LeftUpperArm", Vector3(0.14, -0.25, 0.96)], ["LeftLowerArm", Vector3(0, -0.1, 0.99)], ["RightUpperArm", Vector3(-0.6, -0.75, -0.25)], ["RightLowerArm", Vector3(0.5, -0.6, 0.6)]],
+		"open": {"Left": Vector3(0, -0.3, 0.95)}, "fist": {"Right": 0.8}},
+	# Darui: sakin, sağ avuç göğüs hizasında ileri
+	"ranton": {"en": 0.5, "drop": 0.04, "legs": "FIGHT", "lean": 0, "twist": 10, "neck": [0, -8],
+		"arms": [["LeftUpperArm", Vector3(0.35, -0.92, 0.15)], ["LeftLowerArm", Vector3(0.2, -0.9, 0.38)], ["RightUpperArm", Vector3(-0.25, -0.5, 0.83)], ["RightLowerArm", Vector3(0.05, 0.25, 0.97)]],
+		"open": {"Right": Vector3(0, 0.85, 0.5)}},
+	# Yōton: öne yüklenmiş, yumruklar alçak ve önde
+	"yoton": {"en": 1, "drop": 0.12, "legs": "LOW", "lean": 10, "twist": -10, "neck": [-4, 8],
+		"arms": [["LeftUpperArm", Vector3(0.4, -0.7, 0.59)], ["LeftLowerArm", Vector3(-0.1, 0.3, 0.95)], ["RightUpperArm", Vector3(-0.45, -0.8, 0.4)], ["RightLowerArm", Vector3(0.1, -0.1, 0.99)]], "fist": {"Left": 1, "Right": 1}},
+	# Gari: boksör, sol yumruk önde, sağ yumruk yanakta
+	"bakuton": {"en": 1.4, "drop": 0.1, "legs": "FIGHT", "lean": 6, "twist": -30, "neck": [4, 26],
+		"arms": [["LeftUpperArm", Vector3(0.25, -0.5, 0.83)], ["LeftLowerArm", Vector3(-0.1, 0.5, 0.86)], ["RightUpperArm", Vector3(-0.3, -0.8, 0.52)], ["RightLowerArm", Vector3(0.25, 0.92, 0.3)]], "fist": {"Left": 1, "Right": 1}},
+	# Pakura: kollar yanlarda, avuçlar yukarı (küreler döner)
+	"shakuton": {"en": 0.5, "drop": 0.02, "legs": "", "lean": 0, "twist": 0, "neck": [0, 0],
+		"arms": [["LeftUpperArm", Vector3(0.6, -0.7, 0.4)], ["LeftLowerArm", Vector3(0.3, 0.2, 0.93)], ["RightUpperArm", Vector3(-0.6, -0.7, 0.4)], ["RightLowerArm", Vector3(-0.3, 0.2, 0.93)]],
+		"open": {"Left": Vector3(0.3, 0.4, 0.87), "Right": Vector3(-0.3, 0.4, 0.87)}},
+	# Guren: sağ ön kol kılıç gibi göğüs önünde yatay, sol kol geride
+	"shoton": {"en": 0.9, "drop": 0.08, "legs": "FIGHT", "lean": 3, "twist": 20, "neck": [0, -14],
+		"arms": [["LeftUpperArm", Vector3(0.5, -0.8, -0.33)], ["LeftLowerArm", Vector3(0.2, -0.6, 0.77)], ["RightUpperArm", Vector3(-0.35, -0.5, 0.79)], ["RightLowerArm", Vector3(0.7, 0.1, 0.7)]],
+		"open": {"Right": Vector3(0.8, 0.1, 0.6)}, "fist": {"Left": 0.8}},
+	# Ōnoki: iki avuç göğüs önünde karşılıklı (arada küp)
+	"jinton": {"en": 0.3, "drop": 0.02, "legs": "", "lean": 0, "twist": 0, "neck": [4, 0],
+		"arms": [["LeftUpperArm", Vector3(0.4, -0.6, 0.69)], ["LeftLowerArm", Vector3(-0.3, 0.35, 0.89)], ["RightUpperArm", Vector3(-0.4, -0.6, 0.69)], ["RightLowerArm", Vector3(0.3, 0.35, 0.89)]],
+		"open": {"Left": Vector3(-0.5, 0.5, 0.7), "Right": Vector3(0.5, 0.5, 0.7)}},
+	# Yamato: sağ avuç ileri, sol el sağ bileği destekler
+	"mokuton": {"en": 0.7, "drop": 0.08, "legs": "FIGHT", "lean": 4, "twist": 10, "neck": [0, -8],
+		"arms": [["LeftUpperArm", Vector3(0.3, -0.65, 0.7)], ["LeftLowerArm", Vector3(-0.6, 0, 0.8)], ["RightUpperArm", Vector3(-0.2, -0.4, 0.9)], ["RightLowerArm", Vector3(0, 0.1, 0.99)]],
+		"open": {"Right": Vector3(0, 0.6, 0.8)}, "fist": {"Left": 0.5}},
+	# Kōton: ağır boksör, çelik yumruklar önde
+	"koton": {"en": 0.8, "drop": 0.1, "legs": "FIGHT", "lean": 10, "twist": -12, "neck": [0, 10],
+		"arms": [["LeftUpperArm", Vector3(0.4, -0.6, 0.69)], ["LeftLowerArm", Vector3(-0.2, 0.6, 0.77)], ["RightUpperArm", Vector3(-0.45, -0.8, 0.4)], ["RightLowerArm", Vector3(0.2, 0.3, 0.93)]], "fist": {"Left": 1, "Right": 1}},
+	# Taiton: alçak, sol avuç önde, sağ avuç yanda geride (rüzgârı toplar)
+	"taiton": {"en": 1.1, "drop": 0.12, "legs": "LOW", "lean": 4, "twist": -20, "neck": [0, 16],
+		"arms": [["LeftUpperArm", Vector3(0.55, -0.6, 0.58)], ["LeftLowerArm", Vector3(0.2, 0.1, 0.97)], ["RightUpperArm", Vector3(-0.7, -0.6, -0.39)], ["RightLowerArm", Vector3(-0.6, -0.2, 0.77)]],
+		"open": {"Left": Vector3(0.2, 0.5, 0.84), "Right": Vector3(-0.5, 0, 0.87)}},
+	# Hiruko: sol avuç ileri itilmiş (işaret), sağ yumruk geride
+	"meiton": {"en": 0.8, "drop": 0.08, "legs": "FIGHT", "lean": 2, "twist": -30, "neck": [0, 24],
+		"arms": [["LeftUpperArm", Vector3(0.15, -0.2, 0.97)], ["LeftLowerArm", Vector3(0, 0.2, 0.98)], ["RightUpperArm", Vector3(-0.5, -0.82, -0.28)], ["RightLowerArm", Vector3(-0.1, -0.5, 0.86)]],
+		"open": {"Left": Vector3(0, 0.9, 0.44)}, "fist": {"Right": 0.8}},
+	# Hız: depara hazır, gövde öne yatık, kollar arkada
+	"jinsoku": {"en": 1.5, "drop": 0.16, "legs": "FIGHT", "lean": 26, "twist": 0, "neck": [-20, 0],
+		"arms": [["LeftUpperArm", Vector3(0.3, -0.6, -0.74)], ["LeftLowerArm", Vector3(0.2, -0.3, -0.93)], ["RightUpperArm", Vector3(-0.3, -0.6, -0.74)], ["RightLowerArm", Vector3(-0.2, -0.3, -0.93)]], "fist": {"Left": 0.5, "Right": 0.5}},
+	# Deiton: alçak, iki avuç öne ve yere dönük
+	"deiton": {"en": 0.9, "drop": 0.15, "legs": "LOW", "lean": 14, "twist": 0, "neck": [-8, 0],
+		"arms": [["LeftUpperArm", Vector3(0.35, -0.7, 0.62)], ["LeftLowerArm", Vector3(0.05, -0.6, 0.8)], ["RightUpperArm", Vector3(-0.35, -0.7, 0.62)], ["RightLowerArm", Vector3(-0.05, -0.6, 0.8)]],
+		"open": {"Left": Vector3(0, -0.7, 0.7), "Right": Vector3(0, -0.7, 0.7)}},
+}
+var fstance_id := ""
+var _fs_fist := {}
+
+
+func _fstance_pose(sk: Skeleton3D, st: Dictionary, w: float) -> void:
+	# canlı bekleyiş: dizler yaylanır (ayak ucunda sekme), ağırlık bir ayaktan öbürüne kayar, gövde hafif salınır, gard
+	# kolları sırayla oynar. en: tarzın enerjisi (kıpırdamayan kum / böcek ustaları düşük)
+	var en: float = st.get("en", 1.0)
+	var br = sin(_t * 1.9) * 0.03   # nefes
+	var bob = absf(sin(_t * 3.4)) * 0.022 * en          # sekme
+	var sway = sin(_t * 1.7) * en                       # ağırlık aktarma (-1 .. 1)
+	if grounded:
+		var hb = _fb(sk, "Hips")
+		var dr: float = st.get("drop", 0.0)
+		if hb >= 0:
+			sk.set_bone_pose_position(hb, sk.get_bone_pose_position(hb) + Vector3(sway * 0.025, -(dr + br * 0.25 + bob) * w, absf(sway) * 0.012) * Vector3(w, 1.0, w))
+		var lt: Dictionary = {}
+		match String(st.get("legs", "")):
+			"FIGHT": lt = GUARD_LEGS.FIGHT
+			"LOW": lt = GUARD_LEGS.LOW
+			"SHIFT": lt = GUARD_LEGS.SHIFT
+		for b in lt:
+			_rot_model(sk, b, lt[b], w)
+	var nk: Array = st.get("neck", [0.0, 0.0])
+	_add_local(sk, "Spine", Vector3(deg_to_rad(float(st.get("lean", 0.0)) + 2.5 * en) + br * 0.3 + bob * 1.2, 0, deg_to_rad(sway * 2.0)), w)
+	_add_local(sk, "Chest", Vector3(-br * 0.5, deg_to_rad(float(st.get("twist", 0.0)) + sway * 4.0), 0), w)
+	_add_local(sk, "Neck", Vector3(deg_to_rad(float(nk[0])), deg_to_rad(float(nk[1]) - sway * 3.0), 0), w)
+	for e in st.get("arms", []):
+		# gard oynaması: sol ve sağ kol ters fazda, dirsekten aşağısı biraz daha çok
+		var sd = 1.0 if String(e[0]).begins_with("Left") else -1.0
+		var amp = (0.05 if String(e[0]).ends_with("LowerArm") else 0.025) * en
+		_rot_model(sk, e[0], Basis(Vector3.RIGHT, br + sin(_t * 3.4 + sd * 0.9) * amp) * (e[1] as Vector3), w)
+	var op: Dictionary = st.get("open", {})
+	for side in op:
+		_flat_hand(sk, side, op[side], w)
+	_fs_fist.clear()
+	var fd: Dictionary = st.get("fist", {})
+	for side in fd:
+		_fs_fist[side] = float(fd[side]) * w
 
 
 func set_pose(name: String, w: float) -> void:
@@ -187,6 +440,12 @@ func _process_modification() -> void:
 					d = Basis(Vector3.RIGHT, br) * d
 				_rot_model(sk, e[0], d, ws)
 			_add_local(sk, "Chest", Vector3(-br * 0.6, 0, 0), ws)
+	# dövüş tarzı duruşu (silahsız, savaş hâlinde beklerken): mühür / blok / tekme bunu ezer
+	var w_fs: float = weights.get("fstance", 0.0)
+	if w_fs > 0.0 and FSTANCE.has(fstance_id):
+		_fstance_pose(sk, FSTANCE[fstance_id], w_fs)
+	elif not _fs_fist.is_empty():
+		_fs_fist.clear()
 	if w_seal > 0.0:
 		# eller göğüs önünde birleşir
 		_rot_model(sk, "LeftUpperArm", Vector3(0.45, -0.75, 0.48), w_seal)
@@ -275,8 +534,13 @@ func _process_modification() -> void:
 		var cb = _fb(sk, "UpperChest")
 		if cb >= 0:
 			sk.set_bone_pose_scale(cb, Vector3(chest_scale * b_chest, 1.0, chest_scale * b_chest))
-	for fs in fist.keys():
-		var fv = clampf(float(fist[fs]), -1.0, 1.0)
+	var fall: Dictionary = fist
+	if not _fs_fist.is_empty():
+		fall = fist.duplicate()
+		for fk in _fs_fist:
+			fall[fk] = maxf(float(fall.get(fk, 0.0)), float(_fs_fist[fk]))
+	for fs in fall.keys():
+		var fv = clampf(float(fall[fs]), -1.0, 1.0)
 		var sgn = 1.0 if String(fs) == "Left" else -1.0
 		if absf(fv) > 0.001:
 			# hedefler önbellekten (yumruk: dinlenme x kıvrım; açık avuç: dinlenme): her karede 15 kemik adı / dönüş kurulmuyordu, sonuç aynı
@@ -324,6 +588,12 @@ func _process_modification() -> void:
 			sk.set_bone_pose_scale(gi, s0 * gv)
 	_root_motion(sk, dt)
 	_foot_ik(sk)
+	# son poz yoklaması: katman uygulandıktan SONRAKİ kemik konumları (dışarıdan okunan kemik katmansız pozu verir;
+	# ele eşya yerleştirenler buradan okur: EatAnim çubukları)
+	for pb in probe_bones:
+		var pi = _fb(sk, String(pb))
+		if pi >= 0:
+			probe[pb] = sk.global_transform * sk.get_bone_global_pose(pi).origin
 
 
 ## Üst kol / üst bacak taban ölçeği: yaş oranı x vücut tipi (kol boyu, genişleyen göğüsle uzamasın diye geri alınır)

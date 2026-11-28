@@ -474,6 +474,7 @@ func kage_killed(vid: String, by_player: bool) -> void:
 	if by_player:
 		Orgs.add_infamy(800)
 		change_relation(vid, -60)
+		LazyFx.g("VillageFall").on_kage_killed(vid, true)
 	succeed(vid, "savaşta öldürüldü")
 
 

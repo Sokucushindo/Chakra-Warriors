@@ -67,6 +67,7 @@ func ride_end(respawn := true) -> void:
 	if ride_id == "" or _ride_ending:
 		return
 	_ride_ending = true
+	_ride_cast_release()
 	_ride_seat = Vector3.INF
 	if is_instance_valid(p) and p.model:
 		p.model.position = Vector3.ZERO
@@ -91,6 +92,45 @@ func ride_end(respawn := true) -> void:
 ## Bindiğin canavarın kafasında ayakta durursun (kanon: çağıran, çağrısının başında durur): karakterin görünür, ayakları
 ## kafanın tepesine basar, kafa döndükçe onunla gider. Tekerlekle yakınlaşınca kamera karakterinin arkasına iner.
 var _ride_seat := Vector3.INF
+## Binici, canavar o karede hareket ettikten SONRA kafaya konur: eskiden canavarın dönüşünden ve kafa hareketinden önce
+## konuyordu, karakter her kare kafanın bir önceki yerinde kalıp titriyor, dönüşlerde bir kare metrelerce uzağa düşüp
+## görünüp kayboluyordu (ölçüm: tests/dbg_ride_flick.gd).
+## FİZİK adımında yapılır: oyuncu ve çocukları fizik adımları arasında yumuşatılarak çizilir; çizim karesinde konunca fizik
+## adımı görüntüyü her seferinde gövde merkezine (canavarın içine) geri alıyor, çizim ikisi arasında gidip geliyordu.
+class RideLate extends Node:
+	var bc
+	func _physics_process(_dt: float) -> void:
+		if is_instance_valid(bc) and bc.ride_id != "" and bc.level == 6:
+			bc._ride_stand()
+
+
+var _ride_late: Node = null
+func _ride_late_ensure() -> void:
+	if _ride_late == null or not is_instance_valid(_ride_late):
+		_ride_late = RideLate.new()
+		_ride_late.bc = self
+		_ride_late.process_physics_priority = 5000
+		add_child(_ride_late)
+
+
+## Binerken kendi tekniğin (2026-11-28, kullanıcı: "tepesine binerken skill basarsak atabilelim, olduğu yerde dursun, yukarıdan
+## aşağı sallasın"): gövden aslında canavarın merkezinde durur (yalnız görüntün kafadadır), teknikler karından çıkıyordu.
+## Mühür başlayınca gövden gerçekten kafanın tepesine çıkar, canavar olduğu yerde kalır; teknik bitince geri iner.
+var _cast_hold := 0.0
+var _cast_anchor := Vector3.INF
+func _ride_cast_release() -> void:
+	if _cast_anchor != Vector3.INF:
+		if is_instance_valid(p):
+			p.global_position = _cast_anchor
+			p.velocity = Vector3.ZERO
+		if is_instance_valid(rig):
+			rig.position = Vector3.ZERO
+		if is_instance_valid(p):
+			p.reset_physics_interpolation()
+		_cast_anchor = Vector3.INF
+	_cast_hold = 0.0
+
+
 func _ride_stand() -> void:
 	if not is_instance_valid(rig) or rig.head == null or p.model == null:
 		return
@@ -99,11 +139,37 @@ func _ride_stand() -> void:
 		if _ride_seat == Vector3.INF:
 			_ride_seat = Vector3.ZERO
 		p.cam_range.x = 3.5
-	var top: Vector3 = rig.head.global_transform * _ride_seat
-	p.model.visible = true
-	p.model.global_position = top
-	p.model.play("idle", 0.2)
+	rig.rotation.y = p.facing   # dönüş de aynı fizik adımında: yoksa dönerken binici kafanın bir önceki açısında kalır (kafa merkezden 35 m uzakta)
+	var casting: bool = p.combat != null and String(p.combat.action) == "cast"
+	if casting:
+		_cast_hold = 1.3   # salınımdan sonra akış / alev sürerken de kafada kal
+	else:
+		_cast_hold = maxf(0.0, _cast_hold - get_physics_process_delta_time())
 	var h := float(rig.get_meta("cam_h", 30.0))
+	p.model.visible = true
+	if _cast_hold > 0.0:
+		var first := _cast_anchor == Vector3.INF
+		if first:
+			_cast_anchor = p.global_position
+		rig.global_position = _cast_anchor
+		var top2: Vector3 = rig.head.global_transform * _ride_seat
+		p.global_position = top2
+		rig.global_position = _cast_anchor   # gövde yukarı çıkınca canavar onunla kalkmasın
+		p.velocity = Vector3.ZERO
+		p.model.global_position = top2
+		var d2: Vector3 = top2 - _cast_anchor
+		p.ride_cam_lift(h * 0.8 - d2.y, 0.0, Vector3.ZERO)
+		var kk := clampf((p.cam_dist - 7.0) / maxf(1.0, p.cam_range.y * 0.3 - 7.0), 0.0, 1.0)
+		p.cam_shift = -Vector3(d2.x, 0, d2.z) * kk   # uzak kamerada hedef canavarın merkezinde kalsın (kamera sıçramasın)
+		if first:
+			p.reset_physics_interpolation()   # kafaya çıkış bir adımda: aradaki 35 m süpürülerek çizilmesin
+		return
+	if _cast_anchor != Vector3.INF:
+		_ride_cast_release()
+	var top: Vector3 = rig.head.global_transform * _ride_seat
+	p.model.global_position = top
+	if p.combat == null or not p.combat.busy():
+		p.model.play("idle", 0.2)
 	p.ride_cam_lift(h * 0.8, top.y - p.global_position.y, Vector3(top.x - p.global_position.x, 0, top.z - p.global_position.z))
 
 
@@ -550,6 +616,14 @@ func _tech(i: int) -> void:
 	var an: Array = LazyFx.g("BijuuArts").anim(key)   # [hareket, süre, etkinin çıktığı an]
 	var s = _scale()
 	var from = rig.mouth_pos() if giant else p.global_position + Vector3.UP * 1.4 + p.face_dir() * 1.0
+	# nişan ışını kameradan çıkar; çıkış noktası (ağız / el) kameranın çok önünde olduğundan ışın araya giren bir şeye (kendi
+	# gövden, yakındaki dal, ayak dibindeki zemin) çarparsa nişan noktası çıkışın gerisinde ya da dibinde kalıyor, top oraya
+	# dönüp rastgele havaya / yana gidiyordu. Nokta çıkışın en az 8 m önünde değilse top bakış yönünde uzağa atılır.
+	if not (lt and is_instance_valid(lt) and not lt.is_dead()):
+		var ar = p.aim_ray()
+		var vd: Vector3 = ar[1]
+		if (aim - from).dot(vd) < 8.0 * maxf(1.0, s * 0.5):
+			aim = from + vd * 220.0
 	if giant:
 		rig.rotation.y = p.facing
 		rig.play_action(String(an[0]), float(an[1]))
@@ -624,7 +698,7 @@ func _process(dt: float) -> void:
 		if ride_life <= 0.0:
 			ride_end(false)
 			return
-		_ride_stand()
+		_ride_late_ensure()
 	# chakra / beden
 	var free_modes = Cheats.on("nomodecost")   # hile: mod bedelleri yok
 	if level == 6 and not free_modes:
@@ -663,7 +737,7 @@ func _process(dt: float) -> void:
 		var was_air = rig.airborne
 		# engebeli zeminde is_on_floor anlık kopar: ancak 0.3 sn kesintisiz havadaysa havada say (yoksa yürürken uçar gibi görünür)
 		# arazi çarpışma gövdesi değil yükseklik fonksiyonu: is_on_floor çimende HEP false → oyuncunun kendi grounded bayrağı
-		if p.grounded or p.is_on_floor() or p.swimming:
+		if p.grounded or p.is_on_floor() or p.swimming or _cast_anchor != Vector3.INF:   # teknik için kafaya çıkan gövde "havada" sayılmasın (canavar sıçrama pozuna giriyordu)
 			set_meta("air_t", 0.0)
 		else:
 			set_meta("air_t", float(get_meta("air_t", 0.0)) + get_process_delta_time())

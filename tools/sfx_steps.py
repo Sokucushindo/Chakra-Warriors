@@ -153,6 +153,28 @@ def wood(rng):
     return finish(mix(res, body, creak), 0.5)
 
 
+def tile(rng):
+    """kiremit çatı: kısa, kuru seramik tıkırtısı. Boş gövde tınısı YOK (tahta sesi çatıda bidona basıyor gibiydi):
+    çok kısa sönen yüksek tınılar (her varyantta ayrı perde) + kiremidin oynama tıkırtısı + ince kum sürtünmesi"""
+    d = rng.uniform(0.13, 0.17)
+    n = int(SR * d)
+    body = mul(lowpass(noise(n, rng), rng.uniform(520, 700)), env(n, 0.004, rng.uniform(0.012, 0.016)), 4.0)
+    f1 = rng.uniform(1150, 2100)
+    f2 = f1 * rng.uniform(1.45, 1.9)
+    e1 = env(n, 0.003, rng.uniform(0.009, 0.014))
+    e2 = env(n, 0.003, rng.uniform(0.006, 0.009))
+    clk = [math.sin(2 * math.pi * f1 * i / SR) * e1[i] * 0.3 + math.sin(2 * math.pi * f2 * i / SR) * e2[i] * 0.16 for i in range(n)]
+    # ikinci, daha zayıf tık: basılan kiremidin komşusuna değmesi (20-45 ms sonra)
+    off = int(SR * rng.uniform(0.02, 0.045))
+    f3 = rng.uniform(1700, 2900)
+    e3 = env(n, 0.002, rng.uniform(0.005, 0.008))
+    rat = [0.0] * n
+    for i in range(n - off):
+        rat[i + off] = math.sin(2 * math.pi * f3 * i / SR) * e3[i] * rng.uniform(0.08, 0.16)
+    scuff = mul(bandpass(noise(n, rng), rng.uniform(3000, 4200), 0.9), env(n, 0.008, rng.uniform(0.02, 0.03)), 0.22)
+    return finish(mix(body, clk, rat, scuff), 0.42)
+
+
 def write(path, x):
     with wave.open(path, 'wb') as w:
         w.setnchannels(1)
@@ -162,7 +184,9 @@ def write(path, x):
 
 
 def main():
-    kinds = {'grass': grass, 'dirt': dirt, 'stone': stone, 'wood': wood}
+    kinds = {'grass': grass, 'dirt': dirt, 'stone': stone, 'wood': wood, 'tile': tile}
+    only = sys.argv[1:]
+    kinds = {k: v for k, v in kinds.items() if not only or k in only}
     for k, fn in kinds.items():
         for i in range(N_VAR):
             rng = random.Random(hash((k, i)) & 0xffffffff if False else (len(k) * 1000 + i * 37 + 11))

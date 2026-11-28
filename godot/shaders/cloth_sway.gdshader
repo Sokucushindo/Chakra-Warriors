@@ -2,6 +2,7 @@
 shader_type spatial;
 render_mode cull_disabled, diffuse_toon, specular_disabled;
 
+global uniform float g_shade;   // güneş gölgesinin koyuluğu: gündüz < 1 (gölge tabanı kısılır), akşam / gece 1
 uniform float amp = 0.25;        // en alttaki salınım (m)
 uniform float hang = 2.0;        // asılı uzunluk (m): bu derinlikte tam salınım
 uniform float speed = 1.7;
@@ -34,7 +35,7 @@ void light() {
 	float ndl = dot(NORMAL, LIGHT);
 	float t = smoothstep(-0.05, 0.08, abs(ndl)) * 0.7 + 0.3;
 	if (LIGHT_IS_DIRECTIONAL) {
-		DIFFUSE_LIGHT += LIGHT_COLOR * mix(vec3(0.45, 0.47, 0.58), vec3(1.0), t * ATTENUATION) / PI;
+		DIFFUSE_LIGHT += LIGHT_COLOR * mix(vec3(0.45, 0.47, 0.58) * g_shade, vec3(1.0), t * ATTENUATION) / PI;
 	} else {
 		DIFFUSE_LIGHT += LIGHT_COLOR * t * ATTENUATION / PI;
 	}

@@ -148,6 +148,34 @@ func to_main_menu() -> void:
 	if preview:
 		preview.queue_free()
 		preview = null
+	# oturumun düşmanlığı sonraki oyuna taşınmaz: köy alarmı, saldırılan kişiler, peşindeki düşmanlar temizlenir
+	LazyFx.g("Crime").inst().clear_session()
+	Orgs.clear_session()
+	for f in get_tree().get_nodes_in_group("fighters"):
+		if f is Enemy and is_instance_valid(f) and not f.is_dead() and (f.has_meta("village_guard") or f.has_meta("hunter_nin")):
+			f.queue_free()
+		elif f is Enemy and is_instance_valid(f) and not f.is_dead() and f.target != null:
+			f.lose_target(5.0)
+			f.state = "idle"
+	# sahnedeki insanlar önceki oyunun kayıtlarını taşır (sana bakışı, dostluk, kan davası): hepsi kalkar, yeni oyun
+	# kendi dünyasından yeniden doldurur (2026-11-28: "Ironman öldüm, kayıt silindi ama önceki oyundaki her şey duruyor")
+	for v in get_tree().get_nodes_in_group("talkers"):
+		if is_instance_valid(v) and (v is Villager or v.has_meta("world_person") or v.has_meta("friend_id")):
+			v.queue_free()
+	for f in get_tree().get_nodes_in_group("fighters"):
+		if f is Enemy and is_instance_valid(f) and (f.has_meta("world_person") or f.has_meta("friend_id") or f.has_meta("kage_of")):
+			f.queue_free()
+	WorldDay._stage.clear()
+	WorldDay._groups.clear()
+	WorldDay._seen.clear()
+	WorldPeople._active.clear()
+	if is_instance_valid(WorldDay.vl):
+		WorldDay.vl.npcs.clear()
+		WorldDay.vl.active_sites.clear()
+		WorldDay.vl.queue.clear()
+		WorldDay.vl._planned.clear()
+		WorldDay.vl._pend.clear()
+		WorldDay.vl.current = ""
 	mode = "menu"
 	if Interiors.inst:
 		Interiors.inst.hide_room()
@@ -309,6 +337,8 @@ func _start_new_game(from_creator := false) -> void:
 	Game.profile = Progress.new_profile({"slot": s["slot"], "name": s["name"], "gender": s["gender"], "clan": s["clan"], "soy": s.get("soy", "") if s["clan"] == "none" else "", "sand_line": String(s.get("sand_line", "suna")),
 		"element": s["element"], "look": _creator_look(), "village": s.get("village", "konoha")})
 	Game.profile["pos"] = null
+	if bool(s.get("ironman", false)):
+		Game.profile["ironman"] = true
 	Buffs.reset()
 	Progress.refresh_story()
 	await _begin_game(Progress.home_spawn())

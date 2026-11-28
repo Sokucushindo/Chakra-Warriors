@@ -515,7 +515,16 @@ func jutsu_floor_at(p: Vector3) -> Vector3:
 		var h = space.intersect_ray(q)
 		if h.is_empty():
 			break
-		if h["collider"] is CharacterBody3D:   # karakterin kendi kapsülü zemin sayılmaz
+		var hc = h["collider"]
+		var body_hit: bool = hc is CharacterBody3D   # karakterin kendi kapsülü zemin sayılmaz
+		var up = hc
+		for _k in 3:   # antrenman kuklası gibi dövüşçülerin gövdesi de zemin değil (yanık izi kuklanın tepesinde havada kalıyordu)
+			if up == null or body_hit:
+				break
+			if up is Node and (up as Node).is_in_group("fighters"):
+				body_hit = true
+			up = (up as Node).get_parent() if up is Node else null
+		if body_hit:
 			q.exclude = q.exclude + [h["rid"]]
 			continue
 		return Vector3(p.x, maxf(float(h["position"].y), base), p.z)
@@ -537,7 +546,15 @@ func step_sound(p: Vector3) -> String:
 	var b = biome_at(p.x, p.z)   # 1 kumsal, 3 çöl, 13 Suna | 2 orman, 4 yağmur, 6 pirinç, 7 çimen, 10 bataklık, 11 Konoha | 5 kaya, 9 dağ, 14 taş köy | 8 kar, 15 karlı köy
 	var th = terrain_height(p.x, p.z)
 	if p.y > th + 1.3 and p.y > water_level(p.x, p.z, th) + 0.8:   # çatı, köprü, balkon, dal: altındaki toprağın sesi değil
-		return ("step_stone%d" % v) if b in [5, 9, 13, 14, 15] else ("step_wood%d" % v)
+		if b in [5, 9, 13, 14, 15]:
+			return "step_stone%d" % v
+		# köy içinde yerden bir kat yukarısı = kiremit çatı: kuru seramik tıkırtısı (tahta sesi çatıda bidona basıyor gibiydi)
+		if p.y > th + 2.6:
+			var m := Vector2(p.x, -p.z)
+			for vl in world_info["villages"]:
+				if m.distance_squared_to(Vector2(vl["x"], vl["y"])) < pow(float(vl["r"]), 2.0):
+					return "step_tile"
+		return "step_wood%d" % v
 	var wlv = water_level(p.x, p.z, th)
 	if wlv > th + 0.02 and p.y > wlv + 0.12:   # su üstündeki köprü / iskele tabliyesi: şıpırtı değil taş / tahta (2026-11-27)
 		return ("step_stone%d" % v) if b in [5, 9, 11, 13, 14, 15] else ("step_wood%d" % v)
@@ -578,6 +595,8 @@ func step_wetness(p: Vector3) -> float:
 		w = maxf(w, 0.7)   # bataklık
 	if b in [5, 9, 14] or road_at(p.x, p.z, "street") > 0.3:
 		return w   # taş / sokak: yalnız yağmurla ıslanır (nehir kıyısı çamuru burada çalmaz)
+	if p.y > terrain_height(p.x, p.z) + 0.5:
+		return w   # köprü / iskele / çatı: altındaki nehir kıyısının çamuru burada çalmaz (köprüden geçerken suda yürüme sesi geliyordu)
 	return maxf(w, clampf((wet_at(p.x, p.z) - 0.55) * 1.6, 0.0, 0.6))
 
 
@@ -668,6 +687,49 @@ func road_segments_near(m: Vector2, radius: float) -> Array:
 	return out.keys()
 
 
+## En yakın yola çıkıp yol çizgisi boyunca yürüme rotası: [yola çıkış noktası, yol noktaları...] (toplam ~length m).
+## Yön: away noktasından uzaklaşan taraf. max_d içinde yol yoksa boş dizi.
+func road_walk(from: Vector3, away: Vector3, max_d := 140.0, length := 320.0) -> Array:
+	var m = Vector2(from.x, -from.z)
+	var am = Vector2(away.x, -away.z)
+	var best_d := max_d
+	var best: Array = []
+	for e in road_segments_near(m, max_d):
+		var rl: Dictionary = roads[e.x]
+		if rl["kind"] != "road":
+			continue
+		var pts: PackedVector2Array = rl["pts"]
+		var q: Vector2 = Geometry2D.get_closest_point_to_segment(m, pts[e.y], pts[e.y + 1])
+		if q.distance_to(m) < best_d:
+			best_d = q.distance_to(m)
+			best = [e, q]
+	if best.is_empty():
+		return []
+	var pts2: PackedVector2Array = roads[best[0].x]["pts"]
+	var i0: int = best[0].y
+	var dir = 1 if ((pts2[i0 + 1] as Vector2) - (pts2[i0] as Vector2)).dot((best[1] as Vector2) - am) >= 0.0 else -1
+	var out: Array = []
+	var prev: Vector2 = best[1]
+	var w0 = from_map(prev)
+	w0.y = ground_height(w0.x, w0.z)
+	out.append(w0)
+	var i = i0 + 1 if dir > 0 else i0
+	var left := length
+	while i >= 0 and i < pts2.size() and left > 0.0:
+		var c: Vector2 = pts2[i]
+		var sl = prev.distance_to(c)
+		if sl > left:
+			c = prev.lerp(c, left / sl)
+		left -= sl
+		if sl > 0.5:
+			var w = from_map(c)
+			w.y = ground_height(w.x, w.z)
+			out.append(w)
+		prev = c
+		i += dir
+	return out
+
+
 ## Arazi shader'larına ortak yükseklik parametrelerini verir (terrain, grass)
 func setup_height_material(mat: ShaderMaterial) -> void:
 	mat.set_shader_parameter("heightmap", height_tex)
@@ -704,7 +766,7 @@ func region_name(p: Vector3) -> String:
 	var m := to_map(p)
 	for v in world_info["villages"]:
 		if m.distance_to(Vector2(v["x"], v["y"])) < float(v["r"]):
-			return v["name"]
+			return LazyFx.g("VillageFall").place_name(String(v["id"]), String(v["name"]))   # yok edilmiş köy: "…'dan Kalanlar"
 	for l in world_info["landmarks"]:
 		if m.distance_to(Vector2(l["x"], l["y"])) < float(l["r"]):
 			return l["name"]

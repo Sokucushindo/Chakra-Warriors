@@ -62,6 +62,7 @@ static func mesh(kind: String, pal := "green", seed := 0, lod := false, far := f
 	t.lod = lod or far
 	t.far = far
 	t.bb = kind in BB_KINDS
+	t.vseed = seed
 	t.call("_" + kind)
 	var m = t._commit()
 	m.set_meta("anime_tree", [kind, pal, seed])   # Builder paketleri: kendi orta/uzak kademeleri (genel sadeleştirici kartları bozar)
@@ -75,6 +76,7 @@ var bark: Color
 var lod := false
 var far := false   # çok uzak kademe (700 m+): taçta birkaç büyük kart, 3 kenarlı gövde
 var tex := "leaf"
+var vseed := 0   # çeşit numarası: dal düzeni bundan türer (yakın / uzak kademede aynı düzen)
 ## Kameraya dönen yaprak kartları (kabarık taç; godotshaders "stylized fluffy tree leaves" fikri): deneme türleri.
 ## Yakın / orta / uzak kopyalar aynı kodla (clump) kurulduğu için hepsi döner. Kart merkezi + boyu CUSTOM0, köşenin ekran düzlemindeki yeri CUSTOM1 (anime_leaf.gdshader); boyu 0 olan kart dönmez.
 const BB_KINDS := ["forest", "broad", "oak", "slender"]
@@ -283,12 +285,32 @@ func branches_to(from: Vector3, tips: Array, k: int, r0: float) -> void:
 		return
 	var picks = tips.duplicate()
 	picks.shuffle()
+	# her dal ayrı: gövdeden farklı yükseklikte çıkar, kalınlığı ve dirsek yeri değişir, yay çizerek kıvrılır, bazıları
+	# yandaki öbeğe ince bir çatal verir (eskiden hepsi aynı noktadan çıkan aynı boy düz çubuklardı)
+	var br := RandomNumberGenerator.new()
+	br.seed = hash("dal|%d|%d|%.2f" % [vseed, tips.size(), r0])
 	for i in mini(k, picks.size()):
 		var tip: Vector3 = picks[i]
-		var mid := from.lerp(tip, 0.55) + Vector3(rng.randf_range(-0.4, 0.4), 0.4, rng.randf_range(-0.4, 0.4))
-		limb(from, mid, r0, r0 * 0.6, 6)
+		var span := from.distance_to(tip)
+		var start := from - Vector3(0, br.randf_range(0.0, 1.0) * minf(span * 0.22, 2.2), 0)
+		var rr := r0 * br.randf_range(0.72, 1.12)
+		var bow := Vector3(br.randf_range(-1.0, 1.0), br.randf_range(0.25, 1.1), br.randf_range(-1.0, 1.0)) * span * 0.13
+		var mid := start.lerp(tip, br.randf_range(0.4, 0.64)) + bow
+		limb(start, mid, rr, rr * 0.6, 6)
 		if not lod:
-			limb(mid, from.lerp(tip, 0.85), r0 * 0.6, r0 * 0.25, 5)
+			var end := start.lerp(tip, 0.85) + bow * 0.25
+			limb(mid, end, rr * 0.6, rr * 0.25, 5)
+			if br.randf() < 0.6 and picks.size() > 1:
+				# çatal: dirsekten en yakın başka öbeğe ince dal
+				var best := tip
+				var bd := 1e9
+				for o in picks:
+					var d2: float = (o as Vector3).distance_to(mid)
+					if o != tip and d2 < bd:
+						bd = d2
+						best = o
+				if bd < span * 0.9:
+					_twig(mid, mid.lerp(best, 0.75) + Vector3(0, bd * 0.08, 0), rr * 0.34, rr * 0.12)
 
 
 # ------------------------------------------------------------------ türler
@@ -331,13 +353,22 @@ func _forest() -> void:
 	limb(Vector3(0, H * 0.55, 0), Vector3(0, H + 1.0, 0), R * 0.95, R * 0.55, 10)
 	roots(R, 7, 2.2)
 	var cc_top = Vector3(0, H + 2.5, 0)
-	for br in Props.FOREST_BRANCHES:
+	var lay := RandomNumberGenerator.new()
+	lay.seed = hash("orman dal|%d" % vseed)
+	for br in forest_layout(vseed):
 		var a = deg_to_rad(br[1])
 		var L: float = br[2]
 		var d = Vector3(sin(a), 0, cos(a))
 		var y: float = br[0]
-		var tip = d * (R + L) + Vector3(0, y + 0.15, 0)
-		limb(Vector3(0, y, 0), tip, 0.48, 0.24, 7)
+		var tip = d * (R + L) + Vector3(0, y + 0.15 + float(br[3]), 0)
+		limb(Vector3(0, y, 0), tip, float(br[4]), float(br[4]) * 0.5, 7)
+		if not far:
+			# yan çatal: dalın ortasından yana-yukarı ayrılan ince dal ve ucunda kendi öbeği (her dalda yeri, yönü, boyu ayrı)
+			var fk0 = Vector3(0, y, 0).lerp(tip, lay.randf_range(0.42, 0.7))
+			var sd = d.rotated(Vector3.UP, deg_to_rad(lay.randf_range(35.0, 65.0)) * (1.0 if lay.randf() < 0.5 else -1.0))
+			var fk1 = fk0 + sd * lay.randf_range(2.2, 3.8) + Vector3(0, lay.randf_range(1.3, 2.6), 0)
+			_twig(fk0, fk1, 0.125, 0.05)
+			clump(fk1 + Vector3(0, 0.5, 0), lay.randf_range(1.7, 2.3), fk1 - Vector3(0, 1.0, 0), fk1.y - 2.0, fk1.y + 2.6)
 		# dal ucu ve üstünde öbek kümesi (dalın üstü yürünebilir kalsın: öbekler dal hizasının üstünde/ucunda)
 		var cc = tip + d * 1.2 + Vector3(0, 1.45, 0)
 		var fork = tip + d * 1.1 + Vector3(0, 0.55, 0)
@@ -349,6 +380,31 @@ func _forest() -> void:
 			_twig(fork, fork.lerp(cc + o, 0.8), 0.13, 0.035)   # her öbeğe uzanan ince dal
 	var tips = crown(cc_top, Vector3(7.5, 5.0, 7.5), 22, 3.0, -0.3)
 	branches_to(Vector3(0, H - 2.0, 0), tips, 5, 0.5)
+
+
+## Orman devinin kalın (üstünde yürünen) dalları: [yükseklik, açı°, boy, uçtaki yükselme, dip kalınlığı].
+## Çeşit 0: klasik düzen (Props.FOREST_BRANCHES; uzak kademe de bunu çizer), yalnız eğim ve kalınlık dala göre değişir.
+## Öbür çeşitler: dal sayısı (4-6), yüksekliği, yönü, boyu ayrı — ormanda yan yana duran ağaçlar aynı kalıptan çıkmış durmaz.
+static func forest_layout(seed: int) -> Array:
+	var r := RandomNumberGenerator.new()
+	r.seed = hash("orman duzen|%d" % seed)
+	var out: Array = []
+	var skip := -1 if seed == 0 else r.randi_range(-1, Props.FOREST_BRANCHES.size() - 1)
+	var skip2 := -1 if seed < 3 else r.randi_range(0, Props.FOREST_BRANCHES.size() - 1)
+	for i in Props.FOREST_BRANCHES.size():
+		var b: Array = Props.FOREST_BRANCHES[i]
+		var rise := r.randf_range(-0.2, 2.0)
+		var th := r.randf_range(0.38, 0.56)
+		var dy := r.randf_range(-1.3, 1.3)
+		var da := r.randf_range(-30.0, 30.0)
+		var kl := r.randf_range(0.62, 1.22)
+		if i == skip or i == skip2:
+			continue
+		if seed == 0:
+			out.append([b[0], b[1], b[2], rise * 0.6, th])
+		else:
+			out.append([float(b[0]) + dy, float(b[1]) + da + seed * 47.0, float(b[2]) * kl, rise, th])
+	return out
 
 
 ## Ölüm Ormanı devi (anime 44. Alan): dev gövde, yayılan dev kökler, gövde boyunca kalın dallar, koyu yoğun tavan
