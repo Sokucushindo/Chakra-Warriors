@@ -91,6 +91,9 @@ func _unhandled_input(e: InputEvent) -> void:
 		return
 	if MissionWork.active():
 		return   # görev işi (nesneyi al / taşı / kur) sürerken saldırı ve teknik araya girmez
+	if p.has_meta("gedo_ride"):   # Gedō Mazō'nun kafasında: tuşlar heykeli yönetir (kendi saldırın / tekniğin yok)
+		LazyFx.g("GedoWalker").ride_input(e)
+		return
 	if modes and modes.handle_input(e):
 		return
 	if e.is_action_pressed("attack"):

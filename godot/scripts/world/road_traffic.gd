@@ -71,9 +71,13 @@ class TravelGroup extends Node3D:
 	var members: Array = []   # [node, geri mesafe, yanal ofset, insan mı]
 	var done := false
 	var display := "Yolcu"
+	var vid := "konoha"       # ninja kafilesinin köyü (üniforması ve sadakati)
+	var looks: Array = []     # üyelerin görünüşü: saldırıya geçince aynı kişi olarak dövüşür
+	var _see_t := 0.0
 
 	func _ready() -> void:
 		add_to_group("talkers")
+		vid = LazyFx.g("Outfits").village_near(Game.from_map(_at(0.0)[0]))
 		var n = 1
 		match kind:
 			"yolcu":
@@ -124,7 +128,9 @@ class TravelGroup extends Node3D:
 		lk["top2"] = Color(lk["top"]).darkened(0.2)
 		# yol kalabalığı: hacılar keşiş, ninja kafilesi köy üniforması, kervan tüccar/gezgin/çiftçi kıyafeti
 		var oa: String = {"hacı": "monk", "ninja": "chunin"}.get(kind, ["traveler", "merchant", "farmer", "traveler"][i % 4])
-		lk.merge(LazyFx.g("Outfits").roll(oa, LazyFx.g("Outfits").village_near()), true)
+		lk.merge(LazyFx.g("Outfits").roll(oa, vid), true)
+		if kind == "ninja":
+			looks.append(lk.duplicate(true))
 		lk["npc"] = true   # saç tutamı donması önlemi (köylülerle aynı)
 		lk["npc_strict"] = true
 		return lk
@@ -149,8 +155,68 @@ class TravelGroup extends Node3D:
 		members.append([cart, 3.6, 0.0, false])
 
 	func talk() -> void:
+		if _hunts_rogue():   # kaçak yanına gelip konuşmaya kalktı: konuşma yok, saldırır
+			_engage()
+			return
 		var pool: Array = LINES.get(kind, LINES["yolcu"])
 		Hud.dialog(display, pool.pick_random(), [])
+
+	## Ninja kafilesi kaçağı tanır mı (köyü kaçakları yasaklamış, kılık değiştirmemiş, af görevi o köyden değil)
+	func _hunts_rogue() -> bool:
+		if kind != "ninja" or done or members.is_empty() or Game.player == null or not Orgs.is_rogue() or Buffs.has("henge"):
+			return false
+		if not vid in Orgs.ROGUE_BANNED:
+			return false
+		return not (Orgs._pardon_active() and vid == String(Orgs.flags().get("rogue_from", "")))
+
+	## Kaçağı görüyor mu: köy ninjasıyla aynı görüş (24 m, gece ve gizlilik ustalığı kısaltır), önü açık ve yüzü dönük
+	func _sees_rogue() -> bool:
+		var pl = Game.player
+		var tod = Game.world.get_time_of_day() if Game.world else 0.5
+		var night = tod < 0.22 or tod > 0.8
+		var st_k: float = LazyFx.g("Stats").skill(Game.profile, "stealth")
+		var reach = 24.0 * (0.65 if night else 1.0) * maxf(0.55, 1.0 - st_k * 0.5)
+		var space = pl.get_world_3d().direct_space_state
+		for mem in members:
+			if not mem[3] or not is_instance_valid(mem[0]):
+				continue
+			var n: Node3D = mem[0]
+			var d: Vector3 = pl.global_position - n.global_position
+			if d.length() > reach:
+				continue
+			var fd := Vector3(-sin(n.rotation.y), 0, -cos(n.rotation.y))
+			if d.length() > 6.0 and Vector2(fd.x, fd.z).dot(Vector2(d.x, d.z).normalized()) < 0.1:
+				continue   # arkası dönük (yanına sokulursan yine fark eder)
+			var q = PhysicsRayQueryParameters3D.create(n.global_position + Vector3.UP * 1.5, pl.global_position + Vector3.UP * 1.2, 1)
+			if space.intersect_ray(q).is_empty():
+				return true
+		return false
+
+	## Kafile dövüşe girer: her üye aynı görünüşle, köyünün chūnin gücünde gerçek bir savaşçı olur (köy muhafızlarıyla aynı eğri)
+	func _engage() -> void:
+		done = true
+		var i = 0
+		for mem in members:
+			if not mem[3] or not is_instance_valid(mem[0]):
+				continue
+			var at: Vector3 = mem[0].global_position
+			var a: Dictionary = Orgs._village_arch(vid, i)
+			if i < looks.size():
+				a["look"] = (looks[i] as Dictionary).duplicate(true)
+				a["look"]["village"] = vid
+			a["respawn"] = false
+			a["name"] = "%s Chūnin" % String(Game.village(vid).get("name", vid))
+			LazyFx.g("Stats").npc_ninja(a, randi_range(35, 55) + Orgs.rogue_rank() * 3, 1.0)
+			var e = Enemy.new()
+			e.setup(a)
+			e.set_meta("faction", vid)
+			get_tree().current_scene.add_child(e)
+			e.global_position = at
+			e.home = at
+			if i == 0:
+				Combat.popup_text(at + Vector3.UP * 2.3, "Kaçak! Durdurun onu!", Color(1, 0.4, 0.35))
+			mem[0].visible = false
+			i += 1
 
 	## yol üzerinde s mesafe geri -> dünya konumu ve yön
 	func _at(back: float) -> Array:
@@ -222,6 +288,15 @@ class TravelGroup extends Node3D:
 
 	func _process(dt: float) -> void:
 		if Game.paused:
+			return
+		if kind == "ninja":
+			_see_t -= dt
+			if _see_t <= 0.0:
+				_see_t = 0.4
+				if _hunts_rogue() and _sees_rogue():
+					_engage()
+					return
+		if done:
 			return
 		if Game.player and global_position.distance_to(Game.player.global_position) < 4.0:
 			for mem in members:

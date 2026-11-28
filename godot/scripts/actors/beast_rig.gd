@@ -458,6 +458,7 @@ func _ap(k: float) -> Dictionary:
 
 func _process(dt: float) -> void:
 	t += dt
+	LazyFx.g("GiantSteps").track(self, height_m, global_rotation.y, height_m * 0.16, "paw")   # dev adımı: sarsıntı, güm, pençe izi, yıkım
 	if action != "":
 		action_t += dt
 		if action_t >= action_dur and action != "kneel":

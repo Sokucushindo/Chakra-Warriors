@@ -830,9 +830,17 @@ func _think(dt: float) -> void:
 func _patrol(dt: float) -> void:
 	var v = wander_to - global_position
 	v.y = 0
+	# seni takip eden (takım arkadaşı, Pein bedeni, çağrı): yerine varınca DURUR — eskiden herkes gibi evinin 15 m çevresinde
+	# rastgele gezinti noktası seçiyordu, sen dururken de sürekli dolaşıyorlardı
+	var follower: bool = has_meta("teammate")
+	if follower and v.length() < 2.0:
+		wander_to = home
+		step_move(Vector3.ZERO, dt)
+		model.play("idle", 0.2)
+		return
 	if v.length() < 2.0 or state_t > 8.0:
 		state_t = 0.0
-		wander_to = home + Vector3(randf_range(-15, 15), 0, randf_range(-15, 15))
+		wander_to = home if follower else home + Vector3(randf_range(-15, 15), 0, randf_range(-15, 15))
 		if global_position.y - Game.ground_height(global_position.x, global_position.z) > 30.0:
 			# dünyanın üstündeki kat (Kamui boyutunun kütleleri, iç mekân): gezinti noktası aynı zeminde değilse (kenardan
 			# yarığa / alt kata düşerdi) evde kalır
@@ -845,6 +853,10 @@ func _patrol(dt: float) -> void:
 	if _ledge_ahead(v):
 		wander_to = global_position   # yol yarıktan geçiyor (Kamui kütlesi / iç kat): kenarda durur, sonra başka yön seçer
 		step_move(Vector3.ZERO, dt)
+		return
+	if follower and v.length() > 9.0:   # geride kaldı: koşarak yetişir (yürüyerek yetişemeyip uzaklaşınca ışınlanıyordu)
+		step_move(v.normalized() * 7.5, dt)
+		model.play("run", 0.2)
 		return
 	step_move(v.normalized() * 3.0, dt)
 	model.play("walk", 0.2)
@@ -1974,6 +1986,9 @@ func die(info: Dictionary) -> void:
 			Progress.add_ryo(int(ryo))   # ceset aranamaz: üstündeki para doğrudan
 	elif not has_meta("teammate") and size < 2.5:
 		_make_loot()
+	if not kamui_gone and LazyFx.g("SixPaths").wants_corpse(self):   # Rinnegan sahibi: ceset Pein bedeni olarak alınabilsin
+		set_meta("pain_ok", true)
+		add_to_group("pain_corpses")
 	super.die(info)
 	# Mangekyō: yakın olduğun birini (dost, sevgili; hain/kaçak olmuş olsa bile) kendi elinle öldürmek
 	if info.get("attacker") is Player and not kamui_gone:

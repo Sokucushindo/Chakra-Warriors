@@ -109,8 +109,16 @@ func _tongue(dt: float) -> void:
 	tongue.visible = out_k > 0.05
 	if not tongue.visible:
 		return
+	var p = deform(mouth_local)
+	tongue.position = p
+	tongue.rotation = Vector3(head.x - strike * 0.4, head.y, sin(t * 60.0) * 0.25)
+	tongue.scale.z = tongue.scale.x * out_k
+
+
+## Baş bölgesindeki bir noktayı (dinlenme ağı, holder uzayı) o anki salınım / atılışla taşır (gölgelendiricideki baş formülü)
+func deform(p0: Vector3) -> Vector3:
 	var tt = t + phase
-	var p = mouth_local
+	var p = p0
 	if mode == 1:
 		var H = dims.x
 		var hm = smoothstep(0.32, 0.62, p.y / H)
@@ -123,6 +131,20 @@ func _tongue(dt: float) -> void:
 		p.x += sin(tt * 1.3) * 0.05 * L + head.y * 0.25 * L
 		p.z -= strike * 0.22 * L
 		p.y += strike * 0.08 * L + sin(tt * 1.7) * 0.02 * L
-	tongue.position = p
-	tongue.rotation = Vector3(head.x - strike * 0.4, head.y, sin(t * 60.0) * 0.25)
-	tongue.scale.z = tongue.scale.x * out_k
+	return p
+
+
+## Başın tepesi (dinlenme ağında): ağzın gerisinde, orta eksende, ağın gerçek üst yüzeyi. Ağzın arkasına doğru adım adım
+## taranır; başın en yüksek olduğu yer (kafatası) seçilir, boynuzlar orta eksende olmadığından sayılmaz.
+func head_top_rest(v: PackedVector3Array, all: AABB) -> Vector3:
+	var x := mouth_local.x if absf(mouth_local.x) > all.size.x * 0.2 else 0.0
+	var span := maxf(all.size.z, all.size.y) * 0.12   # baş uzunluğu kadar geriye bakılır
+	var best := Vector3.INF
+	for k in range(1, 13):
+		var z := mouth_local.z + span * k / 12.0
+		var y := Summon._top_at(v, x, z)
+		if y < -1e20:
+			continue
+		if best == Vector3.INF or y > best.y:
+			best = Vector3(x, y, z)
+	return best

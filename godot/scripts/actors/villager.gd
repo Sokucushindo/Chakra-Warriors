@@ -43,6 +43,8 @@ var speed := 2.6
 var buddy: Node3D = null
 var points: Array = []      # sokak noktaları / çatılar / tezgâh önleri (yönetici verir)
 var hop_t := -1.0
+var roof_land := 0.0
+var roof_wait := 0.0   # çatıya konunca çevreyi kollama süresi (eskiden hiç beklemeden zıplıyordu: "NPC'ler neden zıplıyor?")
 var hop_from := Vector3.ZERO
 var hop_to := Vector3.ZERO
 var display := "Köylü"
@@ -1184,6 +1186,12 @@ func _roof(dt: float) -> void:
 	if points.size() < 2:
 		return
 	if hop_t < 0.0:
+		if roof_wait > 0.0:   # konduğu çatıda durup çevreyi kollar
+			roof_wait -= dt
+			roof_land -= dt
+			if roof_land < 0.0:
+				model.play("idle", 0.3)   # iniş bitti: ayakta bekler
+			return
 		var best: Vector3 = points[0]
 		var bd = 1e9
 		for i in 6:
@@ -1213,8 +1221,9 @@ func _roof(dt: float) -> void:
 	if hop_t >= 1.0:
 		hop_t = -1.0
 		model.play("land", 0.05, 1.5, true)
-		if randf() < 0.3:
-			hop_t = -0.4  # kısa bekleme (negatif sayaç)
+		roof_land = 0.45
+		# devriye ritmi: çoğu konuşta durup bakar, ara sıra iki üç çatıyı art arda geçer
+		roof_wait = randf_range(0.5, 1.0) if randf() < 0.3 else randf_range(2.5, 7.0)
 
 
 ## Rolün kıyafet arketipi (Outfits): sokak halkı çeşitli, ninjalar köy üniformalı

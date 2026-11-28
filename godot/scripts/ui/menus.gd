@@ -268,6 +268,68 @@ static func _tab_summons(main: Node, body: Control) -> void:
 			row.add_child(b)
 
 
+static var _eyes_paths := false
+
+
+## Pein Rikudō: altı yola arşivdeki bedenlerden atama (◀ ▶). Beden kendi gücüyle gelir, teknikleri yolunkilerdir.
+static func _paths_panel(main: Node, outer: Control) -> void:
+	var SP = LazyFx.g("SixPaths")
+	var bodies: Array = SP.data()["bodies"]
+	var card = LazyFx.g("UI").card()
+	card.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	outer.add_child(card)
+	var sc = ScrollContainer.new()
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	sc.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	sc.custom_minimum_size = Vector2(700, 480)
+	card.add_child(sc)
+	var v = LazyFx.g("UI").vbox(10)
+	v.custom_minimum_size = Vector2(680, 0)
+	v.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	sc.add_child(v)
+	v.add_child(LazyFx.g("UI").label("PEIN RIKUDŌ", 20, LazyFx.g("UI").GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
+	v.add_child(LazyFx.g("UI").label(LazyFx.g("Lang").t("Arşivdeki bedenler: %d / %d") % [bodies.size(), SP.ARCHIVE_MAX], 14, LazyFx.g("UI").TEXT))
+	var help = LazyFx.g("UI").label("Öldürdüğün birinin cesedine yaklaşıp [F] ile kara alıcı sapla: beden arşive girer. Aşağıdan yollara ata, Pein Rikudō tekniğiyle çağır. Beden kendi gücüyle gelir; teknikleri atandığı yolunkilerdir. Bedenler sahadayken chakran akar.", 13, LazyFx.g("UI").MUTED)
+	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	help.custom_minimum_size = Vector2(680, 0)
+	v.add_child(help)
+	var labels: Array = [LazyFx.g("Lang").t("Boş")]
+	var ids: Array = [0]
+	for b in bodies:
+		labels.append(LazyFx.g("Lang").t("%s (Güç %d)") % [String(b["name"]), int(b["level"])])
+		ids.append(int(b["id"]))
+	# bedene giydirilecek set: kendi kıyafeti ya da sahip olduğun setlerden biri (Pain'in Akatsuki cübbeli bedenleri gibi)
+	var wlabels: Array = [LazyFx.g("Lang").t("Kendi kıyafeti")]
+	var wids: Array = [""]
+	for sid in SP.wear_choices():
+		wlabels.append(LazyFx.g("Lang").t(String(LazyFx.g("Gear").item(sid).get("name", sid))))
+		wids.append(sid)
+	for path in SP.PATHS:
+		var pth: String = path
+		var idx = maxi(0, ids.find(SP.slot_id(pth)))
+		var row = _arrow_row(String(SP.NAMES[pth]), labels, idx, func(i: int):
+			var id: int = ids[i]
+			var clash = false
+			for q in SP.PATHS:
+				if q != pth and id != 0 and SP.slot_id(q) == id:
+					clash = true
+			SP.assign(pth, id)
+			if clash:   # beden başka yoldan alındı: o satır da güncellensin
+				ninja_menu(main, "eyes"))
+		row.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		row.custom_minimum_size = Vector2(680, 0)
+		v.add_child(row)
+		var wrow = _arrow_row("Kıyafet", wlabels, maxi(0, wids.find(SP.wear_id(pth))), func(i: int): SP.set_wear(pth, String(wids[i])))
+		wrow.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		wrow.custom_minimum_size = Vector2(680, 0)
+		v.add_child(wrow)
+		v.add_child(LazyFx.g("UI").label(String(SP.INFO[pth]), 12, LazyFx.g("UI").MUTED))
+	if SP.count_out() > 0:
+		v.add_child(LazyFx.g("UI").button("Bedenleri geri gönder", func():
+			SP.recall_all()
+			ninja_menu(main, "eyes"), 260))
+
+
 static func _tab_eyes(main: Node, body: Control) -> void:
 	var pr = Game.profile
 	# 1600 px tasarım genişliğinde iki kart + yan sütun ekrandan taşıyordu: tuşlar artık kartların üstünde yatay şerit
@@ -290,6 +352,15 @@ static func _tab_eyes(main: Node, body: Control) -> void:
 			_eq_slot = "susanoo"
 			ninja_menu(main, "wardrobe"), 240))
 		strip.add_child(sr)
+	if LazyFx.g("SixPaths").has_rinnegan():
+		var pr2 = LazyFx.g("UI").hbox(10)
+		pr2.add_child(LazyFx.g("UI").button("Gözler" if _eyes_paths else "Pein Rikudō", func():
+			_eyes_paths = not _eyes_paths
+			ninja_menu(main, "eyes"), 200))
+		strip.add_child(pr2)
+		if _eyes_paths:
+			_paths_panel(main, outer)
+			return
 	var h = LazyFx.g("UI").hbox(22)
 	h.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	outer.add_child(h)
@@ -2899,7 +2970,12 @@ static func _ms_editor_fill(box: VBoxContainer, d: Dictionary) -> void:
 			d[k] = nd[k]
 		_ms_editor_fill.call_deferred(box, d), 140, "star"))
 	cr.add_child(LazyFx.g("UI").button("Diğer göze aktar", func():
-		if Eyes.copy_design(Game.profile, _eq_slot):
+		# hangi gözün deseni düzenleniyorsa o (panel iki gözü de çizip seçili yuvayı sıfırlıyor: tuş hep "Mangekyō yok" diyordu)
+		var from := _eq_slot
+		for s0 in ["sag_goz", "sol_goz"]:
+			if is_same(Eyes.design_for(Game.profile, s0), d):
+				from = s0
+		if Eyes.copy_design(Game.profile, from):
 			Hud.msg("Desen diğer göze aktarıldı.", Color(1, 0.6, 0.6))
 			apply_pv.call()
 		else:

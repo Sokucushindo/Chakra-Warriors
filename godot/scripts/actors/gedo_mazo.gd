@@ -34,6 +34,10 @@ var jaw_open := 0.0
 var jaw_want := 0.0
 var head_pitch := 0.0
 var shake := 0.0
+## Yürüyüş katmanı (GedoWalker yazar): poza eklenen uzuv başına açılar. aL/aR omuz, zL/zR omuz yana açılma, eL/eR dirsek,
+## lL/lR kalça, kL/kR diz, hy kalça yüksekliği, roll gövde yalpası, twist gövde burgusu
+var gait := {}
+var _head_top_l := Vector3.INF
 
 
 static func spawn(parent: Node, at: Vector3, yaw: float, open_eyes := 0) -> GedoMazo:
@@ -314,6 +318,14 @@ func _pose(nm: String) -> Dictionary:
 			return {"hy": 4.7, "tx": 0.0, "hx": 0.0, "ax": 0.0, "az": 0.12, "ex": 0.0, "wx": 0.0, "lx": 0.0, "lz": 0.05, "kx": 0.0}
 		"rise":   # yerden çıkarken: dimdik, kollar yanlarda, baş hafif öne
 			return {"hy": 4.7, "tx": -0.15, "hx": 0.2, "ax": 0.2, "az": 0.2, "ex": -0.3, "wx": 0.0, "lx": 0.0, "lz": 0.05, "kx": 0.0}
+		"walk":   # yürüyüş duruşu: öne kambur, kollar önde sarkık, dizler hafif kırık
+			return {"hy": 4.5, "tx": -0.4, "hx": 0.45, "ax": 0.45, "az": 0.22, "ex": -0.5, "wx": 0.0, "lx": 0.22, "lz": 0.08, "kx": -0.4}
+		"rear":   # ezme öncesi: geriye yaylanır, iki kol başın üstünde
+			return {"hy": 4.7, "tx": 0.3, "hx": 0.1, "ax": 2.7, "az": 0.35, "ex": -0.5, "wx": 0.0, "lx": 0.0, "lz": 0.12, "kx": 0.0}
+		"roar":   # kükreme: bacaklar açık, gövde öne, kollar geride gergin, baş ileri
+			return {"hy": 4.35, "tx": -0.7, "hx": 0.55, "ax": -0.5, "az": 0.5, "ex": -0.6, "wx": 0.0, "lx": 0.45, "lz": 0.2, "kx": -0.75}
+		"sweep":   # tek el süpürme: alçak, öne yatık, bacaklar açık
+			return {"hy": 3.3, "tx": -1.0, "hx": 1.0, "ax": 0.3, "az": 0.3, "ex": -0.2, "wx": 0.0, "lx": 0.75, "lz": 0.35, "kx": -1.5}
 		"ritual":   # Akatsuki mühür töreni: prangalı eller göğsün önünde, avuçlar açık, parmaklar yukarı (üyeler uçlarında durur)
 			return {"hy": 4.7, "tx": 0.0, "hx": 0.12, "ax": 0.6, "az": 0.2, "ex": 1.07, "wx": 1.23, "lx": 0.0, "lz": 0.05, "kx": 0.0}
 		_:   # crouch: Hanzō savaşındaki dört ayak üstü çömelme — gövde öne eğik, eller yerde, baş kalkık
@@ -321,16 +333,20 @@ func _pose(nm: String) -> Dictionary:
 
 
 func _apply(p: Dictionary) -> void:
-	hips.position.y = p["hy"]
+	hips.position.y = p["hy"] + float(gait.get("hy", 0.0))
 	torso.rotation.x = p["tx"]
+	torso.rotation.z = float(gait.get("roll", 0.0))
+	torso.rotation.y = float(gait.get("twist", 0.0))
 	head.rotation.x = p["hx"] + head_pitch
 	for a in arms:
-		a["sh"].rotation = Vector3(p["ax"], 0, -a["side"] * -p["az"])
-		a["el"].rotation = Vector3(p["ex"], 0, -a["side"] * float(p.get("ez", 0.0)))
+		var sd = "R" if a["side"] > 0.0 else "L"
+		a["sh"].rotation = Vector3(p["ax"] + float(gait.get("a" + sd, 0.0)), 0, -a["side"] * -(p["az"] + float(gait.get("z" + sd, 0.0))))
+		a["el"].rotation = Vector3(p["ex"] + float(gait.get("e" + sd, 0.0)), 0, -a["side"] * float(p.get("ez", 0.0)))
 		a["wr"].rotation.x = p["wx"]
 	for l in legs:
-		l["hip"].rotation = Vector3(p["lx"], 0, l["side"] * p["lz"])
-		l["kn"].rotation.x = p["kx"]
+		var sl = "R" if l["side"] > 0.0 else "L"
+		l["hip"].rotation = Vector3(p["lx"] + float(gait.get("l" + sl, 0.0)), 0, l["side"] * p["lz"])
+		l["kn"].rotation.x = p["kx"] + float(gait.get("k" + sl, 0.0))
 
 
 ## On parmak ucu (dünya konumu): sıra sol elden sağ ele; Akatsuki mühür töreninde üyeler bunların üstünde durur
@@ -403,3 +419,34 @@ func chest_pos() -> Vector3:
 
 func height_top() -> float:
 	return H
+
+
+## Kafanın tepesi (dünya): binici burada durur
+func head_top() -> Vector3:
+	if _head_top_l == Vector3.INF:   # kafa ağının kendi köşelerinden: ortadaki sütunun en üst yüzeyi (ayaklar tam kubbeye basar)
+		_head_top_l = Summon.head_top_of(head)
+		if _head_top_l == Vector3.INF:
+			_head_top_l = Vector3(0, 1.62, 0.08)
+	return head.global_transform * _head_top_l
+
+
+## Ayak tabanı (dünya): side < 0 sol, > 0 sağ
+func foot_pos(side: float) -> Vector3:
+	for l in legs:
+		if signf(l["side"]) == signf(side):
+			return (l["kn"] as Node3D).global_transform * Vector3(0, -2.4, -0.4)
+	return global_position
+
+
+## Ayak tabanlarının (topuk + parmak ucu, iki ayak) dünya noktaları: yere oturtma için
+func sole_points() -> Array:
+	var out := []
+	for l in legs:
+		var xf: Transform3D = (l["kn"] as Node3D).global_transform
+		out.append(xf * Vector3(0, -2.46, 0.05))
+		out.append(xf * Vector3(0, -2.44, -0.88))
+	return out
+
+
+func forward() -> Vector3:
+	return Vector3(-sin(rotation.y), 0, -cos(rotation.y))

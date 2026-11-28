@@ -534,6 +534,8 @@ func _route(e: InputEvent) -> void:
 		return
 	elif e.is_action_pressed("interact") and TailedBeasts.ride_toggle(player):
 		pass   # Mangekyō ile çağrılmış canavara bin / in
+	elif e.is_action_pressed("interact") and LazyFx.g("GedoWalker").ride_toggle(player):
+		pass   # çağırdığın Gedō Mazō'nun kafasına bin / in
 	elif e.is_action_pressed("interact"):
 		var it = Interact.nearest(player.global_position)
 		# önce yerdeki dōjutsu sahibinin gözleri (yakındaki etkileşimler F'yi yutuyordu)
@@ -547,6 +549,8 @@ func _route(e: InputEvent) -> void:
 			ey._take_cells(ey.cell_target)
 		elif corpse:
 			corpse.catch()
+		elif LazyFx.g("SixPaths").corpse_target != null and is_instance_valid(LazyFx.g("SixPaths").corpse_target):
+			LazyFx.g("SixPaths").take(LazyFx.g("SixPaths").corpse_target)   # Rinnegan: cesede kara alıcı sapla (Pein bedeni)
 		elif qn != null:
 			qn.talk()
 		elif not it.is_empty():
@@ -852,7 +856,11 @@ func _music_state() -> String:
 	if it and it.inside != "":
 		if it.inside in ["rogue_hideout", "akatsuki_cave", "lair_cave", "lair_lab", "snake_lab"]:
 			return "magara"
-		return "dukkan"   # dükkân, ramenci, çay evi, ev içi (2026-11-27 kullanıcı: Konohamaru / Afternoon of Konoha)
+		# dükkân müziği (Konohamaru / Fooling Mode / Afternoon of Konoha) YALNIZ dükkânlarda (2026-11-28 kullanıcı: "dükkanlar
+		# dışında çalmasın"): ev, akademi, Kage odası, hastane, salon gibi yerlerde köyün sakin müziği
+		if it.inside in ["ramen", "weapon_shop", "pharmacy", "tailor", "scrolls", "bbq", "teahouse", "inn", "shop", "dango", "bookstore"]:
+			return "dukkan"
+		return "koy"
 	var p = player.global_position
 	var vid := ""
 	var vg := 0

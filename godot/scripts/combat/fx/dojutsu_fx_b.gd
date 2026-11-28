@@ -1322,6 +1322,9 @@ static func _stone_crust(host: Node, c: Node3D) -> void:
 ## Çağıranın elinden kara alıcılar yay çizerek cesetlere uçar ve saplanır; beden kalkarken ayağının altında Rinnegan
 ## dalgası açılır, yukarı doğru ince mor çakra iplikleri gerilir (kukla ipleri).
 static func pein_rikudo(pj: PathJutsu, c: Node3D, _t: Node3D) -> void:
+	if c is Player:   # oyuncu: arşivinden yollara atadığı bedenleri çağırır (SixPaths); NPC yakındaki cesetleri kaldırır
+		LazyFx.g("SixPaths").player_cast(pj, c)
+		return
 	pj.busy(c, 1.2)
 	var now = Time.get_ticks_msec() / 1000.0
 	var bodies: Array = []
@@ -1345,9 +1348,11 @@ static func pein_rikudo(pj: PathJutsu, c: Node3D, _t: Node3D) -> void:
 				return
 			var p: Vector3 = pj.gp(f["pos"])
 			var e = Enemy.new()
-			e.setup(f["arch"])
+			var pth: String = LazyFx.g("SixPaths").PATHS[i % 6]   # her beden tek bir yol (oyuncuyla aynı: yolun teknikleri)
+			e.setup(LazyFx.g("SixPaths").path_arch(f["arch"], pth))
 			e.team = c.team
 			e.set_meta("respawn", false)
+			e.set_meta("pain_path", pth)
 			if c is Player:
 				e.set_meta("teammate", true)
 			host.add_child(e)
@@ -1568,7 +1573,13 @@ static func kuchiyose_gedo_mazo(pj: PathJutsu, c: Node3D, _t: Node3D) -> void:
 	g.add_to_group("gedo_mazo")
 	g.set_meta("owner_f", c)
 	g.set_pose("rise", 0.0)
-	_fissure(host, at, 30.0, 14.0)
+	_fissure(host, at, 52.0, 16.0)
+	_upheaval(host, at, 24.0, 14, 34.0)   # toprak plakaları kabarıp dışa devrilir: heykel yeri yararak çıkar
+	pj.every(2.2, 0.18, func(_i, _k):   # yarıktan fışkıran kaya ve toprak
+		var ang0 = randf() * TAU
+		var dv0 = Vector3(cos(ang0), 0, sin(ang0))
+		_chunks(host, at + dv0 * randf_range(6.0, 22.0) + Vector3.UP * 1.0, at.y, 7, 26.0, 2.2, EARTH, 2.2)
+		pj.shake(0.5))
 	pj.every(2.4, 0.4, func(_i, _k):
 		for k in 12:
 			var ang = TAU * k / 12.0 + randf() * 0.3
@@ -1621,7 +1632,8 @@ static func kuchiyose_gedo_mazo(pj: PathJutsu, c: Node3D, _t: Node3D) -> void:
 			host.add_child(rod)
 			rod.visible = false
 			rods.append(rod)
-	var DUR = 16.0
+	var DUR = 40.0   # yürüyen heykel: süreyi asıl yaşam gücü bedeli belirler (can %12'ye inince çözülür)
+	LazyFx.g("GedoWalker").attach(g, c, pj, 3.4)   # çöküşten sonra ayağa kalkar: yürür, ezer, kükrer; çağıran [F] ile kafasına biner
 	var dragon_cd = [3.0]
 	var t0 = [0.0]
 	var drained = [false]
@@ -1647,7 +1659,7 @@ static func kuchiyose_gedo_mazo(pj: PathJutsu, c: Node3D, _t: Node3D) -> void:
 				var mid = a0.lerp(src, 0.5) + Vector3.UP * (3.0 + k)
 				var b0 = a0.lerp(mid, 0.5)
 				var L = a0.distance_to(src)
-				rod.visible = true
+				rod.visible = not c.has_meta("gedo_ride")   # kafasındayken alıcılar görünmez (göğüsten kafaya uzanan direk gibi duruyordu)
 				rod.global_position = (a0 + b0) * 0.5 + (src - a0) * 0.25
 				rod.look_at(rod.global_position + (src - a0), Vector3.UP if absf((src - a0).normalized().y) < 0.95 else Vector3.RIGHT)
 				rod.rotate_object_local(Vector3.RIGHT, PI * 0.5)
@@ -1661,8 +1673,9 @@ static func kuchiyose_gedo_mazo(pj: PathJutsu, c: Node3D, _t: Node3D) -> void:
 		dragon_cd[0] -= dt
 		if t0[0] > 2.8 and dragon_cd[0] <= 0.0:
 			dragon_cd[0] = 1.7
-			var foes = pj.enemies_near(c, c.global_position, 75.0)
-			foes.sort_custom(func(x, y): return x.global_position.distance_to(c.global_position) < y.global_position.distance_to(c.global_position))
+			var ctr: Vector3 = g.global_position if c.has_meta("gedo_ride") else c.global_position   # kafasındaysan (90 m yukarıda) heykelin çevresi
+			var foes = pj.enemies_near(c, ctr, 110.0 if c.has_meta("gedo_ride") else 75.0)
+			foes.sort_custom(func(x, y): return x.global_position.distance_to(ctr) < y.global_position.distance_to(ctr))
 			for k in mini(2, foes.size()):
 				_gm_dragon(pj, c, g, foes[k])
 		return false
@@ -1677,6 +1690,8 @@ static func kuchiyose_gedo_mazo(pj: PathJutsu, c: Node3D, _t: Node3D) -> void:
 		Interact.add(rev)
 		Hud.msg("Gedō Mazō'nun dokuz gözü de açık. Heykelin dibinde [F]: On Kuyruk'u dirilt.", Color(0.85, 0.7, 1.0), 6.0)
 	proc.timeout.connect(func():
+		if not rev.is_empty() and is_instance_valid(g):
+			rev["pos"] = g.global_position   # heykel yürür: diriltme noktası onunla gider
 		if tick.call(0.05):
 			proc.stop()
 			if not rev.is_empty():
@@ -1706,6 +1721,30 @@ static func _fissure(host: Node, pos: Vector3, r: float, life: float) -> void:
 	tw.tween_interval(life)
 	tw.tween_method(_pf(mi, "fade"), 1.0, 0.0, 1.2)
 	tw.tween_callback(mi.queue_free)
+
+
+## Yer kabarması: çukurun çevresinde toprak / kaya plakaları yerden kalkıp dışa devrilir, life sn sonra geri gömülür
+static func _upheaval(host: Node, at: Vector3, R: float, n: int, life: float) -> void:
+	for i in n:
+		var ang = TAU * i / float(n) + randf_range(-0.15, 0.15)
+		var dv = Vector3(cos(ang), 0, sin(ang))
+		var rr = R * randf_range(0.75, 1.25)
+		var base: Vector3 = Game.jutsu_floor_at(at + dv * rr)
+		var mi = _gi(_rock(i % 4, EARTH.darkened(float(i % 3) * 0.12)), null)
+		_put(host, mi, base - Vector3.UP * 9.0)
+		var sz = randf_range(7.0, 12.0)
+		mi.scale = Vector3(sz * randf_range(0.9, 1.4), sz * 0.55, sz)
+		mi.rotation = Vector3(0, -ang + PI * 0.5 + randf_range(-0.3, 0.3), 0)
+		var tilt = randf_range(0.5, 0.95)
+		var tw = mi.create_tween()
+		tw.tween_interval(randf_range(0.0, 0.5))
+		tw.tween_property(mi, "global_position", base + Vector3.UP * sz * 0.12, 0.55).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tw.parallel().tween_method(func(k: float):
+			if is_instance_valid(mi):
+				mi.transform.basis = Basis(dv.cross(Vector3.UP).normalized(), -tilt * k) * Basis(Vector3.UP, mi.rotation.y).scaled(mi.scale), 0.0, 1.0, 0.55)
+		tw.tween_interval(life)
+		tw.tween_property(mi, "global_position", base - Vector3.UP * 10.0, 1.4).set_ease(Tween.EASE_IN)
+		tw.tween_callback(mi.queue_free)
 
 
 ## Yaşam gücü bedeli: sırttan kara-kızıl damlalar süzülür

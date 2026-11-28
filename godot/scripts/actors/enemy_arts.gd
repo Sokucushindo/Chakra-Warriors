@@ -84,7 +84,7 @@ static func tick(e: Enemy, dt: float) -> void:
 				Combat.hit_sphere(e, e.global_position + Vector3.UP, 3.5, {"dmg": 14.0 * e.power, "knock": 16.0, "launch": 5.0, "kind": "heavy", "dir": dir})
 				e.set_meta("ea_cd", randf_range(8.0, 11.0))
 		6:   # Rinnegan Tendō (oyuncuyla aynı çekirdek ve aynı 5 sn dolum): yakında Shinra Tensei, uzakta Banshō Ten'in
-			if Jutsu.tendo_wait(e) <= 0.0:
+			if Jutsu.tendo_wait(e) <= 0.0 and String(e.get_meta("pain_path", "tendo")) == "tendo":   # Pein bedeni: yalnız Tendō iter / çeker
 				if d < 8.0:
 					Combat.popup_text(e.global_position + Vector3.UP * 2.6, "Shinra Tensei!", Color(0.85, 0.97, 0.9))
 					Jutsu.j_shinra_tensei(e, t)
