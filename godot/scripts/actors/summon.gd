@@ -164,7 +164,7 @@ func say(text: String, dur := 3.0) -> void:
 		bubble.no_depth_test = true
 		add_child(bubble)
 	bubble.position = Vector3(0, height * 1.15 + 0.6, 0)
-	bubble.text = "%s: %s" % [String(def.get("name", "")).split(" ")[-1], text]
+	bubble.text = "%s: %s" % [String(def.get("name", "")).split(" ")[-1], Lang.t(text)]   # Label3D kendisi çevirmez: çağrılar İngilizcede Türkçe konuşuyordu
 	bubble.visible = true
 	bubble_t = dur
 

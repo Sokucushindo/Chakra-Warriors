@@ -1508,6 +1508,10 @@ func setup(l: Dictionary) -> void:
 		_stg_begin()
 	look = default_look()
 	look.merge(l, true)
+	if SetEl.has(look.get("set_id")):
+		# elle modellenmiş set kendi yeleğini kurar: görünüşte kalan eski yelek rengi (klan mensubu, eski kayıt) boyalı yelek
+		# kabuğunu, yakasını, ceplerini ve bel bezini de çizdiriyordu -> NPC'de iki renkli iç içe yelek
+		look["vest"] = null
 	Aging.apply_look(look)   # yaş: evre, ağaran saç, solan ten (look "years" varsa)
 	settle_hair(look)
 	if look.get("face_style") == null and look.get("mask") != null:
@@ -2106,7 +2110,8 @@ func _paint_body() -> void:
 	cloth_shell_mat = shell_mat
 	_add_shell(_shell_cache[key], shell_mat)
 	var vest_mat = null
-	if look["vest"] != null:
+	# elle modellenmiş setin kendi yeleği var: eski boyalı yelek kabuğu altından taşıp lekeli iki ton yapıyordu (köy chūninleri)
+	if look["vest"] != null and not SetEl.has(look.get("set_id")):
 		vest_mat = _cloth_mat(2)
 		_add_shell(_shell_cache[key + "|vest"], vest_mat)
 		if int(look.get("vest_style", 0)) in [0, 1, 2, 3, 4, 12, 13, 14]:
