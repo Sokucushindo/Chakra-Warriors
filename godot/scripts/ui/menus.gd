@@ -2269,7 +2269,7 @@ static func settings(back: Callable) -> void:
 			toggle.call(g, "Gölgeler", "shadows", true)
 			choose.call(g, "Kenar yumuşatma", "aa", [0, 1, 2, 3], ["Kapalı", "FXAA", "MSAA 2x", "MSAA 4x"], 2)
 			toggle.call(g, "Ortam gölgesi (SSAO)", "ssao", true)
-			var rs := [0.5, 0.6, 0.7, 0.75, 0.8, 0.9, 1.0]
+			var rs := [0.3, 0.4, 0.5, 0.6, 0.7, 0.75, 0.8, 0.9, 1.0]
 			var ri = rs.find(snappedf(float(s.get("res_scale", 1.0)), 0.05))
 			ri = rs.size() - 1 if ri < 0 else ri
 			dirty.call(pick.call(g, "Çözünürlük ölçeği", "%d%%" % roundi(rs[ri] * 100.0), func(d): s["res_scale"] = rs[clampi(ri + d, 0, rs.size() - 1)], false, Vector2i(ri, rs.size())), ["res_scale"])
@@ -2287,6 +2287,9 @@ static func settings(back: Callable) -> void:
 			var fl: Array = Game.FPS_LIMITS
 			choose.call(f, "FPS sınırı", "max_fps", fl, fl.map(func(x): return "Sınırsız" if x == 0 else str(x)), 0)
 			toggle.call(f, "FPS göster", "show_fps", false)
+			if TouchControls.on:
+				toggle.call(f, "Çok çekirdek (deneysel)", "mc_mobile", false)
+				note.call(f, "Karakterleri birden çok işlemci çekirdeğinde günceller; kalabalık yerlerde FPS artabilir. Oyunu yeniden başlatınca geçerli olur. Oyun çökerse bir sonraki açılışta kendiliğinden kapanır.")
 			if not OS.has_feature("mobile"):
 				toggle.call(f, "Çok çekirdekli çizim (deneysel)", "render_thread", false)
 				note.call(f, "Çizimi ayrı işlemci çekirdeğinde yapar; kalabalık savaşlarda FPS artar. Oyunu yeniden başlatınca geçerli olur. Çökme ya da görüntü bozulması olursa kapat.")

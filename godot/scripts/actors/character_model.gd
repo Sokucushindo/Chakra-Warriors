@@ -14070,7 +14070,7 @@ var _thr_block := false   # altında betikli, işleyen düğüm var: bu model an
 var _thr_age := 0
 func _thr_update() -> void:
 	_thr_age += 1
-	var want: bool = _thr_age > 6 and _vh_wait.is_empty() and not _thr_block and not (get_parent() is Player) and bool(Game.settings.get("multicore", true)) and not _thr_mobile
+	var want: bool = _thr_age > 6 and _vh_wait.is_empty() and not _thr_block and not (get_parent() is Player) and bool(Game.settings.get("multicore", true)) and (not _thr_mobile or bool(Game.settings.get("mc_mobile", false)))
 	if want and _thr_on and _thr_age % 12 == 0:   # ~1,5 sn'de bir: sonradan iliştirilen betikli düğümler ana iş parçacığına
 		Game.call_deferred_thread_group("model_thread_scan", self)
 	if want != _thr_on:

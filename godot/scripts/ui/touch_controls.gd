@@ -46,6 +46,8 @@ func _ready() -> void:
 	DisplayServer.screen_set_keep_on(true)
 	if not FileAccess.file_exists(Game.SETTINGS_PATH) and OS.get_environment("TOUCH_TEST") == "":
 		_mobile_defaults()
+	_mobile_tune()
+	_mc_guard_boot()
 
 
 ## İlk açılış (ayar dosyası yok): telefona uygun grafik — Patates kademesi (çimen, gölge, çizgi yok, yarı çözünürlük, kısa görüş),
@@ -57,6 +59,59 @@ func _mobile_defaults() -> void:
 	s["ui_scale"] = 1.15
 	Game.save_settings()
 	Game.apply_graphics()
+
+
+## Bir kerelik hafifletme (v0.512.0; önceki sürümü kurmuş telefonlar da alır): en düşük kademedeyse iç çözünürlük %40, görüş kısa.
+## Oyuncu sonra Ayarlar'dan yükseltirse dokunulmaz.
+func _mobile_tune() -> void:
+	var s = Game.settings
+	if int(s.get("mobile_tune", 0)) >= 2 or OS.get_environment("TOUCH_TEST") != "":
+		return
+	s["mobile_tune"] = 2
+	if bool(s.get("potato", false)):
+		s["res_scale"] = 0.4
+		s["view"] = 0.3
+	Game.save_settings()
+	Game.apply_graphics()
+
+
+## Çok çekirdek telefonda deneysel: açıkken oyun çökerse bir sonraki açılışta kendiliğinden kapanır. Açılışta işaret dosyası
+## yazılır, oyun içinde 90 sn sorunsuz geçince silinir; açılışta dosya duruyorsa önceki oturum yarıda kalmış demektir.
+const MC_FLAG := "user://mc_try.flag"
+var _mc_ok_t := -1.0
+func _mc_guard_boot() -> void:
+	var s = Game.settings
+	if not bool(s.get("mc_mobile", false)):
+		if FileAccess.file_exists(MC_FLAG):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(MC_FLAG))
+		return
+	if FileAccess.file_exists(MC_FLAG):
+		s["mc_mobile"] = false
+		Game.save_settings()
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(MC_FLAG))
+		return
+	var f = FileAccess.open(MC_FLAG, FileAccess.WRITE)
+	if f:
+		f.store_string("1")
+		f.close()
+	_mc_ok_t = 90.0
+
+
+func _mc_guard_tick(dt: float) -> void:
+	if _mc_ok_t < 0.0:
+		if _mc_ok_t > -2.0 and bool(Game.settings.get("mc_mobile", false)):   # ayarlardan yeni açıldı: koruma bu oturumda da kurulur
+			var f = FileAccess.open(MC_FLAG, FileAccess.WRITE)
+			if f:
+				f.store_string("1")
+				f.close()
+			_mc_ok_t = 90.0
+		return
+	if Game.player == null or get_tree().paused:
+		return
+	_mc_ok_t -= dt
+	if _mc_ok_t <= 0.0:
+		_mc_ok_t = -5.0
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(MC_FLAG))
 
 
 func _st(k: String, d):
@@ -213,6 +268,7 @@ func _release_all() -> void:
 
 
 func _process(_dt: float) -> void:
+	_mc_guard_tick(_dt)
 	var act := _active()
 	# oyun sırasında dokunuş fareye çevrilmez (sağa dokunmak saldırı tıklaması olmasın); menüde çevrilir (tıklanabilir)
 	Input.emulate_mouse_from_touch = not act

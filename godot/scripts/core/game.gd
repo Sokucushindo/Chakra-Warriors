@@ -27,6 +27,7 @@ var settings := {
 	"look": 2,   # görünüm sürümü: 2 = yumuşak filtre kapalı + hafif doygun renk (eski kayıtlarda bir kez uygulanır)
 	"aa": 2, "ssao": true, "res_scale": 1.0, "grass": 3, "crowd": 2, "potato": false,
 	# dokunmatik (Android): düğme boyutu / saydamlığı, kamera kaydırma hassasiyeti, joystick ucunda koşu, titreşim, solak düzen
+	"mc_mobile": false, "mobile_tune": 0,   # telefon: çok çekirdek (deneysel, isteğe bağlı); bir kerelik hafifletme sürümü
 	"touch_size": 1.0, "touch_alpha": 0.6, "touch_sens": 1.0, "touch_run": true, "touch_vibe": true, "touch_left": false,
 }
 var profile: Dictionary = {}
@@ -120,6 +121,7 @@ func run_main(c: Callable) -> void:
 
 
 var _crowd_t := 0.0
+var _phone := OS.has_feature("mobile") or OS.has_feature("android") or OS.get_environment("PHONE_SIM") != ""
 func _crowd_rate(dt: float) -> void:
 	_crowd_t -= dt
 	if _crowd_t > 0.0:
@@ -128,6 +130,11 @@ func _crowd_rate(dt: float) -> void:
 	var fps := Engine.get_frames_per_second()
 	var crowd: bool = Enemy._crowd_n >= 14 and Engine.get_physics_frames() - Enemy._crowd_pf < 30
 	var cur := Engine.physics_ticks_per_second
+	# telefon: kare hızı 30'a sınırlıyken (ya da zaten 34'ün altındaysa) fizik 60 adım atarsa her karede iki kez boşa hesaplar
+	if _phone and ((int(settings.get("max_fps", 0)) > 0 and int(settings.get("max_fps", 0)) <= 30) or fps < 34.0):
+		if cur != 30:
+			Engine.physics_ticks_per_second = 30
+		return
 	if cur == 60 and crowd and fps < 45.0:
 		Engine.physics_ticks_per_second = 30
 	elif cur == 30 and (not crowd or fps > 57.0):
@@ -1133,7 +1140,7 @@ func apply_graphics() -> void:
 		grass.visible = gl > 0
 		if grass.get("mat") and gl > 0:
 			grass.mat.set_shader_parameter("radius", [30.0, 30.0, 42.0, 58.0][gl])
-	npc_scale = [0.45, 0.8, 1.2][clampi(int(settings.get("crowd", q)), 0, 2)] * (0.6 if bool(settings.get("potato", false)) else 1.0)   # kalabalık: büyük köyde Az 16, Orta 28, Kalabalık 43 kişi (hemen uygulanır)
+	npc_scale = [0.45, 0.8, 1.2][clampi(int(settings.get("crowd", q)), 0, 2)] * (0.6 if bool(settings.get("potato", false)) else 1.0) * (0.7 if _phone else 1.0)   # kalabalık: büyük köyde Az 16, Orta 28, Kalabalık 43 kişi (hemen uygulanır)
 
 
 var npc_scale := 1.0

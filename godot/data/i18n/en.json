@@ -6215,6 +6215,8 @@
 "Kaçak! Alnındaki çizik her şeyi anlatıyor. Teslim ol!": "Fugitive! The scratch on your forehead says it all. Surrender!",
 "Kaçak! Durdurun onu!": "A rogue! Stop them!",
 "Kaçak ninja! Yakalayın!": "A rogue ninja! Seize them!",
+"Çok çekirdek (deneysel)": "Multi-core (experimental)",
+"Karakterleri birden çok işlemci çekirdeğinde günceller; kalabalık yerlerde FPS artabilir. Oyunu yeniden başlatınca geçerli olur. Oyun çökerse bir sonraki açılışta kendiliğinden kapanır.": "Updates characters on several CPU cores; FPS may improve in crowded places. Takes effect after restarting the game. If the game crashes it turns itself off on the next launch.",
 "Kaçakken antrenman başka: kimse seni izlemiyor, kimse de düzeltmiyor. Hatan seni ilk kavgada öldürür.": "Training as a rogue is different: no one watches you, no one corrects you. Your mistakes will kill you in your first fight.",
 "Kaçakken para nefes gibidir. Sağ ol... bunu hatırlayacağım.": "When you're a rogue, money is like air. Thank you... I'll remember this.",
 "Kaçaklar için iş hep vardır.": "There's always work for rogues.",
