@@ -269,6 +269,10 @@ func _release_all() -> void:
 
 func _process(_dt: float) -> void:
 	_mc_guard_tick(_dt)
+	# çok çekirdek: karakter modeli telefonda kapalı tutar; ayar açıksa (ve koruma izin veriyorsa) burada serbest bırakılır
+	var block := not bool(Game.settings.get("mc_mobile", false))
+	if CharacterModel._thr_mobile != block:
+		CharacterModel._thr_mobile = block
 	var act := _active()
 	# oyun sırasında dokunuş fareye çevrilmez (sağa dokunmak saldırı tıklaması olmasın); menüde çevrilir (tıklanabilir)
 	Input.emulate_mouse_from_touch = not act
