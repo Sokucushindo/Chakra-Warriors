@@ -166,13 +166,26 @@ static func make_ext(sk: Skeleton3D, root_bone: int, defs: Array) -> Dangle:
 	return d
 
 
+## Süresi dolan esintiler yalnız yeni esinti eklenirken (ana iş parçacığı) ayıklanır: step() listeyi YALNIZ okur — modeller
+## ayrı iş parçacıklarında işlerken ortak listeyi değiştirmek çökertiyordu.
+static func _gust_prune() -> void:
+	var now := Time.get_ticks_msec() / 1000.0
+	var keep: Array = []
+	for g in _gusts:
+		if now < g[3]:
+			keep.append(g)
+	_gusts = keep
+
+
 ## Ani esinti (Fūton, patlama): yarıçap içindeki tüm sarkan parçalara itme
 static func gust(pos: Vector3, push: Vector3, radius: float, dur := 0.6) -> void:
+	_gust_prune()
 	_gusts.append([pos, push, radius, Time.get_ticks_msec() / 1000.0 + dur, 0.0])
 
 
 ## Patlama: merkezden dışa itme
 static func blast(pos: Vector3, strength: float, radius: float, dur := 0.35) -> void:
+	_gust_prune()
 	_gusts.append([pos, Vector3.ZERO, radius, Time.get_ticks_msec() / 1000.0 + dur, strength])
 
 
@@ -216,18 +229,16 @@ func step(dt: float, cols: Array) -> void:
 	var sc = xf.basis.get_scale().x
 	var now = Time.get_ticks_msec() / 1000.0
 	var ext = wind
-	if not _gusts.is_empty():
-		var keep = []
-		for g in _gusts:
+	var gl: Array = _gusts
+	if not gl.is_empty():
+		for g in gl:
 			if now < g[3]:
-				keep.append(g)
 				var dv = xf.origin - (g[0] as Vector3)
 				var dd = dv.length()
 				if dd < g[2]:
 					ext += (g[1] as Vector3) * (1.0 - dd / g[2])
 					if g[4] > 0.0 and dd > 0.01:
 						ext += dv / dd * float(g[4]) * (1.0 - dd / g[2])
-		_gusts = keep
 	for ci in chains.size():
 		var ch: Dictionary = chains[ci]
 		var rest: PackedVector3Array = ch["rest"]

@@ -546,6 +546,11 @@ func lose_target(t: float) -> void:
 	target = null
 
 
+static var _crowd_pf := 0
+static var _crowd_n := 0
+static var _crowd_acc := 0
+var _ai_skip := false
+var _leap_i := 0
 func _physics_process(dt: float) -> void:
 	if Game.paused or dead:
 		if dead:
@@ -563,6 +568,24 @@ func _physics_process(dt: float) -> void:
 	var far = pl == null or global_position.distance_to(pl.global_position) > 170.0
 	if far:
 		return
+	# kalabalık savaş (2026-11-27): 14+ dövüşçü ve kare hızı 40'ın altındayken, kovalayan / bekleyen ve oyuncuyla yüz yüze
+	# olmayan dövüşçünün kararı saniyede 30 kez işler (aradaki karede yalnız son hızıyla ilerler). Süreler iki katı adımla
+	# sayıldığı için bekleme süreleri, hızlar ve hasar aynı kalır; saldırı / mühür / savrulma her zaman tam hızda.
+	var pf := Engine.get_physics_frames()
+	if pf != _crowd_pf:
+		_crowd_pf = pf
+		_crowd_n = _crowd_acc
+		_crowd_acc = 0
+	_crowd_acc += 1
+	if _crowd_n >= 14 and (state == "chase" or state == "idle") and grounded and Engine.physics_ticks_per_second > 30 and Engine.get_frames_per_second() < 40.0 			and not (target == pl and global_position.distance_squared_to(pl.global_position) < 100.0):
+		_ai_skip = not _ai_skip
+		if _ai_skip:
+			if absf(velocity.x) + absf(velocity.z) > 0.01:
+				global_position += Vector3(velocity.x, 0.0, velocity.z) * dt
+			return
+		dt *= 2.0
+	else:
+		_ai_skip = false
 	tick_status(dt)
 	state_t += dt
 	attack_cd -= dt
@@ -576,7 +599,9 @@ func _physics_process(dt: float) -> void:
 		guard_bar = minf(_guard_max(), guard_bar + dt * 0.5)
 	dodge_cd -= dt
 	blind_t -= dt
-	nameplate.modulate.a = 1.0 if global_position.distance_to(pl.global_position) < 30 else 0.0
+	var npa := 1.0 if global_position.distance_squared_to(pl.global_position) < 900.0 else 0.0
+	if nameplate.modulate.a != npa:
+		nameplate.modulate.a = npa
 	_update_hp_bar(dt, pl)
 	if state != "charge" and _chg_aura != null:   # toplama kesildi (darbe, bağ...)
 		_charge_end()
@@ -655,7 +680,12 @@ func _physics_process(dt: float) -> void:
 						model.play("run" if _is_ninja() else "walk", 0.1, 1.4)
 					velocity.x = hz.normalized().x * 2.0
 					velocity.z = hz.normalized().z * 2.0
-			move_and_slide()
+			# sıçrayış yayı: tırmanmıyorsa iki karede bir çarpışma çözümü (aradaki karede düz ilerler)
+			_leap_i += 1
+			if _climb_on or (_leap_i & 1) == 0:
+				move_and_slide()
+			else:
+				global_position += velocity * dt
 			var g = Game.ground_height(global_position.x, global_position.z)
 			if global_position.y < g:
 				global_position.y = g
@@ -679,7 +709,7 @@ func _physics_process(dt: float) -> void:
 				if fail > 0.0 and randf() < fail:
 					FX.smoke_puff(global_position + Vector3.UP * 1.3 + face_dir() * 0.4, 0.35, 5)
 					Combat.popup_text(global_position + Vector3.UP * (height + 0.5), "Mühür bozuldu!", Color(1, 0.6, 0.4))
-				else:
+				elif is_instance_valid(target):   # hedef mühür sırasında yok olduysa (klon, çağrı) teknik boşa gider
 					Jutsu.execute(self, get_meta("cast_id"), target)
 				model.play("cast_out", 0.05, 1.3, true)
 				state = "recover"
@@ -820,6 +850,8 @@ func _patrol(dt: float) -> void:
 	model.play("walk", 0.2)
 
 
+var _mincost: Array = []
+var _mincost_t := 0.0
 func _chase(dt: float) -> void:
 	if target == null:
 		state = "idle"
@@ -849,7 +881,13 @@ func _chase(dt: float) -> void:
 		return
 	# chakrası biten jutsucu: araya mesafe koyup chakra toplar (oyuncuyla aynı kural); dibindeyse önce geri sıçrar
 	if chg_cd <= 0.0 and _is_ninja() and not has_status("sealed"):
-		var costs = (arch.get("jutsu", []) as Array).filter(func(id): return Data.jutsu.has(id) and not LazyFx.g("Stats").is_taijutsu(Data.jutsu[id])).map(func(id): return jutsu_cost(id))
+		# en ucuz teknik bedeli 2 sn'de bir hesaplanır (eskiden her fizik karesinde tüm liste süzülüp bedeller yeniden çıkarılıyordu:
+		# 30 kişilik savaşta kovalamacanın en pahalı satırı)
+		var nowc = Game.now()
+		if nowc >= _mincost_t:
+			_mincost_t = nowc + 2.0
+			_mincost = (arch.get("jutsu", []) as Array).filter(func(id): return Data.jutsu.has(id) and not LazyFx.g("Stats").is_taijutsu(Data.jutsu[id])).map(func(id): return jutsu_cost(id))
+		var costs: Array = _mincost
 		# kanon: chakrası azalan ninja dövüşün ortasında durup yoğurmaz, taijutsu / aletle sürdürür; toplamayı ancak rakip
 		# uzaktayken (14 m+) ya da yakalanmışken (yerde, sersem, kendi tekniğinde) yapar. Ölçüm (2026-11-16): eskiden rakip
 		# 4 m ötedeyken bile toplayıp dövüşün %16-23'ünü duruyordu.
@@ -964,14 +1002,16 @@ func _chase(dt: float) -> void:
 			dir = Vector3.ZERO   # dünyanın üstündeki katta (Kamui kütlesi, iç mekân) kenardan yarığa yürümez; hedef aşağıda değilse durur
 		step_move(dir * sp, dt, false)
 		model.play("run" if sp > 6 else "walk", 0.15, 1.1)
-		model.rotation.y = facing
+		if model.rotation.y != facing:
+			model.rotation.y = facing
 	elif stop_d >= 4.0 and d < stop_d * 0.55 and state == "chase":
 		# uzakçı tarz (Aburame, Kamizuru, Sabaku, Hōzuki...): rakip dibine girince geri çekilip menzilini açar (animede yakına girmezler)
 		var back = -v.normalized()
 		back.y = 0.0
 		step_move(back * float(arch["speed"]) * 0.8, dt, false)
 		model.play("run", 0.15, 1.1)
-		model.rotation.y = facing
+		if model.rotation.y != facing:
+			model.rotation.y = facing
 	else:
 		step_move(Vector3.ZERO, dt, false)
 		model.play("idle", 0.2)
@@ -1119,7 +1159,7 @@ func _footsteps(_dt: float) -> void:
 var _ledge_t := 0.0
 var _ledge_v := false
 func _ledge_ahead(dir: Vector3) -> bool:
-	if dir.length_squared() < 0.0001 or global_position.y - Game.ground_height(global_position.x, global_position.z) < 30.0:
+	if dir.length_squared() < 0.0001 or global_position.y - _ground_here() < 30.0:
 		return false
 	var now = Game.now()
 	if now < _ledge_t:
@@ -1189,7 +1229,21 @@ func _update_drawn(dt: float) -> void:
 			model.set_drawn(false, seen)
 
 
+var _kid_c := ""
+var _kid_t := -1.0
+var _kid_storm := false
+## Dövüş tarzı / silah anahtarı: 0,5 sn önbellekli (her fizik karesinde klan, silah ve soy tabloları taranıyordu)
 func _keyed_id() -> String:
+	var nowk = Game.now()
+	if nowk < _kid_t and _kid_storm == Combat.storm:
+		return _kid_c
+	_kid_t = nowk + 0.5
+	_kid_storm = Combat.storm
+	_kid_c = _keyed_id1()
+	return _kid_c
+
+
+func _keyed_id1() -> String:
 	var k = _keyed_id0()
 	# arena kuralları: silahsız, tarzsız düşman da oyuncunun temel kombosunu (aynı el yapımı hareketler) kullanır
 	if k == "" and Combat.storm and model != null and model.get("overlay") != null and float(arch.get("size", 1.0)) < 2.0 and not arch.has("beast") and look is Dictionary and (look.get("weapon_r") == null or String(look.get("weapon_r", "")) == ""):
@@ -1475,6 +1529,10 @@ func _end_attack() -> void:
 ## Can barı: düşmansa ve (hasar almışsa ya da sana saldırıyorsa) görünür; rengi sana göre tehlikesini söyler
 ## (kırmızı = çok güçlü, turuncu = güçlü, sarı = denk, gri-yeşil = zayıf) — eskiden yalnız boss/olay düşmanlarında bar vardı,
 ## sıradan düşmanın senden 20-100 seviye güçlü olabildiği görünmüyordu
+var _bar_f := -1.0
+var _bar_l := -1.0
+var _bar_ct := 0.0
+var _bar_c := Color(0, 0, 0, 0)
 func _update_hp_bar(dt: float, pl: Node3D) -> void:
 	if hp_bar == null:
 		return
@@ -1485,15 +1543,27 @@ func _update_hp_bar(dt: float, pl: Node3D) -> void:
 		_bar_t = 6.0
 	_bar_t -= dt
 	var show = hostile and not dead and d < 32.0 and _bar_t > 0.0
-	hp_bar.visible = show
+	if hp_bar.visible != show:
+		hp_bar.visible = show
 	if not show:
 		return
 	var f = clampf(hp / maxf(1.0, max_hp), 0.0, 1.0)
 	_hp_lag = maxf(f, lerpf(_hp_lag, f, minf(1.0, dt * 2.5)))
+	# yalnız değişince yazılır; tehlike rengi saniyede bir (her fizik karesinde Güç hesabı + 3 gölgelendirici yazımı yapılıyordu)
 	var m: ShaderMaterial = hp_bar.material_override
-	m.set_shader_parameter("fill", f)
-	m.set_shader_parameter("lag", _hp_lag)
-	m.set_shader_parameter("col", threat_color())
+	if f != _bar_f:
+		_bar_f = f
+		m.set_shader_parameter("fill", f)
+	if _hp_lag != _bar_l:
+		_bar_l = _hp_lag
+		m.set_shader_parameter("lag", _hp_lag)
+	_bar_ct -= dt
+	if _bar_ct <= 0.0:
+		_bar_ct = 1.0
+		var tc := threat_color()
+		if tc != _bar_c:
+			_bar_c = tc
+			m.set_shader_parameter("col", tc)
 
 
 ## Oyuncunun Gücüne göre tehlike rengi (seviye rakamı gösterilmez: ustalık sistemi)

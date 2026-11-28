@@ -27,9 +27,10 @@ static func of(vid: String) -> Dictionary:
 ## Üniforma: koyu giysi + köy renginde zırh yelek + köyün maskesi
 static func look(vid: String, i := 0) -> Dictionary:
 	var u = of(vid)
-	var L = Outfits.roll("anbu", vid)
-	L["top"] = u["cloth"]; L["top2"] = u["cloth"]; L["pants"] = u["cloth"]
-	L["vest"] = u["vest"]
+	var L = Outfits.roll("anbu", vid)   # gerçek ANBU takımı (Outfits.anbu_wear); köyün maskesi aşağıda
+	if not L.has("set_id"):
+		L["top"] = u["cloth"]; L["top2"] = u["cloth"]; L["pants"] = u["cloth"]
+		L["vest"] = u["vest"]
 	L["face_style"] = u["mask"][i % u["mask"].size()]
 	return L
 

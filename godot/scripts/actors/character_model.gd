@@ -1583,6 +1583,9 @@ func setup(l: Dictionary) -> void:
 		rig.left_grip_pos = lr.basis.orthonormalized().inverse() * (_grip_xf("Left").origin - lr.origin)
 	drawn = look.get("drawn", not look.get("npc", false))   # NPC silahı kınında / sırtında taşır; dövüşte çeker
 	_place_weapons()
+	_thr_block = false   # silahlar yeniden kuruldu: betikli silah var mı yeniden bakılır
+	if _thr_live:
+		Game.model_thread_scan(self)
 	_register_forearm_lock()
 	apply_age(look.get("age", "adult"))
 	stance = _stance_for_look()
@@ -10637,6 +10640,9 @@ var _dangle_fr := randi() % 6   # karakterler arasında yük dağılsın
 var _dcol_bones := []   # [kemik, yarıçap, kemik uzayı ofseti]
 var _dcol_n := -1       # küreler kurulurken iskeletin çocuk sayısı (giysi / eşya eklenince yeniden kurulur)
 const DANGLE_RANGE := 24.0
+const DANGLE_BUDGET := 4   # kare başına 4 m dışı sallanma adımı (bkz. _dangle_process)
+static var _dg_frame := -1
+static var _dg_used := 0
 
 # ---- uzun VRoid saçının sallanma paketi arka planda (köylü / düşman)
 static var _vh_job := -1
@@ -10724,8 +10730,11 @@ static func _gb_verts(m: Mesh, si: int) -> PackedVector3Array:
 
 static func _gb_profile(m: Mesh) -> PackedFloat32Array:
 	var id = m.get_instance_id()
-	if _gb_prof.has(id):
-		return _gb_prof[id]
+	_thr_mx.lock()
+	var gc = _gb_prof.get(id)
+	_thr_mx.unlock()
+	if gc != null:
+		return gc
 	var nc = GB_XS.size()
 	var p = PackedFloat32Array()
 	p.resize(GB_ROWS * nc)
@@ -10739,7 +10748,9 @@ static func _gb_profile(m: Mesh) -> PackedFloat32Array:
 			var k = r * nc + c
 			if q.z < p[k]:
 				p[k] = q.z
+	_thr_mx.lock()
 	_gb_prof[id] = p
+	_thr_mx.unlock()
 	return p
 
 
@@ -10818,8 +10829,64 @@ func _garment_back_cols(cover: Array) -> Array:
 	return out
 
 
+var _dcol_req := false
+func _dcol_main() -> void:
+	_dcol_req = false
+	if is_inside_tree() and skel != null:
+		_dcol_rebuild()
+
+
+## Sarkan parçaların çarpacağı gövde / giysi küreleri. Mesh köşelerini ekran kartından okur: YALNIZ ana iş parçacığında
+## (iş parçacığından okuma, ana iş parçacığı o grubu beklerken kilitlenir: 24 silahlı ninja doğarken oyun donuyordu).
+func _dcol_rebuild() -> void:
+	if skel == null:
+		return
+	_dcol_n = skel.get_child_count()
+	_dcol_bones = []
+	var cover = []   # gövde küreleri (model uzayı merkez, yarıçap): giysi küresi bunların örttüğü yere eklenmez
+	# gövde küreleri (model uzayı): kafa, boyun, omurga boyunca göğüs/sırt, kürek kemikleri, omuz, kol, kalça, kaba et, uyluk
+	var hr = maxf(skull_r.x, skull_r.z)
+	var defs = [["Head", hr * 0.95, skull_c], ["Neck", 0.06, null], ["Chest", 0.135, null], ["UpperChest", 0.13, null], ["Hips", 0.14, null]]
+	var uc = skel.find_bone("UpperChest")
+	if uc >= 0:
+		for sx in [-1.0, 1.0]:
+			defs.append(["UpperChest", 0.1, _grest(uc).origin + Vector3(0.085 * sx, 0.02, -0.035)])   # kürek kemiği
+	var hb = skel.find_bone("Hips")
+	for sd in ["Left", "Right"]:
+		var sx = -1.0 if sd == "Left" else 1.0
+		var ua = skel.find_bone(sd + "UpperArm")
+		var la = skel.find_bone(sd + "LowerArm")
+		if ua >= 0:
+			defs.append([sd + "UpperArm", 0.07, null])
+			if la >= 0:
+				defs.append([sd + "UpperArm", 0.055, (_grest(ua).origin + _grest(la).origin) * 0.5])
+				defs.append([sd + "LowerArm", 0.045, null])
+		var ul = skel.find_bone(sd + "UpperLeg")
+		var ll = skel.find_bone(sd + "LowerLeg")
+		if ul >= 0:
+			defs.append([sd + "UpperLeg", 0.09, _grest(ul).origin + Vector3(0, -0.04, -0.03)])   # kaba et
+			if ll >= 0:
+				defs.append([sd + "UpperLeg", 0.08, (_grest(ul).origin + _grest(ll).origin) * 0.5])
+				defs.append([sd + "LowerLeg", 0.065, null])   # diz
+				var ft = skel.find_bone(sd + "Foot")
+				if ft >= 0:
+					defs.append([sd + "LowerLeg", 0.055, (_grest(ll).origin + _grest(ft).origin) * 0.5])   # baldır
+	for e in defs:
+		var bi = skel.find_bone(e[0])
+		if bi < 0:
+			continue
+		var g = _grest(bi)
+		var at = g.origin if e[2] == null else (e[2] as Vector3)
+		if e[2] == null and e[0] in ["Spine", "Chest", "UpperChest"]:
+			at = g.origin + Vector3(0, 0.02, -0.015)
+		_dcol_bones.append([bi, e[1], g.affine_inverse() * at, e[0] in ["Head", "Neck"]])   # kafa/boyun yumuşak: kafa derisine yatık saçı itmez
+		if e[0] in ["Hips", "Spine", "Chest", "UpperChest"]:
+			cover.append([at, float(e[1])])
+	_dcol_bones.append_array(_garment_back_cols(cover))
+
+
 func _dangle_process(dt: float) -> void:
-	if not _vh_wait.is_empty() and skel != null:
+	if not _vh_wait.is_empty() and skel != null and not _thr_live:   # ortak saç kuyruğu: yalnız ana iş parçacığında
 		_vh_poll()
 	if _dangles.is_empty() or skel == null:
 		return
@@ -10836,51 +10903,27 @@ func _dangle_process(dt: float) -> void:
 	var every = 1 if d2 < 16.0 else (2 if d2 < 100.0 else (3 if d2 < 324.0 else 4))   # 4 m içi her kare
 	if _dangle_fr % every != 0:
 		return
+	# kalabalıkta (baskın, 20 kişilik savaş) kare başına uzak karakter bütçesi: 4 m içi her zaman, gerisi sırayla (süre birikir, kaybolmaz)
+	if every > 1:
+		var fr := Engine.get_process_frames()
+		if fr != _dg_frame:
+			_dg_frame = fr
+			_dg_used = 0
+		if _dg_used >= DANGLE_BUDGET:
+			_dangle_fr -= 1   # bir sonraki karede yeniden dene
+			return
+		_dg_used += 1
 	dt = minf(_dangle_acc, 0.05)
 	_dangle_acc = 0.0
 	if _dcol_bones.is_empty() or _dcol_n != skel.get_child_count():   # giysi / sırt eşyası sonradan eklendiyse (kademeli kurulum) yeniden
-		_dcol_n = skel.get_child_count()
-		_dcol_bones = []
-		var cover = []   # gövde küreleri (model uzayı merkez, yarıçap): giysi küresi bunların örttüğü yere eklenmez
-		# gövde küreleri (model uzayı): kafa, boyun, omurga boyunca göğüs/sırt, kürek kemikleri, omuz, kol, kalça, kaba et, uyluk
-		var hr = maxf(skull_r.x, skull_r.z)
-		var defs = [["Head", hr * 0.95, skull_c], ["Neck", 0.06, null], ["Chest", 0.135, null], ["UpperChest", 0.13, null], ["Hips", 0.14, null]]
-		var uc = skel.find_bone("UpperChest")
-		if uc >= 0:
-			for sx in [-1.0, 1.0]:
-				defs.append(["UpperChest", 0.1, _grest(uc).origin + Vector3(0.085 * sx, 0.02, -0.035)])   # kürek kemiği
-		var hb = skel.find_bone("Hips")
-		for sd in ["Left", "Right"]:
-			var sx = -1.0 if sd == "Left" else 1.0
-			var ua = skel.find_bone(sd + "UpperArm")
-			var la = skel.find_bone(sd + "LowerArm")
-			if ua >= 0:
-				defs.append([sd + "UpperArm", 0.07, null])
-				if la >= 0:
-					defs.append([sd + "UpperArm", 0.055, (_grest(ua).origin + _grest(la).origin) * 0.5])
-					defs.append([sd + "LowerArm", 0.045, null])
-			var ul = skel.find_bone(sd + "UpperLeg")
-			var ll = skel.find_bone(sd + "LowerLeg")
-			if ul >= 0:
-				defs.append([sd + "UpperLeg", 0.09, _grest(ul).origin + Vector3(0, -0.04, -0.03)])   # kaba et
-				if ll >= 0:
-					defs.append([sd + "UpperLeg", 0.08, (_grest(ul).origin + _grest(ll).origin) * 0.5])
-					defs.append([sd + "LowerLeg", 0.065, null])   # diz
-					var ft = skel.find_bone(sd + "Foot")
-					if ft >= 0:
-						defs.append([sd + "LowerLeg", 0.055, (_grest(ll).origin + _grest(ft).origin) * 0.5])   # baldır
-		for e in defs:
-			var bi = skel.find_bone(e[0])
-			if bi < 0:
-				continue
-			var g = _grest(bi)
-			var at = g.origin if e[2] == null else (e[2] as Vector3)
-			if e[2] == null and e[0] in ["Spine", "Chest", "UpperChest"]:
-				at = g.origin + Vector3(0, 0.02, -0.015)
-			_dcol_bones.append([bi, e[1], g.affine_inverse() * at, e[0] in ["Head", "Neck"]])   # kafa/boyun yumuşak: kafa derisine yatık saçı itmez
-			if e[0] in ["Hips", "Spine", "Chest", "UpperChest"]:
-				cover.append([at, float(e[1])])
-		_dcol_bones.append_array(_garment_back_cols(cover))
+		if _thr_live:
+			if not _dcol_req:
+				_dcol_req = true
+				Game.call_deferred_thread_group("run_main", _dcol_main)
+			if _dcol_bones.is_empty():
+				return
+		else:
+			_dcol_rebuild()
 	var sxf = skel.global_transform
 	var sc = sxf.basis.get_scale().x
 	var cols = []
@@ -11354,6 +11397,8 @@ func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Nod
 					near_x = -0.045   # sap yarı kalınlığı: çatal kolları AABB'yi büyütüp sapı sırttan uzak tutmasın
 				elif id == "konbo":
 					near_x = -0.05   # sap yarı kalınlığı: dev baş AABB'yi büyütüp sapı sırttan uzak tutmasın
+				elif id in ["gunbai", "uchiha_gunbai"]:
+					near_x = -0.05   # yelpaze yüzü yarı kalınlığı: beldeki ip turları + dipteki halka AABB'yi büyütüp yelpazeyi sırttan uzak tutuyordu (kullanıcı: "arada boşluk var")
 				center.z = bz - pad + near_x + 0.02
 			var mid2 = mid if L > 1.2 else mid * 0.8
 			xf = Transform3D(b, center - b.z * mid2)
@@ -11573,6 +11618,11 @@ static func _reach_pose(kind: String, side: String) -> Array:
 func _weapon_process(dt: float) -> void:
 	if weapons.is_empty() or rig == null:
 		return
+	if _thr_live:   # iş parçacığındaki model: silah boyu burada (ana iş parçacığı) ölçülür
+		for w in weapons:
+			if not w.has("long") and is_instance_valid(w["node"]):
+				var sp0 = _z_span(w["node"])
+				w["long"] = sp0.y - sp0.x > 0.85
 	_update_rope()
 	_update_kchain(dt)
 	_update_shk(dt)
@@ -11585,7 +11635,7 @@ func _weapon_process(dt: float) -> void:
 		if k >= 0.4 and not _swapped:
 			_swapped = true
 			_place_weapons()
-			Sfx.play("whoosh", global_position, 1.6 if drawn else 1.25, 0.35)
+			Sfx.call_deferred_thread_group("play", "whoosh", global_position, 1.6 if drawn else 1.25, 0.35)   # ses havuzu ana iş parçacığında
 		if k >= 1.0:
 			_sheath_t = -1.0
 			rig.reach_w = 0.0
@@ -11619,10 +11669,12 @@ func _wind_air(dt: float) -> void:
 		var xf = n.global_transform
 		var ph = randf() * TAU
 		var r0 = randf_range(0.07, 0.11)
-		LazyFx.g("WindFX").streak(func(k: float) -> Vector3:
-			var a = ph + k * TAU * 1.6
-			var r = r0 * (1.0 - k * 0.6) + k * k * 0.25
-			return xf * Vector3(cos(a) * r, sin(a) * r, lerpf(-0.05, 0.85, k)), randf_range(0.35, 0.5), 0.022, Color(0.85, 1.0, 0.93, 0.75), 0.0, 10)
+		# efekt sahneye eklenir: ana iş parçacığında kurulur (bu işlev model iş parçacığında çalışabilir)
+		Game.call_deferred_thread_group("run_main", func():
+			LazyFx.g("WindFX").streak(func(k: float) -> Vector3:
+				var a = ph + k * TAU * 1.6
+				var r = r0 * (1.0 - k * 0.6) + k * k * 0.25
+				return xf * Vector3(cos(a) * r, sin(a) * r, lerpf(-0.05, 0.85, k)), randf_range(0.35, 0.5), 0.022, Color(0.85, 1.0, 0.93, 0.75), 0.0, 10))
 		return
 
 
@@ -13379,7 +13431,7 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			b.add("cyl", Vector3(0, 0, -0.04), Vector3(0.056, 0.46, 0.056), gripc, Vector3(90, 0, 0), 10)
 			for k in 9:
 				b.add("cyl", Vector3(0, 0, -0.25 + k * 0.052), Vector3(0.064, 0.016, 0.064), gripc.lightened(0.12), Vector3(90, 0, 0), 10)
-			b.add("torus", Vector3(0, 0, p0 - 0.05), Vector3(0.11, 0.11, 0.11), polec, Vector3.ZERO, 14)
+			b.add("torus", Vector3(0, 0, p0 - 0.05), Vector3(0.11, 0.11, 0.11), polec, Vector3(0, 0, 90), 14)   # halka yelpazeyle aynı düzlemde, uçtan sarkar (ref kullanici.png; sapa dik duruyordu)
 		_:
 			b.add("box", Vector3(0, 0, 0.1), Vector3(0.02, 0.03, 0.2), steel)
 	var m = b.build(LazyFx.g("Props").toon())
@@ -13553,6 +13605,13 @@ func set_dojutsu_eyes(kind_r: int, lvl_r: int, kind_l: int, lvl_l: int, veins :=
 		eye_mat.set_shader_parameter("tomoe", lvl_r)
 		eye_mat.set_shader_parameter("dojutsu_l", kind_l)
 		eye_mat.set_shader_parameter("tomoe_l", lvl_l)
+		if not _ms_custom and (kind_r in [4, 5] or kind_l in [4, 5]):
+			# desen verilmemiş (NPC): kişiye özgü tek desen, iki gözde AYNI (2026-11-27, kullanıcı: "iki göz farklı kalıp saçma")
+			var dv: Array = Eyes.design_vecs(Eyes.design_seeded("%s|%s|%s|%s" % [look.get("age_seed", ""), look.get("face_id", ""), look.get("hair_style", ""), look.get("hair", "")]))
+			for sd in ["r", "l"]:
+				eye_mat.set_shader_parameter("ms_%s_a" % sd, dv[0])
+				eye_mat.set_shader_parameter("ms_%s_b" % sd, dv[1])
+				eye_mat.set_shader_parameter("ms_col_%s" % sd, dv[2])
 	if body_mesh:
 		var m = body_mesh.get_surface_override_material(0)
 		if m is ShaderMaterial:
@@ -13588,7 +13647,9 @@ func _set_eye_trails(kind_r: int, kind_l: int) -> void:
 
 
 ## Özel Mangekyō desenleri (Eyes.design_vecs ile)
+var _ms_custom := false   # desen dışarıdan verildi (oyuncu): set_dojutsu_eyes kişiye özgü NPC desenini yazmaz
 func set_ms_designs(right: Dictionary, left: Dictionary) -> void:
+	_ms_custom = _ms_custom or not right.is_empty() or not left.is_empty()
 	# göz ışık izi deseninin rengini alır (sağ göz -1, sol göz +1)
 	for t in _eye_trails:
 		if t is EyeTrail and is_instance_valid(t):
@@ -13635,6 +13696,8 @@ func _rest_tilt(on: bool, dt: float) -> void:
 		if n.get_parent() != w["hand"] or SAYA.has(w["id"]):
 			continue   # katana/wakizashi: ince namlu yüzü kapatmaz; yana yatırma kılıcı yan gösteriyordu
 		if not w.has("long"):
+			if _thr_live:
+				continue   # ölçü ana iş parçacığında alınır (_weapon_process): burada betik yükleme / mesh okuma olmaz
 			var sp = _z_span(n)
 			w["long"] = sp.y - sp.x > 0.85
 		if not w["long"]:
@@ -13785,8 +13848,11 @@ static var _kp_cache := {}
 static func weapon_kp(id: String, node: Node3D) -> Array:
 	if KEY_WEAPON.has(id):
 		return KEY_WEAPON[id]
-	if _kp_cache.has(id):
-		return _kp_cache[id]
+	_thr_mx.lock()   # modeller ayrı iş parçacıklarında işler: ortak önbellek kilitli okunur / yazılır
+	var kc = _kp_cache.get(id)
+	_thr_mx.unlock()
+	if kc != null:
+		return kc
 	var end_z = 0.0
 	var mis: Array = [node] if node is MeshInstance3D else node.find_children("*", "MeshInstance3D", true, false)
 	for mi in mis:
@@ -13795,7 +13861,9 @@ static func weapon_kp(id: String, node: Node3D) -> Array:
 	if end_z <= 0.02:
 		return [0.0, 0.5, 1.8, 2.0]
 	var kp = [0.0, end_z * 0.15, end_z, end_z]
+	_thr_mx.lock()
 	_kp_cache[id] = kp
+	_thr_mx.unlock()
 	return kp
 
 
@@ -13837,6 +13905,18 @@ func _key_blade() -> void:
 			w.erase("trail")
 
 
+func _mk_trail(w: Dictionary) -> void:
+	if not w.has("trail") or w["trail"] != null or not is_inside_tree() or not is_instance_valid(w.get("node")):
+		return
+	var tr = LazyFx.g("SwordTrail").new()
+	tr.node = w["node"]
+	var kp0: Array = weapon_kp(String(w["id"]), w["node"])
+	tr.z0 = kp0[1]
+	tr.z1 = kp0[2]
+	get_tree().current_scene.add_child(tr)
+	w["trail"] = tr
+
+
 ## Anahtar kare animasyonunda (Samehada kombosu) sağ eldeki silah pozdaki "blade" yönüne çevrilir.
 ## İSKELET GÜNCELLEMESİNİN İÇİNDE çağrılır (kol pozu uygulandıktan hemen sonra): bir kare gecikmeyle elden kopmaz.
 ## Yumruk sapın en ucunda (silah sap boyunca kaydırılır); kılıç ucu yere girecekse yerin hemen üstüne kaldırılır.
@@ -13864,13 +13944,9 @@ func _key_blade_sk(sk: Skeleton3D, blade: Vector3) -> void:
 			if not w.has("key_basis0"):
 				w["key_basis0"] = n.transform.basis
 		if not w.has("trail") and is_inside_tree() and not w["id"] in ["ei_yumi", "igne_tufegi", "jidanda", "katoringu", "nunoboko", "flail", "kusari_fubo", "cift_tirpan", "nester", "hono_ken", "fujaku", "chakra_oltasi", "kurosawa", "kokuto", "yumi", "arbalet", "fukiya", "sapan", "kunai_hasshaki"]:   # Kokutō: yansımasız kara ağız — parlak iz yok (KokutoFX koyu gölge çizer)
-			var tr = LazyFx.g("SwordTrail").new()
-			tr.node = n
-			var kp0: Array = weapon_kp(String(w["id"]), n)
-			tr.z0 = kp0[1]
-			tr.z1 = kp0[2]
-			get_tree().current_scene.add_child(tr)
-			w["trail"] = tr
+			# iz düğümü ana iş parçacığında kurulur ve sahneye eklenir (bu işlev model iş parçacığında çalışabilir)
+			w["trail"] = null
+			Game.call_deferred_thread_group("run_main", _mk_trail.bind(w))
 		var kp: Array = weapon_kp(String(w["id"]), n)   # [tutuş kaydırma, iz başı, iz ucu, boy]
 		var grip = float(kp[0]) * sc.z
 		# yer kontrolü (dünya): el + uç * boy yerin altına inmesin
@@ -13981,10 +14057,44 @@ const SKEL_RANGE := 90.0   # bundan uzaktaki / görünmeyen modelin iskelet katm
 var _skel_fr := randi() % 8
 
 
+## ÇOK ÇEKİRDEK (2026-11-27): oyuncu dışındaki her modelin kare işi (duruş katmanları, silah tutuşu, sarkan saç / kumaş,
+## animasyon, iskelet güncellemesi) kendi iş parçacığı grubunda işler; motor bu grupları çekirdeklere dağıtır, ana iş parçacığı
+## hepsi bitene kadar bekler (dövüş mantığı ve fizikle aynı anda çalışmaz). 30 kişilik savaş ~22 -> ~33 FPS.
+## Kural: bu modelin _process'inden ve iskelet katmanlarından erişilen kod yalnız kendi alt düğümlerine dokunur; sahneye
+## ekleme / ses / ortak önbellek yazımı ana iş parçacığına ertelenir ya da _thr_mx ile kilitlenir. Saç işi bekleyen model
+## (kurulum sürüyor) ana iş parçacığında kalır. Ayar: Game.settings["multicore"] (kapalıysa hepsi ana iş parçacığında).
+static var _thr_mx := Mutex.new()
+static var _thr_mobile := OS.has_feature("mobile")   # Android'de denenmedi: orada kapalı
+var _thr_on := false
+var _thr_block := false   # altında betikli, işleyen düğüm var: bu model ana iş parçacığında kalır
+var _thr_age := 0
+func _thr_update() -> void:
+	_thr_age += 1
+	var want: bool = _thr_age > 6 and _vh_wait.is_empty() and not _thr_block and not (get_parent() is Player) and bool(Game.settings.get("multicore", true)) and not _thr_mobile
+	if want and _thr_on and _thr_age % 12 == 0:   # ~1,5 sn'de bir: sonradan iliştirilen betikli düğümler ana iş parçacığına
+		Game.call_deferred_thread_group("model_thread_scan", self)
+	if want != _thr_on:
+		_thr_on = want
+		Game.call_deferred_thread_group("model_thread", self, want)   # grup değişimi ana iş parçacığında, kare sonunda
+
+
+var _thr_live := false   # grup gerçekten iş parçacığında (istek değil, uygulanmış durum)
+func _thr_apply(on: bool) -> void:
+	_thr_live = on
+	if on:
+		if not Game.thr_models.has(self):
+			Game.thr_models.append(self)
+	else:
+		Game.thr_models.erase(self)
+	process_thread_group = Node.PROCESS_THREAD_GROUP_SUB_THREAD if on else Node.PROCESS_THREAD_GROUP_INHERIT
+	process_thread_messages = Node.FLAG_PROCESS_THREAD_MESSAGES if on else 0
+
+
 func _skel_sleep() -> void:
 	_skel_fr += 1
 	if _skel_fr % 8 != 0 or skel == null:
 		return
+	_thr_update()
 	var cam = get_viewport().get_camera_3d()
 	var r = SKEL_RANGE * maxf(1.0, global_transform.basis.get_scale().y)
 	var far = cam != null and (not is_visible_in_tree() or cam.global_position.distance_squared_to(global_position) > r * r)
@@ -14008,7 +14118,8 @@ func _process(dt: float) -> void:
 		if overlay:
 			overlay.time_comp = tc
 	# silah duruşu: beklerken/yürürken silaha göre kollar; saldırı, mühür ve ninja koşusunda kapanır
-	_weapon_process(dt)
+	if not _thr_live:   # model iş parçacığındaysa silah yerleştirme (görünürlük, kın-el geçişi, efekt) ana iş parçacığında: Game.thr_tick
+		_weapon_process(dt)
 	if stance != "" and overlay:
 		var on = drawn and not _stowed and overlay.key_t < 0.0 and current in ["idle", "walk", "jog", "run", "air", "fall", "sword_idle"] and overlay.weights.get("ninja_run", 0.0) < 0.5 and overlay.weights.get("leap", 0.0) < 0.3
 		overlay.set_pose(stance, 1.0 if on else 0.0)

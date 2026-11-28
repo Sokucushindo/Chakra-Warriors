@@ -957,6 +957,8 @@ static func _tobi_build(pts: PackedVector3Array, eye: Vector3, kind := "tobi", e
 ## Dörtgen: n yönüne bakan yüz (Godot ön yüz saat yönü)
 static func _tq(st: SurfaceTool, p0: Vector3, p1: Vector3, p2: Vector3, p3: Vector3, col: Color, n: Vector3) -> void:
 	var fn := (p1 - p0).cross(p2 - p0)
+	if fn.length_squared() < 1e-14:   # kutup karesi (p0 == p1): yön ikinci üçgenden (yoksa kutupta delik kalıyordu)
+		fn = (p2 - p0).cross(p3 - p0)
 	if fn.dot(n) > 0.0:   # saat yönünün tersi -> çevir
 		var t := p1
 		p1 = p3
@@ -1199,7 +1201,7 @@ static func _cap(m, s: String) -> bool:
 		er = e0 if e0.x < e1.x else e1
 		el = e1 if e0.x < e1.x else e0
 	var org := Vector3(hc.x, ec.y, hc.z)
-	var key := "cap7|%s|%s|%.3f|%.3f|%.3f" % [s, m._sk_key, er.x - org.x, er.y - org.y, el.x - org.x]
+	var key := "cap24|%s|%s|%.3f|%.3f|%.3f" % [s, m._sk_key, er.x - org.x, er.y - org.y, el.x - org.x]
 	var e = _cache.get(key)
 	if e == null:
 		e = _cap_build(_head_pts(m, org), er - org, el - org, s)
@@ -1207,6 +1209,12 @@ static func _cap(m, s: String) -> bool:
 			_cache.clear()
 		_cache[key] = e
 	m._mesh_on("Head", e[0], Transform3D(Basis.IDENTITY, org))
+	if s == "rinne_kamen_zen" and e.size() > 2:
+		# kuşağın ensedeki düğümünden sarkan iki uç (ref arkadan1): ikincil hareketli kumaş şerit (alın koruyucusu bağı gibi)
+		var kp: Vector3 = org + (e[2] as Vector3)
+		var lav := Color(0.58, 0.52, 0.76)
+		m.dangle_strip("Head", kp + Vector3(-0.012, 0, 0), Vector3(-0.22, -1.0, -0.32), 0.42, 0.042, lav, 0.18, Vector3.RIGHT, 0.003, null, 0.3)
+		m.dangle_strip("Head", kp + Vector3(0.012, 0, 0), Vector3(0.18, -1.0, -0.36), 0.34, 0.04, lav, 0.18, Vector3.RIGHT, 0.003, null, 0.3)
 	if s == "uzu_kamen" or s == "rinne_kamen_zen":
 		var clumps = CharacterModel._hair_cache.values()
 		for mi in m.skel.find_children("*", "MeshInstance3D", true, false):
@@ -1341,6 +1349,194 @@ static func _ring_table(pts: PackedVector3Array, C: Vector3, KA: int, KB: int) -
 	return out
 
 
+## Zentō kaskı (2026-11-27, sırt eşyası yöntemi): kafa + yüz ağının yatay kesit halkaları (6 mm, 48 yön, en dış nokta) ->
+## tepeden aşağı "dış zarf": halka bir kez en geniş yerine ulaşınca aşağıya doğru daralmaz (hafif koniklik dışında) -> üstte
+## kafatasının gerçek kubbesi, altta düz inen duvar (ref arkadan1-2: kova gibi kask), taban düz ve açık. Dönüş:
+## [C'den küresel yarıçap tablosu, taban yüksekliği, tabandaki duvar yarıçapı (48 yön)]
+static func _helmet_table(pts: PackedVector3Array, C: Vector3, KA: int, KB: int) -> Array:
+	var ymax := -INF
+	var ymin := INF
+	var chin := INF
+	for q in pts:
+		ymax = maxf(ymax, q.y)
+		ymin = minf(ymin, q.y)
+		if q.z - C.z > 0.045 and absf(q.x - C.x) < 0.02:
+			chin = minf(chin, q.y)
+	if chin == INF:
+		chin = ymin + 0.02
+	var yb := minf(chin, ymin + 0.004) - 0.014   # taban çenenin 3 cm altında (çene / ağız kabuğun içinde kalır)
+	var DY := 0.006
+	var NY := int((ymax - yb) / DY) + 1
+	var NBn := 48
+	var Rr := PackedFloat32Array()
+	Rr.resize(NY * NBn)
+	Rr.fill(0.0)
+	for q in pts:
+		if q.y < yb:
+			continue
+		var iy := clampi(int((q.y - yb) / DY), 0, NY - 1)
+		var dx := q.x - C.x
+		var dz := q.z - C.z
+		var b := int(fposmod(atan2(dx, dz) / TAU, 1.0) * NBn) % NBn
+		Rr[iy * NBn + b] = maxf(Rr[iy * NBn + b], sqrt(dx * dx + dz * dz))
+	for iy in NY:   # boş yön: aynı halkadaki komşulardan
+		var src := Rr.slice(iy * NBn, (iy + 1) * NBn)
+		var known := 0
+		for b in NBn:
+			if src[b] > 0.0:
+				known += 1
+		if known < 3:
+			for b in NBn:
+				Rr[iy * NBn + b] = 0.0
+			continue
+		for b in NBn:
+			if src[b] > 0.0:
+				continue
+			var a1 := 1
+			while src[posmod(b - a1, NBn)] <= 0.0:
+				a1 += 1
+			var b1 := 1
+			while src[posmod(b + b1, NBn)] <= 0.0:
+				b1 += 1
+			Rr[iy * NBn + b] = lerpf(src[posmod(b - a1, NBn)], src[posmod(b + b1, NBn)], float(a1) / (a1 + b1))
+	# kafa simetrik: sağ / sol yönün küçüğü alınır (tek yanlı aykırı nokta kabuğu şişirmesin); halka ortancasının 1.3 katı sınır
+	for iy in NY:
+		var vals: Array = []
+		for b in NBn:
+			if Rr[iy * NBn + b] > 0.0:
+				vals.append(Rr[iy * NBn + b])
+		if vals.is_empty():
+			continue
+		vals.sort()
+		var cap: float = float(vals[vals.size() / 2]) * 1.7
+		for b in NBn / 2:
+			var mb2 := NBn - 1 - b
+			var v := minf(minf(Rr[iy * NBn + b], Rr[iy * NBn + mb2]), cap)
+			Rr[iy * NBn + b] = v
+			Rr[iy * NBn + mb2] = v
+	# yüz plakası: burun / dudak ayrı ağ (ölçüde yok) -> göz hizasından aşağı ön yönlerde halka öne taşar (ref: plaka yüzün önünde durur)
+	var brow_i := int((0.035 - yb) / DY)
+	var jaw_i := int((chin + 0.024 - yb) / DY)   # bunun altındaki halkalar seyrek / düzensiz: ölçü kullanılmaz, zarf üstten iner
+	for iy in mini(jaw_i, NY):
+		for b in NBn:
+			Rr[iy * NBn + b] = 0.0
+	# ön yüz tek parça, hafif bombeli plaka (ref boyle / IMG_0207): göz hizasındaki ölçülen ön yarıçap + burun payı tepe noktası,
+	# yukarı ve aşağı doğru parabolle geri çekilir; ölçülen kafanın altına inmez (alın geride, burun önde basamak yapmaz)
+	var eye_i := clampi(int((0.0 - yb) / DY), 0, NY - 1)
+	var rmax := 0.0
+	for iy in range(maxi(eye_i - 6, jaw_i), mini(eye_i + 3, NY)):
+		for b in [NBn - 2, NBn - 1, 0, 1]:
+			rmax = maxf(rmax, Rr[iy * NBn + b])
+	rmax += 0.013
+	var yc := 0.008
+	var hh := maxf(ymax - yc, 0.05)
+	for iy in range(jaw_i, NY):
+		var yy := yb + (iy + 0.5) * DY
+		var rp := rmax * (1.0 - 0.5 * pow((yy - yc) / hh, 2))
+		for b in NBn:
+			var wgt := smoothstep(0.35, 0.92, cos((b + 0.5) / NBn * TAU))
+			if wgt > 0.0 and Rr[iy * NBn + b] > 0.0:
+				Rr[iy * NBn + b] = lerpf(Rr[iy * NBn + b], maxf(Rr[iy * NBn + b], rp), wgt)
+	# yönde yuvarlama: ±2 yön ortalaması, ama gerçek en dış noktanın 4 mm'den fazla altına inmez (kulak / burun içeride kalır)
+	var az := Rr.duplicate()
+	for iy in NY:
+		for b in NBn:
+			if Rr[iy * NBn + b] <= 0.0:
+				continue
+			var acc := 0.0
+			for db in range(-2, 3):
+				acc += Rr[iy * NBn + posmod(b + db, NBn)]
+			var nb := maxf(Rr[iy * NBn + posmod(b - 1, NBn)], Rr[iy * NBn + posmod(b + 1, NBn)])
+			az[iy * NBn + b] = maxf(acc / 5.0, maxf(Rr[iy * NBn + b], nb - 0.003))
+	# dış zarf: tepeden aşağı
+	# halka başına izin verilen daralma: ense düz iner (ref arkadan1-2), yüz / yanak çeneye doğru toplanır (ref boyle: oval plaka)
+	var H := az.duplicate()
+	for iy in range(NY - 2, -1, -1):
+		for b in NBn:
+			var tp := lerpf(0.0005, 0.0024, smoothstep(-0.6, 0.2, cos((b + 0.5) / NBn * TAU)))
+			H[iy * NBn + b] = maxf(az[iy * NBn + b], H[(iy + 1) * NBn + b] - tp)
+	for it in 4:   # dikey + yatay yumuşatma; zarfın (kafanın) altına inmez
+		var sm := H.duplicate()
+		for iy in NY:
+			for b in NBn:
+				var v0: float = H[iy * NBn + b]
+				var va: float = H[maxi(iy - 1, 0) * NBn + b]
+				var vb: float = H[mini(iy + 1, NY - 1) * NBn + b]
+				var vl: float = H[iy * NBn + posmod(b - 1, NBn)]
+				var vr: float = H[iy * NBn + posmod(b + 1, NBn)]
+				sm[iy * NBn + b] = maxf((v0 * 2.0 + va + vb + vl + vr) / 6.0, az[iy * NBn + b])
+		H = sm
+	var ring_r := func(y: float, ang: float) -> float:
+		var fy := clampf((y - yb) / DY - 0.5, 0.0, NY - 1.0)
+		var i0 := int(floorf(fy))
+		var i1 := mini(i0 + 1, NY - 1)
+		var t := fy - i0
+		var fb := fposmod(ang / TAU, 1.0) * NBn - 0.5
+		var b0 := posmod(int(floorf(fb)), NBn)
+		var b1 := (b0 + 1) % NBn
+		var tb := fb - floorf(fb)
+		return lerpf(lerpf(H[i0 * NBn + b0], H[i0 * NBn + b1], tb), lerpf(H[i1 * NBn + b0], H[i1 * NBn + b1], tb), t)
+	var ytop := yb + NY * DY
+	var inside := func(p: Vector3) -> bool:
+		if p.y < yb or p.y > ytop:
+			return false
+		var k := clampf((ytop - p.y) / 0.012, 0.0, 1.0)   # tepe: son halkadan sıfıra yuvarlak kapanış
+		return Vector2(p.x - C.x, p.z - C.z).length() <= float(ring_r.call(p.y, atan2(p.x - C.x, p.z - C.z))) * sqrt(k)
+	var out := PackedFloat32Array()
+	out.resize(KA * KB)
+	for ia in KA:
+		for ib in KB:
+			var al := (ia + 0.5) / KA * PI
+			var be := (ib + 0.5) / KB * TAU
+			var d := Vector3(sin(al) * cos(be), sin(al) * sin(be), cos(al))
+			var lo := 0.01
+			var t := 0.016
+			while t < 0.34:
+				if inside.call(C + d * t):
+					lo = t
+				t += 0.006
+			var hi := lo + 0.006
+			for it in 5:
+				var md := (lo + hi) * 0.5
+				if inside.call(C + d * md):
+					lo = md
+				else:
+					hi = md
+			out[ia * KB + ib] = lo
+	for it in 2:   # tablo yumuşatma (taban kenarı ve tepe yuvarlanır)
+		var sm2 := out.duplicate()
+		for ia in KA:
+			for ib in KB:
+				var acc2 := 0.0
+				for da in [-1, 0, 1]:
+					var ja: int = clampi(ia + da, 0, KA - 1)
+					for db in [-1, 0, 1]:
+						acc2 += out[ja * KB + (ib + db + KB) % KB]
+				sm2[ia * KB + ib] = maxf(acc2 / 9.0, out[ia * KB + ib] - 0.002)
+		out = sm2
+	var wall := H.slice(0, NBn)
+	if OS.has_environment("OB_DBG"):
+		var asym := func(T: PackedFloat32Array, rows: int) -> float:
+			var mxa := 0.0
+			for iy in rows:
+				for b in NBn:
+					mxa = maxf(mxa, absf(T[iy * NBn + b] - T[iy * NBn + NBn - 1 - b]))
+			return mxa
+		var mxo := 0.0
+		var at := ""
+		for ia in KA:
+			for ib in KB:
+				var dd := absf(out[ia * KB + ib] - out[ia * KB + posmod(KB / 2 - 1 - ib, KB)])
+				if dd > mxo:
+					mxo = dd
+					at = "%d,%d: %.3f / %.3f" % [ia, ib, out[ia * KB + ib], out[ia * KB + posmod(KB / 2 - 1 - ib, KB)]]
+		print("HELMET asim Rr=%.4f az=%.4f H=%.4f out=%.4f (%s)" % [asym.call(Rr, NY), asym.call(az, NY), asym.call(H, NY), mxo, at])
+		for ia in [6, 12, 18, 24, 30]:
+			print("HELMET al%d " % ia, out.slice(ia * KB, (ia + 1) * KB))
+		print("HELMET yb=%.3f chin=%.3f ymin=%.3f ymax=%.3f C=%s  on=%.3f arka=%.3f yan=%.3f" % [yb, chin, ymin, ymax, C, wall[0], wall[NBn / 2], wall[NBn / 4]])
+	return [out, yb, wall]
+
+
 const CAP_KA := 36
 const CAP_KB := 72
 
@@ -1348,6 +1544,13 @@ const CAP_KB := 72
 static func _cap_build(pts: PackedVector3Array, er: Vector3, el: Vector3, s: String, head_rad := PackedFloat32Array(), head_c := Vector3.ZERO) -> Array:
 	var uzu := s == "uzu_kamen"
 	var full := s == "rinne_kamen_zen"   # kapalı kask (Uzu gibi) + Rinne deseni
+	var knot := Vector3.ZERO   # Zentō kuşak düğümü (sarkan uçlar buradan)
+	# Zentō kabuğu süper-elipsoit (2026-11-27 "yumurta gibi"): yatay kesit köşeli-yuvarlak (düz yüz plakası, dolgun yanak / ense),
+	# dikeyde dolgun (sivri tepe / çene yok). F(d) = (|x/a|^SP + |z/c|^SP)^(SQ/SP) + |y/b|^SQ, yarıçap = F^(-1/SQ)
+	var SP := 3.0
+	var SQ := 2.5
+	var sqF := func(d: Vector3, E: Vector3) -> float:
+		return pow(pow(absf(d.x / E.x), SP) + pow(absf(d.z / E.z), SP), SQ / SP) + pow(absf(d.y / E.y), SQ)
 	var BASE := UZU_BASE if uzu else RINNE_BASE
 	var INK := UZU_INK if uzu else RINNE_INK
 	# --- kafayı izleyen kabuk (2026-11-26 "yumurta gibi kocaman" düzeltmesi): her yönde yarıçap = o yöndeki en dış kafa / yüz
@@ -1374,7 +1577,7 @@ static func _cap_build(pts: PackedVector3Array, er: Vector3, el: Vector3, s: Str
 		var al0 := acos(clampf(d.z / L, -1.0, 1.0))
 		var be0 := atan2(d.y, d.x)
 		var ia := clampi(int(al0 / PI * KA), 0, KA - 1)
-		var ib := int(posmod(be0, TAU) / TAU * KB) % KB
+		var ib := int(fposmod(be0, TAU) / TAU * KB) % KB
 		raw[ia * KB + ib] = maxf(raw[ia * KB + ib], L)
 	# boş kova: komşulardan doldur (geniş maks); sonra yumuşat (ortalama) ama ham değerin altına inme
 	var fill := raw.duplicate()
@@ -1444,6 +1647,16 @@ static func _cap_build(pts: PackedVector3Array, er: Vector3, el: Vector3, s: Str
 							acc += rad[ja * KB + (ib + db + KB) % KB]
 					sm2[ia * KB + ib] = maxf(acc / 9.0, raw[ia * KB + ib])
 			rad = sm2
+	# Zentō (2026-11-27 "sırt eşyası gibi yap"): kabuk kafanın ölçülen kesit tablosundan (rad = gerçek kafa / yüz yüzeyi);
+	# ek düzleştirme yumruları (burun, dudak, kaş) yayar ama hiçbir yönde gerçek yüzeyin altına inmez
+	var radF := PackedFloat32Array()
+	var hel_yb := 0.0
+	var hel_wall := PackedFloat32Array()
+	if full:
+		var hel := _helmet_table(pts, C, KA, KB)
+		radF = hel[0]
+		hel_yb = hel[1]
+		hel_wall = hel[2]
 	var pad := 0.012 if uzu else 0.011   # yüz katmanları (ağız, kaş, çizgiler) öne kaydırılarak çizilir: daha yakın kabuğu deliyorlardı
 	# Uzu (kullanıcı beğendi, 2026-11-26): eski elipsoit kabuk birebir korunur
 	var ER := Vector3.ZERO
@@ -1461,10 +1674,13 @@ static func _cap_build(pts: PackedVector3Array, er: Vector3, el: Vector3, s: Str
 				if (dv.normalized()).dot(Vector3(0, -0.95, -0.3).normalized()) > cos(deg_to_rad(40.0)):
 					continue   # boyun yönü
 				var q := dv * float(head_rad[ia * KB + ib])
-				Fs2.append(pow(q.x / ER.x, 2) + pow(q.y / ER.y, 2) + pow(q.z / ER.z, 2))
+				Fs2.append(float(sqF.call(q, ER)) if full else pow(q.x / ER.x, 2) + pow(q.y / ER.y, 2) + pow(q.z / ER.z, 2))
 		Fs2.sort()
-		var F2: float = Fs2[int(Fs2.size() * 0.97)] if Fs2.size() > 0 else 1.0
-		ER = ER * sqrt(maxf(F2, 0.01)) + (Vector3(0.007, 0.007, 0.007) if uzu else Vector3(0.008, 0.008, 0.01))
+		var F2: float = Fs2[mini(int(Fs2.size() * (0.995 if full else 0.97)), Fs2.size() - 1)] if Fs2.size() > 0 else 1.0   # Zentō: burun / çene dışarıda kalmasın
+		if full:
+			ER = ER * pow(maxf(F2, 0.01), 1.0 / SQ) + Vector3(0.008, 0.008, 0.009)
+		else:
+			ER = ER * sqrt(maxf(F2, 0.01)) + (Vector3(0.007, 0.007, 0.007) if uzu else Vector3(0.008, 0.008, 0.01))
 	if false:
 		C = (mn + mx) * 0.5
 		C.y = lerpf(C.y, mx.y, 0.12)
@@ -1484,11 +1700,22 @@ static func _cap_build(pts: PackedVector3Array, er: Vector3, el: Vector3, s: Str
 		var ell := 1.0 / sqrt(pow(dve.x / ER.x, 2) + pow(dve.y / ER.y, 2) + pow(dve.z / ER.z, 2))
 		if uzu:
 			return ell
+		if full:   # ölçülen kesit tablosundan çift doğrusal örnek + pay
+			var fa2 := clampf(al / PI * KA - 0.5, 0.0, KA - 1.001)
+			var fb2 := fposmod(be, TAU) / TAU * KB - 0.5
+			var ia2 := int(floor(fa2))
+			var ib2 := int(floor(fb2))
+			var ta2 := fa2 - ia2
+			var tb2 := fb2 - ib2
+			var c0 := (ib2 + KB) % KB
+			var c1 := (ib2 + 1 + KB) % KB
+			var ja2 := mini(ia2 + 1, KA - 1)
+			return lerpf(lerpf(radF[ia2 * KB + c0], radF[ia2 * KB + c1], tb2), lerpf(radF[ja2 * KB + c0], radF[ja2 * KB + c1], tb2), ta2) + 0.010
 		if true:
 			var nk := smoothstep(0.84, 0.97, dve.dot(Vector3(0, -0.45, 0.89).normalized()))
 			return ell + 0.014 * nk   # burun ucu
 		var fa := clampf(al / PI * KA - 0.5, 0.0, KA - 1.001)
-		var fb := posmod(be, TAU) / TAU * KB - 0.5
+		var fb := fposmod(be, TAU) / TAU * KB - 0.5
 		var ia := int(floor(fa))
 		var ib := int(floor(fb))
 		var ta := fa - ia
@@ -1547,6 +1774,21 @@ static func _cap_build(pts: PackedVector3Array, er: Vector3, el: Vector3, s: Str
 		var fr: float = u - floor(u)
 		var hgt: float = 0.02 * pow(fr, 0.6) * clampf((dl - 0.1) / 0.3, 0.0, 1.0)   # kat rampası; sonunda bir sonrakinin altına basamakla iner (ilk, beğenilen sürüm)
 		return [hgt, fr]
+	# Zentō: kuşağın altında kalan ense / yan kısım koyu kumaş başlık (ref boyle, arkadan1: beyaz çizgili kask yalnız kuşağın üstünde)
+	# ref böyle.png (yandan): beyaz kask tepeyi + arkayı örter, önde yanaktan çeneye iner; kulak hizasının arkası göz hizasından
+	# aşağı KESİK -> altta siyah kumaş, kesiğin üst kenarında yatay kuşak (kuşak yalnız kesik bölümde, beyazın üstüne çıkmaz)
+	var zb_y0 := 0.012          # kuşak ortası (göz hizasının biraz üstü; y = 0 göz)
+	var zb_slope := -0.08
+	var zb_zcut := C.z + 0.024  # kesiğin ön kenarı (kulak hizası)
+	var zb_pl := func(be: float) -> float:
+		var ay := deg_to_rad(74.0) if sin(be) > 0.0 else deg_to_rad(70.0)
+		return 1.0 / sqrt(pow(cos(be) / deg_to_rad(60.0), 2) + pow(sin(be) / ay, 2))
+	var NAPE := Color(0.075, 0.07, 0.11)
+	var is_nape := func(q: Vector3) -> bool:
+		var v := (q - C).normalized()
+		if acos(clampf(v.z, -1.0, 1.0)) < float(zb_pl.call(atan2(v.y, v.x))):
+			return false
+		return q.z < zb_zcut and q.y < zb_y0 + 0.016 + zb_slope * (q.z - C.z)
 	var NA := 220 if uzu else 150
 	var NB := 130 if uzu else 96
 	var thick := 0.0035
@@ -1562,8 +1804,41 @@ static func _cap_build(pts: PackedVector3Array, er: Vector3, el: Vector3, s: Str
 				var fd: Array = fold.call(p)
 				var nrm := (p - C).normalized()
 				p += nrm * float(fd[0])
+			if full and bool(is_nape.call(p)):
+				# kask kuşak hizasında kesik (ref yandan): altı kaska dahil değil, kafaya oturan koyu kumaş başlık -> 8 mm içeride
+				p -= (p - C).normalized() * 0.003
+				col = NAPE
 			row.append([p, col])
 		V.append(row)
+	if full and OS.has_environment("OB_DBG"):
+		var lo := Vector3(INF, INF, INF)
+		var hi := -lo
+		var px := Vector3.ZERO
+		var nx := Vector3.ZERO
+		var pz := Vector3.ZERO
+		for row in V:
+			for e in row:
+				var q: Vector3 = e[0]
+				if q.x > hi.x: px = q
+				if q.x < lo.x: nx = q
+				if q.z > hi.z: pz = q
+				lo = Vector3(minf(lo.x, q.x), minf(lo.y, q.y), minf(lo.z, q.z))
+				hi = Vector3(maxf(hi.x, q.x), maxf(hi.y, q.y), maxf(hi.z, q.z))
+		print("HELMET V lo=%s hi=%s  +x@%s  -x@%s  +z@%s  C=%s er=%s el=%s" % [lo, hi, px, nx, pz, C, er, el])
+		for yy in [0.12, 0.06, 0.0, -0.04, -0.08, -0.11]:
+			var ln := "HELMET y=%.2f: " % yy
+			for dn in [Vector3(0, 0, 1), Vector3(0.7, 0, 0.7), Vector3(1, 0, 0), Vector3(-1, 0, 0), Vector3(0, 0, -1)]:
+				# o yükseklikte, o yatay yönde kabuk yarıçapı (eksenden)
+				var rr := 0.02
+				for it in 40:
+					var dv3: Vector3 = Vector3(dn.x * rr, yy - C.y, dn.z * rr)
+					var L3 := dv3.length()
+					var rs: float = rfun.call(acos(clampf(dv3.z / L3, -1.0, 1.0)), atan2(dv3.y, dv3.x))
+					if rs < L3:
+						break
+					rr += 0.004
+				ln += "%.3f " % rr
+			print(ln)
 	var mb := SurfaceTool.new()
 	mb.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var inner := BASE.darkened(0.55)
@@ -1580,13 +1855,29 @@ static func _cap_build(pts: PackedVector3Array, er: Vector3, el: Vector3, s: Str
 				continue
 			if cen.z > C.z and (in_hole.call(Vector2(p00.x, p00.y)) or in_hole.call(Vector2(p01.x, p01.y)) or in_hole.call(Vector2(p10.x, p10.y)) or in_hole.call(Vector2(p11.x, p11.y))):
 				continue   # deliğe değen kare atılır; dış kenarın basamağını yuvarlak kara çerçeve örter
-			if (uzu or full) and (cen - C).normalized().dot(Vector3(0, -0.95, -0.3).normalized()) > cos(deg_to_rad(32.0)):
+			if uzu and (cen - C).normalized().dot(Vector3(0, -0.95, -0.3).normalized()) > cos(deg_to_rad(32.0)):
 				continue   # boyun deliği
+			if full and cen.y < hel_yb + 0.006:   # kaskın altı açık: düz taban düzlemine düşen kareler atılır (içe dönük ince dudak kalır)
+				var wb := fposmod(atan2(cen.x - C.x, cen.z - C.z) / TAU, 1.0) * hel_wall.size()
+				var w0 := int(wb) % hel_wall.size()
+				var wr := lerpf(hel_wall[w0], hel_wall[(w0 + 1) % hel_wall.size()], wb - floorf(wb))
+				if Vector2(cen.x - C.x, cen.z - C.z).length() < wr - 0.014:
+					continue
 			var out := (cen - C).normalized()
 			var col: Color = V[ai][bi][1]
+			if full and (V[ai][b2][1] == NAPE or V[ai + 1][bi][1] == NAPE or V[ai + 1][b2][1] == NAPE):
+				col = NAPE   # kesik kenarın basamağı kumaş renginde (kuşağın altında kalır)
 			_tq(mb, p00, p01, p11, p10, col, out)
 			var o := -out * thick
 			_tq(mb, p00 + o, p10 + o, p11 + o, p01 + o, inner, -out)
+	if full:   # ön kutup: yelpaze üçgenlerinin birleştiği noktada iğne deliği kalmasın diye küçük kapak
+		var ca: float = PI / NB * 1.2
+		var k0: Vector3 = P.call(ca, 0.0)
+		var k1: Vector3 = P.call(ca, PI * 0.5)
+		var k2: Vector3 = P.call(ca, PI)
+		var k3: Vector3 = P.call(ca, PI * 1.5)
+		var kl := Vector3(0, 0, 0.0004)
+		_tq(mb, k0 + kl, k1 + kl, k2 + kl, k3 + kl, BASE, Vector3(0, 0, 1))
 	# kenar duvarı (kabuk ağzı)
 	for bi in NA:
 		var b2 := (bi + 1) % NA
@@ -1696,42 +1987,134 @@ static func _cap_build(pts: PackedVector3Array, er: Vector3, el: Vector3, s: Str
 			return front_z.call(p)
 		_rinne_ink(mb, rc, ring_r, holes, hole_r, hole_ar, cracks, in_hole_k, in_poly, 1.0, 1.0, 0.0, 0.0, 0.0, INK, ytop, zf, not full)
 		if full:
-			# Zentō (ref IMG_0207): ön halkaların devamı kafayı saran eş merkezli şeritler — halka merkezinin yönü eksen,
-			# açısal aralık iki dış halkanın aralığı; boyun deliğine ve göz deliklerine değen parça atılır
-			var A3 := (Vector3(rc.x, rc.y, float(zf.call(rc))) - C).normalized()
-			var b1 := A3.cross(Vector3.UP).normalized()
-			var b2 := b1.cross(A3).normalized()
-			var ang_of := func(r: float) -> float:
-				var q2 := rc + Vector2(r, 0.0)
-				return acos(clampf((Vector3(q2.x, q2.y, float(zf.call(q2))) - C).normalized().dot(A3), -1.0, 1.0))
-			var dl3: float = ang_of.call(ring_r)
-			var stp: float = (dl3 - float(ang_of.call(ring_r * 0.55))) * 1.1
+			# Zentō (ref IMG_0207, boyle, arkadan1-2, yandan): (1) önde kenarı mürekkep çizgili oval yüz plakası (Rinne deseni içinde),
+			# (2) plaka dışında kafayı soldan sağa paralel düzlemlerle kesen çizgiler (tepeden enseye; yanda iç içe yaylar),
+			# (3) lila kuşak: plakanın arkasından kafayı eğik sarar (ensede yüksek, yüzün yanında alçak), ensede düğüm
 			var neck := Vector3(0, -0.95, -0.3).normalized()
-			var on_sh := func(v: Vector3) -> Vector3:
-				return C + v * (float(rfun.call(acos(clampf(v.z, -1.0, 1.0)), atan2(v.y, v.x))) + 0.0009)
-			var dl := dl3 + stp
-			while dl < PI - 0.2:
-				var prev_a := Vector3.ZERO
-				var prev_b := Vector3.ZERO
-				var have := false
-				for k in 241:
-					var gm := TAU * k / 240.0
-					var rad_dir := b1 * cos(gm) + b2 * sin(gm)
-					var v := (A3 * cos(dl) + rad_dir * sin(dl)).normalized()
-					var q: Vector3 = on_sh.call(v)
-					if v.dot(neck) > cos(deg_to_rad(36.0)) or (q.z > C.z and bool(in_hole_k.call(Vector2(q.x, q.y), 1.5))):
-						have = false
-						continue
-					var hw := 0.0019 / maxf((q - C).length(), 0.05)
-					var pa: Vector3 = on_sh.call((A3 * cos(dl - hw) + rad_dir * sin(dl - hw)).normalized())
-					var pb: Vector3 = on_sh.call((A3 * cos(dl + hw) + rad_dir * sin(dl + hw)).normalized())
-					if have:
-						_tq(mb, prev_a, pa, pb, prev_b, INK, (q - C).normalized())
-					prev_a = pa
-					prev_b = pb
-					have = true
-				dl += stp
+			var on_sh := func(v: Vector3, lift: float) -> Vector3:   # yön -> kabuk yüzeyi (+ dışa pay)
+				var vn := v.normalized()
+				return C + vn * (float(rfun.call(acos(clampf(vn.z, -1.0, 1.0)), atan2(vn.y, vn.x))) + lift)
+			var pcx := (er.x + el.x) * 0.5
+			# plaka ölçüsü kaskın kendi ölçüsünden (yan yarıçap, tepe, taban)
+			var side_r: float = rfun.call(PI * 0.5, 0.0)
+			var top_y: float = C.y + float(rfun.call(PI * 0.5, PI * 0.5))
+			var pcy := (top_y + hel_yb) * 0.5 + 0.004
+			var paw := side_r * 0.74
+			var pah := (top_y - hel_yb) * 0.5 * 0.88
+			# plaka kenarı açı uzayında oval (ön kutuptan açı; yatay 60°, yukarı 74°, aşağı 70°): yüzeyin dik yanlarında da düzgün
+			var pl_al := zb_pl
+			var in_plate := func(q: Vector3) -> bool:
+				var v := (q - C).normalized()
+				return acos(clampf(v.z, -1.0, 1.0)) < float(pl_al.call(atan2(v.y, v.x)))
+			# (1) plaka kenarı
+			var o_a := Vector3.ZERO
+			var o_b := Vector3.ZERO
+			for k in 201:
+				var be := TAU * k / 200.0
+				var al: float = pl_al.call(be)
+				var da := 0.0021 / maxf(float(rfun.call(al, be)), 0.05)
+				var qa: Vector3 = P.call(al - da, be)
+				var qb: Vector3 = P.call(al + da, be)
+				qa += (qa - C).normalized() * 0.0011
+				qb += (qb - C).normalized() * 0.0011
+				if k > 0:
+					_tq(mb, o_a, qa, qb, o_b, INK, (qa - C).normalized())
+				o_a = qa
+				o_b = qb
+			# (2) paralel çizgiler: x = x0 düzlemi ile kabuğun kesişimi (x ekseni etrafında açı t ile; yarıçap yinelemeyle)
+			var sec := func(x0: float, t: float, lift: float) -> Vector3:
+				var rho := ER.y
+				var q := C
+				for it in 5:
+					var d := Vector3(x0 - C.x, cos(t) * rho, sin(t) * rho)
+					var r: float = rfun.call(acos(clampf(d.normalized().z, -1.0, 1.0)), atan2(d.y, d.x))
+					rho = sqrt(maxf(r * r - pow(x0 - C.x, 2), 0.0001))
+				q = C + Vector3(x0 - C.x, cos(t) * rho, sin(t) * rho)
+				return q + (q - C).normalized() * lift
+			var spc := side_r * 2.0 / 7.0
+			var x0 := C.x - spc * 2.5
+			while x0 <= C.x + spc * 2.51:
+				for sx in [x0]:
+					var prev_a := Vector3.ZERO
+					var prev_b := Vector3.ZERO
+					var have := false
+					for k in 241:
+						var t := TAU * k / 240.0
+						var q: Vector3 = sec.call(sx, t, 0.0009)
+						if bool(in_plate.call(q)) or q.y < hel_yb - 0.004 or bool(is_nape.call(q)):
+							have = false
+							continue
+						var pa: Vector3 = sec.call(sx - 0.0019, t, 0.0009)
+						var pb: Vector3 = sec.call(sx + 0.0019, t, 0.0009)
+						if have:
+							_tq(mb, prev_a, pa, pb, prev_b, INK, (q - C).normalized())
+						prev_a = pa
+						prev_b = pb
+						have = true
+				x0 += spc
+			# (3) kuşak: y = y0 + eğim * (z - C.z) düzlemi; y ekseni etrafında açı φ; plakanın içine girmez
+			var BAND := Color(0.58, 0.52, 0.76)
+			var BAND_D := BAND.darkened(0.35)
+			var y0 := zb_y0
+			var slope := zb_slope
+			var bw := 0.021
+			var belt := func(ph: float, dy: float, lift: float) -> Vector3:
+				var rho := ER.x
+				var yr := 0.0
+				for it in 5:
+					yr = y0 - C.y + dy + slope * (cos(ph) * rho)
+					var d := Vector3(sin(ph) * rho, yr, cos(ph) * rho)
+					var r: float = rfun.call(acos(clampf(d.normalized().z, -1.0, 1.0)), atan2(d.y, d.x))
+					rho = sqrt(maxf(r * r - yr * yr, 0.0001))
+				var q := C + Vector3(sin(ph) * rho, yr, cos(ph) * rho)
+				return q + (q - C).normalized() * lift
+			var pt := Vector3.ZERO
+			var pb2 := Vector3.ZERO
+			var pt0 := Vector3.ZERO
+			var pb0 := Vector3.ZERO
+			var hv := false
+			for k in 181:
+				var ph := TAU * k / 180.0
+				var a: Vector3 = belt.call(ph, bw, 0.002)
+				var b: Vector3 = belt.call(ph, -bw, 0.002)
+				var mid: Vector3 = belt.call(ph, 0.0, 0.0)
+				if mid.z > zb_zcut + 0.004 or bool(in_plate.call(mid)) or bool(in_plate.call(a)) or bool(in_plate.call(b)):
+					hv = false
+					continue
+				var a0: Vector3 = belt.call(ph, bw, -0.0035)    # kenar kalınlığı içerideki kumaşa kadar iner
+				var b0: Vector3 = belt.call(ph, -bw, -0.0035)
+				var nr := (mid - C).normalized()
+				if hv:
+					_tq(mb, pt, a, b, pb2, BAND, nr)
+					_tq(mb, pt0, a0, a, pt, BAND_D, Vector3.UP)     # üst kenar kalınlığı
+					_tq(mb, pb2, b, b0, pb0, BAND_D, Vector3.DOWN)  # alt kenar kalınlığı
+				pt = a
+				pb2 = b
+				pt0 = a0
+				pb0 = b0
+				hv = true
+			# ensede düğüm: kuşağın arkasında yassı yumru
+			var kc: Vector3 = belt.call(PI, 0.0, 0.006)
+			var kn := (kc - C).normalized()
+			var kx := Vector3.RIGHT
+			var ky := kn.cross(kx).normalized()
+			var KR := Vector3(0.022, 0.017, 0.012)
+			var NK := 10
+			for i in NK:
+				for j in NK:
+					var u0 := PI * i / NK
+					var u1 := PI * (i + 1) / NK
+					var v0 := TAU * j / NK
+					var v1 := TAU * (j + 1) / NK
+					var sp := func(u: float, v: float) -> Vector3:
+						return kc + kx * (sin(u) * cos(v) * KR.x) + ky * (cos(u) * KR.y) + kn * (sin(u) * sin(v) * KR.z + KR.z * 0.6)
+					var q00: Vector3 = sp.call(u0, v0)
+					var q01: Vector3 = sp.call(u0, v1)
+					var q10: Vector3 = sp.call(u1, v0)
+					var q11: Vector3 = sp.call(u1, v1)
+					_tq(mb, q00, q10, q11, q01, BAND, ((q00 + q11) * 0.5 - kc).normalized())
+			knot = kc + kn * KR.z
 	mb.generate_normals()
 	var mesh := mb.commit()
 	mesh.surface_set_material(0, LazyFx.g("Props").toon())
-	return [mesh, C]
+	return [mesh, C, knot]

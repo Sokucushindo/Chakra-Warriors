@@ -276,12 +276,14 @@ const PATHS := {
 	"YotonLib": "res://scripts/combat/fx/lib/yoton_lib.gd",
 }
 static var _c := {}
+static var _main_id := OS.get_main_thread_id()
 
 static func g(n: String):
 	var s = _c.get(n)
 	if s == null:
 		s = load(PATHS[n])
-		_c[n] = s
+		if OS.get_thread_caller_id() == _main_id:   # model iş parçacıklarından ortak sözlüğe yazılmaz (motor kendi önbelleğinden verir)
+			_c[n] = s
 	return s
 
 ## yükleme ekranında hepsini tek tek derler (her biri ayrı: tepe küçük kalır, ilk kullanımda takılma olmaz)
@@ -293,3 +295,34 @@ static func warm(budget_ms := 8) -> bool:
 			if Time.get_ticks_msec() - t0 > budget_ms:
 				return false
 	return true
+
+
+## Oyun akarken arka planda derleme (yalnız PC): teknik betikleri sırayla, ayrı iş parçacığında yüklenir; savaşta bir tekniğin
+## ilk kullanımındaki 0,2-0,4 sn'lik takılma kalkar. Android'de KAPALI (bellek: orada betikler yalnız gerekince yüklenir).
+static var _bg_i := 0
+static var _bg_cur := ""
+static var _bg_keys: Array = []
+static func warm_bg() -> void:
+	if _bg_i < 0:
+		return
+	if _bg_keys.is_empty():
+		if OS.has_feature("mobile") or OS.has_feature("android"):
+			_bg_i = -1
+			return
+		_bg_keys = PATHS.keys()
+	if _bg_cur != "":
+		var st := ResourceLoader.load_threaded_get_status(PATHS[_bg_cur])
+		if st == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+			return
+		if st == ResourceLoader.THREAD_LOAD_LOADED and not _c.has(_bg_cur):
+			_c[_bg_cur] = ResourceLoader.load_threaded_get(PATHS[_bg_cur])
+		_bg_cur = ""
+	while _bg_i < _bg_keys.size() and _c.has(_bg_keys[_bg_i]):
+		_bg_i += 1
+	if _bg_i >= _bg_keys.size():
+		_bg_i = -1
+		return
+	_bg_cur = _bg_keys[_bg_i]
+	_bg_i += 1
+	if ResourceLoader.load_threaded_request(PATHS[_bg_cur]) != OK:
+		_bg_cur = ""

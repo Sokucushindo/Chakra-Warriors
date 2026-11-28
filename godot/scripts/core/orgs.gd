@@ -734,21 +734,26 @@ func _spotted_by(_vid: String) -> int:
 		return 0
 	var tod = Game.world.get_time_of_day() if Game.world else 0.5
 	var night = tod < 0.22 or tod > 0.8
-	var reach = 16.0 * (0.55 if night else 1.0) * maxf(0.35, 1.0 - LazyFx.g("Stats").skill(Game.profile, "stealth"))
+	var st_k: float = LazyFx.g("Stats").skill(Game.profile, "stealth")
+	var reach = 16.0 * (0.55 if night else 1.0) * maxf(0.35, 1.0 - st_k)
+	# köy ninjası eğitimli göz: gizlilik ustalığı onu en çok yarıya indirir, 24 m'den tanır (2026-11-27, kullanıcı: "konuşmaya
+	# gitmeden kaçağa dalmıyorlar": yüksek gizlilikte görüş 5 m'ye düşüyor, devriye yanından geçip gidiyordu)
+	var reach_n = 24.0 * (0.65 if night else 1.0) * maxf(0.55, 1.0 - st_k * 0.5)
 	var space = pl.get_world_3d().direct_space_state
 	var seen = 0
 	for n in get_tree().get_nodes_in_group("talkers"):
 		if not (n is Node3D) or not is_instance_valid(n) or n.get("dead"):
 			continue
 		var d: Vector3 = pl.global_position - n.global_position
-		if d.length() > reach:
+		var nin: bool = (n is Villager or n is ClanResident) and LazyFx.g("Friends").is_ninja(n) and not _spared(n)
+		if d.length() > (reach_n if nin else reach):
 			continue
 		var fd: Vector3 = n.face_dir() if n.has_method("face_dir") else Vector3.ZERO
 		if fd != Vector3.ZERO and d.length() > 3.0 and Vector2(fd.x, fd.z).normalized().dot(Vector2(d.x, d.z).normalized()) < 0.1:
 			continue   # arkası dönük (yanına sokulursan yine fark eder)
 		var q = PhysicsRayQueryParameters3D.create(n.global_position + Vector3.UP * 1.5, pl.global_position + Vector3.UP * 1.2, 1)
 		if space.intersect_ray(q).is_empty():
-			if (n is Villager or n is ClanResident) and LazyFx.g("Friends").is_ninja(n) and not _spared(n):
+			if nin:
 				return 2
 			seen = 1
 	return seen

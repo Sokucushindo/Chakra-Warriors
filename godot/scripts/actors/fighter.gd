@@ -32,7 +32,11 @@ var hitstun_len := 0.45   # bu sendelemenin süresi (arena kuralları: saldıran
 func _ready() -> void:
 	add_to_group("fighters")
 	collision_layer = 4
-	collision_mask = 1 | 2 | 4
+	# dövüşçüler birbirine fizik çarpışması yapmaz (köylüler gibi): 30 kişilik savaşta her birinin her fizik karesinde 29 gövdeyle
+	# kayma çözümü ortalamayı 10,6 -> 17 FPS düşürüyordu (2026-11-27 ölçümü). İç içe girmeyi _crowd_push yumuşak itmesi önler.
+	collision_mask = 1 | 2
+	_cpush_i = randi() % 4
+	_cpush_i2 = randi() % 2
 	_build_body()
 
 
@@ -329,13 +333,60 @@ func stagger(t: float) -> void:
 
 
 ## Hareket + arazi; wish: istenen yatay hız
+var _gh_x := INF
+var _gh_z := INF
+var _gh_v := 0.0
+## Bulunduğu noktanın zemin yüksekliği; yer değişmediyse yeniden hesaplanmaz (duran dövüşçü her fizik karesinde soruyordu)
+func _ground_here() -> float:
+	var p := global_position
+	if p.x != _gh_x or p.z != _gh_z:
+		_gh_x = p.x
+		_gh_z = p.z
+		_gh_v = Game.ground_height(p.x, p.z)
+	return _gh_v
+
+
+var _cpush_v := Vector3.ZERO
+var _cpush_i := 0
+var _cpush_i2 := 0
+## Yakındaki dövüşçülerden yumuşak ayrışma hızı (m/sn): 4 fizik karesinde bir hesaplanır (sıra kişiden kişiye kaydırılmış)
+func _crowd_push() -> Vector3:
+	var push := Vector3.ZERO
+	var me := global_position
+	for o in get_tree().get_nodes_in_group("fighters"):
+		if o == self or not (o is Fighter) or o.dead:
+			continue
+		var dx: float = me.x - o.global_position.x
+		var dz: float = me.z - o.global_position.z
+		if absf(dx) > 0.8 or absf(dz) > 0.8 or absf(me.y - o.global_position.y) > 1.6:
+			continue
+		var d2 := dx * dx + dz * dz
+		if d2 > 0.64:
+			continue
+		var d := sqrt(d2)
+		if d < 0.02:   # tam üst üste: sabit bir yöne ayrıl (ikisi zıt yön seçsin diye kimlik sırası)
+			var ang := float(get_instance_id() % 628) * 0.01
+			dx = cos(ang); dz = sin(ang); d = 1.0
+		push += Vector3(dx / d, 0, dz / d) * ((0.8 - minf(d, 0.8)) / 0.8 * 3.2)
+	return push.limit_length(3.2)
+
+
 func step_move(wish: Vector3, dt: float, turn := true) -> void:
+	_cpush_i += 1
+	if state == "dead":
+		_cpush_v = Vector3.ZERO
+	elif _cpush_i % (4 if (wish != Vector3.ZERO or _cpush_v != Vector3.ZERO) else 16) == 0:
+		_cpush_v = _crowd_push()
+	if _cpush_v != Vector3.ZERO:
+		velocity.x += _cpush_v.x * minf(1.0, dt * 10.0)
+		velocity.z += _cpush_v.z * minf(1.0, dt * 10.0)
 	# duran kişi (tezgâhtar, oturan, nöbetçi, bekleyen dövüşçü): hız sıfır, yerde ve tam zemin hizasındaysa çarpışma hareketi
 	# atlanır (profil: duranların her fizik karesindeki boş move_and_slide). İtilen / vurulan / yürüyen normal yoldan geçer.
 	if wish == Vector3.ZERO and grounded and velocity.y <= 0.0 and absf(velocity.x) + absf(velocity.z) < 0.02 and state not in ["hitstun", "knockdown", "dead"]:
-		if absf(global_position.y - Game.ground_height(global_position.x, global_position.z)) < 0.002:
+		if absf(global_position.y - _ground_here()) < 0.002:
 			velocity = Vector3.ZERO
-			model.rotation.y = facing
+			if model.rotation.y != facing:
+				model.rotation.y = facing
 			return
 	var slow = 0.45 if has_status("slow") else Combat.exhaust_k(self)
 	var hv = Vector3(velocity.x, 0, velocity.z)
@@ -345,33 +396,73 @@ func step_move(wish: Vector3, dt: float, turn := true) -> void:
 		hv = hv.lerp(wish * slow * buff_mod("speed"), minf(1.0, dt * 10.0))
 	velocity.x = hv.x; velocity.z = hv.z
 	velocity.y -= 32.0 * dt
-	var pre = global_position
-	move_and_slide()
+	var pre: Vector3 = global_position
+	# kalabalık yükü (2026-11-27, 30 kişilik savaş ölçümü: hareket adımı saniyede 160 ms): zemin zaten arazi yüksekliğinden
+	# alınıyor, çarpışma çözümü yalnız duvar / yapı için. Yavaş giderken (< 12 m/sn) her iki fizik karesinden birinde düz
+	# ilerleme; sıradaki çarpışmalı kare en çok 20 cm'lik girişi geri iter (kapsül yarıçapından küçük).
+	# Konum yerel değişkende hesaplanır, düğüme en sonda TEK kez yazılır (her yazış modelin bütün alt düğümlerini kirletiyordu).
+	var q: Vector3 = pre
+	var slid := false
+	_cpush_i2 += 1
+	var hsp := absf(velocity.x) + absf(velocity.z)
+	# 8 m/sn altı: üç karede bir çarpışma çözümü (en çok 27 cm giriş), 12 m/sn altı: iki karede bir
+	if grounded and absf(velocity.y) < 6.0 and ((hsp < 8.0 and _cpush_i2 % 3 != 0) or (hsp < 12.0 and (_cpush_i2 & 1) == 1)):
+		q += Vector3(velocity.x, 0.0, velocity.z) * dt
+	elif grounded and absf(pre.y - _ground_here()) < 0.02 and velocity.y <= 0.6:
+		# arazi hizasında yürüyen: yerçekimi zemine bastırmasın (her çağrıda zeminle fazladan çarpışma + kayma turu + zemine
+		# yapışma sorgusu çıkıyordu); yükseklik aşağıda arazi yüksekliğinden alınır
+		var vy := velocity.y
+		var fs := floor_snap_length
+		velocity.y = 0.0
+		floor_snap_length = 0.0
+		move_and_slide()
+		floor_snap_length = fs
+		velocity.y = vy
+		q = global_position
+		slid = true
+	else:
+		move_and_slide()
+		q = global_position
+		slid = true
+	var q0: Vector3 = q
 	# iç içe geçme itmesi kaçağı: hızı sıfırken bile fizik ayırma itmesi karakteri her karede metrelerce kaydırabiliyordu
 	var lim = maxf(Vector2(velocity.x, velocity.z).length(), hv.length()) * dt * 1.6 + 0.06
-	var mvd = Vector2(global_position.x - pre.x, global_position.z - pre.z)
+	var mvd = Vector2(q.x - pre.x, q.z - pre.z)
 	if mvd.length() > lim:
 		mvd = mvd.normalized() * lim
-		global_position = Vector3(pre.x + mvd.x, global_position.y, pre.z + mvd.y)
-	var g = Game.ground_height(global_position.x, global_position.z)
+		q = Vector3(pre.x + mvd.x, q.y, pre.z + mvd.y)
+	var g: float
+	if q.x == _gh_x and q.z == _gh_z:
+		g = _gh_v
+	else:
+		g = Game.ground_height(q.x, q.z)
+		_gh_x = q.x
+		_gh_z = q.z
+		_gh_v = g
 	# uçuruma ışınlanma yok: adımda aşılamayacak dik arazi yatay hareketi durdurur
-	var horiz = Vector2(global_position.x - pre.x, global_position.z - pre.z).length()
-	if horiz > 0.0005 and g - minf(pre.y, global_position.y) > maxf(0.45, horiz * 1.4):
-		global_position = Vector3(pre.x, global_position.y, pre.z)
+	var horiz = Vector2(q.x - pre.x, q.z - pre.z).length()
+	if horiz > 0.0005 and g - minf(pre.y, q.y) > maxf(0.45, horiz * 1.4):
+		q = Vector3(pre.x, q.y, pre.z)
 		velocity.x = 0.0; velocity.z = 0.0
-		g = Game.ground_height(global_position.x, global_position.z)
+		g = Game.ground_height(q.x, q.z)
+		_gh_x = q.x
+		_gh_z = q.z
+		_gh_v = g
 	var snap = maxf(0.3, hv.length() * dt * 1.6)
-	if grounded and velocity.y <= 0 and global_position.y > g and global_position.y - g < snap:
-		global_position.y = g
-	if global_position.y <= g and velocity.y <= 0:
-		global_position.y = g
+	if grounded and velocity.y <= 0 and q.y > g and q.y - g < snap:
+		q.y = g
+	if q.y <= g and velocity.y <= 0:
+		q.y = g
 		velocity.y = 0
 		grounded = true
 	else:
-		grounded = is_on_floor()
+		grounded = is_on_floor() if slid else grounded
+	if q != q0 or not slid:
+		global_position = q
 	if turn and hv.length() > 0.5 and state not in ["hitstun", "knockdown", "dead"]:
 		facing = lerp_angle(facing, atan2(-hv.x, -hv.z), minf(1.0, dt * 10.0))
-	model.rotation.y = facing
+	if model.rotation.y != facing:
+		model.rotation.y = facing
 
 
 var _env_t = 0.0

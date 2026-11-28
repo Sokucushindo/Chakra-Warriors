@@ -688,6 +688,13 @@ func hit_sphere(attacker: Node3D, center: Vector3, radius: float, info: Dictiona
 	if String(info.get("element", "")) == "fuuton" and get_tree().has_group("kemuri_bulut"):
 		load("res://scripts/combat/fx/kemuridama_fx.gd").wind(center, radius)   # rüzgâr dumanı dağıtır
 	for f in get_tree().get_nodes_in_group("fighters"):
+		# önce ucuz uzaklık elemesi: gövdesi (yarıçap + boy) alana erişemeyecek kadar uzaktakiler için düşmanlık sorgusu yok
+		var fr0 = f.get("radius")
+		if fr0 != null and not f.has_method("hit_test"):
+			var reach0: float = radius + float(fr0) + float(f.height) + 0.5
+			var fp0: Vector3 = f.global_position
+			if absf(fp0.x - center.x) > reach0 or absf(fp0.z - center.z) > reach0:
+				continue
 		if f in exclude or not hostile(attacker, f) or f.is_dead():
 			continue
 		if capsule_hit(center, f, radius):
@@ -848,7 +855,7 @@ var quiet := false   # görsel denetim testleri: hasar sayısı/yazı yok
 
 
 func damage_number(pos: Vector3, amount: float, col := Color(1, 0.9, 0.3), crit := false) -> void:
-	if quiet:
+	if quiet or not _pop_ok(pos):
 		return
 	var l = Label3D.new()
 	l.text = str(int(round(amount)))
@@ -864,12 +871,32 @@ func damage_number(pos: Vector3, amount: float, col := Color(1, 0.9, 0.3), crit 
 	l.global_position = pos + Vector3(randf_range(-0.3, 0.3), 0, randf_range(-0.3, 0.3))
 	var tw = l.create_tween().set_parallel(true)
 	tw.tween_property(l, "global_position", l.global_position + Vector3(0, 1.4, 0), 0.7).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-	tw.tween_property(l, "modulate:a", 0.0, 0.35).set_delay(0.45)
+	tw.tween_property(l, "transparency", 1.0, 0.35).set_delay(0.45)   # renk saydamlığı her karede yazı ağını yeniden kuruyordu
 	tw.chain().tween_callback(l.queue_free)
 
 
+## Yazı kurulsun mu: kameradan 45 m'den uzaktaki okunmaz; kalabalıkta oyuncunun 8 m dışındaki yazılar (hasar sayısı dahil)
+## saniyede en çok ~12 (her yazı bir metin ağı kurar)
+func _pop_ok(pos: Vector3) -> bool:
+	var pcam := get_viewport().get_camera_3d()
+	if pcam != null and pcam.global_position.distance_squared_to(pos) > 2025.0:
+		return false
+	var nowp := Time.get_ticks_msec()
+	_pop_tok = minf(6.0, _pop_tok + (nowp - _pop_ms) * 0.012)
+	_pop_ms = nowp
+	if Game.player != null and Game.player.global_position.distance_squared_to(pos) > 64.0:
+		if _pop_tok < 1.0:
+			return false
+		_pop_tok -= 1.0
+	return true
+
+
+var _pop_tok := 6.0
+var _pop_ms := 0
 func popup_text(pos: Vector3, text: String, col := Color(1, 1, 1)) -> void:
 	if quiet:
+		return
+	if not _pop_ok(pos):
 		return
 	var l = Label3D.new()
 	l.text = Keys.fix(text)
@@ -885,5 +912,5 @@ func popup_text(pos: Vector3, text: String, col := Color(1, 1, 1)) -> void:
 	l.global_position = pos
 	var tw = l.create_tween().set_parallel(true)
 	tw.tween_property(l, "global_position", pos + Vector3(0, 1.0, 0), 0.9)
-	tw.tween_property(l, "modulate:a", 0.0, 0.4).set_delay(0.6)
+	tw.tween_property(l, "transparency", 1.0, 0.4).set_delay(0.6)   # renk saydamlığı her karede yazı ağını yeniden kuruyordu
 	tw.chain().tween_callback(l.queue_free)

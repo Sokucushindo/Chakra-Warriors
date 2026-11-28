@@ -106,10 +106,12 @@ static func scatter(who: Node3D, at: Vector3, dur: float) -> void:
 static func _step_check(who: Node3D, at: Vector3, spikes: Array, mm: MultiMesh, s: Dictionary) -> bool:
 	var t: float = s["t"]
 	for f in Kit.fighters():
-		if not Combat.hostile(who, f) or f.is_dead():
+		var fp: Vector3 = f.global_position   # önce ucuz uzaklık elemesi (kalabalıkta herkes için düşmanlık sorgusu pahalıydı)
+		if absf(fp.x - at.x) > FIELD_R + 1.0 or absf(fp.z - at.z) > FIELD_R + 1.0 or absf(fp.y - at.y) > 1.6:
 			continue
-		var fp: Vector3 = f.global_position
-		if Vector2(fp.x - at.x, fp.z - at.z).length() > FIELD_R + 1.0 or absf(fp.y - at.y) > 1.6:
+		if Vector2(fp.x - at.x, fp.z - at.z).length() > FIELD_R + 1.0:
+			continue
+		if not Combat.hostile(who, f) or f.is_dead():
 			continue
 		if f.get("grounded") == false:
 			continue   # havadan geçen basmaz

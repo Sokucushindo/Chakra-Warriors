@@ -129,6 +129,10 @@ func snap(name: String, w: float) -> void:
 	weights[name] = w
 
 
+var _fist_tg := {}   # yumruk / açık avuç parmak hedefleri: [taraf, yumruk mu] -> [[kemik no, hedef dönüş], ...]
+var _fist_sk: Skeleton3D = null
+
+
 func _process_modification() -> void:
 	var sk = get_skeleton()
 	if sk == null:
@@ -274,25 +278,37 @@ func _process_modification() -> void:
 	for fs in fist.keys():
 		var fv = clampf(float(fist[fs]), -1.0, 1.0)
 		var sgn = 1.0 if String(fs) == "Left" else -1.0
-		if fv > 0.001:   # yumruk: parmaklar MUTLAK yumruk açısına (dinlenme pozu x kıvrım) — eklemeli kıvrım kıvrık animasyonda taşıp parmağı düzlüyordu
-			var segang := {"Proximal": 1.35, "Intermediate": 1.45, "Distal": 0.95}
-			for i in 4:
-				for seg in FINGER_SEG:
-					var fi = _fb(sk, String(fs) + FINGERS[i] + seg)
-					if fi >= 0:
-						var tq = sk.get_bone_rest(fi).basis.get_rotation_quaternion() * Quaternion(Vector3.RIGHT, float(segang[seg]))   # iki elde de aynı yön (sol elde işaret ters dönünce parmaklar geriye açılıp pençe oluyordu)
-						sk.set_bone_pose_rotation(fi, sk.get_bone_pose_rotation(fi).slerp(tq, fv))
-			for seg in THUMB_SEG:
-				var ti = _fb(sk, String(fs) + "Thumb" + seg)
-				if ti >= 0:
-					var tq2 = sk.get_bone_rest(ti).basis.get_rotation_quaternion() * Quaternion.from_euler(Vector3(0.55, 0, 0.4 * sgn))
-					sk.set_bone_pose_rotation(ti, sk.get_bone_pose_rotation(ti).slerp(tq2, fv))
-		elif fv < -0.001:   # açık avuç: animasyonun kıvırdığı parmaklar dinlenme pozuna (düz) açılır
-			for i in 4:
-				for seg in FINGER_SEG:
-					var fi = _fb(sk, String(fs) + FINGERS[i] + seg)
-					if fi >= 0:
-						sk.set_bone_pose_rotation(fi, sk.get_bone_pose_rotation(fi).slerp(sk.get_bone_rest(fi).basis.get_rotation_quaternion(), -fv))
+		if absf(fv) > 0.001:
+			# hedefler önbellekten (yumruk: dinlenme x kıvrım; açık avuç: dinlenme): her karede 15 kemik adı / dönüş kurulmuyordu, sonuç aynı
+			if sk != _fist_sk:
+				_fist_tg.clear()
+				_fist_sk = sk
+			var key := [fs, fv > 0.0]
+			var lst = _fist_tg.get(key)
+			if lst == null:
+				lst = []
+				if fv > 0.0:   # yumruk: parmaklar MUTLAK yumruk açısına (dinlenme pozu x kıvrım) — eklemeli kıvrım kıvrık animasyonda taşıp parmağı düzlüyordu
+					var segang := {"Proximal": 1.35, "Intermediate": 1.45, "Distal": 0.95}
+					for i in 4:
+						for seg in FINGER_SEG:
+							var fi = _fb(sk, String(fs) + FINGERS[i] + seg)
+							if fi >= 0:
+								lst.append([fi, sk.get_bone_rest(fi).basis.get_rotation_quaternion() * Quaternion(Vector3.RIGHT, float(segang[seg]))])   # iki elde de aynı yön (sol elde işaret ters dönünce parmaklar geriye açılıp pençe oluyordu)
+					for seg in THUMB_SEG:
+						var ti = _fb(sk, String(fs) + "Thumb" + seg)
+						if ti >= 0:
+							lst.append([ti, sk.get_bone_rest(ti).basis.get_rotation_quaternion() * Quaternion.from_euler(Vector3(0.55, 0, 0.4 * sgn))])
+				else:   # açık avuç: animasyonun kıvırdığı parmaklar dinlenme pozuna (düz) açılır
+					for i in 4:
+						for seg in FINGER_SEG:
+							var fi = _fb(sk, String(fs) + FINGERS[i] + seg)
+							if fi >= 0:
+								lst.append([fi, sk.get_bone_rest(fi).basis.get_rotation_quaternion()])
+				_fist_tg[key] = lst
+			var aw := absf(fv)
+			for e in lst:
+				var bi: int = e[0]
+				sk.set_bone_pose_rotation(bi, sk.get_bone_pose_rotation(bi).slerp(e[1], aw))
 	for gb in grow.keys():
 		var gi = _fb(sk, String(gb))
 		var gv = float(grow[gb])
@@ -836,6 +852,11 @@ func _root_motion(sk: Skeleton3D, dt: float) -> void:
 ## Her ayak altındaki zemine (arazi + çarpışma yüzeyi) basar: eğimde, basamakta ayaklar havada kalmaz / gömülmez; aşağıda kalan
 ## ayak için kalça alçalır. Animasyonun kaldırdığı ayak (adım) yüksekliğini korur. Ayak yönü korunur.
 var _ankle_h := -1.0
+static var _main_id := OS.get_main_thread_id()
+func _main_thread() -> bool:
+	return OS.get_thread_caller_id() == _main_id
+
+
 func _foot_ik(sk: Skeleton3D) -> void:
 	if not foot_ik:
 		return
@@ -848,8 +869,8 @@ func _foot_ik(sk: Skeleton3D) -> void:
 	if not (bool(gr) if gr != null else (owner3d as CharacterBody3D).is_on_floor()):
 		return   # havada / zıplarken yok (oyuncu/düşman kendi zemin bilgisini tutar)
 	var cam = get_viewport().get_camera_3d() if get_viewport() else null
-	if cam and cam.global_position.distance_to(owner3d.global_position) > 35.0:
-		return   # uzaktakiler için atla (maliyet)
+	if cam and cam.global_position.distance_to(owner3d.global_position) > (35.0 if owner3d == Game.player else 12.0):
+		return   # uzaktakiler için atla (maliyet); oyuncu dışındakilerde 12 m (kalabalık savaşta kişi başı iki ışın)
 	var gt: Transform3D = sk.global_transform
 	if _ankle_h < 0.0:
 		var a = _fb(sk, "LeftFoot")
@@ -859,7 +880,7 @@ func _foot_ik(sk: Skeleton3D) -> void:
 		if _ankle_h <= 0.0 or _ankle_h > 0.4:
 			_ankle_h = 0.08
 	var root_y: float = owner3d.global_position.y
-	var space = owner3d.get_world_3d().direct_space_state
+	var space = owner3d.get_world_3d().direct_space_state if _main_thread() else null   # iş parçacığında fizik sorgusu yok: yalnız arazi yüksekliği
 	var targets_ik = {}
 	var drop = 0.0
 	for side in ["Left", "Right"]:
@@ -869,7 +890,7 @@ func _foot_ik(sk: Skeleton3D) -> void:
 		var P: Vector3 = gt * sk.get_bone_global_pose(fb).origin
 		var lift = maxf(0.0, (P.y - root_y) - _ankle_h)   # animasyonun kaldırdığı yükseklik
 		var gy = Game.ground_height(P.x, P.z)
-		var hit = space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(P.x, root_y + 0.6, P.z), Vector3(P.x, root_y - 0.7, P.z), 1, [owner3d.get_rid()]))
+		var hit: Dictionary = space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(P.x, root_y + 0.6, P.z), Vector3(P.x, root_y - 0.7, P.z), 1, [owner3d.get_rid()])) if space != null else {}
 		if not hit.is_empty():
 			gy = maxf(gy, float(hit["position"].y)) if absf(float(hit["position"].y) - root_y) < 0.6 else gy
 		var dy = clampf(gy - root_y, -0.45, 0.45)

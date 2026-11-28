@@ -178,6 +178,15 @@ static func random_design() -> Dictionary:
 		"col": [0.9, 0.05, 0.06]}
 
 
+## Kişiye bağlı desen (aynı tohum = aynı desen): NPC'nin iki gözü aynı deseni taşır (anime: Mangekyō deseni kişiye özgü, iki gözde aynı)
+static func design_seeded(seed_s: String) -> Dictionary:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(seed_s + "|ms")
+	return {"style": rng.randi() % 50, "blades": rng.randi_range(3, 6), "curve": rng.randf_range(-2.5, 2.5), "thick": rng.randf_range(0.35, 0.75),
+		"inner": rng.randf_range(0.14, 0.3), "ring": rng.randf() < 0.4, "invert": rng.randf() < 0.12, "spin": rng.randf_range(0.2, 1.0),
+		"col": [0.9, 0.05, 0.06]}
+
+
 static func design_vecs(d: Dictionary) -> Array:
 	var c: Array = d.get("col", [0.9, 0.05, 0.06])
 	return [Vector4(d.get("style", 0), d.get("blades", 3), d.get("curve", 1.5), d.get("thick", 0.5)),
@@ -194,11 +203,27 @@ static func design_for(pr: Dictionary, slot: String) -> Dictionary:
 	if not kind in [4, 5]:
 		return {}
 	if not g.has("design"):
+		# iki göz aynı desenle başlar (anime: desen kişiye özgü); oyuncu sonra her gözü ayrı değiştirebilir
+		var og = LazyFx.g("Gear").equipped(pr, "sol_goz" if slot == "sag_goz" else "sag_goz")
+		if not og.is_empty() and og.has("design") and int(LazyFx.g("Gear").item(og["id"]).get("eye", {}).get("kind", 0)) in [4, 5]:
+			g["design"] = (og["design"] as Dictionary).duplicate(true)
+			return g["design"]
 		g["design"] = random_design()
 		if kind == 5:  # ebedi: iki deseni birleştiren daha karmaşık stil
 			g["design"]["ring"] = true
 			g["design"]["blades"] = int(g["design"]["blades"]) + 1
 	return g["design"]
+
+
+## Bir gözün desenini öbür göze aktarır (öbür gözde Mangekyō / Ebedi yoksa false)
+static func copy_design(pr: Dictionary, from_slot: String) -> bool:
+	var d := design_for(pr, from_slot)
+	var other := "sol_goz" if from_slot == "sag_goz" else "sag_goz"
+	var og = LazyFx.g("Gear").equipped(pr, other)
+	if d.is_empty() or og.is_empty() or not int(LazyFx.g("Gear").item(og["id"]).get("eye", {}).get("kind", 0)) in [4, 5]:
+		return false
+	og["design"] = d.duplicate(true)
+	return true
 
 
 ## Kanon (Kakashi): Uchiha kanı olmayan bedene takılmış Sharingan kapanmaz — göz kapalı modda da kırmızı tomoe görünür

@@ -16,11 +16,23 @@ func _ready() -> void:
 	await _w(3.0)
 	Hud.close_dialog()
 	var ninja = null
-	for v in get_tree().get_nodes_in_group("talkers"):
-		if (v is Villager or v is ClanResident) and Friends.is_ninja(v) and not v.has_meta("friend_id"):
-			ninja = v
-			break
-	pl.global_position = ninja.global_position + ninja.face_dir() * 5.0 + Vector3.UP * 0.2
+	var tw = Time.get_ticks_msec()
+	while ninja == null and Time.get_ticks_msec() - tw < 20000:
+		for v in get_tree().get_nodes_in_group("talkers"):
+			if (v is Villager or v is ClanResident) and Friends.is_ninja(v) and not v.has_meta("friend_id"):
+				ninja = v
+				break
+		await _w(0.5)
+	if ninja == null:
+		print("RSPOT ninja bulunamadı")
+		get_tree().quit()
+		return
+	if OS.has_environment("RS_M"):   # yüksek chakra ustalığı = yüksek gizlilik (güçlü oyuncu kaydı gibi)
+		if not Game.profile.has("mastery"): Game.profile["mastery"] = {}
+		Game.profile["mastery"]["chakra"] = float(OS.get_environment("RS_M"))
+	var dist := float(OS.get_environment("RS_D")) if OS.has_environment("RS_D") else 5.0
+	pl.global_position = ninja.global_position + ninja.face_dir() * dist + Vector3.UP * 0.2
+	print("RSPOT gizlilik=%.2f mesafe=%.1f" % [Stats.skill(Game.profile, "stealth"), dist])
 	Orgs._raid = {}
 	Orgs.flags()["rogue"] = true
 	Orgs.flags()["rogue_from"] = "konoha"

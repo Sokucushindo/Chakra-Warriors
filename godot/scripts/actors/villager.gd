@@ -85,6 +85,11 @@ var _planned := false
 
 ## Görünüşün kararı (rol kalıbı + kıyafet + yaş). Sahneye girmeden de çağrılabilir: doğuran taraf yüzü / saçı arka planda
 ## hazırlatıp (CharacterModel.prepare) kişiyi hazır olunca sahneye alır; yoksa yeni yüz karede hesaplanıp oyunu takıyordu.
+## Köylüler kalabalık itmesine girmez (yürüyüş yolları kendi düzenini kurar; her köylünün komşu taraması boşa yük)
+func _crowd_push() -> Vector3:
+	return Vector3.ZERO
+
+
 func plan_look() -> void:
 	if _planned:
 		return

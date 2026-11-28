@@ -86,6 +86,7 @@ func _pick(name: String):
 	return arr[j]
 
 
+var _last_ms := {}
 func play(name: String, pos = null, pitch := 1.0, vol := 1.0) -> void:
 	var stream = _pick(name)
 	if stream == null:
@@ -101,6 +102,11 @@ func play(name: String, pos = null, pitch := 1.0, vol := 1.0) -> void:
 				p.stream = stream; p.pitch_scale = pitch; p.volume_db = linear_to_db(v); p.play()
 				return
 		return
+	# aynı ses aynı anda üst üste (kalabalık savaş): 60 ms içinde aynı adlı ikinci ses çalınmaz — duyulmaz, yalnız çözücü kurar
+	var nowm := Time.get_ticks_msec()
+	if nowm - int(_last_ms.get(name, -1000)) < 60:
+		return
+	_last_ms[name] = nowm
 	for p in pool:
 		if not p.playing:
 			p.stream = stream

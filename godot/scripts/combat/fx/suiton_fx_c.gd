@@ -85,8 +85,12 @@ static func suiton_bakusui_shoha(pj: PathJutsu, c: Node3D, t: Node3D) -> void:
 		_flood_tiers(pj, fall_at)
 		_flood_sea(pj, lake_c, fall_at)
 		pj.every(1.2, 0.2, func(_i, _k):
+			if not is_instance_valid(c):   # atan bu arada öldü / silindi
+				return
 			Combat.hit_zone(c, c.global_position, d, 22.0, 35.0, 4.0, pj.inf(c, "suiton_bakusui_shoha", 0.35, {"knock": 14.0, "kind": "heavy", "element": "suiton", "dir": d})), Callable())
 		pj.every(7.0, 0.5, func(i, _k):
+			if not is_instance_valid(c):
+				return
 			for e in pj.enemies_near(c, pj.gp(c.global_position + d * 10.0), 14.0):
 				pj.st(e, "slow", 0.8)
 			_flood_swell(pj, lake_c, i), Callable())

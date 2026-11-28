@@ -203,6 +203,7 @@ func warm_ramp(cols: Array) -> bool:
 
 
 ## Genel amaçlı tek seferlik parçacık patlaması
+var _burst_res := {}
 func burst(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
 	# cel bulut topakları (konturlu düz kart) -> 3B yumuşak topak (kullanıcı: 2D efekt yok). Kıvılcım/doku sprite'ları aynen kalır.
 	if cfg.get("cel", false) and (cfg.get("tex", null) == null or cfg.get("tex") == tex_smoke) and not cfg.get("local", false):
@@ -212,6 +213,24 @@ func burst(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
 		c3["size"] = float(cfg.get("size", 1.0)) * 0.75
 		c3["emit"] = float(cfg.get("hot", 0.0)) > 0.35 or FX.warm_ramp(cols)
 		return puff3d(pos, c3)
+	# düğüm havuzu (2026-11-28): kısa, tek atımlık, sahneye serbest bırakılan patlamalar (kıvılcım, kan, toz...) bitince silinmez,
+	# gizlenip aynı ayarlı bir sonraki patlamada yeniden kullanılır. Saniyede ~150 parçacık düğümü kurulup siliniyordu
+	# (silme kuyruğu ana çekirdeğin ~%6'sı). Ebeveyne bağlı / sürekli / uzun ömürlü olanlar eskisi gibi kurulur ve silinir.
+	var poolable: bool = not cfg.has("parent") and not cfg.get("local", false) and float(cfg.get("explosive", 0.95)) >= 0.9 and float(cfg.get("life", 0.6)) <= 1.2
+	var pkey := cfg.hash() if poolable else 0
+	if poolable:
+		var pl = _burst_pool.get(pkey)
+		while pl != null and not pl.is_empty():
+			var old = pl.pop_back()
+			_burst_pooled -= 1
+			if is_instance_valid(old) and old.is_inside_tree() and not old.is_queued_for_deletion():
+				old.global_position = pos
+				old.one_shot = true
+				old.visible = true
+				old.restart()
+				old.emitting = true
+				_burst_return(old, pkey)
+				return old
 	var p = GPUParticles3D.new()
 	p.one_shot = true
 	p.explosiveness = cfg.get("explosive", 0.95)
@@ -219,45 +238,71 @@ func burst(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
 	p.lifetime = cfg.get("life", 0.6)
 	p.fixed_fps = 60
 	p.local_coords = cfg.get("local", false)
-	var pm = ParticleProcessMaterial.new()
-	pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
-	pm.emission_sphere_radius = cfg.get("radius", 0.2)
-	pm.direction = cfg.get("dir", Vector3.UP)
-	pm.spread = cfg.get("spread", 180.0)
-	pm.initial_velocity_min = cfg.get("vmin", 2.0)
-	pm.initial_velocity_max = cfg.get("vmax", 6.0)
-	pm.gravity = cfg.get("gravity", Vector3.ZERO)
-	pm.damping_min = cfg.get("damp", 2.0)
-	pm.damping_max = cfg.get("damp", 2.0) * 1.5
-	pm.scale_min = cfg.get("smin", 0.5)
-	pm.scale_max = cfg.get("smax", 1.0)
-	pm.angle_min = cfg.get("angle_min", 0.0); pm.angle_max = cfg.get("angle_max", 360.0)
-	pm.angular_velocity_min = cfg.get("spin", 0.0) * -1.0
-	pm.angular_velocity_max = cfg.get("spin", 0.0)
-	pm.color_ramp = _gradient(cfg.get("colors", [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]))
-	pm.scale_curve = _curve(cfg.get("scale_curve", [[0.0, 0.6], [0.3, 1.0], [1.0, 0.8]]))
-	if cfg.has("orbit"):
-		pm.orbit_velocity_min = cfg["orbit"]; pm.orbit_velocity_max = cfg["orbit"] * 1.4
-	if cfg.has("tangent"):
-		pm.tangential_accel_min = cfg["tangent"]; pm.tangential_accel_max = cfg["tangent"]
-	p.process_material = pm
-	var q = QuadMesh.new()
-	q.size = Vector2.ONE * cfg.get("size", 1.0)
-	var tex: Texture2D = cfg.get("tex", tex_soft)
-	var bb: int = cfg.get("billboard", BaseMaterial3D.BILLBOARD_PARTICLES)
-	# sert kenarlı cel topak: açıkça istenirse ya da (duman dokusu + karışımlı) tüm eski duman/alev çağrıları
-	var cel: bool = cfg.get("cel", (tex == tex_smoke or tex == tex_soft) and not cfg.get("add", true))
-	if cel:
-		q.material = VFX.mat_puff(cfg.get("glow", _auto_glow(cfg)), cfg.get("hot", 0.0), cfg.get("outline_col", _auto_outline(cfg)),
-			cfg.get("rough", 0.32), cfg.get("shade", 0.3), cfg.get("stretch", 1.0), cfg.get("outline", 0.07))
+	# kaynak önbelleği (2026-11-27, 30 kişilik savaş profili: saniyede ~150 patlama, her biri yeni parçacık malzemesi + renk ve
+	# eğri dokusu + kart ağı kurup ölünce siliyordu). Aynı ayarlı patlama aynı kaynakları paylaşır; görünüş birebir aynı.
+	var ck := cfg
+	if cfg.has("parent"):
+		ck = cfg.duplicate()
+		ck.erase("parent")
+	var hk := ck.hash()
+	var ce = _burst_res.get(hk)
+	var pm: ParticleProcessMaterial
+	var q: QuadMesh
+	if ce != null:
+		pm = ce[0]
+		q = ce[1]
+		p.process_material = pm
 		p.draw_pass_1 = q
-	elif tex == tex_spark:
-		q.size = Vector2(0.12, 0.6) * cfg.get("size", 1.0)
-		pm.particle_flag_align_y = true
-		bb = BaseMaterial3D.BILLBOARD_DISABLED
-	if not cel:
-		q.material = _draw_mat(tex, cfg.get("add", true), bb)
-	p.draw_pass_1 = q
+	else:
+		pm = ParticleProcessMaterial.new()
+		pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+		pm.emission_sphere_radius = cfg.get("radius", 0.2)
+		pm.direction = cfg.get("dir", Vector3.UP)
+		pm.spread = cfg.get("spread", 180.0)
+		pm.initial_velocity_min = cfg.get("vmin", 2.0)
+		pm.initial_velocity_max = cfg.get("vmax", 6.0)
+		pm.gravity = cfg.get("gravity", Vector3.ZERO)
+		pm.damping_min = cfg.get("damp", 2.0)
+		pm.damping_max = cfg.get("damp", 2.0) * 1.5
+		pm.scale_min = cfg.get("smin", 0.5)
+		pm.scale_max = cfg.get("smax", 1.0)
+		pm.angle_min = cfg.get("angle_min", 0.0); pm.angle_max = cfg.get("angle_max", 360.0)
+		pm.angular_velocity_min = cfg.get("spin", 0.0) * -1.0
+		pm.angular_velocity_max = cfg.get("spin", 0.0)
+		pm.color_ramp = _gradient(cfg.get("colors", [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]))
+		pm.scale_curve = _curve(cfg.get("scale_curve", [[0.0, 0.6], [0.3, 1.0], [1.0, 0.8]]))
+		if cfg.has("orbit"):
+			pm.orbit_velocity_min = cfg["orbit"]; pm.orbit_velocity_max = cfg["orbit"] * 1.4
+		if cfg.has("tangent"):
+			pm.tangential_accel_min = cfg["tangent"]; pm.tangential_accel_max = cfg["tangent"]
+		p.process_material = pm
+		q = QuadMesh.new()
+		q.size = Vector2.ONE * cfg.get("size", 1.0)
+		var tex: Texture2D = cfg.get("tex", tex_soft)
+		var bb: int = cfg.get("billboard", BaseMaterial3D.BILLBOARD_PARTICLES)
+		# sert kenarlı cel topak: açıkça istenirse ya da (duman dokusu + karışımlı) tüm eski duman/alev çağrıları
+		var cel: bool = cfg.get("cel", (tex == tex_smoke or tex == tex_soft) and not cfg.get("add", true))
+		if cel:
+			q.material = VFX.mat_puff(cfg.get("glow", _auto_glow(cfg)), cfg.get("hot", 0.0), cfg.get("outline_col", _auto_outline(cfg)),
+				cfg.get("rough", 0.32), cfg.get("shade", 0.3), cfg.get("stretch", 1.0), cfg.get("outline", 0.07))
+			p.draw_pass_1 = q
+		elif tex == tex_spark:
+			q.size = Vector2(0.12, 0.6) * cfg.get("size", 1.0)
+			pm.particle_flag_align_y = true
+			bb = BaseMaterial3D.BILLBOARD_DISABLED
+		if not cel:
+			q.material = _draw_mat(tex, cfg.get("add", true), bb)
+		p.draw_pass_1 = q
+		if _burst_res.size() > 600:
+			_burst_res.clear()
+		if _burst_pool.size() > 600:   # ayar çeşidi çok arttıysa (rastgele değerli çağrılar) havuzu boşalt
+			for k in _burst_pool:
+				for o in _burst_pool[k]:
+					if is_instance_valid(o):
+						o.queue_free()
+			_burst_pool.clear()
+			_burst_pooled = 0
+		_burst_res[hk] = [pm, q]
 	var vr = 20.0 + float(cfg.get("radius", 0.2)) * 1.5   # geniş yayılımlı bulutlar (Kirin fırtınası) kenarda kırpılmasın
 	p.visibility_aabb = AABB(Vector3(-vr, -vr, -vr), Vector3(vr, vr, vr) * 2.0)
 	p.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -268,8 +313,35 @@ func burst(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
 	else:
 		p.global_position = pos
 	p.emitting = true
-	free_after(p)
+	if poolable:
+		_burst_return(p, pkey)
+	else:
+		free_after(p)
 	return p
+
+
+var _burst_pool := {}     # ayar özeti -> [gizli, yeniden kullanılacak parçacık düğümleri]
+var _burst_pooled := 0
+func _burst_return(p: GPUParticles3D, pkey: int) -> void:
+	var id := p.get_instance_id()
+	get_tree().create_timer(p.lifetime * (2.0 - p.explosiveness) + 0.4, false).timeout.connect(func():
+		var o = instance_from_id(id)
+		if o == null or o.is_queued_for_deletion():
+			return
+		if _burst_pooled >= 400 or not o.is_inside_tree() or o.get_parent() != get_tree().current_scene:
+			o.queue_free()
+			return
+		var pl = _burst_pool.get(pkey)
+		if pl == null:
+			pl = []
+			_burst_pool[pkey] = pl
+		if pl.size() >= 8:
+			o.queue_free()
+			return
+		o.emitting = false
+		o.visible = false
+		pl.append(o)
+		_burst_pooled += 1)
 
 
 ## Genişleyen halka (yere paralel ya da kameraya dönük) — sert kenarlı anime şok dalgası
@@ -489,6 +561,22 @@ func puff3d(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
 		m.set_shader_parameter("hot", 1.0 if emit else 0.0)
 		m.set_shader_parameter("soft", 1.0 if mist else 0.0)
 		_puff_mats[key] = m
+	# düğüm havuzu (burst ile aynı): kısa ömürlü topak bulutu bitince gizlenir, aynı ayarla yeniden kullanılır
+	var poolable: bool = float(cfg.get("life", 0.7)) <= 1.2 and not cfg.has("parent")
+	var pkey := hash(["p3", cfg.hash()]) if poolable else 0
+	if poolable:
+		var pl = _burst_pool.get(pkey)
+		while pl != null and not pl.is_empty():
+			var old = pl.pop_back()
+			_burst_pooled -= 1
+			if is_instance_valid(old) and old.is_inside_tree() and not old.is_queued_for_deletion():
+				old.global_position = pos
+				old.one_shot = true
+				old.visible = true
+				old.restart()
+				old.emitting = true
+				_burst_return(old, pkey)
+				return old
 	var p = GPUParticles3D.new()
 	p.one_shot = true
 	p.explosiveness = 0.9
@@ -562,7 +650,10 @@ func puff3d(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
 	VFX.scene().add_child(p)
 	p.global_position = pos
 	p.emitting = true
-	free_after(p)
+	if poolable:
+		_burst_return(p, pkey)
+	else:
+		free_after(p)
 	return p
 
 
