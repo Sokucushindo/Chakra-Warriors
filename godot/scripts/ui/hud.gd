@@ -718,7 +718,8 @@ func _update_objective_pointer(pl: Node3D) -> void:
 		var nm: String = Missions.target_name if Missions.target_name != "" else "Hedef"
 		compass_lbl.text = "%s — %d m" % [LazyFx.g("Lang").t(nm), int(dist)] if dist > 6.0 else LazyFx.g("Lang").t("%s — buradasın") % LazyFx.g("Lang").t(nm)
 		compass.position.y = 84.0 if boss_box.visible else 14.0
-		compass.queue_redraw()
+		if Engine.get_process_frames() % 3 == 0:   # pusula / harita üstü kare başına değil üç karede bir yeniden çizilir
+			compass.queue_redraw()
 	# dünyadaki ışık sütunu
 	if beam == null or not is_instance_valid(beam):
 		if not Missions.has_marker or pl.get_parent() == null:
@@ -907,7 +908,7 @@ func dialog(title: String, text: String, options: Array) -> void:
 		return
 	close_dialog()
 	Game.ui_open = true
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	Game.mouse(false)
 	var root = Control.new()
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -1075,7 +1076,7 @@ func close_dialog() -> void:
 		c.queue_free()
 	Game.ui_open = false
 	if not Game.paused and Game.player:
-		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		Game.mouse(true)
 
 
 func dialog_open() -> bool:
@@ -1229,7 +1230,7 @@ func _ui_watchdog(dt: float) -> void:
 			break
 	# duraklama menüsü / sınav kartı da bu katmanda: katman boşken oyun duraklamış kalmışsa (kartı başka bir pencere silip
 	# devam ettirmeden bıraktıysa) ekranda hiçbir şey yokken oyun donuk kalıyordu
-	var bad = not open and (Game.paused or Game.ui_open or get_tree().paused or (Input.mouse_mode != Input.MOUSE_MODE_CAPTURED and DisplayServer.window_is_focused()))
+	var bad = not open and (Game.paused or Game.ui_open or get_tree().paused or (not Game.mouse_cap and DisplayServer.window_is_focused()))
 	if not bad:
 		_ui_stuck = 0.0
 		return
@@ -1247,7 +1248,7 @@ func _ui_watchdog(dt: float) -> void:
 	if get_tree().paused:
 		get_tree().paused = false
 	if DisplayServer.window_is_focused():
-		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		Game.mouse(true)
 
 
 func _process(dt: float) -> void:
@@ -1268,7 +1269,9 @@ func _process(dt: float) -> void:
 		var lk = Jutsu.soft_target(pl) != null
 		if lk != xhair_lock:
 			xhair_lock = lk
-		xhair.queue_redraw()
+			xhair.queue_redraw()
+		elif Engine.get_process_frames() % 4 == 0:
+			xhair.queue_redraw()
 	var rname: String = Data.RANKS[int(pr.get("rank", 0))]
 	if Orgs.is_rogue():
 		rname = "%s (%s-rank)" % [LazyFx.g("Lang").t(Orgs.rogue_rank_name()), String(Orgs.ROGUE_RANKS[Orgs.rogue_rank()][2])]   # kaçakta köy rütbesi yok
@@ -1402,7 +1405,8 @@ func _process(dt: float) -> void:
 		sm.set_shader_parameter("center", Vector2((m.x - Game.x0) / W, (Game.y1 - m.y) / H))
 		sm.set_shader_parameter("zoom", 900.0 / W)
 	sm.set_shader_parameter("rot", deg_to_rad(pl.yaw) * -1.0)
-	(minimap.get_meta("over") as Control).queue_redraw()
+	if Engine.get_process_frames() % 3 == 1:
+		(minimap.get_meta("over") as Control).queue_redraw()
 
 
 func _near_talker(pl: Node3D) -> Node:

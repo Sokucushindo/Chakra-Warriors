@@ -171,7 +171,8 @@ func _build(pts: PackedVector3Array) -> void:
 		var upv = frames[n - 1][0]
 		if absf(tng2.dot(upv)) > 0.95:
 			upv = Vector3.UP
-		_head.look_at(_head.global_position + tng2, upv)
+		if tng2.length_squared() > 0.25:   # son iki nokta üst üsteyse (yılan henüz uzamadı) yön yok: baş eski yönünde kalır
+			_head.look_at(_head.global_position + tng2, upv)
 
 
 ## Uzan: reach 0→1 (sec); bitince done

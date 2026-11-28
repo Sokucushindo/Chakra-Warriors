@@ -131,7 +131,7 @@ func _ready() -> void:
 	cam.current = true
 	Game.player = self
 	add_to_group("fighters")
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	Game.mouse(true)
 	yaw = 180.0
 
 
@@ -159,7 +159,7 @@ func _unhandled_input(e: InputEvent) -> void:
 		Hud.msg("Yürüyüş" if walking else "Koşu", Color(0.85, 0.9, 1.0), 1.0)
 	if Game.paused or Game.ui_open:
 		return
-	if e is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+	if e is InputEventMouseMotion and Game.mouse_cap:
 		var s = 0.18 * float(Game.settings["sens"])
 		yaw -= e.relative.x * s
 		pitch -= e.relative.y * s * (-1.0 if Game.settings["invert_y"] else 1.0)

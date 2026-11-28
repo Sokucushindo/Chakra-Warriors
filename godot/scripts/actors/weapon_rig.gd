@@ -57,6 +57,9 @@ func _process_modification() -> void:
 	var sk = get_skeleton()
 	if sk == null:
 		return
+	if sk != _tg_sk:
+		_tg.clear()
+		_tg_sk = sk
 	var dt = get_process_delta_time()
 	if not forearm_lock.is_empty():
 		_forearm_lock(sk)
@@ -82,9 +85,6 @@ func _process_modification() -> void:
 			sgn *= left_curl_sign   # iki elle tutuşta sol el aynalandığı için kıvrım yönü
 		elif side == "Left":
 			sgn *= left_single_sign   # tek elle sol tutuş (çift silahın sol eli)
-		for f in FINGERS:
-			for i in 3:
-				_curl(sk, side + f + FINGER_SEG[i], Quaternion(AX, CURL[i] * sgn), w)
 		# başparmak kabzanın üstüne kapanır
 		# başparmak kabzayı sarar, parmakların üstüne kapanır (eskiden kabza boyunca dik havada duruyordu)
 		var th = Vector3(0.3 * sgn, 0.6 * sgn, 0.6 * sgn)
@@ -94,8 +94,18 @@ func _process_modification() -> void:
 			# dışarı kaldırıyordu -> başparmak sol elin kendi sarma yönüyle kabzaya kapanır
 			th = LEFT_TWO_THUMB[left_thumb_mode]
 			tds = 1.0 if left_thumb_mode != 0 else sgn
-		_curl(sk, side + "ThumbProximal", Quaternion.from_euler(th), w)
-		_curl(sk, side + "ThumbDistal", Quaternion.from_euler(Vector3(0.5 * tds, 0, 0)), w)
+		# hedefler (dinlenme dönüşü * sabit kıvrım) önbellekten: her karede 14 kemik adı / dönüş yeniden kurulmasın (sonuç aynı)
+		var key := [side, sgn, th, tds]
+		var lst = _tg.get(key)
+		if lst == null:
+			lst = []
+			for f in FINGERS:
+				for i in 3:
+					_tg_add(sk, lst, side + f + FINGER_SEG[i], Quaternion(AX, CURL[i] * sgn), 1.0)
+			_tg_add(sk, lst, side + "ThumbProximal", Quaternion.from_euler(th), 1.0)
+			_tg_add(sk, lst, side + "ThumbDistal", Quaternion.from_euler(Vector3(0.5 * tds, 0, 0)), 1.0)
+			_tg[key] = lst
+		_tg_apply(sk, lst, w)
 
 
 static var LEFT_TWO_THUMB := [Vector3(-0.3, -0.6, -0.6), Vector3(0.3, 0.6, 0.6), Vector3(-0.3, 0.6, 0.6), Vector3(0.3, -0.6, -0.6)]
@@ -116,20 +126,45 @@ const RELAX_SPREAD := [0.05, 0.0, -0.04, -0.09]
 func _relax_hand(sk: Skeleton3D, side: String) -> void:
 	# boştaki el animasyonun orijinal hâlinde kalır; YALNIZ zikzak başparmak düzeltilir (işaret parmağının yanına yatık)
 	var sgn = 1.0 if side == "Left" else -1.0
-	if _hand_free(side):
-		var segs := ["Proximal", "Intermediate", "Distal"]
-		var fins := ["Index", "Middle", "Ring", "Little"]
-		for i in 4:
-			for s in 3:
-				var q := Quaternion(Vector3.RIGHT, float(RELAX_CURL[i][s]))
-				if s == 0:
-					q = Quaternion(Vector3.FORWARD, float(RELAX_SPREAD[i]) * sgn) * q
-				_curl(sk, side + String(fins[i]) + String(segs[s]), q, 0.9)
+	var free := _hand_free(side)
 	var rm = relax_meta if side == "Left" else relax_meta_r
-	if rm != Vector3.ZERO:
-		_curl(sk, side + "ThumbMetacarpal", Quaternion.from_euler(Vector3(rm.x * sgn, rm.y * sgn, rm.z * sgn)), 1.0)
-	_curl(sk, side + "ThumbProximal", Quaternion.from_euler(Vector3(relax_thumb.x * sgn, relax_thumb.y * sgn, relax_thumb.z * sgn)), 1.0)
-	_curl(sk, side + "ThumbDistal", Quaternion.from_euler(Vector3(relax_dist * sgn, 0, 0)), 1.0)
+	# hedefler önbellekten (aynı sonuç; her karede 15 kemik adı + dönüş kurulmuyordu)
+	var key := [side, free, rm, relax_thumb, relax_dist]
+	var lst = _tg.get(key)
+	if lst == null:
+		lst = []
+		if free:
+			var segs := ["Proximal", "Intermediate", "Distal"]
+			var fins := ["Index", "Middle", "Ring", "Little"]
+			for i in 4:
+				for s in 3:
+					var q := Quaternion(Vector3.RIGHT, float(RELAX_CURL[i][s]))
+					if s == 0:
+						q = Quaternion(Vector3.FORWARD, float(RELAX_SPREAD[i]) * sgn) * q
+					_tg_add(sk, lst, side + String(fins[i]) + String(segs[s]), q, 0.9)
+		if rm != Vector3.ZERO:
+			_tg_add(sk, lst, side + "ThumbMetacarpal", Quaternion.from_euler(Vector3(rm.x * sgn, rm.y * sgn, rm.z * sgn)), 1.0)
+		_tg_add(sk, lst, side + "ThumbProximal", Quaternion.from_euler(Vector3(relax_thumb.x * sgn, relax_thumb.y * sgn, relax_thumb.z * sgn)), 1.0)
+		_tg_add(sk, lst, side + "ThumbDistal", Quaternion.from_euler(Vector3(relax_dist * sgn, 0, 0)), 1.0)
+		_tg[key] = lst
+	_tg_apply(sk, lst, 1.0)
+
+
+## Parmak hedef önbelleği: anahtar -> [[kemik no, hedef dönüş (dinlenme * kıvrım), ağırlık çarpanı], ...]
+var _tg := {}
+var _tg_sk: Skeleton3D = null
+
+
+func _tg_add(sk: Skeleton3D, lst: Array, bone: String, q: Quaternion, wk: float) -> void:
+	var bi = _fb(sk, bone)
+	if bi >= 0:
+		lst.append([bi, sk.get_bone_rest(bi).basis.get_rotation_quaternion() * q, wk])
+
+
+func _tg_apply(sk: Skeleton3D, lst: Array, w: float) -> void:
+	for e in lst:
+		var bi: int = e[0]
+		sk.set_bone_pose_rotation(bi, sk.get_bone_pose_rotation(bi).slerp(e[1], clampf(w * float(e[2]), 0.0, 1.0)))
 
 
 ## Elde başka bir poz yok mu (yumruk, mühür, sahne / kombo el pozu, iki elle tutuş): yalnız o zaman rahat kıvrım

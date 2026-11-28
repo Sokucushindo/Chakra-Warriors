@@ -2793,6 +2793,9 @@ static func _bub_fly(who: Node3D, size: float, dur: float, fn: Callable, arrive:
 		tw.tween_method(func(k: float):
 			if not is_instance_valid(b):
 				return
+			if not is_instance_valid(who):   # üfleyen bu arada öldü / silindi: baloncuk hedefsiz kalır
+				b.queue_free()
+				return
 			var to: Vector3 = fn.call()
 			var p = from.lerp(to, k) + Vector3.UP * sin(k * PI) * arc + Vector3(sin(k * 9.0 + ph), cos(k * 7.0 + ph) * 0.5, cos(k * 8.0 + ph)) * 0.08 * size
 			b.global_position = p
@@ -2801,7 +2804,8 @@ static func _bub_fly(who: Node3D, size: float, dur: float, fn: Callable, arrive:
 			if is_instance_valid(b):
 				var p = b.global_position
 				b.queue_free()
-				arrive.call(p))
+				if is_instance_valid(who):
+					arrive.call(p))
 	if delay <= 0.0:
 		go.call()
 	else:

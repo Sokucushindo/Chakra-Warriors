@@ -2190,7 +2190,8 @@ static func settings(back: Callable) -> void:
 			dirty.call(ur, ["ui_scale"])
 			var g = _set_section(body, "monitor", "Grafik")
 			var q = int(s.get("quality", 2))
-			dirty.call(pick.call(g, "Grafik kalitesi", Game.QUALITY_NAMES[clampi(q, 0, 2)], func(d): Game.set_quality(posmod(q + d, 3)), false, Vector2i(clampi(q, 0, 2), 3)), ["quality"])
+			var q4: int = Game.quality4()
+			dirty.call(pick.call(g, "Grafik kalitesi", Game.QUALITY4_NAMES[q4], func(d): Game.set_quality4(posmod(q4 + d, 4)), false, Vector2i(q4, 4)), ["quality", "potato"])
 			toggle.call(g, "Gölgeler", "shadows", true)
 			choose.call(g, "Kenar yumuşatma", "aa", [0, 1, 2, 3], ["Kapalı", "FXAA", "MSAA 2x", "MSAA 4x"], 2)
 			toggle.call(g, "Ortam gölgesi (SSAO)", "ssao", true)
@@ -2201,7 +2202,7 @@ static func settings(back: Callable) -> void:
 			toggle.call(g, "Anime çizgileri", "outline", true)
 			toggle.call(g, "Yumuşak filtre", "dreamy", false)
 			var w = _set_section(body, "tree", "Dünya")
-			slider.call(w, "Görüş mesafesi", "view", 0.5, 1.6, 0.05, false)
+			slider.call(w, "Görüş mesafesi", "view", 0.4, 1.6, 0.05, false)
 			choose.call(w, "Çimen yoğunluğu", "grass", [0, 1, 2, 3], ["Kapalı", "Az", "Orta", "Çok"], 3)
 			choose.call(w, "Kalabalık yoğunluğu", "crowd", [0, 1, 2], ["Az", "Orta", "Kalabalık"], 2)
 			var c = _set_section(body, "eye", "Kamera")
@@ -2212,6 +2213,9 @@ static func settings(back: Callable) -> void:
 			var fl: Array = Game.FPS_LIMITS
 			choose.call(f, "FPS sınırı", "max_fps", fl, fl.map(func(x): return "Sınırsız" if x == 0 else str(x)), 0)
 			toggle.call(f, "FPS göster", "show_fps", false)
+			if not OS.has_feature("mobile"):
+				toggle.call(f, "Çok çekirdekli çizim (deneysel)", "render_thread", false)
+				note.call(f, "Çizimi ayrı işlemci çekirdeğinde yapar; kalabalık savaşlarda FPS artar. Oyunu yeniden başlatınca geçerli olur. Çökme ya da görüntü bozulması olursa kapat.")
 			if bool(s.get("vsync", true)):
 				note.call(f, "Dikey eşitleme açıkken FPS ekranın yenileme hızını geçmez.")
 		"sound":
@@ -2881,6 +2885,12 @@ static func _ms_editor_fill(box: VBoxContainer, d: Dictionary) -> void:
 		for k in nd:
 			d[k] = nd[k]
 		_ms_editor_fill.call_deferred(box, d), 140, "star"))
+	cr.add_child(LazyFx.g("UI").button("Diğer göze aktar", func():
+		if Eyes.copy_design(Game.profile, _eq_slot):
+			Hud.msg("Desen diğer göze aktarıldı.", Color(1, 0.6, 0.6))
+			apply_pv.call()
+		else:
+			Hud.msg("Diğer gözde Mangekyō yok.", Color(0.85, 0.8, 0.7)), 190, "eye"))
 	box.add_child(cr)
 
 
@@ -3777,7 +3787,7 @@ static func mission_board(village_id: String) -> void:
 	Missions.board = list
 	Missions.board_village = village_id
 	Game.ui_open = true
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	Game.mouse(false)
 	var bg = _full(0.45)
 	# ahşap pano
 	var board = ColorRect.new()
@@ -4060,7 +4070,7 @@ static func bingo_book(main: Node = null) -> void:
 		return
 	var entries: Array = Missions.bingo_entries()
 	Game.ui_open = true
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	Game.mouse(false)
 	var bg = _full(0.6)
 	_close_button(bg, func():
 		if Game.paused and main and main.has_method("resume"):
@@ -4248,7 +4258,7 @@ static func shop_screen(title: String, entries: Array, buy: Callable, sell := Ca
 	# aynı dükkân yeniden kurulurken (eşya seçince/alınca) liste en üste dönmesin
 	var keep = _scroll_positions() if title == _last_shop else []
 	_last_shop = title
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	Game.mouse(false)
 	var bg = _full(0.55)
 	var head = LazyFx.g("UI").label(LazyFx.g("Lang").upper(LazyFx.g("Lang").t(title)), 34, LazyFx.g("UI").TEXT, HORIZONTAL_ALIGNMENT_LEFT, true)
 	head.position = Vector2(110, 40)
@@ -4352,7 +4362,7 @@ static func sell_screen(title: String, buyer: String, back: Callable) -> void:
 	Game.ui_open = true
 	var keep = _scroll_positions() if title == _last_shop else []
 	_last_shop = title
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	Game.mouse(false)
 	var pr = Game.profile
 	var entries = SHOP_SELL.entries(pr, buyer)
 	var bg = _full(0.55)

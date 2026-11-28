@@ -158,7 +158,7 @@ func to_main_menu() -> void:
 	Hud.show_game_hud(false)
 	menu_cam.current = true
 	world.env.attach_post(menu_cam)
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	Game.mouse(false)
 	Menus.main_menu(self)
 	Sfx.music("muz_menu")
 
@@ -428,7 +428,7 @@ func _begin_game(pos: Vector3) -> void:
 		var rs: Array = Game.profile["_removed_sold"]
 		Game.profile.erase("_removed_sold")
 		get_tree().create_timer(2.5).timeout.connect(func(): Hud.msg("Plaj kıyafetleri oyundan kaldırıldı: çantandaki %d set %d Ryō'ya satıldı." % [int(rs[0]), int(rs[1])], Color(1, 0.85, 0.4)))
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	Game.mouse(true)
 	Sfx.music("muz_koy")
 	if not Game.profile.get("active_mission", {}).is_empty():
 		var m: Dictionary = Game.profile["active_mission"]
@@ -598,7 +598,7 @@ func _toggle_panel(open: Callable) -> void:
 func _pause() -> void:
 	Game.paused = true
 	get_tree().paused = true
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	Game.mouse(false)
 
 
 func resume() -> void:
@@ -606,7 +606,7 @@ func resume() -> void:
 	Game.paused = false
 	Game.ui_open = false
 	get_tree().paused = false
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	Game.mouse(true)
 
 
 const PILL_CD := 60.0   # asker hapı bekleme süresi (sn)

@@ -16,7 +16,7 @@ static func _pause() -> void:
 	if m and m.has_method("_pause") and not Game.paused:
 		m._pause()
 	Game.ui_open = true
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	Game.mouse(false)
 
 
 static func _resume() -> void:

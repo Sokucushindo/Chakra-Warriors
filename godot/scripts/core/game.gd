@@ -25,7 +25,7 @@ var settings := {
 	"lang": "",   # arayüz dili: "tr" / "en" ("": bilgisayarın diline göre)
 	# ayrıntılı grafik (kalite ön ayarı bunları birlikte kurar; tek tek de değişir)
 	"look": 2,   # görünüm sürümü: 2 = yumuşak filtre kapalı + hafif doygun renk (eski kayıtlarda bir kez uygulanır)
-	"aa": 2, "ssao": true, "res_scale": 1.0, "grass": 3, "crowd": 2,
+	"aa": 2, "ssao": true, "res_scale": 1.0, "grass": 3, "crowd": 2, "potato": false,
 }
 var profile: Dictionary = {}
 var paused := false
@@ -49,9 +49,96 @@ func now() -> float:
 var _autosave_t := 0.0
 
 
+## Kalabalık savaş (2026-11-27): 14+ dövüşçü uyanıkken kare hızı 45'in altına inerse oyun mantığı saniyede 60 yerine 30 adım
+## işler (her adım iki katı süreyle: hızlar, bekleme süreleri, hasar aynı). Düşük kare hızında her çizilen kareye 3 mantık
+## adımı düşüyordu; yükün üçte biri buydu. Kalabalık dağılınca ya da kare hızı 57'yi geçince 60'a döner.
+## Modelin iş parçacığı grubunu ana iş parçacığında değiştirir (CharacterModel._thr_update çağırır)
+func model_thread(m: Node, on: bool) -> void:
+	if not is_instance_valid(m):
+		return
+	if on and model_thread_scan(m):
+		return
+	m._thr_apply(on)
+
+
+## Modelin altında KENDİ betiğiyle işleyen bir düğüm varsa (betikli silah, bedene iliştirilen efekt...) o model iş parçacığına
+## alınmaz, ana iş parçacığında kalır: böyle düğümler sahnedeki başka düğümlere dokunabilir, model de onlara dokunur.
+## İskelet katmanları (duruş, silah tutuşu, sarkan parçalar) ve göz izi (kendini ana iş parçacığına alır) sayılmaz.
+## true = model engellendi.
+func model_thread_scan(m: Node) -> bool:
+	if not is_instance_valid(m):
+		return false
+	for ch in m.find_children("*", "", true, false):
+		if ch.get_script() != null and not (ch is SkeletonModifier3D) and not (ch is EyeTrail) and (ch.has_method("_process") or ch.has_method("_physics_process")):   # işlemesi o an kapalı olsa da sayılır (silah çekilince açılıyor)
+			m._thr_block = true
+			m._thr_on = false
+			m._thr_apply(false)
+			return true
+	return false
+
+
+## İş parçacığındaki modellerin silah yerleştirmesi (görünürlük, kın-el geçişi, zincir / ip, efekt) her kare burada, ana iş
+## parçacığında çalışır: motor bu işleri iş parçacığından yaptırmaz. Model grupları ana gruptan ÖNCE işlendiği için o an boştalar.
+var thr_models: Array = []
+func thr_tick(dt: float) -> void:
+	var i := thr_models.size() - 1
+	while i >= 0:
+		var m = thr_models[i]
+		if not is_instance_valid(m) or not m._thr_live:
+			thr_models.remove_at(i)
+		elif m.is_inside_tree() and m.can_process():
+			m._weapon_process(dt)
+		i -= 1
+
+
+## Sahneye KENDİ betiğiyle işleyen bir düğüm girdiğinde: iş parçacığındaki bir modelin altına girdiyse o model hemen ana iş
+## parçacığına alınır (betikli silah düzeneği ilk saldırıda iliştiriliyor; taramayı beklerse bir-iki saniye iş parçacığında işliyordu).
+func _thr_node_added(n: Node) -> void:
+	if thr_models.is_empty() or n.get_script() == null or n is SkeletonModifier3D or n is EyeTrail:
+		return
+	if not (n.has_method("_process") or n.has_method("_physics_process")):
+		return
+	var p := n.get_parent()
+	var depth := 0
+	while p != null and depth < 12:
+		if p is CharacterModel:
+			if p._thr_live or p._thr_on:
+				p._thr_block = true
+				p._thr_on = false
+				p._thr_apply(false)
+			return
+		p = p.get_parent()
+		depth += 1
+
+
+## Model iş parçacığından istenen işi ana iş parçacığında çalıştırır (yeni düğüm kurma, sahneye ekleme)
+func run_main(c: Callable) -> void:
+	if c.is_valid():
+		c.call()
+
+
+var _crowd_t := 0.0
+func _crowd_rate(dt: float) -> void:
+	_crowd_t -= dt
+	if _crowd_t > 0.0:
+		return
+	_crowd_t = 0.5
+	var fps := Engine.get_frames_per_second()
+	var crowd: bool = Enemy._crowd_n >= 14 and Engine.get_physics_frames() - Enemy._crowd_pf < 30
+	var cur := Engine.physics_ticks_per_second
+	if cur == 60 and crowd and fps < 45.0:
+		Engine.physics_ticks_per_second = 30
+	elif cur == 30 and (not crowd or fps > 57.0):
+		Engine.physics_ticks_per_second = 60
+
+
 func _process(dt: float) -> void:
 	if not paused and not get_tree().paused:
 		clock += dt
+		thr_tick(dt)
+		if player != null:
+			LazyFx.warm_bg()
+			_crowd_rate(dt)
 		# otomatik kayıt: yalnız oyun akarken (menüde / duraklatmada sayılmaz)
 		var every := int(settings.get("autosave", 10))
 		if every > 0 and player and not profile.is_empty():
@@ -125,6 +212,7 @@ func _exit_tree() -> void:
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	get_tree().node_added.connect(_thr_node_added)
 	_load_build_info()
 	load_settings()
 	_load_world()
@@ -376,7 +464,10 @@ func water_level(x: float, z: float, terr := NAN) -> float:
 		while i < lst.size():
 			var e = lst[i]
 			if not is_instance_valid(e[0]):
-				lst.remove_at(i)
+				if OS.get_thread_caller_id() == OS.get_main_thread_id():
+					lst.remove_at(i)   # ölü kayıt yalnız ana iş parçacığında ayıklanır (model iş parçacıkları da buradan zemin sorar)
+				else:
+					i += 1
 				continue
 			i += 1
 			var d = Vector2(x, z) - e[1]
@@ -947,6 +1038,33 @@ func load_settings() -> void:
 	apply_settings()
 
 
+## Oyunun fareyi yakalamak isteyip istemediği (oynanış = true, menü / konuşma = false). Telefonda motor fareyi yakalayamaz ve
+## Input.mouse_mode hep "görünür" döner: durumu soran her yer (kamera, dokunmatik katman, takılı kalma bekçisi) buraya bakar.
+var mouse_cap := false
+var _no_cap := OS.get_environment("TOUCH_NOCAP") != ""   # deneme: telefondaki gibi fare hiç yakalanmaz
+func mouse(cap: bool) -> void:
+	mouse_cap = cap
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED if cap and not _no_cap else Input.MOUSE_MODE_VISIBLE
+
+
+## Dört kademeli seçim: 0 Patates (en zayıf telefon / bilgisayar: çimen, gölge, çizgi, parıltı yok, yarı çözünürlük, kısa görüş),
+## 1 Düşük, 2 Orta, 3 Yüksek
+const QUALITY4_NAMES := ["Patates", "Düşük", "Orta", "Yüksek"]
+func quality4() -> int:
+	return 0 if bool(settings.get("potato", false)) else clampi(int(settings.get("quality", 2)), 0, 2) + 1
+
+
+func set_quality4(i: int) -> void:
+	settings["potato"] = i <= 0
+	set_quality(maxi(0, i - 1))
+	if i <= 0:
+		settings["view"] = 0.4
+		settings["res_scale"] = 0.5
+		settings["aa"] = 0
+		settings["dreamy"] = false
+		apply_graphics()
+
+
 ## Grafik kalitesi hazır ayarı: 0 Düşük, 1 Orta, 2 Yüksek (görüş, gölge, çizgi değerlerini de ayarlar)
 const QUALITY_NAMES := ["Düşük", "Orta", "Yüksek"]
 func set_quality(q: int) -> void:
@@ -1000,16 +1118,20 @@ func apply_graphics() -> void:
 			vp.msaa_3d = [Viewport.MSAA_DISABLED, Viewport.MSAA_DISABLED, Viewport.MSAA_2X, Viewport.MSAA_4X][clampi(aa, 0, 3)]
 			vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA if aa == 1 else Viewport.SCREEN_SPACE_AA_DISABLED
 			vp.scaling_3d_scale = clampf(float(settings.get("res_scale", 1.0)) * display_render_scale(), 0.25, 1.0)
+		var potato := bool(settings.get("potato", false))
+		if vp:
+			vp.mesh_lod_threshold = 6.0 if potato else 1.0   # Patates: modeller daha erken kaba kademeye iner
 		var ee = env.get("env")
 		if ee:
 			ee.ssao_enabled = bool(settings.get("ssao", true))
+			ee.glow_enabled = not potato
 	var gl := clampi(int(settings.get("grass", 3)), 0, 3)   # 0 kapalı, 1 az, 2 orta, 3 çok
 	var grass = world.get_node_or_null("Grass")
 	if grass:
 		grass.visible = gl > 0
 		if grass.get("mat") and gl > 0:
 			grass.mat.set_shader_parameter("radius", [30.0, 30.0, 42.0, 58.0][gl])
-	npc_scale = [0.45, 0.8, 1.2][clampi(int(settings.get("crowd", q)), 0, 2)]   # kalabalık: büyük köyde Az 16, Orta 28, Kalabalık 43 kişi (hemen uygulanır)
+	npc_scale = [0.45, 0.8, 1.2][clampi(int(settings.get("crowd", q)), 0, 2)] * (0.6 if bool(settings.get("potato", false)) else 1.0)   # kalabalık: büyük köyde Az 16, Orta 28, Kalabalık 43 kişi (hemen uygulanır)
 
 
 var npc_scale := 1.0
@@ -1020,7 +1142,30 @@ func save_settings() -> void:
 	for k in settings.keys():
 		cf.set_value("ayarlar", k, settings[k])
 	cf.save(SETTINGS_PATH)
+	_render_thread_cfg()
 	apply_settings()
+
+
+## Çizimi ayrı çekirdekte çalıştırma ayarı (motor bunu "deneysel" sayıyor: yalnız oyuncu açarsa). Motor bu seçimi açılışta
+## okur: yayınlanan oyunda exe'nin yanına override.cfg yazılır / silinir, bir sonraki açılışta geçerli olur.
+func _render_thread_cfg() -> void:
+	if not OS.has_feature("template") or OS.has_feature("mobile"):
+		return
+	var path := OS.get_executable_path().get_base_dir().path_join("override.cfg")
+	var want := bool(settings.get("render_thread", false))
+	var cf := ConfigFile.new()
+	cf.load(path)
+	var has := int(cf.get_value("rendering", "driver/threads/thread_model", 1)) == 2
+	if want == has:
+		return
+	if want:
+		cf.set_value("rendering", "driver/threads/thread_model", 2)
+	else:
+		cf.erase_section_key("rendering", "driver/threads/thread_model")
+	if cf.get_sections().is_empty():
+		DirAccess.remove_absolute(path)
+	else:
+		cf.save(path)
 
 
 ## Ekran: mod (çerçevesiz tam ekran / tam ekran / pencere) + çözünürlük.

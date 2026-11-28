@@ -98,6 +98,10 @@ func _process(_dt: float) -> void:
 	if Game.player == null:
 		visible = false
 		return
+	# çimen ayarı "Kapalı" ise çizilmez (eskiden her kare yeniden açılıyordu: Kapalı seçeneği hiç çalışmıyordu)
+	if int(Game.settings.get("grass", 3)) <= 0:
+		visible = false
+		return
 	visible = true
 	var p = Game.player.global_position
 	global_position = Vector3(floor(p.x / snap) * snap, 0, floor(p.z / snap) * snap)

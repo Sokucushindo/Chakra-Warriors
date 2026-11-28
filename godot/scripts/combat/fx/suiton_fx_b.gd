@@ -1170,7 +1170,7 @@ static func suiton_suiryuudan(js, c: Node3D, t: Node3D) -> void:
 		Combat.hit_sphere(c, pos, 4.5, {"dmg": 12.0 * m, "element": "suiton", "knock": 14.0, "launch": 6.0, "kind": "heavy"}, pr.hit_list)
 		Sfx.play("water", pos, 0.8)
 		if Game.world: Game.world.env.add_shake(0.6)
-	pr.tree_exiting.connect(func(): _dragon_drain(js, body, hist))
+	pr.tree_exiting.connect(func(): (func(): _dragon_drain(js, body, hist)).call_deferred())   # ağaçtan çıkarken sahneye düğüm eklenemez: bir sonraki boşlukta
 	js.get_tree().current_scene.add_child(pr)
 	pr.global_position = start
 

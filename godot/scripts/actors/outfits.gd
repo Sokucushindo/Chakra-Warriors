@@ -337,7 +337,30 @@ static func roll(arch: String, village := "") -> Dictionary:
 	L["sleeves"] = not L.get("top_style", "uzun") in ["tisort", "kolsuz", "atlet"]
 	if L.get("top_style", "") in ["kimono"] and L["top_pattern"] == 0 and _ch(0.3):
 		L["top_pattern"] = 6
+	if arch == "anbu":
+		return anbu_wear(L)
 	return L
+
+
+## ANBU oyundaki gerçek ANBU takımlarını giyer (2026-11-27, kullanıcı: "bir sürü ANBU kıyafeti var, hiçbirini kullanmıyorlar"):
+## Gece / Yami / Kasumi / Wakate, takım başı Kaptan. Maske ve kimlik korunur; kimlik anahtarı yoksa eklenmez (çağıranlar bu
+## sözlüğü kişinin görünüşüyle birleştiriyor: saç / ten ezilmesin)
+const ANBU_WEAR := ["set_anbu_konoha", "set_anbu_konoha", "set_anbu_yami", "set_anbu_kasumi", "set_anbu_wakate"]
+
+
+static func anbu_wear(L: Dictionary, captain := false) -> Dictionary:
+	var pool: Array = ANBU_WEAR.filter(func(sid): return not Gear.item(sid).is_empty() and not (Gear.item(sid).get("parts", []) as Array).is_empty())
+	var sid := "set_anbu_kaptan" if captain and not Gear.item("set_anbu_kaptan").is_empty() else (String(_p(pool)) if not pool.is_empty() else "")
+	if sid == "":
+		return L
+	var out := wear_set(L, sid)
+	for k in LOOK_SELF:
+		if not L.has(k):
+			out.erase(k)
+	out["face_style"] = L.get("face_style")
+	out["facegear"] = L.get("facegear")
+	out["village"] = L.get("village")
+	return out
 
 
 ## NPC alın koruyucusunun takılışı: çoğu alında; kalanı köyün/rütbenin anime tarzlarından (oyuncunun Takılış seçenekleriyle aynı)

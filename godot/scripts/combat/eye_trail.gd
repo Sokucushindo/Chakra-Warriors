@@ -13,6 +13,7 @@ var glow: MeshInstance3D
 
 
 func _ready() -> void:
+	process_thread_group = Node.PROCESS_THREAD_GROUP_MAIN_THREAD   # sahnedeki başka düğümlere dokunur: model iş parçacığında işlemez
 	top_level = true
 	mesh = im
 	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -68,13 +69,23 @@ static func _dot() -> Texture2D:
 	return _dot_tex
 
 
+var _far := false
 func _process(dt: float) -> void:
 	if anchor == null or not is_instance_valid(anchor) or not anchor.is_inside_tree():
 		queue_free()
 		return
 	var p = anchor.global_position
-	glow.global_position = p
-	glow.visible = false   # gözün üstündeki parıltı deseni kapatıyordu: iz gözden biraz uzakta başlar
+	# 3 cm'lik iz 18 m'den öte görünmez: uzaktaki göz izi kurulmaz (kalabalıkta 150 iz her kare yeniden örülüyordu)
+	var ecam := get_viewport().get_camera_3d()
+	if ecam != null and ecam.global_position.distance_squared_to(p) > 324.0:
+		if not _far:
+			_far = true
+			pts.clear()
+			im.clear_surfaces()
+		return
+	_far = false
+	if glow.visible:
+		glow.visible = false   # gözün üstündeki parıltı deseni kapatıyordu: iz gözden biraz uzakta başlar
 	for e in pts:
 		e[1] += dt
 	while not pts.is_empty() and pts[-1][1] > LIFE:
