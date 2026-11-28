@@ -770,6 +770,29 @@ func on_player_died() -> void:
 		add_ryo(-lost)
 	if Interiors.inst and Interiors.inst.inside != "":
 		Interiors.inst.abort()   # içeride (mağara/in) öldün: oda kapanır, kapıya atılmazsın; düşman inde seni bekler
+	# Ironman: ölüm kalıcı. Yolu devralacak çocuğun varsa oyun onunla sürer; yoksa kayıt silinir, oyun biter.
+	if bool(pr.get("ironman", false)):
+		var heir_id = Legacy.heir()
+		var old_name = String(pr.get("name", ""))
+		if heir_id != "":
+			var pass_on = func():
+				var pos2 = _hospital_pos()
+				_calm_after_death(pos2)
+				Legacy.fallen(heir_id)
+				Game.player.respawn(pos2)
+				Hud.banner("YENİ NESİL", "%s — %s'in yolu sende yaşıyor" % [String(p()["name"]), old_name.split(" ")[-1]], Color(1.0, 0.85, 0.45))
+			DeathScene.start(pass_on, func(): Hud.banner("ÖLDÜN", "%s savaşta düştü. Alın koruyucusu çocuğuna kalıyor..." % old_name, Color(0.9, 0.3, 0.3)))
+		else:
+			var slot_i = int(pr.get("slot", 1))
+			var over = func():
+				var mn = Game.get_tree().current_scene
+				Game.profile = {}   # ana menüye dönüş kaydetmesin
+				Game.delete_slot(slot_i)
+				if mn != null and mn.has_method("to_main_menu"):
+					mn.to_main_menu()
+				Game.delete_slot(slot_i)
+			DeathScene.start(over, func(): Hud.banner("OYUN BİTTİ", "%s öldü. Yolunu devralacak kimse yok; hikâyesi burada sona erdi." % old_name, Color(0.9, 0.3, 0.3)))
+		return
 	# ölüm ara sahnesi (sendeleme -> diz çökme -> yığılma -> karanlık); yeniden doğuş karanlıkta olur
 	var wake = func():
 		# kaçak köy hastanesinde doğamaz: sığınağında uyanır

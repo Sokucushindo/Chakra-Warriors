@@ -34,13 +34,15 @@ static func ruins() -> Array:
 	var rs: Array = D()["ruins"]
 	var now = Aging.clock()
 	for z in rs.duplicate():
-		if now - float(z["t"]) >= float(z["dur"]):
+		if not z.get("perm", false) and now - float(z["t"]) >= float(z["dur"]):   # perm: yok edilmiş köy, yeniden kurulana kadar kalır
 			rs.erase(z)
 	return rs
 
 
 ## Bölgenin şu anki yarıçapı: onarım dışından içine doğru ilerler
 static func ruin_r(z: Dictionary) -> float:
+	if z.get("perm", false):
+		return float(z["r"])
 	return float(z["r"]) * clampf(1.0 - (Aging.clock() - float(z["t"])) / float(z["dur"]), 0.0, 1.0)
 
 

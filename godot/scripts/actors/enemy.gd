@@ -551,7 +551,16 @@ static var _crowd_n := 0
 static var _crowd_acc := 0
 var _ai_skip := false
 var _leap_i := 0
+var _fs_t := 0.0
 func _physics_process(dt: float) -> void:
+	# dövüş tarzı duruşu (oyuncuyla aynı kural): hedefi varken silahsız bekleyiş klanının / soyunun hazır duruşu
+	_fs_t -= dt
+	if _fs_t <= 0.0 and model != null:
+		_fs_t = 0.4
+		var kid0 = _keyed_id0() if not dead else ""
+		var bare = (look.get("weapon_r") if look is Dictionary else null) in [null, ""]
+		model.fstyle = kid0.substr(6) if kid0.begins_with("style_") else ("temel" if bare else "")
+		model.fight_on = not dead and team == "enemy" and target != null and is_instance_valid(target)
 	if Game.paused or dead:
 		if dead:
 			step_move(Vector3.ZERO, dt, false)
@@ -910,7 +919,7 @@ func _chase(dt: float) -> void:
 	# menzilli: jutsu ya da kunai
 	# jutsu kullanan düşman: uzaktan ve sık atar, yakında da arada bir (eskiden 5-24 m, %30)
 	var jl: Array = arch.get("jutsu", [])
-	var far_ok = (d > 4.0 or elevated) and d < 42.0   # yüksekteki hedefe dibinden de atar
+	var far_ok = (d > 4.0 or elevated) and d < 100.0   # oyuncuyla aynı uzak menzil çarpanı (eskiden 42 m)   # yüksekteki hedefe dibinden de atar
 	var near_ok = d <= 4.0 and not jl.is_empty() and randf() < (0.55 if (has_meta("kage_of") or has_meta("elite_boss")) else 1.0)   # jutsusu olan ninja dibinde de jutsu atar
 	if (far_ok or near_ok) and ranged_cd <= 0.0 and randf() < 0.8:
 		ranged_cd = randf_range(1.6, 3.2) / (float(arch["aggr"]) * (1.0 + skill))   # usta ninja daha sık jutsu atar
@@ -1962,6 +1971,9 @@ func die(info: Dictionary) -> void:
 		WorldPeople.on_kamui_taken(self)
 	else:
 		WorldPeople.on_enemy_died(self, info)
+	if has_meta("village_guard") and not has_meta("kage_of") and info.get("attacker") == Game.player:
+		LazyFx.g("VillageFall").on_kill(String(get_meta("village_guard")))   # alarmda gelen köy ninjası da köyün kaybıdır
+		Orgs.blood_alarm(String(get_meta("village_guard")))
 	if has_meta("kage_of"):   # köyün Kage'si düştü: haber + halef
 		Kage.kage_killed(String(get_meta("kage_of")), info.get("attacker") == Game.player or Game.player != null and global_position.distance_to(Game.player.global_position) < 60.0)
 		remove_meta("kage_of")

@@ -1197,6 +1197,7 @@ func _face_and_hair() -> void:
 					eye_mat.set_shader_parameter(pk, ap[pk])
 				eye_mat.set_shader_parameter("iris_r3", float((ap["iris_p"] as Vector4).x) * dA)
 				eye_mat.set_shader_parameter("line_col", Color(0.2, 0.12, 0.1) if look.get("gender", "m") == "f" else Color(0.07, 0.05, 0.06))
+				eye_mat.set_shader_parameter("shut", Vector2(1.0 if look.get("eye_gone_r", false) else 0.0, 1.0 if look.get("eye_gone_l", false) else 0.0))   # çıkarılmış göz: kapalı + kanlı
 				sclera_mat = eye_mat
 				face_mi.set_surface_override_material(si, eye_mat)
 				materials.append(eye_mat)
@@ -9808,6 +9809,9 @@ func _hitai_bandana(cc: Color) -> void:
 	_hitai("Head", Vector3(skull_c.x, by, skull_c.z), band_ring[1], cc, 0.036, 0.037, 0.6, 0.008, Vector3(0.22, -1.0, -0.62))
 	head_cap(cc, by + 0.016, 0.07)
 	hair_mask_band(by - 0.004, 0.046, 0.008)
+	# bezin altından öne taşan saç (kâkülün bant altında kalan şeridi, şakaklarda düz kesilmiş kalın tutamlar) toplanır:
+	# bandanada saç yalnız kulak hizasının arkasından, enseden çıkar
+	hair_mask_plane(Vector3(0, 0, 1), Vector3(0, 0, skull_c.z + 0.012))
 
 
 ## Kumaş alın bandı (hachimaki, kafa bandajı, haydut bezi bandı): plakasız ortak bant; dy: alın bandı hizasına göre,
@@ -14044,6 +14048,8 @@ const STANCE_ID := {"kajiki_mori": "w_shakujo", "ei_yumi": "w_yumi", "kunai_hass
 static var TWO_HAND_IDLE := {"kunai_hasshaki": 0.26, "arbalet": 0.3, "raijin": -0.1, "shibuki": 0.2}   # shibuki: sağ el sapın arka ucunda, sol el 0.2 önde (taramada sapa 4 mm oturdu)   # silaha özel duruş
 const STANCE_OF := {"blade": "w_blade", "dual": "w_dual", "sickle": "w_dual", "claw": "w_dual", "sword": "w_sword", "heavy": "w_shoulder", "staff": "w_shoulder", "chain": "w_dual", "fan": "w_fan"}   # kusarigama alçak tek el (omuzda bıçak kafaya değmesin)
 var stance := ""
+var fstyle := ""        # dövüş tarzı (FightingStyles kimliği; "" = duruş yok): sahibi yazar
+var fight_on := false   # savaş hâlinde mi (sahibi yazar): silahsız beklerken tarzın hazır duruşuna geçer
 
 
 func _stance_for_look() -> String:
@@ -14125,6 +14131,12 @@ func _process(dt: float) -> void:
 	# silah duruşu: beklerken/yürürken silaha göre kollar; saldırı, mühür ve ninja koşusunda kapanır
 	if not _thr_live:   # model iş parçacığındaysa silah yerleştirme (görünürlük, kın-el geçişi, efekt) ana iş parçacığında: Game.thr_tick
 		_weapon_process(dt)
+	if overlay:
+		var armed = drawn and not _stowed and not weapons.is_empty()
+		var fon = fight_on and fstyle != "" and not armed and overlay.key_t < 0.0 and current == "idle" and overlay.weights.get("ninja_run", 0.0) < 0.3 and overlay.weights.get("leap", 0.0) < 0.3 and overlay.weights.get("cast", 0.0) < 0.3 and overlay.weights.get("seal", 0.0) < 0.3
+		if fon:
+			overlay.fstance_id = fstyle if overlay.FSTANCE.has(fstyle) else "temel"
+		overlay.set_pose("fstance", 1.0 if fon else 0.0)
 	if stance != "" and overlay:
 		var on = drawn and not _stowed and overlay.key_t < 0.0 and current in ["idle", "walk", "jog", "run", "air", "fall", "sword_idle"] and overlay.weights.get("ninja_run", 0.0) < 0.5 and overlay.weights.get("leap", 0.0) < 0.3
 		overlay.set_pose(stance, 1.0 if on else 0.0)

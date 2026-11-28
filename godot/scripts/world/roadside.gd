@@ -739,16 +739,73 @@ static func _fallen_giant(b: Builder, x: float, n: float, rng: RandomNumberGener
 		b.sphere(Vector3(x + o2.x, g + 3.6, n + o2.y), Vector3(0.6, 0.4, 0.6), Color(0.85, 0.3, 0.25), 6)  # mantar
 
 
+## Harabe tapınak (2026-11-28, kullanıcı: "bu ne, yapı mı, detaylandır" — düz levha + üç direkten ibaretti):
+## iki kademeli çatlak taş kaide + ön basamaklar, dört köşede kırık ahşap sütunlar (biri devrik), arkada ayakta kalmış duvar
+## parçası, kaidenin üstüne çökmüş çatı kanadı, ortada taş sunak + adak kabı, biri devrik iki taş fener, moloz ve yosun.
 static func _ruined_shrine(b: Builder, x: float, n: float, rng: RandomNumberGenerator) -> void:
 	var g := _g(x, n)
 	var st := Color(0.55, 0.53, 0.5)
-	b.box(Vector3(x, g + 0.3, n), Vector3(8, 0.6, 6), st.darkened(0.1), 0)
+	var wood := Color(0.46, 0.28, 0.19)
+	var moss := Color(0.3, 0.46, 0.24)
+	# kaide: alt kademe geniş, üst kademe dar; üst kademenin bir köşesi kopuk (iki parça)
+	b.box(Vector3(x, g + 0.2, n), Vector3(9.4, 0.6, 7.4), st.darkened(0.18), 0)
+	b.box(Vector3(x - 0.9, g + 0.62, n), Vector3(6.2, 0.5, 6.0), st.darkened(0.06), 0)
+	b.box(Vector3(x + 3.1, g + 0.62, n + 0.8), Vector3(1.8, 0.5, 4.4), st.darkened(0.1), 0)
+	b.box(Vector3(x + 3.3, g + 0.5, n - 2.4), Vector3(1.5, 0.4, 1.3), st.darkened(0.14), 14.0, true, Vector3(7, 0, -9))   # kopup çökmüş köşe
+	for k in 3:   # ön basamaklar (torii tarafı)
+		b.box(Vector3(x, g + 0.1 + k * 0.17, n - 3.95 - (2 - k) * 0.42), Vector3(3.2, 0.2, 0.46), st.lightened(0.04 * k), 0)
+	for k in 5:   # kaide derzleri (taş blok okunuşu)
+		b.box(Vector3(x - 4.0 + k * 1.75, g + 0.62, n - 3.01), Vector3(0.04, 0.44, 0.03), st.darkened(0.4), 0, false)
+	# sütunlar: köşelerde, hepsi farklı boyda kırık; kırık uç eğik kesik
+	var hs := [3.0, 1.5, 2.3, 0.7]
+	var ci := 0
 	for sx in [-1.0, 1.0]:
 		for sz in [-1.0, 1.0]:
-			if rng.randf() < 0.7:
-				b.cyl(Vector3(x + 3.2 * sx, g + 1.6, n + 2.2 * sz), 0.6, rng.randf_range(1.0, 3.2), Color(0.5, 0.3, 0.2), true, 6)
-	LazyFx.g("BuildFeatures")._torii(b, x, n - 6.0, _g(x, n - 6.0), 0.0, 0.6)
-	b.box(Vector3(x + 2.0, g + 0.2, n + 3.5), Vector3(2.0, 0.4, 0.6), Color(0.55, 0.3, 0.22), 25.0, false)  # devrik kiriş
+			var ph: float = hs[(ci + rng.randi() % 4) % 4]
+			var px: float = x - 0.9 + 2.5 * sx
+			var pz: float = n + 2.3 * sz
+			b.box(Vector3(px, g + 0.95, pz), Vector3(0.9, 0.2, 0.9), st.darkened(0.2), 0)   # taş sütun tabanı
+			b.cyl(Vector3(px, g + 1.05 + ph * 0.5, pz), 0.56, ph, wood.darkened(0.08 * (ci % 2)), true, 8)
+			b.cyl(Vector3(px + 0.07, g + 1.05 + ph + 0.12, pz), 0.4, 0.3, wood.darkened(0.25), false, 6, 0.12)   # kıymıklı kırık uç
+			ci += 1
+	# devrik sütun: kaidenin önünde yerde yatıyor
+	b.box(Vector3(x + 1.6, g + 0.42, n - 4.6), Vector3(0.5, 0.5, 2.9), wood.darkened(0.12), 62.0, true, Vector3(0, 0, 4))
+	# arka duvar parçası: sıvası dökülmüş, üst kenarı basamak basamak yıkık
+	var wall := Color(0.78, 0.74, 0.64)
+	b.box(Vector3(x - 1.9, g + 1.75, n + 2.75), Vector3(3.0, 1.8, 0.28), wall, 0)
+	b.box(Vector3(x - 2.7, g + 2.95, n + 2.75), Vector3(1.4, 0.6, 0.28), wall.darkened(0.06), 0)
+	b.box(Vector3(x - 1.9, g + 1.1, n + 2.6), Vector3(3.0, 0.14, 0.1), wood.darkened(0.2), 0, false)   # alt kuşak kirişi
+	b.box(Vector3(x - 0.9, g + 2.2, n + 2.6), Vector3(0.14, 2.3, 0.1), wood.darkened(0.2), 0, false)
+	# çökmüş çatı kanadı: bir ucu kaidede, öbür ucu ayakta kalan sütuna yaslı
+	b.box(Vector3(x - 0.2, g + 1.7, n + 0.5), Vector3(4.6, 0.16, 3.0), Color(0.22, 0.24, 0.3), 12.0, true, Vector3(-9, 0, 24))
+	for k in 5:   # kiremit sıraları
+		b.box(Vector3(x - 0.2, g + 1.8, n + 0.5), Vector3(4.6, 0.05, 0.1), Color(0.14, 0.16, 0.2), 12.0, false, Vector3(-9, 0, 24))
+		b.box(Vector3(x - 1.9 + k * 0.85, g + 1.05 + (4 - k) * 0.36, n + 0.35), Vector3(0.1, 0.2, 2.9), Color(0.16, 0.18, 0.23), 12.0, false, Vector3(-9, 0, 24))
+	b.box(Vector3(x + 2.2, g + 0.98, n + 1.3), Vector3(2.0, 0.4, 0.6), Color(0.55, 0.3, 0.22), 25.0, false)  # devrik kiriş
+	# sunak: kademeli taş kaide + küçük çatılı taş yuva + adak kabı
+	b.box(Vector3(x - 0.9, g + 1.02, n - 0.6), Vector3(1.3, 0.3, 1.0), st.lightened(0.05), 0)
+	b.box(Vector3(x - 0.9, g + 1.45, n - 0.6), Vector3(0.8, 0.6, 0.7), st.darkened(0.05), 0)
+	b.box(Vector3(x - 0.9, g + 1.45, n - 0.96), Vector3(0.4, 0.4, 0.04), Color(0.08, 0.07, 0.07), 0, false)   # yuva ağzı
+	b.roof(Vector3(x - 0.9, g + 1.75, n - 0.6), Vector3(1.2, 0.4, 1.0), st.darkened(0.25), 0)
+	b.cyl(Vector3(x - 0.9, g + 1.24, n - 1.3), 0.3, 0.14, Color(0.3, 0.26, 0.22), false, 8)   # adak kabı
+	b.box(Vector3(x - 0.9, g + 1.5, n - 1.0), Vector3(0.5, 0.36, 0.02), Color(0.95, 0.93, 0.86), 0, false, Vector3(0, 0, 6))   # solmuş kâğıt tılsım
+	# taş fenerler: biri ayakta, biri devrilmiş (parçaları yerde)
+	b.lantern_design(x - 3.6, n - 4.4, 1, g, Color(0, 0, 0, 0), true)
+	b.cyl(Vector3(x + 3.9, g + 0.22, n - 4.6), 0.34, 1.2, st.darkened(0.1), false, 6)
+	b.box(Vector3(x + 4.5, g + 0.2, n - 3.9), Vector3(0.6, 0.45, 0.6), st, 31.0, false, Vector3(18, 0, 6))
+	b.cone(Vector3(x + 3.3, g + 0.2, n - 3.7), 0.9, 0.4, st.darkened(0.2), 6)
+	# moloz + yosun: kaidenin çevresinde ve üstünde
+	for k in 14:
+		var a := rng.randf() * TAU
+		var r := rng.randf_range(3.6, 6.2)
+		var sc := rng.randf_range(0.25, 0.7)
+		b.sphere(Vector3(x + cos(a) * r, g + sc * 0.25, n + sin(a) * r * 0.8), Vector3(sc * 1.3, sc * 0.7, sc), st.darkened(rng.randf() * 0.25), 5, sc > 0.55)
+	for k in 9:
+		var mx := x + rng.randf_range(-4.2, 4.2)
+		var mz := n + rng.randf_range(-3.2, 3.2)
+		var top := g + (0.9 if absf(mx - x + 0.9) < 3.0 and absf(mz - n) < 2.9 else 0.52)
+		b.sphere(Vector3(mx, top, mz), Vector3(rng.randf_range(0.7, 1.5), 0.1, rng.randf_range(0.6, 1.2)), moss.darkened(rng.randf() * 0.2), 6)
+	LazyFx.g("BuildFeatures")._torii(b, x, n - 7.5, _g(x, n - 7.5), 0.0, 0.6)
 
 
 # ------------------------------------------------------------------ deniz / göl köprüsü

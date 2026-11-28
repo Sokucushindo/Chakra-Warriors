@@ -217,12 +217,15 @@ static func make(rng: RandomNumberGenerator, i: int) -> Dictionary:
 			det.add("box", Vector3(-w * 0.5 - 0.9, ly - 0.4, -d * 0.24 + k * d * 0.16), Vector3(0.03, 0.75, 0.9), CLOTHES[(i + k) % CLOTHES.size()])
 		for sz in [-1.0, 1.0]:
 			det.add("box", Vector3(-w * 0.5 - 0.5, ly, sz * d * 0.3), Vector3(0.9, 0.06, 0.06), DARK)
+	var roof_occ := []   # çatıda yer kaplayanlar [x, z, yarıçap]: çatı bahçesi bunların içine saksı / bank koymaz (ağaç su deposunun içinden çıkıyordu)
 	if "c" in ext:   # baca
+		roof_occ.append([w * 0.28, d * 0.2, 0.75])
 		det.add("box", Vector3(w * 0.28, roof_top - 0.4, d * 0.2), Vector3(0.9, 2.4, 0.9), BRICK)
 		det.add("box", Vector3(w * 0.28, roof_top + 0.85, d * 0.2), Vector3(1.15, 0.2, 1.15), DARK)
 		cols.append([Vector3(w * 0.28, roof_top - 0.3, d * 0.2), Vector3(0.9, 2.6, 0.9), 0.0])
 	if "t" in ext and roof_t in ["flat", "saw"]:   # su tankı
 		var txp = rng.randf_range(-w * 0.2, w * 0.2)
+		roof_occ.append([txp, d * 0.15, 1.55])
 		for sx in [-1.0, 1.0]:
 			for sz in [-1.0, 1.0]:
 				det.add("box", Vector3(txp + sx * 0.8, h + 1.0, d * 0.15 + sz * 0.8), Vector3(0.15, 1.6, 0.15), DARK)
@@ -237,6 +240,12 @@ static func make(rng: RandomNumberGenerator, i: int) -> Dictionary:
 			var gx = -w * 0.35 + k * w * 0.23
 			var gz = d * 0.3
 			var py = h + 0.5
+			var blocked = false
+			for oc in roof_occ:
+				if Vector2(gx - oc[0], gz - oc[1]).length() < float(oc[2]) + 1.25:
+					blocked = true
+			if blocked:
+				continue
 			det.add("box", Vector3(gx, py + 0.3, gz), Vector3(1.5, 0.6, 1.5), Color(0.46, 0.31, 0.2))
 			for e in 3:   # yatay tahta derzleri
 				det.add("box", Vector3(gx, py + 0.12 + e * 0.2, gz - 0.76), Vector3(1.5, 0.03, 0.03), Color(0.32, 0.21, 0.13))
@@ -258,20 +267,40 @@ static func make(rng: RandomNumberGenerator, i: int) -> Dictionary:
 					var a2 = q * 2.1 + float(k)
 					det.add("sphere", Vector3(gx + cos(a2) * 0.32, py + 2.0 + q * 0.12, gz + sin(a2) * 0.32), Vector3(0.95, 0.75, 0.95), leaf[q], Vector3.ZERO, 8)
 			else:   # çiçek öbeği: alçak yeşillik + renkli çiçek başları
-				det.add("sphere", Vector3(gx, py + 0.8, gz), Vector3(1.2, 0.5, 1.2), leaf[1], Vector3.ZERO, 8)
+				# 2026-11-28 (kullanıcı: "çatının çiçeklerini güzelleştir"): yeşil kubbe + düz boncuk yerine alçak yaprak öbekleri,
+				# boyu farklı saplar ve her sapın ucunda sarı göbekli beş taç yapraklı çiçek
+				for q in 5:
+					var al = q * 1.26 + float(i)
+					det.add("sphere", Vector3(gx + cos(al) * 0.36, py + 0.74, gz + sin(al) * 0.36), Vector3(0.62, 0.3, 0.62), leaf[q % 3], Vector3.ZERO, 6)
 				for q in 7:
 					var a3 = q * 0.9 + float(i)
-					var r3 = 0.15 + (q % 3) * 0.17
-					det.add("sphere", Vector3(gx + cos(a3) * r3, py + 1.0 + (q % 2) * 0.06, gz + sin(a3) * r3), Vector3(0.18, 0.14, 0.18), fl_c[(q + k) % 4], Vector3.ZERO, 6)
+					var r3 = 0.12 + (q % 3) * 0.19
+					var fx = gx + cos(a3) * r3
+					var fz2 = gz + sin(a3) * r3
+					var fh2 = 0.42 + (q * 37 % 5) * 0.09
+					var fc: Color = fl_c[(q + k) % 4]
+					det.add("cyl", Vector3(fx, py + 0.62 + fh2 * 0.5, fz2), Vector3(0.035, fh2, 0.035), Color(0.25, 0.48, 0.22), Vector3.ZERO, 5)
+					var hy = py + 0.62 + fh2
+					for pt in 5:
+						var ap = pt * TAU / 5.0 + q
+						det.add("sphere", Vector3(fx + cos(ap) * 0.085, hy, fz2 + sin(ap) * 0.085), Vector3(0.13, 0.05, 0.13), fc if pt % 2 == 0 else fc.lightened(0.18), Vector3.ZERO, 5)
+					det.add("sphere", Vector3(fx, hy + 0.025, fz2), Vector3(0.09, 0.07, 0.09), Color(0.98, 0.82, 0.25), Vector3.ZERO, 5)
 		# taş fener (ortadaki iki saksının arası) + alçak bank (önde)
 		var lx = -w * 0.35 + 1.5 * w * 0.23
+		for oc in roof_occ:   # fener depoya / bacaya denk geliyorsa karşı uca
+			if Vector2(lx - oc[0], d * 0.3 - oc[1]).length() < float(oc[2]) + 0.5:
+				lx = -w * 0.235 if oc[0] > 0.0 else w * 0.225   # iki saksının arası
+		var bz = -d * 0.05
+		for oc in roof_occ:   # bank depo ayaklarının altında kalmasın: çatının öbür yarısına
+			if absf(oc[0]) < float(oc[2]) + 1.3 and absf(bz - oc[1]) < float(oc[2]) + 0.4:
+				bz = -d * 0.3
 		det.add("box", Vector3(lx, h + 0.6, d * 0.3), Vector3(0.5, 0.2, 0.5), Color(0.6, 0.6, 0.58))
 		det.add("box", Vector3(lx, h + 0.95, d * 0.3), Vector3(0.2, 0.5, 0.2), Color(0.62, 0.62, 0.6))
 		det.add("box", Vector3(lx, h + 1.32, d * 0.3), Vector3(0.42, 0.3, 0.42), Color(0.95, 0.88, 0.62))
 		det.add("cone", Vector3(lx, h + 1.6, d * 0.3), Vector3(0.75, 0.28, 0.75), Color(0.58, 0.58, 0.56), Vector3.ZERO, 6)
-		det.add("box", Vector3(0, h + 0.95, -d * 0.05), Vector3(2.4, 0.1, 0.5), Color(0.5, 0.35, 0.22))
+		det.add("box", Vector3(0, h + 0.95, bz), Vector3(2.4, 0.1, 0.5), Color(0.5, 0.35, 0.22))
 		for sx in [-1.0, 1.0]:
-			det.add("box", Vector3(sx * 1.0, h + 0.72, -d * 0.05), Vector3(0.12, 0.45, 0.45), Color(0.36, 0.24, 0.15))
+			det.add("box", Vector3(sx * 1.0, h + 0.72, bz), Vector3(0.12, 0.45, 0.45), Color(0.36, 0.24, 0.15))
 	if plan not in ["T", "terrace", "overhang", "court"]:
 		HouseKit._front_decor(det, w, d, 0, rng)
 	# yerleşim ayak izi: bütün görünen parçaların gerçek kapladığı alan (kanat, veranda, avlu duvarı, saçak, merdiven);

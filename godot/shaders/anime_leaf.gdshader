@@ -4,6 +4,7 @@ shader_type spatial;
 // Rüzgâr: toon.gdshader "sway" ile AYNI formül (gövde ve yapraklar birlikte salınır) + yaprak titreşimi.
 render_mode cull_disabled, diffuse_toon, specular_disabled;
 
+global uniform float g_shade;   // güneş gölgesinin koyuluğu: gündüz < 1 (gölge tabanı kısılır), akşam / gece 1
 uniform sampler2D leaf_tex : source_color, filter_linear_mipmap, repeat_disable;
 uniform float alpha_cut = 0.5;
 uniform float sway = 1.0;
@@ -58,7 +59,7 @@ void light() {
 	float t = smoothstep(-0.25, -0.15, ndl) * 0.45 + smoothstep(0.25, 0.35, ndl) * 0.55;
 	float lit = t * mix(0.55, 1.0, ATTENUATION);
 	if (LIGHT_IS_DIRECTIONAL) {
-		vec3 shade = mix(shadow_tint, vec3(1.0), lit);
+		vec3 shade = mix(shadow_tint * mix(1.0, g_shade, 0.6), vec3(1.0), lit);
 		DIFFUSE_LIGHT += LIGHT_COLOR * shade / PI;
 	} else {
 		DIFFUSE_LIGHT += LIGHT_COLOR * (0.35 + 0.65 * t) * ATTENUATION / PI;

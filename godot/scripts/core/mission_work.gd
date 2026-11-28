@@ -907,6 +907,39 @@ func _make(n: Node3D, s: Dictionary) -> Dictionary:
 			arms15.append(["LeftUpperArm", Vector3(0.18, -0.85, 0.45)])
 			arms15.append(["LeftLowerArm", Vector3(-0.1, -0.5, 0.86)])
 			return {"arms": arms15, "fL": HALF, "fR": OPEN if th < 0.5 else HALF, "spine": 32.0 * k15 + 6.0 * th, "neck": 16.0 * k15 - 4.0 * th}
+		"reach":
+			# tezgâhın üstündeki şeye sağ elle uzanır
+			var at31: Vector3 = s["at"]
+			var k31 = smoothstep(0.0, 0.35, t)
+			var h31 = (n.global_position + fd * 0.22 + right * 0.16 + Vector3.UP * 1.0 * sc).lerp(at31, k31)
+			s["hold"] = h31
+			return {"arms": _ik(n, "Right", h31, 14.0 * k31), "fL": HALF, "fR": HALF, "spine": 14.0 * k31, "neck": 8.0}
+		"snack":
+			# elindeki atıştırmalığı ağzına götürüp ısırır, indirir, çiğner (her lokma "per" sn): ısırık anı döngünün 0.42'si
+			var per: float = float(s.get("per", 1.3))
+			var ph32 = fmod(t, per) / per
+			var u32 = smoothstep(0.08, 0.36, ph32) * (1.0 - smoothstep(0.5, 0.78, ph32))
+			var mouth32: Vector3 = _bone(n, "Head") + fd * 0.11 * sc - Vector3.UP * 0.035 * sc
+			var rest32 = n.global_position + fd * 0.3 + right * 0.13 + Vector3.UP * 1.1 * sc
+			var up32: float = float(s.get("len", 0.1))   # elin ağzın ne kadar altında duracağı (şişin / meyvenin boyu)
+			var h32 = rest32.lerp(mouth32 - Vector3.UP * up32 + right * 0.02, u32)
+			s["hold"] = h32
+			s["mouth"] = mouth32
+			var chew = sin(t * 11.0) * 2.5 * (1.0 - u32)
+			return {"arms": _ik(n, "Right", h32), "fL": HALF, "fR": GRIP, "spine": 3.0 * u32, "neck": 9.0 * u32 + chew}
+		"pet":
+			# diz çöküp hayvanı sever: sağ el sırtında baştan kuyruğa gidip gelir (hayvanın gövde ekseni boyunca), sol el dizde
+			var an: Node3D = s.get("with")
+			var arms30 = []
+			if is_instance_valid(an):
+				var k30 = smoothstep(0.0, 0.45, t)
+				var ax: Vector3 = -an.vis.global_transform.basis.z.normalized()   # hayvanın baş yönü
+				var top30: Vector3 = an.global_position + Vector3.UP * float(s.get("h", 0.3)) + ax * (float(s.get("len", 0.2)) * sin(t * 4.2))
+				s["hold"] = top30
+				arms30 = _ik(n, "Right", (n.global_position + fd * 0.2 + Vector3.UP * 0.5 * sc).lerp(top30, k30), 30.0 * k30)
+			arms30.append(["LeftUpperArm", Vector3(0.2, -0.85, 0.4)])
+			arms30.append(["LeftLowerArm", Vector3(-0.1, -0.5, 0.86)])
+			return {"arms": arms30, "fL": HALF, "fR": OPEN, "spine": 30.0, "neck": 12.0}
 		"pat_kid":
 			var o: Node3D = s.get("with")
 			var arms11 = []
@@ -1371,6 +1404,238 @@ func _act_comfort(it: Dictionary) -> void:
 	_pose(kid, "cheer", {"anim": "idle"})
 	_say(kid, "...Acımıyor artık! Sen iyi bir ninjasın!", 2.6)
 	await _wait(0.5)
+
+
+# ====================================================================== sokak satıcısından atıştırmalık
+## Tezgâh türü (BuildKonoha._market_stall: 0 meyve-sebze, 1 balık, 2 dango) -> [ad, fiyat, satıcının sözü]
+const SNACKS := {0: ["Ringo", 10, "Dalından bu sabah koptu. Afiyet olsun!"], 1: ["Yakizakana", 20, "Mangaldan yeni çıktı, dikkat et sıcak!"],
+	2: ["Dango", 15, "Üç renk, üç tat. Afiyet olsun!"]}
+
+
+## Atıştırmalığın modeli: kök + ısırıldıkça eksilen parçalar (yukarıdan aşağı). Yerel +Y ağza doğru.
+func _snack(kind: int) -> Dictionary:
+	var root = Node3D.new()
+	add_child(root)
+	root.top_level = true
+	var bits: Array = []
+	var part = func(b: MB) -> MeshInstance3D:
+		var mi = MeshInstance3D.new()
+		mi.mesh = b.build(mat)
+		root.add_child(mi)
+		return mi
+	match kind:
+		2:   # hanami dango: bambu şişte pembe, beyaz, yeşil
+			var st0 = MB.new()
+			st0.add("box", Vector3(0, 0.035, 0), Vector3(0.006, 0.19, 0.006), Color(0.86, 0.74, 0.5))
+			part.call(st0)
+			var cols = [Color(1.0, 0.68, 0.76), Color(0.97, 0.95, 0.9), Color(0.56, 0.8, 0.45)]
+			for i in 3:
+				var bb = MB.new()
+				bb.add("sphere", Vector3(0, 0.115 - i * 0.04, 0), Vector3(0.044, 0.042, 0.044), cols[i], Vector3.ZERO, 10)
+				bits.append(part.call(bb))
+		1:   # şişte ızgara balık: baş yukarıda, gövde üç parça, kuyruk altta, ızgara izleri
+			var st1 = MB.new()
+			st1.add("box", Vector3(0, 0.03, 0), Vector3(0.006, 0.26, 0.006), Color(0.86, 0.74, 0.5))
+			st1.add("box", Vector3(0, -0.012, 0), Vector3(0.05, 0.035, 0.006), Color(0.4, 0.3, 0.2), Vector3(0, 0, 0))   # kuyruk yüzgeci
+			part.call(st1)
+			var fc = [Color(0.66, 0.5, 0.3), Color(0.72, 0.55, 0.32), Color(0.6, 0.44, 0.27)]
+			for i in 3:
+				var fb = MB.new()
+				fb.add("sphere", Vector3(0, 0.13 - i * 0.048, 0), Vector3(0.05 - absf(i - 1) * 0.008, 0.062, 0.03), fc[i], Vector3.ZERO, 10)
+				fb.add("box", Vector3(0, 0.13 - i * 0.048, 0.0), Vector3(0.052, 0.006, 0.032), Color(0.22, 0.15, 0.1), Vector3(0, 0, 24))   # ızgara izi
+				if i == 0:
+					fb.add("sphere", Vector3(0.012, 0.145, 0.012), Vector3(0.009, 0.009, 0.006), Color(0.95, 0.95, 0.9), Vector3.ZERO, 6)   # göz
+				bits.append(part.call(fb))
+		_:   # elma: kırmızı gövde, sap, yaprak; ısırıldıkça açık renk ısırık oyukları görünür, sonunda koçan kalır
+			var ab = MB.new()
+			ab.add("sphere", Vector3(0, 0.04, 0), Vector3(0.078, 0.072, 0.078), Color(0.84, 0.13, 0.12), Vector3.ZERO, 12)
+			ab.add("sphere", Vector3(0, 0.07, 0), Vector3(0.03, 0.012, 0.03), Color(0.6, 0.1, 0.08), Vector3.ZERO, 8)
+			var body = part.call(ab)
+			var sb = MB.new()
+			sb.add("box", Vector3(0, 0.086, 0), Vector3(0.005, 0.024, 0.005), Color(0.36, 0.24, 0.12))
+			sb.add("sphere", Vector3(0.014, 0.09, 0), Vector3(0.03, 0.006, 0.016), Color(0.3, 0.6, 0.25), Vector3(0, 0, 20), 6)
+			part.call(sb)
+			var core = MB.new()
+			core.add("cyl", Vector3(0, 0.04, 0), Vector3(0.026, 0.066, 0.026), Color(0.95, 0.9, 0.72), Vector3.ZERO, 8)
+			var cm = part.call(core)
+			cm.visible = false
+			for i in 2:
+				var sc0 = MB.new()
+				sc0.add("sphere", Vector3(0.0, 0.052 - i * 0.026, -0.027 + i * 0.004), Vector3(0.05, 0.04, 0.034), Color(0.97, 0.93, 0.76), Vector3.ZERO, 8)
+				var sm0 = part.call(sc0)
+				sm0.visible = false
+				bits.append(sm0)
+			bits.append([body, cm])   # son lokma: gövde gider, koçan kalır
+	return {"root": root, "bits": bits, "len": 0.14 if kind != 0 else 0.07}
+
+
+## Satıcıdan al + ye: oyuncu tezgâhın önüne gelir, parayı satıcıya fırlatır (satıcı kapar), satıcı ürünü uzatıp atar,
+## oyuncu havada yakalayıp üç lokmada yer (her lokmada bir parça eksilir).
+func buy_snack(v: Node3D, kind: int) -> void:
+	if busy_run or not is_instance_valid(v) or not SNACKS.has(kind):
+		return
+	var sn: Array = SNACKS[kind]
+	var price: int = int(sn[1])
+	if int(Game.profile["ryo"]) < price:
+		Hud.dialog(v.display, "Kusura bakma, %d Ryō lazım." % price, [])
+		return
+	busy_run = true
+	var pl = Game.player
+	_lock(30.0)
+	v.wait = 30.0   # satıcı bu sırada kendi el kol döngüsüne girmez
+	var vf: Vector3 = _fd(v)
+	var g0: float = Game.terrain_height(v.global_position.x, v.global_position.z)
+	# tezgâhın müşteri kenarı: satıcının önünde, 0.6-1.4 m yüksekliğindeki yüzeyin en uzak noktası
+	var edge := -1.0
+	var top_y := 0.0
+	var sp0 = v.get_world_3d().direct_space_state
+	for k in 26:
+		var dd = 0.5 + k * 0.1
+		var from = v.global_position + vf * dd + Vector3.UP * 1.7
+		var q = PhysicsRayQueryParameters3D.create(from, from + Vector3.DOWN * 1.6, 1)
+		var hit = sp0.intersect_ray(q)
+		if not hit.is_empty() and float(hit["position"].y) - g0 > 0.6 and float(hit["position"].y) - g0 < 1.4:
+			edge = dd
+			top_y = float(hit["position"].y)
+		elif edge > 0.0:
+			break
+	var has_counter = edge > 0.0
+	var stand: Vector3 = v.global_position + vf * (edge + 0.52 if has_counter else 0.85)
+	stand.y = pl.global_position.y
+	await _go_w(pl, stand, 2.2, false, 0.1)
+	if not is_instance_valid(v):
+		_release_player()
+		busy_run = false
+		return
+	_look_at(pl, v.global_position)
+	# para: oyuncu parayı parmağıyla fırlatır, satıcı havada kapar (tezgâh arada: elden ele uzanılmaz)
+	var cb = MB.new()
+	cb.add("cyl", Vector3.ZERO, Vector3(0.05, 0.008, 0.05), Color(0.95, 0.78, 0.25), Vector3.ZERO, 10)
+	cb.add("box", Vector3(0, 0.001, 0), Vector3(0.014, 0.01, 0.014), Color(0.3, 0.22, 0.1))
+	var coin = _mesh(cb)
+	_pose(pl, "reach", {"anim": "idle", "at": pl.global_position + _fd(pl) * 0.42 + Vector3.UP * 1.12 * pl.model.age_scale})
+	var t := 0.0
+	while t < 0.45:
+		t += get_process_delta_time()
+		coin.global_position = _held(pl)
+		await get_tree().process_frame
+	Progress.add_ryo(-price)
+	Sfx.play("coin", coin.global_position, 0.7, 1.0)
+	if is_instance_valid(v):
+		_pose(v, "reach", {"anim": "idle", "at": v.global_position + vf * 0.42 + Vector3.UP * 1.15 * v.model.age_scale})
+	var cf = coin.global_position
+	t = 0.0
+	while t < 0.5 and is_instance_valid(v):
+		t += get_process_delta_time()
+		var kc = clampf(t / 0.5, 0.0, 1.0)
+		coin.global_position = cf.lerp(_held(v), kc) + Vector3.UP * sin(kc * PI) * 0.45
+		coin.rotation.x = t * 30.0
+		await get_tree().process_frame
+	coin.queue_free()
+	_clear_pose(pl)
+	pl.model.play("idle", 0.25)
+	# satıcı ürünü tezgâhtan alıp uzatır, sonra hafifçe atar; oyuncu havada yakalar
+	var snk: Dictionary = _snack(kind)
+	var item: Node3D = snk["root"]
+	if is_instance_valid(v):
+		_pose(v, "give", {"anim": "idle", "w": 0.05})
+	t = 0.0
+	while t < 0.55 and is_instance_valid(v):
+		t += get_process_delta_time()
+		item.global_position = _held(v)
+		await get_tree().process_frame
+	if is_instance_valid(v):
+		_say(v, String(sn[2]), 2.6)
+	_pose(pl, "reach", {"anim": "idle", "at": pl.global_position + _fd(pl) * 0.42 + Vector3.UP * 1.15 * pl.model.age_scale})
+	var from2 = item.global_position
+	t = 0.0
+	while t < 0.55:
+		t += get_process_delta_time()
+		var k2 = clampf(t / 0.55, 0.0, 1.0)
+		item.global_position = from2.lerp(_held(pl), k2) + Vector3.UP * sin(k2 * PI) * 0.5
+		item.rotation.x = k2 * TAU
+		await get_tree().process_frame
+	Sfx.play("pickup", item.global_position, 0.6, 1.3)
+	if is_instance_valid(v):
+		_clear_pose(v)
+		v.model.play("yes", 0.2)
+		v.wait = 6.0
+	# yer: üç lokma
+	var per := 1.3
+	_pose(pl, "snack", {"anim": "idle", "per": per, "len": float(snk["len"])})
+	var bits: Array = snk["bits"]
+	var bitten := 0
+	t = 0.0
+	var b0: Basis = item.global_transform.basis
+	while t < per * 3.0 + 0.5:
+		var dt = get_process_delta_time()
+		t += dt
+		var hand: Vector3 = _held(pl)
+		var mouth: Vector3 = st[pl].get("mouth", hand + Vector3.UP * 0.2) if st.has(pl) else hand + Vector3.UP * 0.2
+		var up: Vector3 = (Vector3.UP * 0.75 + (mouth - hand).normalized() * 0.5 - _fd(pl) * 0.1).normalized()
+		var xr: Vector3 = _fd(pl).cross(up).normalized()
+		var tb = Basis(xr, up, xr.cross(up).normalized())
+		b0 = b0.slerp(tb.orthonormalized(), minf(1.0, dt * 12.0))
+		item.global_transform = Transform3D(b0, hand - up * (0.03 if kind != 0 else 0.02))
+		if bitten < 3 and t > per * (bitten + 0.42):
+			var bt = bits[bitten]
+			if bt is Array:   # elmanın son lokması: gövde gider, koçan kalır
+				bt[0].visible = false
+				bt[1].visible = true
+				for o in bits:
+					if o is MeshInstance3D:
+						o.visible = false
+			elif kind == 0:
+				bt.visible = true
+			else:
+				bt.visible = false
+			bitten += 1
+			Sfx.play("bite", mouth, 0.7, randf_range(0.95, 1.15))
+		await get_tree().process_frame
+	item.queue_free()
+	_clear_pose(pl)
+	pl.model.play("idle", 0.25)
+	pl.hp = minf(pl.max_hp, pl.hp + pl.max_hp * 0.3)
+	pl.chakra = minf(pl.max_chakra, pl.chakra + pl.max_chakra * 0.3)
+	Aging.feed(0.02)
+	LazyFx.g("ClanMech").on_eat()
+	Hud.msg(LazyFx.g("Lang").t("%s yedin: can ve chakra biraz doldu.") % String(sn[0]), Color(1.0, 0.9, 0.6))
+	_release_player()
+	busy_run = false
+
+
+# ====================================================================== köydeki kedi / köpeği sevme
+## [F] Sev: oyuncu hayvanın yanına gider, diz çöker, sırtını okşar; kedi oturup kuyruğunu diker ve mırlar, köpek kuyruk sallayıp
+## zıplar. Bitince köpek bir süre peşinden gelir, kedi bacağına sürtünüp yoluna gider.
+func pet_animal(an: Node3D) -> void:
+	if busy_run or not is_instance_valid(an):
+		return
+	busy_run = true
+	var pl = Game.player
+	_lock(12.0)
+	an.pet_begin(pl)
+	await _stand_at(an, 0.42 if an.is_dog else 0.36)
+	if not is_instance_valid(an):
+		_release_player()
+		busy_run = false
+		return
+	_look_at(pl, an.global_position)
+	an.pet_face(pl)
+	_pose(pl, "pet", {"sit": "seiza", "anim": "idle", "with": an, "lift": 0.0, "h": 0.5 if an.is_dog else 0.36, "len": 0.16 if an.is_dog else 0.11})
+	await _wait(0.6)
+	if is_instance_valid(an):
+		Sfx.play("th_dog" if an.is_dog else "pickup", an.global_position, 0.5, 1.2 if an.is_dog else 1.9)
+		Combat.popup_text(an.global_position + Vector3.UP * 0.8, "Hav! Hav!" if an.is_dog else "Mrrr...", Color(1.0, 0.9, 0.6))
+	await _wait(1.9)
+	if is_instance_valid(an):
+		Combat.popup_text(an.global_position + Vector3.UP * 0.8, "♥", Color(1.0, 0.45, 0.55))
+	await _wait(1.6)
+	_clear_pose(pl)
+	pl.model.play("idle", 0.25)
+	if is_instance_valid(an):
+		an.pet_end(pl)
+	_release_player()
+	busy_run = false
 
 
 # ====================================================================== gidip gelen görev veren (pazara giden anne)

@@ -775,6 +775,24 @@ static func _family(clan: String, female: bool, rank: int) -> Array:
 	return fam
 
 
+## Tanışılan ninjanın rütbesi giydiği üniformadan: chūnin yeleği giyen kendini genin diye tanıtmaz (eskiden yelek alanına
+## bakılıyordu; üniformalar sete geçince rütbe yazı turaya kalmıştı)
+static func _rank_of(v: Node, age: String) -> int:
+	if age == "teen":
+		return 0
+	var worn = String(v.get("oarch")) if v.get("oarch") != null else ""
+	for val in (v.look as Dictionary).values():
+		if val is String:
+			worn += " " + String(val)
+	if worn.contains("jonin") or v.role in ["teacher", "guard"]:
+		return 2
+	if worn.contains("chunin") or v.look.get("vest") != null:
+		return 1
+	if worn.contains("genin"):
+		return 0
+	return randi_range(0, 1)
+
+
 static func _meet(v: Node, name_over := "", silent := false) -> void:
 	var fs = all()
 	var female = String(v.look.get("gender", "m")) == "f"
@@ -787,8 +805,12 @@ static func _meet(v: Node, name_over := "", silent := false) -> void:
 		eye = [int(v.eye_kind), int(v.eye_lvl)]
 	if name_over != "":
 		given = name_over
+	elif clan == "":
+		var ns = LazyFx.g("VillageFall").new_surname(LazyFx.g("VillageFall").vid_at(v.global_position, 1.05))   # yeniden kurulan köyün yeni aileleri
+		if ns != "":
+			given = "%s %s" % [ns, given]
 	var age = String(v.look.get("age", "adult"))
-	var rank = 0 if age == "teen" else (2 if v.role in ["teacher", "guard"] else (1 if v.look.get("vest") != null else randi_range(0, 1)))
+	var rank = _rank_of(v, age)
 	var id = "f%d" % (int(pr().get("friend_seq", 0)) + 1)
 	pr()["friend_seq"] = int(pr().get("friend_seq", 0)) + 1
 	var lk: Dictionary = v.look.duplicate()

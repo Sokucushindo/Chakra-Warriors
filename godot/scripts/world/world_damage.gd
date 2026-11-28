@@ -950,6 +950,7 @@ func _process(dt: float) -> void:
 		return
 	_drain()
 	LazyFx.g("VillageRuin").tick(dt, self)   # köy saldırısından kalan kalıcı yıkıntı bölgeleri
+	LazyFx.g("VillageFall").tick(dt)   # yok edilmiş köyün yeniden kurma noktası
 	if _recent.size() > 256:
 		_recent.clear()
 	# yangınlar: ağaç/ev kararır, süre bitince kömür / yıkım; ağaçtan ağaca sınırlı yayılım

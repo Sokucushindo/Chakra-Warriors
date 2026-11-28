@@ -294,6 +294,35 @@ static func _card(code_key: String, code: String, pos: Vector3, size: float, nor
 	return mi
 
 
+## Araziye serilen göl (sümük / mürekkep): düz kart eğimli arazide yarısı toprağın altında, yarısı havada kalıyordu
+## (Saiken'in sümüğü "yerin altına giriyor"). Izgara köşeleri tek tek arazi yüksekliğine oturur; shader ve süre düz kartla aynı.
+static func _pool(code_key: String, code: String, c: Vector3, size: float, dur: float, params := {}) -> MeshInstance3D:
+	var mi := _card(code_key, code, c, size, Vector3.UP, dur, params, false)
+	if mi == null:
+		return null
+	var n := 18
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var hs := []
+	for iz in n + 1:
+		for ix in n + 1:
+			var u := float(ix) / n
+			var v := float(iz) / n
+			var x := c.x + (u - 0.5) * size
+			var z := c.z + (v - 0.5) * size
+			hs.append(Vector3(x, Game.ground_height(x, z) + 0.22, z))
+	for iz in n:
+		for ix in n:
+			var i0 := iz * (n + 1) + ix
+			for k in [i0, i0 + 1, i0 + n + 2, i0, i0 + n + 2, i0 + n + 1]:
+				st.set_uv(Vector2(float(k % (n + 1)) / n, float(k / (n + 1)) / n))
+				st.set_normal(Vector3.UP)
+				st.add_vertex(hs[k] - c)
+	mi.mesh = st.commit()
+	mi.global_transform = Transform3D(Basis.IDENTITY, c)
+	return mi
+
+
 static func _ground(c: Vector3) -> Vector3:
 	return Vector3(c.x, Game.ground_height(c.x, c.z) + 0.45, c.z)
 
@@ -640,7 +669,7 @@ static func field(c: Vector3, r: float, col: Color, dur: float, kind: String) ->
 	var g := _ground(c)
 	match kind:
 		"saiken":
-			_card("goo", _GOO, g, r * 2.0, Vector3.UP, dur, {"col": col}, false)
+			_pool("goo", _GOO, g, r * 2.0, dur, {"col": col})
 			var t := _tree()
 			for k in int(dur / 0.8):
 				t.create_timer(k * 0.8).timeout.connect(func():
@@ -651,7 +680,7 @@ static func field(c: Vector3, r: float, col: Color, dur: float, kind: String) ->
 				t2.create_timer(k * 0.6).timeout.connect(func():
 					_parts(g + Vector3.UP * r * 0.4, _drop_mesh(col, 4.0), 40, 1.6, 0.3, 1.5, Vector3.UP, 180.0, Vector3(0, -0.4, 0), 0.5, 1.2, r * 0.9, false, [[0.0, 0.0], [0.3, 1.0], [1.0, 0.0]], 0.5))
 		_:
-			_card("ink", _INK, g, r * 2.0, Vector3.UP, dur, {}, false)
+			_pool("ink", _INK, g, r * 2.0, dur)
 			_parts(g + Vector3.UP * 0.5, _drop_mesh(Color(0.03, 0.02, 0.05)), 20, 1.0, r * 0.6, r * 1.2, Vector3.UP, 60.0, Vector3(0, -20, 0), r * 0.05, r * 0.1, r * 0.4)
 
 

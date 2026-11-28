@@ -12,8 +12,11 @@ func add(d: Dictionary) -> void:
 func nearest(p: Vector3) -> Dictionary:
 	var best = {}
 	var bd = 1e9
+	var dead_v = LazyFx.g("VillageFall").any_down()
 	for it in items:
 		var d: float = p.distance_to(it["pos"])
+		if dead_v and d < 12.0 and LazyFx.g("VillageFall").dead_at(it["pos"]):
+			continue   # yok edilmiş köy: dükkân, görev masası, kapı çalışmaz
 		if it.has("home_of") and String(it["home_of"]) != Progress.home():
 			continue   # başka köydeki boş ev: senin evin değil
 		var rr: float = float(it["radius"])

@@ -50,7 +50,7 @@ func _village_at(p: Vector3) -> Dictionary:
 	var m = Game.to_map(p)
 	for v in Game.world_info["villages"]:
 		if m.distance_to(Vector2(v["x"], v["y"])) < float(v["r"]) * 1.05:
-			return v
+			return {} if LazyFx.g("VillageFall").down(String(v["id"])) else v   # yok edilmiş köyde kimse yaşamaz
 	return {}
 
 
@@ -954,7 +954,7 @@ func _open_site(key: String, s: Dictionary) -> void:
 	var f: float = s.get("face", 0.0)
 	match s["type"]:
 		"stall":
-			queue.append(["site", key, "vendor", {"pos": s["back"], "face": f + PI, "fixed_face": true}])
+			queue.append(["site", key, "vendor", {"pos": s["back"], "face": f + PI, "fixed_face": true, "stall_kind": int(s.get("kind", -1))}])
 		"spar":
 			queue.append(["site", key, "spar", {"pos": pos + Vector3(1.1, 0, 0), "pair": "a"}])
 			queue.append(["site", key, "spar", {"pos": pos - Vector3(1.1, 0, 0), "pair": "b"}])
@@ -1010,7 +1010,7 @@ func _spawn_site_actor(key: String, role: String, d: Dictionary) -> void:
 	if not active_sites.has(key):
 		return
 	var extra = {}
-	for k in ["fixed_face", "work_anims", "work_points", "display_override", "lines_override", "eat_mode", "wander_r", "job", "jd", "look_extra"]:
+	for k in ["fixed_face", "work_anims", "work_points", "display_override", "lines_override", "eat_mode", "wander_r", "job", "jd", "look_extra", "stall_kind"]:
 		if d.has(k):
 			extra[k] = d[k]
 	# bu yerde tanıştığın biri varsa o gelir (adı, görünüşü); yoksa sıradan biri

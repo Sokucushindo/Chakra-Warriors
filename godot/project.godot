@@ -78,6 +78,10 @@ g_night={
 "type": "float",
 "value": 0.0
 }
+g_shade={
+"type": "float",
+"value": 1.0
+}
 
 g_ripples={
 "type": "sampler2D",

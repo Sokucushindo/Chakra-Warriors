@@ -22,6 +22,8 @@ var tint = Color(0, 0, 0, 0)
 var tint_target = Color(0, 0, 0, 0)
 var fog_k := 0.0004   # açık havada uzak pus yoğunluğu (görüş mesafesine bölünür)
 
+const DAY_SHADE := 0.17  # gündüz güneş gölgesi tabanının çarpanı (1 = eski soluk gölge)
+const DAY_AMB := 0.13     # gündüz ortam ışığı (eski 0.3)
 const PAL := {
 	# zaman: [zenith, horizon, sun color, sun energy, ambient]
 	"night": [Color(0.02, 0.04, 0.12), Color(0.08, 0.12, 0.22), Color(0.55, 0.65, 0.95), 0.34, Color(0.26, 0.3, 0.47)],   # ay ışığı: şehir karanlıkta kalmasın
@@ -302,6 +304,12 @@ func _process(dt: float) -> void:
 	var warm = clampf((0.78 - p[2].b / maxf(p[2].r, 0.01)) / 0.32, 0.0, 1.0)
 	env.adjustment_saturation = lerpf(1.35, 1.05, warm)
 	sun.light_energy = p[3] * (1.0 - overcast * 0.4)
+	# gündüz gölgesi: öğle ışığında gölge tabanı açık kaldığından gölgeler seçilmiyordu ("gündüz gölge yok gibi"); güneş güçlendikçe
+	# gölge tabanı kısılır ve ortam ışığı düşer. Akşam / gece (beğenilen görünüş) aynı kalır.
+	var dayk = smoothstep(1.0, 1.5, float(p[3])) * (1.0 - overcast * 0.5)
+	RenderingServer.global_shader_parameter_set("g_shade", lerpf(1.0, DAY_SHADE, dayk))
+	if not space:
+		env.ambient_light_energy = lerpf(0.3, DAY_AMB, dayk)
 	env.ambient_light_color = p[4].lerp(Color(0.5, 0.52, 0.58), overcast * 0.35)
 	env.fog_light_color = hor.lerp(Color(0.45, 0.65, 0.95), 0.4)  # pus beyaz değil, gök mavisi
 	if weather == "kar":

@@ -71,6 +71,44 @@ static func heir() -> String:
 	return String(hs[0]) if not hs.is_empty() else ""
 
 
+## Ironman: savaşta ölen karakterin yolu çocuğuna geçer (sahne yok; ölüm ara sahnesinin karanlığında çağrılır)
+static func fallen(h: String) -> void:
+	var pl = Game.player
+	var p = pr()
+	if pl == null or not Friends.all().has(h):
+		return
+	var old_name = String(p.get("name", ""))
+	var yrs = int(Aging.player_years())
+	var kid_years = Aging.person_years(Friends.all()[h])
+	var was_kage = Kage.is_kage()
+	var home = Progress.home()
+	var me_id = Legacy.inherit(h)
+	var me: Dictionary = Friends.all()[me_id]
+	Aging.set_years(me, float(yrs))
+	me["status"] = "öldü"
+	me["party"] = false
+	me["title"] = "Rahmetli annen" if String(me.get("kin", "")) == "anne" else "Rahmetli baban"
+	Friends.log_event(me, "%d yaşında, savaşta öldü" % yrs)
+	Aging.set_years(p, kid_years)
+	p.erase("life")
+	p["body"] = {"fat": 0.0, "mus": 0.0}
+	p["ironman"] = true
+	if p.has("flags"):
+		p["flags"].erase("old_warned")
+		p["flags"].erase("old_noheir")
+	if Orgs.is_rogue():
+		Orgs.flags()["rogue"] = false
+		Orgs.flags().erase("hideout")
+		Orgs.state()["bounty"] = 0
+	if was_kage:
+		Kage.succeed(home, "%s savaşta öldü" % old_name)
+	pl.rebuild_model()
+	pl.apply_profile_stats()
+	Progress.on_power_changed()
+	Journal.add("%s savaşta düştü. Alın koruyucusu artık bende." % old_name, "milestone")
+	Game.save_game()
+
+
 static func _die_with(h: String) -> void:
 	if is_instance_valid(cur) or not Friends.all().has(h):
 		return

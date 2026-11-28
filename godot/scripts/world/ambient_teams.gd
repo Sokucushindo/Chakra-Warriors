@@ -39,8 +39,13 @@ func _process(dt: float) -> void:
 			teams.erase(tm)
 			continue
 		var lead = ns[0]
-		lead.goal = tm["dest"]
-		var fw: Vector3 = (tm["dest"] - lead.global_position)
+		# yol boyunca: sıradaki yol noktasına yürür, varınca bir sonrakine geçer (eskiden kırdan dümdüz kesip geçiyorlardı)
+		var path: Array = tm.get("path", [])
+		while path.size() > 1 and Vector2(lead.global_position.x - path[0].x, lead.global_position.z - path[0].z).length() < 5.0:
+			path.pop_front()
+		var aim: Vector3 = path[0] if not path.is_empty() else tm["dest"]
+		lead.goal = aim
+		var fw: Vector3 = (aim - lead.global_position)
 		fw.y = 0
 		fw = fw.normalized() if fw.length() > 0.1 else Vector3.FORWARD
 		var sd = fw.cross(Vector3.UP)
@@ -76,6 +81,22 @@ func _outdoors(p: Vector3) -> bool:
 	return true
 
 
+## Oyuncunun yakınındaki yolda, yol boyunca ~120 m ötede başlayıp oyuncunun yanından geçerek ~400 m giden nokta dizisi.
+## Yakında yol yoksa boş.
+func _road_path(pp: Vector3) -> Array:
+	var ang = randf() * TAU
+	var a: Array = Game.road_walk(pp, pp + Vector3(cos(ang), 0, sin(ang)) * 50.0, 150.0, randf_range(100.0, 140.0))
+	if a.size() < 2:
+		return []
+	var start: Vector3 = a[a.size() - 1]
+	if start.distance_to(pp) < 60.0 or Game.terrain_height(start.x, start.z) < -0.5:
+		return []
+	var out: Array = Game.road_walk(start, start + (start - pp), 20.0, 400.0)   # oyuncuya doğru olan yön
+	if out.size() < 2 or (out[0] as Vector3).distance_to(out[out.size() - 1]) < 60.0:
+		return []
+	return out
+
+
 func _spawn(pp: Vector3) -> void:
 	# oyuncunun önünde, yanından geçecek bir rota: yan taraftan çıkıp karşıya doğru yürürler
 	var fw: Vector3 = Game.player.face_dir() if Game.player.has_method("face_dir") else Vector3.FORWARD
@@ -88,6 +109,11 @@ func _spawn(pp: Vector3) -> void:
 		return
 	var dest = start - side * randf_range(220.0, 320.0) + fw * randf_range(-40.0, 40.0)
 	dest.y = Game.ground_height(dest.x, dest.z)
+	# yakında yol varsa takım yolun üstünde doğar ve yolu izler (göreve giden / dönen takım); yol yoksa kırdan geçer
+	var path: Array = _road_path(pp)
+	if not path.is_empty():
+		start = path.pop_front()
+		dest = path[path.size() - 1]
 	var vid = LazyFx.g("Outfits").village_near(start)
 	var hi: Dictionary = Progress.HOME_VILLAGES.get(vid, Progress.HOME_VILLAGES["konoha"])
 	# köyün kalıcı takımlarından biri (isimleri, görünüşleri, rütbeleri kayıtlı; tanışınca dost olurlar)
@@ -152,7 +178,7 @@ func _spawn(pp: Vector3) -> void:
 		nodes.append(n)
 	if nodes.is_empty():
 		return
-	teams.append({"nodes": nodes, "dest": dest, "key": "%s:%d" % [vid, ti]})
+	teams.append({"nodes": nodes, "dest": dest, "path": path, "key": "%s:%d" % [vid, ti]})
 
 
 ## Köyün kalıcı takımları (ilk görüldüğünde üretilir, kayda yazılır): 4 genin takımı (jōnin hoca + 3 genin) ve 1 chūnin üçlüsü

@@ -29,6 +29,7 @@ uniform float rings_r = 0.0;
 uniform float rings_l = 0.0;
 // tasarım (hepsi göz arası mesafe biriminde)
 uniform float eye_d = 0.08;
+uniform vec2 shut = vec2(0.0);   // x: sağ göz, y: sol göz — 1 = göz çıkarılmış: kapak kapalı, kapaktan kan süzülür
 uniform vec4 sh_a = vec4(-0.22, 0.26, 0.0, 0.01);   // iç köşe x, dış köşe x, iç köşe y, dış köşe y
 uniform vec4 sh_b = vec4(0.16, 0.45, 0.8, 0.0);     // üst kapak: yükseklik, tepe yeri, yuvarlaklık üssü
 uniform vec4 sh_c = vec4(0.10, 0.5, 0.9, 0.0);      // alt kapak: derinlik, dip yeri, yuvarlaklık üssü
@@ -72,6 +73,27 @@ void fragment() {
 	float yu = yb + sh_b.x * arc(tc, sh_b.y, sh_b.z);
 	float yl = yb - sh_c.x * arc(tc, sh_c.y, sh_c.z);
 	float in_x = smoothstep(0.0, aa * 2.0, t) * (1.0 - smoothstep(1.0 - aa * 2.0, 1.0, t));
+	if ((left ? shut.y : shut.x) > 0.5) {
+		// çıkarılmış göz (kanon: Shisui): kapak kapalı — aşağı bombeli tek kalın çizgi + kısa kirpikler, altından kan izleri
+		float yq = yb - sh_c.x * 0.55 * arc(tc, 0.5, 1.0);
+		float thq = lash_a.x * 0.6 + lash_a.y * 0.5 * pow(tc, 1.5) + 0.006;
+		float cl = (1.0 - smoothstep(thq - aa, thq + aa, abs(p.y - yq))) * in_x;
+		float bl = 0.0;
+		float wspan = sh_a.y - sh_a.x;
+		for (int i = 0; i < 3; i++) {
+			float x0 = (i == 0) ? 0.28 : ((i == 1) ? 0.52 : 0.74);
+			float len = (i == 0) ? 0.34 : ((i == 1) ? 0.62 : 0.24);
+			float bw = (i == 1) ? 0.03 : 0.022;
+			float yq0 = mix(sh_a.z, sh_a.w, x0) - sh_c.x * 0.55 * arc(x0, 0.5, 1.0);
+			float dx = abs(t - x0) * wspan + sin(p.y * 23.0 + float(i) * 2.1) * 0.006;
+			float band = (1.0 - smoothstep(bw - aa, bw + aa, dx)) * step(yq0 - len, p.y) * step(p.y, yq0);
+			float drop = 1.0 - smoothstep(bw * 1.7 - aa, bw * 1.7 + aa, length(vec2(dx, (p.y - (yq0 - len)) * 0.8)));
+			bl = max(bl, max(band, drop));
+		}
+		if (max(cl, bl) < 0.5) discard;
+		ALBEDO = mix(mix(vec3(0.46, 0.02, 0.03), line_col.rgb, cl), vec3(1.0), hit_flash);
+		ROUGHNESS = 0.6;
+	} else {
 	float inside = smoothstep(yl - aa, yl + aa, p.y) * (1.0 - smoothstep(yu - aa, yu + aa, p.y)) * in_x;
 	// üst kirpik çizgisi: içte ince, dışa doğru kalınlaşır
 	float th = (lash_a.x + lash_a.y * pow(tc, 1.5)) * smoothstep(-0.02, 0.14, t);
@@ -207,4 +229,5 @@ void fragment() {
 	}
 	col = mix(col, line_col.rgb, max(line, cr * (1.0 - inside)));
 	ALBEDO = mix(col, vec3(1.0), hit_flash);
+	}
 }

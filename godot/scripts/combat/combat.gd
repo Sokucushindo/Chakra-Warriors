@@ -682,9 +682,25 @@ func faction_hostile(fa: String, fb: String) -> bool:
 
 
 ## Küre içinde kalan düşman savaşçılara vurur. Vurulanları döndürür.
+## Kaçak ninja (nukenin) köylüyle konuşmadan vurur: hasarlı vuruşu alandaki köylüye / köy ninjasına / klan sakinine değerse
+## o kişi yerinde gerçek savaşçıya döner (Crime.attack — konuşmadaki "Saldır!" ile aynı) ve aynı vuruşu yer.
+## Köyüne bağlı oyuncuda yok: düz vuruş yanlışlıkla suç sayılmasın (yalnız konuşmadan saldırır).
+func _rogue_strike(attacker: Node3D, center: Vector3, radius: float, info: Dictionary) -> void:
+	if not attacker is Player or float(info.get("dmg", 0.0)) <= 0.0 or info.get("heal", false):
+		return
+	# köylüye inen her gerçek vuruş saldırıdır (konuşmadaki "saldır" seçeneğine gerek yok); kimse görmezse alarm çalmaz
+	for v in get_tree().get_nodes_in_group("talkers"):
+		if not is_instance_valid(v) or not v is Villager or not v.visible or v.is_queued_for_deletion():
+			continue
+		var d: Vector3 = v.global_position + Vector3.UP * 0.9 - center
+		if d.length() < radius + 0.5:
+			LazyFx.g("Crime").on_struck(v)
+
+
 func hit_sphere(attacker: Node3D, center: Vector3, radius: float, info: Dictionary, exclude: Array = []) -> Array:
 	var hits: Array = []
 	WorldDamage.impact(center, radius, info)   # ağaçlar/evler yanar, devrilir, yıkılır
+	_rogue_strike(attacker, center, radius, info)
 	if String(info.get("element", "")) == "fuuton" and get_tree().has_group("kemuri_bulut"):
 		load("res://scripts/combat/fx/kemuridama_fx.gd").wind(center, radius)   # rüzgâr dumanı dağıtır
 	for f in get_tree().get_nodes_in_group("fighters"):
@@ -773,6 +789,7 @@ func hit_zone(attacker: Node3D, origin: Vector3, dir: Vector3, reach: float, hal
 	dir = dir.normalized() if dir.length() > 0.01 else Vector3.ZERO
 	WorldDamage.impact(origin + dir * reach * 0.55, reach * 0.45, info)
 	var cmin = cos(deg_to_rad(half_deg))
+	_rogue_strike(attacker, origin + dir * reach * 0.55, reach * 0.55, info)
 	if attacker is Player:
 		for n in get_tree().get_nodes_in_group("ambient_team"):
 			if is_instance_valid(n) and not n.dead and (n.global_position - origin).length() < reach + 1.0:

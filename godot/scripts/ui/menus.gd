@@ -483,6 +483,7 @@ static func _eye_remove(pr: Dictionary, slot: String) -> void:
 		return
 	g["own"] = String(g.get("origin", "dogustan")) == "dogustan"
 	pr["equip"].erase(slot)
+	LazyFx.g("Gear").eye_gone_mark(pr, slot)
 	_eye_refresh(pr)
 	Hud.msg("Göz çıkarıldı ve kavanoza kondu.", Color(1, 0.8, 0.6))
 
@@ -495,6 +496,8 @@ static func _eye_destroy(pr: Dictionary, uid: int) -> void:
 	for s in pr["equip"].keys():
 		if int(pr["equip"][s]) == uid:
 			pr["equip"].erase(s)
+			if String(s) in ["sag_goz", "sol_goz"]:
+				LazyFx.g("Gear").eye_gone_mark(pr, String(s))
 	pr["gear"].erase(g)
 	_eye_refresh(pr)
 	Hud.msg("Göz yok edildi.", Color(1, 0.7, 0.6))
@@ -900,6 +903,10 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 			name_edit.text_changed.connect(func(t): state["name"] = t)
 			nrow.add_child(name_edit)
 			carousel.call("Cinsiyet", "gender", ["m", "f"], ["Erkek", "Kadın"])
+			if not state.has("ironman"):
+				state["ironman"] = false
+			var irc: VBoxContainer = carousel.call("Oyun Modu", "ironman", [false, true], ["Normal", "Ironman"])
+			note.call(irc, "Ironman: ölüm kalıcıdır. Karakterin ölünce kayıt silinir; yalnız yolunu devralacak bir çocuğun varsa oyun onunla sürer." if state["ironman"] else "Normal: yenilince hastanede uyanırsın.", LazyFx.g("UI").ACCENT if state["ironman"] else LazyFx.g("UI").CREAM)
 			var vids = Progress.HOME_VILLAGES.keys()
 			var vc: VBoxContainer = carousel.call("Köy", "village", vids, vids.map(func(x): return Game.village(x).get("name", x)))
 			var vinfo = Progress.HOME_VILLAGES.get(state.get("village", "konoha"), {})

@@ -991,7 +991,16 @@ static func edge_dist(c: Node3D, t: Node3D) -> float:
 	return maxf(0.0, t.global_position.distance_to(c.global_position) - (r if r > 1.0 else 0.0))
 
 
+## Uzak tekniklerin menzil çarpanı (kullanıcı 2026-11-28: "atılan tüm teknikler harita boyutuna göre kısa"): hedef yakalama
+## mesafesi 12 m ve üstü olan her teknik (oyuncu + düşman aynı) bu kadar uzağa uzanır; yakın dövüş teknikleri aynı kalır.
+const RANGE_K := 2.5
+const RANGE_MIN := 12.0
+static func far(rng: float) -> float:
+	return rng * RANGE_K if rng >= RANGE_MIN else rng
+
+
 static func _target_in_range(c: Node3D, t: Node3D, rng: float) -> Node3D:
+	rng = far(rng)
 	if t and is_instance_valid(t) and not t.is_dead() and edge_dist(c, t) < rng:
 		return t
 	if c is Player:   # oyuncu: rastgele en yakın düşman değil, nişangâhın üstündeki düşman

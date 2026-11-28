@@ -196,21 +196,27 @@ float vn(vec2 p) { vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3.0 - 2.0 
 	return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y); }
 void fragment() {
 	vec2 uv = UV;
-	float flow = TIME * 0.35;
-	float n = vn(vec2(uv.x * 3.0, uv.y * 2.0 - flow * 2.0)) * 0.6 + vn(vec2(uv.x * 7.0 + 3.0, uv.y * 5.0 - flow * 3.3)) * 0.4;
-	float streak = smoothstep(0.72, 0.8, n);
+	// dalga çizgileri dünya ölçüsünde (metre): eskiden parça UV'sinde hesaplanıyordu; uzun parçada gürültü hücreleri metrelerce
+	// büyüyüp suda köşeli soluk lekeler yapıyor, parça ekinde desen kırılıp çizgi çıkıyordu
+	vec2 q = wpos.xz;
+	vec2 q1 = mat2(vec2(0.8, 0.6), vec2(-0.6, 0.8)) * q * 0.55 + vec2(TIME * 0.11, -TIME * 0.07);
+	vec2 q2 = mat2(vec2(0.6, -0.8), vec2(0.8, 0.6)) * q * 1.3 + vec2(-TIME * 0.09, TIME * 0.13);
+	float n = vn(q1) * 0.6 + vn(q2) * 0.4;
+	// ince anime dalga çizgisi: gürültünün eş yükselti eğrisi (dolu leke değil), kenarı ekran çözünürlüğüne göre yumuşak
+	float w = fwidth(n) * 1.5 + 0.012;
+	float streak = (1.0 - smoothstep(0.0, w, abs(n - 0.62))) * smoothstep(0.25, 0.6, vn(q * 0.21 + 7.3));
 	float edge = smoothstep(0.12, 0.0, uv.x) + smoothstep(0.88, 1.0, uv.x);
 	vec3 deep = vec3(0.05, 0.2, 0.27);
 	vec3 shallow = vec3(0.13, 0.36, 0.42);
 	vec3 c = mix(deep, shallow, n * 0.6 + edge * 0.4);
-	c = mix(c, vec3(0.8, 0.92, 0.98), streak * 0.45 + edge * 0.18);
+	c = mix(c, vec3(0.8, 0.92, 0.98), streak * 0.22 + edge * 0.18);
 	vec4 rf = ripple_field(wpos.xz);   // jutsu / adım dalgaları (WaterWaves)
 	NORMAL = normalize(NORMAL + (VIEW_MATRIX * vec4(-rf.y, 0.0, -rf.z, 0.0)).xyz);
 	c = mix(c, vec3(0.92, 0.98, 1.0), rf.w * 0.8);
 	ALBEDO = c;
-	ROUGHNESS = 0.08;
+	ROUGHNESS = 0.42;   // 0.08: gök yansıması (düşük çözünürlüklü bulutlar) suda köşeli gri lekeler olarak görünüyordu
 	METALLIC = 0.0;
-	SPECULAR = 0.5;
+	SPECULAR = 0.35;
 	ALPHA = 0.88;
 }
 """

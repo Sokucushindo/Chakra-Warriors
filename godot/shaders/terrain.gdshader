@@ -5,6 +5,7 @@ render_mode cull_back, diffuse_toon, specular_disabled;
 
 #include "res://shaders/world_height.gdshaderinc"
 
+global uniform float g_shade;   // güneş gölgesinin koyuluğu: gündüz < 1 (gölge tabanı kısılır), akşam / gece 1
 uniform sampler2D albedo_map : source_color, filter_linear_mipmap, repeat_disable;
 uniform sampler2D road_tex : filter_linear, repeat_disable;   // oyuncu çevresindeki yollar (R) - RoadMap düğümü çizer
 uniform vec4 road_rect;                                         // x0, z0, boyut, -
@@ -21,6 +22,7 @@ uniform sampler2D tex_dirt : filter_linear_mipmap_anisotropic, repeat_enable;   
 uniform sampler2D tex_grass : filter_linear_mipmap_anisotropic, repeat_enable;    // çimenli zemin
 uniform sampler2D tex_snow : filter_linear_mipmap_anisotropic, repeat_enable;     // kar: rüzgârla dalgalanmış kar yüzeyi
 uniform float texel = 4.0;
+uniform float grass_tex_amt = 0.28;   // çimen zemin dokusunun gücü
 
 varying vec3 wpos;
 varying float slope;
@@ -143,7 +145,7 @@ void fragment() {
 		}
 		// gerçek çimen zemini: yakında ince yaprak dokusu, uzakta iri lekeler (iki ölçek: tekrar deseni görünmesin)
 		float gt = texture(tex_grass, wpos.xz * 0.16).r * 0.6 + texture(tex_grass, wpos.xz * 0.023 + 0.37).r * 0.4;
-		base *= 1.0 + (gt - 0.5) * 0.28;   // doku gri toprak fotoğrafı: güçlüyken (0.75) yeşili kirli çamur lekesine çeviriyordu
+		base *= 1.0 + (gt - 0.5) * grass_tex_amt;   // doku gri toprak fotoğrafı: güçlüyken (0.75) yeşili kirli çamur lekesine çeviriyordu
 		// koyulaşan yer kahveye değil derin yeşile gitsin: parlaklık düştükçe doygunluk artar, ton mavi-yeşile kayar
 		float glum = dot(base, vec3(0.299, 0.587, 0.114));
 		float gdark = clamp(1.0 - glum / 0.3, 0.0, 1.0);
@@ -292,7 +294,7 @@ void light() {
 	// ikinci bant yumuşak: düz zeminde ndl tam keskin eşiğe denk gelince her üçgen ayrı ton alıyor (kare kare zemin)
 	float t = smoothstep(-0.03, 0.05, ndl) * 0.6 + smoothstep(0.1, 0.65, ndl) * 0.4;
 	if (LIGHT_IS_DIRECTIONAL) {
-		vec3 shade = mix(mix(vec3(0.3, 0.33, 0.5), vec3(0.26, 0.4, 0.42), vgrass), vec3(1.0), t * ATTENUATION);   // koyu, belirgin gölge (eskisi 0.5: gölgeler seçilmiyordu)
+		vec3 shade = mix(mix(vec3(0.3, 0.33, 0.5), vec3(0.26, 0.4, 0.42), vgrass) * g_shade, vec3(1.0), t * ATTENUATION);   // koyu, belirgin gölge (eskisi 0.5: gölgeler seçilmiyordu)
 		shade *= 1.0 + clamp(dot(vbump, LIGHT) * 0.9, -0.32, 0.22) * ATTENUATION;   // tepe güneşte de kabartma seçilsin (toon bandı doyuyor)
 		DIFFUSE_LIGHT += LIGHT_COLOR * shade / PI;
 	} else {

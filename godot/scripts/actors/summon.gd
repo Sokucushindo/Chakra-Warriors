@@ -272,6 +272,8 @@ func _physics_process(dt: float) -> void:
 	else:
 		_ai(dt)
 	_animate(dt)
+	if mounted:
+		_seat_rider()
 	_mount_check()
 
 
@@ -1298,6 +1300,16 @@ func _ride(dt: float) -> void:
 					_seat = _stand_point(tr2, hc0.z - float(ha[1]) * 0.5, hc0.z + float(ha[1]) * 0.5, hc0.y + float(ha[1]) * 1.2)
 				else:
 					_seat = _stand_point(tr2, ab.position.z + ab.size.z * 0.02, ab.position.z + ab.size.z * 0.5)
+	_seat_rider()
+
+
+## Biniciyi durma noktasına koyar. Hayvanın o adımdaki hareketi (_animate: gövde dönüşü, kafa sallanması, sıçrama) bittikten
+## SONRA da çağrılır: eskiden yalnız hareketten önce konuyordu, binici kafanın bir önceki yerinde kalıp titriyor / kafanın
+## içine girip çıkıyordu (kuyruklu canavarda ölçülen aynı gecikme).
+func _seat_rider() -> void:
+	var pl: Player = owner_f
+	if pl == null or not is_instance_valid(pl) or _seat == Vector3.INF:
+		return
 	if _seat_snake != null and is_instance_valid(_seat_snake) and _seat_head != Vector3.INF:
 		pl.global_position = _seat_snake.holder.global_transform * _seat_snake.deform(_seat_head)
 	elif _seat_head != Vector3.INF and parts.get("head") != null and is_instance_valid(parts["head"]):

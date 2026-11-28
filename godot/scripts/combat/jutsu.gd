@@ -65,14 +65,14 @@ func soft_target(caster: Node3D) -> Node3D:
 		# önce ucuz mesafe elemesi (her karede çağrılır; köyde ~130 savaşçı): menzil dışındakiler düşmanlık denetimine girmez
 		var fp: Vector3 = f.global_position
 		var fh: float = f.height
-		if fp.distance_squared_to(from) > (53.0 + fh) * (53.0 + fh) and fp.distance_squared_to(caster.global_position) > 625.0:
+		if fp.distance_squared_to(from) > (118.0 + fh) * (118.0 + fh) and fp.distance_squared_to(caster.global_position) > 625.0:
 			continue
 		if f == caster or not Combat.hostile(caster, f) or f.is_dead():
 			continue
 		var c: Vector3 = fp + Vector3.UP * fh * 0.55
 		var v = c - from
 		var L = v.length()
-		if L > 45.0 + 8.0 or L < 1.0:
+		if L > 110.0 + 8.0 or L < 1.0:   # nişangâh yardımı uzak tekniklerin yeni menziline kadar (eskiden 45 m)
 			continue
 		var dt = v.normalized().dot(dir)
 		if dt > bd:
@@ -96,6 +96,7 @@ func _aim_flat(caster: Node3D, target: Node3D) -> Vector3:
 
 ## Yere hedefli jutsular için nokta: oyuncu kilitsizse nişangâh noktası (menzil sınırlı), değilse hedef
 func _aim_ground(caster: Node3D, target: Node3D, dist: float, max_d := 30.0) -> Vector3:
+	max_d = LazyFx.g("JutsuEngine").far(max_d)   # uzak tekniklerin menzil çarpanı (yere hedefli teknikler de uzağa düşer)
 	if caster is Player:
 		var lt = caster.combat.lock_target if caster.combat else null
 		if not (lt != null and is_instance_valid(lt) and target == lt):

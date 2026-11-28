@@ -1249,18 +1249,45 @@ static func _fukuso(user: Node3D, c: Dictionary) -> void:
 
 
 ## Parlak sümük gölü: içindekiler saplanır (çamur), Saiken'in izi
+## Araziye oturan yuvarlak göl gövdesi: halka halka köşeler arazi yüksekliğinde, ortası kalın kenarı ince (merkeze göre yerel)
+static func _draped_pool(center: Vector3, R: float, thick: float) -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var rings := 9
+	var segs := 28
+	var pts := []
+	for ir in rings + 1:
+		var row := []
+		var q := float(ir) / rings
+		for ia in segs:
+			var a := TAU * ia / segs
+			var wob := 1.0 + 0.07 * sin(a * 3.0 + center.x) + 0.05 * sin(a * 5.0 + center.z)   # kenar tam daire olmasın
+			var x := center.x + cos(a) * R * q * wob
+			var z := center.z + sin(a) * R * q * wob
+			row.append(Vector3(x, Game.ground_height(x, z) + 0.05 + thick * (1.0 - q * q), z) - center)
+		pts.append(row)
+	for ir in rings:
+		for ia in segs:
+			var ib := (ia + 1) % segs
+			for v in [pts[ir][ia], pts[ir + 1][ia], pts[ir + 1][ib], pts[ir][ia], pts[ir + 1][ib], pts[ir][ib]]:
+				st.add_vertex(v)
+	st.generate_normals()
+	return st.commit()
+
+
 static func _slime(user: Node3D, c: Dictionary) -> void:
 	var s: float = c["s"]
 	var center = _gp(c["aim"] if not _is_giant(user) else (user.global_position + _fwd(user) * float(user.height) * 0.6))
 	var R = 9.0 * s
 	var dur = 9.0
 	var dmg: float = c["dmg"]
-	var pool = _mi(_sph(0.5, 24, 6), _glass(SLIME, 0.7, 0.15))
+	# göl araziye serilir: eskiden basık bir küreydi; eğimli arazide yarısı toprağa gömülüp yarısı havada kalıyordu
+	var pool = _mi(_draped_pool(center, R, 0.22 * s), _glass(SLIME, 0.7, 0.15))
 	_scene().add_child(pool)
-	pool.global_position = center + Vector3.UP * 0.05
-	pool.scale = Vector3(0.5, 0.05, 0.5)
+	pool.global_position = center
+	pool.scale = Vector3.ONE * 0.05   # eşit ölçekle büyür: eğim açısı korunur, büyürken de yere oturur
 	var tw = pool.create_tween()
-	tw.tween_property(pool, "scale", Vector3(R * 2.0, 0.25 * s, R * 2.0), 0.4).set_ease(Tween.EASE_OUT)
+	tw.tween_property(pool, "scale", Vector3.ONE, 0.4).set_ease(Tween.EASE_OUT)
 	_fade_free(pool, dur, true)
 	LazyFx.g("BijuSaikenFX").splash(center, s)
 	Sfx.play("water", center, 0.4)
@@ -1419,11 +1446,9 @@ const TENTACLE := Color(0.55, 0.35, 0.4)
 
 static func _ink_puddle(pos: Vector3, s: float, dur: float) -> void:
 	var gp = _gp(pos)
-	var pd = _mi(_sph(0.5, 18, 5), _glass(Color(0.06, 0.04, 0.1), 0.92, 0.0))
+	var pd = _mi(_draped_pool(gp, 1.9 * s, 0.05), _glass(Color(0.06, 0.04, 0.1), 0.92, 0.0))   # araziye serili (basık küre eğimde gömülüyordu)
 	_scene().add_child(pd)
-	pd.global_position = gp + Vector3.UP * 0.04
-	pd.scale = Vector3(4.0 * s, 0.08, 3.4 * s)
-	pd.rotation.y = randf() * TAU
+	pd.global_position = gp
 	_fade_free(pd, dur, true)
 
 

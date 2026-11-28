@@ -74,6 +74,8 @@ func _ready() -> void:
 			var_count[t] = meshes[t].size()
 			if t == 9:
 				meshes[t].append([LazyFx.g("AnimeTree").mesh("forest", "death", 2), null])   # yalnız Ölüm Ormanı (var_count dışında)
+				for vv2 in [3, 4]:   # farklı dal düzenli iki çeşit daha (sıra 2 Ölüm Ormanı'na ayrılı)
+					meshes[t].append([LazyFx.g("Props").vegetation_mesh(t, vv2), null])
 		if t == 12:   # çiçek öbekleri: 6 farklı tür (öbek öbek, her öbekte tek tür)
 			meshes[t] = []
 			for v in LazyFx.g("Props").FLOWER_KINDS:
@@ -302,6 +304,8 @@ func _generate(key: Vector2i, detail: bool, holder: Dictionary) -> void:
 		var col := 1.0 + (rng.randf() - 0.5) * 0.2
 		var nv: int = var_count.get(t, 1)
 		var vi := int(rng.randf() * nv) % nv
+		if t == 9:
+			vi = [0, 1, 3, 4][int(col * 977.0) % 4]   # dört dal düzeni (sıra 2 = Ölüm Ormanı)
 		if death and t == 9:
 			vi = 2   # Ölüm Ormanı: orman devleri koyu, kasvetli taçlı (anime 44. Alan)
 		# yer örtüsü: düzgün serpme yerine doğal öbekler; her öbekte tek tür

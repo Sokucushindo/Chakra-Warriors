@@ -41,6 +41,15 @@ static func _root_of(vid: String) -> Node3D:
 
 
 static func _drop(st: Dictionary, restore: bool, host: Node) -> void:
+	for wr in st.get("big", []):
+		if wr.get_ref() != null:
+			wr.get_ref().visible = true
+	st.erase("big")
+	for bg in st.get("big_g", []):
+		for k in ["rubble", "rubble_cs"]:
+			if is_instance_valid(bg.get(k)):
+				bg[k].queue_free()
+	st.erase("big_g")
 	if restore and st.get("root_ref") != null and st["root_ref"].get_ref() != null and not st.get("busy", false):
 		_apply(st, -1.0, false, host)
 	for g in st.get("groups", []):
@@ -109,7 +118,9 @@ static func _hits(ab: AABB, c: Vector2, r: float) -> bool:
 
 
 ## Bölgenin (en büyük yarıçapıyla) kapsadığı örnekleri, kabukları ve çarpışma şekillerini çıkarır. Kare başına ~4 ms.
+static var _total := false   # şu an dizinlenen bölge yok edilmiş köy: önemli / girilebilen binalar da yıkılır
 static func _index(st: Dictionary, z: Dictionary, root: Node3D, host: Node) -> void:
+	_total = bool(z.get("total", false))
 	var tree = host.get_tree()
 	var c = Vector2(float(z["x"]), float(z["z"]))
 	var R = float(st["r_idx"]) + 2.0
@@ -118,6 +129,36 @@ static func _index(st: Dictionary, z: Dictionary, root: Node3D, host: Node) -> v
 	var begins: Array = []
 	var cells_on: bool = st.get("cells_on", false)
 	var cm: Array = []
+	# yok edilmiş köy (total): örnekli evlerin dışında kalan tek parça büyük yapılar (akademi, hastane, kule gibi önemli
+	# binalar) da iner — bölge içindeki bina boyundaki mesh'ler gizlenir (çarpışmaları aşağıdaki kümelemede moloza döner),
+	# bölge kalkınca geri gelir
+	if _total and not cells_on:
+		var big: Array = []
+		var big_g: Array = []
+		for mi in root.find_children("*", "MeshInstance3D", true, false):
+			if not mi.visible or mi.mesh == null or mi.get_parent() != root:
+				continue
+			var ab: AABB = mi.global_transform * mi.get_aabb()
+			var foot = maxf(ab.size.x, ab.size.z)
+			if ab.size.y < 5.0 or ab.size.y > 60.0 or foot < 6.0 or foot > 120.0:
+				continue
+			var bc = ab.get_center()
+			if Vector2(bc.x - c.x, bc.z - c.y).length() > R:
+				continue
+			mi.visible = false
+			big.append(weakref(mi))
+			# yerine moloz yığını (aynı yapının ayrı malzeme parçaları tek yığın)
+			var gp = Vector3(bc.x, Game.ground_height(bc.x, bc.z), bc.z)
+			if not big_g.any(func(o): return (o["pos"] as Vector3).distance_to(gp) < 7.0):
+				var bg = {"pos": gp, "w": ab.size.x, "d": ab.size.z, "wall": Color(0.8, 0.76, 0.68), "roof": Color(0.5, 0.3, 0.24), "basis": Basis.IDENTITY}
+				_rubble(bg, host, false)
+				var kx = maxf(1.0, ab.size.x / 26.0)
+				var kz = maxf(1.0, ab.size.z / 26.0)
+				if is_instance_valid(bg.get("rubble")):
+					bg["rubble"].scale = Vector3(kx, maxf(kx, kz), kz)
+				big_g.append(bg)
+		st["big"] = big
+		st["big_g"] = big_g
 	for mi in root.find_children("*", "MeshInstance3D", true, false):
 		if cells_on:
 			if mi.mesh is ArrayMesh and _hits(mi.global_transform * mi.get_aabb(), c, R):
@@ -195,7 +236,7 @@ static func _index(st: Dictionary, z: Dictionary, root: Node3D, host: Node) -> v
 		if g["house"]:
 			var pr = maxf(g["w"], g["d"]) * 0.6 + 3.0
 			var p: Vector3 = g["pos"]
-			for it in Interact.items:
+			for it in ([] if _total else Interact.items):
 				var ip: Vector3 = it["pos"]
 				if absf(ip.x - p.x) < pr and absf(ip.z - p.z) < pr:
 					g["prot"] = true
@@ -381,14 +422,14 @@ static func _cluster(free: Array, c: Vector2, R: float) -> Array:
 			home["h"] = maxf(float(home["h"]), float(f[9]) + float(f[8]) - (home["pos"] as Vector3).y)
 			continue
 		var rad = float(f[7])
-		if rad < 1.8 or rad > 24.0 or float(f[8]) < 2.6:
+		if rad < 1.8 or rad > (70.0 if _total else 24.0) or float(f[8]) < 2.6:
 			continue   # direk / çit çekirdek olmaz; dev yapılar (kule, sur, arena) ayakta kalır
 		var dist = Vector2(float(f[0]) - c.x, float(f[1]) - c.y).length()
 		if dist > R:
 			continue
 		var pos = Vector3(float(f[0]), Game.ground_height(float(f[0]), float(f[1])), float(f[1]))
 		var prot = false
-		for it in Interact.items:
+		for it in ([] if _total else Interact.items):
 			var ip: Vector3 = it["pos"]
 			if _in_foot(f, ip.x, ip.z, 3.0):
 				prot = true

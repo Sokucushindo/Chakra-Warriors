@@ -50,6 +50,10 @@ var hop_to := Vector3.ZERO
 var display := "Köylü"
 # yeni davranışlar
 var interior := false
+var _civ := -1          # -1 bilinmiyor, 0 ninja, 1 sivil (kan alarmında kaçar)
+var _scream_t := 0.0
+var stall_kind := -1
+var oarch := ""   # kıyafet arketipi (genin / chunin / jonin...): tanışınca rütbesi bundan gelir (üniforması ne diyorsa o)          # sokak tezgâhının türü (0 meyve-sebze, 1 balık, 2 dango, 3 çömlek): satıcıdan atıştırmalık alınır
 var display_override := ""
 var lines_override: Array = []
 var look_extra := {}         # rol görünümünün üstüne yazılır (Kage cüppesi, ANBU maskesi...)
@@ -162,7 +166,8 @@ func plan_look() -> void:
 		display = display_override
 	# rol kıyafet seti (özel görünüm verilmişse — Kage, ANBU... — dokunma)
 	if look_extra.is_empty():
-		lk.merge(LazyFx.g("Outfits").roll(_outfit_arch(), LazyFx.g("Outfits").village_near()), true)
+		oarch = _outfit_arch()
+		lk.merge(LazyFx.g("Outfits").roll(oarch, LazyFx.g("Outfits").village_near()), true)
 		if role == "job":
 			lk = VillagerJobs.finish_look(self, lk)
 	if look_extra.get("whole", false):
@@ -237,6 +242,14 @@ func _lines() -> Array:
 func talk() -> void:
 	if Orgs.rogue_confront(self):
 		return   # kaçaksın: köy ninjası konuşmaz, saldırır
+	if Orgs.is_rogue() and not Orgs.blood_on() and not interior and not Orgs._spared(self) and not LazyFx.g("Friends").is_ninja(self):
+		Combat.popup_text(global_position + Vector3.UP * 2.2, _greeting(), Color(1, 0.8, 0.6))
+		return   # kaçaksın: sivil seninle sohbet etmez, korkuyla cevap verip uzaklaşır
+	if Orgs.blood_on() and not interior:
+		# köyde kan döktün: kimse seninle konuşmaz — ailen ve dostların bile yüz çevirir
+		var mine = Orgs._spared(self)
+		Combat.popup_text(global_position + Vector3.UP * 2.2, (["Sen... ne yaptın?!", "Yaklaşma bana. Seni tanıyamıyorum.", "Bunu yapan sen misin?! Git buradan!"] if mine else ["Uzak dur benden!", "Lütfen... bana dokunma!", "Katil!"]).pick_random(), Color(1, 0.8, 0.6))
+		return
 	if Game.player:
 		var to = Game.player.global_position - global_position
 		facing = atan2(-to.x, -to.z)
@@ -260,6 +273,10 @@ func talk() -> void:
 		if String(rg.get("k", "")) in ["nefret", "minnet", "kage"]:
 			line = String(rg["line"])   # aranızda yaşanan, sıradan sözün önüne geçer
 	var extra = []
+	if role == "vendor" and MissionWork.SNACKS.has(stall_kind):
+		# tezgâhında ne varsa onu satar: al, tezgâhın önünde ye (para tezgâha, ürün elden, lokma lokma)
+		var sn: Array = MissionWork.SNACKS[stall_kind]
+		extra.append({"label": LazyFx.g("Lang").t("%s al (%d Ryō)") % [String(sn[0]), int(sn[1])], "tip": "Tezgâhın önünde yersin: can ve chakra biraz dolar.", "cb": func(): MissionWork.I().buy_snack(self, stall_kind)})
 	if has_meta("jinchuriki_of"):   # köyün jinchūriki'si: saldırılabilir; yenilince canavar bedeninden fışkırır (mühürle / salıver)
 		extra.append({"label": "Saldır! (içindeki canavarı al — köyde suç)", "cb": func(): TailedBeasts.attack_host(self)})
 	Hud.dialog(display, line, LazyFx.g("Friends").options_for(self) + (LazyFx.g("Friends").small_talk(self) if fid == "" else []) + extra + ([] if has_meta("jinchuriki_of") or not HomeLife.kid_of(self).is_empty() else LazyFx.g("Crime").attack_option(self)))
@@ -699,6 +716,26 @@ func _physics_process(dt: float) -> void:
 		return
 	elif not model.anim.is_playing():
 		model.anim.play()
+	# kan alarmı: köyde kan döküldü — siviller (çocuklar dahil) senden kaçar, selam / sohbet yok; ninjalar zaten saldırır
+	# kaçaksan da öyle: seni gören sivil selam vermez, kaçar
+	var blood = Orgs.blood_on()
+	if (blood or Orgs.is_rogue()) and dist < (48.0 if blood else 22.0) and not has_meta("struck") and not interior:
+		if _civ < 0:
+			_civ = 0 if LazyFx.g("Friends").is_ninja(self) else 1
+		if _civ == 1 and not Orgs._spared(self):
+			if _seat_on:
+				_unseat()
+			if _scream_t <= 0.0:
+				_scream_t = randf_range(4.0, 8.0)
+				Combat.popup_text(global_position + Vector3.UP * 2.2, (["Kaçın!", "Yardım edin!", "Katil!", "Muhafızlar!"] if blood else ["Kaçak ninja! Kaçın!", "Alın bandı çizik... uzak durun!", "Muhafızlar! Bir nukenin!"]).pick_random(), Color(1, 0.8, 0.6))
+			_scream_t -= dt
+			var away: Vector3 = global_position - pl.global_position
+			away.y = 0.0
+			if away.length() < 0.1:
+				away = Vector3(1, 0, 0)
+			step_move(LazyFx.g("NpcNav").steer(self, away.normalized(), dt) * 6.8 + _sep() * 1.8, dt)
+			model.play("run", 0.15)
+			return
 	_social(dt, dist)
 	if _seat_on and Engine.get_physics_frames() - _seat_frame > 2:
 		_unseat()   # artık oturmuyor: model yerine, tabure gizli
@@ -946,6 +983,8 @@ func _greeting() -> String:
 	var rank = int(Game.profile.get("rank", 0))
 	var t = Game.world.env.time_of_day if Game.world else 0.5
 	var hello = "Günaydın" if t < 0.42 else ("İyi akşamlar" if t > 0.72 else "Merhaba")
+	if Orgs.blood_on():
+		return ["Kaçın!", "O... az önce birini öldürdü!", "Yardım edin!"][randi() % 3]
 	if Orgs.is_rogue():   # kaçak: köy rütbesiyle selam yok — Bingo Kitabı sınıfına göre tedirginlik/korku
 		var rr = Orgs.rogue_rank()
 		if role in ["kid", "ball"]:

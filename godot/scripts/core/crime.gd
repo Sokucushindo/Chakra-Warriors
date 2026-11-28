@@ -15,6 +15,7 @@ const BETRAY := 40
 const GUARDS_AT := 30
 const OUTLAW_AT := 70
 
+var _pend: Array = []      # saldırı sonrası tanık denetimi bekleyenler: [{"vid", "t0"}]
 var victims: Array = []    # [{"node": Enemy, "vid", "fid", "civ", "dead"}]
 var guards: Array = []
 var t := 0.0
@@ -104,6 +105,8 @@ func attack(v: Node, alarm := false) -> void:
 		return
 	var at: Vector3 = v.global_position
 	var comps: Array = [] if alarm else _companions(v)   # birlikte gezenler (sohbet eşi, takım lideri / üyeleri) savaşa katılır
+	if not alarm and _village_at(at) != "":
+		_pend.append({"vid": _village_at(at), "t0": Game.now()})   # gören olursa köy alarma geçer (sessizce indirirsen çalmaz)
 	var fid = String(v.get_meta("friend_id", ""))
 	var civ = not LazyFx.g("Friends").is_ninja(v) and fid == ""
 	var plv = int(Game.profile.get("level", 1))
@@ -184,6 +187,21 @@ func attack(v: Node, alarm := false) -> void:
 
 
 ## Saldırılan kişiyle birlikte gezenler: sohbet eşi, takım lideri, aynı lidere bağlı takım üyeleri (yakındakiler; çocuklar hariç)
+## Ana menüye dönüş / oyun bitti: bu oturumun düşmanlığı sonraki oyuna taşınmaz (2026-11-28: Ironman'de ölüp yeni oyuna
+## başlayınca önceki oyunda saldırılan köy yeni karaktere saldırıyordu)
+func clear_session() -> void:
+	for vc in victims:
+		if vc is Dictionary and is_instance_valid(vc.get("node")):
+			vc["node"].queue_free()
+	for g in guards:
+		var gn = g.get("node") if g is Dictionary else g
+		if gn is Node and is_instance_valid(gn):
+			gn.queue_free()
+	victims.clear()
+	guards.clear()
+	_pend.clear()
+
+
 func _companions(v: Node) -> Array:
 	var out: Array = []
 	var lead = v.get("follow")
@@ -297,6 +315,25 @@ func _process(dt: float) -> void:
 	if t > 0.0:
 		return
 	t = 0.5
+	# tanık: seni gören biri (görüş hattı + bakış yönü) ya da dövüş 3 sn'yi aşınca sesi duyacak kadar yakın biri (45 m)
+	# varsa köy alarma geçer. Issız yerde kimse görmeden indirirsen alarm çalmaz; dövüş sürdükçe denetim de sürer
+	# (yoldan geçen devriye görürse çalar).
+	for pd in _pend.duplicate():
+		var age = Game.now() - float(pd["t0"])
+		if age < 0.6:
+			continue
+		var alive = victims.any(func(vc2): return String(vc2["vid"]) == String(pd["vid"]) and is_instance_valid(vc2["node"]) and not vc2["dead"] and not vc2["node"].is_dead())
+		var heard = false
+		if alive and age >= 3.0 and Game.player != null:
+			for n in get_tree().get_nodes_in_group("talkers"):
+				if (n is Villager or n is ClanResident) and is_instance_valid(n) and n.visible and not n.is_queued_for_deletion() and not n.get("interior") and n.global_position.distance_to(Game.player.global_position) < 45.0:
+					heard = true
+					break
+		if Orgs._spotted_by(String(pd["vid"])) > 0 or heard:
+			Orgs.blood_alarm(String(pd["vid"]))
+			_pend.erase(pd)
+		elif not alive and age >= 2.0:
+			_pend.erase(pd)
 	for vc in victims.duplicate():
 		var n = vc["node"]
 		if not is_instance_valid(n):
@@ -304,6 +341,7 @@ func _process(dt: float) -> void:
 			continue
 		if not vc["dead"] and n.is_dead():
 			vc["dead"] = true
+			LazyFx.g("VillageFall").on_kill(String(vc["vid"]))   # Kage'si ölmüş köyde düşen her kişi köyü yok oluşa yaklaştırır
 			var fid = String(vc["fid"])
 			if fid != "" and LazyFx.g("Friends").all().has(fid):
 				var f: Dictionary = LazyFx.g("Friends").all()[fid]

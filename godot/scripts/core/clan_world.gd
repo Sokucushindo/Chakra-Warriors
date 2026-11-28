@@ -550,17 +550,19 @@ func _village_here(p: Vector3) -> Dictionary:
 	var m := Game.to_map(p)
 	for v in Game.world_info["villages"]:
 		if m.distance_to(Vector2(v["x"], v["y"])) < float(v["r"]) * 0.95:
-			return v
+			return {} if LazyFx.g("VillageFall").down(String(v["id"])) else v   # yok edilmiş köyde klan sakini yok
 	return {}
 
 
 func _clans_of(vid: String) -> Array:
 	var out := []
+	if LazyFx.g("VillageFall").rebuilt(vid):
+		return out   # yeniden kurulan köye eski klanlar dönmez (yeni aileler: LazyFx.g("VillageFall").new_surname)
 	for c in Data.clans:
 		if c == "none" or c in Progress.UNPLAYABLE_CLANS:
 			continue   # Ōtsutsuki köylerde yaşamaz: yalnız Bingo Kitabı'nda
-		if vid in Data.clans[c].get("villages", []):
-			out.append(c)
+		if vid in Data.clans[c].get("villages", []) and not WorldPeople.clan_extinct(String(c), vid):
+			out.append(c)   # yok olmuş klanın mahallesi boş kalır
 	return out
 
 

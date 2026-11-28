@@ -3,6 +3,7 @@
 shader_type spatial;
 render_mode cull_disabled, diffuse_toon, specular_disabled;
 
+global uniform float g_shade;   // güneş gölgesinin koyuluğu: gündüz < 1 (gölge tabanı kısılır), akşam / gece 1
 uniform sampler2D tex : source_color, filter_linear_mipmap_anisotropic, hint_default_white;
 uniform vec4 tint : source_color = vec4(1.0);
 uniform bool cutout = false;
@@ -64,7 +65,7 @@ void light() {
 	float t = smoothstep(-0.03, 0.05, ndl) * 0.6 + smoothstep(0.42, 0.5, ndl) * 0.4;
 	float lit = t * ATTENUATION;
 	if (LIGHT_IS_DIRECTIONAL) {
-		vec3 shade = mix(vec3(0.29, 0.32, 0.45), vec3(1.0), lit);
+		vec3 shade = mix(vec3(0.29, 0.32, 0.45) * g_shade, vec3(1.0), lit);
 		DIFFUSE_LIGHT += LIGHT_COLOR * shade / PI;
 	} else {
 		DIFFUSE_LIGHT += LIGHT_COLOR * (0.35 + 0.65 * t) * ATTENUATION / PI;

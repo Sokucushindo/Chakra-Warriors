@@ -262,6 +262,7 @@ const PATHS := {
 	"VfxSerpent": "res://scripts/combat/vfx_serpent.gd",
 	"VillageBake": "res://scripts/world/village_bake.gd",
 	"VillageRuin": "res://scripts/world/village_ruin.gd",
+	"VillageFall": "res://scripts/core/village_fall.gd",
 	"VillageSpots": "res://scripts/world/village_spots.gd",
 	"VillageStyles": "res://scripts/world/village_styles.gd",
 	"WaterArt": "res://scripts/combat/water_art.gd",

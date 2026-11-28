@@ -1463,6 +1463,19 @@ static func is_equipped(p: Dictionary, g: Dictionary) -> bool:
 	return false
 
 
+## Göz yuvası boşaltıldı (çıkarma / yok etme / İzanagi bedeli): o göz artık kapalı durur, kan süzülür, ekranın o yarısı kararır
+static func eye_gone_mark(p: Dictionary, slot: String) -> void:
+	if not p.has("eye_gone"):
+		p["eye_gone"] = {}
+	p["eye_gone"][slot] = true
+
+
+## [sağ göz yok mu, sol göz yok mu] (yuvası boş ve göz çıkarılmış)
+static func eyes_gone(p: Dictionary) -> Array:
+	var gone: Dictionary = p.get("eye_gone", {})
+	return [bool(gone.get("sag_goz", false)) and equipped(p, "sag_goz").is_empty(), bool(gone.get("sol_goz", false)) and equipped(p, "sol_goz").is_empty()]
+
+
 static func equipped(p: Dictionary, slot: String) -> Dictionary:
 	return find(p, p.get("equip", {}).get(slot, -1))
 
@@ -1795,6 +1808,12 @@ static func apply_look(p: Dictionary) -> void:
 	for k in ["band", "vest", "mask", "weapon_r", "weapon_l", "head_style", "face_style", "outer_style", "back_item", "guards", "eye_r", "eye_l", "hood", "crest", "leg_warmers", "neck_warmer", "anbu_arm", "anbu_band", "anbu_leg", "anbu_tasset"]:
 		L[k] = null
 	L["band_style"] = "none"
+	# çıkarılmış göz (2026-11-28): yuvası boş VE daha önce bir göz çıkarılmışsa o göz kapalı + kanlı; yeni göz takılınca işaret kalkar
+	var gone: Dictionary = p.get("eye_gone", {})
+	for es in [["sag_goz", "eye_gone_r"], ["sol_goz", "eye_gone_l"]]:
+		if not equipped(p, es[0]).is_empty():
+			gone.erase(es[0])
+		L[es[1]] = bool(gone.get(es[0], false))
 	L["band_wear"] = null
 	L["gloves"] = false
 	L["arm_wraps"] = false
