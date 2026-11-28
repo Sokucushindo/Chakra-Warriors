@@ -123,19 +123,28 @@ func _ready() -> void:
 		if f is Enemy:
 			f.queue_free()
 	print("BL klan nüfusu=", WorldPeople.clans_left("konoha"), " Uchiha=", WorldPeople.clan_alive("uchiha", "konoha"))
-	LazyFx.g("VillageFall").on_kage_killed("konoha", true)
+	var kn0 = Kage.kage_name("konoha")
+	Kage.kage_killed("konoha", true)
 	await _w(0.5)
-	print("BL Kage öldü: düştü=", LazyFx.g("VillageFall").down("konoha"), " (false olmalı)")
-	var nd := 0
-	for wp in WorldPeople.all().values():
-		if String(wp["village"]) == "konoha" and String(wp["clan"]) != "" and WorldPeople.alive(wp) and not WorldPeople.is_rogue(wp):
-			wp["slain_by_player"] = true
-			WorldPeople._die(wp, "test")
-			nd += 1
-			if nd == 3:
-				print("BL 3 klan üyesi öldü: düştü=", LazyFx.g("VillageFall").down("konoha"), " kalan=", WorldPeople.clans_left("konoha"))
-	WorldPeople.clan_floor()
-	print("BL hepsi öldü (", nd, "): kalan=", WorldPeople.clans_left("konoha"), " yok olan klanlar=", WorldPeople.data().get("extinct", {}).keys())
+	print("BL Kage öldü: düştü=", LazyFx.g("VillageFall").down("konoha"), " kuşatma=", LazyFx.g("VillageFall").siege("konoha"), " yeni Kage seçildi mi=", Kage.kage_name("konoha") != kn0)
+	Orgs.blood_alarm("konoha")
+	var rounds := 0
+	while not LazyFx.g("VillageFall").down("konoha") and rounds < 12:
+		rounds += 1
+		Orgs._raid["t"] = 0.0
+		await _w(1.5)
+		var got := 0
+		for f in get_tree().get_nodes_in_group("fighters"):
+			if f is Enemy and not f.dead and f.has_meta("world_person") and f.has_meta("village_guard"):
+				got += 1
+				f.take_hit({"dmg": 1e9, "attacker": pl})
+				if not f.dead:
+					WorldPeople.on_enemy_died(f, {"attacker": pl})
+					f.queue_free()
+		await _w(0.6)
+		Orgs._raid["nodes"] = (Orgs._raid.get("nodes", []) as Array).filter(func(n): return is_instance_valid(n) and not n.dead and not n.is_queued_for_deletion()) if not Orgs._raid.is_empty() else []
+		print("BL kuşatma dalgası ", rounds, ": gelen=", got, " kalan=", WorldPeople.clans_left("konoha"), " düştü=", LazyFx.g("VillageFall").down("konoha"))
+	print("BL yok olan klanlar=", WorldPeople.data().get("extinct", {}).keys().size(), " Kage adı değişti mi=", Kage.kage_name("konoha") != kn0)
 	await _w(1.0)
 	print("BL düştü=", LazyFx.g("VillageFall").down("konoha"), " bölge=", Game.region_name(pl.global_position), " yıkıntı=", WorldAssault.ruins().size())
 	Orgs._blood = {}

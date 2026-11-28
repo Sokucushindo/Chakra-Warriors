@@ -475,6 +475,8 @@ func kage_killed(vid: String, by_player: bool) -> void:
 		Orgs.add_infamy(800)
 		change_relation(vid, -60)
 		LazyFx.g("VillageFall").on_kage_killed(vid, true)
+		if LazyFx.g("VillageFall").siege(vid):
+			return   # kuşatma: köy lidersiz kalır, yeni Kage ancak kuşatma kalkınca seçilir
 	succeed(vid, "savaşta öldürüldü")
 
 
@@ -517,7 +519,7 @@ func succeed(vid: String, why := "") -> void:
 				persona[k] = [wl[k].r, wl[k].g, wl[k].b] if wl[k] is Color else wl[k]
 		WorldDay.kage_take(wkage, vid)
 	else:
-		var clans: Array = (LazyFx.g("KageArts").STRONG.get(vid, []) as Array).filter(func(c): return Data.clans.has(c))   # Kage hep köyün güçlü klanlarından
+		var clans: Array = (LazyFx.g("KageArts").STRONG.get(vid, []) as Array).filter(func(c): return Data.clans.has(c) and not WorldPeople.clan_extinct(String(c), vid))   # Kage hep köyün güçlü klanlarından (yok olmuş klandan seçilmez)
 		var fem = randf() < 0.3
 		var kclan = String(clans.pick_random()) if not clans.is_empty() else ""
 		who = ClanWorld.person_name(kclan, fem) if kclan != "" else "%s %s" % [String(Missions.BB_FAMILY.pick_random()), (ClanWorld.GIVEN_F if fem else ClanWorld.GIVEN_M).pick_random()]

@@ -14120,5 +14120,7 @@
 "%s köyünde bu klandan yaşayan kimse kalmadı.": "No living member of this clan remains in %s.",
 "%s klanı %s köyünde yok oldu.": "The %s clan was wiped out in %s.",
 "%s lidersiz kaldı. Klanlarından %d ninja hâlâ ayakta: onlar da düşerse köy tamamen yok olur.": "%s is leaderless. %d ninja of its clans still stand: if they fall too, the village will be wiped out completely.",
-"%s: klanlarından %d ninja kaldı.": "%s: %d clan ninja remain."
+"%s: klanlarından %d ninja kaldı.": "%s: %d clan ninja remain.",
+"SON SAVUNMA": "LAST STAND",
+"%s — köyde %d klan ninjası kaldı.": "%s — %d clan ninja remain in the village."
 }
