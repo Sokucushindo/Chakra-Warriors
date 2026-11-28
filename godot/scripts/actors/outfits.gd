@@ -329,6 +329,7 @@ static func roll(arch: String, village := "") -> Dictionary:
 		for k in ["guards", "guard_stripes", "knee_wraps", "pants_flap", "gloves", "outer_style", "rope_belt"]:
 			L[k] = null if not k in ["knee_wraps", "gloves", "rope_belt"] else false
 		L["outer_style"] = null
+		L["vest"] = null   # setin kendi yeleği var (eski yelek kabuğu altından taşmasın)
 		Gear.preview_set_look(L, sid)
 		L["set_id"] = sid   # set bonusları (element güç/direnç) AI'da da
 		L["thigh_holster"] = true

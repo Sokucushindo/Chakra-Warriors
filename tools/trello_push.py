@@ -79,6 +79,8 @@ put('09 · Special Paths', 'Puppets (Shirogane clan and Akasuna Path)', G['Puppe
 put('14 · Akatsuki & Rogues', 'Akatsuki — full guide', G['Akatsuki'])
 put('17 · Tips & FAQ', 'Body is spent (forbidden power costs)', G['Body Is Spent (forbidden powers)'])
 put('04 · Jutsu & Chakra', 'Summons — giving orders (J / U) and riding', G['Summons — Giving Orders'])
+put('07 · Eyes (Dōjutsu)', 'Six Paths of Pain (Pein Rikudō)', G['Six Paths of Pain (Pein Rikudō)'])
+put('14 · Akatsuki & Rogues', 'Rogue ninja — how villages react', G['Rogue Ninja — How Villages React'])
 for t, d in cards_of('paths_en.md'):
     put('09 · Special Paths', t, d)
 for t, d in cards_of('clans_en.md'):
